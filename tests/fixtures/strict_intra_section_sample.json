@@ -1,0 +1,34 @@
+{
+  "pairs": [
+    {
+      "t1_table_id": "t1_10",
+      "t2_table_id": "t2_10",
+      "section": "capital_management",
+      "reason": "table_number_match"
+    }
+  ],
+  "unmatched_t1": [
+    {
+      "t1_table_id": "t1_removed",
+      "section": "capital_management",
+      "reason": "no_candidate_same_section"
+    },
+    {
+      "t1_table_id": "t1_unknown",
+      "section": "unknown_section",
+      "reason": "unknown_section"
+    }
+  ],
+  "unmatched_t2": [
+    {
+      "t2_table_id": "t2_added",
+      "section": "capital_management",
+      "reason": "unmatched"
+    },
+    {
+      "t2_table_id": "t2_unknown",
+      "section": "unknown_section",
+      "reason": "unknown_section"
+    }
+  ]
+}

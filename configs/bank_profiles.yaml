@@ -1,0 +1,623 @@
+version: "1.0"
+
+banks:
+  bnc:
+    name: "Banque Nationale du Canada"
+    short_name: "BNC"
+    file_patterns:
+      t1: "t1-rapport-actionnaire-2025.pdf"
+      t2: "t2-rapport-actionnaire-2025.pdf"
+      t3: "t3-rapport-actionnaire-2025.pdf"
+    sections:
+      capital_management:
+        names:
+          - "Gestion du capital"
+        keywords:
+          - "gestion du capital"
+          - "fonds propres"
+          - "ratio CET1"
+        followed_by:
+          - "Gestion des risques"
+          - "Risque de credit"
+          - "Divulgation d'informations sur les risques"
+        page_ranges: {}
+      risk_management:
+        names:
+          - "Gestion des risques"
+        keywords:
+          - "gestion des risques"
+          - "risque de credit"
+          - "risque de marche"
+          - "risque de marché"
+          - "risque de liquidite"
+          - "Risque de liquidite et de Financement"
+          - "Risque operationnel"
+          - "Risque environnemental et social"
+        followed_by:
+          - "Divulgation d'informations sur les risques"
+          - "Methodes comptables et communication de l'information financiers"
+          - "Glossaire"
+          - "Bilans consolidés"
+          - "Notes aux etats financiers"
+        page_ranges: {}
+    section_order:
+      - "Sommaire"
+      - "Message aux actionnaires"
+      - "Resultats consolides"
+      - "Gestion du capital"
+      - "Gestion des risques"
+      - "Divulgation d'information sur les risques"
+      - "Informations complementaires"
+      - "Annexes"
+
+  rbc:
+    name: "Banque Royale du Canada"
+    short_name: "RBC"
+    file_patterns:
+      t1: "T1_2025q1_report_fr.pdf"
+      t2: "T2_2025q2_report_fr.pdf"
+      t3: "T3_2025q3_report_fr.pdf"
+    sections:
+      capital_management:
+        names:
+          - "Gestion des fonds propres"
+        keywords:
+          - "gestion des fonds propres"
+          - "fonds propres"
+          - "ratio CET1"
+          - "TLAC"
+        followed_by:
+          - "Questions en matière de comptabilité et de contrôle"
+          - "Question en matiere de comptablilite et de controle"
+          - "Résumé des méthodes comptables et estimations"
+          - "Glossaire"
+          - "Gestion du risque"
+          - "Risque de credit"
+        page_ranges: {}
+      risk_management:
+        names:
+          - "Gestion du risque"
+        keywords:
+          - "gestion du risque"
+          - "gestion des risques"
+          - "risque de credit"
+          - "risque de marche"
+          - "risque de liquidite"
+          - "Risque de liquidité et de financement"
+        followed_by:
+          - "Glossaire de termes financiers"
+          - "Gestion des fonds propres"
+          - "Questions en matière de comptabilité et de contrôle"
+          - "Questions en matiere de comptabilite et de controle"
+          - "Etats financiers consolides"
+          - "Annexes"
+          - "Glossaire de termes financiers"
+        page_ranges: {}
+      regulatory_updates:
+        names:
+          - "Examen de la conjoncture économique, des marchés et du contexte réglementaire et perspectives"
+          - "Examen de la conjoncture economique, des marches et du contexte reglementaire et perspectives"
+          - "Examen de la conjoncture économique, des marchés et du contexte réglementaire"
+          - "Examen de la conjoncture economique, des marches et du contexte reglementaire"
+        keywords:
+          - "Examen de la conjoncture économique et des marchés et perspectives"
+          - "conjoncture"
+          - "contexte reglementaire"
+          - "perspectives"
+          - "economique"
+          - "marches"
+          - "Le PIB"
+        followed_by:
+          - "Principaux événements au sein de l'organisation"
+          - "Principaux evenements au sein de l'organisation"
+          - "Gestion des fonds propres"
+          - "Gestion du risque"
+        page_ranges: {}
+    section_order:
+      - "Points saillants"
+      - "Vue d'ensemble et perspectives"
+      - "Analyse par secteur"
+      - "Gestion des fonds propres"
+      - "Gestion du risque"
+      - "Etats financiers consolides"
+      - "Annexes"
+    matching_overrides:
+      few_indicators_max_count: 6
+      overlap_floor_min_few_indicators: 0.25
+      overlap_threshold: 0.58
+      margin_threshold: 0.12
+      weight_label_overlap: 0.80
+      weight_title: 0.05
+      weight_structure: 0.05
+      weight_position: 0.05
+      weight_containment: 0.05
+      weight_header_schema: 0.0
+      min_label_overlap_reject: 0.55
+
+  td:
+    name: "Banque Toronto-Dominion"
+    short_name: "TD"
+    file_patterns:
+      t1: "T1_2025-q1.pdf"
+      t2: "T2_2025-q2.pdf"
+      t3: "T3_q3_2025.pdf"
+    sections:
+      capital_management:
+        names:
+          - "Situation des fonds propres"
+        keywords:
+          - "situation des fonds propres"
+          - "fonds propres"
+          - "ratio CET1"
+        followed_by:
+          - "Gestion des risques"
+          - "Facteurs de risque"
+          - "TITRISATION ET ARRANGEMENTS HORS BILAN"
+          - "titrisation et arrangements hors bilan"
+        page_ranges: {}
+      risk_management:
+        names:
+          - "Gestion des risques"
+          - "Facteurs de risque et gestion des risques"
+        keywords:
+          - "gestion des risques"
+          - "facteurs de risque"
+          - "risque de credit"
+          - "risque de marche"
+        followed_by:
+          - "Etats financiers consolides"
+          - "Annexes"
+          - "Notes complementaires"
+        page_ranges: {}
+    section_order:
+      - "Points saillants"
+      - "Analyse des resultats"
+      - "Qualite du portefeuille de credit"
+      - "Situation des fonds propres"
+      - "Gestion des risques"
+      - "Etats financiers consolides"
+      - "Annexes"
+    matching_overrides:
+      table_rename_threshold: 0.78
+      table_probable_threshold: 0.58
+      indicator_similarity_threshold: 0.88
+      indicator_fuzzy_token_threshold: 0.85
+      title_match_min_similarity: 0.96
+      title_match_min_structure: 0.75
+      overlap_threshold: 0.58
+      margin_threshold: 0.12
+
+  bmo:
+    name: "Banque de Montreal"
+    short_name: "BMO"
+    file_patterns:
+      t1: "t1_report_q1.pdf"
+      t2: "t2_rapport_q2.pdf"
+      t3: "t3_repport_q3.pdf"
+    sections:
+      capital_management:
+        names:
+          - "Gestion du capital"
+        keywords:
+          - "gestion du capital"
+          - "fonds propres"
+          - "ratio CET1"
+        followed_by:
+          - "Analyse des résultats des groupes d'exploitation"
+          - "Analyse des resultats des groupes d'exploitation"
+          - "Sommaire des tendances trimestrielles relatives au bénéfice"
+          - "Sommaire de tendances"
+          - "Gestion des risques"
+          - "Risque de credit"
+        page_ranges: {}
+      risk_management:
+        names:
+          - "Gestion des risques"
+        keywords:
+          - "gestion des risques"
+          - "risque de marche"
+          - "risque de marché"
+          - "risque de liquidite"
+          - "Risque de liquidité et de financement"
+          - "Risque de liquidite et de financement"
+          - "Cotes de crédit"
+        followed_by:
+          - "Glossaire de termes financiers"
+          - "Etats financiers consolides"
+          - "Annexes"
+          - "Renseignements complementaires"
+        page_ranges: {}
+      regulatory_updates:
+        names:
+          - "Autres faits nouveaux en matière de réglementation"
+          - "Autres faits nouveaux en matiere de reglementation"
+        keywords:
+          - "reglementation"
+          - "bsif"
+          - "bale"
+          - "normes"
+          - "faits nouveaux"
+        followed_by:
+          - "Gestion des risques"
+          - "Principaux risques et risques émergents pouvant influer sur les résultats futurs"
+          - "Risque de marché"
+        page_ranges: {}
+    section_order:
+      - "Points saillants"
+      - "Analyse des resultats"
+      - "Gestion du capital"
+      - "Gestion des risques"
+      - "Principaux risques et risques émergents pouvant influer sur les résultats futurs"
+      - "Risque de marché"
+      - "Annexes"
+    matching_overrides:
+      use_hungarian_matching: false
+      margin_threshold: 0.15
+      rescue_single_min_title_similarity: 0.60
+
+  bns:
+    name: "Banque de Nouvelle-Ecosse (Scotiabank)"
+    short_name: "Scotia"
+    file_patterns:
+      t1: "t1_Q125_Shareholders_Report-FR.pdf"
+      t2: "t2_Q225_Shareholders_Report-FR_acc.pdf"
+      t3: "t3_Q325_Shareholders_Report-FR.pdf"
+    sections:
+      capital_management:
+        names:
+          - "Gestion du capital"
+        keywords:
+          - "gestion du capital"
+          - "fonds propres"
+          - "ratio CET1"
+        followed_by:
+          - "Instruments financiers"
+          - "Arrangements hors bilan"
+          - "Faits nouveaux en matière de réglementation"
+          - "Faits nouveaux en matière de"
+          - "Méthodes comptables et contrôles"
+          - "Methodes comptables et controles"
+          - "Etats financiers consolides"
+          - "Donnees complementaires"
+          - "Annexes"
+        length_constraints:
+          min_pages: 2
+        page_ranges: {}
+      risk_management:
+        names:
+          - "Gestion du risque"
+        keywords:
+          - "gestion du risque"
+          - "risque de credit"
+          - "risque de marche"
+        followed_by:
+          - "Gestion du capital"
+          - "Faits nouveaux en matière de réglementation"
+        page_ranges: {}
+      regulatory_updates:
+        names:
+          - "Faits nouveaux en matière de réglementation"
+          - "Faits nouveaux en matiere de reglementation"
+        keywords:
+          - "reglementation"
+          - "bsif"
+          - "bale"
+          - "normes"
+          - "faits nouveaux"
+        followed_by:
+          - "Etats financiers consolides"
+          - "Donnees complementaires"
+        page_ranges: {}
+    section_order_in_pdf:
+      - "risk_management"
+      - "capital_management"
+    section_order:
+      - "Faits saillants"
+      - "Analyse des resultats"
+      - "Gestion du risque"
+      - "Gestion du capital"
+      - "Faits nouveaux en matière de réglementation"
+      - "Etats financiers"
+      - "Donnees complementaires"
+    matching_overrides: {}
+
+  cibc:
+    name: "Banque Canadienne Imperiale de Commerce"
+    short_name: "CIBC"
+    page_number_offset: 3
+    file_patterns:
+      t1: "t1_q125report-fr.pdf"
+      t2: "t2_q225report-fr.pdf"
+      t3: "t3_q325report-fr.pdf"
+    sections:
+      capital_management:
+        names:
+          - "Gestion des fonds propres"
+        keywords:
+          - "Gestion des fonds propres"
+          - "gestion des fonds propres"
+          - "ratio CET1"
+          - "ratio de levier"
+          - "ratio de liquidite"
+        followed_by:
+          - "Arrangements hors bilan"
+          - "Gestion du risque"
+          - "Risque de credit"
+        page_ranges:
+          _comment: "Pages en numerotation DOCUMENT (pied de page). Offset +3 applique automatiquement."
+          t1_2025:
+            start: 20
+            end: 24
+          t2_2025:
+            start: 20
+            end: 24
+          t3_2025:
+            start: 20
+            end: 24
+      risk_management:
+        names:
+          - "Gestion du risque"
+        keywords:
+          - "gestion du risque"
+          - "risque de credit"
+          - "risque de marche"
+          - "risque de liquidite"
+          - "risque operationnel"
+          - "Autres risques"
+        followed_by:
+          - "Questions relatives à la comptabilité et au contrôle"
+          - "Questions relatives a la comptabilite et au controle"
+          - "Etats financiers consolides"
+          - "Annexes"
+          - "Glossaire"
+        page_ranges:
+          _comment: "Pages en numerotation DOCUMENT (pied de page). Offset +3 applique automatiquement."
+          t1_2025:
+            start: 25
+            end: 45
+          t2_2025:
+            start: 25
+            end: 45
+          t3_2025:
+            start: 25
+            end: 45
+    section_order:
+      - "Sommaire"
+      - "Analyse des resultats"
+      - "Gestion des fonds propres"
+      - "Gestion du risque"
+      - "Etats financiers consolides"
+      - "Annexes"
+    matching_overrides:
+      few_indicators_max_count: 6
+      overlap_floor_min_few_indicators: 0.25
+      overlap_threshold: 0.58
+      margin_threshold: 0.12
+      weight_label_overlap: 0.80
+      weight_title: 0.05
+      weight_structure: 0.05
+      weight_position: 0.05
+      weight_containment: 0.05
+      weight_header_schema: 0.0
+      min_label_overlap_reject: 0.55
+
+# ---------------------------------------------------------------------------
+# Global settings
+# ---------------------------------------------------------------------------
+
+target_sections:
+  - "capital_management"
+  - "risk_management"
+  - "regulatory_updates"
+
+banks_with_regulatory:
+  - "rbc"
+  - "bns"
+  - "bmo"
+
+page_ranges_documentation:
+  _comment: "CONVENTION IMPORTANTE POUR page_ranges"
+  numerotation: "Les valeurs dans page_ranges utilisent la NUMEROTATION DOCUMENT (pied de page du rapport), PAS la numerotation physique du PDF."
+  offset: "Pour les banques avec page_number_offset (ex: CIBC offset=3), le systeme ajoute automatiquement l'offset pour obtenir la page physique."
+  exemple_cibc: "TOC dit 'Gestion des fonds propres: page 20' -> page_ranges.start=20 -> page physique extraite = 20+3 = 23"
+  quand_utiliser: "Utiliser page_ranges quand la detection automatique (TOC/scan) ne fonctionne pas bien pour une banque specifique."
+
+section_boundary_detection:
+  methods:
+    - "toc"
+    - "scan"
+    - "following_section"
+    - "manual_override"
+  priority_order:
+    - "manual_override"
+    - "toc"
+    - "following_section"
+    - "scan"
+  default_section_length: 20
+  min_section_length: 3
+  max_section_length: 50
+  section_length_overrides:
+    gestion_reglementation:
+      min_pages: 1
+      max_pages: 3
+      default_span: 3
+
+following_section_patterns:
+  capital_management:
+    - "gestion des risques"
+    - "gestion du risque"
+    - "risque de credit"
+    - "facteurs de risque"
+  risk_management:
+    - "etats financiers"
+    - "informations complementaires"
+    - "renseignements complementaires"
+    - "donnees complementaires"
+    - "annexes"
+    - "notes aux etats"
+    - "glossaire"
+
+comparison_rules:
+  valid_comparisons:
+    - from: "t1"
+      to: "t2"
+    - from: "t2"
+      to: "t3"
+  excluded_comparisons:
+    - from: "t1"
+      to: "t3"
+    - from: "t3"
+      to: "t1"
+
+change_classification:
+  types:
+    - "NOUVEL_INDICATEUR"
+    - "NOUVELLE_IDEE"
+    - "MODIFIE"
+    - "SUPPRIME"
+  categories:
+    - "REGLEMENTAIRE"
+    - "RISQUE_EMERGENT"
+    - "ESG"
+    - "INDICATEUR"
+    - "AUTRE"
+  significance:
+    - "MAJEUR"
+    - "MODERE"
+    - "MINEUR"
+  desjardins_relevance:
+    - "HAUTE"
+    - "MOYENNE"
+    - "BASSE"
+
+trend_detection:
+  min_banks_for_trend: 3
+  similarity_thresholds:
+    REGULATORY: 0.8
+    RISK_EMERGING: 0.75
+    ESG: 0.75
+    INDICATOR: 0.85
+    OTHER: 0.7
+
+matching_thresholds:
+  use_hungarian_matching: true
+  matching_v2_enabled: true
+  ignore_table_id_for_number: true
+  section_unknown_mode: soft_penalty
+  unknown_section_penalty: 0.15
+  title_exact: 1.0
+  title_semantic: 0.9
+  indicator_semantic: 0.9
+  indicator_structural: 0.8
+  minimum_match: 0.7
+  section_detection: 0.85
+  table_extraction: 0.9
+  change_detection: 0.95
+  false_positive_rejection: 0.7
+  table_match_score: 0.58
+  match_score_v2: 0.70
+  probable_score_v2: 0.62
+  indicator_low_score_uncertain: 0.60
+  indicator_match_reject_title_similarity: 0.70
+  indicator_match_reject_jaccard: 0.35
+  indicator_rename_threshold: 0.86
+  indicator_rename_probable_threshold: 0.90
+  indicator_rename_short_label_threshold: 0.95
+  indicator_rename_position_weight: 0.10
+  indicator_rename_neighborhood_weight: 0.05
+  indicator_rescue_split_merge_min: 0.60
+  indicator_rescue_jaccard_min: 0.55
+  indicator_exist_near_exact_threshold: 0.95
+  indicator_exist_llm_band_min: 0.85
+  indicator_exist_llm_band_max: 0.95
+  indicator_length_ratio_min: 0.75
+  indicator_group_strict: true
+  indicator_displacement_fuzzy_threshold: 0.90
+  indicator_displacement_section_strict: true
+  table_change_rate_review_threshold: 0.30
+  enable_llm_ambiguity_resolver: false
+  llm_ambiguity_same_context_only: true
+  table_rename_threshold: 0.85
+  table_probable_threshold: 0.65
+  table_comparator_threshold: 0.65
+  section_mismatch_penalty: 0.3
+  title_similarity_min: 0.75
+  section_mismatch_min_signals: 2
+  section_mismatch_min_signals_generic: 3
+  probable_band_width: 0.08
+  title_override_min_similarity: 0.85
+  title_override_min_structure: 0.50
+  title_override_min_overlap: 0.55
+  title_match_min_similarity: 0.88
+  title_match_min_structure: 0.50
+  rescue_single_min_containment: 0.65
+  rescue_single_min_title_similarity: 0.40
+  rescue_split_merge_min_union_containment: 0.80
+  rescue_split_merge_min_header_schema: 0.65
+  merge_fragment_score_min: 0.85
+  unknown_match_min_containment: 0.65
+  unknown_match_min_score: 0.74
+  use_vision_validation: false
+  vision_validation_min_confidence: 80
+  vision_validation_only_on_probable: true
+  min_label_overlap_reject: 0.55
+  soft_overlap_weight: 0.5
+  use_plan_score_formula: false
+  weight_s_labels: 0.70
+  weight_s_anchors: 0.15
+  weight_s_title: 0.10
+  weight_s_size: 0.05
+  size_mismatch_reject_threshold: 0.60
+  include_explanation: false
+  generic_titles:
+    - "exigences reglementaires"
+    - "regulatory requirements"
+    - "ratios reglementaires"
+    - "regulatory ratios"
+    - "divers"
+    - "autres"
+    - "autres informations"
+    - "other information"
+    - "sommaire"
+    - "summary"
+    - "indicateurs"
+    - "indicators"
+    - "mesures"
+    - "measures"
+    - "reglementation"
+
+table_classification:
+  types:
+    A: "Ratios reglementaires (CET1, Tier 1, TLAC)"
+    B: "Risque de credit (expositions, regions)"
+    C: "Risque de marche (taux, sensibilite, VaR)"
+    D: "Liquidite (LCR, NSFR, actifs liquides)"
+    E: "Prets hypothecaires (LTV, habitation)"
+    F: "Financement (echeances, dette)"
+  keywords_threshold: 0.7
+  title_match_threshold: 0.85
+  indicator_match_threshold: 0.8
+
+filtering_rules:
+  include:
+    - "sections_reglementaires"
+    - "tableaux_reglementaires"
+    - "indicateurs_financiers"
+    - "changements_structurels"
+    - "textes_reglementaires"
+    - "risques_emergents"
+  exclude:
+    - "rapports_annuels"
+    - "sections_non_reglementaires"
+    - "changements_cosmetiques"
+    - "mises_a_jour_numeriques"
+    - "textes_marketing"
+    - "annexes_techniques"
+  min_indicators_for_structural_change: 2
+
+adaptation_settings:
+  learn_patterns: true
+  predict_positions: true
+  use_semantic_matching: true
+  cross_lingual_matching: true
+  auto_detect_transposition: true

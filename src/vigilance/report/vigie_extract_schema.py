@@ -1,0 +1,450 @@
+"""vigie_extract_v1 schema: single-JSON-per-PDF output format.
+
+Defines typed structures, transformation helpers, builder, writer,
+and loader (JSON -> TableArtifact adapter).
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+import unicodedata
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, TypedDict
+
+from vigilance.models.table_models import TableArtifact
+
+SCHEMA_VERSION = "vigie_extract_v1"
+
+# ---------------------------------------------------------------------------
+# Canonical → output slug mapping
+# ---------------------------------------------------------------------------
+
+CANONICAL_TO_SLUG: dict[str, str] = {
+    "capital_management": "gestion_capital_fonds_propres",
+    "risk_management": "gestion_risques",
+    "regulatory_updates": "reglementation",
+}
+
+SLUG_TO_DEFAULT_TITLE: dict[str, str] = {
+    "gestion_capital_fonds_propres": "Gestion des fonds propres",
+    "gestion_risques": "Gestion du risque",
+    "reglementation": "Faits nouveaux en matière de réglementation",
+}
+
+SLUG_TO_CANONICAL: dict[str, str] = {v: k for k, v in CANONICAL_TO_SLUG.items()}
+
+
+# ---------------------------------------------------------------------------
+# TypedDict definitions (for documentation / IDE completion)
+# ---------------------------------------------------------------------------
+
+class FirstColumnEntry(TypedDict):
+    row_idx: int
+    text: str
+    text_norm: str
+    note_refs: list[str]
+
+
+class FootnoteEntry(TypedDict):
+    marker: str
+    raw_text: str
+    text: str
+    text_norm: str
+    scope: str
+
+
+class TableFeatures(TypedDict):
+    n_indicators: int
+    indicator_set_hash: str
+    anchors: list[str]
+
+
+class TablePayload(TypedDict, total=False):
+    table_uid: str
+    table_id: str
+    page_number: int
+    table_number: str | None
+    table_title: str | None
+    unit_context: str | None
+    headers: list[str]
+    first_column: list[FirstColumnEntry]
+    footnotes: list[FootnoteEntry]
+    features: TableFeatures
+    quality_flags: list[str]
+    bbox: list[float] | None
+
+
+class SectionPayload(TypedDict):
+    section_title_pdf: str
+    start_page: int
+    end_page: int
+    tables: list[TablePayload]
+
+
+class ExtractionMeta(TypedDict, total=False):
+    source_pdf: str
+    pdf_hash: str
+    bank_code: str
+    quarter: str
+    year: int
+    language: str
+    extracted_at: str
+    extraction_method: str
+    docling_version: str
+
+
+class VigieExtractPayload(TypedDict):
+    schema_version: str
+    extraction_meta: ExtractionMeta
+    sections: dict[str, SectionPayload]
+
+
+# ---------------------------------------------------------------------------
+# Text normalisation (mirrors section_taxonomy logic)
+# ---------------------------------------------------------------------------
+
+def normalize_text(raw: str) -> str:
+    """Accent-stripped, lower-cased, whitespace-collapsed normalisation."""
+    text = unicodedata.normalize("NFD", raw or "")
+    text = text.encode("ascii", "ignore").decode("utf-8")
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return " ".join(text.split()).strip()
+
+
+# ---------------------------------------------------------------------------
+# Footnote-reference detection in indicator labels
+# ---------------------------------------------------------------------------
+
+_NOTE_REF_RE = re.compile(r"\((\d+)\)\s*$|\s+\((\d+)\)|\s*\((\d+)\)")
+
+def _extract_note_refs(label: str) -> tuple[str, list[str]]:
+    """Return (cleaned_text, [ref_markers]) from a label like 'Ratio (1)'."""
+    refs: list[str] = []
+    cleaned = label
+    for m in _NOTE_REF_RE.finditer(label):
+        ref = m.group(1) or m.group(2) or m.group(3)
+        if ref:
+            refs.append(ref)
+    if refs:
+        cleaned = _NOTE_REF_RE.sub("", label).strip()
+    return cleaned, refs
+
+
+# ---------------------------------------------------------------------------
+# First-column parsing
+# ---------------------------------------------------------------------------
+
+def parse_first_column(indicators: list[str]) -> list[FirstColumnEntry]:
+    """Transform raw first_column_indicators into structured entries."""
+    entries: list[FirstColumnEntry] = []
+    for idx, raw in enumerate(indicators):
+        text, note_refs = _extract_note_refs(raw.strip())
+        entries.append(
+            FirstColumnEntry(
+                row_idx=idx,
+                text=text,
+                text_norm=normalize_text(text),
+                note_refs=note_refs,
+            )
+        )
+    return entries
+
+
+# ---------------------------------------------------------------------------
+# Footnote parsing
+# ---------------------------------------------------------------------------
+
+_FOOTNOTE_MARKER_RE = re.compile(r"^\s*\(?(\d+)\)?\s*[.:\-–—]?\s*")
+
+def parse_footnotes(raw_footnotes: list[str]) -> list[FootnoteEntry]:
+    """Transform raw footnote strings into structured entries."""
+    entries: list[FootnoteEntry] = []
+    for raw in raw_footnotes:
+        raw_stripped = raw.strip()
+        if not raw_stripped:
+            continue
+        m = _FOOTNOTE_MARKER_RE.match(raw_stripped)
+        marker = m.group(1) if m else ""
+        text = raw_stripped[m.end():].strip() if m else raw_stripped
+        entries.append(
+            FootnoteEntry(
+                marker=marker,
+                raw_text=raw_stripped,
+                text=text,
+                text_norm=normalize_text(text),
+                scope="table",
+            )
+        )
+    return entries
+
+
+# ---------------------------------------------------------------------------
+# Table UID generation
+# ---------------------------------------------------------------------------
+
+def make_table_uid(
+    bank_code: str,
+    year: int,
+    quarter: str,
+    section_slug: str,
+    table_number: str | None,
+    page_number: int,
+    table_index: int,
+) -> str:
+    """Deterministic unique id for a table within a PDF extraction."""
+    q = quarter.lower().replace("-", "")
+    tbl = f"tbl{table_number}" if table_number else f"idx{table_index}"
+    return f"{bank_code}_{year}_{q}_{section_slug}_{tbl}_p{page_number}"
+
+
+# ---------------------------------------------------------------------------
+# Features computation
+# ---------------------------------------------------------------------------
+
+def compute_features(first_column: list[FirstColumnEntry]) -> TableFeatures:
+    """Compute table features from the parsed first column."""
+    norms = sorted(entry["text_norm"] for entry in first_column if entry["text_norm"])
+    hash_input = "|".join(norms)
+    indicator_hash = "sha1:" + hashlib.sha1(hash_input.encode("utf-8")).hexdigest()
+    return TableFeatures(
+        n_indicators=len(first_column),
+        indicator_set_hash=indicator_hash,
+        anchors=[entry["text_norm"] for entry in first_column if entry["text_norm"]],
+    )
+
+
+# ---------------------------------------------------------------------------
+# Section slug resolution
+# ---------------------------------------------------------------------------
+
+def canonical_to_slug(canonical: str) -> str:
+    """Map a canonical section key to the output slug."""
+    return CANONICAL_TO_SLUG.get(canonical, canonical)
+
+
+def section_title_for_slug(slug: str, evidence_title: str | None = None) -> str:
+    """Return a human-readable section title, preferring the PDF evidence."""
+    if evidence_title:
+        return evidence_title
+    return SLUG_TO_DEFAULT_TITLE.get(slug, slug.replace("_", " ").title())
+
+
+# ---------------------------------------------------------------------------
+# Extraction metadata helpers
+# ---------------------------------------------------------------------------
+
+def compute_pdf_hash(pdf_path: str | Path) -> str:
+    return "sha256:" + hashlib.sha256(Path(pdf_path).read_bytes()).hexdigest()
+
+
+def get_docling_version() -> str:
+    try:
+        import docling
+        return getattr(docling, "__version__", "unknown")
+    except ImportError:
+        return "unknown"
+
+
+# ---------------------------------------------------------------------------
+# Builder: assemble the full vigie_extract_v1 payload
+# ---------------------------------------------------------------------------
+
+def build_vigie_extract(
+    *,
+    pdf_path: str | Path,
+    bank_code: str,
+    quarter: str,
+    year: int,
+    language: str = "fr",
+    section_ranges: list[dict[str, Any]],
+    tables: list[Any],
+) -> VigieExtractPayload:
+    """Build the vigie_extract_v1 payload from extraction outputs.
+
+    Parameters
+    ----------
+    pdf_path : path to the source PDF
+    bank_code : e.g. "cibc"
+    quarter : e.g. "t2-2025" or "t2_2025"
+    year : fiscal year
+    language : ISO language code (default "fr")
+    section_ranges : list of dicts with keys "section", "start", "end",
+        and optionally "evidence" (dict with "title_found").
+    tables : list of ExtractedTable objects (or anything with matching attrs).
+    """
+    pdf_p = Path(pdf_path)
+    extraction_meta = ExtractionMeta(
+        source_pdf=str(pdf_p),
+        pdf_hash=compute_pdf_hash(pdf_p) if pdf_p.exists() else "",
+        bank_code=bank_code,
+        quarter=quarter,
+        year=year,
+        language=language,
+        extracted_at=datetime.now(timezone.utc).isoformat(),
+        extraction_method="docling",
+        docling_version=get_docling_version(),
+    )
+
+    range_lookup: dict[str, dict[str, Any]] = {}
+    for sr in section_ranges:
+        canon = sr.get("section", "")
+        if canon:
+            range_lookup[canon] = sr
+
+    tables_by_section: dict[str, list[Any]] = {}
+    for t in tables:
+        sec = getattr(t, "section", None) or "unknown"
+        tables_by_section.setdefault(sec, []).append(t)
+
+    sections: dict[str, SectionPayload] = {}
+    all_canonical_keys = set(range_lookup.keys()) | set(tables_by_section.keys())
+
+    for canonical in sorted(all_canonical_keys):
+        slug = canonical_to_slug(canonical)
+        sr = range_lookup.get(canonical, {})
+        evidence = sr.get("evidence", {})
+        evidence_title: str | None = None
+        if isinstance(evidence, dict):
+            evidence_title = evidence.get("title_found")
+
+        start_page = int(sr.get("start", sr.get("start_page_pdf", 0)) or 0)
+        end_page = int(sr.get("end", sr.get("end_page_pdf", start_page)) or start_page)
+
+        section_tables: list[TablePayload] = []
+        for t_idx, t in enumerate(tables_by_section.get(canonical, [])):
+            indicators = list(getattr(t, "first_column_indicators", []) or [])
+            first_col = parse_first_column(indicators)
+            footnotes = parse_footnotes(list(getattr(t, "footnotes", []) or []))
+            features = compute_features(first_col)
+
+            t_page = int(getattr(t, "page_number", 0) or 0)
+            t_number = getattr(t, "table_number", None)
+            t_uid = make_table_uid(
+                bank_code=bank_code,
+                year=year,
+                quarter=quarter,
+                section_slug=slug,
+                table_number=t_number,
+                page_number=t_page,
+                table_index=t_idx,
+            )
+
+            table_payload = TablePayload(
+                table_uid=t_uid,
+                table_id=str(getattr(t, "table_id", f"tableau_{t_idx}")),
+                page_number=t_page,
+                table_number=t_number,
+                table_title=getattr(t, "title", None),
+                unit_context=getattr(t, "unit_context", None),
+                headers=list(getattr(t, "headers", []) or []),
+                first_column=first_col,
+                footnotes=footnotes,
+                features=features,
+                quality_flags=[],
+                bbox=getattr(t, "bbox", None),
+            )
+            section_tables.append(table_payload)
+
+        sections[slug] = SectionPayload(
+            section_title_pdf=section_title_for_slug(slug, evidence_title),
+            start_page=start_page,
+            end_page=end_page,
+            tables=section_tables,
+        )
+
+    return VigieExtractPayload(
+        schema_version=SCHEMA_VERSION,
+        extraction_meta=extraction_meta,
+        sections=sections,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Writer
+# ---------------------------------------------------------------------------
+
+def write_vigie_extract(
+    out_dir: str | Path,
+    payload: VigieExtractPayload,
+    filename: str | None = None,
+) -> Path:
+    """Write the vigie_extract_v1 JSON to *out_dir* and return its path."""
+    target = Path(out_dir)
+    target.mkdir(parents=True, exist_ok=True)
+
+    if filename is None:
+        meta = payload.get("extraction_meta", {})
+        bank = meta.get("bank_code", "unknown")
+        quarter = meta.get("quarter", "q0").replace("-", "_")
+        yr = meta.get("year", "0000")
+        filename = f"{bank}_{quarter}_{yr}_extract.json"
+
+    out_path = target / filename
+    out_path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    return out_path
+
+
+# ---------------------------------------------------------------------------
+# Loader: vigie_extract_v1 JSON -> list[TableArtifact]
+# ---------------------------------------------------------------------------
+
+def _slug_to_canonical(slug: str) -> str:
+    """Reverse-map an output slug back to the canonical section key."""
+    return SLUG_TO_CANONICAL.get(slug, slug)
+
+
+def load_artifacts_from_vigie_extract(
+    source: str | Path | dict[str, Any],
+) -> list[TableArtifact]:
+    """Load a vigie_extract_v1 JSON and return a list of TableArtifact.
+
+    Parameters
+    ----------
+    source : path to a JSON file, or an already-parsed dict (payload).
+    """
+    if isinstance(source, dict):
+        payload = source
+    else:
+        payload = json.loads(Path(source).read_text(encoding="utf-8"))
+
+    meta = payload.get("extraction_meta", {})
+    bank_code = meta.get("bank_code", "unknown")
+    quarter = meta.get("quarter", "")
+    pdf_path = meta.get("source_pdf", "")
+    extraction_method = meta.get("extraction_method", "docling")
+
+    artifacts: list[TableArtifact] = []
+    sections = payload.get("sections", {})
+
+    for slug, section_data in sections.items():
+        canonical = _slug_to_canonical(slug)
+        for table in section_data.get("tables", []):
+            indicators = [
+                entry.get("text", "") for entry in table.get("first_column", [])
+            ]
+            artifacts.append(
+                TableArtifact(
+                    bank_code=bank_code,
+                    section=canonical,
+                    page_pdf=int(table.get("page_number", 0) or 0),
+                    table_id=table.get("table_id", ""),
+                    title=table.get("table_title"),
+                    headers=list(table.get("headers", [])),
+                    rows=[],
+                    first_column_indicators=indicators,
+                    extraction_method=extraction_method,
+                    table_number=table.get("table_number"),
+                    bbox=table.get("bbox"),
+                    quarter=quarter,
+                    pdf_path=pdf_path,
+                )
+            )
+
+    return artifacts

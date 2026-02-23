@@ -1,0 +1,4 @@
+# Règles et préférences du projet
+
+## Environnement shell
+- L'utilisateur utilise **fish shell** (et non bash/zsh). Adapter les commandes et exemples de script en conséquence quand c'est pertinent.

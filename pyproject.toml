@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bank-peer-vigilance"
+version = "0.1.0"
+description = "Bank peer vigilance – PDF section extraction toolkit"
+requires-python = ">=3.10"
+dependencies = [
+    "rapidfuzz>=3.0.0",
+    "scipy>=1.11.0",
+    "pyyaml>=6.0",
+    "pdfplumber>=0.10",
+    "dash>=4.0.0",
+    "dash-bootstrap-components>=2.0.4",
+    "pymupdf>=1.27.1",
+    "docling>=2.73.1",
+    "python-dotenv>=1.2.1",
+    "openai>=2.21.0",
+]
+
+[project.scripts]
+vigilance-run-ranges = "vigilance.cli.run_ranges:main"
+vigilance-run-tables = "vigilance.cli.run_tables:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "reportlab>=4.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = [
+    "app",
+    "app.dash_app",
+    "app.dash_app.components",
+    "app.dash_app.layouts",
+    "vigilance",
+    "vigilance.cli",
+    "vigilance.compare",
+    "vigilance.comparison",
+    "vigilance.config",
+    "vigilance.extraction",
+    "vigilance.extract",
+    "vigilance.models",
+    "vigilance.report",
+    "vigilance.utils",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

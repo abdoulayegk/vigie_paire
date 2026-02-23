@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test-and-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Setup Python
+        run: uv python install 3.11
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run tests
+        run: uv run pytest -q
+
+      - name: Run strict intra-section audit
+        run: |
+          uv run python scripts/audit_intra_section.py \
+            --input tests/fixtures/strict_intra_section_sample.json \
+            --output artifacts/intra_section_audit.json \
+            --fail-on-violations
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: intra-section-audit
+          path: artifacts/intra_section_audit.json

@@ -1,0 +1,136 @@
+"""Helpers for canonical comparison payloads used by the Dash UI."""
+
+from __future__ import annotations
+
+from copy import deepcopy
+from datetime import datetime
+from typing import Any
+
+
+def get_meta_value(meta: dict[str, Any] | None, *keys: str) -> Any:
+    """Safely fetch a nested value from metadata."""
+    cur: Any = meta or {}
+    for key in keys:
+        if not isinstance(cur, dict):
+            return None
+        cur = cur.get(key)
+    return cur
+
+
+def is_canonical_comparison(payload: Any) -> bool:
+    """Return True when payload follows ``comparison_canonical_v1`` contract."""
+    return isinstance(payload, dict) and payload.get("schema_version") == "comparison_canonical_v1"
+
+
+def _empty_canonical() -> dict[str, Any]:
+    now = datetime.now().isoformat(timespec="seconds")
+    return {
+        "schema_version": "comparison_canonical_v1",
+        "bank_code": "",
+        "quarter_from": "t1",
+        "quarter_to": "t2",
+        "year": datetime.now().year,
+        "summary": {
+            "tables_t1": 0,
+            "tables_t2": 0,
+            "tables_matched": 0,
+            "tables_added": 0,
+            "tables_removed": 0,
+            "total_added_indicators": 0,
+            "total_removed_indicators": 0,
+            "total_renamed_indicators": 0,
+            "status_counts": {
+                "stable": 0,
+                "modifie": 0,
+                "renommage_probable": 0,
+                "incertain": 0,
+                "needs_review": 0,
+                "structure_change": 0,
+                "ajoute": 0,
+                "supprime": 0,
+            },
+        },
+        "table_comparisons": [],
+        "tables_added": [],
+        "tables_removed": [],
+        "meta": {
+            "generated_at": now,
+            "provenance": "dash_adapter",
+            "source_format": "fallback",
+            "executive_summary": {"content": "Aucune comparaison disponible."},
+        },
+    }
+
+
+def to_canonical_payload(payload: Any) -> dict[str, Any]:
+    """Best-effort conversion to canonical payload used by the Dash app."""
+    if is_canonical_comparison(payload):
+        return deepcopy(payload)
+
+    canonical = _empty_canonical()
+    if not isinstance(payload, dict):
+        return canonical
+
+    if payload.get("result_type") == "metier_tableaux":
+        canonical["bank_code"] = str(payload.get("bank_code", ""))
+        canonical["year"] = int(payload.get("year") or canonical["year"])
+        changes = payload.get("changes") or []
+        table_comparisons: list[dict[str, Any]] = []
+        for index, change in enumerate(changes):
+            if not isinstance(change, dict):
+                continue
+            ctype = str(change.get("change_type", ""))
+            added = [str(change.get("indicator_name"))] if ctype in {"added", "table_added"} and change.get("indicator_name") else []
+            removed = [str(change.get("indicator_name"))] if ctype in {"removed", "table_removed"} and change.get("indicator_name") else []
+            table_comparisons.append(
+                {
+                    "table_id_t1": f"legacy_t1_{index}",
+                    "table_id_t2": f"legacy_t2_{index}",
+                    "title_t1": change.get("table_title", ""),
+                    "title_t2": change.get("table_title", ""),
+                    "page_t1": change.get("page_t1"),
+                    "page_t2": change.get("page_t2"),
+                    "section": change.get("section", "unknown_section"),
+                    "added_indicators": added,
+                    "removed_indicators": removed,
+                    "renamed_indicators": [],
+                    "counts": {
+                        "added": len(added),
+                        "removed": len(removed),
+                        "renamed": 0,
+                        "renamed_probable": 0,
+                    },
+                    "uncertain_diff": False,
+                    "table_status": "modifie" if added or removed else "stable",
+                }
+            )
+        canonical["table_comparisons"] = table_comparisons
+        canonical["summary"]["tables_matched"] = len(table_comparisons)
+        canonical["summary"]["total_added_indicators"] = sum(
+            len(item.get("added_indicators", [])) for item in table_comparisons
+        )
+        canonical["summary"]["total_removed_indicators"] = sum(
+            len(item.get("removed_indicators", [])) for item in table_comparisons
+        )
+        canonical["summary"]["status_counts"]["modifie"] = sum(
+            1 for item in table_comparisons if item.get("table_status") == "modifie"
+        )
+        canonical["meta"]["source_format"] = "legacy_metier"
+        canonical["meta"]["executive_summary"] = {
+            "content": "Conversion depuis un format metier legacy."
+        }
+        return canonical
+
+    canonical["bank_code"] = str(payload.get("bank_code", ""))
+    canonical["quarter_from"] = str(payload.get("quarter_from", "t1"))
+    canonical["quarter_to"] = str(payload.get("quarter_to", "t2"))
+    try:
+        canonical["year"] = int(payload.get("year") or canonical["year"])
+    except (TypeError, ValueError):
+        pass
+
+    canonical["meta"]["source_format"] = "unknown"
+    canonical["meta"]["executive_summary"] = {
+        "content": "Format de comparaison non reconnu. Resultat vide genere."
+    }
+    return canonical
