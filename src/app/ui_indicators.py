@@ -4,6 +4,18 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.i18n import status_fr, t
+
+
+def get_display_indicators(item: dict) -> list[str]:
+    """Return raw indicators when available, else clean; for UI display only.
+    Matching/diff still use first_column_indicators (clean) only."""
+    raw = item.get("first_column_indicators_raw") or item.get("first_column_indicators_raw_list")
+    if isinstance(raw, list) and any(str(x).strip() for x in raw):
+        return [str(x) for x in raw if str(x).strip()]
+    clean = item.get("indicators") or item.get("first_column_indicators") or []
+    return [str(x) for x in clean if str(x).strip()]
+
 
 def build_indicator_change_rows(
     payload: dict[str, Any],
@@ -28,13 +40,13 @@ def build_indicator_change_rows(
 
         for indicator in comp.get("added_indicators", []) or []:
             row = {
-                "Type": "Ajout",
+                "Type": t("indicator_add"),
                 "Section": section,
                 "Tableau": table_name,
                 "Indicateur": str(indicator),
                 "Page T1": page_t1,
                 "Page T2": page_t2,
-                "Statut": status,
+                "Statut": status_fr(status),
             }
             if include_review_status:
                 row["Review"] = comp.get("review_status", "")
@@ -42,13 +54,13 @@ def build_indicator_change_rows(
 
         for indicator in comp.get("removed_indicators", []) or []:
             row = {
-                "Type": "Suppression",
+                "Type": t("indicator_removal"),
                 "Section": section,
                 "Tableau": table_name,
                 "Indicateur": str(indicator),
                 "Page T1": page_t1,
                 "Page T2": page_t2,
-                "Statut": status,
+                "Statut": status_fr(status),
             }
             if include_review_status:
                 row["Review"] = comp.get("review_status", "")
@@ -60,41 +72,43 @@ def build_indicator_change_rows(
             else:
                 label = str(renamed)
             row = {
-                "Type": "Renommage",
+                "Type": t("indicator_rename"),
                 "Section": section,
                 "Tableau": table_name,
                 "Indicateur": label,
                 "Page T1": page_t1,
                 "Page T2": page_t2,
-                "Statut": status,
+                "Statut": status_fr(status),
             }
             if include_review_status:
                 row["Review"] = comp.get("review_status", "")
             rows.append(row)
 
     for table in payload.get("tables_added", []) or []:
+        display_indicators = get_display_indicators(table)
         rows.append(
             {
-                "Type": "Tableau ajoute",
+                "Type": t("table_added"),
                 "Section": table.get("section", ""),
                 "Tableau": table.get("title") or table.get("table_id") or "",
-                "Indicateur": "",
+                "Indicateur": ", ".join(display_indicators) if display_indicators else "",
                 "Page T1": "",
                 "Page T2": table.get("page", ""),
-                "Statut": "ajoute",
+                "Statut": status_fr("ajoute"),
             }
         )
 
     for table in payload.get("tables_removed", []) or []:
+        display_indicators = get_display_indicators(table)
         rows.append(
             {
-                "Type": "Tableau supprime",
+                "Type": t("table_removed"),
                 "Section": table.get("section", ""),
                 "Tableau": table.get("title") or table.get("table_id") or "",
-                "Indicateur": "",
+                "Indicateur": ", ".join(display_indicators) if display_indicators else "",
                 "Page T1": table.get("page", ""),
                 "Page T2": "",
-                "Statut": "supprime",
+                "Statut": status_fr("supprime"),
             }
         )
 

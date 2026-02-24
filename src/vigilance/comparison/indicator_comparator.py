@@ -31,11 +31,7 @@ from vigilance.comparison.displacement_detector import (
 )
 from vigilance.comparison.scoring_engine import compute_candidate_score
 from vigilance.config import get_matching_thresholds
-from vigilance.utils.indicator_cleaner import (
-    is_trailing_number_semantic,
-    strip_trailing_note_or_column_value,
-)
-from vigilance.utils.matching_normalizer import normalize_label
+from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.text_normalizer import TextNormalizer
 
 logger = logging.getLogger(__name__)
@@ -1238,14 +1234,8 @@ def _jaccard_similarity(a: set[str], b: set[str]) -> float:
 
 
 def _canonical_indicator_text(text: str) -> str:
-    canonical = normalize_label(text)
-    if not canonical:
-        return ""
-    canonical = _strip_contextual_dates(canonical)
-    if not is_trailing_number_semantic(canonical):
-        canonical = strip_trailing_note_or_column_value(canonical)
-    canonical = re.sub(r"\s+", " ", canonical).strip()
-    return canonical
+    """Unified canonical key for indicator labels; delegates to normalize_indicator_for_comparison."""
+    return normalize_indicator_for_comparison(text or "")
 
 
 def _normalize_total_order(canonical: str) -> str:

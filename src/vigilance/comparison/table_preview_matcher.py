@@ -14,6 +14,8 @@ Pipeline:
 import logging
 import unicodedata
 from dataclasses import dataclass, field
+
+from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from difflib import SequenceMatcher
 from typing import List, Dict, Optional, Tuple, Set, Any
 
@@ -510,9 +512,9 @@ class TablePreviewMatcher:
         indicators_t1 = self._get_indicators(t1)
         indicators_t2 = self._get_indicators(t2)
 
-        # Normaliser pour comparaison
-        norm_t1 = {self._normalize_text(ind): ind for ind in indicators_t1}
-        norm_t2 = {self._normalize_text(ind): ind for ind in indicators_t2}
+        # Normaliser pour comparaison (canonicalisation unifiee des indicateurs)
+        norm_t1 = {normalize_indicator_for_comparison(ind): ind for ind in indicators_t1}
+        norm_t2 = {normalize_indicator_for_comparison(ind): ind for ind in indicators_t2}
 
         # Detecter ajouts et suppressions
         rows_added = []
@@ -603,8 +605,8 @@ class TablePreviewMatcher:
 
     def _jaccard_similarity(self, set1: List[str], set2: List[str]) -> float:
         """Calculer similarite Jaccard entre deux listes (indicateurs, premiere colonne)."""
-        norm1 = {self._normalize_text(s) for s in set1 if s}
-        norm2 = {self._normalize_text(s) for s in set2 if s}
+        norm1 = {normalize_indicator_for_comparison(s) for s in set1 if s}
+        norm2 = {normalize_indicator_for_comparison(s) for s in set2 if s}
 
         if not norm1 and not norm2:
             return 0.0
@@ -616,8 +618,8 @@ class TablePreviewMatcher:
 
     def _indicator_overlap(self, set1: List[str], set2: List[str]) -> float:
         """Taux de recouvrement: intersection / min(len1, len2). Utile quand une liste a plus de lignes."""
-        norm1 = {self._normalize_text(s) for s in set1 if s}
-        norm2 = {self._normalize_text(s) for s in set2 if s}
+        norm1 = {normalize_indicator_for_comparison(s) for s in set1 if s}
+        norm2 = {normalize_indicator_for_comparison(s) for s in set2 if s}
 
         if not norm1 or not norm2:
             return 0.0

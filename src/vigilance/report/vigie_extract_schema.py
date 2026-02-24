@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, TypedDict
 
 from vigilance.models.table_models import TableArtifact
+from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
 SCHEMA_VERSION = "vigie_extract_v1"
 
@@ -147,7 +148,7 @@ def parse_first_column(indicators: list[str]) -> list[FirstColumnEntry]:
             FirstColumnEntry(
                 row_idx=idx,
                 text=text,
-                text_norm=normalize_text(text),
+                text_norm=normalize_indicator_for_comparison(text),
                 note_refs=note_refs,
             )
         )

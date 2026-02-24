@@ -9,12 +9,18 @@ from difflib import SequenceMatcher
 from itertools import combinations
 from typing import Any
 
+try:
+    from vigilance.embedding import EmbeddingService
+except ImportError:
+    EmbeddingService = None  # type: ignore[misc, assignment]
+
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 from vigilance.models.table_models import TableArtifact
 from vigilance.utils.indicator_cleaner import (
     is_header_footer_table_title,
+    normalize_indicator_for_comparison,
     is_trailing_number_semantic,
     strip_dates_from_table_title,
     strip_note_refs_from_title,
@@ -26,7 +32,6 @@ from vigilance.utils.matching_normalizer import (
     is_date_only_line,
     is_generic_title,
     is_non_indicator_line,
-    normalize_label,
     normalize_for_matching,
 )
 
@@ -181,19 +186,8 @@ def _extract_table_label(table: TableArtifact) -> TableLabel | None:
 
 
 def _canonical_indicator_label(value: str | None) -> str:
-    raw = str(value or "").strip()
-    if not raw or is_date_only_line(raw) or is_non_indicator_line(raw):
-        return ""
-
-    canonical = normalize_label(raw)
-    if not canonical:
-        return ""
-
-    if not is_trailing_number_semantic(canonical):
-        canonical = strip_trailing_note_or_column_value(canonical)
-
-    canonical = re.sub(r"\s+", " ", canonical).strip()
-    return canonical
+    """Unified canonical key for indicator labels; delegates to normalize_indicator_for_comparison."""
+    return normalize_indicator_for_comparison(str(value or "").strip())
 
 
 def _indicator_set(table: TableArtifact) -> set[str]:
@@ -495,6 +489,15 @@ def _sections_candidate_compatible(table_t1: TableArtifact, table_t2: TableArtif
     return _section_state(table_t1, table_t2) != "mismatch_known"
 
 
+def _table_fingerprint_text(table: TableArtifact) -> str:
+    """Build fingerprint text for embedding: title + headers + first indicators (no numeric values)."""
+    title = (table.title or "").strip() or "Untitled"
+    headers = " | ".join((table.headers or [])[:10])
+    indicators = (table.first_column_indicators or [])[:5]
+    ind_text = " | ".join(str(x).strip() for x in indicators if x and str(x).strip())
+    return f"Title: {title}. Headers: {headers}. Content: {ind_text}"
+
+
 def _composite_score(
     *,
     table_label_score: float,
@@ -505,10 +508,10 @@ def _composite_score(
     header_schema_similarity_score: float,
     context_heading_similarity: float,
     position_proximity: float,
+    embed_similarity: float = 0.0,
     thresholds: dict[str, float] | None = None,
 ) -> float:
-    # V2 weights: label > containment > indicator (label overlap) > title > structure > header_schema > position.
-    # Overridable via thresholds (e.g. weight_label_overlap, weight_title, weight_structure, weight_position).
+    # V2 weights: label > containment > indicator > title > structure > header_schema > embed > context > position.
     th = thresholds or {}
     weights = {
         "label": float(th.get("weight_label", 0.25)),
@@ -517,9 +520,17 @@ def _composite_score(
         "title": float(th.get("weight_title", 0.14)),
         "structure": float(th.get("weight_structure", 0.10)),
         "header_schema": float(th.get("weight_header_schema", 0.08)),
+        "embed": float(th.get("embedding_weight_table", th.get("weight_embed", 0.12))),
         "context": float(th.get("weight_context", 0.00)),
         "position": float(th.get("weight_position", 0.03)),
     }
+    # When embedding is used, scale other weights so total approx 1.0
+    embed_w = weights["embed"] if embed_similarity > 0 else 0.0
+    if embed_w > 0:
+        other_sum = sum(v for k, v in weights.items() if k != "embed")
+        if other_sum > 0:
+            scale = (1.0 - embed_w) / other_sum
+            weights = {k: (v * scale if k != "embed" else embed_w) for k, v in weights.items()}
     return (
         (weights["label"] * table_label_score)
         + (weights["containment"] * indicator_containment)
@@ -527,6 +538,7 @@ def _composite_score(
         + (weights["title"] * title_similarity)
         + (weights["structure"] * structure_similarity)
         + (weights["header_schema"] * header_schema_similarity_score)
+        + (weights["embed"] * embed_similarity)
         + (weights["context"] * context_heading_similarity)
         + (weights["position"] * position_proximity)
     )
@@ -565,6 +577,7 @@ class MatchDecision:
     decision_level: str = "no_match"  # match | probable | no_match
     rescue_type: str | None = None
     soft_indicator_overlap: float = 0.0
+    embed_sim: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -586,6 +599,7 @@ def _compute_pair_score_with_guard_rails(
     overlap_threshold: float | None = None,
     thresholds: dict[str, float] | None = None,
     bank_code: str | None = None,
+    embedding_service: EmbeddingService | None = None,
 ) -> ScoreResult:
     """Compute raw score and detect guard-rail blocks. No business thresholds applied.
     Used by Hungarian post-threshold mode: pairs blocked by guard rails get -inf;
@@ -596,6 +610,7 @@ def _compute_pair_score_with_guard_rails(
         overlap_threshold=overlap_threshold,
         thresholds=thresholds,
         bank_code=bank_code,
+        embedding_service=embedding_service,
     )
     is_blocked = decision.reason in _GUARD_RAIL_REASONS
     score = -1e9 if is_blocked else decision.score
@@ -614,6 +629,7 @@ def match_decision(
     overlap_threshold: float | None = None,
     thresholds: dict[str, float] | None = None,
     bank_code: str | None = None,
+    embedding_service: EmbeddingService | None = None,
 ) -> MatchDecision:
     """Return match decision for one pair, with hard cross-section blocking."""
     th = thresholds or _load_compare_thresholds(bank_code=bank_code)
@@ -705,6 +721,16 @@ def match_decision(
     )
     context_heading_similarity = _context_heading_similarity(table_t1, table_t2)
     position_proximity = _position_proximity(table_t1, table_t2)
+
+    embed_sim = 0.0
+    if th.get("use_embeddings") and embedding_service and getattr(embedding_service, "available", False):
+        try:
+            txt1 = _table_fingerprint_text(table_t1)
+            txt2 = _table_fingerprint_text(table_t2)
+            embed_sim = float(embedding_service.get_single_pair_cosine(txt1, txt2))
+        except Exception as e:
+            logger.debug("Table embedding failed for %s/%s: %s", t1_uid, t2_uid, e)
+
     header_footer_pair = (
         is_header_footer_table_title(table_t1.title or "", bank_code)
         and is_header_footer_table_title(table_t2.title or "", bank_code)
@@ -722,12 +748,15 @@ def match_decision(
         w_anchors = float(th.get("weight_s_anchors", 0.15))
         w_title = float(th.get("weight_s_title") or th.get("weight_title", 0.10))
         w_size = float(th.get("weight_s_size") or th.get("weight_structure", 0.05))
+        w_embed = float(th.get("embedding_weight_table", 0.12)) if embed_sim > 0 else 0.0
         composite_score = (
             w_labels * s_labels
             + w_anchors * s_anchors
             + w_title * s_title
             + w_size * s_size
         )
+        if w_embed > 0:
+            composite_score = (1.0 - w_embed) * composite_score + w_embed * embed_sim
     else:
         composite_score = _composite_score(
             table_label_score=table_label_score,
@@ -738,10 +767,27 @@ def match_decision(
             header_schema_similarity_score=header_schema_similarity_score,
             context_heading_similarity=context_heading_similarity,
             position_proximity=position_proximity,
+            embed_similarity=embed_sim,
             thresholds=th,
         )
     if section_state == "unknown_present":
         composite_score *= max(0.0, 1.0 - unknown_section_penalty)
+
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug(
+            "table_pair_score t1=%s t2=%s title_sim=%.3f structure_sim=%.3f "
+            "header_schema=%.3f context=%.3f label=%.3f containment=%.3f composite=%.3f embed_sim=%.3f",
+            t1_uid,
+            t2_uid,
+            title_similarity,
+            structure_similarity,
+            header_schema_similarity_score,
+            context_heading_similarity,
+            effective_label_overlap,
+            indicator_containment,
+            composite_score,
+            embed_sim,
+        )
 
     set_a = _indicator_set(table_t1)
     set_b = _indicator_set(table_t2)
@@ -874,6 +920,7 @@ def match_decision(
             decision_level=decision_level,
             rescue_type=rescue_type,
             soft_indicator_overlap=soft_indicator_overlap,
+            embed_sim=embed_sim,
         )
 
     if section_state == "mismatch_known":
@@ -1093,6 +1140,7 @@ def _match_section_hungarian(
     bank_code: str | None,
     margin_threshold: float,
     borderline_score: float,
+    embedding_service: EmbeddingService | None = None,
 ) -> tuple[list[tuple[int, int, MatchDecision]], list[int], set[int]]:
     """Optimal assignment via Hungarian algorithm for one section.
     Returns (assignments, unmatched_t1_indices, uncertain_t2_indices).
@@ -1112,6 +1160,7 @@ def _match_section_hungarian(
                 overlap_threshold=overlap_threshold,
                 thresholds=th,
                 bank_code=bank_code,
+                embedding_service=embedding_service,
             )
             row_decisions.append(d)
             if d.is_match:
@@ -1168,6 +1217,7 @@ def _match_section_hungarian_post_threshold(
     bank_code: str | None,
     margin_threshold: float,
     borderline_score: float,
+    embedding_service: EmbeddingService | None = None,
 ) -> tuple[list[tuple[int, int, MatchDecision]], list[int], set[int]]:
     """Hungarian with post-threshold: matrix uses all non-blocked scores, then
     apply match_score_v2/probable_score_v2 after assignment."""
@@ -1190,6 +1240,7 @@ def _match_section_hungarian_post_threshold(
                 overlap_threshold=overlap_threshold,
                 thresholds=th,
                 bank_code=bank_code,
+                embedding_service=embedding_service,
             )
             row_results.append(sr)
             if not sr.is_blocked:
@@ -1248,6 +1299,7 @@ def _match_section_hungarian_post_threshold(
             indicator_overlap=d.indicator_overlap,
             title_similarity=d.title_similarity,
             structure_similarity=d.structure_similarity,
+            embed_sim=getattr(d, "embed_sim", 0.0),
             context_heading_similarity=d.context_heading_similarity,
             position_proximity=d.position_proximity,
             t1_uid=d.t1_uid,
@@ -1284,6 +1336,7 @@ def _match_tables_greedy(
     effective_bank_code: str | None,
     margin_threshold: float,
     borderline_score: float,
+    embedding_service: EmbeddingService | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
     """Greedy table matching (original algorithm)."""
     pairs: list[dict[str, Any]] = []
@@ -1325,6 +1378,7 @@ def _match_tables_greedy(
                     overlap_threshold=overlap_threshold,
                     thresholds=th,
                     bank_code=effective_bank_code,
+                    embedding_service=embedding_service,
                 ),
             )
             for candidate in candidates
@@ -1478,6 +1532,7 @@ def _match_tables_hungarian(
     effective_bank_code: str | None,
     margin_threshold: float,
     borderline_score: float,
+    embedding_service: EmbeddingService | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
     """Hungarian assignment on known sections + greedy fallback for residual/unknown."""
     pairs: list[dict[str, Any]] = []
@@ -1511,6 +1566,7 @@ def _match_tables_hungarian(
             bank_code=effective_bank_code,
             margin_threshold=margin_threshold,
             borderline_score=borderline_score,
+            embedding_service=embedding_service,
         )
 
         for i, j, d in assignments:
@@ -1541,6 +1597,7 @@ def _match_tables_hungarian(
         effective_bank_code=effective_bank_code,
         margin_threshold=margin_threshold,
         borderline_score=borderline_score,
+        embedding_service=embedding_service,
     )
     pairs.extend(fallback["pairs"])
     probable_pairs.extend(fallback.get("probable_pairs", []))
@@ -1562,6 +1619,7 @@ def match_tables_intra_section(
     overlap_threshold: float | None = None,
     bank_code: str | None = None,
     use_hungarian: bool | None = None,
+    embedding_service: EmbeddingService | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
     """Table matching with strict intra-section gating. Uses Hungarian or greedy per config."""
     effective_bank_code = bank_code or _infer_bank_code(tables_t1, tables_t2)
@@ -1593,6 +1651,7 @@ def match_tables_intra_section(
             effective_bank_code=effective_bank_code,
             margin_threshold=margin_threshold,
             borderline_score=borderline_score,
+            embedding_service=embedding_service,
         )
 
     return _match_tables_greedy(
@@ -1602,6 +1661,7 @@ def match_tables_intra_section(
         effective_bank_code=effective_bank_code,
         margin_threshold=margin_threshold,
         borderline_score=borderline_score,
+        embedding_service=embedding_service,
     )
 
 
@@ -1611,6 +1671,7 @@ def run_strict_intra_section_compare(
     *,
     overlap_threshold: float | None = None,
     bank_code: str | None = None,
+    embedding_service: EmbeddingService | None = None,
 ) -> dict[str, Any]:
     """Official comparison facade with strict section gating and explicit added/removed outputs."""
     effective_bank_code = bank_code or _infer_bank_code(tables_t1, tables_t2)
@@ -1623,6 +1684,7 @@ def run_strict_intra_section_compare(
         tables_t2=tables_t2,
         overlap_threshold=overlap_threshold,
         bank_code=effective_bank_code,
+        embedding_service=embedding_service,
     )
     table_by_t1_uid = {_table_uid(t): t for t in tables_t1}
     table_by_t2_uid = {_table_uid(t): t for t in tables_t2}
@@ -1663,6 +1725,7 @@ def run_strict_intra_section_compare(
                 overlap_threshold=overlap_threshold,
                 thresholds=th,
                 bank_code=effective_bank_code,
+                embedding_service=embedding_service,
             )
             if best_decision is None or decision.score > best_decision.score:
                 best_decision = decision
@@ -1741,6 +1804,7 @@ def run_strict_intra_section_compare(
             overlap_threshold=overlap_threshold,
             thresholds=th,
             bank_code=effective_bank_code,
+            embedding_service=embedding_service,
         )
         if decision.reason == "table_number_conflict":
             continue
@@ -1814,6 +1878,7 @@ def run_strict_intra_section_compare(
             overlap_threshold=overlap_threshold,
             thresholds=th,
             bank_code=effective_bank_code,
+            embedding_service=embedding_service,
         )
         if decision.reason == "table_number_conflict":
             continue
@@ -1865,6 +1930,9 @@ def run_strict_intra_section_compare(
                 "first_column_indicators": list(
                     getattr(table_t1, "first_column_indicators", []) or []
                 ),
+                "first_column_indicators_raw": list(
+                    getattr(table_t1, "first_column_indicators_raw", None) or []
+                ),
             }
         )
 
@@ -1885,6 +1953,9 @@ def run_strict_intra_section_compare(
                 "source_reason": item["reason"],
                 "first_column_indicators": list(
                     getattr(table_t2, "first_column_indicators", []) or []
+                ),
+                "first_column_indicators_raw": list(
+                    getattr(table_t2, "first_column_indicators_raw", None) or []
                 ),
             }
         )

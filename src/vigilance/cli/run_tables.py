@@ -115,6 +115,12 @@ def _to_artifacts(raw_tables: list[Any], bank: str, quarter: str, pdf_path: str)
                     if label:
                         indicators.append(label)
 
+        raw = getattr(table, "first_column_indicators_raw", None)
+        if raw is not None:
+            raw = [str(x).strip() for x in raw if str(x).strip()]
+        else:
+            raw = None
+
         section = _canonicalize_section(getattr(table, "section", None)) or "unknown_section"
         artifacts.append(
             TableArtifact(
@@ -126,9 +132,10 @@ def _to_artifacts(raw_tables: list[Any], bank: str, quarter: str, pdf_path: str)
                 headers=list(getattr(table, "headers", []) or []),
                 rows=[list(row) for row in (getattr(table, "rows", []) or [])],
                 first_column_indicators=indicators,
+                first_column_indicators_raw=raw,
                 table_number=getattr(table, "table_number", None),
                 bbox=getattr(table, "bbox", None),
-                extraction_method=str(getattr(table, "extraction_method", "docling")),
+                extraction_method=getattr(table, "extraction_method", None) or "docling",
                 quarter=quarter,
                 pdf_path=pdf_path,
             )

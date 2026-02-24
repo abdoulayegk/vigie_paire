@@ -392,16 +392,9 @@ class MultiSignalMatcher:
         return True
 
     def _normalize_label(self, label: str) -> str:
-        """Normaliser un label pour comparaison."""
-        if not label:
-            return ""
-        # Minuscules, supprimer ponctuation excessive, normaliser espaces
-        normalized = label.lower().strip()
-        # Supprimer les caracteres speciaux courants dans les tableaux financiers
-        for char in ["(", ")", "$", "%", ",", ".", ":", ";", "-", "–", "—"]:
-            normalized = normalized.replace(char, " ")
-        # Normaliser les espaces multiples
-        return " ".join(normalized.split())
+        """Normaliser un label indicateur pour comparaison; delegue a normalize_indicator_for_comparison."""
+        from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
+        return normalize_indicator_for_comparison(label or "")
 
     def _fuzzy_ratio(self, s1: str, s2: str) -> float:
         """Calculer le ratio de similarite entre deux chaines."""

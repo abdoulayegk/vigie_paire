@@ -7,6 +7,7 @@ from difflib import SequenceMatcher
 from typing import Any
 
 from vigilance.models.table_models import TableArtifact
+from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.matching_normalizer import (
     header_schema_similarity,
     is_date_only_line,
@@ -51,7 +52,7 @@ def _extract_indicators(table: TableArtifact) -> set[str]:
         label = str(row[0] or "").strip()
         if not label or is_date_only_line(label) or is_non_indicator_line(label):
             continue
-        norm = normalize_for_matching(label, target="indicator")
+        norm = normalize_indicator_for_comparison(label)
         if norm:
             values.add(norm)
     if values:
@@ -60,7 +61,7 @@ def _extract_indicators(table: TableArtifact) -> set[str]:
         text = str(label or "").strip()
         if not text or is_date_only_line(text) or is_non_indicator_line(text):
             continue
-        norm = normalize_for_matching(text, target="indicator")
+        norm = normalize_indicator_for_comparison(text)
         if norm:
             values.add(norm)
     return values
@@ -233,7 +234,7 @@ def _dedupe_preserve(values: list[str]) -> list[str]:
         text = str(value or "").strip()
         if not text:
             continue
-        norm = normalize_for_matching(text, target="indicator")
+        norm = normalize_indicator_for_comparison(text)
         if not norm or norm in seen:
             continue
         seen.add(norm)
@@ -276,6 +277,12 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
     elif right.table_number:
         merged_number = right.table_number
 
+    left_raw = getattr(left, "first_column_indicators_raw", None) or []
+    right_raw = getattr(right, "first_column_indicators_raw", None) or []
+    merged_raw: list[str] | None = None
+    if left_raw or right_raw:
+        merged_raw = _dedupe_preserve(list(left_raw) + list(right_raw))
+
     return TableArtifact(
         bank_code=left.bank_code or right.bank_code,
         section=left.section or right.section,
@@ -290,6 +297,7 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
         bbox=_merge_bbox(left, right),
         quarter=left.quarter or right.quarter,
         pdf_path=left.pdf_path or right.pdf_path,
+        first_column_indicators_raw=merged_raw,
     )
 
 

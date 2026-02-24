@@ -64,6 +64,29 @@ def get_matching_thresholds(
                     if isinstance(overrides, dict):
                         base = {**base, **overrides}
 
+    # Apply indicator diff defaults (PASS 2) when keys absent
+    _indicator_defaults: dict[str, Any] = {
+        "indicator_hungarian_enabled": True,
+        "indicator_rename_min_score": 0.86,
+        "indicator_gate_min_len_ratio": 0.55,
+        "indicator_gate_min_token_overlap": 1,
+        "indicator_similarity_weights": {"ratio": 0.4, "token_set": 0.6},
+    }
+    for k, v in _indicator_defaults.items():
+        if k not in base:
+            base[k] = v
+
+    # Embedding defaults (opt-in, config flag use_embeddings default false)
+    _embedding_defaults: dict[str, Any] = {
+        "use_embeddings": False,
+        "embedding_weight_table": 0.12,
+        "embedding_weight_indicator": 0.35,
+        "embedding_model": "text-embedding-3-small",
+    }
+    for k, v in _embedding_defaults.items():
+        if k not in base:
+            base[k] = v
+
     return base
 
 

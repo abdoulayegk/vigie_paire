@@ -6,8 +6,10 @@ from vigilance.utils.indicator_cleaner import (
     is_trailing_number_semantic,
     normalize_indicator_for_comparison,
     normalize_indicator_variants,
+    strip_dates_from_indicator_label,
     strip_dates_from_table_title,
     strip_trailing_note_or_column_value,
+    strip_units_currency_from_indicator_label,
 )
 from vigilance.utils.matching_normalizer import (
     is_generic_title,
@@ -30,6 +32,8 @@ __all__ = [
     "normalize_indicator_for_comparison",
     "normalize_indicator_variants",
     "normalize_label",
+    "strip_dates_from_indicator_label",
     "strip_dates_from_table_title",
     "strip_trailing_note_or_column_value",
+    "strip_units_currency_from_indicator_label",
 ]

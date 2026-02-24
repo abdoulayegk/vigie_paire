@@ -39,6 +39,7 @@ from dash import (
 )
 from dash.exceptions import PreventUpdate
 
+from app.i18n import t
 from app.comparison_canonical import (
     get_meta_value,
     is_canonical_comparison,
@@ -56,7 +57,10 @@ from app.dash_app.layouts import (
 )
 from app.dash_app.layouts.page_results import build_analyst_kpi_card
 from app.review_adapters import build_review_items_from_indicator_result
-from app.review_export import export_review_items_csv, export_review_items_json_fr
+from app.review_export import (
+    export_review_items_json_fr,
+    generate_validation_csv,
+)
 from app.review_models import (
     CHANGE_TYPE_ADDED,
     CHANGE_TYPE_REMOVED,
@@ -545,6 +549,7 @@ def toggle_section_preview(n_clicks, is_open):
     State({"type": "section-start", "index": ALL, "doc": ALL}, "id"),
     State({"type": "section-end", "index": ALL, "doc": ALL}, "id"),
     State("store-detection", "data"),
+    prevent_initial_call=True,
 )
 def compile_adjusted_sections(starts, ends, ids_start, ids_end, detection):
     """Compiler les valeurs Debut/Fin dans store-adjusted-sections."""
@@ -725,11 +730,11 @@ def update_review_queue(review_items_data, current_idx, show_results, filters, _
         raise PreventUpdate
     if not review_items_data:
         return (
-            html.Div("Aucun changement a revoir.", className="text-muted p-3"),
-            build_analyst_kpi_card("File de Revue (Total)", "0", color="white"),
-            build_analyst_kpi_card("Valides", "0", color="white"),
-            build_analyst_kpi_card("Rejetes", "0", color="white"),
-            build_analyst_kpi_card("En Attente", "0", color="white"),
+            html.Div(t("no_changes_review", "Aucun changement a revoir."), className="text-muted p-3"),
+            build_analyst_kpi_card(t("file_review_total"), "0", color="white"),
+            build_analyst_kpi_card(t("validated"), "0", color="white"),
+            build_analyst_kpi_card(t("rejected"), "0", color="white"),
+            build_analyst_kpi_card(t("pending"), "0", color="white"),
             0, 0, 0
         )
 
@@ -747,10 +752,10 @@ def update_review_queue(review_items_data, current_idx, show_results, filters, _
 
     return (
         queue_component,
-        build_analyst_kpi_card("File de Revue (Total)", str(total), color="white"),
-        build_analyst_kpi_card("Valides", str(approved), color="white"),
-        build_analyst_kpi_card("Rejetes", str(rejected), color="white"),
-        build_analyst_kpi_card("En Attente", str(pending), color="white"),
+        build_analyst_kpi_card(t("file_review_total"), str(total), color="white"),
+        build_analyst_kpi_card(t("validated"), str(approved), color="white"),
+        build_analyst_kpi_card(t("rejected"), str(rejected), color="white"),
+        build_analyst_kpi_card(t("pending"), str(pending), color="white"),
         pct_approved, pct_rejected, pct_pending
     )
 
@@ -911,8 +916,8 @@ def update_validation_time_footer(duration_sec, show_results):
     if not show_results:
         raise PreventUpdate
     if duration_sec is None:
-        return "Temps de validation: --:--"
-    return f"Temps de validation: {_format_duration(duration_sec)}"
+        return f"{t('validation_time')}: --:--"
+    return f"{t('validation_time')}: {_format_duration(duration_sec)}"
 
 
 # =============================================================================
@@ -974,7 +979,7 @@ def render_results(comparison, indicator, show_results):
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.P("Tables T1", className="small text-muted mb-0"),
+                            html.P(f"{t('tables')} T1", className="small text-muted mb-0"),
                             html.H4(str(kpi.get("tables_t1", 0)), className="mb-0 fw-bold"),
                         ],
                         className="p-2 text-center",
@@ -987,7 +992,7 @@ def render_results(comparison, indicator, show_results):
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.P("Tables T2", className="small text-muted mb-0"),
+                            html.P(f"{t('tables')} T2", className="small text-muted mb-0"),
                             html.H4(str(kpi.get("tables_t2", 0)), className="mb-0 fw-bold"),
                         ],
                         className="p-2 text-center",
@@ -1000,7 +1005,7 @@ def render_results(comparison, indicator, show_results):
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.P("Appariées", className="small text-muted mb-0"),
+                            html.P(t("matched"), className="small text-muted mb-0"),
                             html.H4(str(kpi.get("tables_matched", 0)), className="mb-0 fw-bold"),
                         ],
                         className="p-2 text-center",
@@ -1013,7 +1018,7 @@ def render_results(comparison, indicator, show_results):
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.P("Fusion/Split", className="small text-muted mb-0"),
+                            html.P(t("fusion_split"), className="small text-muted mb-0"),
                             html.H4(str(structure_change), className="mb-0 fw-bold"),
                         ],
                         className="p-2 text-center",
@@ -1089,10 +1094,10 @@ def render_main_kpis(indicator_result):
     """Render the main KPI cards."""
     if not indicator_result:
         return (
-            _build_kpi_card("Tables Matched", 0),
-            _build_kpi_card("Added Indicators", 0),
-            _build_kpi_card("Removed Indicators", 0),
-            _build_kpi_card("Renamed", 0),
+            _build_kpi_card(t("kpi_matched"), 0),
+            _build_kpi_card(t("kpi_added"), 0),
+            _build_kpi_card(t("kpi_removed"), 0),
+            _build_kpi_card(t("kpi_renamed"), 0),
         )
 
     summary = indicator_result.get("summary", indicator_result.get("kpi_metier", {}))
@@ -1102,10 +1107,10 @@ def render_main_kpis(indicator_result):
     renamed = summary.get("total_renamed_indicators", 0)
 
     return (
-        _build_kpi_card("Tables Matched", tables_matched),
-        _build_kpi_card("Added Indicators", added),
-        _build_kpi_card("Removed Indicators", removed),
-        _build_kpi_card("Renamed", renamed),
+        _build_kpi_card(t("kpi_matched"), tables_matched),
+        _build_kpi_card(t("kpi_added"), added),
+        _build_kpi_card(t("kpi_removed"), removed),
+        _build_kpi_card(t("kpi_renamed"), renamed),
     )
 
 
@@ -1121,10 +1126,10 @@ def render_secondary_kpis(indicator_result, validation_duration_sec):
     """Render the secondary KPI row with validation time."""
     if not indicator_result:
         return (
-            "Differences d'indicateurs (0 tableaux avec changements)",
-            _build_kpi_card("Indicateurs supprimes", 0, delta_icon=None),
-            _build_kpi_card("Indicateurs ajoutes", 0, delta_icon=None),
-            _build_kpi_card("Temps validation humain", _format_duration(None)),
+            f"Differences d'indicateurs (0 {t('tables')} avec changements)",
+            _build_kpi_card(t("kpi_removed"), 0, delta_icon=None),
+            _build_kpi_card(t("kpi_added"), 0, delta_icon=None),
+            _build_kpi_card(t("validation_time"), _format_duration(None)),
         )
 
     # Count tables with changes
@@ -1143,13 +1148,13 @@ def render_secondary_kpis(indicator_result, validation_duration_sec):
     total_added = sum(len(c.get("added_indicators", [])) for c in tables_with_changes)
     total_removed = sum(len(c.get("removed_indicators", [])) for c in tables_with_changes)
 
-    header_text = f"Differences d'indicateurs ({n_tables} tableaux avec changements)"
+    header_text = f"Differences d'indicateurs ({n_tables} {t('tables')} avec changements)"
 
     return (
         header_text,
-        _build_kpi_card("Indicateurs supprimes", total_removed, delta_icon=None),
-        _build_kpi_card("Indicateurs ajoutes", total_added, delta_icon=None),
-        _build_kpi_card("Temps validation humain", _format_duration(validation_duration_sec)),
+        _build_kpi_card(t("kpi_removed"), total_removed, delta_icon=None),
+        _build_kpi_card(t("kpi_added"), total_added, delta_icon=None),
+        _build_kpi_card(t("validation_time"), _format_duration(validation_duration_sec)),
     )
 
 
@@ -1661,14 +1666,15 @@ def render_export_tab(review_items_data, indicator_result, show_results):
     if not review_items_data and not indicator_result:
         return html.Div("Aucun resultat a exporter.", className="text-muted")
 
-    bank = str(indicator_result.get("bank_code", "bank")).lower() if indicator_result else "export"
-    q_from = str(indicator_result.get("quarter_from", "t1")) if indicator_result else "t1"
-    q_to = str(indicator_result.get("quarter_to", "t2")) if indicator_result else "t2"
-    year_val = str(indicator_result.get("year", "2025")) if indicator_result else "2025"
+    ir = indicator_result or {}
+    bank = str(ir.get("bank_code", "bank")).lower()
+    q_from = str(ir.get("quarter_from", "t1"))
+    q_to = str(ir.get("quarter_to", "t2"))
+    year_val = str(ir.get("year", "2025"))
     base_name = f"{bank}_{q_from}_vs_{q_to}_{year_val}_review"
 
     content = [html.H5("Exporter les resultats")]
-    if review_items_data:
+    if review_items_data or ir:
         content.append(
             html.Div(
                 [
@@ -1696,7 +1702,7 @@ def render_export_tab(review_items_data, indicator_result, show_results):
                 className="small text-muted",
             )
         )
-    if indicator_result:
+    if ir:
         content.append(
             html.Div(
                 [
@@ -1734,20 +1740,40 @@ def render_export_tab(review_items_data, indicator_result, show_results):
     Input("btn-download-review-csv", "n_clicks"),
     State("store-review-items", "data"),
     State("store-indicator-result", "data"),
+    State("store-pdf-paths", "data"),
     prevent_initial_call=True,
 )
-def on_download_csv(n_clicks, review_items_data, indicator_result):
-    """Telecharger le CSV de revue."""
-    if not n_clicks or not review_items_data:
+def on_download_csv(n_clicks, review_items_data, indicator_result, paths):
+    """Telecharger le CSV de validation (Excel FR, UTF-8 BOM, separateur ;)."""
+    if not n_clicks:
         raise PreventUpdate
-    items = [ReviewItem.from_dict(d) for d in review_items_data]
-    bank = str(indicator_result.get("bank_code", "bank")).lower() if indicator_result else "export"
-    q_from = str(indicator_result.get("quarter_from", "t1")) if indicator_result else "t1"
-    q_to = str(indicator_result.get("quarter_to", "t2")) if indicator_result else "t2"
-    year_val = str(indicator_result.get("year", "2025")) if indicator_result else "2025"
-    base_name = f"{bank}_{q_from}_vs_{q_to}_{year_val}_review"
-    csv_str = export_review_items_csv(items)
-    return dict(content=csv_str, filename=f"{base_name}.csv")
+    ir = indicator_result or {}
+    items = []
+    if review_items_data:
+        try:
+            items = [ReviewItem.from_dict(d) for d in review_items_data]
+        except Exception:
+            pass
+    if not items and ir:
+        # Reconstruire depuis indicator_result si store desynchronise
+        paths = paths or {}
+        path_t1 = paths.get("pdf_t1", "") if isinstance(paths, dict) else ""
+        path_t2 = paths.get("pdf_t2", "") if isinstance(paths, dict) else ""
+        items = build_review_items_from_indicator_result(
+            ir,
+            bank_code=str(ir.get("bank_code", "")),
+            quarter_from=str(ir.get("quarter_from", "t1")),
+            quarter_to=str(ir.get("quarter_to", "t2")),
+            pdf_path_t1=path_t1 or "",
+            pdf_path_t2=path_t2 or "",
+        )
+    bank = str(ir.get("bank_code", "bank")).upper()
+    q_from = str(ir.get("quarter_from", "t1")).upper()
+    q_to = str(ir.get("quarter_to", "t2")).upper()
+    year_val = str(ir.get("year", "2025"))
+    filename = f"Vigie_Comparaison_{bank}_{q_from}_vs_{q_to}_{year_val}.csv"
+    csv_str = generate_validation_csv(items, ir)
+    return dict(content=csv_str, filename=filename)
 
 
 @callback(
@@ -1763,11 +1789,12 @@ def on_download_json(n_clicks, review_items_data, indicator_result):
         raise PreventUpdate
     from datetime import datetime
 
+    ir = indicator_result or {}
     items = [ReviewItem.from_dict(d) for d in review_items_data]
-    bank = str(indicator_result.get("bank_code", "bank")) if indicator_result else ""
-    q_from = str(indicator_result.get("quarter_from", "t1")) if indicator_result else ""
-    q_to = str(indicator_result.get("quarter_to", "t2")) if indicator_result else ""
-    year_val = str(indicator_result.get("year", "2025")) if indicator_result else ""
+    bank = str(ir.get("bank_code", "bank"))
+    q_from = str(ir.get("quarter_from", "t1"))
+    q_to = str(ir.get("quarter_to", "t2"))
+    year_val = str(ir.get("year", "2025"))
     base_name = f"{bank}_{q_from}_vs_{q_to}_{year_val}_review".replace(" ", "_").lower()
     json_str = export_review_items_json_fr(
         items,

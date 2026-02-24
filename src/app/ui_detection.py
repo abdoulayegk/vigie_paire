@@ -14,7 +14,9 @@ _SECTION_LABELS = {
     "capital_management": "Gestion du capital",
     "gestion_risques": "Gestion des risques",
     "risk_management": "Gestion des risques",
-    "gestion_reglementation": "Reglementation",
+    "gestion_reglementation": "Réglementation",
+    "regulatory_updates": "Réglementation",
+    "reglementation": "Réglementation",
 }
 
 

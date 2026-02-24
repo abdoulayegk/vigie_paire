@@ -27,7 +27,7 @@ import fitz  # Import PyMuPDF (fitz)
 from ..utils.feature_flags import is_vision_fallback_enabled
 from ..utils.genai import get_openai_api_key
 from ..utils.indicator_cleaner import normalize_indicator_for_comparison
-from ..utils.matching_normalizer import is_date_only_line, strip_temporal_expressions
+from ..utils.matching_normalizer import is_date_only_line, is_non_indicator_line, strip_temporal_expressions
 from .docling_normalization import (
     _extract_table_context_split,
     _is_footnote_row,
@@ -129,6 +129,9 @@ class ExtractedTable:
     context_before: str = ""  # 1-2 lignes au-dessus (pour table_type_classifier)
     context_after: str = ""  # 1-2 lignes en-dessous
     bbox: list[float] | None = None  # [l, t, r, b] normalisées 0–1 depuis Docling prov
+    first_column_indicators_raw: list[str] | None = None  # Brut avant normalisation
+    debug_metrics: dict[str, Any] = field(default_factory=dict)  # row_count, merge_count, etc.
+    extraction_method: str | None = None  # docling | vision_fallback_gpt4o
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -553,6 +556,7 @@ class DoclingProcessor:
                     headers=t.get("headers", []),
                     rows=t.get("rows", []),
                     first_column_indicators=t.get("first_column_indicators", []),
+                    first_column_indicators_raw=t.get("first_column_indicators_raw"),
                     footnotes=t.get("footnotes", []),
                     section=t.get("section"),
                     section_phase=t.get("section_phase"),
@@ -564,6 +568,8 @@ class DoclingProcessor:
                     context_before=t.get("context_before", ""),
                     context_after=t.get("context_after", ""),
                     bbox=t.get("bbox"),
+                    debug_metrics=t.get("debug_metrics", {}),
+                    extraction_method=t.get("extraction_method"),
                 )
             )
 
@@ -579,19 +585,22 @@ class DoclingProcessor:
                         title=t.get("title"),
                         headers=t.get("headers", []),
                         rows=t.get("rows", []),
-                        first_column_indicators=t.get("first_column_indicators", []),
-                        footnotes=t.get("footnotes", []),
-                        section=t.get("section"),
-                        section_phase=t.get("section_phase"),
-                        table_number=t.get("table_number"),
-                        title_clean=t.get("title_clean"),
-                        title_raw=t.get("title_raw"),
-                        unit_context=t.get("unit_context"),
-                        title_resolution_method=t.get("title_resolution_method"),
-                        context_before=t.get("context_before", ""),
-                        context_after=t.get("context_after", ""),
-                        bbox=t.get("bbox"),
-                    )
+                    first_column_indicators=t.get("first_column_indicators", []),
+                    first_column_indicators_raw=t.get("first_column_indicators_raw"),
+                    footnotes=t.get("footnotes", []),
+                    section=t.get("section"),
+                    section_phase=t.get("section_phase"),
+                    table_number=t.get("table_number"),
+                    title_clean=t.get("title_clean"),
+                    title_raw=t.get("title_raw"),
+                    unit_context=t.get("unit_context"),
+                    title_resolution_method=t.get("title_resolution_method"),
+                    context_before=t.get("context_before", ""),
+                    context_after=t.get("context_after", ""),
+                    bbox=t.get("bbox"),
+                    debug_metrics=t.get("debug_metrics", {}),
+                    extraction_method=t.get("extraction_method"),
+                )
                 )
 
             sections.append(
@@ -730,8 +739,10 @@ class DoclingProcessor:
                 tables_by_page[page_num] = tables_by_page.get(page_num, 0) + 1
 
                 headers = self._extract_table_headers(table)
-                rows = self._extract_table_rows(table)
-                rows = _merge_fragmented_cells(rows)
+                rows_raw = self._extract_table_rows(table)
+                row_count_before_merge = len(rows_raw)
+                rows = _merge_fragmented_cells(rows_raw)
+                row_count_after_merge = len(rows)
 
                 # Vérifier si l'extraction a réussi
                 extraction_quality = self._assess_table_quality(headers, rows)
@@ -776,16 +787,43 @@ class DoclingProcessor:
 
                 # Exclure les lignes de notes du grid avant indicateurs et sortie
                 data_rows = [r for r in rows if not _is_footnote_row(r)]
+                footnote_row_filtered_count = len(rows) - len(data_rows)
 
-                # Extraire les indicateurs (première colonne) - exclure unités, dates, notes
-                # Normaliser à l'extraction (3.3 B) pour éviter faux ajouts/suppressions en comparaison
-                indicators = []
+                # Extraire les indicateurs (première colonne) - comportement inchangé
+                first_column_indicators_raw_list: list[str] = []
+                indicators: list[str] = []
                 for row in data_rows:
                     if not row or len(row) == 0:
                         continue
                     cell = str(row[0]).strip() if row[0] else ""
                     if cell and not is_date_only_line(cell):
+                        first_column_indicators_raw_list.append(cell)
                         indicators.append(normalize_indicator_for_comparison(cell))
+
+                # Métriques en lecture seule (observabilité, pas de changement de comportement)
+                merge_count = row_count_before_merge - row_count_after_merge
+                unique_normalized = len(set(indicators))
+                duplicate_ratio = (
+                    0 if len(indicators) == 0 else 1 - (unique_normalized / len(indicators))
+                )
+                header_like_count = sum(
+                    1 for r in first_column_indicators_raw_list if is_non_indicator_line(r)
+                )
+                header_like_ratio = (
+                    header_like_count / len(first_column_indicators_raw_list)
+                    if first_column_indicators_raw_list
+                    else 0.0
+                )
+                debug_metrics = {
+                    "row_count_before_merge": row_count_before_merge,
+                    "row_count_after_merge": row_count_after_merge,
+                    "merge_count": merge_count,
+                    "footnote_row_filtered_count": footnote_row_filtered_count,
+                    "indicator_count": len(indicators),
+                    "duplicate_ratio": duplicate_ratio,
+                    "header_like_ratio": header_like_ratio,
+                    "table_quality_score": extraction_quality,
+                }
 
                 out_headers = [] if labels_only else headers
                 out_rows = [] if labels_only else data_rows
@@ -797,6 +835,7 @@ class DoclingProcessor:
                     headers=out_headers,
                     rows=out_rows,
                     first_column_indicators=indicators,
+                    first_column_indicators_raw=first_column_indicators_raw_list,
                     footnotes=self._extract_table_footnotes(table),
                     table_number=table_number,
                     title_clean=title_clean,
@@ -804,8 +843,45 @@ class DoclingProcessor:
                     unit_context=unit_context,
                     title_resolution_method=title_resolution_method or ("caption" if caption_title else None),
                     bbox=table_bbox,
+                    debug_metrics=debug_metrics,
                 )
                 all_tables.append(extracted_table)
+
+                if (
+                    os.environ.get("ENABLE_VISION_FALLBACK") == "1"
+                    and table_bbox
+                    and len(table_bbox) == 4
+                ):
+                    try:
+                        from .vision_fallback_integration import _try_vision_first_column_fallback
+
+                        _try_vision_first_column_fallback(
+                            extracted_table=extracted_table,
+                            pdf_path=str(pdf_path),
+                            bank_code=bank_code,
+                            quarter=quarter,
+                            year=year,
+                            page_num=page_num,
+                            table_bbox=table_bbox,
+                        )
+                    except Exception:
+                        pass
+
+                if os.environ.get("ENABLE_TABLE_CROP_DUMP") == "1" and table_bbox and len(table_bbox) == 4:
+                    try:
+                        from ..utils.pdf_crop import crop_table_image
+
+                        crop_dir = Path("outputs/debug_crops") / f"{bank_code}_{quarter}_{year}"
+                        crop_path = crop_dir / f"{extracted_table.table_id}_p{page_num}.png"
+                        crop_table_image(
+                            str(pdf_path),
+                            page_num,
+                            table_bbox,
+                            str(crop_path),
+                            dpi=300,
+                        )
+                    except Exception:
+                        pass
 
             # Log par page pour analyse de completude
             if tables_by_page:
@@ -1570,15 +1646,34 @@ class DoclingProcessor:
                                 docling_data_dict, vision_result, context=f"Tableau page {page_num}"
                             )
 
-                            # Recalculer les indicateurs (normalisés pour cohérence comparaison, 3.3 B)
-                            indicators = []
-                            if merged_result.rows:
-                                for row in merged_result.rows:
-                                    if not row or len(row) == 0:
-                                        continue
-                                    cell = str(row[0]).strip() if row[0] else ""
-                                    if cell and not is_date_only_line(cell):
-                                        indicators.append(normalize_indicator_for_comparison(cell))
+                            # Recalculer les indicateurs (comportement inchangé: cell + not is_date_only_line)
+                            indicators_fb: list[str] = []
+                            first_column_raw_fb: list[str] = []
+                            for row in merged_result.rows or []:
+                                if not row or len(row) == 0:
+                                    continue
+                                cell = str(row[0]).strip() if row[0] else ""
+                                if cell and not is_date_only_line(cell):
+                                    first_column_raw_fb.append(cell)
+                                    indicators_fb.append(normalize_indicator_for_comparison(cell))
+                            n_rows = len(merged_result.rows or [])
+                            unique_fb = len(set(indicators_fb))
+                            dup_ratio_fb = 0 if not indicators_fb else 1 - (unique_fb / len(indicators_fb))
+                            hdr_like_fb = (
+                                sum(1 for r in first_column_raw_fb if is_non_indicator_line(r))
+                                / len(first_column_raw_fb)
+                                if first_column_raw_fb
+                                else 0.0
+                            )
+                            debug_metrics_fb = {
+                                "row_count_before_merge": n_rows,
+                                "row_count_after_merge": n_rows,
+                                "merge_count": 0,
+                                "footnote_row_filtered_count": 0,
+                                "indicator_count": len(indicators_fb),
+                                "duplicate_ratio": dup_ratio_fb,
+                                "header_like_ratio": hdr_like_fb,
+                            }
 
                             out_headers = [] if labels_only else merged_result.headers
                             out_rows = [] if labels_only else merged_result.rows
@@ -1597,7 +1692,9 @@ class DoclingProcessor:
                                 title_raw=original_table.title_raw or original_table.title,
                                 unit_context=original_table.unit_context,
                                 title_resolution_method=original_table.title_resolution_method,
-                                first_column_indicators=indicators,
+                                first_column_indicators=indicators_fb,
+                                first_column_indicators_raw=first_column_raw_fb,
+                                debug_metrics=debug_metrics_fb,
                                 context_before=original_table.context_before,
                                 context_after=original_table.context_after,
                                 bbox=getattr(original_table, "bbox", None),
@@ -1738,14 +1835,21 @@ def extract_tables_docling_by_sections(
     )
 
     if not normalized_ranges:
-        return tables
+        pass
+    else:
+        for table in tables:
+            page = int(getattr(table, "page_number", 0) or 0)
+            for section_name, start, end in normalized_ranges:
+                if start <= page <= end:
+                    table.section = section_name
+                    break
 
-    for table in tables:
-        page = int(getattr(table, "page_number", 0) or 0)
-        for section_name, start, end in normalized_ranges:
-            if start <= page <= end:
-                table.section = section_name
-                break
+    try:
+        from .extraction_debug_writer import write_extraction_debug
+
+        write_extraction_debug(bank=bank_code, quarter=quarter, year=year, tables=tables)
+    except Exception:
+        pass
 
     return tables
 

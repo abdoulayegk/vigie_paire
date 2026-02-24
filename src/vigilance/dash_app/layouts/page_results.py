@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import dash_bootstrap_components as dbc
 from dash import html, dcc
+
+from app.i18n import t
 from app.dash_app.components.review_queue import build_review_queue
 from app.dash_app.components.review_detail import build_review_detail
 
@@ -39,7 +41,7 @@ def build_section_accordion_item(
             if comp.get("table_status") == "structure_change":
                 items.append(
                     html.Li(
-                        [title, dbc.Badge("Fusion/Split", color="warning", className="ms-2")],
+                        [title, dbc.Badge(t("fusion_split"), color="warning", className="ms-2")],
                         className="mb-0 small text-muted",
                     )
                 )
@@ -56,20 +58,20 @@ def build_section_accordion_item(
     if tables_added:
         parts.append(
             html.Div(
-                [html.Strong(f"Tableaux ajoutes: {len(tables_added)}"), html.Ul(
-                    [html.Li(t.get("table_title") or t.get("title") or "Sans titre") for t in tables_added[:5]],
+                [html.Strong(f"{t('table_added_plural')}: {len(tables_added)}"), html.Ul(
+                    [html.Li(tbl.get("table_title") or tbl.get("title") or "Sans titre") for tbl in tables_added[:5]],
                     className="mb-0 small text-muted"
-                )] if len(tables_added) <= 5 else [html.Strong(f"Tableaux ajoutes: {len(tables_added)}")],
+                )] if len(tables_added) <= 5 else [html.Strong(f"{t('table_added_plural')}: {len(tables_added)}")],
                 className="mb-2",
             )
         )
     if tables_removed:
         parts.append(
             html.Div(
-                [html.Strong(f"Tableaux supprimes: {len(tables_removed)}"), html.Ul(
-                    [html.Li(t.get("table_title") or t.get("title") or "Sans titre") for t in tables_removed[:5]],
+                [html.Strong(f"{t('table_removed_plural')}: {len(tables_removed)}"), html.Ul(
+                    [html.Li(tbl.get("table_title") or tbl.get("title") or "Sans titre") for tbl in tables_removed[:5]],
                     className="mb-0 small text-muted"
-                )] if len(tables_removed) <= 5 else [html.Strong(f"Tableaux supprimes: {len(tables_removed)}")],
+                )] if len(tables_removed) <= 5 else [html.Strong(f"{t('table_removed_plural')}: {len(tables_removed)}")],
                 className="mb-2",
             )
         )
@@ -93,7 +95,7 @@ def build_page_results() -> html.Div:
                         [
                             dbc.Col(
                                 [
-                                    html.H2("Analyse Comparative des Indicateurs", className="mb-1"),
+                                    html.H2(t("analyse_comparative"), className="mb-1"),
                                     html.Div(id="results-header", className="text-muted mb-3"),
                                     html.Div(id="results-executive-summary", className="mb-3"),
                                     html.Div(id="results-kpis"),
@@ -102,7 +104,7 @@ def build_page_results() -> html.Div:
                             ),
                             dbc.Col(
                                 dbc.Button(
-                                    [html.I(className="bi bi-arrow-clockwise me-2"), "Nouvelle Analyse"],
+                                    [html.I(className="bi bi-arrow-clockwise me-2"), t("nouvelle_analyse")],
                                     id="btn-reset",
                                     color="outline-secondary",
                                     size="sm",
@@ -122,25 +124,25 @@ def build_page_results() -> html.Div:
                     dbc.Row(
                         [
                             dbc.Col(
-                                build_analyst_kpi_card("File de Revue (Total)", "0", color="white"),
+                                build_analyst_kpi_card(t("file_review_total"), "0", color="white"),
                                 width=3,
                                 className="mb-3",
                                 id="kpi-queue-total"
                             ),
                             dbc.Col(
-                                build_analyst_kpi_card("Validés", "0", color="white"),
+                                build_analyst_kpi_card(t("validated"), "0", color="white"),
                                 width=3,
                                 className="mb-3",
                                 id="kpi-queue-approved"
                             ),
                             dbc.Col(
-                                build_analyst_kpi_card("Rejetés", "0", color="white"),
+                                build_analyst_kpi_card(t("rejected"), "0", color="white"),
                                 width=3,
                                 className="mb-3",
                                 id="kpi-queue-rejected"
                             ),
                             dbc.Col(
-                                build_analyst_kpi_card("En Attente", "0", color="white"),
+                                build_analyst_kpi_card(t("pending"), "0", color="white"),
                                 width=3,
                                 className="mb-3",
                                 id="kpi-queue-pending"
@@ -177,7 +179,7 @@ def build_page_results() -> html.Div:
             # Footer: Validation Client Statistics
             html.Div(
                 [
-                    html.H5("Statistiques de Validation", className="mb-3"),
+                    html.H5(t("statistiques_validation"), className="mb-3"),
                      dbc.Progress(
                         [
                             dbc.Progress(value=0, color="success", bar=True, id="progress-approved"),

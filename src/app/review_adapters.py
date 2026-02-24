@@ -4,14 +4,19 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.i18n import t
 from app.review_models import (
     CHANGE_TYPE_ADDED,
+    CHANGE_TYPE_MODIFIED,
     CHANGE_TYPE_REMOVED,
     CHANGE_TYPE_RENAMED,
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
+    CHANGE_TYPE_UNCERTAIN,
+    CHANGE_TYPE_STRUCTURE,
     ReviewItem,
 )
+from app.ui_indicators import get_display_indicators
 
 
 def _make_change_id(prefix: str, index: int) -> str:
@@ -43,8 +48,60 @@ def build_review_items_from_indicator_result(
         added = comp.get("added_indicators", []) or []
         removed = comp.get("removed_indicators", []) or []
         renamed = comp.get("renamed_indicators", []) or []
+        table_status_raw = str(comp.get("table_status", "") or "").strip().lower()
 
         if not added and not removed and not renamed:
+            # Table avec changement sans détail indicateurs => ReviewItem "tableau"
+            _status_without_indicators = frozenset({
+                "modifie", "incertain", "needs_review", "structure_change",
+            })
+            if table_status_raw not in _status_without_indicators:
+                continue
+            # Créer un ReviewItem tableau type_changement modifié/incertain/fusion
+            if table_status_raw == "structure_change":
+                change_type = CHANGE_TYPE_STRUCTURE
+            elif table_status_raw in ("incertain", "needs_review"):
+                change_type = CHANGE_TYPE_UNCERTAIN
+            else:
+                change_type = CHANGE_TYPE_MODIFIED
+            section = str(comp.get("section", ""))
+            table_name = str(
+                comp.get("title_t2")
+                or comp.get("title_t1")
+                or comp.get("table_id_t2")
+                or comp.get("table_id_t1")
+                or ""
+            )
+            page_t1 = comp.get("page_t1")
+            page_t2 = comp.get("page_t2")
+            table_id_t1 = str(comp.get("table_id_t1", ""))
+            table_id_t2 = str(comp.get("table_id_t2", ""))
+            confidence = float(comp.get("match_score", 0.0) or 0.0)
+            match_method = str(
+                comp.get("rescue_type")
+                or comp.get("match_reason", "")
+            )
+            items.append(
+                ReviewItem(
+                    change_id=_make_change_id("tbl", seq),
+                    change_type=change_type,
+                    indicator="",
+                    section=section,
+                    table_name=table_name,
+                    table_id_t1=table_id_t1,
+                    table_id_t2=table_id_t2,
+                    page_t1=page_t1,
+                    page_t2=page_t2,
+                    source_ref_t1=pdf_path_t1,
+                    source_ref_t2=pdf_path_t2,
+                    confidence=confidence,
+                    table_title_raw=table_name,
+                    table_status=table_status_raw,
+                    indicators=[],
+                    match_method=match_method,
+                )
+            )
+            seq += 1
             continue
 
         section = str(comp.get("section", ""))
@@ -60,6 +117,10 @@ def build_review_items_from_indicator_result(
         table_id_t1 = str(comp.get("table_id_t1", ""))
         table_id_t2 = str(comp.get("table_id_t2", ""))
         confidence = float(comp.get("match_score", 0.0) or 0.0)
+        match_method = str(
+            comp.get("rescue_type")
+            or comp.get("match_reason", "")
+        )
 
         indicators: list[dict[str, str]] = []
 
@@ -74,20 +135,25 @@ def build_review_items_from_indicator_result(
                 old_val = str(ren.get("from", ""))
                 new_val = str(ren.get("to", ""))
                 label = f"{old_val} -> {new_val}" if old_val or new_val else ""
+                indicators.append({
+                    "name": label,
+                    "type": CHANGE_TYPE_RENAMED,
+                    "from": old_val,
+                    "to": new_val,
+                })
             else:
-                label = str(ren)
-            indicators.append({"name": label, "type": CHANGE_TYPE_RENAMED})
+                indicators.append({"name": str(ren), "type": CHANGE_TYPE_RENAMED})
 
         n_added = len(added)
         n_removed = len(removed)
         n_renamed = len(renamed)
         parts = []
         if n_added:
-            parts.append(f"{n_added} ajout(s)")
+            parts.append(f"{n_added} {t('indicator_add').lower()}(s)")
         if n_removed:
-            parts.append(f"{n_removed} suppression(s)")
+            parts.append(f"{n_removed} {t('indicator_removal').lower()}(s)")
         if n_renamed:
-            parts.append(f"{n_renamed} renommage(s)")
+            parts.append(f"{n_renamed} {t('indicator_rename').lower()}(s)")
         summary_indicator = ", ".join(parts)
 
         if n_removed >= n_added and n_removed >= n_renamed:
@@ -114,6 +180,7 @@ def build_review_items_from_indicator_result(
                 table_title_raw=table_name,
                 table_status=str(comp.get("table_status", "")),
                 indicators=indicators,
+                match_method=match_method,
             )
         )
         seq += 1
@@ -127,12 +194,16 @@ def build_review_items_from_indicator_result(
         section = str(table.get("section", ""))
         page_t2 = table.get("page")
         table_id_t2 = str(table.get("table_id", ""))
+        display_list = get_display_indicators(table)
+        table_indicators = [
+            {"name": name, "type": CHANGE_TYPE_ADDED} for name in display_list
+        ]
 
         items.append(
             ReviewItem(
                 change_id=_make_change_id("tbl_add", seq),
                 change_type=CHANGE_TYPE_TABLE_ADDED,
-                indicator="Tableau entier ajouté",
+                indicator=t("table_entire_added"),
                 section=section,
                 table_name=table_name,
                 table_id_t2=table_id_t2,
@@ -141,7 +212,7 @@ def build_review_items_from_indicator_result(
                 confidence=1.0,
                 table_title_raw=table_name,
                 table_status="ajoute",
-                indicators=[],
+                indicators=table_indicators,
             )
         )
         seq += 1
@@ -155,12 +226,16 @@ def build_review_items_from_indicator_result(
         section = str(table.get("section", ""))
         page_t1 = table.get("page")
         table_id_t1 = str(table.get("table_id", ""))
+        display_list = get_display_indicators(table)
+        table_indicators = [
+            {"name": name, "type": CHANGE_TYPE_REMOVED} for name in display_list
+        ]
 
         items.append(
             ReviewItem(
                 change_id=_make_change_id("tbl_rem", seq),
                 change_type=CHANGE_TYPE_TABLE_REMOVED,
-                indicator="Tableau entier supprimé",
+                indicator=t("table_entire_removed"),
                 section=section,
                 table_name=table_name,
                 table_id_t1=table_id_t1,
@@ -169,7 +244,7 @@ def build_review_items_from_indicator_result(
                 confidence=1.0,
                 table_title_raw=table_name,
                 table_status="supprime",
-                indicators=[],
+                indicators=table_indicators,
             )
         )
         seq += 1
