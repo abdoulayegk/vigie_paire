@@ -133,6 +133,7 @@ banks:
       weight_containment: 0.05
       weight_header_schema: 0.0
       min_label_overlap_reject: 0.55
+      use_post_hungarian_threshold: true
 
   td:
     name: "Banque Toronto-Dominion"
@@ -251,7 +252,7 @@ banks:
       - "Risque de marché"
       - "Annexes"
     matching_overrides:
-      use_hungarian_matching: false
+      use_hungarian_matching: true
       margin_threshold: 0.15
       rescue_single_min_title_similarity: 0.60
 
@@ -319,7 +320,10 @@ banks:
       - "Faits nouveaux en matière de réglementation"
       - "Etats financiers"
       - "Donnees complementaires"
-    matching_overrides: {}
+    matching_overrides:
+      min_label_overlap_reject: 0.58
+      overlap_threshold: 0.56
+      margin_threshold: 0.10
 
   cibc:
     name: "Banque Canadienne Imperiale de Commerce"
@@ -502,6 +506,8 @@ trend_detection:
 matching_thresholds:
   use_hungarian_matching: true
   matching_v2_enabled: true
+  use_post_hungarian_threshold: false
+  hungarian_min_score: 0.62
   ignore_table_id_for_number: true
   section_unknown_mode: soft_penalty
   unknown_section_penalty: 0.15
@@ -548,6 +554,7 @@ matching_thresholds:
   title_override_min_similarity: 0.85
   title_override_min_structure: 0.50
   title_override_min_overlap: 0.55
+  title_override_max_size_ratio: 0.25
   title_match_min_similarity: 0.88
   title_match_min_structure: 0.50
   rescue_single_min_containment: 0.65
@@ -555,20 +562,25 @@ matching_thresholds:
   rescue_split_merge_min_union_containment: 0.80
   rescue_split_merge_min_header_schema: 0.65
   merge_fragment_score_min: 0.85
-  unknown_match_min_containment: 0.65
-  unknown_match_min_score: 0.74
+  unknown_match_min_containment: 0.72
+  unknown_match_min_score: 0.78
+  unknown_match_min_title_similarity: 0.75
+  unknown_match_min_structure: 0.65
   use_vision_validation: false
   vision_validation_min_confidence: 80
   vision_validation_only_on_probable: true
   min_label_overlap_reject: 0.55
   soft_overlap_weight: 0.5
-  use_plan_score_formula: false
+  generic_title_min_containment: 0.70
+  generic_title_min_score: 0.75
+  use_plan_score_formula: true
   weight_s_labels: 0.70
   weight_s_anchors: 0.15
   weight_s_title: 0.10
   weight_s_size: 0.05
   size_mismatch_reject_threshold: 0.60
   include_explanation: false
+  split_diagnostic_max_candidates: 5
   generic_titles:
     - "exigences reglementaires"
     - "regulatory requirements"

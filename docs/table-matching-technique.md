@@ -99,13 +99,18 @@ Si les hashes sont identiques et qu'il n'y a pas de conflit de `table_number` :
 | `s_title` | 0.10 | Similarite des titres normalises |
 | `s_size` | 0.05 | Similarite structurelle (nombre d'indicateurs) |
 
-Formule (si `use_plan_score_formula` actif) :
+Formule retenue (active par defaut avec `use_plan_score_formula: true`) :
 
 ```
 score = w_labels * s_labels + w_anchors * s_anchors + w_title * s_title + w_size * s_size
 ```
 
-Sinon, score composite base sur `indicator_containment`, `indicator_overlap`, `title_similarity`, `structure_similarity`, etc.
+- `s_labels` : overlap effectif des libelles (Jaccard + soft fuzzy).
+- `s_anchors` : Jaccard des ancres (labels canoniques).
+- `s_title` : similarite des titres normalises.
+- `s_size` : similarite structurelle (colonnes/lignes).
+
+Poids par defaut : `weight_s_labels` 0.70, `weight_s_anchors` 0.15, `weight_s_title` 0.10, `weight_s_size` 0.05. Les overrides par banque peuvent utiliser ces cles ou les anciennes (`weight_label_overlap` -> `weight_s_labels`, `weight_title` -> `weight_s_title`, `weight_structure` -> `weight_s_size`) pour compatibilite.
 
 ---
 
@@ -132,6 +137,7 @@ Override possible uniquement si :
 - Corps assez specifique (longueur, nombre de mots)
 - `effective_label_overlap >= overlap_threshold`
 - `structure_similarity >= 0.50`
+- Difference de taille bornee : `|#T1 - #T2| / max(#T1, #T2) <= title_override_max_size_ratio` (defaut 0.25), pour eviter de matcher un grand tableau avec un petit malgre le titre.
 
 ### 5.3 Garde-fou overlap minimal
 
@@ -165,7 +171,17 @@ Quand les **deux meilleurs candidats** ont un score tres proche (ecart < `margin
 ### 5.7 Section inconnue (unknown_section)
 
 - Penalite : `unknown_section_penalty` = 0.15 sur le score.
-- Exigence renforcee : `indicator_containment >= 0.65` et `score >= 0.74` pour valider un match.
+- Exigence renforcee : `indicator_containment >= 0.65` et `score >= 0.74` pour valider un match (configurable : `unknown_match_min_containment`, `unknown_match_min_score` ; defauts renforces 0.72 et 0.78).
+- Signal fort requis : en section inconnue, un match doit en outre satisfaire **au moins une** des conditions : `title_similarity >= unknown_match_min_title_similarity` (defaut 0.75) **ou** `structure_similarity >= unknown_match_min_structure` (defaut 0.65). Sinon raison `unknown_section_penalized`.
+
+### 5.8 Regles permissives par banque (RBC, CIBC)
+
+Pour **RBC** et **CIBC**, les regles suivantes sont plus permissives et peuvent augmenter le risque de faux positifs sur certains cas :
+
+- **Few indicators** : pour les tableaux avec au plus 6 indicateurs (parametre `few_indicators_max_count`), un plancher d'overlap plus bas (`overlap_floor_min_few_indicators` = 0.25) est utilise, ce qui permet de matcher des tableaux petits avec moins de preuves.
+- **Header/footer titles** : les titres de type en-tete/pied de page (ex. "24 Banque Royale du Canada Premier trimestre...") beneficient du meme plancher reduit quand les deux tableaux ont ce type de titre.
+
+Ces regles peuvent etre assouplies (seuils plus stricts) apres un audit manuel des faux positifs par banque. Un parametre optionnel `few_indicators_require_title_match` pourrait exiger un titre tres proche pour valider un match lorsqu'on utilise le plancher 0.25.
 
 ---
 
@@ -173,12 +189,34 @@ Quand les **deux meilleurs candidats** ont un score tres proche (ecart < `margin
 
 ### 6.1 Principe
 
-Pour chaque section, une matrice de scores `S[i,j]` est construite entre tables T1 et T2. L'algorithme Hungarian (min-cost sur `1 - S`) determine l'assignation optimale 1-vers-1.
+Le matching utilise **Hungarian par section connue**, puis **greedy sur le reste** (sections inconnues et tables residuelles). Pour chaque section connue, une matrice de scores `S[i,j]` est construite entre tables T1 et T2. L'algorithme Hungarian (maximisation du score total via `linear_sum_assignment`) determine l'assignation optimale 1-vers-1. Les tables restantes (sections inconnues ou non couvertes) sont traitees par un fallback greedy avec contrainte 1-vers-1 (`used_t2_uids`).
 
 ### 6.2 Effets
 
 - Une table T2 "attractive" ne peut etre matchée qu'a une seule table T1.
 - Limite la propagation de faux positifs.
+
+### 6.3 Hungarian post-seuil (optionnel)
+
+Un mode alternatif (`use_post_hungarian_threshold: true`) applique les seuils **apres** l'Hungarian pour une optimisation globale :
+
+1. **Matrice** : toutes les paires non bloquees par les garde-fous reçoivent leur score reel (y compris sous 0.70). Seules les paires bloquees (cross_section, table_number_conflict, low_label_overlap_reject, size_mismatch_reject) ont score = -inf.
+
+2. **Hungarian** : l'algorithme maximise la somme totale sur toutes les paires admissibles.
+
+3. **Post-filtrage** : pour chaque paire assignee, application des seuils :
+   - `score >= match_score_v2` (0.70) -> match
+   - `score >= probable_score_v2` (0.62) -> probable
+   - `score < hungarian_min_score` (0.62) -> rejet, liberation pour rescue
+
+4. **uncertain_competition** : conserve comme en mode standard.
+
+Parametres (`configs/bank_profiles.yaml`, section `matching_thresholds`) :
+
+| Parametre | Defaut | Description |
+|-----------|--------|-------------|
+| `use_post_hungarian_threshold` | false | Activer le mode Hungarian puis seuil |
+| `hungarian_min_score` | 0.62 | Seuil minimal apres Hungarian (rejet en dessous) |
 
 ---
 
@@ -212,9 +250,10 @@ Une table T1 non matchée peut etre un **split** : son contenu est reparti sur d
 
 Detection :
 
-- Parmi les candidats T2 (top 3 dans `debug_unmatched_candidates`), chercher exactement 2 candidats avec :
+- Parmi les candidats T2 (top K dans `debug_unmatched_candidates`, K = `split_diagnostic_max_candidates`, defaut 5), chercher exactement 2 candidats avec :
   - `s_labels` dans la bande [0.35, 0.55] (ni trop haut, ni trop bas).
 - L'union des labels des 2 candidats couvre >= 80% des labels T1.
+- Limitation : un split dont les deux candidats T2 sont au-dela du top K ne sera pas detecte.
 
 Si oui : diagnostic `split_probable` avec les deux t2_uid concernes.
 
@@ -255,6 +294,8 @@ Overrides par banque : `banks.<code>.matching_overrides`.
 | `probable_score_v2` | 0.62 | Score minimum pour probable |
 | `min_label_overlap_reject` | 0.55 | Rejet si overlap trop faible |
 | `size_mismatch_reject_threshold` | 0.60 | Rejet si ratio taille > 60% |
+| `use_post_hungarian_threshold` | false | Mode Hungarian puis seuil (optimisation globale) |
+| `hungarian_min_score` | 0.62 | Seuil minimal apres Hungarian pour accepter une paire |
 | `unknown_section_penalty` | 0.15 | Penalite section inconnue |
 | `unknown_match_min_containment` | 0.65 | Containment min en section inconnue |
 | `unknown_match_min_score` | 0.74 | Score min en section inconnue |
@@ -276,12 +317,17 @@ Overrides par banque : `banks.<code>.matching_overrides`.
 |-------------------|------|
 | `indicator_comparator.py` | Comparateur principal, match_decision, Hungarian |
 | `_get_table_features` | Anchors + indicator_set_hash |
+| `_compute_pair_score_with_guard_rails` | Score brut + garde-fous (pour mode post-seuil) |
 | `_indicator_set` | Labels canoniques d'une table |
 | `match_decision` | Decision match/probable/no_match |
 | `match_tables_intra_section` | Pipeline par section |
 | `run_strict_intra_section_compare` | Point d'entree avec rescue et diagnostics |
 | `vigilance.config.get_matching_thresholds` | Chargement des seuils |
 | `vigie_extract_schema` | Hash et parse first column |
+
+### 11.1 Integration Dash
+
+La **source de verite** pour l'UI est le resultat de `run_strict_intra_section_compare` via `app.comparison_runner.run_comparison_with_sections` : le payload canonique utilise strictement `strict["pairs"]`, `strict["added_tables"]`, `strict["removed_tables"]`. Chaque entree de `table_comparisons` provient d'une paire retournee par le moteur et expose `match_reason`, `rescue_type`, `match_score`. Les metadonnees du payload incluent `algorithm_used` (hungarian ou greedy). Aucune logique de matching parallele n'est utilisee dans l'app Dash ; tout passe par le comparateur strict.
 
 ---
 
@@ -303,12 +349,19 @@ Overrides par banque : `banks.<code>.matching_overrides`.
 | `size_mismatch_reject` | Difference de taille trop forte |
 | `unknown_section_penalized` | Section inconnue, criteres non atteints |
 | `uncertain_competition` | Anti-greedy : top 2 trop proches |
+| `generic_title_insufficient_signals` | Les deux titres sont generiques et containment/score insuffisants |
 
 ---
 
 ## 13. Validation et tuning
 
-- **Bench** : tester sur une section (ex. capital) avec echantillon de matches valides manuellement.
-- **Metriques** : precision (% matches corrects), recall (% tables reellement matchées).
+### 13.1 Bench et metriques (recommandation)
+
+- **Jeu de reference** : constituer pour chaque banque (RBC, TD, CIBC, BNS au minimum) un echantillon de paires T1-T2 etiquetees manuellement (correct / incorrect). Format suggere : JSON listant `t1_uid`, `t2_uid`, `expected_match` (bool).
+- **Script** : lancer le matching (ex. via `run_strict_intra_section_compare` sur les memes PDF/sections), comparer les paires produites aux etiquettes, calculer precision (% des paires retournees qui sont correctes), rappel (% des vrais matches qui sont retrouves) et F1 par banque.
+- **Non-regression** : avant de valider des changements de seuils (phase 1-2), exiger une non-regression (ou un objectif cible) sur ce bench.
+
+### 13.2 Autres
+
 - **Logs** : distribution des scores, top "uncertain", collisions.
 - **Par banque** : RBC/CIBC peuvent necessiter des seuils plus bas et un poids labels plus eleve (0.75-0.85).

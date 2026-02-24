@@ -24,8 +24,10 @@ from vigilance.utils.indicator_cleaner import (
 from vigilance.utils.matching_normalizer import (
     header_schema_similarity,
     is_date_only_line,
+    is_generic_title,
     is_non_indicator_line,
     normalize_label,
+    normalize_for_matching,
 )
 
 try:
@@ -50,6 +52,8 @@ _DEFAULTS: dict[str, float] = {
     "probable_score_v2": 0.62,
     "unknown_match_min_containment": 0.65,
     "unknown_match_min_score": 0.74,
+    "unknown_match_min_title_similarity": 0.75,
+    "unknown_match_min_structure": 0.65,
     "rescue_single_min_containment": 0.65,
     "rescue_single_min_title_similarity": 0.40,
     "rescue_split_merge_min_union_containment": 0.80,
@@ -72,6 +76,9 @@ _DEFAULTS: dict[str, float] = {
     "weight_s_size": 0.05,
     "size_mismatch_reject_threshold": 0.60,
     "include_explanation": False,
+    "split_diagnostic_max_candidates": 5.0,
+    "use_post_hungarian_threshold": False,
+    "hungarian_min_score": 0.62,
 }
 
 
@@ -90,6 +97,13 @@ def _load_compare_thresholds(bank_code: str | None = None) -> dict[str, float]:
                 result[key] = float(cfg[key])
             except (TypeError, ValueError):
                 pass
+    if "generic_titles" in cfg and isinstance(cfg.get("generic_titles"), list):
+        result["generic_titles"] = list(cfg["generic_titles"])
+    if "split_diagnostic_max_candidates" in cfg:
+        try:
+            result["split_diagnostic_max_candidates"] = int(cfg["split_diagnostic_max_candidates"])
+        except (TypeError, ValueError):
+            pass
     return result
 
 
@@ -519,6 +533,15 @@ def _composite_score(
 
 
 @dataclass(slots=True)
+class ScoreResult:
+    """Result of pair scoring for Hungarian matrix; guard rails only, no business thresholds."""
+    score: float
+    is_blocked: bool
+    block_reason: str | None
+    decision: "MatchDecision"
+
+
+@dataclass(slots=True)
 class MatchDecision:
     is_match: bool
     reason: str
@@ -545,6 +568,43 @@ class MatchDecision:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+# Guard rail reasons that block a pair from Hungarian (score = -inf)
+_GUARD_RAIL_REASONS = frozenset({
+    "cross_section_forbidden",
+    "table_number_conflict",
+    "low_label_overlap_reject",
+    "size_mismatch_reject",
+})
+
+
+def _compute_pair_score_with_guard_rails(
+    table_t1: TableArtifact,
+    table_t2: TableArtifact,
+    *,
+    overlap_threshold: float | None = None,
+    thresholds: dict[str, float] | None = None,
+    bank_code: str | None = None,
+) -> ScoreResult:
+    """Compute raw score and detect guard-rail blocks. No business thresholds applied.
+    Used by Hungarian post-threshold mode: pairs blocked by guard rails get -inf;
+    all others get their real score for global optimization."""
+    decision = match_decision(
+        table_t1,
+        table_t2,
+        overlap_threshold=overlap_threshold,
+        thresholds=thresholds,
+        bank_code=bank_code,
+    )
+    is_blocked = decision.reason in _GUARD_RAIL_REASONS
+    score = -1e9 if is_blocked else decision.score
+    return ScoreResult(
+        score=score,
+        is_blocked=is_blocked,
+        block_reason=decision.reason if is_blocked else None,
+        decision=decision,
+    )
 
 
 def match_decision(
@@ -658,10 +718,10 @@ def match_decision(
         s_anchors = _jaccard_anchors(table_t1, table_t2)
         s_title = title_similarity
         s_size = structure_similarity
-        w_labels = float(th.get("weight_s_labels", 0.70))
+        w_labels = float(th.get("weight_s_labels") or th.get("weight_label_overlap", 0.70))
         w_anchors = float(th.get("weight_s_anchors", 0.15))
-        w_title = float(th.get("weight_s_title", 0.10))
-        w_size = float(th.get("weight_s_size", 0.05))
+        w_title = float(th.get("weight_s_title") or th.get("weight_title", 0.10))
+        w_size = float(th.get("weight_s_size") or th.get("weight_structure", 0.05))
         composite_score = (
             w_labels * s_labels
             + w_anchors * s_anchors
@@ -704,6 +764,20 @@ def match_decision(
     )
     overlap_floor = max(min(overlap_threshold, 0.30), effective_floor_min)
 
+    raw_generic_titles = th.get("generic_titles") or []
+    generic_titles_set = (
+        frozenset(normalize_for_matching(str(t), "title") for t in raw_generic_titles)
+        if isinstance(raw_generic_titles, list) and raw_generic_titles
+        else None
+    )
+    both_generic = bool(
+        generic_titles_set is not None
+        and is_generic_title(table_t1.title or "", generic_titles_set)
+        and is_generic_title(table_t2.title or "", generic_titles_set)
+    )
+    generic_title_min_containment = float(th.get("generic_title_min_containment", 0.70))
+    generic_title_min_score = float(th.get("generic_title_min_score", 0.75))
+
     def _build_decision(
         *,
         is_match: bool,
@@ -737,6 +811,12 @@ def match_decision(
             if final_match and (
                 indicator_containment < unknown_match_min_containment
                 or score < unknown_match_min_score
+            ):
+                final_match = False
+                final_reason = "unknown_section_penalized"
+            if final_match and (
+                title_similarity < th.get("unknown_match_min_title_similarity", 0.75)
+                and structure_similarity < th.get("unknown_match_min_structure", 0.65)
             ):
                 final_match = False
                 final_reason = "unknown_section_penalized"
@@ -826,12 +906,15 @@ def match_decision(
             and len(body_t1.split()) >= 3
             and len(body_t2.split()) >= 3
         )
+        title_override_max_size_ratio = float(th.get("title_override_max_size_ratio", 0.25))
+        size_ratio_override = abs(len(set_a) - len(set_b)) / max(len(set_a), len(set_b), 1)
         title_can_override = (
             title_similarity >= title_override_sim
             and body_similarity >= title_override_body_sim
             and body_is_specific
             and effective_label_overlap >= title_override_overlap
             and structure_similarity >= title_override_struct
+            and size_ratio_override <= title_override_max_size_ratio
         )
         if title_can_override:
             logger.warning(
@@ -939,6 +1022,15 @@ def match_decision(
 
     # Decision is content-only: overlap + title, no table number gate.
     if indicator_containment >= overlap_threshold and title_similarity >= title_sim_min_ind:
+        if both_generic and (
+            indicator_containment < generic_title_min_containment
+            or composite_score < generic_title_min_score
+        ):
+            return _build_decision(
+                is_match=False,
+                reason="generic_title_insufficient_signals",
+                score=composite_score,
+            )
         return _build_decision(
             is_match=True,
             reason="indicator_overlap_match",
@@ -954,6 +1046,15 @@ def match_decision(
         and composite_score >= 0.72
         and effective_label_overlap >= overlap_floor
     ):
+        if both_generic and (
+            indicator_containment < generic_title_min_containment
+            or composite_score < generic_title_min_score
+        ):
+            return _build_decision(
+                is_match=False,
+                reason="generic_title_insufficient_signals",
+                score=composite_score,
+            )
         return _build_decision(
             is_match=True,
             reason="multi_signal_match",
@@ -961,6 +1062,15 @@ def match_decision(
         )
 
     if use_few_floor and indicator_containment >= overlap_floor and structure_similarity >= 0.50:
+        if both_generic and (
+            indicator_containment < generic_title_min_containment
+            or composite_score < generic_title_min_score
+        ):
+            return _build_decision(
+                is_match=False,
+                reason="generic_title_insufficient_signals",
+                score=composite_score,
+            )
         return _build_decision(
             is_match=True,
             reason="few_indicators_header_footer_match",
@@ -1047,6 +1157,122 @@ def _match_section_hungarian(
 
     unmatched_t1_indices = [i for i in range(n) if i not in assigned_t1]
     return assignments, unmatched_t1_indices, uncertain_t2_indices
+
+
+def _match_section_hungarian_post_threshold(
+    t1_list: list[TableArtifact],
+    t2_list: list[TableArtifact],
+    *,
+    th: dict[str, float],
+    overlap_threshold: float,
+    bank_code: str | None,
+    margin_threshold: float,
+    borderline_score: float,
+) -> tuple[list[tuple[int, int, MatchDecision]], list[int], set[int]]:
+    """Hungarian with post-threshold: matrix uses all non-blocked scores, then
+    apply match_score_v2/probable_score_v2 after assignment."""
+    if not t1_list or not t2_list:
+        return [], list(range(len(t1_list))), set()
+
+    match_score_v2 = th.get("match_score_v2", 0.70)
+    probable_score_v2 = th.get("probable_score_v2", 0.62)
+    hungarian_min_score = th.get("hungarian_min_score", probable_score_v2)
+
+    n, m = len(t1_list), len(t2_list)
+    score_results: list[list[ScoreResult]] = []
+    scores = np.full((n, m), -1e9, dtype=np.float64)
+
+    for i, t1 in enumerate(t1_list):
+        row_results: list[ScoreResult] = []
+        for j, t2 in enumerate(t2_list):
+            sr = _compute_pair_score_with_guard_rails(
+                t1, t2,
+                overlap_threshold=overlap_threshold,
+                thresholds=th,
+                bank_code=bank_code,
+            )
+            row_results.append(sr)
+            if not sr.is_blocked:
+                scores[i, j] = sr.score
+        score_results.append(row_results)
+
+    row_ind, col_ind = linear_sum_assignment(scores, maximize=True)
+
+    assignments: list[tuple[int, int, MatchDecision]] = []
+    assigned_t1: set[int] = set()
+    assigned_t2: set[int] = set()
+    uncertain_t2_indices: set[int] = set()
+
+    for k in range(len(row_ind)):
+        i, j = int(row_ind[k]), int(col_ind[k])
+        sr = score_results[i][j]
+        if sr.is_blocked or scores[i, j] <= -1e8:
+            continue
+        assigned_t1.add(i)
+        assigned_t2.add(j)
+        assignments.append((i, j, sr.decision))
+
+    for i, j, d in list(assignments):
+        row_scores = [(score_results[i][jj].score if not score_results[i][jj].is_blocked else -1e9, jj)
+                     for jj in range(m)]
+        row_scores.sort(key=lambda x: x[0], reverse=True)
+        if len(row_scores) > 1 and row_scores[1][0] > -1e8:
+            diff = row_scores[0][0] - row_scores[1][0]
+            if diff < margin_threshold:
+                assignments = [(ii, jj, dd) for (ii, jj, dd) in assignments if ii != i or jj != j]
+                assigned_t1.discard(i)
+                assigned_t2.discard(j)
+                uncertain_t2_indices.add(j)
+                uncertain_t2_indices.add(int(row_scores[1][1]))
+
+    post_filtered: list[tuple[int, int, MatchDecision]] = []
+    for i, j, d in assignments:
+        score = d.score
+        if score < hungarian_min_score:
+            assigned_t1.discard(i)
+            assigned_t2.discard(j)
+            continue
+        decision_level = "match" if score >= match_score_v2 else "probable" if score >= probable_score_v2 else "no_match"
+        if decision_level == "no_match":
+            assigned_t1.discard(i)
+            assigned_t2.discard(j)
+            continue
+        new_decision = MatchDecision(
+            is_match=(decision_level == "match"),
+            reason=d.reason,
+            score=d.score,
+            section_match=d.section_match,
+            table_number_match=d.table_number_match,
+            table_label_base_match=d.table_label_base_match,
+            table_label_suffix_diff=d.table_label_suffix_diff,
+            indicator_overlap=d.indicator_overlap,
+            title_similarity=d.title_similarity,
+            structure_similarity=d.structure_similarity,
+            context_heading_similarity=d.context_heading_similarity,
+            position_proximity=d.position_proximity,
+            t1_uid=d.t1_uid,
+            t2_uid=d.t2_uid,
+            t1_table_id=d.t1_table_id,
+            t2_table_id=d.t2_table_id,
+            indicator_containment=d.indicator_containment,
+            header_schema_similarity=d.header_schema_similarity,
+            section_state=d.section_state,
+            decision_level=decision_level,
+            rescue_type=d.rescue_type,
+            soft_indicator_overlap=d.soft_indicator_overlap,
+        )
+        post_filtered.append((i, j, new_decision))
+
+    for i, j, d in post_filtered:
+        if d.score < borderline_score:
+            logger.warning(
+                "Borderline match (score=%.3f): %s <-> %s  reason=%s  io=%.3f  ts=%.3f",
+                d.score, d.t1_uid, d.t2_uid, d.reason,
+                d.indicator_overlap, d.title_similarity,
+            )
+
+    unmatched_t1_indices = [i for i in range(n) if i not in assigned_t1]
+    return post_filtered, unmatched_t1_indices, uncertain_t2_indices
 
 
 def _match_tables_greedy(
@@ -1136,7 +1362,9 @@ def _match_tables_greedy(
                                 "indicator_containment": round(decision.indicator_containment, 4),
                                 "section_state": decision.section_state,
                             }
-                            for candidate, decision in candidate_decisions[:3]
+                            for candidate, decision in candidate_decisions[
+                                : max(1, int(th.get("split_diagnostic_max_candidates", 5)))
+                            ]
                         ],
                     }
                 )
@@ -1202,7 +1430,9 @@ def _match_tables_greedy(
                             "indicator_containment": round(decision.indicator_containment, 4),
                             "section_state": decision.section_state,
                         }
-                        for candidate, decision in candidate_decisions[:3]
+                        for candidate, decision in candidate_decisions[
+                            : max(1, int(th.get("split_diagnostic_max_candidates", 5)))
+                        ]
                     ],
                 }
             )
@@ -1256,6 +1486,8 @@ def _match_tables_hungarian(
     used_t1_uids: set[str] = set()
     used_t2_uids: set[str] = set()
 
+    use_post_threshold = bool(th.get("use_post_hungarian_threshold", False))
+
     sections = {
         t.section for t in tables_t1 + tables_t2
         if _is_known_section(t.section)
@@ -1267,7 +1499,12 @@ def _match_tables_hungarian(
         if not t1_section or not t2_section:
             continue
 
-        assignments, _unmatched_indices, _uncertain_t2_idx = _match_section_hungarian(
+        if use_post_threshold:
+            section_matcher = _match_section_hungarian_post_threshold
+        else:
+            section_matcher = _match_section_hungarian
+
+        assignments, _unmatched_indices, _uncertain_t2_idx = section_matcher(
             t1_section, t2_section,
             th=th,
             overlap_threshold=overlap_threshold,
@@ -1289,7 +1526,10 @@ def _match_tables_hungarian(
             pair["t2_uid"] = d.t2_uid
             used_t2_uids.add(d.t2_uid)
             used_t1_uids.add(d.t1_uid)
-            pairs.append(pair)
+            if use_post_threshold and d.decision_level == "probable":
+                probable_pairs.append(pair)
+            else:
+                pairs.append(pair)
 
     remaining_t1 = [t for t in tables_t1 if _table_uid(t) not in used_t1_uids]
     remaining_t2 = [t for t in tables_t2 if _table_uid(t) not in used_t2_uids]
@@ -1737,6 +1977,26 @@ def run_strict_intra_section_compare(
                     ],
                 }
             )
+
+    # Validation 1-to-1: no duplicate T1/T2 in pairs, and every table appears in pairs or remaining (or in split/merge members).
+    pair_t1_uids = {str(p.get("t1_uid", "")) for p in pairs}
+    pair_t2_uids = {str(p.get("t2_uid", "")) for p in pairs}
+    assert len(pair_t1_uids) == len(pairs), "duplicate t1_uid in pairs"
+    assert len(pair_t2_uids) == len(pairs), "duplicate t2_uid in pairs"
+    merge_members_t1: set[str] = set()
+    for p in pairs:
+        for uid in p.get("merge_members_t1") or []:
+            merge_members_t1.add(str(uid))
+    split_members_t2: set[str] = set()
+    for p in pairs:
+        for uid in p.get("split_members_t2") or []:
+            split_members_t2.add(str(uid))
+    covered_t1 = pair_t1_uids | merge_members_t1 | set(remaining_t1.keys())
+    covered_t2 = pair_t2_uids | split_members_t2 | set(remaining_t2.keys())
+    all_t1_uids = set(table_by_t1_uid.keys())
+    all_t2_uids = set(table_by_t2_uid.keys())
+    assert all_t1_uids == covered_t1, "T1 coverage: every t1_uid must be in pairs, merge_members_t1, or remaining_t1"
+    assert all_t2_uids == covered_t2, "T2 coverage: every t2_uid must be in pairs, split_members_t2, or remaining_t2"
 
     result = {
         "pairs": pairs,
