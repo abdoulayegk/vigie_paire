@@ -10,6 +10,9 @@ CHANGE_TYPE_REMOVED = "removed"
 CHANGE_TYPE_RENAMED = "renamed"
 CHANGE_TYPE_TABLE_ADDED = "table_added"
 CHANGE_TYPE_TABLE_REMOVED = "table_removed"
+CHANGE_TYPE_MODIFIED = "modified"
+CHANGE_TYPE_UNCERTAIN = "uncertain"
+CHANGE_TYPE_STRUCTURE = "structure_change"
 
 REVIEW_STATUS_PENDING = "pending"
 REVIEW_STATUS_APPROVED = "approved"
@@ -41,6 +44,7 @@ class ReviewItem:
     table_title_raw: str = ""
     table_status: str = ""
     indicators: list[dict[str, str]] = field(default_factory=list)
+    match_method: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -67,6 +71,7 @@ class ReviewItem:
             "table_title_raw": self.table_title_raw,
             "table_status": self.table_status,
             "indicators": list(self.indicators),
+            "match_method": self.match_method,
         }
 
     @classmethod
@@ -95,4 +100,5 @@ class ReviewItem:
             table_title_raw=str(data.get("table_title_raw", "")),
             table_status=str(data.get("table_status", "")),
             indicators=list(data.get("indicators", [])),
+            match_method=str(data.get("match_method", "")),
         )

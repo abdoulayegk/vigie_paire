@@ -23,6 +23,7 @@ class TableArtifact:
     bbox: dict[str, Any] | list[float] | None = None
     quarter: str | None = None
     pdf_path: str | None = None
+    first_column_indicators_raw: list[str] | None = None  # Raw before normalization; display only
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

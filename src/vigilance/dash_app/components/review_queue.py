@@ -5,6 +5,7 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import html
 
+from app.i18n import t
 from app.review_models import (
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
@@ -39,7 +40,7 @@ def build_review_queue(
 
     filter_buttons: list = [
         dbc.Button(
-            [html.I(className="bi bi-funnel me-2"), f"Toutes les sections ({len(items)})"],
+            [html.I(className="bi bi-funnel me-2"), f"{t('all_sections')} ({len(items)})"],
             id={"type": "filter-section", "value": "all"},
             color="primary" if active_section == "all" else "light",
             size="sm",
@@ -88,9 +89,9 @@ def build_review_queue(
 
         badge_children = []
         if change_type == CHANGE_TYPE_TABLE_ADDED:
-            badge_children.append(dbc.Badge("TABLEAU AJOUTE", color="info", className="me-1"))
+            badge_children.append(dbc.Badge(t("table_added").upper(), color="info", className="me-1"))
         elif change_type == CHANGE_TYPE_TABLE_REMOVED:
-            badge_children.append(dbc.Badge("TABLEAU SUPPRIME", color="dark", text_color="white", className="me-1"))
+            badge_children.append(dbc.Badge(t("table_removed").upper(), color="dark", text_color="white", className="me-1"))
         else:
             if n_added:
                 badge_children.append(dbc.Badge(f"+{n_added}", color="success", className="me-1"))
@@ -131,7 +132,7 @@ def build_review_queue(
 
     return html.Div(
         [
-            html.H5("File de Revue", className="mb-3"),
+            html.H5(t("file_review"), className="mb-3"),
             html.Div(
                 [
                     html.Span(f"Total: {total}", className="me-3 fw-bold"),

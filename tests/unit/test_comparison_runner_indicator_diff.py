@@ -7,6 +7,7 @@ import pytest
 from app.comparison_runner import (
     _detect_fusion_split,
     _fuzzy_pair_added_removed,
+    _hungarian_pair_added_removed,
     _indicator_diff,
     rapidfuzz_fuzz,
 )
@@ -158,3 +159,41 @@ def test_fuzzy_pair_added_removed_greedy_one_to_one() -> None:
     assert renames[0][1] == added_in[0]
     assert "autre ligne nouvelle" in added
     assert "autre ancienne" in removed
+
+
+@pytest.mark.skipif(not _HAS_RAPIDFUZZ, reason="rapidfuzz not installed")
+def test_hungarian_pair_added_removed_determinism() -> None:
+    """Same input produces same output across multiple calls."""
+    removed = ["Ratio CET1", "RWA total"]
+    added = ["Ratio CET1 (Bâle III)", "Actifs pondérés aux risques"]
+    out1 = _hungarian_pair_added_removed(removed, added, th={})
+    out2 = _hungarian_pair_added_removed(removed, added, th={})
+    a1, r1, pairs1, _ = out1
+    a2, r2, pairs2, _ = out2
+    assert set(a1) == set(a2)
+    assert set(r1) == set(r2)
+    assert set((x[0], x[1]) for x in pairs1) == set((x[0], x[1]) for x in pairs2)
+
+
+@pytest.mark.skipif(not _HAS_RAPIDFUZZ, reason="rapidfuzz not installed")
+def test_hungarian_pair_added_removed_one_to_one() -> None:
+    """Rename assignment is 1-to-1; no duplicate added or removed in pairs."""
+    removed = ["Label A", "Label B"]
+    added = ["Label A reformulated", "Label B extended"]
+    _, _, pairs, _ = _hungarian_pair_added_removed(removed, added, th={})
+    added_in_pairs = [p[1] for p in pairs]
+    removed_in_pairs = [p[0] for p in pairs]
+    assert len(added_in_pairs) == len(set(added_in_pairs))
+    assert len(removed_in_pairs) == len(set(removed_in_pairs))
+    assert len(pairs) <= min(len(removed), len(added))
+
+
+@pytest.mark.skipif(not _HAS_RAPIDFUZZ, reason="rapidfuzz not installed")
+def test_hungarian_pair_added_removed_gating_rejects_absurd() -> None:
+    """Gating rejects absurd matches (no token overlap, no shared acronym)."""
+    removed = ["Total des actifs"]
+    added = ["Ratio de levier au sens de Bâle III"]
+    added_rest, removed_rest, pairs, _ = _hungarian_pair_added_removed(removed, added, th={})
+    assert len(pairs) == 0
+    assert "Total des actifs" in removed_rest
+    assert "Ratio de levier au sens de Bâle III" in added_rest

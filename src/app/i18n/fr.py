@@ -1,0 +1,188 @@
+"""French i18n - Desjardins professional terminology."""
+
+from __future__ import annotations
+
+# -----------------------------------------------------------------------------
+# A) UI Labels
+# -----------------------------------------------------------------------------
+UI_LABELS: dict[str, str] = {
+    "app_title": "Comparateur de Rapports Bancaires",
+    "upload": "Charger",
+    "analyze": "Analyser",
+    "btn_analyze": "Analyser",
+    "btn_load": "Charger",
+    "btn_refresh": "Actualiser",
+    "btn_reset": "Nouvelle Analyse",
+    "results": "Résultats",
+    "filters": "Filtres",
+    "section": "Section",
+    "page": "Page",
+    "table": "Tableau",
+    "tables": "Tableaux",
+    "indicators": "Indicateurs",
+    "added": "Ajout",
+    "removed": "Retrait",
+    "renamed": "Renommage",
+    "matched": "Apparié",
+    "uncertain": "Appariement incertain",
+    "probable": "Probable",
+    "rescued": "Sauvegardé",
+    "export": "Exporter",
+    "load": "Charger",
+    "refresh": "Actualiser",
+    "page_t1": "Page T1",
+    "page_t2": "Page T2",
+    "reason": "Raison",
+    "score": "Score",
+    "statut": "Statut",
+    "review": "Revue",
+    "all_sections": "Toutes les sections",
+    "validation_time": "Temps de validation",
+    "file_review": "File de Revue",
+    "file_review_total": "File de Revue (Total)",
+    "validated": "Valides",
+    "rejected": "Rejetés",
+    "pending": "En Attente",
+    "table_added": "Tableau ajouté",
+    "table_added_plural": "Tableaux ajoutés",
+    "table_removed": "Tableau retiré",
+    "table_removed_plural": "Tableaux retirés",
+    "table_entire_added": "Tableau entier ajouté",
+    "table_entire_removed": "Tableau entier supprimé",
+    "indicator_add": "Ajout",
+    "indicator_removal": "Suppression",
+    "indicator_rename": "Renommage",
+    "fusion_split": "Fusion/Split",
+    "notes_bas_tableau": "Notes de bas de tableau",
+    "no_changes_review": "Aucun changement a revoir.",
+    "nouvelle_analyse": "Nouvelle Analyse",
+    "analyse_comparative": "Analyse Comparative des Indicateurs",
+    "statistiques_validation": "Statistiques de Validation",
+    "kpi_matched": "Tableaux appariés",
+    "kpi_added": "Indicateurs ajoutés",
+    "kpi_removed": "Indicateurs retirés",
+    "kpi_renamed": "Renommages",
+    "btn_approve": "Valider",
+    "btn_reject": "Rejeter",
+    "btn_apply": "Appliquer",
+    "btn_prev": "Precedent",
+    "btn_next": "Suivant",
+    "detail_changement": "Detail du Changement",
+    "no_indicators": "Aucun indicateur",
+    "image_unavailable": "Image non disponible",
+    "decision_analyst": "Decision de l'Analyste",
+    "comment_optional": "Commentaire (Optionnel)",
+}
+
+# -----------------------------------------------------------------------------
+# B) Status mapping (codes -> FR)
+# -----------------------------------------------------------------------------
+TABLE_STATUS: dict[str, str] = {
+    "ajoute": "Tableau ajouté",
+    "retire": "Tableau retiré",
+    "supprime": "Tableau retiré",
+    "match": "Tableau apparié",
+    "matched": "Tableau apparié",
+    "incertain": "Appariement incertain",
+    "structure_change": "Fusion/Split",
+    "modifie": "Modifié",
+    "stable": "Stable",
+    "needs_review": "À revoir",
+}
+
+
+def status_fr(code: str) -> str:
+    """Map table_status or indicator status code to French display string."""
+    if not code:
+        return ""
+    c = str(code).strip().lower()
+    return TABLE_STATUS.get(c, code)
+
+
+# Indicator change types (used in UI badges/labels)
+INDICATOR_CHANGE_TYPE: dict[str, str] = {
+    "added": "Ajout",
+    "removed": "Retrait",
+    "renamed": "Renommage",
+}
+
+# -----------------------------------------------------------------------------
+# C) Reason mapping (reason_code -> FR)
+# -----------------------------------------------------------------------------
+REASON_MAP: dict[str, str] = {
+    "table_number_low_overlap_rescue": "Appariement sauvé par numéro de tableau (chevauchement faible)",
+    "cross_section_forbidden": "Sections différentes (appariement interdit)",
+    "table_number_conflict": "Conflit de numéro de tableau",
+    "low_label_overlap_reject": "Chevauchement d'indicateurs insuffisant",
+    "size_mismatch_reject": "Dimensions incompatibles",
+    "title_match": "Titres compatibles",
+    "anchor_match": "Indicateurs compatibles",
+    "rescued": "Appariement sauvé (rescue)",
+    "hungarian": "Affectation optimale (Hungarian)",
+    "indicator_set_hash_exact": "Indicateurs identiques (hash exact)",
+    "indicator_overlap_match": "Chevauchement d'indicateurs suffisant",
+    "multi_signal_match": "Plusieurs signaux concordants",
+    "few_indicators_header_footer_match": "Peu d'indicateurs, en-tête/pied compatibles",
+    "title_override_match": "Titre prioritaire (override)",
+    "date_title_structure_rescue": "Sauvetage par titre date + structure",
+    "generic_title_insufficient_signals": "Titre générique, signaux insuffisants",
+    "low_containment": "Contenu insuffisant",
+    "weak_signals": "Signaux faibles",
+    "unknown_section_penalized": "Section inconnue (pénalisée)",
+    "unknown_section": "Section inconnue",
+    "no_candidate_same_section": "Aucun candidat dans la même section",
+    "uncertain_competition": "Compétition incertaine",
+    "single_rescue": "Sauvetage unique",
+    "split_merge_rescue": "Sauvetage fusion/split",
+    "split_probable": "Probable split/merge",
+    "removed_table": "Tableau retiré",
+    "added_table": "Tableau ajouté",
+    "unmatched": "Non apparié",
+    "id": "Correspondance par identifiant",
+    "score": "Appariement par score",
+    "rescue_split_merge": "Sauvetage fusion/split",
+    "rescue_high_jaccard": "Sauvetage par Jaccard élevé",
+}
+
+
+def reason_fr(code: str) -> str:
+    """Map reason_code to French display string. Unknown codes fall back to original."""
+    if not code:
+        return ""
+    c = str(code).strip()
+    return REASON_MAP.get(c, c)
+
+
+# -----------------------------------------------------------------------------
+# D) Source method mapping
+# -----------------------------------------------------------------------------
+SOURCE_METHOD_MAP: dict[str, str] = {
+    "docling": "Extraction Docling",
+    "vision_fallback_gpt4o": "Extraction vision (GPT-4o)",
+    "vision_fallback_gpt-4o": "Extraction vision (GPT-4o)",
+    "vision_fallback": "Extraction vision (GPT-4o)",
+    "vector": "Extraction vectorielle",
+}
+
+
+def source_method_fr(method: str) -> str:
+    """Map source_method to French display string."""
+    if not method:
+        return ""
+    m = str(method).strip()
+    return SOURCE_METHOD_MAP.get(m, m)
+
+
+# -----------------------------------------------------------------------------
+# E) Generic translation helper
+# -----------------------------------------------------------------------------
+def t(key: str, default: str | None = None) -> str:
+    """Return French string for key, or default, or key if unknown."""
+    if not key:
+        return ""
+    val = UI_LABELS.get(key)
+    if val is not None:
+        return val
+    if default is not None:
+        return default
+    return key

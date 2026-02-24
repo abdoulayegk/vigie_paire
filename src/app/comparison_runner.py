@@ -3,15 +3,30 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+logger = logging.getLogger(__name__)
+
 try:
     from rapidfuzz import fuzz as rapidfuzz_fuzz
 except ImportError:
     rapidfuzz_fuzz = None  # type: ignore[assignment]
+
+try:
+    from scipy.optimize import linear_sum_assignment
+except ImportError:
+    linear_sum_assignment = None  # type: ignore[assignment]
+
+# Fallback defaults when config keys absent (PASS 2 wires from get_matching_thresholds)
+_INDICATOR_DEFAULTS = {
+    "indicator_rename_min_score": 0.86,
+    "indicator_gate_min_len_ratio": 0.55,
+    "indicator_gate_min_token_overlap": 1,
+}
 
 from app.ui_config import INDICATOR_COMPARISON_DIR
 from vigilance.compare import run_strict_intra_section_compare
@@ -83,6 +98,12 @@ def _table_to_artifact(table: Any, *, bank_code: str, quarter: str, pdf_path: st
             if row and str(row[0]).strip():
                 indicators.append(str(row[0]).strip())
 
+    raw = getattr(table, "first_column_indicators_raw", None)
+    if raw is not None:
+        raw = [str(x).strip() for x in raw if str(x).strip()]
+    else:
+        raw = None
+
     section = _canonical_section_name(str(getattr(table, "section", "")))
     return TableArtifact(
         bank_code=bank_code,
@@ -93,7 +114,8 @@ def _table_to_artifact(table: Any, *, bank_code: str, quarter: str, pdf_path: st
         headers=headers,
         rows=rows,
         first_column_indicators=indicators,
-        extraction_method="docling",
+        first_column_indicators_raw=raw,
+        extraction_method=getattr(table, "extraction_method", None) or "docling",
         table_number=getattr(table, "table_number", None),
         bbox=getattr(table, "bbox", None),
         quarter=quarter,
@@ -111,9 +133,15 @@ def _extract_tables(
     use_vision_fallback: bool,
     api_key: str | None,
 ) -> list[TableArtifact]:
+    import os
+
     from vigilance.extraction.docling_processor import extract_tables_docling_by_sections
 
-    del use_vision_fallback, api_key
+    if use_vision_fallback:
+        os.environ["ENABLE_VISION_FALLBACK"] = "1"
+    else:
+        os.environ.pop("ENABLE_VISION_FALLBACK", None)
+    del api_key
 
     raw_tables = extract_tables_docling_by_sections(
         pdf_path=pdf_path,
@@ -132,6 +160,254 @@ def _extract_tables(
 def _canonical_indicator_key(text: str) -> str:
     """Canonical key for indicator comparison (shared with structural_comparator)."""
     return normalize_indicator_for_comparison(text)
+
+
+# Trailing footnote/reference patterns (do not remove semantic numbers: Tier 1, CET1, Bâle III, Pillar 3, IFRS 9)
+_INDICATOR_TRAILING_SUPER = re.compile(r"[¹²³⁴⁵⁶⁷⁸⁹⁰]+\s*$")
+_INDICATOR_TRAILING_STARS = re.compile(r"\s*[*\u2020\u2021\u00A7]+\s*$")  # * ** † ‡ §
+_INDICATOR_TRAILING_PAREN_NUM = re.compile(r"\s*[\(\[]\d+[\)\]]\s*$")
+_INDICATOR_TRAILING_NOTE_NUM = re.compile(r"\s+Note\s+\d+\s*\.?\s*$", re.IGNORECASE)
+_INDICATOR_TRAILING_COMMA_NUMS = re.compile(r"\s*,\s*\d+(?:\s*,\s*\d+)*\s*$")
+_INDICATOR_TRAILING_SPACE_NUMS_COMMA = re.compile(r"\s+\d+(?:\s*,\s*\d+)+\s*$")
+
+
+def _strip_footnote_markers_from_indicator(text: str) -> str:
+    """Remove trailing footnote markers and refs from indicator label. Preserves semantic numbers (Tier 1, CET1, etc.)."""
+    if not text:
+        return ""
+    value = (text or "").strip()
+    while True:
+        prev = value
+        value = _INDICATOR_TRAILING_SUPER.sub("", value)
+        value = _INDICATOR_TRAILING_STARS.sub("", value)
+        value = _INDICATOR_TRAILING_PAREN_NUM.sub("", value)
+        value = _INDICATOR_TRAILING_NOTE_NUM.sub("", value)
+        value = _INDICATOR_TRAILING_COMMA_NUMS.sub("", value)
+        value = _INDICATOR_TRAILING_SPACE_NUMS_COMMA.sub("", value)
+        value = re.sub(r"\s+", " ", value).strip()
+        if value == prev:
+            break
+    return value
+
+
+_INDICATOR_STOPWORDS = frozenset(
+    {"de", "du", "des", "la", "le", "les", "et", "ou", "and", "the", "of", "to", "en", "au", "aux", "a", "an"}
+)
+_INDICATOR_UNIT_TOKENS = frozenset({"%", "million", "millions", "milliard", "milliards", "dollars", "cad", "usd"})
+# Acronyms for overlap gate: if both strings contain same one, gate passes
+_INDICATOR_ACRONYM_RE = re.compile(
+    r"\b(cet[-]?1|at[-]?1|tlac|rwa|ifrs[-]?9|tier[-]?\s*1|tier[-]?\s*2|bale[-]?\s*iii|pillar[-]?\s*3)\b",
+    re.IGNORECASE,
+)
+
+
+def _indicator_strong_tokens(text: str) -> set[str]:
+    """Tokenize for overlap gate: normalize hyphens/slashes, drop stopwords/units, drop pure numbers except 1-9."""
+    if not text:
+        return set()
+    normalized = re.sub(r"[-/]", " ", (text or "").lower())
+    normalized = re.sub(r"[^\w\s]", " ", normalized)
+    tokens: set[str] = set()
+    for t in normalized.split():
+        if not t:
+            continue
+        if t in _INDICATOR_STOPWORDS or t in _INDICATOR_UNIT_TOKENS:
+            continue
+        if t.isdigit():
+            if len(t) > 1:
+                continue
+            if t in ("1", "2", "3", "9"):
+                tokens.add(t)
+            continue
+        tokens.add(t)
+    return tokens
+
+
+def _indicator_acronyms(text: str) -> set[str]:
+    """Extract allowlisted acronyms (CET1, TLAC, RWA, etc.) for overlap gate."""
+    if not text:
+        return set()
+    return {m.group(1).lower().replace(" ", "").replace("-", "") for m in _INDICATOR_ACRONYM_RE.finditer(text or "")}
+
+
+_PREFILTER_MATRIX_CAP = 25_000
+_PREFILTER_TOP_K_PER_REMOVED = 50
+
+
+def _hungarian_pair_added_removed(
+    removed_items: list[str],
+    added_items: list[str],
+    *,
+    th: dict[str, Any] | None = None,
+) -> tuple[list[str], list[str], list[tuple[str, str]], dict[str, Any]]:
+    """
+    Global 1-to-1 pairing between removed and added indicators (renames).
+    Uses Hungarian assignment when scipy is available; otherwise deterministic greedy.
+    Returns (added_restant, removed_restant, list of (removed_text, added_text), debug_dict).
+    Debug dict is for logging only; never written to JSON.
+    """
+    th = th or {}
+    min_score = float(th.get("indicator_rename_min_score", _INDICATOR_DEFAULTS["indicator_rename_min_score"]))
+    min_len_ratio = float(th.get("indicator_gate_min_len_ratio", _INDICATOR_DEFAULTS["indicator_gate_min_len_ratio"]))
+    min_token_overlap = int(th.get("indicator_gate_min_token_overlap", _INDICATOR_DEFAULTS["indicator_gate_min_token_overlap"]))
+    weights_raw = th.get("indicator_similarity_weights")
+    weights: dict[str, float] | None = weights_raw if isinstance(weights_raw, dict) else None
+
+    if not removed_items or not added_items or rapidfuzz_fuzz is None:
+        return list(added_items), list(removed_items), [], {"gated_out_pairs": 0, "accepted_renames": 0}
+
+    min_score_pct = int(min_score * 100)
+
+    def _norm_for_sort(s: str) -> str:
+        return _canonical_indicator_key(_strip_footnote_markers_from_indicator(s))
+
+    removed = sorted(removed_items, key=_norm_for_sort)
+    added = sorted(added_items, key=_norm_for_sort)
+
+    def _length_ratio_ok(a: str, r: str) -> bool:
+        la, lr = len(_norm_for_sort(a)), len(_norm_for_sort(r))
+        if max(la, lr) <= 0:
+            return True
+        return (min(la, lr) / max(la, lr)) >= min_len_ratio
+
+    def _token_overlap_ok(a: str, r: str) -> bool:
+        na, nr = _norm_for_sort(a), _norm_for_sort(r)
+        ta = _indicator_strong_tokens(na)
+        tr = _indicator_strong_tokens(nr)
+        if len(ta & tr) >= min_token_overlap:
+            return True
+        acro_a = _indicator_acronyms(na)
+        acro_r = _indicator_acronyms(nr)
+        return len(acro_a & acro_r) > 0
+
+    def _similarity(a: str, r: str) -> float:
+        ratio_score = rapidfuzz_fuzz.ratio(a, r)
+        token_score = rapidfuzz_fuzz.token_set_ratio(a, r)
+        if weights:
+            return weights.get("ratio", 0.4) * ratio_score + weights.get("token_set", 0.6) * token_score
+        return max(ratio_score, token_score)
+
+    n_rem, n_add = len(removed), len(added)
+    matrix_size = n_rem * n_add
+    prefilter_used = matrix_size > _PREFILTER_MATRIX_CAP
+    candidate_set: set[tuple[int, int]] | None = None
+    if prefilter_used:
+        candidate_set = set()
+        for i in range(n_rem):
+            scored: list[tuple[float, int]] = []
+            for j in range(n_add):
+                if _length_ratio_ok(added[j], removed[i]) and _token_overlap_ok(added[j], removed[i]):
+                    sc = rapidfuzz_fuzz.token_set_ratio(added[j], removed[i])
+                    scored.append((sc, j))
+            scored.sort(key=lambda x: x[0], reverse=True)
+            for _, j in scored[:_PREFILTER_TOP_K_PER_REMOVED]:
+                candidate_set.add((i, j))
+
+    gated_out = 0
+    accepted_scores: list[float] = []
+
+    if linear_sum_assignment is not None:
+        import numpy as np
+        scores = np.full((n_rem, n_add), -1e9, dtype=np.float64)
+        for i in range(n_rem):
+            for j in range(n_add):
+                if candidate_set is not None and (i, j) not in candidate_set:
+                    gated_out += 1
+                    continue
+                if _length_ratio_ok(added[j], removed[i]) and _token_overlap_ok(added[j], removed[i]):
+                    scores[i, j] = _similarity(added[j], removed[i])
+                else:
+                    gated_out += 1
+        cost = -scores
+        row_ind, col_ind = linear_sum_assignment(cost)
+        renamed_pairs: list[tuple[str, str]] = []
+        used_rem: set[int] = set()
+        used_add: set[int] = set()
+        for k in range(len(row_ind)):
+            i, j = int(row_ind[k]), int(col_ind[k])
+            if i >= n_rem or j >= n_add:
+                continue
+            sc = float(scores[i, j])
+            if sc >= min_score_pct:
+                renamed_pairs.append((removed[i], added[j]))
+                accepted_scores.append(sc)
+                used_rem.add(i)
+                used_add.add(j)
+        added_restant = [added[j] for j in range(n_add) if j not in used_add]
+        removed_restant = [removed[i] for i in range(n_rem) if i not in used_rem]
+
+        def _debug_dict() -> dict[str, Any]:
+            asc = sorted(accepted_scores) if accepted_scores else []
+            unmatched_candidates: list[dict[str, Any]] = []
+            for i in range(n_rem):
+                if i in used_rem:
+                    continue
+                r = removed[i]
+                cand: list[tuple[str, float]] = []
+                for j in range(n_add):
+                    if j in used_add:
+                        continue
+                    sc = float(scores[i, j])
+                    if sc > -1e8:
+                        cand.append((added[j], sc))
+                cand.sort(key=lambda x: x[1], reverse=True)
+                unmatched_candidates.append({"removed": r, "top3": cand[:3]})
+            return {
+                "gated_out_pairs": gated_out,
+                "accepted_renames": len(renamed_pairs),
+                "prefilter_used": prefilter_used,
+                "score_distribution": {
+                    "min": min(asc) if asc else None,
+                    "max": max(asc) if asc else None,
+                    "mean": sum(asc) / len(asc) if asc else None,
+                    "median": asc[len(asc) // 2] if asc else None,
+                },
+                "unmatched_removed_with_candidates": unmatched_candidates,
+            }
+
+        return added_restant, removed_restant, renamed_pairs, _debug_dict()
+    else:
+        # Greedy fallback: process in sorted order, pick best above threshold with same gating
+        used_add_f: set[int] = set()
+        used_rem_f: set[int] = set()
+        renamed_pairs = []
+        for i, r in enumerate(removed):
+            best_j = -1
+            best_score = -1.0
+            for j, a in enumerate(added):
+                if j in used_add_f:
+                    continue
+                if not _length_ratio_ok(a, r) or not _token_overlap_ok(a, r):
+                    gated_out += 1
+                    continue
+                sc = _similarity(a, r)
+                if sc >= min_score_pct and sc > best_score:
+                    best_score = sc
+                    best_j = j
+            if best_j >= 0:
+                renamed_pairs.append((r, added[best_j]))
+                accepted_scores.append(_similarity(added[best_j], r))
+                used_rem_f.add(i)
+                used_add_f.add(best_j)
+        added_restant = [added[j] for j in range(n_add) if j not in used_add_f]
+        removed_restant = [removed[i] for i in range(n_rem) if i not in used_rem_f]
+        asc = sorted(accepted_scores) if accepted_scores else []
+        debug = {
+            "gated_out_pairs": gated_out,
+            "accepted_renames": len(renamed_pairs),
+            "prefilter_used": prefilter_used,
+            "score_distribution": {
+                "min": min(asc) if asc else None,
+                "max": max(asc) if asc else None,
+                "mean": sum(asc) / len(asc) if asc else None,
+                "median": asc[len(asc) // 2] if asc else None,
+            },
+            "unmatched_removed_with_candidates": [
+                {"removed": removed[i], "top3": []}
+                for i in range(n_rem) if i not in used_rem_f
+            ],
+        }
+        return added_restant, removed_restant, renamed_pairs, debug
 
 
 def _detect_fusion_split(
@@ -206,6 +482,7 @@ def _detect_fusion_split(
 def _indicator_diff(
     t1: TableArtifact, t2: TableArtifact
 ) -> tuple[list[str], list[str], bool, dict[str, int]]:
+    # Matching/diff use first_column_indicators (clean) only; UI display prefers raw.
     left = [str(item).strip() for item in t1.first_column_indicators if str(item).strip()]
     right = [str(item).strip() for item in t2.first_column_indicators if str(item).strip()]
 
@@ -217,9 +494,10 @@ def _indicator_diff(
             if kind:
                 excluded[kind] = excluded.get(kind, 0) + 1
                 continue
-            key = _canonical_indicator_key(value)
+            value_clean = _strip_footnote_markers_from_indicator(value)
+            key = _canonical_indicator_key(value_clean)
             if key and key not in mapped:
-                mapped[key] = value
+                mapped[key] = value_clean
         return mapped, excluded
 
     left_map, left_excluded = _norm(left)
@@ -420,7 +698,21 @@ def run_comparison_with_sections(
             continue
 
         added, removed, had_fusion_split, excluded_counts = _indicator_diff(table_t1, table_t2)
-        added, removed, renamed_pairs = _fuzzy_pair_added_removed(added, removed, bank_code)
+        use_hungarian = cfg.get("indicator_hungarian_enabled", True)
+        if use_hungarian:
+            added, removed, renamed_pairs, indicator_debug = _hungarian_pair_added_removed(
+                removed, added, th=cfg
+            )
+            if indicator_debug and logger.isEnabledFor(logging.DEBUG):
+                logger.debug(
+                    "indicator_pairing %s:%s gated=%s renames=%s scores=%s",
+                    table_t1.section, table_t1.table_id,
+                    indicator_debug.get("gated_out_pairs"),
+                    indicator_debug.get("accepted_renames"),
+                    indicator_debug.get("score_distribution"),
+                )
+        else:
+            added, removed, renamed_pairs = _fuzzy_pair_added_removed(added, removed, bank_code)
         renamed_indicators = [{"from": r, "to": a} for (r, a) in renamed_pairs]
 
         rescue_type = pair.get("rescue_type")
@@ -472,6 +764,10 @@ def run_comparison_with_sections(
             }
         )
 
+    def _source_method(uid: str, by_uid: dict) -> str:
+        t = by_uid.get(uid)
+        return (getattr(t, "extraction_method", None) or "docling") if t else "docling"
+
     tables_added = [
         {
             "table_status": "ajoute",
@@ -479,9 +775,16 @@ def run_comparison_with_sections(
             "title": item.get("title_t2", ""),
             "page": item.get("page_t2"),
             "section": item.get("section", ""),
-            "source_method": "docling",
+            "source_method": _source_method(str(item.get("t2_uid", "")), t2_by_uid),
             "quality_flags": [],
             "indicators": list(item.get("first_column_indicators", []) or []),
+            "first_column_indicators_raw": list(
+                item.get("first_column_indicators_raw")
+                or (
+                    getattr(t2_by_uid.get(str(item.get("t2_uid", ""))), "first_column_indicators_raw", None)
+                    or []
+                )
+            ),
         }
         for item in strict.get("added_tables", [])
     ]
@@ -492,9 +795,16 @@ def run_comparison_with_sections(
             "title": item.get("title_t1", ""),
             "page": item.get("page_t1"),
             "section": item.get("section", ""),
-            "source_method": "docling",
+            "source_method": _source_method(str(item.get("t1_uid", "")), t1_by_uid),
             "quality_flags": [],
             "indicators": list(item.get("first_column_indicators", []) or []),
+            "first_column_indicators_raw": list(
+                item.get("first_column_indicators_raw")
+                or (
+                    getattr(t1_by_uid.get(str(item.get("t1_uid", ""))), "first_column_indicators_raw", None)
+                    or []
+                )
+            ),
         }
         for item in strict.get("removed_tables", [])
     ]

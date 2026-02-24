@@ -86,6 +86,8 @@ Variables utiles:
 - `DASH_DEBUG` (defaut: `0`)
 - `DASH_PORT` (defaut: `8050`)
 - `DOCLING_NUM_THREADS` (defaut: `4`)
+- `VISION_CACHE_DIR` (defaut: `outputs/vision_cache`) — repertoire du cache GPT-4o Vision pour les indicateurs de premiere colonne.
+- `VISION_CROP_DIR` (defaut: `outputs/debug_crops/vision_fallback`) — repertoire des crops debug du fallback Vision.
 
 ## CLI
 

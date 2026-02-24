@@ -1865,6 +1865,9 @@ def run_strict_intra_section_compare(
                 "first_column_indicators": list(
                     getattr(table_t1, "first_column_indicators", []) or []
                 ),
+                "first_column_indicators_raw": list(
+                    getattr(table_t1, "first_column_indicators_raw", None) or []
+                ),
             }
         )
 
@@ -1885,6 +1888,9 @@ def run_strict_intra_section_compare(
                 "source_reason": item["reason"],
                 "first_column_indicators": list(
                     getattr(table_t2, "first_column_indicators", []) or []
+                ),
+                "first_column_indicators_raw": list(
+                    getattr(table_t2, "first_column_indicators_raw", None) or []
                 ),
             }
         )

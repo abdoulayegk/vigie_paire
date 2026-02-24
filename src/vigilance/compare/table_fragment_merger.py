@@ -276,6 +276,12 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
     elif right.table_number:
         merged_number = right.table_number
 
+    left_raw = getattr(left, "first_column_indicators_raw", None) or []
+    right_raw = getattr(right, "first_column_indicators_raw", None) or []
+    merged_raw: list[str] | None = None
+    if left_raw or right_raw:
+        merged_raw = _dedupe_preserve(list(left_raw) + list(right_raw))
+
     return TableArtifact(
         bank_code=left.bank_code or right.bank_code,
         section=left.section or right.section,
@@ -290,6 +296,7 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
         bbox=_merge_bbox(left, right),
         quarter=left.quarter or right.quarter,
         pdf_path=left.pdf_path or right.pdf_path,
+        first_column_indicators_raw=merged_raw,
     )
 
 

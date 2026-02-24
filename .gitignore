@@ -18,6 +18,7 @@ eggs/
 venv/
 env/
 ENV/
+.cursorrules
 
 # Testing
 .pytest_cache/
@@ -57,6 +58,7 @@ Desktop.ini
 
 # Local data and outputs
 outputs/
+docs/
 data/raw/
 data/interim/
 data/processed/
