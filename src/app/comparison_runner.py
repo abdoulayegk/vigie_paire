@@ -8,9 +8,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+try:
+    from rapidfuzz import fuzz as rapidfuzz_fuzz
+except ImportError:
+    rapidfuzz_fuzz = None  # type: ignore[assignment]
+
 from app.ui_config import INDICATOR_COMPARISON_DIR
 from vigilance.compare import run_strict_intra_section_compare
 from vigilance.compare.table_fragment_merger import merge_table_fragments
+from vigilance.config import get_matching_thresholds
 from vigilance.models.table_models import TableArtifact
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.matching_normalizer import _classify_excluded_line
@@ -232,6 +238,51 @@ def _indicator_diff(
     return added, removed, had_fusion_split, excluded_counts
 
 
+def _fuzzy_pair_added_removed(
+    added: list[str],
+    removed: list[str],
+    bank_code: str | None,
+) -> tuple[list[str], list[str], list[tuple[str, str]]]:
+    """
+    Appariement 1-1 flou entre indicateurs ajoutes et supprimes (reformulations/renommages).
+
+    Retourne (added_restant, removed_restant, paires (removed_text, added_text)).
+    Si rapidfuzz est indisponible, retourne (added, removed, []).
+    """
+    if not added or not removed or rapidfuzz_fuzz is None:
+        return added, removed, []
+
+    th = get_matching_thresholds(bank_code=bank_code)
+    threshold = float(th.get("indicator_similarity_threshold", 0.88))
+    token_threshold = float(th.get("indicator_fuzzy_token_threshold", 0.85))
+    threshold_pct = int(threshold * 100)
+    token_threshold_pct = int(token_threshold * 100)
+
+    candidates: list[tuple[str, str, float]] = []
+    for a in added:
+        for r in removed:
+            ratio_score = rapidfuzz_fuzz.ratio(a, r)
+            token_score = rapidfuzz_fuzz.token_set_ratio(a, r)
+            score = max(ratio_score, token_score)
+            if score >= threshold_pct or token_score >= token_threshold_pct:
+                candidates.append((a, r, float(score)))
+
+    candidates.sort(key=lambda x: x[2], reverse=True)
+
+    used_added: set[str] = set()
+    used_removed: set[str] = set()
+    renamed_pairs: list[tuple[str, str]] = []
+    for a, r, _ in candidates:
+        if a not in used_added and r not in used_removed:
+            renamed_pairs.append((r, a))
+            used_added.add(a)
+            used_removed.add(r)
+
+    added_restant = [x for x in added if x not in used_added]
+    removed_restant = [x for x in removed if x not in used_removed]
+    return added_restant, removed_restant, renamed_pairs
+
+
 def _empty_result(bank_code: str, year: int, reason: str) -> dict[str, Any]:
     now = datetime.now().isoformat(timespec="seconds")
     return {
@@ -369,13 +420,16 @@ def run_comparison_with_sections(
             continue
 
         added, removed, had_fusion_split, excluded_counts = _indicator_diff(table_t1, table_t2)
+        added, removed, renamed_pairs = _fuzzy_pair_added_removed(added, removed, bank_code)
+        renamed_indicators = [{"from": r, "to": a} for (r, a) in renamed_pairs]
+
         rescue_type = pair.get("rescue_type")
         match_decision_level = str(pair.get("decision_level") or "match")
         structure_change_detected = bool(had_fusion_split or rescue_type == "split_merge_rescue")
         if structure_change_detected:
             table_status = "structure_change"
         else:
-            table_status = "modifie" if added or removed else "stable"
+            table_status = "modifie" if (added or removed or renamed_indicators) else "stable"
 
         comparisons.append(
             {
@@ -393,7 +447,7 @@ def run_comparison_with_sections(
                 "rescue_type": rescue_type,
                 "added_indicators": added,
                 "removed_indicators": removed,
-                "renamed_indicators": [],
+                "renamed_indicators": renamed_indicators,
                 "renamed_probable_indicators": [],
                 "indicator_decisions": [],
                 "review_reasons": [],
@@ -403,7 +457,7 @@ def run_comparison_with_sections(
                 "counts": {
                     "added": len(added),
                     "removed": len(removed),
-                    "renamed": 0,
+                    "renamed": len(renamed_indicators),
                     "renamed_probable": 0,
                     "excluded_totals": excluded_counts.get("total", 0),
                     "excluded_units": excluded_counts.get("unit", 0),

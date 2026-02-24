@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from vigilance.compare.indicator_comparator import match_tables_intra_section
+from vigilance.compare.indicator_comparator import (
+    match_tables_intra_section,
+    run_strict_intra_section_compare,
+)
 from vigilance.models.table_models import TableArtifact
 
 
@@ -59,3 +62,34 @@ def test_intra_section_matching_and_reasons() -> None:
     )
     assert unknown_t1_handled is True
     assert any(item["reason"] in {"unknown_section", "unmatched"} for item in result["unmatched_t2"])
+
+
+def test_strict_compare_one_to_one_and_added_removed() -> None:
+    """Validation 1-to-1: unique pair UIDs, coverage, and added/removed rules."""
+    t1_tables = [
+        _table("t1_a", "capital_management", "Table A", [["CET1", "x"], ["Tier 1", "y"]]),
+        _table("t1_b", "capital_management", "Table B", [["TLAC", "z"]]),
+    ]
+    t2_tables = [
+        _table("t2_a", "capital_management", "Table A", [["CET1", "x"], ["Tier 1", "y"]]),
+        _table("t2_c", "capital_management", "Table C", [["Other", "1"]]),
+    ]
+    result = run_strict_intra_section_compare(t1_tables, t2_tables)
+
+    pairs = result["pairs"]
+    pair_t1 = {p["t1_uid"] for p in pairs}
+    pair_t2 = {p["t2_uid"] for p in pairs}
+    assert len(pair_t1) == len(pairs), "each pair must have unique t1_uid"
+    assert len(pair_t2) == len(pairs), "each pair must have unique t2_uid"
+
+    added = result["added_tables"]
+    removed = result["removed_tables"]
+    unmatched_t2 = result["unmatched_t2"]
+    unmatched_t1 = result["unmatched_t1"]
+    added_t2_uids = {a["t2_uid"] for a in added}
+    for item in unmatched_t2:
+        if item.get("reason") == "unmatched":
+            assert item["t2_uid"] in added_t2_uids, "unmatched T2 with reason 'unmatched' must appear in added_tables"
+    for r in removed:
+        assert r.get("reason") == "removed_table"
+        assert any(u.get("t1_uid") == r["t1_uid"] for u in unmatched_t1)

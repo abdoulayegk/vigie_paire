@@ -2,8 +2,17 @@
 
 from __future__ import annotations
 
-from app.comparison_runner import _detect_fusion_split, _indicator_diff
+import pytest
+
+from app.comparison_runner import (
+    _detect_fusion_split,
+    _fuzzy_pair_added_removed,
+    _indicator_diff,
+    rapidfuzz_fuzz,
+)
 from vigilance.models.table_models import TableArtifact
+
+_HAS_RAPIDFUZZ = rapidfuzz_fuzz is not None
 
 
 def _table(indicators: list[str]) -> TableArtifact:
@@ -94,3 +103,58 @@ def test_detect_fusion_split_no_merge_returns_false() -> None:
     assert had_fusion_split is False
     assert added == ["Nouvelle ligne"]
     assert removed == ["Ancienne ligne"]
+
+
+def test_fuzzy_pair_added_removed_empty_lists() -> None:
+    """_fuzzy_pair_added_removed with empty added or removed returns unchanged and no renames."""
+    added, removed, renames = _fuzzy_pair_added_removed([], ["x"], "td")
+    assert added == []
+    assert removed == ["x"]
+    assert renames == []
+
+    added, removed, renames = _fuzzy_pair_added_removed(["y"], [], "td")
+    assert added == ["y"]
+    assert removed == []
+    assert renames == []
+
+
+def test_fuzzy_pair_added_removed_without_rapidfuzz_returns_unchanged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When rapidfuzz is unavailable, added/removed are unchanged and renames is empty."""
+    import app.comparison_runner as runner_mod
+
+    monkeypatch.setattr(runner_mod, "rapidfuzz_fuzz", None)
+    added_in = ["tresorerie et montants a recevoir"]
+    removed_in = ["en millions de dollars canadiens et montants a recevoir"]
+    added, removed, renames = _fuzzy_pair_added_removed(added_in, removed_in, "td")
+    assert added == added_in
+    assert removed == removed_in
+    assert renames == []
+
+
+@pytest.mark.skipif(not _HAS_RAPIDFUZZ, reason="rapidfuzz not installed")
+def test_fuzzy_pair_added_removed_pairs_reformulation() -> None:
+    """Reformulation pair is matched as rename and removed from added/removed (TD threshold)."""
+    # Pair with high token_set_ratio (one string extends the other) so it passes 0.85/0.88
+    added_in = ["Capitaux propres (en millions de dollars)"]
+    removed_in = ["Capitaux propres"]
+    added, removed, renames = _fuzzy_pair_added_removed(added_in, removed_in, "td")
+    assert added == []
+    assert removed == []
+    assert len(renames) == 1
+    assert renames[0] == (removed_in[0], added_in[0])
+
+
+@pytest.mark.skipif(not _HAS_RAPIDFUZZ, reason="rapidfuzz not installed")
+def test_fuzzy_pair_added_removed_greedy_one_to_one() -> None:
+    """Only one-to-one pairing; unrelated items stay in added/removed."""
+    # First pair matches (T2 extends T1); second pair does not
+    added_in = ["Capitaux propres (en millions)", "autre ligne nouvelle"]
+    removed_in = ["Capitaux propres", "autre ancienne"]
+    added, removed, renames = _fuzzy_pair_added_removed(added_in, removed_in, "td")
+    assert len(renames) == 1
+    assert renames[0][0] == removed_in[0]
+    assert renames[0][1] == added_in[0]
+    assert "autre ligne nouvelle" in added
+    assert "autre ancienne" in removed

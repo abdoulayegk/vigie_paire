@@ -5,7 +5,12 @@ from __future__ import annotations
 import re
 import unicodedata
 
-from vigilance.utils.matching_normalizer import normalize_label, strip_temporal_expressions
+from vigilance.utils.matching_normalizer import (
+    _UNIT_HEADER_RE,
+    _UNIT_MILLIERS_ACTIONS_RE,
+    normalize_label,
+    strip_temporal_expressions,
+)
 
 _TRAILING_NOTE_RE = re.compile(r"\s*(?:\(\d+\)|\[\d+\]|\*+)\s*$")
 _TRAILING_NUM_RE = re.compile(r"\s+\d{1,4}(?:[.,]\d+)?\s*$")
@@ -155,6 +160,15 @@ def normalize_indicator_for_comparison(text: str) -> str:
     # Normalize Unicode and collapse all whitespace (including U+00A0) to space
     text = unicodedata.normalize("NFD", text)
     text = re.sub(r"\s+", " ", text).strip()
+
+    # Strip leading unit-of-measure prefix so "En millions de dollars - X" and "X" share the same key
+    for _re in (_UNIT_HEADER_RE, _UNIT_MILLIERS_ACTIONS_RE):
+        m = _re.match(text)
+        if m:
+            rest = text[m.end() :].strip()
+            if rest:
+                text = rest
+            break
 
     # Variantes frequentes (tirets, separateurs, CET-1, Tier-1)
     text = normalize_indicator_variants(text)

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 from vigilance.compare.indicator_comparator import (
+    _compute_pair_score_with_guard_rails,
     _detect_split_diagnostic,
     _get_table_features,
     _indicator_set,
@@ -613,3 +616,100 @@ def test_detect_split_diagnostic_returns_true_when_coverage_high() -> None:
     result = _detect_split_diagnostic(t1, candidates)
     assert result is not None
     assert len(result) == 2
+
+
+# ---------- Hungarian post-threshold (Phase 1-3) ----------
+
+
+def test_compute_pair_score_with_guard_rails_blocks_cross_section() -> None:
+    """_compute_pair_score_with_guard_rails returns is_blocked for cross_section_forbidden."""
+    t1 = _table(
+        table_id="t1",
+        section="capital_management",
+        title="T28",
+        rows=[["CET1", "1"]],
+    )
+    t2 = _table(
+        table_id="t2",
+        section="risk_management",
+        title="T28",
+        rows=[["CET1", "2"]],
+    )
+    sr = _compute_pair_score_with_guard_rails(t1, t2)
+    assert sr.is_blocked is True
+    assert sr.block_reason == "cross_section_forbidden"
+    assert sr.score < -1e8
+
+
+def test_compute_pair_score_with_guard_rails_blocks_table_number_conflict() -> None:
+    """_compute_pair_score_with_guard_rails returns is_blocked for table_number_conflict."""
+    t1 = _table(
+        table_id="t1",
+        section="capital_management",
+        title="TABLEAU 23 - Pret hypotechaires",
+        rows=[["A", "1"], ["B", "2"], ["C", "3"]],
+    )
+    t2 = _table(
+        table_id="t2",
+        section="capital_management",
+        title="TABLEAU 24 - Marges credit",
+        rows=[["A", "4"], ["B", "5"], ["C", "6"]],
+    )
+    sr = _compute_pair_score_with_guard_rails(t1, t2, overlap_threshold=0.5)
+    assert sr.is_blocked is True
+    assert sr.block_reason == "table_number_conflict"
+
+
+def test_compute_pair_score_with_guard_rails_returns_real_score_when_allowed() -> None:
+    """_compute_pair_score_with_guard_rails returns real score for admissible pairs."""
+    t1 = _table(
+        table_id="t1",
+        section="risk_management",
+        title="Risques",
+        rows=[["Risque credit", "1"], ["Risque marche", "2"]],
+    )
+    t2 = _table(
+        table_id="t2",
+        section="risk_management",
+        title="Risques",
+        rows=[["Risque credit", "10"], ["Risque marche", "20"]],
+        page_pdf=2,
+    )
+    sr = _compute_pair_score_with_guard_rails(t1, t2, overlap_threshold=0.5)
+    assert sr.is_blocked is False
+    assert sr.block_reason is None
+    assert sr.score > 0.5
+    assert sr.decision.indicator_overlap > 0
+
+
+def test_post_hungarian_threshold_mode_produces_pairs() -> None:
+    """With use_post_hungarian_threshold=True, Hungarian sees all scores then applies threshold."""
+    from vigilance.compare.indicator_comparator import _DEFAULTS
+
+    t1 = [
+        _table(table_id="a", section="risk", title="A", rows=[["X", "1"], ["Y", "2"]]),
+        _table(table_id="b", section="risk", title="B", rows=[["Z", "3"], ["W", "4"]]),
+    ]
+    t2 = [
+        _table(table_id="a", section="risk", title="A", rows=[["X", "10"], ["Y", "20"]], page_pdf=2),
+        _table(table_id="b", section="risk", title="B", rows=[["Z", "30"], ["W", "40"]], page_pdf=2),
+    ]
+    th = dict(_DEFAULTS)
+    th["use_post_hungarian_threshold"] = 1.0
+    with patch("vigilance.compare.indicator_comparator._load_compare_thresholds", return_value=th):
+        result = match_tables_intra_section(t1, t2, use_hungarian=True)
+    assert len(result["pairs"]) >= 1
+
+
+def test_non_regression_post_threshold_disabled_by_default() -> None:
+    """With use_post_hungarian_threshold=False (default), behavior unchanged."""
+    t1 = [
+        _table(table_id="t1", section="risk", title="Risques", rows=[["A", "1"], ["B", "2"]]),
+    ]
+    t2 = [
+        _table(table_id="t1", section="risk", title="Risques", rows=[["A", "10"], ["B", "20"]], page_pdf=2),
+    ]
+    r = match_tables_intra_section(t1, t2, use_hungarian=True)
+    assert len(r["pairs"]) == 1
+    assert r["pairs"][0]["t1_uid"] == "risk|t1|p1"
+    assert r["pairs"][0]["t2_uid"] == "risk|t1|p2"
