@@ -14,6 +14,7 @@ from typing import Any, Optional
 
 from difflib import SequenceMatcher
 
+from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.matching_normalizer import normalize_for_matching
 
 TABLE_NUMBER_PATTERNS = [
@@ -113,7 +114,7 @@ def compute_match_signals(
                 text = item.get("text", "") or ""
             else:
                 continue
-            n = normalize_for_matching(text, target="indicator")
+            n = normalize_indicator_for_comparison(text)
             if n:
                 out.add(n)
         return out

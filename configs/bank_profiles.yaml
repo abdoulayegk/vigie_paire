@@ -506,7 +506,11 @@ trend_detection:
 matching_thresholds:
   use_hungarian_matching: true
   matching_v2_enabled: true
-  use_post_hungarian_threshold: false
+  use_post_hungarian_threshold: true
+  use_embeddings: false
+  embedding_weight_table: 0.12
+  embedding_weight_indicator: 0.35
+  embedding_model: "text-embedding-3-small"
   hungarian_min_score: 0.62
   ignore_table_id_for_number: true
   section_unknown_mode: soft_penalty

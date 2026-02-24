@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+import logging
 import re
 import unicodedata
 
 from vigilance.utils.matching_normalizer import (
     _UNIT_HEADER_RE,
     _UNIT_MILLIERS_ACTIONS_RE,
+    is_date_only_line,
+    is_non_indicator_line,
     normalize_label,
     strip_temporal_expressions,
 )
+
+logger = logging.getLogger(__name__)
 
 _TRAILING_NOTE_RE = re.compile(r"\s*(?:\(\d+\)|\[\d+\]|\*+)\s*$")
 _TRAILING_NUM_RE = re.compile(r"\s+\d{1,4}(?:[.,]\d+)?\s*$")
@@ -43,6 +48,101 @@ _HEADER_FOOTER_RBC_RE = re.compile(
 _HEADER_FOOTER_PAGE_BANK_RE = re.compile(
     r"^\s*\d+\s+[A-Za-z].*(?:trimestre|quarter)\b", re.IGNORECASE
 )
+
+# --- Patterns pour strip_dates_from_indicator_label ---
+_MONTHS_FR = (
+    r"janv(?:ier)?|fevr(?:ier)?|f[eé]vr(?:ier)?|mars|avr(?:il)?|mai|juin|juill(?:et)?|"
+    r"ao[uû]t|aout|sept(?:embre)?|oct(?:obre)?|nov(?:embre)?|d[eé]c(?:embre)?"
+)
+_MONTHS_EN = (
+    r"jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|"
+    r"aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?"
+)
+# Prefixes temporels: au, a (preposition seule), as at, for the period ended, etc.
+# "a" doit etre suivi d'espace pour eviter de matcher "Actifs", "Actifs greves", etc.
+_INDICATOR_DATE_PREFIX_RE = re.compile(
+    r"^\s*(?:au\b|a\s|as\s+at|as\s+of|for\s+the\s+(?:period|quarter)\s+ended|"
+    r"trimestre\s+termin[eé]\s+le|pour\s+la\s+periode\s+close\s+le)\s*",
+    re.IGNORECASE,
+)
+# Suffixe date: " au 30 avril 2025", " - 31/01/2025", " (30 avril 2025)"
+_INDICATOR_DATE_SUFFIX_RE = re.compile(
+    r"(?:[\s\-–—,;]+(?:au|a|as\s+at|as\s+of|le|du)\s+)?"
+    r"(?:\d{1,2}[\s./-]\d{1,2}[\s./-]\d{2,4}"
+    r"|\d{4}[\s./-]\d{1,2}[\s./-]\d{1,2}"
+    r"|\d{1,2}\s+(?:" + _MONTHS_FR + r"|" + _MONTHS_EN + r")[\s.]*(?:\d{2,4})?"
+    r"|(?:" + _MONTHS_FR + r"|" + _MONTHS_EN + r")[\s.]*\d{2,4}"
+    r"|[tq][1-4]\s+20\d{2}"
+    r"|(?:1er|premier|deuxieme|troisieme|quatrieme)\s+trimestre\s+20\d{2}"
+    r"|exercice\s+20\d{2})\s*$",
+    re.IGNORECASE,
+)
+# Ligne entiere = date seule (pour early return "")
+_INDICATOR_DATE_STANDALONE_RE = re.compile(
+    r"^\s*(?:au|a|as\s+at|as\s+of|for\s+the\s+(?:period|quarter)\s+ended)\s+"
+    r"(?:\d{1,2}[\s./-]\d{1,2}[\s./-]\d{2,4}|\d{4}[\s./-]\d{1,2}[\s./-]\d{1,2}|"
+    r"\d{1,2}\s+(?:" + _MONTHS_FR + r"|" + _MONTHS_EN + r")[\s.]*\d{4}?|"
+    r"(?:" + _MONTHS_FR + r"|" + _MONTHS_EN + r")[\s.]*\d{4})\s*$",
+    re.IGNORECASE,
+)
+
+# --- Patterns pour strip_units_currency_from_indicator_label ---
+# \b ensures we don't match "en" inside words (e.g. "canadiens")
+_UNITS_IN_INDICATOR_PHRASE_RE = re.compile(
+    r"[\s\-–—]+(?:"
+    r"(?:en\s+)?(?:millions?|milliards?|milliers?)\s+de\s+dollars?\s+canadiens?"
+    r"|(?:en\s+)?(?:millions?|milliards?|milliers?)\s+de\s+dollars?"
+    r"|(?:en\s+)?(?:millions?|milliards?|milliers?)\s+dollars?"
+    r"|en\s+milliers?\s+(?:d\s*['']?\s*actions?|de\s+parts?)"
+    r"|en\s+\$|en\s+G\s*\$|en\s+M\s*\$|en\s+k\s*\$"
+    r"|(?:en\s+)?pourcentage|points?\s+de\s+base|\bpb\b|\bbps\b"
+    r")\s*$",
+    re.IGNORECASE,
+)
+_UNITS_IN_INDICATOR_PAREN_RE = re.compile(
+    r"\s*\(\s*(?:"
+    r"(?:en\s+)?(?:millions?|milliards?|milliers?)\s*(?:de\s+dollars?)?"
+    r"|M\s*\$?|G\s*\$?|k\s*\$?"
+    r"|%|CAD|USD|EUR"
+    r")\s*\)\s*",
+    re.IGNORECASE,
+)
+
+
+def strip_dates_from_indicator_label(text: str) -> str:
+    """
+    Remove date/temporal fragments from indicator labels (first column).
+
+    Handles: standalone dates ("Au 30 avril 2025"), suffix ("Prets garantis au 30 avril 2025"),
+    prefix, and multiple formats (FR, ISO, numeric, abbreviations, periods).
+    Returns empty string when the label is purely a date expression.
+    """
+    if not text or not (text or "").strip():
+        return text or ""
+    value = (text or "").strip()
+    if _INDICATOR_DATE_STANDALONE_RE.match(value):
+        return ""
+    value = _INDICATOR_DATE_PREFIX_RE.sub("", value)
+    value = _INDICATOR_DATE_SUFFIX_RE.sub("", value)
+    value = strip_temporal_expressions(value, target="title", aggressive=True)
+    value = re.sub(r"\s+", " ", value).strip()
+    return value
+
+
+def strip_units_currency_from_indicator_label(text: str) -> str:
+    """
+    Remove unit/currency phrases from indicator labels (first column).
+
+    Strips: "en millions de dollars", "(M$)", "(CAD)", "(%)", "en milliers",
+    "points de base", etc. Preserves semantic core (e.g. "Ratio CET1" from "Ratio CET1 (%)").
+    """
+    if not text or not (text or "").strip():
+        return text or ""
+    value = (text or "").strip()
+    value = _UNITS_IN_INDICATOR_PAREN_RE.sub("", value)
+    value = _UNITS_IN_INDICATOR_PHRASE_RE.sub("", value)
+    value = re.sub(r"\s+", " ", value).strip()
+    return value
 
 
 def is_header_footer_table_title(title: str, bank_code: str | None = None) -> bool:
@@ -141,6 +241,11 @@ def normalize_indicator_variants(text: str) -> str:
     return normalize_label(value)
 
 
+def _word_char_count(s: str) -> int:
+    """Count alphanumeric characters for fallback logic."""
+    return len(re.findall(r"\w", s or ""))
+
+
 def normalize_indicator_for_comparison(text: str) -> str:
     """
     Single canonical key for indicator (first column) comparison.
@@ -150,6 +255,7 @@ def normalize_indicator_for_comparison(text: str) -> str:
     one key and avoids false additions/deletions in the change detail.
 
     - Unicode NFD and normalize all whitespace (including U+00A0) to space
+    - Strip dates and units/currency from label (e.g. "au 30 avril 2025", "(M$)")
     - Variants (CET-1, Tier-1, trailing notes)
     - Strip accents, note refs (1) [2] a) *, exposants
     - Normalize punctuation and spaces, lowercase
@@ -160,6 +266,25 @@ def normalize_indicator_for_comparison(text: str) -> str:
     # Normalize Unicode and collapse all whitespace (including U+00A0) to space
     text = unicodedata.normalize("NFD", text)
     text = re.sub(r"\s+", " ", text).strip()
+
+    # Lines that are purely date/unit/note/footnote should yield empty (idempotent with extraction filter)
+    if is_date_only_line(text) or is_non_indicator_line(text):
+        return ""
+
+    # Strip dates and units so "Prets garantis au 30 avril 2025" = "Prets garantis (M$)" = "Prets garantis"
+    raw_for_log = text
+    dates_stripped = strip_dates_from_indicator_label(text)
+    if not dates_stripped or not dates_stripped.strip():
+        return ""
+    units_stripped = strip_units_currency_from_indicator_label(dates_stripped)
+    if _word_char_count(units_stripped) >= 2:
+        text = units_stripped
+    elif _word_char_count(dates_stripped) >= 2:
+        text = dates_stripped
+    else:
+        text = dates_stripped
+    if logger.isEnabledFor(logging.DEBUG) and raw_for_log != text:
+        logger.debug("indicator raw -> cleaned: %r -> %r", raw_for_log[:60], text[:60])
 
     # Strip leading unit-of-measure prefix so "En millions de dollars - X" and "X" share the same key
     for _re in (_UNIT_HEADER_RE, _UNIT_MILLIERS_ACTIONS_RE):

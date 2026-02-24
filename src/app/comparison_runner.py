@@ -239,6 +239,7 @@ def _hungarian_pair_added_removed(
     added_items: list[str],
     *,
     th: dict[str, Any] | None = None,
+    embedding_service: Any = None,
 ) -> tuple[list[str], list[str], list[tuple[str, str]], dict[str, Any]]:
     """
     Global 1-to-1 pairing between removed and added indicators (renames).
@@ -288,6 +289,27 @@ def _hungarian_pair_added_removed(
         return max(ratio_score, token_score)
 
     n_rem, n_add = len(removed), len(added)
+    use_emb = (
+        bool(th.get("use_embeddings", False))
+        and embedding_service
+        and getattr(embedding_service, "available", False)
+    )
+    embed_weight = float(th.get("embedding_weight_indicator", 0.35)) if use_emb else 0.0
+
+    def _norm_for_embed(s: str) -> str:
+        c = _canonical_indicator_key(_strip_footnote_markers_from_indicator(s))
+        return c if c else (s or " ").strip()[:200]
+
+    embed_matrix = None
+    if use_emb and n_rem > 0 and n_add > 0:
+        try:
+            import numpy as np
+            texts_rem = [_norm_for_embed(removed[i]) for i in range(n_rem)]
+            texts_add = [_norm_for_embed(added[j]) for j in range(n_add)]
+            embed_matrix = embedding_service.get_pairwise_cosine(texts_rem, texts_add)
+        except Exception as e:
+            logger.debug("Indicator embedding batch failed: %s", e)
+            embed_matrix = None
     matrix_size = n_rem * n_add
     prefilter_used = matrix_size > _PREFILTER_MATRIX_CAP
     candidate_set: set[tuple[int, int]] | None = None
@@ -315,12 +337,18 @@ def _hungarian_pair_added_removed(
                     gated_out += 1
                     continue
                 if _length_ratio_ok(added[j], removed[i]) and _token_overlap_ok(added[j], removed[i]):
-                    scores[i, j] = _similarity(added[j], removed[i])
+                    lex = _similarity(added[j], removed[i])
+                    if embed_weight > 0 and embed_matrix is not None:
+                        emb_sim = float(embed_matrix[i, j])
+                        scores[i, j] = (1.0 - embed_weight) * lex + embed_weight * (emb_sim * 100.0)
+                    else:
+                        scores[i, j] = lex
                 else:
                     gated_out += 1
         cost = -scores
         row_ind, col_ind = linear_sum_assignment(cost)
         renamed_pairs: list[tuple[str, str]] = []
+        renamed_indices: list[tuple[int, int]] = []
         used_rem: set[int] = set()
         used_add: set[int] = set()
         for k in range(len(row_ind)):
@@ -330,6 +358,7 @@ def _hungarian_pair_added_removed(
             sc = float(scores[i, j])
             if sc >= min_score_pct:
                 renamed_pairs.append((removed[i], added[j]))
+                renamed_indices.append((i, j))
                 accepted_scores.append(sc)
                 used_rem.add(i)
                 used_add.add(j)
@@ -364,6 +393,22 @@ def _hungarian_pair_added_removed(
                 },
                 "unmatched_removed_with_candidates": unmatched_candidates,
             }
+
+        if logger.isEnabledFor(logging.DEBUG) and renamed_pairs:
+            for (r, a), (i, j) in zip(renamed_pairs, renamed_indices):
+                ratio_sc = rapidfuzz_fuzz.ratio(a, r) if rapidfuzz_fuzz else 0
+                token_sc = rapidfuzz_fuzz.token_set_ratio(a, r) if rapidfuzz_fuzz else 0
+                chosen = float(scores[i, j])
+                emb_sim = float(embed_matrix[i, j]) if embed_matrix is not None else 0.0
+                logger.debug(
+                    "indicator_rename removed=%r added=%r ratio=%.1f token=%.1f chosen_score=%.1f embed_sim=%.3f",
+                    r[:60] if r else "",
+                    a[:60] if a else "",
+                    ratio_sc,
+                    token_sc,
+                    chosen,
+                    emb_sim,
+                )
 
         return added_restant, removed_restant, renamed_pairs, _debug_dict()
     else:
@@ -407,6 +452,20 @@ def _hungarian_pair_added_removed(
                 for i in range(n_rem) if i not in used_rem_f
             ],
         }
+        if logger.isEnabledFor(logging.DEBUG) and renamed_pairs and rapidfuzz_fuzz:
+            for r, a in renamed_pairs:
+                ratio_sc = rapidfuzz_fuzz.ratio(a, r)
+                token_sc = rapidfuzz_fuzz.token_set_ratio(a, r)
+                chosen = _similarity(a, r)
+                logger.debug(
+                    "indicator_rename removed=%r added=%r ratio=%.1f token=%.1f chosen_score=%.1f embed_sim=%.3f",
+                    r[:60] if r else "",
+                    a[:60] if a else "",
+                    ratio_sc,
+                    token_sc,
+                    chosen,
+                    0.0 if not use_emb else 0.0,
+                )
         return added_restant, removed_restant, renamed_pairs, debug
 
 
@@ -602,6 +661,21 @@ def _empty_result(bank_code: str, year: int, reason: str) -> dict[str, Any]:
             "executive_summary": {
                 "content": "Aucun resultat produit. " + reason,
             },
+            "embedding_debug": {
+                "embedding_enabled": False,
+                "embedding_table_used": False,
+                "embedding_indicator_used": False,
+                "embedding_api_calls": 0,
+                "embedding_cache_hits": 0,
+                "embedding_batch_sizes": [],
+                "embedding_errors": 0,
+                "config_use_embeddings": False,
+                "fallback_vision_used": False,
+                "hungarian_table": False,
+                "hungarian_indicator": True,
+                "table_pair_count": 0,
+                "indicator_rename_count": 0,
+            },
         },
     }
 
@@ -679,10 +753,23 @@ def run_comparison_with_sections(
             merge_score_min=merge_score_min,
         )
 
+    embedding_service = None
+    if cfg.get("use_embeddings") and api_key:
+        try:
+            from vigilance.embedding import EmbeddingService
+            embedding_service = EmbeddingService(
+                api_key=api_key,
+                model=str(cfg.get("embedding_model", "text-embedding-3-small")),
+            )
+        except Exception as e:
+            logger.warning("EmbeddingService init failed: %s", e)
+            embedding_service = None
+
     strict = run_strict_intra_section_compare(
         tables_t1=tables_t1,
         tables_t2=tables_t2,
         bank_code=bank_code,
+        embedding_service=embedding_service,
     )
 
     t1_by_uid = {_section_uid(table): table for table in tables_t1}
@@ -701,7 +788,7 @@ def run_comparison_with_sections(
         use_hungarian = cfg.get("indicator_hungarian_enabled", True)
         if use_hungarian:
             added, removed, renamed_pairs, indicator_debug = _hungarian_pair_added_removed(
-                removed, added, th=cfg
+                removed, added, th=cfg, embedding_service=embedding_service
             )
             if indicator_debug and logger.isEnabledFor(logging.DEBUG):
                 logger.debug(
@@ -867,6 +954,28 @@ def run_comparison_with_sections(
             "fragment_merges_t1": fragment_merges_t1,
             "fragment_merges_t2": fragment_merges_t2,
             "executive_summary": {"content": summary_text},
+            "embedding_debug": {
+                "embedding_enabled": bool(cfg.get("use_embeddings", False)),
+                "embedding_table_used": (
+                    embedding_service is not None
+                    and (embedding_service.stats.api_calls > 0 or embedding_service.stats.cache_hits > 0)
+                    and cfg.get("use_embeddings")
+                ),
+                "embedding_indicator_used": (
+                    embedding_service is not None
+                    and cfg.get("use_embeddings")
+                ),
+                "embedding_api_calls": embedding_service.stats.api_calls if embedding_service else 0,
+                "embedding_cache_hits": embedding_service.stats.cache_hits if embedding_service else 0,
+                "embedding_batch_sizes": list(embedding_service.stats.batch_sizes) if embedding_service else [],
+                "embedding_errors": embedding_service.stats.errors if embedding_service else 0,
+                "config_use_embeddings": bool(cfg.get("use_embeddings", False)),
+                "fallback_vision_used": use_vision_fallback,
+                "hungarian_table": cfg.get("use_hungarian_matching", False),
+                "hungarian_indicator": cfg.get("indicator_hungarian_enabled", True),
+                "table_pair_count": len(comparisons),
+                "indicator_rename_count": total_renamed,
+            },
         },
     }
 

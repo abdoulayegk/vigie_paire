@@ -76,6 +76,17 @@ def get_matching_thresholds(
         if k not in base:
             base[k] = v
 
+    # Embedding defaults (opt-in, config flag use_embeddings default false)
+    _embedding_defaults: dict[str, Any] = {
+        "use_embeddings": False,
+        "embedding_weight_table": 0.12,
+        "embedding_weight_indicator": 0.35,
+        "embedding_model": "text-embedding-3-small",
+    }
+    for k, v in _embedding_defaults.items():
+        if k not in base:
+            base[k] = v
+
     return base
 
 

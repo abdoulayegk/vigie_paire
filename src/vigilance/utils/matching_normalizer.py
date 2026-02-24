@@ -107,9 +107,9 @@ _UNIT_MILLIERS_ACTIONS_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Lignes de notes de bas de tableau: (1), [2], a), b), Note 1, Note 2., etc.
+# Lignes de notes de bas de tableau: (1), [2], 1), a), b), Note 1, Note 2., etc.
 _NOTE_OR_UNIT_LINE_RE = re.compile(
-    r"^\s*(?:[\(\[]\d+[\)\]]|[a-z]\)|note\s*\d+\s*[.:\-–—]?)\s*",
+    r"^\s*(?:[\(\[]\d+[\)\]]|\d+\)|[a-z]\)|note\s*\d+\s*[.:\-–—]?)\s*",
     re.IGNORECASE,
 )
 
