@@ -34,6 +34,7 @@ from vigilance.compare.table_fragment_merger import merge_table_fragments
 from vigilance.config import get_matching_thresholds
 from vigilance.models.table_models import TableArtifact
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
+from vigilance.utils.indicator_normalizer import get_canonical_text, get_token_sorted_text
 from vigilance.utils.matching_normalizer import _classify_excluded_line
 
 
@@ -162,6 +163,73 @@ def _canonical_indicator_key(text: str) -> str:
     return normalize_indicator_for_comparison(text)
 
 
+def _normalize_bbox_ltrb_norm(bbox: Any) -> list[float] | None:
+    """Normalize bbox to [l, t, r, b] in 0..1. Returns None if invalid or outside [0,1]."""
+    if bbox is None:
+        return None
+    try:
+        l_val, t_val, r_val, b_val = 0.0, 0.0, 1.0, 1.0
+        if isinstance(bbox, (list, tuple)) and len(bbox) >= 4:
+            l_val, t_val, r_val, b_val = (
+                float(bbox[0]),
+                float(bbox[1]),
+                float(bbox[2]),
+                float(bbox[3]),
+            )
+        elif isinstance(bbox, dict):
+            if all(k in bbox for k in ("x0", "y0", "x1", "y1")):
+                l_val = float(bbox["x0"])
+                t_val = float(bbox["y0"])
+                r_val = float(bbox["x1"])
+                b_val = float(bbox["y1"])
+            elif all(k in bbox for k in ("l", "t", "r", "b")):
+                l_val = float(bbox["l"])
+                t_val = float(bbox["t"])
+                r_val = float(bbox["r"])
+                b_val = float(bbox["b"])
+            elif all(k in bbox for k in ("x", "y", "width", "height")):
+                l_val = float(bbox["x"])
+                t_val = float(bbox["y"])
+                r_val = l_val + float(bbox["width"])
+                b_val = t_val + float(bbox["height"])
+            else:
+                return None
+        else:
+            return None
+        if r_val <= l_val or b_val <= t_val:
+            return None
+        if l_val < -0.05 or t_val < -0.05 or r_val > 1.05 or b_val > 1.05:
+            return None
+        return [
+            max(0.0, min(1.0, l_val)),
+            max(0.0, min(1.0, t_val)),
+            max(0.0, min(1.0, r_val)),
+            max(0.0, min(1.0, b_val)),
+        ]
+    except (TypeError, ValueError):
+        return None
+
+
+def _all_indicators_value_clean_ordered(table: TableArtifact) -> list[str]:
+    """Return value_clean indicators in table order (same string space as added/removed)."""
+    raw = getattr(table, "first_column_indicators_raw", None) or []
+    if not raw:
+        raw = getattr(table, "first_column_indicators", None) or []
+    result: list[str] = []
+    for item in raw:
+        s = str(item).strip()
+        if not s:
+            continue
+        if _classify_excluded_line(s):
+            continue
+        cleaned = _strip_footnote_markers_from_indicator(s)
+        key = _canonical_indicator_key(cleaned)
+        if not key:
+            continue
+        result.append(cleaned)
+    return result
+
+
 # Trailing footnote/reference patterns (do not remove semantic numbers: Tier 1, CET1, Bâle III, Pillar 3, IFRS 9)
 _INDICATOR_TRAILING_SUPER = re.compile(r"[¹²³⁴⁵⁶⁷⁸⁹⁰]+\s*$")
 _INDICATOR_TRAILING_STARS = re.compile(r"\s*[*\u2020\u2021\u00A7]+\s*$")  # * ** † ‡ §
@@ -233,6 +301,11 @@ def _indicator_acronyms(text: str) -> set[str]:
 _PREFILTER_MATRIX_CAP = 25_000
 _PREFILTER_TOP_K_PER_REMOVED = 50
 
+# Order-invariant matching and embedding gating (config overridable)
+_INDICATOR_EMB_MIN = 0.45
+_INDICATOR_MIN_TOKENS = 6
+_INDICATOR_MIN_ALPHA_RATIO = 0.40
+
 
 def _hungarian_pair_added_removed(
     removed_items: list[str],
@@ -288,6 +361,42 @@ def _hungarian_pair_added_removed(
             return weights.get("ratio", 0.4) * ratio_score + weights.get("token_set", 0.6) * token_score
         return max(ratio_score, token_score)
 
+    use_token_sorted = bool(th.get("use_indicator_token_sorted_matching", True))
+    min_tokens = int(th.get("indicator_embed_min_tokens", _INDICATOR_MIN_TOKENS))
+    emb_min = float(th.get("indicator_embed_min_sim", _INDICATOR_EMB_MIN))
+    min_alpha_ratio = float(th.get("indicator_embed_min_alpha_ratio", _INDICATOR_MIN_ALPHA_RATIO))
+
+    def _lex_similarity_both_forms(a: str, r: str) -> tuple[float, float, float]:
+        """Lex similarity on canonical and token_sorted; returns (lex_canon, lex_ts, lex_final)."""
+        lex_canon = _similarity(a, r)
+        if not use_token_sorted:
+            return lex_canon, 0.0, lex_canon
+        canon_a, ts_a = get_canonical_text(a), get_token_sorted_text(a)
+        canon_r, ts_r = get_canonical_text(r), get_token_sorted_text(r)
+        lex_ts = 0.0
+        if ts_a and ts_r:
+            lex_ts = max(
+                rapidfuzz_fuzz.ratio(ts_a, ts_r),
+                rapidfuzz_fuzz.token_set_ratio(ts_a, ts_r),
+            )
+        return lex_canon, lex_ts, max(lex_canon, lex_ts)
+
+    def _embed_gate_ok(a: str, r: str, emb_sim: float) -> bool:
+        if emb_sim < emb_min:
+            return False
+        ts_a, ts_r = get_token_sorted_text(a), get_token_sorted_text(r)
+        tokens_a = [t for t in ts_a.split() if t] if ts_a else []
+        tokens_r = [t for t in ts_r.split() if t] if ts_r else []
+        if len(tokens_a) < min_tokens or len(tokens_r) < min_tokens:
+            return False
+        for text in (a, r):
+            if not text:
+                continue
+            alpha = sum(1 for c in text if c.isalpha())
+            if (alpha / len(text)) < min_alpha_ratio:
+                return False
+        return True
+
     n_rem, n_add = len(removed), len(added)
     use_emb = (
         bool(th.get("use_embeddings", False))
@@ -300,16 +409,22 @@ def _hungarian_pair_added_removed(
         c = _canonical_indicator_key(_strip_footnote_markers_from_indicator(s))
         return c if c else (s or " ").strip()[:200]
 
-    embed_matrix = None
+    embed_matrix_canon = None
+    embed_matrix_ts = None
     if use_emb and n_rem > 0 and n_add > 0:
         try:
             import numpy as np
-            texts_rem = [_norm_for_embed(removed[i]) for i in range(n_rem)]
-            texts_add = [_norm_for_embed(added[j]) for j in range(n_add)]
-            embed_matrix = embedding_service.get_pairwise_cosine(texts_rem, texts_add)
+            texts_rem_canon = [_norm_for_embed(removed[i]) for i in range(n_rem)]
+            texts_add_canon = [_norm_for_embed(added[j]) for j in range(n_add)]
+            embed_matrix_canon = embedding_service.get_pairwise_cosine(texts_rem_canon, texts_add_canon)
+            if use_token_sorted:
+                texts_rem_ts = [get_token_sorted_text(removed[i]) or " " for i in range(n_rem)]
+                texts_add_ts = [get_token_sorted_text(added[j]) or " " for j in range(n_add)]
+                embed_matrix_ts = embedding_service.get_pairwise_cosine(texts_rem_ts, texts_add_ts)
         except Exception as e:
             logger.debug("Indicator embedding batch failed: %s", e)
-            embed_matrix = None
+            embed_matrix_canon = None
+            embed_matrix_ts = None
     matrix_size = n_rem * n_add
     prefilter_used = matrix_size > _PREFILTER_MATRIX_CAP
     candidate_set: set[tuple[int, int]] | None = None
@@ -337,12 +452,14 @@ def _hungarian_pair_added_removed(
                     gated_out += 1
                     continue
                 if _length_ratio_ok(added[j], removed[i]) and _token_overlap_ok(added[j], removed[i]):
-                    lex = _similarity(added[j], removed[i])
-                    if embed_weight > 0 and embed_matrix is not None:
-                        emb_sim = float(embed_matrix[i, j])
-                        scores[i, j] = (1.0 - embed_weight) * lex + embed_weight * (emb_sim * 100.0)
-                    else:
-                        scores[i, j] = lex
+                    lex_canon, lex_ts, lex = _lex_similarity_both_forms(added[j], removed[i])
+                    emb_sim_canon = float(embed_matrix_canon[i, j]) if embed_matrix_canon is not None else 0.0
+                    emb_sim_ts = float(embed_matrix_ts[i, j]) if embed_matrix_ts is not None else 0.0
+                    emb_sim = max(emb_sim_canon, emb_sim_ts) if (embed_matrix_canon is not None or embed_matrix_ts is not None) else 0.0
+                    embed_ok = embed_weight > 0 and _embed_gate_ok(added[j], removed[i], emb_sim)
+                    w_eff = embed_weight if embed_ok else 0.0
+                    calibrated_embed = (emb_sim * 100.0) if emb_sim >= emb_min else 0.0
+                    scores[i, j] = (1.0 - w_eff) * lex + w_eff * calibrated_embed
                 else:
                     gated_out += 1
         cost = -scores
@@ -381,10 +498,27 @@ def _hungarian_pair_added_removed(
                         cand.append((added[j], sc))
                 cand.sort(key=lambda x: x[1], reverse=True)
                 unmatched_candidates.append({"removed": r, "top3": cand[:3]})
+            rename_pair_debug: list[dict[str, Any]] = []
+            for (r, a), (i, j) in zip(renamed_pairs, renamed_indices):
+                lc, lts, _ = _lex_similarity_both_forms(a, r)
+                ec = float(embed_matrix_canon[i, j]) if embed_matrix_canon is not None else 0.0
+                ets = float(embed_matrix_ts[i, j]) if embed_matrix_ts is not None else 0.0
+                reasons: list[str] = []
+                if not _embed_gate_ok(a, r, max(ec, ets)):
+                    reasons.append("embed_gated")
+                rename_pair_debug.append({
+                    "lex_canonical": round(lc, 2),
+                    "lex_token_sorted": round(lts, 2),
+                    "embed_canonical": round(ec, 3),
+                    "embed_token_sorted": round(ets, 3),
+                    "final_score": round(float(scores[i, j]), 2),
+                    "reasons": reasons or ["ok"],
+                })
             return {
                 "gated_out_pairs": gated_out,
                 "accepted_renames": len(renamed_pairs),
                 "prefilter_used": prefilter_used,
+                "rename_pair_debug": rename_pair_debug,
                 "score_distribution": {
                     "min": min(asc) if asc else None,
                     "max": max(asc) if asc else None,
@@ -396,18 +530,15 @@ def _hungarian_pair_added_removed(
 
         if logger.isEnabledFor(logging.DEBUG) and renamed_pairs:
             for (r, a), (i, j) in zip(renamed_pairs, renamed_indices):
-                ratio_sc = rapidfuzz_fuzz.ratio(a, r) if rapidfuzz_fuzz else 0
-                token_sc = rapidfuzz_fuzz.token_set_ratio(a, r) if rapidfuzz_fuzz else 0
+                lc, lts, _ = _lex_similarity_both_forms(a, r)
+                ec = float(embed_matrix_canon[i, j]) if embed_matrix_canon is not None else 0.0
+                ets = float(embed_matrix_ts[i, j]) if embed_matrix_ts is not None else 0.0
                 chosen = float(scores[i, j])
-                emb_sim = float(embed_matrix[i, j]) if embed_matrix is not None else 0.0
                 logger.debug(
-                    "indicator_rename removed=%r added=%r ratio=%.1f token=%.1f chosen_score=%.1f embed_sim=%.3f",
+                    "indicator_rename removed=%r added=%r lex_canon=%.1f lex_ts=%.1f chosen=%.1f embed_canon=%.3f embed_ts=%.3f",
                     r[:60] if r else "",
                     a[:60] if a else "",
-                    ratio_sc,
-                    token_sc,
-                    chosen,
-                    emb_sim,
+                    lc, lts, chosen, ec, ets,
                 )
 
         return added_restant, removed_restant, renamed_pairs, _debug_dict()
@@ -425,13 +556,15 @@ def _hungarian_pair_added_removed(
                 if not _length_ratio_ok(a, r) or not _token_overlap_ok(a, r):
                     gated_out += 1
                     continue
-                sc = _similarity(a, r)
+                _, _, lex_final = _lex_similarity_both_forms(a, r)
+                sc = lex_final
                 if sc >= min_score_pct and sc > best_score:
                     best_score = sc
                     best_j = j
             if best_j >= 0:
                 renamed_pairs.append((r, added[best_j]))
-                accepted_scores.append(_similarity(added[best_j], r))
+                _, _, lex_f = _lex_similarity_both_forms(added[best_j], r)
+                accepted_scores.append(lex_f)
                 used_rem_f.add(i)
                 used_add_f.add(best_j)
         added_restant = [added[j] for j in range(n_add) if j not in used_add_f]
@@ -675,6 +808,8 @@ def _empty_result(bank_code: str, year: int, reason: str) -> dict[str, Any]:
                 "hungarian_indicator": True,
                 "table_pair_count": 0,
                 "indicator_rename_count": 0,
+                "table_pair_debug": [],
+                "rename_pair_debug": [],
             },
         },
     }
@@ -776,6 +911,8 @@ def run_comparison_with_sections(
     t2_by_uid = {_section_uid(table): table for table in tables_t2}
 
     comparisons: list[dict[str, Any]] = []
+    table_pair_embed_debug: list[dict[str, Any]] = []
+    all_rename_pair_debug: list[dict[str, Any]] = []
     for pair in strict.get("pairs", []):
         t1_uid = str(pair.get("t1_uid", ""))
         t2_uid = str(pair.get("t2_uid", ""))
@@ -790,6 +927,13 @@ def run_comparison_with_sections(
             added, removed, renamed_pairs, indicator_debug = _hungarian_pair_added_removed(
                 removed, added, th=cfg, embedding_service=embedding_service
             )
+            if indicator_debug:
+                rpd = indicator_debug.get("rename_pair_debug") or []
+                for e in rpd:
+                    e_with_ctx = dict(e)
+                    e_with_ctx["table_id_t1"] = table_t1.table_id
+                    e_with_ctx["table_id_t2"] = table_t2.table_id
+                    all_rename_pair_debug.append(e_with_ctx)
             if indicator_debug and logger.isEnabledFor(logging.DEBUG):
                 logger.debug(
                     "indicator_pairing %s:%s gated=%s renames=%s scores=%s",
@@ -802,6 +946,14 @@ def run_comparison_with_sections(
             added, removed, renamed_pairs = _fuzzy_pair_added_removed(added, removed, bank_code)
         renamed_indicators = [{"from": r, "to": a} for (r, a) in renamed_pairs]
 
+        table_pair_embed_debug.append({
+            "t1_uid": t1_uid,
+            "t2_uid": t2_uid,
+            "embed_sim_canonical": round(float(pair.get("embed_sim_canon", 0) or 0), 3),
+            "embed_sim_token_sorted": round(float(pair.get("embed_sim_token_sorted", 0) or 0), 3),
+            "gating_decision": str(pair.get("table_fp_gating") or ""),
+            "fingerprint_token_count": int(pair.get("fingerprint_token_count", 0) or 0),
+        })
         rescue_type = pair.get("rescue_type")
         match_decision_level = str(pair.get("decision_level") or "match")
         structure_change_detected = bool(had_fusion_split or rescue_type == "split_merge_rescue")
@@ -828,6 +980,10 @@ def run_comparison_with_sections(
                 "removed_indicators": removed,
                 "renamed_indicators": renamed_indicators,
                 "renamed_probable_indicators": [],
+                "all_indicators_t1": _all_indicators_value_clean_ordered(table_t1),
+                "all_indicators_t2": _all_indicators_value_clean_ordered(table_t2),
+                "bbox_t1": _normalize_bbox_ltrb_norm(getattr(table_t1, "bbox", None)),
+                "bbox_t2": _normalize_bbox_ltrb_norm(getattr(table_t2, "bbox", None)),
                 "indicator_decisions": [],
                 "review_reasons": [],
                 "uncertain_diff": False,
@@ -855,8 +1011,10 @@ def run_comparison_with_sections(
         t = by_uid.get(uid)
         return (getattr(t, "extraction_method", None) or "docling") if t else "docling"
 
-    tables_added = [
-        {
+    tables_added = []
+    for item in strict.get("added_tables", []):
+        t2_t = t2_by_uid.get(str(item.get("t2_uid", "")))
+        tables_added.append({
             "table_status": "ajoute",
             "table_id": str(item.get("t2_table_id", "")),
             "title": item.get("title_t2", ""),
@@ -868,15 +1026,19 @@ def run_comparison_with_sections(
             "first_column_indicators_raw": list(
                 item.get("first_column_indicators_raw")
                 or (
-                    getattr(t2_by_uid.get(str(item.get("t2_uid", ""))), "first_column_indicators_raw", None)
+                    getattr(t2_t, "first_column_indicators_raw", None)
                     or []
                 )
             ),
-        }
-        for item in strict.get("added_tables", [])
-    ]
-    tables_removed = [
-        {
+            "all_indicators_t1": [],
+            "all_indicators_t2": _all_indicators_value_clean_ordered(t2_t) if t2_t else [],
+            "bbox_t1": None,
+            "bbox_t2": _normalize_bbox_ltrb_norm(getattr(t2_t, "bbox", None)) if t2_t else None,
+        })
+    tables_removed = []
+    for item in strict.get("removed_tables", []):
+        t1_t = t1_by_uid.get(str(item.get("t1_uid", "")))
+        tables_removed.append({
             "table_status": "supprime",
             "table_id": str(item.get("t1_table_id", "")),
             "title": item.get("title_t1", ""),
@@ -888,13 +1050,15 @@ def run_comparison_with_sections(
             "first_column_indicators_raw": list(
                 item.get("first_column_indicators_raw")
                 or (
-                    getattr(t1_by_uid.get(str(item.get("t1_uid", ""))), "first_column_indicators_raw", None)
+                    getattr(t1_t, "first_column_indicators_raw", None)
                     or []
                 )
             ),
-        }
-        for item in strict.get("removed_tables", [])
-    ]
+            "all_indicators_t1": _all_indicators_value_clean_ordered(t1_t) if t1_t else [],
+            "all_indicators_t2": [],
+            "bbox_t1": _normalize_bbox_ltrb_norm(getattr(t1_t, "bbox", None)) if t1_t else None,
+            "bbox_t2": None,
+        })
 
     total_added = sum(len(c.get("added_indicators", [])) for c in comparisons)
     total_removed = sum(len(c.get("removed_indicators", [])) for c in comparisons)
@@ -975,6 +1139,8 @@ def run_comparison_with_sections(
                 "hungarian_indicator": cfg.get("indicator_hungarian_enabled", True),
                 "table_pair_count": len(comparisons),
                 "indicator_rename_count": total_renamed,
+                "table_pair_debug": table_pair_embed_debug,
+                "rename_pair_debug": all_rename_pair_debug,
             },
         },
     }

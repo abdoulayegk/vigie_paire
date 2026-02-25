@@ -19,6 +19,25 @@ REVIEW_STATUS_APPROVED = "approved"
 REVIEW_STATUS_REJECTED = "rejected"
 
 
+def _parse_all_indicators(val: Any) -> list[str]:
+    if val is None:
+        return []
+    if isinstance(val, list):
+        return [str(x) for x in val if x is not None]
+    return []
+
+
+def _parse_bbox(val: Any) -> list[float] | None:
+    if val is None:
+        return None
+    if isinstance(val, list) and len(val) == 4:
+        try:
+            return [float(x) for x in val]
+        except (TypeError, ValueError):
+            pass
+    return None
+
+
 @dataclass(slots=True)
 class ReviewItem:
     change_id: str
@@ -45,6 +64,12 @@ class ReviewItem:
     table_status: str = ""
     indicators: list[dict[str, str]] = field(default_factory=list)
     match_method: str = ""
+    all_indicators_t1: list[str] = field(default_factory=list)
+    all_indicators_t2: list[str] = field(default_factory=list)
+    bbox_t1: list[float] | None = None
+    bbox_t2: list[float] | None = None
+    added_indicators: list[str] = field(default_factory=list)
+    removed_indicators: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -72,6 +97,12 @@ class ReviewItem:
             "table_status": self.table_status,
             "indicators": list(self.indicators),
             "match_method": self.match_method,
+            "all_indicators_t1": list(self.all_indicators_t1),
+            "all_indicators_t2": list(self.all_indicators_t2),
+            "bbox_t1": list(self.bbox_t1) if self.bbox_t1 else None,
+            "bbox_t2": list(self.bbox_t2) if self.bbox_t2 else None,
+            "added_indicators": list(self.added_indicators),
+            "removed_indicators": list(self.removed_indicators),
         }
 
     @classmethod
@@ -101,4 +132,10 @@ class ReviewItem:
             table_status=str(data.get("table_status", "")),
             indicators=list(data.get("indicators", [])),
             match_method=str(data.get("match_method", "")),
+            all_indicators_t1=_parse_all_indicators(data.get("all_indicators_t1")),
+            all_indicators_t2=_parse_all_indicators(data.get("all_indicators_t2")),
+            bbox_t1=_parse_bbox(data.get("bbox_t1")),
+            bbox_t2=_parse_bbox(data.get("bbox_t2")),
+            added_indicators=_parse_all_indicators(data.get("added_indicators")),
+            removed_indicators=_parse_all_indicators(data.get("removed_indicators")),
         )

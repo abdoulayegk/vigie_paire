@@ -9,8 +9,29 @@ Pour lancer:
 from __future__ import annotations
 
 import base64
+import json
+import logging
 import sys
+from functools import lru_cache
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+
+@lru_cache(maxsize=256)
+def _cached_render_or_crop(pdf_path: str, page: int, scale: float, bbox_key: str) -> bytes:
+    """Return PNG bytes: cropped if bbox_key valid, else full page. Cached for UI performance."""
+    if not bbox_key:
+        raw = get_pdf_preview(pdf_path, page, scale=scale)
+        return raw if raw else b""
+    try:
+        bbox = json.loads(bbox_key)
+        if isinstance(bbox, list) and len(bbox) == 4:
+            return crop_table_region_to_bytes(pdf_path, page, bbox, scale=scale)
+    except (json.JSONDecodeError, TypeError):
+        pass
+    raw = get_pdf_preview(pdf_path, page, scale=scale)
+    return raw if raw else b""
 
 try:
     from dotenv import load_dotenv
@@ -87,6 +108,9 @@ from app.ui_io import (
     load_comparison_result,
     save_pdfs_to_temp,
 )
+from vigilance.extraction.table_annotator import annotate_table_with_changes
+from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
+from vigilance.utils.pdf_crop import crop_table_region_to_bytes
 
 # Theme Bootstrap
 APP_THEME = dbc.themes.FLATLY
@@ -823,10 +847,8 @@ def update_review_detail(review_items_data, current_idx, paths, show_results):
     idx = max(0, min(int(current_idx or 0), len(review_items_data) - 1))
     item = review_items_data[idx]
     
-    # Helper to get base64 images (reusing existing logic or implementing new helper)
-    # For now, we reuse the logic from render_review_tab but simplified for the new component
-    img_t1_b64 = _get_proof_image_b64(item, "t1", paths or {})
-    img_t2_b64 = _get_proof_image_b64(item, "t2", paths or {})
+    img_t1_b64 = _get_proof_image_b64_for_item(item, "t1", paths or {})
+    img_t2_b64 = _get_proof_image_b64_for_item(item, "t2", paths or {})
 
     return build_review_detail(
         item=item,
@@ -1286,13 +1308,15 @@ def init_review_items(indicator_result, paths):
 def _build_comparison_statement(item: ReviewItem) -> str:
     """Phrase d'interpretation metier pour un changement."""
     table = item.table_name or "(tableau inconnu)"
+    table_id = (item.table_id_t2 or item.table_id_t1 or "").strip()
+    table_label = f"Tableau n°{table_id}: {table}" if table_id else f"Tableau: {table}"
     if item.indicators:
-        return f"Tableau: {table} -- {item.indicator}"
+        return f"{table_label} -- {item.indicator}"
     indicator = item.indicator or "(indicateur non disponible)"
     if item.change_type == CHANGE_TYPE_TABLE_ADDED:
-        return f"Tableau entier ajoute en T2: {table}"
+        return f"Tableau entier ajoute en T2: {table_label}"
     if item.change_type == CHANGE_TYPE_TABLE_REMOVED:
-        return f"Tableau entier supprime en T2: {table} (present en T1)"
+        return f"Tableau entier supprime en T2: {table_label} (present en T1)"
     if item.change_type == CHANGE_TYPE_ADDED:
         return f"Ajoute T2: {indicator} -- absent en T1."
     if item.change_type == CHANGE_TYPE_REMOVED:
@@ -1300,6 +1324,91 @@ def _build_comparison_statement(item: ReviewItem) -> str:
     if item.change_type == CHANGE_TYPE_RENAMED:
         return f"Renomme entre T1/T2: {indicator}."
     return f"Changement detecte: {indicator}"
+
+
+def _filter_noise(items: list[str]) -> list[str]:
+    """Filter out noise lines (dates, units, footnotes) using normalize_indicator_for_comparison."""
+    return [x for x in items if x and normalize_indicator_for_comparison(str(x).strip())]
+
+
+def _get_proof_image_b64_for_item(item_dict: dict, side: str, paths: dict) -> str | None:
+    """Get proof image base64, with crop+highlight when table_status != 'stable'."""
+    table_status = (item_dict.get("table_status") or "").strip().lower()
+    if table_status == "stable":
+        return _get_proof_image_b64(item_dict, side, paths)
+
+    proof_image_path = item_dict.get("proof_image_path", "") or ""
+    if side == "t2" and proof_image_path:
+        return None
+
+    ref = item_dict.get("source_ref_t1" if side == "t1" else "source_ref_t2", "")
+    page = item_dict.get("page_t1" if side == "t1" else "page_t2")
+    path_t1 = paths.get("pdf_t1", "") if paths else ""
+    path_t2 = paths.get("pdf_t2", "") if paths else ""
+    pdf_path = path_t1 if side == "t1" else path_t2
+    if not pdf_path:
+        pdf_path = ref
+
+    base_img_b64: str | None = None
+    if (
+        side == "t1"
+        and proof_image_path
+        and Path(proof_image_path).exists()
+        and Path(proof_image_path).suffix.lower() in {".png", ".jpg", ".jpeg"}
+    ):
+        try:
+            with open(proof_image_path, "rb") as f:
+                raw = f.read()
+            base_img_b64 = base64.b64encode(raw).decode("ascii")
+        except Exception:
+            pass
+    if base_img_b64 is None and ref and Path(ref).exists() and Path(ref).suffix.lower() in {".png", ".jpg", ".jpeg"}:
+        try:
+            with open(ref, "rb") as f:
+                raw = f.read()
+            base_img_b64 = base64.b64encode(raw).decode("ascii")
+        except Exception:
+            pass
+
+    if base_img_b64 is None:
+        if not pdf_path or page is None:
+            return _get_proof_image_b64(item_dict, side, paths)
+
+        page_effective = max(1, int(page))
+        bbox = item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
+        bbox_key = json.dumps(bbox) if bbox and isinstance(bbox, list) and len(bbox) == 4 else ""
+        try:
+            raw_bytes = _cached_render_or_crop(str(pdf_path), page_effective, 1.5, bbox_key)
+            base_img_b64 = base64.b64encode(raw_bytes).decode("ascii") if raw_bytes else None
+        except Exception as e:
+            logger.warning("Render/crop failed: %s", e)
+            base_img_b64 = None
+
+    if not base_img_b64:
+        return _get_proof_image_b64(item_dict, side, paths)
+
+    all_t1 = _filter_noise(list(item_dict.get("all_indicators_t1") or []))
+    all_t2 = _filter_noise(list(item_dict.get("all_indicators_t2") or []))
+    rows_added = _filter_noise(list(item_dict.get("added_indicators") or []))
+    rows_removed = _filter_noise(list(item_dict.get("removed_indicators") or []))
+
+    try:
+        annotated = annotate_table_with_changes(
+            image_base64=base_img_b64,
+            rows_added=rows_added,
+            rows_removed=rows_removed,
+            all_indicators_t1=all_t1,
+            all_indicators_t2=all_t2,
+            is_for_t1=(side == "t1"),
+            row_bboxes_t1=None,
+            row_bboxes_t2=None,
+        )
+        if annotated:
+            return base64.b64encode(annotated).decode("ascii")
+    except Exception as e:
+        logger.warning("Annotation failed, returning non-annotated image: %s", e)
+
+    return base_img_b64
 
 
 def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
@@ -1340,8 +1449,9 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
         except Exception:
             pass
 
-    if pdf_path and page is not None and page >= 1:
-        raw = get_pdf_preview(pdf_path, page, scale=1.5)
+    if pdf_path and page is not None:
+        page_effective = max(1, int(page))
+        raw = get_pdf_preview(pdf_path, page_effective, scale=1.5)
         if raw:
             return base64.b64encode(raw).decode("ascii")
     return None
@@ -1378,8 +1488,8 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
     proof_image_path = current_dict.get("proof_image_path", "") or ""
     proof_mode = current_dict.get("proof_mode", "") or ""
 
-    img_t1_b64 = _get_proof_image_b64(current_dict, "t1", paths or {})
-    img_t2_b64 = _get_proof_image_b64(current_dict, "t2", paths or {})
+    img_t1_b64 = _get_proof_image_b64_for_item(current_dict, "t1", paths or {})
+    img_t2_b64 = _get_proof_image_b64_for_item(current_dict, "t2", paths or {})
 
     def _img_div(b64, label, caption):
         if b64:

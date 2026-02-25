@@ -17,6 +17,21 @@ from app.review_models import (
 )
 
 
+def _table_display_label(item: dict) -> str:
+    """Format tableau label: 'Tableau n°X: Titre' when id exists, else 'Tableau: Titre'."""
+    title = (item.get("table_name") or item.get("table_title_raw") or "").strip() or "Sans titre"
+    change_type = item.get("change_type", "")
+    if change_type == CHANGE_TYPE_TABLE_ADDED:
+        table_id = (item.get("table_id_t2") or "").strip()
+    elif change_type == CHANGE_TYPE_TABLE_REMOVED:
+        table_id = (item.get("table_id_t1") or "").strip()
+    else:
+        table_id = (item.get("table_id_t2") or item.get("table_id_t1") or "").strip()
+    if table_id:
+        return f"{t('table_no_prefix', 'Tableau n°')}{table_id}: {title}"
+    return f"{t('table', 'Tableau')}: {title}"
+
+
 def _indicator_badge(change_type: str) -> dbc.Badge:
     mapping = {
         CHANGE_TYPE_ADDED: (t("indicator_add").upper(), "success"),
@@ -41,9 +56,17 @@ def build_review_detail(
 ) -> html.Div:
     """Build the right-side review detail panel (table-grouped)."""
 
-    table_name = item.get("table_name", "Unknown Table")
-    page_t1 = item.get("page_t1", "?")
-    page_t2 = item.get("page_t2", "?")
+    table_display = _table_display_label(item)
+    page_t1 = item.get("page_t1")
+    page_t2 = item.get("page_t2")
+    if page_t1 is None and page_t2 is not None:
+        page_text = f"Page T2: p.{page_t2}"
+    elif page_t2 is None and page_t1 is not None:
+        page_text = f"Page T1: p.{page_t1}"
+    else:
+        page_t1_str = str(page_t1) if page_t1 is not None else "-"
+        page_t2_str = str(page_t2) if page_t2 is not None else "-"
+        page_text = f"Pages: T1: p.{page_t1_str}, T2: p.{page_t2_str}"
     confidence = item.get("confidence", 0.0)
     comment = item.get("comment", "")
     review_status = item.get("review_status")
@@ -62,8 +85,8 @@ def build_review_detail(
                     ),
                     html.Div(
                         [
-                            html.Span(f"Tableau: {table_name}", className="d-block text-truncate fw-semibold"),
-                            html.Small(f"Pages: T1: p.{page_t1}, T2: p.{page_t2}", className="text-muted"),
+                            html.Span(table_display, className="d-block text-truncate fw-semibold"),
+                            html.Small(page_text, className="text-muted"),
                         ],
                         className="p-2 bg-light rounded",
                     ),

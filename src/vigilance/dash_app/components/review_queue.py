@@ -79,12 +79,21 @@ def build_review_queue(
 
         table_name = item.get("table_name", "Unknown Table")
         section = item.get("section", "Unknown Section")
+        change_type = item.get("change_type", "")
+        table_id = (
+            (item.get("table_id_t2") or "").strip()
+            if change_type == CHANGE_TYPE_TABLE_ADDED
+            else (item.get("table_id_t1") or item.get("table_id_t2") or "").strip()
+        )
+        if table_id:
+            table_display = f"n°{table_id} - {table_name}"
+        else:
+            table_display = table_name
         indicators = item.get("indicators", [])
         n_indicators = len(indicators)
-        change_type = item.get("change_type", "")
 
-        if len(table_name) > 45:
-            table_name = table_name[:42] + "..."
+        if len(table_display) > 45:
+            table_display = table_display[:42] + "..."
 
         n_added = sum(1 for ind in indicators if ind.get("type") == "added")
         n_removed = sum(1 for ind in indicators if ind.get("type") == "removed")
@@ -108,7 +117,7 @@ def build_review_queue(
                 html.Div(
                     [
                         html.Div(
-                            [icon, html.Span(table_name, className="fw-semibold small")],
+                            [icon, html.Span(table_display, className="fw-semibold small")],
                             className="d-flex align-items-center",
                         ),
                         html.Small(section, className="text-muted d-block ms-4"),

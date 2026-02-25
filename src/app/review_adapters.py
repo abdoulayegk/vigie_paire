@@ -100,6 +100,12 @@ def build_review_items_from_indicator_result(
                     table_status=table_status_raw,
                     indicators=[],
                     match_method=match_method,
+                    all_indicators_t1=comp.get("all_indicators_t1") or [],
+                    all_indicators_t2=comp.get("all_indicators_t2") or [],
+                    bbox_t1=comp.get("bbox_t1"),
+                    bbox_t2=comp.get("bbox_t2"),
+                    added_indicators=[],
+                    removed_indicators=[],
                 )
             )
             seq += 1
@@ -182,6 +188,12 @@ def build_review_items_from_indicator_result(
                 table_status=str(comp.get("table_status", "")),
                 indicators=indicators,
                 match_method=match_method,
+                all_indicators_t1=comp.get("all_indicators_t1") or [],
+                all_indicators_t2=comp.get("all_indicators_t2") or [],
+                bbox_t1=comp.get("bbox_t1"),
+                bbox_t2=comp.get("bbox_t2"),
+                added_indicators=added,
+                removed_indicators=removed,
             )
         )
         seq += 1
@@ -200,6 +212,7 @@ def build_review_items_from_indicator_result(
         table_indicators = [
             {"name": name, "type": CHANGE_TYPE_ADDED} for name in display_list
         ]
+        all_indicators_t2 = table.get("all_indicators_t2") or []
 
         items.append(
             ReviewItem(
@@ -215,6 +228,12 @@ def build_review_items_from_indicator_result(
                 table_title_raw=table_name,
                 table_status="ajoute",
                 indicators=table_indicators,
+                all_indicators_t1=table.get("all_indicators_t1") or [],
+                all_indicators_t2=all_indicators_t2,
+                bbox_t1=table.get("bbox_t1"),
+                bbox_t2=table.get("bbox_t2"),
+                added_indicators=all_indicators_t2,
+                removed_indicators=[],
             )
         )
         seq += 1
@@ -233,6 +252,7 @@ def build_review_items_from_indicator_result(
         table_indicators = [
             {"name": name, "type": CHANGE_TYPE_REMOVED} for name in display_list
         ]
+        all_indicators_t1 = table.get("all_indicators_t1") or []
 
         items.append(
             ReviewItem(
@@ -248,6 +268,12 @@ def build_review_items_from_indicator_result(
                 table_title_raw=table_name,
                 table_status="supprime",
                 indicators=table_indicators,
+                all_indicators_t1=all_indicators_t1,
+                all_indicators_t2=table.get("all_indicators_t2") or [],
+                bbox_t1=table.get("bbox_t1"),
+                bbox_t2=table.get("bbox_t2"),
+                added_indicators=[],
+                removed_indicators=all_indicators_t1,
             )
         )
         seq += 1
