@@ -8,6 +8,7 @@ Pour lancer:
 
 from __future__ import annotations
 
+import base64
 import sys
 from pathlib import Path
 
@@ -60,6 +61,7 @@ from app.review_adapters import build_review_items_from_indicator_result
 from app.review_export import (
     export_review_items_json_fr,
     generate_validation_csv,
+    generate_validation_excel,
 )
 from app.review_models import (
     CHANGE_TYPE_ADDED,
@@ -191,6 +193,7 @@ app.layout = html.Div(
     + [
         dcc.Download(id="download-review-csv"),
         dcc.Download(id="download-review-json"),
+        dcc.Download(id="download-review-excel"),
         dcc.Download(id="download-indicator-json-brut"),
     ],
 )
@@ -891,19 +894,37 @@ def on_review_action_modern(btn_approve, btn_reject, btn_apply, review_items, cu
 def on_modern_nav(prev_clicks, next_clicks, current_idx, items):
     """Handle Previous/Next buttons in modern UI."""
     from dash import ctx
-    
+
     if not items:
         raise PreventUpdate
-        
+
     idx = int(current_idx or 0)
     triggered = ctx.triggered_id
-    
+
     if triggered == "btn-prev":
         idx = max(0, idx - 1)
     elif triggered == "btn-next":
         idx = min(len(items) - 1, idx + 1)
-        
+    else:
+        raise PreventUpdate
+
     return idx
+
+
+@callback(
+    Output("btn-prev", "disabled"),
+    Output("btn-next", "disabled"),
+    Input("store-review-current-idx", "data"),
+    Input("store-review-items", "data"),
+    Input("store-show-results-page", "data"),
+)
+def update_review_nav_disabled(current_idx, items, show_results):
+    """Disable Prev/Next when at first/last item; disable both when no results."""
+    if not show_results or not items:
+        return True, True
+    idx = max(0, min(int(current_idx or 0), len(items) - 1))
+    n = len(items)
+    return idx <= 0, idx >= n - 1
 
 
 @callback(
@@ -1692,6 +1713,13 @@ def render_export_tab(review_items_data, indicator_result, show_results):
                         outline=True,
                         className="me-2 mb-2",
                     ),
+                    dbc.Button(
+                        "Telecharger Excel (avec statuts validation)",
+                        id="btn-download-review-excel",
+                        color="primary",
+                        outline=True,
+                        className="me-2 mb-2",
+                    ),
                 ],
                 className="mb-4",
             )
@@ -1807,6 +1835,47 @@ def on_download_json(n_clicks, review_items_data, indicator_result):
         },
     )
     return dict(content=json_str, filename=f"{base_name}.json")
+
+
+@callback(
+    Output("download-review-excel", "data"),
+    Input("btn-download-review-excel", "n_clicks"),
+    State("store-review-items", "data"),
+    State("store-indicator-result", "data"),
+    State("store-pdf-paths", "data"),
+    prevent_initial_call=True,
+)
+def on_download_excel(n_clicks, review_items_data, indicator_result, paths):
+    """Telecharger le fichier Excel de validation (.xlsx)."""
+    if not n_clicks:
+        raise PreventUpdate
+    ir = indicator_result or {}
+    items = []
+    if review_items_data:
+        try:
+            items = [ReviewItem.from_dict(d) for d in review_items_data]
+        except Exception:
+            pass
+    if not items and ir:
+        paths = paths or {}
+        path_t1 = paths.get("pdf_t1", "") if isinstance(paths, dict) else ""
+        path_t2 = paths.get("pdf_t2", "") if isinstance(paths, dict) else ""
+        items = build_review_items_from_indicator_result(
+            ir,
+            bank_code=str(ir.get("bank_code", "")),
+            quarter_from=str(ir.get("quarter_from", "t1")),
+            quarter_to=str(ir.get("quarter_to", "t2")),
+            pdf_path_t1=path_t1 or "",
+            pdf_path_t2=path_t2 or "",
+        )
+    bank = str(ir.get("bank_code", "bank")).upper()
+    q_from = str(ir.get("quarter_from", "t1")).upper()
+    q_to = str(ir.get("quarter_to", "t2")).upper()
+    year_val = str(ir.get("year", "2025"))
+    filename = f"Vigie_Comparaison_{bank}_{q_from}_vs_{q_to}_{year_val}.xlsx"
+    excel_bytes = generate_validation_excel(items, ir)
+    b64 = base64.b64encode(excel_bytes).decode("ascii")
+    return dict(content=b64, filename=filename, base64=True)
 
 
 @callback(

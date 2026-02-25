@@ -163,7 +163,7 @@ class TableImageExtractor:
 
     # Resolution pour l'extraction (DPI)
     DEFAULT_DPI = 300
-    VISION_DPI = 150  # Suffisant pour GPT-4 Vision
+    VISION_DPI = 300  # Qualite image pour Vision / revue
 
     # Padding autour des tableaux (pixels)
     TABLE_PADDING = 20
@@ -171,7 +171,7 @@ class TableImageExtractor:
     def __init__(
         self,
         output_dir: str | None = None,
-        dpi: int = 150,
+        dpi: int = 300,
         save_images: bool = True,
         bank_code: str | None = None,
     ):
@@ -180,7 +180,7 @@ class TableImageExtractor:
 
         Args:
             output_dir: Repertoire de sortie pour les images
-            dpi: Resolution d'extraction (defaut 150 pour Vision)
+            dpi: Resolution d'extraction (defaut 300 pour qualite image)
             save_images: Sauvegarder les images sur disque
             bank_code: Code de la banque pour utiliser les patterns specifiques
         """
@@ -981,7 +981,7 @@ def extract_tables_as_images(
     end_page: int | None = None,
     section: str = "",
     output_dir: str | None = None,
-    dpi: int = 150,
+    dpi: int = 300,
 ) -> ExtractionResult:
     """
     Fonction utilitaire pour extraire les tableaux comme images.

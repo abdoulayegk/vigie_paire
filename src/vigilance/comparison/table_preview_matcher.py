@@ -830,7 +830,7 @@ def extract_and_match_tables(
         match_result.page_ranges_t2 = page_ranges_t2 or []
 
         # Extraire tableaux T1
-        extractor_t1 = TableImageExtractor(output_dir=os.path.join(tmpdir, "t1"), dpi=150)
+        extractor_t1 = TableImageExtractor(output_dir=os.path.join(tmpdir, "t1"), dpi=300)
 
         # Extraire les tableaux pour chaque plage de pages T1
         all_tables_t1 = []
@@ -874,7 +874,7 @@ def extract_and_match_tables(
         )
 
         # Extraire tableaux T2
-        extractor_t2 = TableImageExtractor(output_dir=os.path.join(tmpdir, "t2"), dpi=150)
+        extractor_t2 = TableImageExtractor(output_dir=os.path.join(tmpdir, "t2"), dpi=300)
 
         # Extraire les tableaux pour chaque plage de pages T2
         all_tables_t2 = []
