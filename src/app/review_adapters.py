@@ -17,6 +17,7 @@ from app.review_models import (
     ReviewItem,
 )
 from app.ui_indicators import get_display_indicators
+from vigilance.utils.matching_normalizer import _classify_excluded_line
 
 
 def _make_change_id(prefix: str, index: int) -> str:
@@ -195,6 +196,7 @@ def build_review_items_from_indicator_result(
         page_t2 = table.get("page")
         table_id_t2 = str(table.get("table_id", ""))
         display_list = get_display_indicators(table)
+        display_list = [n for n in display_list if _classify_excluded_line(n) is None]
         table_indicators = [
             {"name": name, "type": CHANGE_TYPE_ADDED} for name in display_list
         ]
@@ -227,6 +229,7 @@ def build_review_items_from_indicator_result(
         page_t1 = table.get("page")
         table_id_t1 = str(table.get("table_id", ""))
         display_list = get_display_indicators(table)
+        display_list = [n for n in display_list if _classify_excluded_line(n) is None]
         table_indicators = [
             {"name": name, "type": CHANGE_TYPE_REMOVED} for name in display_list
         ]

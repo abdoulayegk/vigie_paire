@@ -61,8 +61,11 @@ def build_review_queue(
 
     filter_bar = html.Div(filter_buttons, className="mb-3 p-2 bg-white rounded border")
 
+    # Build (full_idx, item) for filtered items so click sets store to full list index
+    filtered_with_full_idx = [(i, items[i]) for i in range(len(items)) if items[i] in filtered_items]
+
     list_items = []
-    for idx, item in enumerate(filtered_items):
+    for full_idx, item in filtered_with_full_idx:
         status = item.get("review_status", REVIEW_STATUS_PENDING)
 
         if status == REVIEW_STATUS_APPROVED:
@@ -72,7 +75,7 @@ def build_review_queue(
         else:
             icon = html.I(className="bi bi-circle text-warning me-2")
 
-        active_class = "bg-light border-start border-4 border-primary" if idx == current_idx else "border-bottom"
+        active_class = "bg-light border-start border-4 border-primary" if full_idx == current_idx else "border-bottom"
 
         table_name = item.get("table_name", "Unknown Table")
         section = item.get("section", "Unknown Section")
@@ -124,7 +127,7 @@ def build_review_queue(
                 )
             ],
             action=True,
-            id={"type": "review-item", "index": idx},
+            id={"type": "review-item", "index": full_idx},
             className=f"p-2 {active_class}",
             style={"cursor": "pointer"},
         )

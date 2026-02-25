@@ -174,7 +174,7 @@ Réponds en JSON :
                     return None
 
                 page = pdf.pages[page_num - 1]
-                img = page.to_image(resolution=150)
+                img = page.to_image(resolution=300)
 
                 buffer = io.BytesIO()
                 img.save(buffer, format="PNG")

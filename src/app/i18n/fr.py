@@ -70,6 +70,8 @@ UI_LABELS: dict[str, str] = {
     "detail_changement": "Detail du Changement",
     "no_indicators": "Aucun indicateur",
     "image_unavailable": "Image non disponible",
+    "no_table_added_t2": "Aucun tableau (ajoute en T2)",
+    "no_table_removed_t2": "Aucun tableau (supprime en T2)",
     "decision_analyst": "Decision de l'Analyste",
     "comment_optional": "Commentaire (Optionnel)",
 }

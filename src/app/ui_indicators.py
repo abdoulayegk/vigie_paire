@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.i18n import status_fr, t
+from vigilance.utils.matching_normalizer import _classify_excluded_line
 
 
 def get_display_indicators(item: dict) -> list[str]:
@@ -85,7 +86,9 @@ def build_indicator_change_rows(
             rows.append(row)
 
     for table in payload.get("tables_added", []) or []:
-        display_indicators = get_display_indicators(table)
+        display_indicators = [
+            n for n in get_display_indicators(table) if _classify_excluded_line(n) is None
+        ]
         rows.append(
             {
                 "Type": t("table_added"),
@@ -99,7 +102,9 @@ def build_indicator_change_rows(
         )
 
     for table in payload.get("tables_removed", []) or []:
-        display_indicators = get_display_indicators(table)
+        display_indicators = [
+            n for n in get_display_indicators(table) if _classify_excluded_line(n) is None
+        ]
         rows.append(
             {
                 "Type": t("table_removed"),

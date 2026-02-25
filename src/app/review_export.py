@@ -6,7 +6,7 @@ import csv
 import io
 import json
 from datetime import datetime
-from typing import Any
+from typing import Any, Iterator
 
 from app.review_models import ReviewItem
 
@@ -202,28 +202,13 @@ def _to_validation_finale(review_status: str) -> str:
     )
 
 
-def generate_validation_csv(
+def _iter_validation_rows(
     review_items: list[ReviewItem],
     indicator_result: dict[str, Any] | None,
-) -> str:
-    """Genere le CSV de validation unique (12 colonnes, Excel FR, conformite bancaire).
-
-    Schema exact:
-    banque | section | type_élément | type_changement | page_T1 | page_T2 |
-    indicateur_T1 | indicateur_T2 | résumé_automatique |
-    score_confiance | suspect | validation_finale
-    """
+) -> Iterator[dict[str, str]]:
+    """Itere sur les lignes du schema validation (12 colonnes) pour CSV ou Excel."""
     ir = indicator_result or {}
     banque = _sanitize_cell(ir.get("bank_code", ""))
-
-    buffer = io.StringIO()
-    writer = csv.DictWriter(
-        buffer,
-        fieldnames=VALIDATION_CSV_COLUMNS,
-        delimiter=CSV_SEPARATOR,
-        quoting=csv.QUOTE_MINIMAL,
-    )
-    writer.writeheader()
 
     for item in review_items:
         base = item.to_dict()
@@ -272,7 +257,7 @@ def generate_validation_csv(
                 "suspect": suspect,
                 "validation_finale": validation,
             }
-            writer.writerow(row)
+            yield row
         else:
             item_change_type = str(base.get("change_type", ""))
             for ind in indicators:
@@ -312,9 +297,51 @@ def generate_validation_csv(
                     "suspect": suspect,
                     "validation_finale": validation,
                 }
-                writer.writerow(row)
+                yield row
 
+
+def generate_validation_csv(
+    review_items: list[ReviewItem],
+    indicator_result: dict[str, Any] | None,
+) -> str:
+    """Genere le CSV de validation unique (12 colonnes, Excel FR, conformite bancaire).
+
+    Schema exact:
+    banque | section | type_élément | type_changement | page_T1 | page_T2 |
+    indicateur_T1 | indicateur_T2 | résumé_automatique |
+    score_confiance | suspect | validation_finale
+    """
+    buffer = io.StringIO()
+    writer = csv.DictWriter(
+        buffer,
+        fieldnames=VALIDATION_CSV_COLUMNS,
+        delimiter=CSV_SEPARATOR,
+        quoting=csv.QUOTE_MINIMAL,
+    )
+    writer.writeheader()
+    for row in _iter_validation_rows(review_items, indicator_result):
+        writer.writerow(row)
     return CSV_BOM + buffer.getvalue()
+
+
+def generate_validation_excel(
+    review_items: list[ReviewItem],
+    indicator_result: dict[str, Any] | None,
+) -> bytes:
+    """Genere le fichier Excel (.xlsx) de validation (meme schema que le CSV)."""
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    ws = wb.active
+    if ws is None:
+        raise RuntimeError("openpyxl: no active sheet")
+    ws.title = "Revue"
+    ws.append(list(VALIDATION_CSV_COLUMNS))
+    for row in _iter_validation_rows(review_items, indicator_result):
+        ws.append([row[col] for col in VALIDATION_CSV_COLUMNS])
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()
 
 
 def export_review_items_csv(

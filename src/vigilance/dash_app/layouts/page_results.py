@@ -163,11 +163,31 @@ def build_page_results() -> html.Div:
                             md=4,
                             className="h-100"
                         ),
-                        # Right Panel: Detail View
+                        # Right Panel: Detail View + Nav (buttons in layout so callbacks fire)
                         dbc.Col(
-                            html.Div(id="review-detail-container", className="bg-white p-4 shadow-sm rounded h-100", style={"overflowY": "auto"}),
+                            [
+                                html.Div(id="review-detail-container", className="bg-white p-4 shadow-sm rounded", style={"overflowY": "auto", "minHeight": "400px"}),
+                                html.Div(
+                                    [
+                                        dbc.Button(
+                                            [html.I(className="bi bi-chevron-left"), f" {t('btn_prev', 'Precedent')}"],
+                                            id="btn-prev",
+                                            color="light",
+                                            size="sm",
+                                            className="me-2",
+                                        ),
+                                        dbc.Button(
+                                            [f"{t('btn_next', 'Suivant')} ", html.I(className="bi bi-chevron-right")],
+                                            id="btn-next",
+                                            color="light",
+                                            size="sm",
+                                        ),
+                                    ],
+                                    className="d-flex justify-content-end mt-3 pt-3 border-top",
+                                ),
+                            ],
                             md=8,
-                            className="h-100"
+                            className="h-100 d-flex flex-column",
                         ),
                     ],
                     className="g-4 h-100",

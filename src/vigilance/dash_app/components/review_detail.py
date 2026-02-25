@@ -107,10 +107,12 @@ def build_review_detail(
         ],
     )
 
-    def _img_card(b64, label):
+    def _img_card(b64, label, placeholder=None):
+        """Placeholder: message explicite si pas d'image (ex. tableau ajoute/supprime)."""
         if not b64:
+            msg = placeholder if placeholder else t("image_unavailable", "Image non disponible")
             return dbc.Card(
-                dbc.CardBody(html.P(t("image_unavailable", "Image non disponible"), className="text-muted text-center small")),
+                dbc.CardBody(html.P(msg, className="text-muted text-center small")),
                 className="h-100 bg-light border-0",
             )
         return dbc.Card(
@@ -125,10 +127,21 @@ def build_review_detail(
             className="h-100 border shadow-sm overflow-hidden",
         )
 
+    change_type = item.get("change_type", "")
+    if change_type == CHANGE_TYPE_TABLE_ADDED:
+        card_t1 = _img_card(None, "T1 (Ancien)", placeholder=t("no_table_added_t2", "Aucun tableau (ajoute en T2)"))
+        card_t2 = _img_card(img_t2_b64, "T2 (Nouveau)")
+    elif change_type == CHANGE_TYPE_TABLE_REMOVED:
+        card_t1 = _img_card(img_t1_b64, "T1 (Ancien)")
+        card_t2 = _img_card(None, "T2 (Nouveau)", placeholder=t("no_table_removed_t2", "Aucun tableau (supprime en T2)"))
+    else:
+        card_t1 = _img_card(img_t1_b64, "T1 (Ancien)")
+        card_t2 = _img_card(img_t2_b64, "T2 (Nouveau)")
+
     proofs_row = dbc.Row(
         [
-            dbc.Col(_img_card(img_t1_b64, "T1 (Ancien)"), width=6),
-            dbc.Col(_img_card(img_t2_b64, "T2 (Nouveau)"), width=6),
+            dbc.Col(card_t1, width=6),
+            dbc.Col(card_t2, width=6),
         ],
         className="mb-4 g-2",
         style={"height": "50vh", "minHeight": "400px"},
@@ -182,34 +195,12 @@ def build_review_detail(
         className="bg-light border-0",
     )
 
-    nav_footer = html.Div(
-        [
-            dbc.Button(
-                [html.I(className="bi bi-chevron-left"), f" {t('btn_prev', 'Precedent')}"],
-                id="btn-prev",
-                color="light",
-                size="sm",
-                className="me-2",
-                disabled=current_idx == 0,
-            ),
-            dbc.Button(
-                [f"{t('btn_next', 'Suivant')} ", html.I(className="bi bi-chevron-right")],
-                id="btn-next",
-                color="light",
-                size="sm",
-                disabled=current_idx >= total_items - 1,
-            ),
-        ],
-        className="d-flex justify-content-end mt-3 pt-3 border-top",
-    )
-
     return html.Div(
         [
             header_row,
             indicators_section,
             proofs_row,
             decision_section,
-            nav_footer,
         ],
         className="h-100 d-flex flex-column",
     )
