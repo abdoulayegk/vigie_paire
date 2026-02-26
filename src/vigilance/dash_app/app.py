@@ -144,6 +144,7 @@ stores = [
     dcc.Store(id="store-show-results-page", data=False),
     dcc.Store(id="store-review-filters", data={"section": "all", "status": "all"}),
     dcc.Store(id="store-proof-display-mode", data="crop"),
+    dcc.Store(id="store-nav-debug", data=None),
     dcc.Interval(id="analysis-timer-interval", interval=1000, n_intervals=0, disabled=True),
 ]
 
@@ -817,27 +818,37 @@ def on_filter_section(n_clicks, current_filters):
 
 @callback(
     Output("store-review-current-idx", "data", allow_duplicate=True),
+    Output("store-nav-debug", "data", allow_duplicate=True),
     Input({"type": "review-item", "index": ALL}, "n_clicks"),
     State("store-review-current-idx", "data"),
+    State("store-review-items", "data"),
     prevent_initial_call=True,
 )
-def on_queue_item_click(n_clicks, current_idx):
-    """Handle click on a review item in the queue."""
-    from dash import ctx
-    
+def on_queue_item_click(n_clicks, current_idx, items):
+    """Handle click on a review item in the queue. Clamp index to valid range."""
     if not ctx.triggered:
         raise PreventUpdate
-        
-    # Find which item was clicked
+
     button_id = ctx.triggered_id
     if not button_id or not isinstance(button_id, dict):
         raise PreventUpdate
-        
+
     clicked_index = button_id.get("index")
-    if clicked_index is not None:
-        return clicked_index
-        
-    raise PreventUpdate
+    if clicked_index is None:
+        raise PreventUpdate
+
+    try:
+        clicked_index = int(clicked_index)
+    except (TypeError, ValueError):
+        raise PreventUpdate
+
+    total = len(items) if items and isinstance(items, list) else 0
+    if items and isinstance(items, list):
+        clicked_index = max(0, min(clicked_index, total - 1))
+
+    dbg = {"writer": "on_queue_item_click", "trigger": str(button_id), "from": current_idx, "to": clicked_index, "total": total}
+    logger.info("[on_queue_item_click] trig=%s current_idx=%r total=%s -> new_idx=%s", button_id, current_idx, total, clicked_index)
+    return clicked_index, dbg
 
 
 @callback(
@@ -934,6 +945,7 @@ def on_review_action_modern(btn_approve, btn_reject, btn_apply, review_items, cu
 
 @callback(
     Output("store-review-current-idx", "data", allow_duplicate=True),
+    Output("store-nav-debug", "data", allow_duplicate=True),
     Input("btn-prev", "n_clicks"),
     Input("btn-next", "n_clicks"),
     State("store-review-current-idx", "data"),
@@ -941,23 +953,49 @@ def on_review_action_modern(btn_approve, btn_reject, btn_apply, review_items, cu
     prevent_initial_call=True,
 )
 def on_modern_nav(prev_clicks, next_clicks, current_idx, items):
-    """Handle Previous/Next buttons in modern UI."""
-    from dash import ctx
+    """Handle Previous/Next buttons in modern UI. Clamp idx to [0, total-1]."""
+    logger.info("[on_modern_nav] ENTER trig=%s current_idx=%r items_len=%s", ctx.triggered_id, current_idx, len(items) if items else 0)
 
-    if not items:
+    if not items or not isinstance(items, list):
+        logger.warning("[on_modern_nav] PreventUpdate: no items")
         raise PreventUpdate
 
-    idx = int(current_idx or 0)
+    total = len(items)
+    if total == 0:
+        logger.warning("[on_modern_nav] PreventUpdate: total=0")
+        raise PreventUpdate
+
+    try:
+        idx = int(current_idx) if current_idx is not None else 0
+    except (TypeError, ValueError):
+        idx = 0
+
     triggered = ctx.triggered_id
-
     if triggered == "btn-prev":
-        idx = max(0, idx - 1)
+        idx = idx - 1
     elif triggered == "btn-next":
-        idx = min(len(items) - 1, idx + 1)
+        idx = idx + 1
     else:
+        logger.warning("[on_modern_nav] PreventUpdate: trig=%r (not btn-prev/btn-next)", triggered)
         raise PreventUpdate
 
-    return idx
+    idx = max(0, min(idx, total - 1))
+    dbg = {"writer": "on_modern_nav", "trigger": triggered, "from": current_idx, "to": idx, "total": total}
+    logger.info("[on_modern_nav] EXIT -> new_idx=%s total=%s", idx, total)
+    return idx, dbg
+
+
+@callback(
+    Output("nav-debug-panel", "children"),
+    Input("store-review-current-idx", "data"),
+    Input("store-nav-debug", "data"),
+    State("store-review-items", "data"),
+)
+def render_nav_debug(idx, dbg, items):
+    """Debug panel: show current idx, total items, last writer (to detect nav / reset)."""
+    total = len(items) if items and isinstance(items, list) else None
+    payload = {"idx": idx, "total": total, "dbg": dbg}
+    return html.Pre(json.dumps(payload, ensure_ascii=False, indent=2), className="mb-0 small")
 
 
 @callback(
@@ -1309,8 +1347,10 @@ def render_sections_tab(indicator_result, show_results):
 @callback(
     Output("store-review-items", "data"),
     Output("store-review-current-idx", "data"),
+    Output("store-nav-debug", "data", allow_duplicate=True),
     Input("store-indicator-result", "data"),
     Input("store-pdf-paths", "data"),
+    prevent_initial_call=True,
 )
 def init_review_items(indicator_result, paths):
     """Construire les ReviewItems depuis indicator_result pour la revue."""
@@ -1332,7 +1372,10 @@ def init_review_items(indicator_result, paths):
         pdf_path_t2=path_t2,
     )
     serialized = [it.to_dict() for it in items]
-    return serialized, 0
+    total = len(serialized)
+    dbg = {"writer": "init_review_items", "trigger": "init", "from": None, "to": 0, "total": total}
+    logger.info("[init_review_items] total=%s -> idx=0", total)
+    return serialized, 0, dbg
 
 
 def _build_comparison_statement(item: ReviewItem) -> str:
@@ -1650,6 +1693,7 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
 
 @callback(
     Output("store-review-current-idx", "data", allow_duplicate=True),
+    Output("store-nav-debug", "data", allow_duplicate=True),
     Input("btn-review-prev", "n_clicks"),
     Input("btn-review-next", "n_clicks"),
     State("store-review-items", "data"),
@@ -1657,7 +1701,7 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
     prevent_initial_call=True,
 )
 def on_review_navigate(prev_clicks, next_clicks, review_items, current_idx):
-    """Navigation Precedent/Suivant dans la revue."""
+    """Navigation Precedent/Suivant dans la revue (legacy buttons)."""
     from dash import ctx
 
     if not ctx.triggered_id or not review_items:
@@ -1670,7 +1714,9 @@ def on_review_navigate(prev_clicks, next_clicks, review_items, current_idx):
         idx = min(n - 1, idx + 1)
     else:
         raise PreventUpdate
-    return idx
+    dbg = {"writer": "on_review_navigate", "trigger": ctx.triggered_id, "from": current_idx, "to": idx, "total": n}
+    logger.info("[on_review_navigate] trig=%s current_idx=%r total=%s -> new_idx=%s", ctx.triggered_id, current_idx, n, idx)
+    return idx, dbg
 
 
 @callback(
@@ -2055,13 +2101,16 @@ def on_download_indicator_json_brut(n_clicks, indicator_result):
     Output("main-content", "children", allow_duplicate=True),
     Output("store-show-results-page", "data", allow_duplicate=True),
     Output("store-review-filters", "data", allow_duplicate=True),
+    Output("store-nav-debug", "data", allow_duplicate=True),
     Input("btn-reset", "n_clicks"),
     prevent_initial_call=True,
 )
 def on_reset(n_clicks):
     """Reinitialiser pour nouvelle analyse."""
     if n_clicks:
-        return None, None, None, False, None, 0, build_page_upload(), False, {"section": "all", "status": "all"}
+        dbg = {"writer": "on_reset", "trigger": "btn-reset", "from": None, "to": 0, "total": None}
+        logger.info("[on_reset] -> idx=0")
+        return None, None, None, False, None, 0, build_page_upload(), False, {"section": "all", "status": "all"}, dbg
     raise PreventUpdate
 
 

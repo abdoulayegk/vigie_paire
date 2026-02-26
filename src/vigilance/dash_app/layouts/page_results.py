@@ -253,6 +253,8 @@ def build_page_results() -> html.Div:
             html.Div(id="results-sections-tab", style={"display": "none"}),
             html.Div(id="results-review-tab", style={"display": "none"}),
             html.Div(id="results-table-tab", style={"display": "none"}),
+            # Nav debug panel (instrumentation: triggered_id, current_idx, last writer)
+            html.Div(id="nav-debug-panel", className="mt-2 p-2 small font-monospace bg-dark text-light rounded", style={"maxHeight": "180px", "overflowY": "auto"}),
         ],
         className="p-4",
     )
