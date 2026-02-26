@@ -1445,7 +1445,7 @@ Reponds UNIQUEMENT en JSON:
     def __init__(
         self,
         api_key: str | None = None,
-        model: str = "gpt-5.2",
+        model: str = "gpt-4o",
         use_genai: bool = True,
         use_content_filter: bool = True,
         use_noise_filter: bool = True,

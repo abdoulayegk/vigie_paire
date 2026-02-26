@@ -20,7 +20,7 @@ class StructuralRowComparator:
     def __init__(self, api_key: str = None):
         self.api_key = api_key
         self.client = OpenAI(api_key=self.api_key)
-        self.model = "gpt-5.2"
+        self.model = "gpt-4o"
 
     def compare_rows(
         self, t1_rows: List[str], t2_rows: List[str], context_title: str

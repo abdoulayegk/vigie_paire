@@ -8,6 +8,8 @@ from dash import html
 from app.i18n import t
 from app.review_models import (
     CHANGE_TYPE_ADDED,
+    CHANGE_TYPE_FOOTNOTE,
+    CHANGE_TYPE_MODIFIED,
     CHANGE_TYPE_REMOVED,
     CHANGE_TYPE_RENAMED,
     CHANGE_TYPE_TABLE_ADDED,
@@ -39,6 +41,8 @@ def _indicator_badge(change_type: str) -> dbc.Badge:
         CHANGE_TYPE_RENAMED: (t("indicator_rename").upper(), "warning"),
         CHANGE_TYPE_TABLE_ADDED: (t("table_added").upper(), "info"),
         CHANGE_TYPE_TABLE_REMOVED: (t("table_removed").upper(), "dark"),
+        CHANGE_TYPE_FOOTNOTE: ("NOTE", "info"),
+        CHANGE_TYPE_MODIFIED: ("MODIFIE", "warning"),
     }
     label, color = mapping.get(change_type, ("?", "secondary"))
     extra = {"text_color": "dark"} if color == "warning" else {}
@@ -116,12 +120,15 @@ def build_review_detail(
             )
         )
 
+    item_type = item.get("item_type", "indicator")
+    if item_type == "footnote":
+        section_title = f"Notes de bas de tableau ({len(indicators)})"
+    else:
+        section_title = f"{t('indicators')} ({len(indicators)})"
+
     indicators_section = html.Div(
         [
-                html.H6(
-                f"{t('indicators')} ({len(indicators)})",
-                className="text-muted small mb-2",
-            ),
+            html.H6(section_title, className="text-muted small mb-2"),
             html.Div(
                 indicator_rows if indicator_rows else [html.P(t("no_indicators", "Aucun indicateur"), className="text-muted small")],
                 className="mb-3",
@@ -129,6 +136,63 @@ def build_review_detail(
             ),
         ],
     )
+
+    footnote_detail_rows = []
+    if item_type == "footnote":
+        for fc in item.get("footnote_changes", []):
+            ref = fc.get("footnote_ref", "")
+            ctype = fc.get("change_type", "")
+            old_text = fc.get("old_text") or ""
+            new_text = fc.get("new_text") or ""
+            significance = fc.get("significance", "")
+            category = fc.get("category", "")
+
+            if "new" in ctype:
+                badge_color = "success"
+                badge_label = "AJOUT"
+            elif "removed" in ctype:
+                badge_color = "danger"
+                badge_label = "SUPPRIME"
+            else:
+                badge_color = "warning"
+                badge_label = "MODIFIE"
+
+            detail_children = [
+                html.Div(
+                    [
+                        dbc.Badge(badge_label, color=badge_color, className="me-2"),
+                        html.Strong(f"[{ref}]", className="me-2"),
+                        dbc.Badge(significance, color="secondary", className="me-1") if significance else None,
+                        dbc.Badge(category, color="secondary", className="me-1") if category else None,
+                    ],
+                    className="d-flex align-items-center mb-1",
+                ),
+            ]
+            if old_text:
+                detail_children.append(
+                    html.Div(
+                        [html.Small("T1: ", className="fw-bold text-danger"), html.Small(old_text[:300])],
+                        className="ms-3 mb-1 bg-light p-1 rounded",
+                    )
+                )
+            if new_text:
+                detail_children.append(
+                    html.Div(
+                        [html.Small("T2: ", className="fw-bold text-success"), html.Small(new_text[:300])],
+                        className="ms-3 mb-1 bg-light p-1 rounded",
+                    )
+                )
+            footnote_detail_rows.append(
+                html.Div(detail_children, className="py-2 border-bottom")
+            )
+
+    footnote_detail_section = html.Div(
+        [
+            html.H6("Detail des notes", className="text-muted small mb-2"),
+            html.Div(footnote_detail_rows, style={"maxHeight": "200px", "overflowY": "auto"}),
+        ],
+        className="mb-3",
+    ) if footnote_detail_rows else html.Div()
 
     def _img_card(b64, label, placeholder=None):
         """Placeholder: message explicite si pas d'image (ex. tableau ajoute/supprime)."""
@@ -218,10 +282,65 @@ def build_review_detail(
         className="bg-light border-0",
     )
 
+    _REL_DISPLAY = {
+        "REGLEMENTAIRE": "Reglementaire",
+        "NON_SIGNIFICATIF": "Non significatif",
+        "STRUCTUREL": "Structurel",
+        "NOUVELLE_DIVULGATION": "Nouvelle divulgation",
+        "NON_CLASSIFIE": "Non classifie",
+    }
+    _REL_COLORS = {
+        "REGLEMENTAIRE": "danger",
+        "NON_SIGNIFICATIF": "secondary",
+        "STRUCTUREL": "primary",
+        "NOUVELLE_DIVULGATION": "info",
+        "NON_CLASSIFIE": "light",
+    }
+    _RISK_DISPLAY = {
+        "ELEVE": "Eleve",
+        "MODERE": "Modere",
+        "FAIBLE": "Faible",
+    }
+    _RISK_COLORS = {
+        "ELEVE": "danger",
+        "MODERE": "warning",
+        "FAIBLE": "success",
+    }
+
+    genai_analysis_section = html.Div()
+    ga = item.get("genai_analysis") or {}
+    if ga.get("relevance"):
+        rel = ga.get("relevance", "")
+        risk = ga.get("risk_level", "")
+        conf = ga.get("confidence", 0.0)
+        just = ga.get("justification", "")
+        rel_label = _REL_DISPLAY.get(rel, rel)
+        risk_label = _RISK_DISPLAY.get(risk, risk)
+        genai_analysis_section = html.Div(
+            [
+                html.H6("Analyse GenAI", className="text-muted small mb-2"),
+                html.Div(
+                    [
+                        dbc.Badge(rel_label, color=_REL_COLORS.get(rel, "secondary"), className="me-2"),
+                        dbc.Badge(f"Risque : {risk_label}", color=_RISK_COLORS.get(risk, "secondary"), className="me-2"),
+                        html.Small(f"Confiance : {conf:.0%}", className="text-muted"),
+                    ],
+                    className="d-flex align-items-center mb-2",
+                ),
+                html.Div(
+                    html.Small(just, className="text-muted fst-italic"),
+                    className="p-2 bg-light rounded",
+                ) if just else html.Div(),
+            ],
+            className="mb-3 p-2 border rounded",
+        )
+
     return html.Div(
         [
             header_row,
             indicators_section,
+            genai_analysis_section,
+            footnote_detail_section,
             proofs_row,
             decision_section,
         ],

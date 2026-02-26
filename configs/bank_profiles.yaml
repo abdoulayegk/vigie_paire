@@ -631,6 +631,12 @@ filtering_rules:
     - "annexes_techniques"
   min_indicators_for_structural_change: 2
 
+genai_settings:
+  enable_genai_summary: true
+  genai_model: "gpt-4o"
+  genai_timeout_s: 60
+  genai_max_tables: 50
+
 adaptation_settings:
   learn_patterns: true
   predict_positions: true

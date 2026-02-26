@@ -7,6 +7,7 @@ from typing import Any
 from app.i18n import t
 from app.review_models import (
     CHANGE_TYPE_ADDED,
+    CHANGE_TYPE_FOOTNOTE,
     CHANGE_TYPE_MODIFIED,
     CHANGE_TYPE_REMOVED,
     CHANGE_TYPE_RENAMED,
@@ -106,6 +107,7 @@ def build_review_items_from_indicator_result(
                     bbox_t2=comp.get("bbox_t2"),
                     added_indicators=[],
                     removed_indicators=[],
+                    genai_analysis=comp.get("genai_analysis") or {},
                 )
             )
             seq += 1
@@ -194,6 +196,79 @@ def build_review_items_from_indicator_result(
                 bbox_t2=comp.get("bbox_t2"),
                 added_indicators=added,
                 removed_indicators=removed,
+                genai_analysis=comp.get("genai_analysis") or {},
+            )
+        )
+        seq += 1
+
+    # Footnote review items (one per table with footnote changes)
+    for comp in table_comparisons:
+        if not isinstance(comp, dict):
+            continue
+        fn_diff = comp.get("footnotes_diff")
+        if not fn_diff:
+            continue
+        all_fn_changes = (fn_diff.get("added") or []) + (fn_diff.get("removed") or []) + (fn_diff.get("modified") or [])
+        if not all_fn_changes:
+            continue
+
+        section = str(comp.get("section", ""))
+        table_name = str(
+            comp.get("title_t2") or comp.get("title_t1")
+            or comp.get("table_id_t2") or comp.get("table_id_t1") or ""
+        )
+        fn_counts = fn_diff.get("counts", {})
+        n_fn_a = fn_counts.get("added", 0)
+        n_fn_r = fn_counts.get("removed", 0)
+        n_fn_m = fn_counts.get("modified", 0)
+        parts_fn = []
+        if n_fn_a:
+            parts_fn.append(f"+{n_fn_a} note(s)")
+        if n_fn_r:
+            parts_fn.append(f"-{n_fn_r} note(s)")
+        if n_fn_m:
+            parts_fn.append(f"~{n_fn_m} note(s)")
+        summary_fn = ", ".join(parts_fn)
+
+        fn_indicators: list[dict[str, str]] = []
+        for fc in all_fn_changes:
+            ref = fc.get("footnote_ref", "")
+            ctype_raw = fc.get("change_type", "")
+            old_text = fc.get("old_text") or ""
+            new_text = fc.get("new_text") or ""
+            if "new" in ctype_raw:
+                label = f"[{ref}] {new_text[:120]}"
+                fn_type = CHANGE_TYPE_ADDED
+            elif "removed" in ctype_raw:
+                label = f"[{ref}] {old_text[:120]}"
+                fn_type = CHANGE_TYPE_REMOVED
+            else:
+                label = f"[{ref}] {old_text[:60]} -> {new_text[:60]}"
+                fn_type = CHANGE_TYPE_MODIFIED
+            fn_indicators.append({"name": label, "type": fn_type, "footnote_ref": ref, "old_text": old_text, "new_text": new_text})
+
+        items.append(
+            ReviewItem(
+                change_id=_make_change_id("fn", seq),
+                change_type=CHANGE_TYPE_FOOTNOTE,
+                indicator=summary_fn,
+                section=section,
+                table_name=table_name,
+                table_id_t1=str(comp.get("table_id_t1", "")),
+                table_id_t2=str(comp.get("table_id_t2", "")),
+                page_t1=comp.get("page_t1"),
+                page_t2=comp.get("page_t2"),
+                source_ref_t1=pdf_path_t1,
+                source_ref_t2=pdf_path_t2,
+                confidence=float(comp.get("match_score", 0.0) or 0.0),
+                table_title_raw=table_name,
+                table_status=str(comp.get("table_status", "")),
+                indicators=fn_indicators,
+                match_method=str(comp.get("rescue_type") or comp.get("match_reason", "")),
+                bbox_t1=comp.get("bbox_t1"),
+                bbox_t2=comp.get("bbox_t2"),
+                item_type="footnote",
+                footnote_changes=all_fn_changes,
             )
         )
         seq += 1
