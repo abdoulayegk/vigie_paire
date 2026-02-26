@@ -49,6 +49,7 @@ UI_LABELS: dict[str, str] = {
     "table_removed_plural": "Tableaux retirés",
     "table_entire_added": "Tableau entier ajouté",
     "table_entire_removed": "Tableau entier supprimé",
+    "table_no_prefix": "Tableau n°",
     "indicator_add": "Ajout",
     "indicator_removal": "Suppression",
     "indicator_rename": "Renommage",

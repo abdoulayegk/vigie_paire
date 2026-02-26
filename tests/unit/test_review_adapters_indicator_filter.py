@@ -84,6 +84,78 @@ def test_tables_removed_excludes_date_only_indicators() -> None:
     assert indicators[0]["type"] == "removed"
 
 
+def test_tables_added_highlight_string_space() -> None:
+    """added_indicators for tables_added uses value_clean (all_indicators_t2) for highlights."""
+    indicator_result = {
+        "bank_code": "BMO",
+        "quarter_from": "t1",
+        "quarter_to": "t2",
+        "table_comparisons": [],
+        "tables_added": [
+            {
+                "title": "New table",
+                "table_id": "t2_1",
+                "section": "Risque",
+                "page": 43,
+                "first_column_indicators": ["Prets garantis", "Depots"],
+                "all_indicators_t1": [],
+                "all_indicators_t2": ["Prets garantis", "Depots"],
+                "bbox_t1": None,
+                "bbox_t2": [0.1, 0.2, 0.9, 0.8],
+            }
+        ],
+        "tables_removed": [],
+    }
+    items = build_review_items_from_indicator_result(
+        indicator_result,
+        bank_code="BMO",
+        quarter_from="t1",
+        quarter_to="t2",
+        pdf_path_t1="/fake/t1.pdf",
+        pdf_path_t2="/fake/t2.pdf",
+    )
+    table_added_items = [i for i in items if i.change_type == CHANGE_TYPE_TABLE_ADDED]
+    assert len(table_added_items) == 1
+    item = table_added_items[0]
+    assert set(item.added_indicators) == set(item.all_indicators_t2)
+
+
+def test_tables_removed_highlight_string_space() -> None:
+    """removed_indicators for tables_removed uses value_clean (all_indicators_t1) for highlights."""
+    indicator_result = {
+        "bank_code": "BMO",
+        "quarter_from": "t1",
+        "quarter_to": "t2",
+        "table_comparisons": [],
+        "tables_added": [],
+        "tables_removed": [
+            {
+                "title": "Old table",
+                "table_id": "t1_1",
+                "section": "Risque",
+                "page": 10,
+                "first_column_indicators": ["Dépôts personnels", "Bilan"],
+                "all_indicators_t1": ["Depots personnels", "Bilan"],
+                "all_indicators_t2": [],
+                "bbox_t1": [0.05, 0.1, 0.95, 0.9],
+                "bbox_t2": None,
+            }
+        ],
+    }
+    items = build_review_items_from_indicator_result(
+        indicator_result,
+        bank_code="BMO",
+        quarter_from="t1",
+        quarter_to="t2",
+        pdf_path_t1="/fake/t1.pdf",
+        pdf_path_t2="/fake/t2.pdf",
+    )
+    table_removed_items = [i for i in items if i.change_type == CHANGE_TYPE_TABLE_REMOVED]
+    assert len(table_removed_items) == 1
+    item = table_removed_items[0]
+    assert set(item.removed_indicators) == set(item.all_indicators_t1)
+
+
 def test_build_indicator_change_rows_excludes_date_only_for_added_removed_tables() -> None:
     """build_indicator_change_rows does not list date-only lines in Indicateur for tables_added/removed."""
     payload = {

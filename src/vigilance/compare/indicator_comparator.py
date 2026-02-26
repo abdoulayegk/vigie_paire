@@ -27,6 +27,7 @@ from vigilance.utils.indicator_cleaner import (
     strip_trailing_note_or_column_value,
     strip_units_from_table_title,
 )
+from vigilance.utils.indicator_normalizer import get_token_sorted_text
 from vigilance.utils.matching_normalizer import (
     header_schema_similarity,
     is_date_only_line,
@@ -489,13 +490,66 @@ def _sections_candidate_compatible(table_t1: TableArtifact, table_t2: TableArtif
     return _section_state(table_t1, table_t2) != "mismatch_known"
 
 
+def _table_indicators_after_exclusions(table: TableArtifact) -> list[str]:
+    """Indicators (first column) after excluding date/unit/total lines; preserves order."""
+    raw = list(getattr(table, "first_column_indicators", None) or [])
+    return [str(x).strip() for x in raw if x and str(x).strip() and not is_date_only_line(str(x)) and not is_non_indicator_line(str(x))]
+
+
+def _table_fingerprint_sample(indicators: list[str], top_n: int = 3, mid_n: int = 3, bottom_n: int = 3) -> list[str]:
+    """Sample: top_n + middle mid_n + bottom bottom_n (deterministic)."""
+    if not indicators:
+        return []
+    n = len(indicators)
+    if n <= top_n + bottom_n:
+        return indicators[:top_n] + indicators[-bottom_n:] if n > top_n else indicators[:top_n]
+    top = indicators[:top_n]
+    mid_start = (n - mid_n) // 2
+    mid = indicators[mid_start : mid_start + mid_n]
+    bottom = indicators[-bottom_n:]
+    seen: set[str] = set()
+    out: list[str] = []
+    for part in (top, mid, bottom):
+        for x in part:
+            if x not in seen:
+                seen.add(x)
+                out.append(x)
+    return out
+
+
 def _table_fingerprint_text(table: TableArtifact) -> str:
-    """Build fingerprint text for embedding: title + headers + first indicators (no numeric values)."""
+    """Build fingerprint text for embedding: title + headers + sampled indicators (top 3 + middle 3 + bottom 3)."""
     title = (table.title or "").strip() or "Untitled"
     headers = " | ".join((table.headers or [])[:10])
-    indicators = (table.first_column_indicators or [])[:5]
-    ind_text = " | ".join(str(x).strip() for x in indicators if x and str(x).strip())
+    indicators = _table_indicators_after_exclusions(table)
+    sampled = _table_fingerprint_sample(indicators)
+    ind_text = " | ".join(str(x).strip() for x in sampled if x and str(x).strip())
     return f"Title: {title}. Headers: {headers}. Content: {ind_text}"
+
+
+def _table_fingerprint_token_sorted(table: TableArtifact) -> str:
+    """Order-invariant fingerprint: content part is token-sorted for matching fragmented/permuted labels."""
+    title = (table.title or "").strip() or "Untitled"
+    headers = " | ".join((table.headers or [])[:10])
+    indicators = _table_indicators_after_exclusions(table)
+    sampled = _table_fingerprint_sample(indicators)
+    content_raw = " ".join(str(x).strip() for x in sampled if x and str(x).strip())
+    content_ts = get_token_sorted_text(content_raw) if content_raw else ""
+    return f"Title: {title}. Headers: {headers}. Content: {content_ts}"
+
+
+_TABLE_FP_BOILERPLATE = frozenset({"tableau", "table", "en", "millions", "milliards", "dollars", "cad"})
+
+
+def _table_fingerprint_embed_gate_ok(fingerprint_text: str, min_content_tokens: int = 5) -> bool:
+    """Only use table embedding if fingerprint has enough content tokens and is not mostly boilerplate."""
+    content = ""
+    if ". Content: " in fingerprint_text:
+        content = fingerprint_text.split(". Content: ", 1)[-1].strip().lower()
+    if not content:
+        return False
+    tokens = [t for t in content.split() if t and t not in _TABLE_FP_BOILERPLATE]
+    return len(tokens) >= min_content_tokens
 
 
 def _composite_score(
@@ -578,6 +632,10 @@ class MatchDecision:
     rescue_type: str | None = None
     soft_indicator_overlap: float = 0.0
     embed_sim: float = 0.0
+    embed_sim_canon: float = 0.0
+    embed_sim_token_sorted: float = 0.0
+    table_fp_gating: str = ""
+    fingerprint_token_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -723,13 +781,33 @@ def match_decision(
     position_proximity = _position_proximity(table_t1, table_t2)
 
     embed_sim = 0.0
+    embed_sim_canon = 0.0
+    embed_sim_ts = 0.0
+    table_fp_gating = "skip"
+    fp_token_count = 0
+    use_ts_fp = bool(th.get("use_table_token_sorted_fingerprint", True))
     if th.get("use_embeddings") and embedding_service and getattr(embedding_service, "available", False):
         try:
             txt1 = _table_fingerprint_text(table_t1)
             txt2 = _table_fingerprint_text(table_t2)
-            embed_sim = float(embedding_service.get_single_pair_cosine(txt1, txt2))
+            gate_ok = _table_fingerprint_embed_gate_ok(txt1) and _table_fingerprint_embed_gate_ok(txt2)
+            content1 = txt1.split(". Content: ", 1)[-1] if ". Content: " in txt1 else ""
+            fp_token_count = len([t for t in content1.split() if t])
+            if gate_ok:
+                embed_sim_canon = float(embedding_service.get_single_pair_cosine(txt1, txt2))
+                embed_sim = embed_sim_canon
+                if use_ts_fp:
+                    ts1 = _table_fingerprint_token_sorted(table_t1)
+                    ts2 = _table_fingerprint_token_sorted(table_t2)
+                    if _table_fingerprint_embed_gate_ok(ts1) and _table_fingerprint_embed_gate_ok(ts2):
+                        embed_sim_ts = float(embedding_service.get_single_pair_cosine(ts1, ts2))
+                        embed_sim = max(embed_sim_canon, embed_sim_ts)
+                table_fp_gating = "ok"
+            else:
+                table_fp_gating = "boilerplate_or_short"
         except Exception as e:
             logger.debug("Table embedding failed for %s/%s: %s", t1_uid, t2_uid, e)
+            table_fp_gating = "error"
 
     header_footer_pair = (
         is_header_footer_table_title(table_t1.title or "", bank_code)
@@ -776,7 +854,7 @@ def match_decision(
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug(
             "table_pair_score t1=%s t2=%s title_sim=%.3f structure_sim=%.3f "
-            "header_schema=%.3f context=%.3f label=%.3f containment=%.3f composite=%.3f embed_sim=%.3f",
+            "header_schema=%.3f context=%.3f label=%.3f containment=%.3f composite=%.3f embed_sim=%.3f embed_canon=%.3f embed_ts=%.3f gating=%s",
             t1_uid,
             t2_uid,
             title_similarity,
@@ -787,6 +865,9 @@ def match_decision(
             indicator_containment,
             composite_score,
             embed_sim,
+            embed_sim_canon,
+            embed_sim_ts,
+            table_fp_gating,
         )
 
     set_a = _indicator_set(table_t1)
@@ -921,6 +1002,10 @@ def match_decision(
             rescue_type=rescue_type,
             soft_indicator_overlap=soft_indicator_overlap,
             embed_sim=embed_sim,
+            embed_sim_canon=embed_sim_canon,
+            embed_sim_token_sorted=embed_sim_ts,
+            table_fp_gating=table_fp_gating,
+            fingerprint_token_count=fp_token_count,
         )
 
     if section_state == "mismatch_known":
@@ -1312,6 +1397,10 @@ def _match_section_hungarian_post_threshold(
             decision_level=decision_level,
             rescue_type=d.rescue_type,
             soft_indicator_overlap=d.soft_indicator_overlap,
+            embed_sim_canon=getattr(d, "embed_sim_canon", 0.0),
+            embed_sim_token_sorted=getattr(d, "embed_sim_token_sorted", 0.0),
+            table_fp_gating=getattr(d, "table_fp_gating", ""),
+            fingerprint_token_count=getattr(d, "fingerprint_token_count", 0),
         )
         post_filtered.append((i, j, new_decision))
 

@@ -81,3 +81,59 @@ def _validate_bbox(bbox_norm: list[float]) -> bool:
     if r_norm <= l_norm or b_norm <= t_norm:
         return False
     return True
+
+
+def crop_table_region_to_bytes(
+    pdf_path: str,
+    page_number: int,
+    bbox_norm: list[float],
+    scale: float = 1.5,
+) -> bytes:
+    """
+    Crop a table region from a PDF page and return PNG bytes.
+
+    Args:
+        pdf_path: Path to the PDF file.
+        page_number: 1-based page number (matches render_pdf_page convention).
+        bbox_norm: Normalized bounding box [l, t, r, b] in 0..1.
+        scale: Render scale (default 1.5, same as proof previews).
+
+    Returns:
+        PNG bytes of the cropped region, or full page bytes if bbox invalid or crop fails.
+    """
+    from vigilance.extraction.pdf_preview import render_pdf_page
+
+    if not _validate_bbox(bbox_norm):
+        full = render_pdf_page(pdf_path, page_number, scale=scale, format="png")
+        return full if full else b""
+
+    try:
+        import fitz  # type: ignore[import-untyped]
+    except ImportError:
+        logger.debug("PyMuPDF (fitz) not available for crop_table_region_to_bytes")
+        full = render_pdf_page(pdf_path, page_number, scale=scale, format="png")
+        return full if full else b""
+
+    try:
+        doc = fitz.open(pdf_path)
+        try:
+            page_idx = page_number - 1
+            if page_idx < 0 or page_idx >= len(doc):
+                full = render_pdf_page(pdf_path, page_number, scale=scale, format="png")
+                return full if full else b""
+            page = doc[page_idx]
+            rect = page.rect
+            l_norm, t_norm, r_norm, b_norm = bbox_norm
+            x0 = rect.x0 + l_norm * rect.width
+            y0 = rect.y0 + t_norm * rect.height
+            x1 = rect.x0 + r_norm * rect.width
+            y1 = rect.y0 + b_norm * rect.height
+            clip = fitz.Rect(x0, y0, x1, y1)
+            mat = fitz.Matrix(scale, scale)
+            pix = page.get_pixmap(matrix=mat, clip=clip, alpha=False)
+            return pix.tobytes("png")
+        finally:
+            doc.close()
+    except Exception:
+        full = render_pdf_page(pdf_path, page_number, scale=scale, format="png")
+        return full if full else b""
