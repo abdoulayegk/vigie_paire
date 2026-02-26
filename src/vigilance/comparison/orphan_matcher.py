@@ -23,7 +23,7 @@ class GenAIOrphanMatcher:
     N'est appelé QUE pour les lignes qui n'ont pas trouvé de correspondance exacte.
     """
 
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-5.2"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4o"):
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
         self.model = model
         self.client = None

@@ -1,0 +1,172 @@
+{
+  "schema_version": "comparison_canonical_v1",
+  "bank_code": "bnc",
+  "quarter_from": "t1",
+  "quarter_to": "t2",
+  "year": 2025,
+  "summary": {
+    "tables_t1": 45,
+    "tables_t2": 47,
+    "tables_matched": 42,
+    "tables_added": 3,
+    "tables_removed": 1,
+    "rescued_matches_count": 2,
+    "split_merge_rescues_count": 0,
+    "total_added_indicators": 8,
+    "total_removed_indicators": 4,
+    "total_renamed_indicators": 2,
+    "total_footnotes_added": 3,
+    "total_footnotes_removed": 1,
+    "total_footnotes_modified": 2,
+    "status_counts": {
+      "stable": 30,
+      "modifie": 10,
+      "renommage_probable": 0,
+      "incertain": 0,
+      "needs_review": 0,
+      "structure_change": 2,
+      "ajoute": 3,
+      "supprime": 1
+    }
+  },
+  "table_comparisons": [
+    {
+      "table_id_t1": "gestion_capital|tab_28|p22",
+      "table_id_t2": "gestion_capital|tab_28|p23",
+      "title_t1": "Ratios de fonds propres reglementaires",
+      "title_t2": "Ratios de fonds propres reglementaires",
+      "page_t1": 22,
+      "page_t2": 23,
+      "section": "gestion_capital",
+      "match_score": 0.95,
+      "match_quality": "high",
+      "match_reason": "label_overlap",
+      "match_decision_level": "match",
+      "rescue_type": null,
+      "added_indicators": ["Ratio TLAC (nouvelles exigences BSIF)"],
+      "removed_indicators": [],
+      "renamed_indicators": [],
+      "table_status": "modifie",
+      "counts": {
+        "added": 1,
+        "removed": 0,
+        "renamed": 0,
+        "renamed_probable": 0,
+        "excluded_totals": 2,
+        "excluded_units": 1,
+        "excluded_dates": 0
+      },
+      "footnotes_diff": {
+        "added": [
+          {
+            "change_type": "new_footnote",
+            "footnote_ref": "3",
+            "table_id": "gestion_capital|tab_28|p22",
+            "description": "Nouvelle note de bas de page (3)",
+            "old_text": null,
+            "new_text": "Conforme aux nouvelles exigences du BSIF en matiere de TLAC entrees en vigueur le 1er avril 2025.",
+            "significance": "MAJOR",
+            "category": "REGULATORY"
+          }
+        ],
+        "removed": [],
+        "modified": [
+          {
+            "change_type": "modified_footnote",
+            "footnote_ref": "1",
+            "table_id": "gestion_capital|tab_28|p22",
+            "description": "Note de bas de page modifiee (1)",
+            "old_text": "Calcule selon la methode standard du BSIF.",
+            "new_text": "Calcule selon la methode standard revisee du BSIF (ligne directrice A-1, revision 2025).",
+            "significance": "MODERATE",
+            "category": "REGULATORY"
+          }
+        ],
+        "counts": {
+          "added": 1,
+          "removed": 0,
+          "modified": 1
+        }
+      },
+      "footnotes_counts": {
+        "added": 1,
+        "removed": 0,
+        "modified": 1
+      },
+      "genai": {
+        "relevance_label": "REGULATORY",
+        "why": "New TLAC ratio disclosure and methodology update align with BSIF requirements.",
+        "key_changes": [
+          "New TLAC ratio indicator added",
+          "Footnote updated to reference revised BSIF guideline A-1"
+        ]
+      }
+    },
+    {
+      "table_id_t1": "gestion_risques|tab_31|p35",
+      "table_id_t2": "gestion_risques|tab_31|p36",
+      "title_t1": "Risque de credit - Expositions par region",
+      "title_t2": "Risque de credit - Expositions par region",
+      "page_t1": 35,
+      "page_t2": 36,
+      "section": "gestion_risques",
+      "match_score": 0.92,
+      "match_quality": "high",
+      "match_reason": "label_overlap",
+      "match_decision_level": "match",
+      "rescue_type": null,
+      "added_indicators": [],
+      "removed_indicators": [],
+      "renamed_indicators": [],
+      "table_status": "stable",
+      "counts": {
+        "added": 0,
+        "removed": 0,
+        "renamed": 0,
+        "renamed_probable": 0,
+        "excluded_totals": 1,
+        "excluded_units": 0,
+        "excluded_dates": 0
+      },
+      "footnotes_diff": {
+        "added": [],
+        "removed": [],
+        "modified": [],
+        "counts": {"added": 0, "removed": 0, "modified": 0}
+      },
+      "footnotes_counts": {"added": 0, "removed": 0, "modified": 0},
+      "genai": {
+        "relevance_label": "COSMETIC",
+        "why": "No structural or regulatory changes detected.",
+        "key_changes": []
+      }
+    }
+  ],
+  "tables_added": [],
+  "tables_removed": [],
+  "meta": {
+    "generated_at": "2025-07-15T14:30:00",
+    "provenance": "comparison_runner",
+    "source_format": "strict_intra_section",
+    "algorithm_used": "hungarian",
+    "executive_summary": {
+      "content": "42 tableaux apparies, 8 ajouts d'indicateurs, 4 suppressions, 3 tableaux ajoutes, 1 supprimes, 6 changement(s) de notes de bas de page.",
+      "llm": {
+        "bullets": [
+          "Nouveau ratio TLAC ajoute dans la table des ratios reglementaires, conformement aux exigences du BSIF.",
+          "3 notes de bas de page ajoutees, dont 2 a caractere reglementaire (BSIF, ligne directrice A-1).",
+          "1 note de bas de page retiree concernant une ancienne methodologie de calcul.",
+          "2 notes modifiees pour refleter les revisions 2025 des lignes directrices.",
+          "3 nouveaux tableaux ajoutes en T2 (section gestion des risques)."
+        ],
+        "overall_relevance": "HIGH",
+        "regulatory_mentions": [
+          "BSIF",
+          "TLAC",
+          "Ligne directrice A-1 revision 2025"
+        ],
+        "source": "llm"
+      }
+    }
+  }
+}

@@ -146,6 +146,87 @@ def _is_unit_header_line(text: str) -> bool:
     return False
 
 
+_PURE_NUMBER_RE = re.compile(r"^\s*\d+\s*$")
+_TOTAL_PREFIX_RE = re.compile(
+    r"^\s*total\s+(?:du|des|des\s+elements?\s+hors\s+bilan|du\s+passif)\b",
+    re.IGNORECASE,
+)
+_TOTAL_PASSIF_CAPITAUX_RE = re.compile(
+    r"^\s*total\s+du\s+passif\s+et\s+des\s+capitaux?\s+propres\s*$",
+    re.IGNORECASE,
+)
+_TOTAL_ELEMENTS_HORS_BILAN_RE = re.compile(
+    r"^\s*total\s+des\s+elements?\s+hors\s+bilan\s*$", re.IGNORECASE
+)
+_UNIT_ONLY_RE = re.compile(
+    r"^\s*(?:en\s+millions?\s+de\s+dollars?|sorties|ca|\$\s*ca|%)\s*$",
+    re.IGNORECASE,
+)
+
+# ---------------------------------------------------------------------------
+# Aggressive unit / period header patterns (false-positive suppression)
+# CIBC/TD: "En millions", "En millions de dollars", "sauf indication contraire",
+# "Au 31 janvier 2025", combined unit+date lines.
+# ---------------------------------------------------------------------------
+# Truncated or short unit lines (must be checked early)
+_UNIT_TRUNCATED_RE = re.compile(r"^\s*en\s*$", re.IGNORECASE)
+# ^\s*en\s+(millions?|milliards?|milliers?)\b and any continuation
+_UNIT_EN_MILLIONS_RE = re.compile(
+    r"^\s*en\s+(?:millions?|milliards?|milliers?)\b",
+    re.IGNORECASE,
+)
+# (en )?(millions?|milliards?)\s*(de\s+)?(dollars?|$|cad|usd)? and optional "sauf indication contraire"
+_UNIT_MILLIONS_DOLLARS_RE = re.compile(
+    r"^\s*\(?\s*(?:en\s+)?(?:millions?|milliards?|milliers?)\s*(?:de\s+)?(?:dollars?|\$|cad|usd)?\b",
+    re.IGNORECASE,
+)
+_UNIT_OR_PERIOD_HEADER_PATTERNS = [
+    _UNIT_TRUNCATED_RE,
+    re.compile(
+        r"^\s*en\s+(?:millions?|milliards?|milliers?)\b.*$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^\s*\(?\s*en\s+(?:millions?|milliards?|milliers?)\s+de\s+\w+.*$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^\s*in\s+(?:millions?|billions?|thousands?)\b.*$",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"^\s*moyenne\s+du\s+trimestre\s+(?:clos|termin[eé])\b.*$",
+        re.IGNORECASE,
+    ),
+]
+
+# Date with trailing footnote markers: "31 janvier 2025 1, 2"
+_DATE_WITH_TRAILING_NOTES_RE = re.compile(
+    r"^\s*\d{1,2}\s+(?:janvier|fevrier|f[eé]vrier|mars|avril|mai|juin|juillet|"
+    r"ao[uû]t|aout|septembre|octobre|novembre|decembre)"
+    r"(?:\s+\d{4})?"
+    r"(?:\s+[\d,\s*]+)?\s*$",
+    re.IGNORECASE,
+)
+
+# "au DD mois YYYY" with trailing noise
+_AU_DATE_TRAILING_NOISE_RE = re.compile(
+    r"^\s*au\s+\d{1,2}\s+[a-z\u00e0-\u00ff]+(?:\s+\d{4})?"
+    r"(?:\s*[\d,\s\)\*]+)?\s*$",
+    re.IGNORECASE,
+)
+# Explicit "Au 31 janvier 2025" (FR) - no trailing required
+_DATE_HEADER_AU_DD_MOIS_YYYY_RE = re.compile(
+    r"^\s*au\s+\d{1,2}\s+[a-z\u00e0-\u00ff]+\s+\d{4}\b.*$",
+    re.IGNORECASE,
+)
+# English "As of April 30, 2025" / "At December 31, 2024"
+_DATE_HEADER_AS_OF_RE = re.compile(
+    r"^\s*(?:as\s+of|at)\s+\w+\s+\d{1,2},\s*\d{4}\b.*$",
+    re.IGNORECASE,
+)
+
+
 def is_date_only_line(text: str) -> bool:
     """Return True when *text* is purely a date/temporal expression, a
     unit-of-measure header, or a footnote definition that should never
@@ -163,27 +244,20 @@ def is_date_only_line(text: str) -> bool:
             return True
     if _is_unit_header_line(stripped):
         return True
+    for pat in _UNIT_OR_PERIOD_HEADER_PATTERNS:
+        if pat.match(stripped):
+            return True
+    if _DATE_HEADER_AU_DD_MOIS_YYYY_RE.match(stripped):
+        return True
+    if _DATE_HEADER_AS_OF_RE.match(stripped):
+        return True
+    if _DATE_WITH_TRAILING_NOTES_RE.match(stripped):
+        return True
+    if _AU_DATE_TRAILING_NOISE_RE.match(stripped):
+        return True
     if _is_footnote_definition_line(stripped):
         return True
     return False
-
-
-_PURE_NUMBER_RE = re.compile(r"^\s*\d+\s*$")
-_TOTAL_PREFIX_RE = re.compile(
-    r"^\s*total\s+(?:du|des|des\s+elements?\s+hors\s+bilan|du\s+passif)\b",
-    re.IGNORECASE,
-)
-_TOTAL_PASSIF_CAPITAUX_RE = re.compile(
-    r"^\s*total\s+du\s+passif\s+et\s+des\s+capitaux?\s+propres\s*$",
-    re.IGNORECASE,
-)
-_TOTAL_ELEMENTS_HORS_BILAN_RE = re.compile(
-    r"^\s*total\s+des\s+elements?\s+hors\s+bilan\s*$", re.IGNORECASE
-)
-_UNIT_ONLY_RE = re.compile(
-    r"^\s*(?:en\s+millions?\s+de\s+dollars?|sorties|ca|\$\s*ca|%)\s*$",
-    re.IGNORECASE,
-)
 
 
 def _classify_excluded_line(text: str) -> str | None:
@@ -203,13 +277,30 @@ def _classify_excluded_line(text: str) -> str | None:
         return "total"
     if _UNIT_ONLY_RE.match(stripped):
         return "unit"
+    if _UNIT_TRUNCATED_RE.match(stripped):
+        return "unit"
+    if _UNIT_EN_MILLIONS_RE.match(stripped):
+        return "unit"
+    if _UNIT_MILLIONS_DOLLARS_RE.match(stripped) and len(stripped.split()) <= 12:
+        return "unit"
     if _is_unit_header_line(stripped):
         return "unit"
+    for pat in _UNIT_OR_PERIOD_HEADER_PATTERNS:
+        if pat.match(stripped):
+            return "unit"
     if _is_footnote_definition_line(stripped):
         return "footnote"
     for pattern in _DATE_ONLY_PATTERNS:
         if pattern.match(stripped):
             return "date"
+    if _DATE_HEADER_AU_DD_MOIS_YYYY_RE.match(stripped):
+        return "date"
+    if _DATE_HEADER_AS_OF_RE.match(stripped):
+        return "date"
+    if _DATE_WITH_TRAILING_NOTES_RE.match(stripped):
+        return "date"
+    if _AU_DATE_TRAILING_NOISE_RE.match(stripped):
+        return "date"
     return None
 
 

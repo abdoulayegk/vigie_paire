@@ -36,6 +36,35 @@ from vigilance.models.table_models import TableArtifact
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.indicator_normalizer import get_canonical_text, get_token_sorted_text
 from vigilance.utils.matching_normalizer import _classify_excluded_line
+from vigilance.comparison.footnote_comparator import FootnoteComparator
+from vigilance.utils.footnotes_utils import footnotes_list_to_dict
+
+
+def _compare_table_footnotes(
+    t1: TableArtifact, t2: TableArtifact
+) -> dict[str, Any]:
+    """Compare footnotes between two matched TableArtifacts.
+
+    Returns a dict with keys: added, removed, modified, counts.
+    """
+    dict1 = footnotes_list_to_dict(t1.footnotes or [])
+    dict2 = footnotes_list_to_dict(t2.footnotes or [])
+    if not dict1 and not dict2:
+        return {"added": [], "removed": [], "modified": [], "counts": {"added": 0, "removed": 0, "modified": 0}}
+
+    comparator = FootnoteComparator()
+    table_id = t1.table_id or t2.table_id
+    changes = comparator.compare_footnotes(dict1, dict2, table_id)
+
+    added = [c.to_dict() for c in changes if c.change_type == "new_footnote"]
+    removed = [c.to_dict() for c in changes if c.change_type == "removed_footnote"]
+    modified = [c.to_dict() for c in changes if c.change_type == "modified_footnote"]
+    return {
+        "added": added,
+        "removed": removed,
+        "modified": modified,
+        "counts": {"added": len(added), "removed": len(removed), "modified": len(modified)},
+    }
 
 
 def _section_uid(table: TableArtifact) -> str:
@@ -105,6 +134,12 @@ def _table_to_artifact(table: Any, *, bank_code: str, quarter: str, pdf_path: st
     else:
         raw = None
 
+    footnotes_raw = getattr(table, "footnotes", None)
+    if footnotes_raw is not None:
+        footnotes_out = [str(fn) for fn in footnotes_raw]
+    else:
+        footnotes_out = None
+
     section = _canonical_section_name(str(getattr(table, "section", "")))
     return TableArtifact(
         bank_code=bank_code,
@@ -121,6 +156,7 @@ def _table_to_artifact(table: Any, *, bank_code: str, quarter: str, pdf_path: st
         bbox=getattr(table, "bbox", None),
         quarter=quarter,
         pdf_path=pdf_path,
+        footnotes=footnotes_out,
     )
 
 
@@ -826,6 +862,8 @@ def run_comparison_with_sections(
     api_key: str | None = None,
     generate_visual_proofs: bool = False,
     use_vision_fallback: bool = False,
+    include_footnotes: bool = False,
+    include_genai_classification: bool = False,
 ) -> dict[str, Any]:
     """Execute end-to-end comparison used by the Dash Analyze callback."""
     del use_genai, generate_visual_proofs  # kept for backward-compatible signature
@@ -1007,6 +1045,11 @@ def run_comparison_with_sections(
             }
         )
 
+        if include_footnotes:
+            fn_result = _compare_table_footnotes(table_t1, table_t2)
+            comparisons[-1]["footnotes_diff"] = fn_result
+            comparisons[-1]["footnotes_counts"] = fn_result["counts"]
+
     def _source_method(uid: str, by_uid: dict) -> str:
         t = by_uid.get(uid)
         return (getattr(t, "extraction_method", None) or "docling") if t else "docling"
@@ -1060,9 +1103,47 @@ def run_comparison_with_sections(
             "bbox_t2": None,
         })
 
+    # -- POST-MATCHING GenAI classification (does NOT alter matching results) --
+    if include_genai_classification and api_key:
+        try:
+            from vigilance.genai import GenAIChangeClassifier
+
+            classifier = GenAIChangeClassifier(api_key=api_key)
+
+            def _has_changes(c: dict[str, Any]) -> bool:
+                return bool(
+                    c.get("added_indicators")
+                    or c.get("removed_indicators")
+                    or c.get("renamed_indicators")
+                    or c.get("footnotes_counts", {}).get("added", 0)
+                    or c.get("footnotes_counts", {}).get("removed", 0)
+                    or c.get("footnotes_counts", {}).get("modified", 0)
+                )
+
+            to_classify = [(i, c) for i, c in enumerate(comparisons) if _has_changes(c)]
+            if to_classify:
+                batch_results = classifier.classify_batch([c for _, c in to_classify])
+                for (idx, _comp), analysis in zip(to_classify, batch_results):
+                    comparisons[idx]["genai_analysis"] = analysis
+
+            logger.info(
+                "GenAI classification: %d calls, %d errors, %.1fs total, "
+                "circuit_breaker=%s",
+                classifier.stats["calls"],
+                classifier.stats["errors"],
+                classifier.stats["total_latency"],
+                "OPEN" if classifier.circuit_open else "closed",
+            )
+        except Exception as exc:
+            logger.warning("GenAI classification layer failed: %s", exc)
+
     total_added = sum(len(c.get("added_indicators", [])) for c in comparisons)
     total_removed = sum(len(c.get("removed_indicators", [])) for c in comparisons)
     total_renamed = sum(len(c.get("renamed_indicators", [])) for c in comparisons)
+
+    total_fn_added = sum(c.get("footnotes_counts", {}).get("added", 0) for c in comparisons)
+    total_fn_removed = sum(c.get("footnotes_counts", {}).get("removed", 0) for c in comparisons)
+    total_fn_modified = sum(c.get("footnotes_counts", {}).get("modified", 0) for c in comparisons)
 
     status_counts = {
         "stable": sum(1 for c in comparisons if c.get("table_status") == "stable"),
@@ -1098,6 +1179,17 @@ def run_comparison_with_sections(
             "total_added_indicators": total_added,
             "total_removed_indicators": total_removed,
             "total_renamed_indicators": total_renamed,
+            "total_footnotes_added": total_fn_added,
+            "total_footnotes_removed": total_fn_removed,
+            "total_footnotes_modified": total_fn_modified,
+            "total_changements_reglementaires": sum(
+                1 for c in comparisons
+                if c.get("genai_analysis", {}).get("relevance") == "REGLEMENTAIRE"
+            ),
+            "total_changements_non_significatifs": sum(
+                1 for c in comparisons
+                if c.get("genai_analysis", {}).get("relevance") == "NON_SIGNIFICATIF"
+            ),
             "status_counts": status_counts,
         },
         "displaced_indicators": [],
@@ -1144,6 +1236,15 @@ def run_comparison_with_sections(
             },
         },
     }
+
+    # -- GenAI executive summary enrichment (feature-flagged via bank_profiles.yaml) --
+    if api_key:
+        try:
+            from app.genai_summary import enrich_result_with_genai
+
+            result = enrich_result_with_genai(result)
+        except Exception as exc:
+            logger.warning("GenAI executive summary enrichment failed: %s", exc)
 
     INDICATOR_COMPARISON_DIR.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")

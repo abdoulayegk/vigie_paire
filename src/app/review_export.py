@@ -28,6 +28,8 @@ VALIDATION_CSV_COLUMNS = [
     "score_confiance",
     "suspect",
     "validation_finale",
+    "pertinence_genai",
+    "niveau_risque_genai",
 ]
 
 # Mapping type_changement anglais -> francais
@@ -43,6 +45,7 @@ _TYPE_CHANGEMENT_MAP = {
     "uncertain": "incertain",
     "needs_review": "incertain",
     "structure_change": "fusion",
+    "footnote": "note modifiee",
 }
 
 # Match methods consideres suspects
@@ -150,6 +153,8 @@ def _build_resume_court(
         base = "Aucun match clair trouvé — revue manuelle requise."
     elif indicator_type == "structure_change":
         base = "Fusion ou split probable — revue manuelle requise."
+    elif indicator_type == "footnote":
+        base = "Note de bas de tableau modifiee -- verifier impact reglementaire."
     elif "note" in indicator_type.lower() or table_status == "note":
         base = "Texte de note modifié — vérifier impact réglementaire."
     else:
@@ -166,8 +171,10 @@ def _to_type_changement(ind_type: str, table_status: str) -> str:
     return _TYPE_CHANGEMENT_MAP.get(ind_type, "incertain")
 
 
-def _to_type_element(ind_type: str) -> str:
+def _to_type_element(ind_type: str, item_type: str = "indicator") -> str:
     """Retourne type_élément: tableau, indicateur, note ou texte."""
+    if item_type == "footnote" or ind_type == "footnote":
+        return "note"
     if ind_type in ("table_added", "table_removed", "modified", "uncertain", "structure_change"):
         return "tableau"
     if ind_type in ("note", "texte"):
@@ -227,10 +234,15 @@ def _iter_validation_rows(
         suspect = _to_suspect(match_method)
         validation = _to_validation_finale(base.get("review_status", ""))
 
+        item_type = str(base.get("item_type", "indicator"))
+        ga = base.get("genai_analysis") or {}
+        pertinence_genai = _sanitize_cell(ga.get("relevance", ""))
+        niveau_risque_genai = _sanitize_cell(ga.get("risk_level", ""))
+
         if not indicators:
             ind_type = str(base.get("change_type", ""))
             ind_name = _sanitize_cell(base.get("indicator", ""))
-            type_elem = _to_type_element(ind_type)
+            type_elem = _to_type_element(ind_type, item_type)
             type_chg = _to_type_changement(ind_type, table_status)
             resume = _build_resume_court(
                 ind_type, ind_name, "", "", table_status, suspect=(suspect == "Oui")
@@ -256,6 +268,8 @@ def _iter_validation_rows(
                 "score_confiance": score_str,
                 "suspect": suspect,
                 "validation_finale": validation,
+                "pertinence_genai": pertinence_genai,
+                "niveau_risque_genai": niveau_risque_genai,
             }
             yield row
         else:
@@ -266,7 +280,7 @@ def _iter_validation_rows(
                 from_val = str(ind.get("from", ""))
                 to_val = str(ind.get("to", ""))
 
-                type_elem = _to_type_element(item_change_type or ind_type)
+                type_elem = _to_type_element(item_change_type or ind_type, item_type)
                 type_chg = _to_type_changement(ind_type, table_status)
                 resume_type = item_change_type if item_change_type in ("table_added", "table_removed") else ind_type
                 resume = _build_resume_court(
@@ -296,6 +310,8 @@ def _iter_validation_rows(
                     "score_confiance": score_str,
                     "suspect": suspect,
                     "validation_finale": validation,
+                    "pertinence_genai": pertinence_genai,
+                    "niveau_risque_genai": niveau_risque_genai,
                 }
                 yield row
 

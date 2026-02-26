@@ -13,6 +13,7 @@ CHANGE_TYPE_TABLE_REMOVED = "table_removed"
 CHANGE_TYPE_MODIFIED = "modified"
 CHANGE_TYPE_UNCERTAIN = "uncertain"
 CHANGE_TYPE_STRUCTURE = "structure_change"
+CHANGE_TYPE_FOOTNOTE = "footnote"
 
 REVIEW_STATUS_PENDING = "pending"
 REVIEW_STATUS_APPROVED = "approved"
@@ -70,6 +71,9 @@ class ReviewItem:
     bbox_t2: list[float] | None = None
     added_indicators: list[str] = field(default_factory=list)
     removed_indicators: list[str] = field(default_factory=list)
+    item_type: str = "indicator"  # "indicator" or "footnote"
+    footnote_changes: list[dict[str, Any]] = field(default_factory=list)
+    genai_analysis: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -103,6 +107,9 @@ class ReviewItem:
             "bbox_t2": list(self.bbox_t2) if self.bbox_t2 else None,
             "added_indicators": list(self.added_indicators),
             "removed_indicators": list(self.removed_indicators),
+            "item_type": self.item_type,
+            "footnote_changes": list(self.footnote_changes),
+            "genai_analysis": dict(self.genai_analysis) if self.genai_analysis else {},
         }
 
     @classmethod
@@ -138,4 +145,7 @@ class ReviewItem:
             bbox_t2=_parse_bbox(data.get("bbox_t2")),
             added_indicators=_parse_all_indicators(data.get("added_indicators")),
             removed_indicators=_parse_all_indicators(data.get("removed_indicators")),
+            item_type=str(data.get("item_type", "indicator")),
+            footnote_changes=list(data.get("footnote_changes", [])),
+            genai_analysis=dict(data.get("genai_analysis") or {}),
         )

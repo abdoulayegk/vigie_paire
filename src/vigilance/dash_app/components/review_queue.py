@@ -99,8 +99,12 @@ def build_review_queue(
         n_removed = sum(1 for ind in indicators if ind.get("type") == "removed")
         n_renamed = sum(1 for ind in indicators if ind.get("type") == "renamed")
 
+        item_type = item.get("item_type", "indicator")
         badge_children = []
-        if change_type == CHANGE_TYPE_TABLE_ADDED:
+        if item_type == "footnote":
+            n_fn = len(indicators)
+            badge_children.append(dbc.Badge(f"FN {n_fn}", color="info", className="me-1"))
+        elif change_type == CHANGE_TYPE_TABLE_ADDED:
             badge_children.append(dbc.Badge(t("table_added").upper(), color="info", className="me-1"))
         elif change_type == CHANGE_TYPE_TABLE_REMOVED:
             badge_children.append(dbc.Badge(t("table_removed").upper(), color="dark", text_color="white", className="me-1"))
@@ -124,7 +128,9 @@ def build_review_queue(
                         html.Div(
                             [
                                 html.Small(
-                                    f"{n_indicators} indicateur(s)" if n_indicators > 0 else "Tableau entier",
+                                    f"{n_indicators} note(s)" if item_type == "footnote" else (
+                                        f"{n_indicators} indicateur(s)" if n_indicators > 0 else "Tableau entier"
+                                    ),
                                     className="text-muted me-2"
                                 ),
                                 *badge_children,

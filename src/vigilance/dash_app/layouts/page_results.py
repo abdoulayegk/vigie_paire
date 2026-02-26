@@ -38,15 +38,39 @@ def build_section_accordion_item(
         items = []
         for comp in tables_with_changes[:10]:
             title = comp.get("table_title") or comp.get("title_t1") or "Sans titre"
+            fn_c = comp.get("footnotes_counts", {})
+            fn_total = sum(fn_c.get(k, 0) for k in ("added", "removed", "modified"))
+            badges = []
             if comp.get("table_status") == "structure_change":
-                items.append(
-                    html.Li(
-                        [title, dbc.Badge(t("fusion_split"), color="warning", className="ms-2")],
-                        className="mb-0 small text-muted",
-                    )
-                )
-            else:
-                items.append(html.Li(title, className="mb-0 small text-muted"))
+                badges.append(dbc.Badge(t("fusion_split"), color="warning", className="ms-2"))
+            if fn_total:
+                badges.append(dbc.Badge(
+                    f"FN +{fn_c.get('added', 0)}/-{fn_c.get('removed', 0)}/~{fn_c.get('modified', 0)}",
+                    color="info", className="ms-2",
+                ))
+            ga = comp.get("genai_analysis", {})
+            ga_rel = ga.get("relevance", "")
+            if ga_rel:
+                _rel_display = {
+                    "REGLEMENTAIRE": "Reglementaire",
+                    "NON_SIGNIFICATIF": "Non significatif",
+                    "STRUCTUREL": "Structurel",
+                    "NOUVELLE_DIVULGATION": "Nouvelle divulgation",
+                    "NON_CLASSIFIE": "Non classifie",
+                }
+                _rel_colors = {
+                    "REGLEMENTAIRE": "danger",
+                    "NON_SIGNIFICATIF": "secondary",
+                    "STRUCTUREL": "primary",
+                    "NOUVELLE_DIVULGATION": "info",
+                    "NON_CLASSIFIE": "light",
+                }
+                badges.append(dbc.Badge(
+                    _rel_display.get(ga_rel, ga_rel),
+                    color=_rel_colors.get(ga_rel, "secondary"),
+                    className="ms-2",
+                ))
+            items.append(html.Li([title, *badges], className="mb-0 small text-muted"))
         parts.append(
             html.Div(
                 [html.Strong(f"{n} tableau(x) avec changements"), html.Ul(items, className="mb-0")]

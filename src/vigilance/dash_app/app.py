@@ -637,6 +637,8 @@ def compile_adjusted_sections(starts, ends, ids_start, ids_end, detection):
     State("option-visual-proofs", "value"),
     State("option-vision", "value"),
     State("option-auto-indicator", "value"),
+    State("option-footnotes", "value"),
+    State("option-genai-classification", "value"),
     State("store-validation-start-ms", "data"),
     prevent_initial_call=True,
     running=[
@@ -657,6 +659,8 @@ def on_analyze(
     visual_proofs,
     vision,
     auto_indicator,
+    footnotes_opt,
+    genai_classification_opt,
     validation_start_ms,
 ):
     """Valider et lancer l'analyse."""
@@ -683,6 +687,10 @@ def on_analyze(
 
     generate_visual_proofs = visual_proofs and "proofs" in visual_proofs
     use_vision_fallback = vision and "vision" in vision
+    include_footnotes = bool(footnotes_opt and "footnotes" in footnotes_opt)
+    include_genai_classification = bool(
+        genai_classification_opt and "classify" in genai_classification_opt and api_key
+    )
 
     try:
         result = run_comparison_with_sections(
@@ -695,6 +703,8 @@ def on_analyze(
             api_key=api_key,
             generate_visual_proofs=generate_visual_proofs,
             use_vision_fallback=bool(use_vision_fallback),
+            include_footnotes=include_footnotes,
+            include_genai_classification=include_genai_classification,
         )
     except Exception as e:
         return (
@@ -1227,10 +1237,13 @@ def render_sections_tab(indicator_result, show_results):
         section = comp.get("section", "Autres")
         if section not in sections:
             sections[section] = {"changes": [], "added": [], "removed": []}
+        fn_counts = comp.get("footnotes_counts", {})
+        fn_total = sum(fn_counts.get(k, 0) for k in ("added", "removed", "modified"))
         n_changes = (
             len(comp.get("added_indicators", []))
             + len(comp.get("removed_indicators", []))
             + len(comp.get("renamed_indicators", []))
+            + fn_total
         )
         if n_changes > 0:
             sections[section]["changes"].append(comp)

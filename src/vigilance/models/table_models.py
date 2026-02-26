@@ -24,6 +24,7 @@ class TableArtifact:
     quarter: str | None = None
     pdf_path: str | None = None
     first_column_indicators_raw: list[str] | None = None  # Raw before normalization; display only
+    footnotes: list[str] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
