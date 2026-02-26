@@ -143,6 +143,7 @@ stores = [
     dcc.Store(id="store-validation-duration-sec", data=None),
     dcc.Store(id="store-show-results-page", data=False),
     dcc.Store(id="store-review-filters", data={"section": "all", "status": "all"}),
+    dcc.Store(id="store-proof-display-mode", data="crop"),
     dcc.Interval(id="analysis-timer-interval", interval=1000, n_intervals=0, disabled=True),
 ]
 
@@ -845,9 +846,10 @@ def on_queue_item_click(n_clicks, current_idx):
     Input("store-review-current-idx", "data"),
     Input("store-pdf-paths", "data"),
     Input("store-show-results-page", "data"),
+    Input("store-proof-display-mode", "data"),
     prevent_initial_call=True,
 )
-def update_review_detail(review_items_data, current_idx, paths, show_results):
+def update_review_detail(review_items_data, current_idx, paths, show_results, proof_display_mode):
     """Update the right-side detail view."""
     if not show_results:
         raise PreventUpdate
@@ -856,9 +858,12 @@ def update_review_detail(review_items_data, current_idx, paths, show_results):
 
     idx = max(0, min(int(current_idx or 0), len(review_items_data) - 1))
     item = review_items_data[idx]
-    
-    img_t1_b64 = _get_proof_image_b64_for_item(item, "t1", paths or {})
-    img_t2_b64 = _get_proof_image_b64_for_item(item, "t2", paths or {})
+    mode = (proof_display_mode or "crop").strip().lower()
+    if mode not in ("crop", "full"):
+        mode = "crop"
+
+    img_t1_b64 = _get_proof_image_b64_for_item(item, "t1", paths or {}, proof_display_mode=mode)
+    img_t2_b64 = _get_proof_image_b64_for_item(item, "t2", paths or {}, proof_display_mode=mode)
 
     return build_review_detail(
         item=item,
@@ -866,7 +871,19 @@ def update_review_detail(review_items_data, current_idx, paths, show_results):
         img_t2_b64=img_t2_b64,
         current_idx=idx,
         total_items=len(review_items_data),
+        proof_display_mode=mode,
     )
+
+
+@callback(
+    Output("store-proof-display-mode", "data"),
+    Input("proof-display-mode", "value"),
+)
+def on_proof_display_mode_change(value):
+    """Persist proof display mode (crop vs full page + bbox)."""
+    if value in ("crop", "full"):
+        return value
+    return no_update
 
 
 @callback(
@@ -1344,8 +1361,10 @@ def _filter_noise(items: list[str]) -> list[str]:
     return [x for x in items if x and normalize_indicator_for_comparison(str(x).strip())]
 
 
-def _get_proof_image_b64_for_item(item_dict: dict, side: str, paths: dict) -> str | None:
-    """Get proof image base64, with crop+highlight when table_status != 'stable'."""
+def _get_proof_image_b64_for_item(
+    item_dict: dict, side: str, paths: dict, *, proof_display_mode: str = "crop"
+) -> str | None:
+    """Get proof image base64. With proof_display_mode='full' skip crop (full page); with 'crop' use bbox."""
     table_status = (item_dict.get("table_status") or "").strip().lower()
     if table_status == "stable":
         return _get_proof_image_b64(item_dict, side, paths)
@@ -1383,13 +1402,17 @@ def _get_proof_image_b64_for_item(item_dict: dict, side: str, paths: dict) -> st
         except Exception:
             pass
 
+    use_crop = (proof_display_mode or "crop").strip().lower() == "crop"
+
     if base_img_b64 is None:
         if not pdf_path or page is None:
             return _get_proof_image_b64(item_dict, side, paths)
 
         page_effective = max(1, int(page))
         bbox = item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
-        bbox_key = json.dumps(bbox) if bbox and isinstance(bbox, list) and len(bbox) == 4 else ""
+        bbox_key = ""
+        if use_crop and bbox and isinstance(bbox, list) and len(bbox) == 4:
+            bbox_key = json.dumps(bbox)
         try:
             raw_bytes = _cached_render_or_crop(str(pdf_path), page_effective, 1.5, bbox_key)
             base_img_b64 = base64.b64encode(raw_bytes).decode("ascii") if raw_bytes else None
@@ -1501,8 +1524,8 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
     proof_image_path = current_dict.get("proof_image_path", "") or ""
     proof_mode = current_dict.get("proof_mode", "") or ""
 
-    img_t1_b64 = _get_proof_image_b64_for_item(current_dict, "t1", paths or {})
-    img_t2_b64 = _get_proof_image_b64_for_item(current_dict, "t2", paths or {})
+    img_t1_b64 = _get_proof_image_b64_for_item(current_dict, "t1", paths or {}, proof_display_mode="crop")
+    img_t2_b64 = _get_proof_image_b64_for_item(current_dict, "t2", paths or {}, proof_display_mode="crop")
 
     def _img_div(b64, label, caption):
         if b64:
