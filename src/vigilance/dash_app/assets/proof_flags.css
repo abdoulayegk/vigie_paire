@@ -1,0 +1,58 @@
+/* Visual flags for T1/T2 proof cards in Review/Detail */
+
+.proof-card {
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 8px;
+    background: #fff;
+}
+
+.proof-flag-t1 {
+    border-color: #ff4d6d;
+    box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.15);
+}
+
+.proof-flag-t2 {
+    border-color: #2ecc71;
+    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.15);
+}
+
+.proof-badge {
+    display: inline-block;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 999px;
+    margin-bottom: 6px;
+}
+
+.proof-badge.t1 {
+    background: rgba(255, 77, 109, 0.12);
+}
+
+.proof-badge.t2 {
+    background: rgba(46, 204, 113, 0.12);
+}
+
+.proof-badge.neutral {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+/* Overlay rectangle for full-page + bbox mode (V2) */
+.bbox-rect {
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.proof-bbox-t1 .bbox-rect {
+    border: 2px solid rgba(255, 77, 109, 0.9);
+    background: rgba(255, 77, 109, 0.08);
+}
+
+.proof-bbox-t2 .bbox-rect {
+    border: 2px solid rgba(46, 204, 113, 0.9);
+    background: rgba(46, 204, 113, 0.08);
+}
+
+.proof-img-with-bbox {
+    display: block;
+}

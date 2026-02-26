@@ -237,7 +237,7 @@ def build_sidebar() -> dbc.Col:
                     dbc.Checklist(
                         id="option-genai-classification",
                         options=[{"label": "Classifier les changements avec GenAI (GPT-4o)", "value": "classify"}],
-                        value=[],
+                        value=["classify"],
                         switch=True,
                         className="small mb-1",
                     ),

@@ -115,7 +115,9 @@ def test_should_suppress_jaccard_too_low() -> None:
     }
     set1 = {str(i) for i in range(12)}
     set2 = {str(i) for i in range(6)}
-    suppress, jaccard, _ = _should_suppress_as_structure_change(set1, set2, 0.90, cfg, "td")
+    suppress, jaccard, _ = _should_suppress_as_structure_change(
+        set1, set2, 0.90, cfg, "td"
+    )
     assert jaccard == 0.5
     assert suppress is False
 
@@ -129,6 +131,8 @@ def test_should_suppress_bns_allowed() -> None:
     }
     set1 = {str(i) for i in range(12)}
     set2 = set1.copy()
-    suppress, _, reason = _should_suppress_as_structure_change(set1, set2, 0.85, cfg, "bns")
+    suppress, _, reason = _should_suppress_as_structure_change(
+        set1, set2, 0.85, cfg, "bns"
+    )
     assert suppress is True
     assert reason == "high_jaccard_suppression"

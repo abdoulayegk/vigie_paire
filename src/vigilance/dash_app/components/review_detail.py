@@ -18,6 +18,82 @@ from app.review_models import (
     REVIEW_STATUS_REJECTED,
 )
 
+_CHANGE_TYPES_WITH_VISUAL_FLAG = frozenset({
+    CHANGE_TYPE_TABLE_ADDED,
+    CHANGE_TYPE_TABLE_REMOVED,
+    CHANGE_TYPE_ADDED,
+    CHANGE_TYPE_REMOVED,
+    CHANGE_TYPE_RENAMED,
+    CHANGE_TYPE_MODIFIED,
+    "uncertain",
+    "structure_change",
+})
+
+
+def compute_flag_state(item: dict) -> dict:
+    """Compute visual flag state for proof cards (T1/T2 borders and badges).
+
+    Returns:
+        dict with keys: has_change (bool), t1_class (str), t2_class (str),
+        badge_t1 (str), badge_t2 (str).
+    """
+    change_type = (item.get("change_type") or "").strip()
+    added = item.get("added_indicators") or []
+    removed = item.get("removed_indicators") or []
+    indicators = item.get("indicators") or []
+    added_count = len(added) if isinstance(added, list) else 0
+    removed_count = len(removed) if isinstance(removed, list) else 0
+    renamed_count = sum(1 for ind in indicators if isinstance(ind, dict) and ind.get("type") == CHANGE_TYPE_RENAMED)
+
+    has_change = (
+        change_type in _CHANGE_TYPES_WITH_VISUAL_FLAG
+        or added_count + removed_count + renamed_count > 0
+    )
+
+    if not has_change:
+        return {
+            "has_change": False,
+            "t1_class": "proof-card",
+            "t2_class": "proof-card",
+            "badge_t1": t("table", "Tableau") + " T1",
+            "badge_t2": t("table", "Tableau") + " T2",
+            "badge_class_t1": "neutral",
+            "badge_class_t2": "neutral",
+        }
+
+    # table_added: T2 flag vert, T1 neutral (pas d'image cote T1)
+    if change_type == CHANGE_TYPE_TABLE_ADDED:
+        return {
+            "has_change": True,
+            "t1_class": "proof-card",
+            "t2_class": "proof-card proof-flag-t2",
+            "badge_t1": "T1 (Ancien)",
+            "badge_t2": "T2 (Nouveau)",
+            "badge_class_t1": "neutral",
+            "badge_class_t2": "t2",
+        }
+    # table_removed: T1 flag rouge, T2 neutral (pas d'image cote T2)
+    if change_type == CHANGE_TYPE_TABLE_REMOVED:
+        return {
+            "has_change": True,
+            "t1_class": "proof-card proof-flag-t1",
+            "t2_class": "proof-card",
+            "badge_t1": "T1 (Ancien)",
+            "badge_t2": "T2 (Nouveau)",
+            "badge_class_t1": "t1",
+            "badge_class_t2": "neutral",
+        }
+
+    return {
+        "has_change": True,
+        "t1_class": "proof-card proof-flag-t1",
+        "t2_class": "proof-card proof-flag-t2",
+        "badge_t1": "T1 (Ancien)",
+        "badge_t2": "T2 (Nouveau)",
+        "badge_class_t1": "t1",
+        "badge_class_t2": "t2",
+    }
+
 
 def _table_display_label(item: dict) -> str:
     """Format tableau label: 'Tableau n°X: Titre' when id exists, else 'Tableau: Titre'."""
@@ -51,12 +127,28 @@ def _indicator_badge(change_type: str) -> dbc.Badge:
     return dbc.Badge(label, color=color, className="me-2", **extra)
 
 
+def _bbox_normalized_for_overlay(bbox: list | None) -> list[float] | None:
+    """Return [l, t, r, b] in 0..1 if valid for CSS % overlay, else None."""
+    if not bbox or not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+        return None
+    try:
+        l_, t, r, b = float(bbox[0]), float(bbox[1]), float(bbox[2]), float(bbox[3])
+    except (TypeError, ValueError):
+        return None
+    if not (0 <= l_ <= 1 and 0 <= t <= 1 and 0 <= r <= 1 and 0 <= b <= 1):
+        return None
+    if r <= l_ or b <= t:
+        return None
+    return [l_, t, r, b]
+
+
 def build_review_detail(
     item: dict,
     img_t1_b64: str | None,
     img_t2_b64: str | None,
     current_idx: int,
     total_items: int,
+    proof_display_mode: str = "crop",
 ) -> html.Div:
     """Build the right-side review detail panel (table-grouped)."""
 
@@ -194,13 +286,45 @@ def build_review_detail(
         className="mb-3",
     ) if footnote_detail_rows else html.Div()
 
-    def _img_card(b64, label, placeholder=None):
-        """Placeholder: message explicite si pas d'image (ex. tableau ajoute/supprime)."""
+    flag_state = compute_flag_state(item)
+    mode_full = (proof_display_mode or "crop").strip().lower() == "full"
+
+    def _img_card(b64, label, placeholder=None, bbox_norm=None, side: str = "t1"):
+        """Placeholder: message explicite si pas d'image (ex. tableau ajoute/supprime).
+        Si mode full et bbox_norm: wrapper position relative + overlay rectangle.
+        side: 't1' ou 't2' pour la couleur de l'overlay (rouge/vert).
+        """
         if not b64:
             msg = placeholder if placeholder else t("image_unavailable", "Image non disponible")
             return dbc.Card(
                 dbc.CardBody(html.P(msg, className="text-muted text-center small")),
                 className="h-100 bg-light border-0",
+            )
+        img_style = {"objectFit": "contain", "maxHeight": "calc(50vh - 60px)", "width": "100%", "height": "auto"}
+        img_el = html.Img(src=f"data:image/png;base64,{b64}", style=img_style)
+        if mode_full and bbox_norm:
+            l_, t, r, b = bbox_norm
+            overlay_style = {
+                "position": "absolute",
+                "left": f"{l_ * 100}%",
+                "top": f"{t * 100}%",
+                "width": f"{(r - l_) * 100}%",
+                "height": f"{(b - t) * 100}%",
+                "pointerEvents": "none",
+            }
+            overlay = html.Div(className="bbox-rect", style=overlay_style)
+            bbox_side_class = f"proof-bbox-{side}"
+            wrapper = html.Div(
+                [img_el, overlay],
+                style={"position": "relative", "display": "inline-block", "width": "100%"},
+                className=f"proof-img-with-bbox {bbox_side_class}",
+            )
+            return dbc.Card(
+                [
+                    dbc.CardBody(wrapper),
+                    dbc.CardFooter(html.Small(label, className="text-muted"), className="border-0 bg-white p-1"),
+                ],
+                className="h-100 border shadow-sm overflow-hidden",
             )
         return dbc.Card(
             [
@@ -214,25 +338,60 @@ def build_review_detail(
             className="h-100 border shadow-sm overflow-hidden",
         )
 
+    def _proof_wrapper(card, card_class: str, badge_text: str, badge_class: str):
+        """Wrap proof card in a flagged container with optional badge. badge_class: t1, t2, or neutral."""
+        badge = html.Span(badge_text, className=f"proof-badge {badge_class}")
+        return html.Div([badge, card], className=card_class)
+
     change_type = item.get("change_type", "")
+    bbox_t1_norm = _bbox_normalized_for_overlay(item.get("bbox_t1")) if mode_full else None
+    bbox_t2_norm = _bbox_normalized_for_overlay(item.get("bbox_t2")) if mode_full else None
+
     if change_type == CHANGE_TYPE_TABLE_ADDED:
         card_t1 = _img_card(None, "T1 (Ancien)", placeholder=t("no_table_added_t2", "Aucun tableau (ajoute en T2)"))
-        card_t2 = _img_card(img_t2_b64, "T2 (Nouveau)")
+        card_t2 = _img_card(img_t2_b64, "T2 (Nouveau)", bbox_norm=bbox_t2_norm, side="t2")
     elif change_type == CHANGE_TYPE_TABLE_REMOVED:
-        card_t1 = _img_card(img_t1_b64, "T1 (Ancien)")
+        card_t1 = _img_card(img_t1_b64, "T1 (Ancien)", bbox_norm=bbox_t1_norm, side="t1")
         card_t2 = _img_card(None, "T2 (Nouveau)", placeholder=t("no_table_removed_t2", "Aucun tableau (supprime en T2)"))
     else:
-        card_t1 = _img_card(img_t1_b64, "T1 (Ancien)")
-        card_t2 = _img_card(img_t2_b64, "T2 (Nouveau)")
+        card_t1 = _img_card(img_t1_b64, "T1 (Ancien)", bbox_norm=bbox_t1_norm, side="t1")
+        card_t2 = _img_card(img_t2_b64, "T2 (Nouveau)", bbox_norm=bbox_t2_norm, side="t2")
 
+    col_t1 = dbc.Col(
+        _proof_wrapper(card_t1, flag_state["t1_class"], flag_state["badge_t1"], flag_state["badge_class_t1"]),
+        width=6,
+    )
+    col_t2 = dbc.Col(
+        _proof_wrapper(card_t2, flag_state["t2_class"], flag_state["badge_t2"], flag_state["badge_class_t2"]),
+        width=6,
+    )
+
+    proof_mode_toggle = dbc.Row(
+        dbc.Col(
+            [
+                html.Label("Affichage preuve", className="small text-muted me-2"),
+                dbc.RadioItems(
+                    id="proof-display-mode",
+                    options=[
+                        {"label": "Crop (focus)", "value": "crop"},
+                        {"label": "Page complète + bbox (contexte)", "value": "full"},
+                    ],
+                    value=(proof_display_mode or "crop"),
+                    inline=True,
+                    className="small",
+                ),
+            ],
+            width=12,
+        ),
+        className="mb-2",
+    )
     proofs_row = dbc.Row(
-        [
-            dbc.Col(card_t1, width=6),
-            dbc.Col(card_t2, width=6),
-        ],
+        [col_t1, col_t2],
         className="mb-4 g-2",
         style={"height": "50vh", "minHeight": "400px"},
     )
+
+    proofs_section = html.Div([proof_mode_toggle, proofs_row])
 
     decision_section = dbc.Card(
         dbc.CardBody(
@@ -341,7 +500,7 @@ def build_review_detail(
             indicators_section,
             genai_analysis_section,
             footnote_detail_section,
-            proofs_row,
+            proofs_section,
             decision_section,
         ],
         className="h-100 d-flex flex-column",
