@@ -132,6 +132,7 @@ class ExtractedTable:
     first_column_indicators_raw: list[str] | None = None  # Brut avant normalisation
     debug_metrics: dict[str, Any] = field(default_factory=dict)  # row_count, merge_count, etc.
     extraction_method: str | None = None  # docling | vision_fallback_gpt4o
+    fragmentation_detected: bool = False
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -743,6 +744,7 @@ class DoclingProcessor:
                 row_count_before_merge = len(rows_raw)
                 rows = _merge_fragmented_cells(rows_raw)
                 row_count_after_merge = len(rows)
+                merge_fragmentation = row_count_after_merge < row_count_before_merge
 
                 # Vérifier si l'extraction a réussi
                 extraction_quality = self._assess_table_quality(headers, rows)
@@ -844,6 +846,7 @@ class DoclingProcessor:
                     title_resolution_method=title_resolution_method or ("caption" if caption_title else None),
                     bbox=table_bbox,
                     debug_metrics=debug_metrics,
+                    fragmentation_detected=merge_fragmentation,
                 )
                 all_tables.append(extracted_table)
 

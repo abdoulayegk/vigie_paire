@@ -108,6 +108,7 @@ def build_review_items_from_indicator_result(
                     added_indicators=[],
                     removed_indicators=[],
                     genai_analysis=comp.get("genai_analysis") or {},
+                    match_metadata=comp.get("match_metadata") or {},
                 )
             )
             seq += 1
@@ -197,6 +198,7 @@ def build_review_items_from_indicator_result(
                 added_indicators=added,
                 removed_indicators=removed,
                 genai_analysis=comp.get("genai_analysis") or {},
+                match_metadata=comp.get("match_metadata") or {},
             )
         )
         seq += 1
@@ -289,6 +291,10 @@ def build_review_items_from_indicator_result(
         ]
         all_indicators_t2 = table.get("all_indicators_t2") or []
 
+        match_meta_added: dict[str, Any] = {}
+        if table.get("semantic_judge") is not None:
+            match_meta_added["semantic_judge"] = table["semantic_judge"]
+
         items.append(
             ReviewItem(
                 change_id=_make_change_id("tbl_add", seq),
@@ -309,6 +315,7 @@ def build_review_items_from_indicator_result(
                 bbox_t2=table.get("bbox_t2"),
                 added_indicators=all_indicators_t2,
                 removed_indicators=[],
+                match_metadata=match_meta_added,
             )
         )
         seq += 1
@@ -328,6 +335,10 @@ def build_review_items_from_indicator_result(
             {"name": name, "type": CHANGE_TYPE_REMOVED} for name in display_list
         ]
         all_indicators_t1 = table.get("all_indicators_t1") or []
+
+        match_meta_removed: dict[str, Any] = {}
+        if table.get("semantic_judge") is not None:
+            match_meta_removed["semantic_judge"] = table["semantic_judge"]
 
         items.append(
             ReviewItem(
@@ -349,6 +360,7 @@ def build_review_items_from_indicator_result(
                 bbox_t2=table.get("bbox_t2"),
                 added_indicators=[],
                 removed_indicators=all_indicators_t1,
+                match_metadata=match_meta_removed,
             )
         )
         seq += 1

@@ -25,6 +25,7 @@ class TableArtifact:
     pdf_path: str | None = None
     first_column_indicators_raw: list[str] | None = None  # Raw before normalization; display only
     footnotes: list[str] | None = None
+    fragmentation_detected: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
