@@ -46,6 +46,7 @@ class ReviewItem:
     indicator: str
     section: str = ""
     table_name: str = ""
+    table_number: str = ""
     table_id_t1: str = ""
     table_id_t2: str = ""
     page_t1: int | None = None
@@ -83,6 +84,7 @@ class ReviewItem:
             "indicator": self.indicator,
             "section": self.section,
             "table_name": self.table_name,
+            "table_number": self.table_number,
             "table_id_t1": self.table_id_t1,
             "table_id_t2": self.table_id_t2,
             "page_t1": self.page_t1,
@@ -122,6 +124,7 @@ class ReviewItem:
             indicator=str(data.get("indicator", "")),
             section=str(data.get("section", "")),
             table_name=str(data.get("table_name", "")),
+            table_number=str(data.get("table_number", "") or ""),
             table_id_t1=str(data.get("table_id_t1", "")),
             table_id_t2=str(data.get("table_id_t2", "")),
             page_t1=data.get("page_t1"),
