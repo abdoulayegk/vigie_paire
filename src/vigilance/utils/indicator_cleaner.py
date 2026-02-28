@@ -246,6 +246,53 @@ def _word_char_count(s: str) -> int:
     return len(re.findall(r"\w", s or ""))
 
 
+# --- PART A: camelCase / concatenated-token boundary splitter ---
+_CAMEL_BOUNDARY_RE = re.compile(r"([a-z])([A-Z])")
+
+
+def split_camel_case_concatenation(text: str) -> tuple[str, bool]:
+    """Insert space at lowercase-to-uppercase boundaries.
+
+    Handles concatenated tokens like "impotAJOUTactions" or "fondsPropresTier1".
+    Returns (cleaned_text, True if any split was applied).
+    """
+    if not text:
+        return text or "", False
+    result = _CAMEL_BOUNDARY_RE.sub(r"\1 \2", text)
+    return result, result != text
+
+
+# --- PART B: space after change-tag prefix ---
+_CHANGE_TAG_PREFIX_RE = re.compile(
+    r"^(AJOUT|SUPPRESSION|RENOMMAGE)(?=[a-zA-ZÀ-ÿ])", re.UNICODE
+)
+
+
+def insert_space_after_change_tag(text: str) -> tuple[str, bool]:
+    """Insert space after AJOUT/SUPPRESSION/RENOMMAGE if directly followed by a letter.
+
+    Handles indicators like "AJOUTactions ordinaires" -> "AJOUT actions ordinaires".
+    Returns (cleaned_text, True if correction was applied).
+    """
+    if not text:
+        return text or "", False
+    result = _CHANGE_TAG_PREFIX_RE.sub(r"\1 ", text)
+    return result, result != text
+
+
+def post_normalize_indicator(text: str) -> tuple[str, bool, bool]:
+    """Apply camelCase split and change-tag space fix after canonical normalization.
+
+    Returns (text, camel_split_triggered, tag_space_triggered).
+    Must be called on the *cleaned* indicator value, not raw.
+    """
+    if not text:
+        return "", False, False
+    result, camel = split_camel_case_concatenation(text)
+    result, tag = insert_space_after_change_tag(result)
+    return result, camel, tag
+
+
 def normalize_indicator_for_comparison(text: str) -> str:
     """
     Single canonical key for indicator (first column) comparison.
