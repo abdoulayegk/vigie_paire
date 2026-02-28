@@ -75,6 +75,7 @@ class ReviewItem:
     item_type: str = "indicator"  # "indicator" or "footnote"
     footnote_changes: list[dict[str, Any]] = field(default_factory=list)
     genai_analysis: dict[str, Any] = field(default_factory=dict)
+    match_metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -112,6 +113,7 @@ class ReviewItem:
             "item_type": self.item_type,
             "footnote_changes": list(self.footnote_changes),
             "genai_analysis": dict(self.genai_analysis) if self.genai_analysis else {},
+            "match_metadata": dict(self.match_metadata) if self.match_metadata else {},
         }
 
     @classmethod
@@ -151,4 +153,5 @@ class ReviewItem:
             item_type=str(data.get("item_type", "indicator")),
             footnote_changes=list(data.get("footnote_changes", [])),
             genai_analysis=dict(data.get("genai_analysis") or {}),
+            match_metadata=dict(data.get("match_metadata") or {}),
         )

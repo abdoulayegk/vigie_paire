@@ -27,19 +27,36 @@ _INDICATOR_DEFAULTS = {
     "indicator_gate_min_token_overlap": 1,
 }
 
-from app.ui_config import INDICATOR_COMPARISON_DIR
+from app.ui_config import INDICATOR_COMPARISON_DIR, LOGS_DIR
+
+_SEMANTIC_JUDGE_LOG = LOGS_DIR / "semantic_judge_decisions.jsonl"
 from vigilance.compare import run_strict_intra_section_compare
 from vigilance.compare.table_fragment_merger import merge_table_fragments
 from vigilance.comparison.footnote_comparator import FootnoteComparator
 from vigilance.config import get_matching_thresholds
 from vigilance.models.table_models import TableArtifact
 from vigilance.utils.footnotes_utils import footnotes_list_to_dict
-from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
+from vigilance.utils.indicator_cleaner import (
+    normalize_indicator_for_comparison,
+    post_normalize_indicator,
+)
 from vigilance.utils.indicator_normalizer import (
     get_canonical_text,
     get_token_sorted_text,
 )
 from vigilance.utils.matching_normalizer import _classify_excluded_line
+
+
+_MATCH_DECISIONS_LOG = LOGS_DIR / "match_decisions.jsonl"
+
+
+def _write_match_decision_log(record: dict[str, Any]) -> None:
+    """Append a structured audit record to the JSONL match-decision log."""
+    try:
+        with open(_MATCH_DECISIONS_LOG, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
+    except Exception as exc:
+        logger.debug("match_decision log write failed: %s", exc)
 
 
 def _compare_table_footnotes(t1: TableArtifact, t2: TableArtifact) -> dict[str, Any]:
@@ -141,6 +158,17 @@ def _table_to_artifact(
             if row and str(row[0]).strip():
                 indicators.append(str(row[0]).strip())
 
+    # Parts A & B: post-normalize cleaned indicators (camelCase split + tag-space fix).
+    # Only modifies the cleaned field, never raw.
+    fragmentation_from_post_norm = False
+    post_normed: list[str] = []
+    for ind in indicators:
+        fixed, camel_hit, tag_hit = post_normalize_indicator(ind)
+        if camel_hit or tag_hit:
+            fragmentation_from_post_norm = True
+        post_normed.append(fixed)
+    indicators = post_normed
+
     raw = getattr(table, "first_column_indicators_raw", None)
     if raw is not None:
         raw = [str(x).strip() for x in raw if str(x).strip()]
@@ -152,6 +180,10 @@ def _table_to_artifact(
         footnotes_out = [str(fn) for fn in footnotes_raw]
     else:
         footnotes_out = None
+
+    # Part C: propagate fragmentation flag (merge or post-norm corrections)
+    frag_from_extraction = bool(getattr(table, "fragmentation_detected", False))
+    fragmentation_detected = frag_from_extraction or fragmentation_from_post_norm
 
     section = _canonical_section_name(str(getattr(table, "section", "")))
     return TableArtifact(
@@ -170,6 +202,7 @@ def _table_to_artifact(
         quarter=quarter,
         pdf_path=pdf_path,
         footnotes=footnotes_out,
+        fragmentation_detected=fragmentation_detected,
     )
 
 
@@ -214,6 +247,56 @@ def _extract_tables(
 def _canonical_indicator_key(text: str) -> str:
     """Canonical key for indicator comparison (shared with structural_comparator)."""
     return normalize_indicator_for_comparison(text)
+
+
+# --- Part D: Pre-Diff Safety Check ---
+
+_SUSPICIOUS_OVERLAP_THRESHOLD = 0.15
+_SUSPICIOUS_SIZE_DIFF_RATIO = 0.60
+
+
+def _compute_indicator_overlap(t1: TableArtifact, t2: TableArtifact) -> float:
+    """Jaccard overlap of canonical indicator keys between two tables."""
+    def _keys(t: TableArtifact) -> set[str]:
+        result: set[str] = set()
+        for ind in t.first_column_indicators:
+            s = str(ind).strip()
+            if not s:
+                continue
+            key = _canonical_indicator_key(s)
+            if key:
+                result.add(key)
+        return result
+
+    a, b = _keys(t1), _keys(t2)
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
+def _pre_diff_safety_check(
+    t1: TableArtifact, t2: TableArtifact, indicator_overlap: float
+) -> tuple[bool, str]:
+    """Flag suspicious pairs before calling _indicator_diff.
+
+    Returns (suspicious_low_overlap, reason_string).
+    Does NOT block matching -- only exposes the signal.
+    """
+    n1 = len(t1.first_column_indicators)
+    n2 = len(t2.first_column_indicators)
+    size_diff_ratio = abs(n1 - n2) / max(n1, n2, 1)
+
+    if indicator_overlap < _SUSPICIOUS_OVERLAP_THRESHOLD and size_diff_ratio > _SUSPICIOUS_SIZE_DIFF_RATIO:
+        reason = (
+            f"indicator_overlap={indicator_overlap:.3f} < {_SUSPICIOUS_OVERLAP_THRESHOLD}, "
+            f"size_diff_ratio={size_diff_ratio:.3f} > {_SUSPICIOUS_SIZE_DIFF_RATIO}"
+        )
+        logger.warning(
+            "suspicious_low_overlap: t1=%s t2=%s %s",
+            t1.table_id, t2.table_id, reason,
+        )
+        return True, reason
+    return False, ""
 
 
 def _normalize_bbox_ltrb_norm(bbox: Any) -> list[float] | None:
@@ -1083,6 +1166,119 @@ def run_comparison_with_sections(
     t1_by_uid = {_section_uid(table): table for table in tables_t1}
     t2_by_uid = {_section_uid(table): table for table in tables_t2}
 
+    # --- Phase 2: Semantic Judge (GPT-4o) for allowed banks only ---
+    semantic_judge_enabled = False
+    semantic_judge_results: dict[str, dict[str, Any]] = {}
+    semantic_judge_stats = {"calls": 0, "errors": 0, "overrides": 0}
+    if api_key:
+        try:
+            from vigilance.comparison.semantic_judge import (
+                is_bank_allowed,
+                _needs_semantic_validation,
+                run_semantic_judge_for_pair,
+                run_semantic_judge_for_unmatched,
+                _needs_semantic_validation_unmatched,
+            )
+
+            semantic_judge_enabled = is_bank_allowed(bank_code)
+        except ImportError:
+            semantic_judge_enabled = False
+
+    if semantic_judge_enabled:
+        logger.info("Semantic judge enabled for bank=%s", bank_code)
+        for pair in strict.get("pairs", []):
+            t1_uid = str(pair.get("t1_uid", ""))
+            t2_uid = str(pair.get("t2_uid", ""))
+            tbl_t1 = t1_by_uid.get(t1_uid)
+            tbl_t2 = t2_by_uid.get(t2_uid)
+            if tbl_t1 is None or tbl_t2 is None:
+                continue
+
+            pair_overlap = _compute_indicator_overlap(tbl_t1, tbl_t2)
+            susp, _ = _pre_diff_safety_check(tbl_t1, tbl_t2, pair_overlap)
+
+            if not _needs_semantic_validation(pair, pair_overlap, susp):
+                continue
+
+            try:
+                judge_result = run_semantic_judge_for_pair(
+                    bank_code=bank_code,
+                    api_key=api_key,
+                    table_t1=tbl_t1,
+                    table_t2=tbl_t2,
+                    pair=pair,
+                    indicator_overlap=pair_overlap,
+                    suspicious_low_overlap=susp,
+                    t1_uid=t1_uid,
+                    t2_uid=t2_uid,
+                    strict_result=strict,
+                    t2_by_uid=t2_by_uid,
+                    log_path=_SEMANTIC_JUDGE_LOG,
+                )
+                semantic_judge_results[t1_uid] = judge_result
+                semantic_judge_stats["calls"] += 1
+                if judge_result.get("guard_action") == "structural_override":
+                    semantic_judge_stats["overrides"] += 1
+            except Exception as exc:
+                logger.warning("Semantic judge failed for t1=%s: %s", t1_uid, exc)
+                semantic_judge_stats["errors"] += 1
+
+        for item in strict.get("added_tables", []):
+            if not _needs_semantic_validation_unmatched("table_added"):
+                continue
+            t2_uid_added = str(item.get("t2_uid", ""))
+            tbl = t2_by_uid.get(t2_uid_added)
+            if tbl is None:
+                continue
+            try:
+                judge_result = run_semantic_judge_for_unmatched(
+                    bank_code=bank_code,
+                    api_key=api_key,
+                    unmatched_table=tbl,
+                    change_type="table_added",
+                    opposite_tables=tables_t1,
+                    strict_result=strict,
+                    t_by_uid=t1_by_uid,
+                    log_path=_SEMANTIC_JUDGE_LOG,
+                )
+                semantic_judge_results[f"added_{t2_uid_added}"] = judge_result
+                semantic_judge_stats["calls"] += 1
+            except Exception as exc:
+                logger.warning("Semantic judge (added) failed for t2=%s: %s", t2_uid_added, exc)
+                semantic_judge_stats["errors"] += 1
+
+        for item in strict.get("removed_tables", []):
+            if not _needs_semantic_validation_unmatched("table_removed"):
+                continue
+            t1_uid_removed = str(item.get("t1_uid", ""))
+            tbl = t1_by_uid.get(t1_uid_removed)
+            if tbl is None:
+                continue
+            try:
+                judge_result = run_semantic_judge_for_unmatched(
+                    bank_code=bank_code,
+                    api_key=api_key,
+                    unmatched_table=tbl,
+                    change_type="table_removed",
+                    opposite_tables=tables_t2,
+                    strict_result=strict,
+                    t_by_uid=t2_by_uid,
+                    log_path=_SEMANTIC_JUDGE_LOG,
+                )
+                semantic_judge_results[f"removed_{t1_uid_removed}"] = judge_result
+                semantic_judge_stats["calls"] += 1
+            except Exception as exc:
+                logger.warning("Semantic judge (removed) failed for t1=%s: %s", t1_uid_removed, exc)
+                semantic_judge_stats["errors"] += 1
+
+        if semantic_judge_stats["calls"] > 0:
+            logger.info(
+                "Semantic judge complete: %d calls, %d errors, %d structural overrides",
+                semantic_judge_stats["calls"],
+                semantic_judge_stats["errors"],
+                semantic_judge_stats["overrides"],
+            )
+
     comparisons: list[dict[str, Any]] = []
     table_pair_embed_debug: list[dict[str, Any]] = []
     all_rename_pair_debug: list[dict[str, Any]] = []
@@ -1093,6 +1289,12 @@ def run_comparison_with_sections(
         table_t2 = t2_by_uid.get(t2_uid)
         if table_t1 is None or table_t2 is None:
             continue
+
+        # Part D & E: compute overlap and run pre-diff safety check
+        pair_indicator_overlap = _compute_indicator_overlap(table_t1, table_t2)
+        suspicious_low_overlap, suspicious_reason = _pre_diff_safety_check(
+            table_t1, table_t2, pair_indicator_overlap
+        )
 
         added, removed, had_fusion_split, excluded_counts = _indicator_diff(
             table_t1, table_t2
@@ -1154,6 +1356,11 @@ def run_comparison_with_sections(
                 "modifie" if (added or removed or renamed_indicators) else "stable"
             )
 
+        # Part E: effective_label_overlap from pair if available
+        effective_label_overlap = float(
+            pair.get("soft_indicator_overlap", pair_indicator_overlap) or pair_indicator_overlap
+        )
+
         comparisons.append(
             {
                 "table_id_t1": table_t1.table_id,
@@ -1199,6 +1406,16 @@ def run_comparison_with_sections(
                 "quality_flags_t2": [],
                 "source_pdf_t1": table_t1.pdf_path or "",
                 "source_pdf_t2": table_t2.pdf_path or "",
+                # Part D & E: match_metadata + Phase 2 semantic judge
+                "match_metadata": {
+                    "indicator_overlap": round(pair_indicator_overlap, 4),
+                    "effective_label_overlap": round(effective_label_overlap, 4),
+                    "fragmentation_detected_t1": table_t1.fragmentation_detected,
+                    "fragmentation_detected_t2": table_t2.fragmentation_detected,
+                    "suspicious_low_overlap": suspicious_low_overlap,
+                    "suspicious_reason": suspicious_reason if suspicious_low_overlap else None,
+                    "semantic_judge": semantic_judge_results.get(t1_uid) if semantic_judge_enabled else None,
+                },
             }
         )
 
@@ -1207,66 +1424,86 @@ def run_comparison_with_sections(
             comparisons[-1]["footnotes_diff"] = fn_result
             comparisons[-1]["footnotes_counts"] = fn_result["counts"]
 
+        # Part F: structured audit log for each matched pair
+        _write_match_decision_log({
+            "bank": bank_code,
+            "t1_id": table_t1.table_id,
+            "t2_id": table_t2.table_id,
+            "score": round(float(pair.get("score", 0.0) or 0.0), 4),
+            "indicator_overlap": round(pair_indicator_overlap, 4),
+            "match_reason": pair.get("reason", ""),
+            "fragmentation_detected_t1": table_t1.fragmentation_detected,
+            "fragmentation_detected_t2": table_t2.fragmentation_detected,
+            "suspicious_low_overlap_flag": suspicious_low_overlap,
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
+        })
+
     def _source_method(uid: str, by_uid: dict) -> str:
         t = by_uid.get(uid)
         return (getattr(t, "extraction_method", None) or "docling") if t else "docling"
 
     tables_added = []
     for item in strict.get("added_tables", []):
-        t2_t = t2_by_uid.get(str(item.get("t2_uid", "")))
-        tables_added.append(
-            {
-                "table_status": "ajoute",
-                "table_id": str(item.get("t2_table_id", "")),
-                "title": item.get("title_t2", ""),
-                "table_number": getattr(t2_t, "table_number", None) if t2_t else None,
-                "page": item.get("page_t2"),
-                "section": item.get("section", ""),
-                "source_method": _source_method(str(item.get("t2_uid", "")), t2_by_uid),
-                "quality_flags": [],
-                "indicators": list(item.get("first_column_indicators", []) or []),
-                "first_column_indicators_raw": list(
-                    item.get("first_column_indicators_raw")
-                    or (getattr(t2_t, "first_column_indicators_raw", None) or [])
-                ),
-                "all_indicators_t1": [],
-                "all_indicators_t2": _all_indicators_value_clean_ordered(t2_t)
-                if t2_t
-                else [],
-                "bbox_t1": None,
-                "bbox_t2": _normalize_bbox_ltrb_norm(getattr(t2_t, "bbox", None))
-                if t2_t
-                else None,
-            }
-        )
+        t2_uid_added = str(item.get("t2_uid", ""))
+        t2_t = t2_by_uid.get(t2_uid_added)
+        entry: dict[str, Any] = {
+            "table_status": "ajoute",
+            "table_id": str(item.get("t2_table_id", "")),
+            "title": item.get("title_t2", ""),
+            "table_number": getattr(t2_t, "table_number", None) if t2_t else None,
+            "page": item.get("page_t2"),
+            "section": item.get("section", ""),
+            "source_method": _source_method(t2_uid_added, t2_by_uid),
+            "quality_flags": [],
+            "indicators": list(item.get("first_column_indicators", []) or []),
+            "first_column_indicators_raw": list(
+                item.get("first_column_indicators_raw")
+                or (getattr(t2_t, "first_column_indicators_raw", None) or [])
+            ),
+            "all_indicators_t1": [],
+            "all_indicators_t2": _all_indicators_value_clean_ordered(t2_t)
+            if t2_t
+            else [],
+            "bbox_t1": None,
+            "bbox_t2": _normalize_bbox_ltrb_norm(getattr(t2_t, "bbox", None))
+            if t2_t
+            else None,
+        }
+        sj = semantic_judge_results.get(f"added_{t2_uid_added}")
+        if sj is not None:
+            entry["semantic_judge"] = sj
+        tables_added.append(entry)
     tables_removed = []
     for item in strict.get("removed_tables", []):
-        t1_t = t1_by_uid.get(str(item.get("t1_uid", "")))
-        tables_removed.append(
-            {
-                "table_status": "supprime",
-                "table_id": str(item.get("t1_table_id", "")),
-                "title": item.get("title_t1", ""),
-                "table_number": getattr(t1_t, "table_number", None) if t1_t else None,
-                "page": item.get("page_t1"),
-                "section": item.get("section", ""),
-                "source_method": _source_method(str(item.get("t1_uid", "")), t1_by_uid),
-                "quality_flags": [],
-                "indicators": list(item.get("first_column_indicators", []) or []),
-                "first_column_indicators_raw": list(
-                    item.get("first_column_indicators_raw")
-                    or (getattr(t1_t, "first_column_indicators_raw", None) or [])
-                ),
-                "all_indicators_t1": _all_indicators_value_clean_ordered(t1_t)
-                if t1_t
-                else [],
-                "all_indicators_t2": [],
-                "bbox_t1": _normalize_bbox_ltrb_norm(getattr(t1_t, "bbox", None))
-                if t1_t
-                else None,
-                "bbox_t2": None,
-            }
-        )
+        t1_uid_removed = str(item.get("t1_uid", ""))
+        t1_t = t1_by_uid.get(t1_uid_removed)
+        entry_r: dict[str, Any] = {
+            "table_status": "supprime",
+            "table_id": str(item.get("t1_table_id", "")),
+            "title": item.get("title_t1", ""),
+            "table_number": getattr(t1_t, "table_number", None) if t1_t else None,
+            "page": item.get("page_t1"),
+            "section": item.get("section", ""),
+            "source_method": _source_method(t1_uid_removed, t1_by_uid),
+            "quality_flags": [],
+            "indicators": list(item.get("first_column_indicators", []) or []),
+            "first_column_indicators_raw": list(
+                item.get("first_column_indicators_raw")
+                or (getattr(t1_t, "first_column_indicators_raw", None) or [])
+            ),
+            "all_indicators_t1": _all_indicators_value_clean_ordered(t1_t)
+            if t1_t
+            else [],
+            "all_indicators_t2": [],
+            "bbox_t1": _normalize_bbox_ltrb_norm(getattr(t1_t, "bbox", None))
+            if t1_t
+            else None,
+            "bbox_t2": None,
+        }
+        sj_r = semantic_judge_results.get(f"removed_{t1_uid_removed}")
+        if sj_r is not None:
+            entry_r["semantic_judge"] = sj_r
+        tables_removed.append(entry_r)
 
     # -- POST-MATCHING GenAI classification (does NOT alter matching results) --
     if include_genai_classification and api_key:
@@ -1422,6 +1659,13 @@ def run_comparison_with_sections(
                 "indicator_rename_count": total_renamed,
                 "table_pair_debug": table_pair_embed_debug,
                 "rename_pair_debug": all_rename_pair_debug,
+            },
+            "semantic_judge_debug": {
+                "enabled": semantic_judge_enabled,
+                "bank_allowed": semantic_judge_enabled,
+                "total_calls": semantic_judge_stats["calls"],
+                "total_errors": semantic_judge_stats["errors"],
+                "structural_overrides": semantic_judge_stats["overrides"],
             },
         },
     }

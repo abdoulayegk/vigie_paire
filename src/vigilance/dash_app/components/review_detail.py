@@ -592,6 +592,64 @@ def build_review_detail(
         className="bg-light border-0",
     )
 
+    # -- Match metadata block (overlap, fragmentation, suspicious, semantic judge) --
+    match_meta = item.get("match_metadata") or {}
+    match_metadata_section = html.Div()
+    if match_meta:
+        meta_pills: list = []
+
+        ind_ov = match_meta.get("indicator_overlap")
+        if ind_ov is not None:
+            meta_pills.append(
+                dbc.Badge(f"Overlap: {ind_ov:.2%}", color="info", className="me-1 mb-1")
+            )
+        eff_ov = match_meta.get("effective_label_overlap")
+        if eff_ov is not None and eff_ov != ind_ov:
+            meta_pills.append(
+                dbc.Badge(f"Eff. overlap: {eff_ov:.2%}", color="info", className="me-1 mb-1")
+            )
+
+        frag_t1 = match_meta.get("fragmentation_detected_t1")
+        frag_t2 = match_meta.get("fragmentation_detected_t2")
+        if frag_t1:
+            meta_pills.append(dbc.Badge("Frag. T1", color="warning", text_color="dark", className="me-1 mb-1"))
+        if frag_t2:
+            meta_pills.append(dbc.Badge("Frag. T2", color="warning", text_color="dark", className="me-1 mb-1"))
+
+        if match_meta.get("suspicious_low_overlap"):
+            reason = match_meta.get("suspicious_reason") or ""
+            meta_pills.append(
+                dbc.Badge("Suspicieux", color="danger", className="me-1 mb-1", title=reason)
+            )
+
+        sj = match_meta.get("semantic_judge")
+        if isinstance(sj, dict) and sj.get("final_decision"):
+            sj_decision = sj.get("final_decision", "")
+            sj_conf = sj.get("original_gpt_decision", {})
+            sj_confidence = float(sj_conf.get("confidence", 0.0) or 0.0) if isinstance(sj_conf, dict) else 0.0
+            sj_guard = sj.get("guard_action", "")
+            sj_color = {
+                "match": "success", "no_match": "danger", "review": "warning",
+                "structural_kept": "primary", "structural_fallback": "secondary",
+            }.get(sj_decision, "secondary")
+            sj_label = f"Judge: {sj_decision}"
+            if sj_confidence:
+                sj_label += f" ({sj_confidence:.0%})"
+            meta_pills.append(dbc.Badge(sj_label, color=sj_color, className="me-1 mb-1"))
+            if sj_guard and sj_guard != "none":
+                meta_pills.append(
+                    dbc.Badge(f"Rail: {sj_guard}", color="dark", text_color="white", className="me-1 mb-1")
+                )
+
+        if meta_pills:
+            match_metadata_section = html.Div(
+                [
+                    html.H6("Signaux de qualite", className="text-muted small mb-2"),
+                    html.Div(meta_pills, className="d-flex flex-wrap"),
+                ],
+                className="mb-3 p-2 border rounded",
+            )
+
     _REL_DISPLAY = {
         "REGLEMENTAIRE": "Reglementaire",
         "NON_SIGNIFICATIF": "Non significatif",
@@ -649,6 +707,7 @@ def build_review_detail(
         [
             header_row,
             indicators_section,
+            match_metadata_section,
             genai_analysis_section,
             footnote_detail_section,
             proofs_section,
