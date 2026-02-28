@@ -17,6 +17,7 @@ from app.review_models import (
     REVIEW_STATUS_APPROVED,
     REVIEW_STATUS_REJECTED,
 )
+from vigilance.utils.indicator_cleaner import strip_dates_from_table_title
 
 _CHANGE_TYPES_WITH_VISUAL_FLAG = frozenset({
     CHANGE_TYPE_TABLE_ADDED,
@@ -28,6 +29,37 @@ _CHANGE_TYPES_WITH_VISUAL_FLAG = frozenset({
     "uncertain",
     "structure_change",
 })
+
+_SECTION_LABELS = {
+    "gestion_capital": "Gestion du capital",
+    "capital_management": "Gestion du capital",
+    "gestion_risques": "Gestion des risques",
+    "risk_management": "Gestion des risques",
+    "gestion_reglementation": "Reglementation",
+    "regulatory_updates": "Reglementation",
+    "reglementation": "Reglementation",
+}
+
+
+def section_display_label(section: str | None) -> str:
+    value = (section or "").strip()
+    if not value:
+        return ""
+    return _SECTION_LABELS.get(value, value.replace("_", " ").title())
+
+
+def _clean_title_for_display(raw_title: str) -> str:
+    title = (raw_title or "").strip()
+    if not title:
+        return ""
+    cleaned = strip_dates_from_table_title(title).strip(" -:;,")
+    lowered = cleaned.lower()
+    if lowered in {"au", "aux", "as at"}:
+        return ""
+    if cleaned:
+        return cleaned
+    # Date-only titles are considered non-titles for display fallback.
+    return ""
 
 
 def compute_flag_state(item: dict) -> dict:
@@ -95,19 +127,45 @@ def compute_flag_state(item: dict) -> dict:
     }
 
 
-def _table_display_label(item: dict) -> str:
-    """Format tableau label: 'Tableau n°X: Titre' when id exists, else 'Tableau: Titre'."""
-    title = (item.get("table_name") or item.get("table_title_raw") or "").strip() or "Sans titre"
+def table_display_label(item: dict) -> str:
+    """Format tableau label as in report: number + title, or page + section when no title.
+
+    Rules:
+    - Number + title: "Tableau N: Titre"
+    - Number, no title: "Tableau N (p.X) – section" (or without section if empty)
+    - No number, title: "Tableau: Titre"
+    - No number, no title: "Tableau (p.X) – section" or "Tableau (p.X)" or "Tableau – section" or "Tableau (sans titre)"
+    """
+    raw_title = (item.get("table_name") or item.get("table_title_raw") or "").strip()
+    title = _clean_title_for_display(raw_title)
+    has_title = bool(title)
+    table_num = (item.get("table_number") or "").strip()
     change_type = item.get("change_type", "")
     if change_type == CHANGE_TYPE_TABLE_ADDED:
-        table_id = (item.get("table_id_t2") or "").strip()
+        page = item.get("page_t2")
     elif change_type == CHANGE_TYPE_TABLE_REMOVED:
-        table_id = (item.get("table_id_t1") or "").strip()
+        page = item.get("page_t1")
     else:
-        table_id = (item.get("table_id_t2") or item.get("table_id_t1") or "").strip()
-    if table_id:
-        return f"{t('table_no_prefix', 'Tableau n°')}{table_id}: {title}"
-    return f"{t('table', 'Tableau')}: {title}"
+        page = item.get("page_t2") or item.get("page_t1")
+    section = section_display_label(item.get("section"))
+    prefix = t("table", "Tableau")
+
+    if table_num and has_title:
+        return f"{prefix} {table_num}: {title}"
+    if table_num:
+        page_part = f" (p.{page})" if page is not None else ""
+        section_part = f" – {section}" if section else ""
+        return f"{prefix} {table_num}{page_part}{section_part}" or f"{prefix} {table_num}"
+    if has_title:
+        return f"{prefix}: {title}"
+    # No number, no title: fallback to page and/or section
+    if page is not None and section:
+        return f"{prefix} (p.{page}) – {section}"
+    if page is not None:
+        return f"{prefix} (p.{page})"
+    if section:
+        return f"{prefix} – {section}"
+    return f"{prefix} (sans titre)"
 
 
 def _indicator_badge(change_type: str) -> dbc.Badge:
@@ -152,7 +210,7 @@ def build_review_detail(
 ) -> html.Div:
     """Build the right-side review detail panel (table-grouped)."""
 
-    table_display = _table_display_label(item)
+    table_display = table_display_label(item)
     page_t1 = item.get("page_t1")
     page_t2 = item.get("page_t2")
     if page_t1 is None and page_t2 is not None:
@@ -181,7 +239,7 @@ def build_review_detail(
                     ),
                     html.Div(
                         [
-                            html.Span(table_display, className="d-block text-truncate fw-semibold"),
+                            html.Span(table_display, className="d-block fw-semibold"),
                             html.Small(page_text, className="text-muted"),
                         ],
                         className="p-2 bg-light rounded",

@@ -83,6 +83,7 @@ def build_review_items_from_indicator_result(
                 comp.get("rescue_type")
                 or comp.get("match_reason", "")
             )
+            table_number = str(comp.get("table_number") or "")
             items.append(
                 ReviewItem(
                     change_id=_make_change_id("tbl", seq),
@@ -90,6 +91,7 @@ def build_review_items_from_indicator_result(
                     indicator="",
                     section=section,
                     table_name=table_name,
+                    table_number=table_number,
                     table_id_t1=table_id_t1,
                     table_id_t2=table_id_t2,
                     page_t1=page_t1,
@@ -172,6 +174,7 @@ def build_review_items_from_indicator_result(
         else:
             primary_type = CHANGE_TYPE_RENAMED
 
+        table_number = str(comp.get("table_number") or "")
         items.append(
             ReviewItem(
                 change_id=_make_change_id("tbl", seq),
@@ -179,6 +182,7 @@ def build_review_items_from_indicator_result(
                 indicator=summary_indicator,
                 section=section,
                 table_name=table_name,
+                table_number=table_number,
                 table_id_t1=table_id_t1,
                 table_id_t2=table_id_t2,
                 page_t1=page_t1,
@@ -247,6 +251,7 @@ def build_review_items_from_indicator_result(
                 fn_type = CHANGE_TYPE_MODIFIED
             fn_indicators.append({"name": label, "type": fn_type, "footnote_ref": ref, "old_text": old_text, "new_text": new_text})
 
+        table_number = str(comp.get("table_number") or "")
         items.append(
             ReviewItem(
                 change_id=_make_change_id("fn", seq),
@@ -254,6 +259,7 @@ def build_review_items_from_indicator_result(
                 indicator=summary_fn,
                 section=section,
                 table_name=table_name,
+                table_number=table_number,
                 table_id_t1=str(comp.get("table_id_t1", "")),
                 table_id_t2=str(comp.get("table_id_t2", "")),
                 page_t1=comp.get("page_t1"),
@@ -282,6 +288,7 @@ def build_review_items_from_indicator_result(
         section = str(table.get("section", ""))
         page_t2 = table.get("page")
         table_id_t2 = str(table.get("table_id", ""))
+        table_number = str(table.get("table_number") or "")
         display_list = get_display_indicators(table)
         display_list = [n for n in display_list if _classify_excluded_line(n) is None]
         table_indicators = [
@@ -296,6 +303,7 @@ def build_review_items_from_indicator_result(
                 indicator=t("table_entire_added"),
                 section=section,
                 table_name=table_name,
+                table_number=table_number,
                 table_id_t2=table_id_t2,
                 page_t2=page_t2,
                 source_ref_t2=pdf_path_t2,
@@ -322,6 +330,7 @@ def build_review_items_from_indicator_result(
         section = str(table.get("section", ""))
         page_t1 = table.get("page")
         table_id_t1 = str(table.get("table_id", ""))
+        table_number = str(table.get("table_number") or "")
         display_list = get_display_indicators(table)
         display_list = [n for n in display_list if _classify_excluded_line(n) is None]
         table_indicators = [
@@ -336,6 +345,7 @@ def build_review_items_from_indicator_result(
                 indicator=t("table_entire_removed"),
                 section=section,
                 table_name=table_name,
+                table_number=table_number,
                 table_id_t1=table_id_t1,
                 page_t1=page_t1,
                 source_ref_t1=pdf_path_t1,

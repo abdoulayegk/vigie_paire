@@ -767,7 +767,20 @@ def update_review_queue(review_items_data, current_idx, show_results, filters, _
     """Update the left-side review queue and top KPIs."""
     if not show_results:
         raise PreventUpdate
-    if not review_items_data:
+    # review_items_data=None: init_review_items pas encore execute (course)
+    if review_items_data is None:
+        return (
+            html.Div(
+                [html.I(className="bi bi-hourglass-split me-2"), "Chargement de la file de revue..."],
+                className="text-muted p-3",
+            ),
+            build_analyst_kpi_card(t("file_review_total"), "-", color="white"),
+            build_analyst_kpi_card(t("validated"), "-", color="white"),
+            build_analyst_kpi_card(t("rejected"), "-", color="white"),
+            build_analyst_kpi_card(t("pending"), "-", color="white"),
+            0, 0, 0
+        )
+    if len(review_items_data) == 0:
         return (
             html.Div(t("no_changes_review", "Aucun changement a revoir."), className="text-muted p-3"),
             build_analyst_kpi_card(t("file_review_total"), "0", color="white"),

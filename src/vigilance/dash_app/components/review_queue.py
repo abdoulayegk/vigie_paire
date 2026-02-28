@@ -13,6 +13,26 @@ from app.review_models import (
     REVIEW_STATUS_PENDING,
     REVIEW_STATUS_REJECTED,
 )
+from vigilance.dash_app.components.review_detail import section_display_label, table_display_label
+
+
+def _queue_page_summary(item: dict) -> str:
+    """Return concise page context string for queue items."""
+    change_type = (item.get("change_type") or "").strip()
+    page_t1 = item.get("page_t1")
+    page_t2 = item.get("page_t2")
+
+    if change_type == CHANGE_TYPE_TABLE_ADDED:
+        return f"p.{page_t2}" if page_t2 is not None else ""
+    if change_type == CHANGE_TYPE_TABLE_REMOVED:
+        return f"p.{page_t1}" if page_t1 is not None else ""
+    if page_t1 is not None and page_t2 is not None:
+        return f"T1 p.{page_t1} / T2 p.{page_t2}"
+    if page_t2 is not None:
+        return f"p.{page_t2}"
+    if page_t1 is not None:
+        return f"p.{page_t1}"
+    return ""
 
 
 def build_review_queue(
@@ -49,9 +69,10 @@ def build_review_queue(
     ]
     for section in all_sections:
         section_count = sum(1 for i in items if i.get("section") == section)
+        section_label = section_display_label(section)
         filter_buttons.append(
             dbc.Button(
-                [html.I(className="bi bi-folder me-2"), f"{section} ({section_count})"],
+                [html.I(className="bi bi-folder me-2"), f"{section_label} ({section_count})"],
                 id={"type": "filter-section", "value": section},
                 color="primary" if active_section == section else "light",
                 size="sm",
@@ -77,29 +98,21 @@ def build_review_queue(
 
         active_class = "bg-light border-start border-4 border-primary" if full_idx == current_idx else "border-bottom"
 
-        table_name = item.get("table_name", "Unknown Table")
-        section = item.get("section", "Unknown Section")
-        change_type = item.get("change_type", "")
-        table_id = (
-            (item.get("table_id_t2") or "").strip()
-            if change_type == CHANGE_TYPE_TABLE_ADDED
-            else (item.get("table_id_t1") or item.get("table_id_t2") or "").strip()
-        )
-        if table_id:
-            table_display = f"n°{table_id} - {table_name}"
-        else:
-            table_display = table_name
+        section = section_display_label(item.get("section", "Unknown Section"))
+        try:
+            table_display = table_display_label(item)
+        except Exception:
+            table_display = item.get("table_name") or item.get("table_title_raw") or item.get("table_id_t2") or item.get("table_id_t1") or "Tableau"
         indicators = item.get("indicators", [])
         n_indicators = len(indicators)
-
-        if len(table_display) > 45:
-            table_display = table_display[:42] + "..."
+        page_summary = _queue_page_summary(item)
 
         n_added = sum(1 for ind in indicators if ind.get("type") == "added")
         n_removed = sum(1 for ind in indicators if ind.get("type") == "removed")
         n_renamed = sum(1 for ind in indicators if ind.get("type") == "renamed")
 
         item_type = item.get("item_type", "indicator")
+        change_type = item.get("change_type", "")
         badge_children = []
         if item_type == "footnote":
             n_fn = len(indicators)
@@ -121,10 +134,21 @@ def build_review_queue(
                 html.Div(
                     [
                         html.Div(
-                            [icon, html.Span(table_display, className="fw-semibold small")],
+                            [
+                                icon,
+                                html.Span(
+                                    table_display,
+                                    className="fw-semibold small",
+                                    title=table_display,
+                                    style={"whiteSpace": "normal", "overflowWrap": "anywhere"},
+                                ),
+                            ],
                             className="d-flex align-items-center",
                         ),
-                        html.Small(section, className="text-muted d-block ms-4"),
+                        html.Small(
+                            f"{section} - {page_summary}" if page_summary else section,
+                            className="text-muted d-block ms-4",
+                        ),
                         html.Div(
                             [
                                 html.Small(
