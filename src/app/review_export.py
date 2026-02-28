@@ -49,13 +49,15 @@ _TYPE_CHANGEMENT_MAP = {
 }
 
 # Match methods consideres suspects
-_SUSPECT_MATCH_METHODS = frozenset({
-    "split_merge_rescue",
-    "single_rescue",
-    "uncertain_competition",
-    "unknown_section_penalized",
-    "low_label_overlap_reject",
-})
+_SUSPECT_MATCH_METHODS = frozenset(
+    {
+        "split_merge_rescue",
+        "single_rescue",
+        "uncertain_competition",
+        "unknown_section_penalized",
+        "low_label_overlap_reject",
+    }
+)
 
 # Mapping section (code interne) -> libellé français
 _SECTION_FR = {
@@ -176,7 +178,13 @@ def _to_type_element(ind_type: str, item_type: str = "indicator") -> str:
     """Retourne type_élément: tableau, indicateur, note ou texte."""
     if item_type == "footnote" or ind_type == "footnote":
         return "note"
-    if ind_type in ("table_added", "table_removed", "modified", "uncertain", "structure_change"):
+    if ind_type in (
+        "table_added",
+        "table_removed",
+        "modified",
+        "uncertain",
+        "structure_change",
+    ):
         return "tableau"
     if ind_type in ("note", "texte"):
         return ind_type
@@ -283,9 +291,18 @@ def _iter_validation_rows(
 
                 type_elem = _to_type_element(item_change_type or ind_type, item_type)
                 type_chg = _to_type_changement(ind_type, table_status)
-                resume_type = item_change_type if item_change_type in ("table_added", "table_removed") else ind_type
+                resume_type = (
+                    item_change_type
+                    if item_change_type in ("table_added", "table_removed")
+                    else ind_type
+                )
                 resume = _build_resume_court(
-                    resume_type, ind_name, from_val, to_val, table_status, suspect=(suspect == "Oui")
+                    resume_type,
+                    ind_name,
+                    from_val,
+                    to_val,
+                    table_status,
+                    suspect=(suspect == "Oui"),
                 )
 
                 if ind_type == "added":
@@ -293,11 +310,20 @@ def _iter_validation_rows(
                 elif ind_type == "removed":
                     ind_t1, ind_t2 = _sanitize_cell(ind_name), ""
                 elif ind_type == "renamed":
-                    ind_t1 = _sanitize_cell(from_val) if from_val else _sanitize_cell(ind_name)
-                    ind_t2 = _sanitize_cell(to_val) if to_val else _sanitize_cell(ind_name)
+                    ind_t1 = (
+                        _sanitize_cell(from_val)
+                        if from_val
+                        else _sanitize_cell(ind_name)
+                    )
+                    ind_t2 = (
+                        _sanitize_cell(to_val) if to_val else _sanitize_cell(ind_name)
+                    )
                 else:
                     ind_t1, ind_t2 = _sanitize_cell(ind_name), _sanitize_cell(ind_name)
 
+                ind_validation = _to_validation_finale(
+                    ind.get("review_status", base.get("review_status", ""))
+                )
                 row = {
                     "banque": banque,
                     "section": _section_to_fr(base.get("section", "")),
@@ -310,7 +336,7 @@ def _iter_validation_rows(
                     "résumé_automatique": resume,
                     "score_confiance": score_str,
                     "suspect": suspect,
-                    "validation_finale": validation,
+                    "validation_finale": ind_validation,
                     "pertinence_genai": pertinence_genai,
                     "niveau_risque_genai": niveau_risque_genai,
                 }
@@ -461,12 +487,15 @@ def export_review_items_csv(
                     "indicator_from": _sanitize_cell(from_val),
                     "indicator_to": _sanitize_cell(to_val),
                     "resume_court": _build_resume_court(
-                        ind_type, ind_name, from_val, to_val,
+                        ind_type,
+                        ind_name,
+                        from_val,
+                        to_val,
                         base.get("table_status", ""),
                     ),
                     "confidence": _format_cell(base.get("confidence", "")),
                     "match_method": _sanitize_cell(base.get("match_method", "")),
-                    "review_status": _sanitize_cell(base.get("review_status", "")),
+                    "review_status": _sanitize_cell(ind.get("review_status", base.get("review_status", ""))),
                     "idee": "",
                     "sujet": "",
                     "validation_finale": "",

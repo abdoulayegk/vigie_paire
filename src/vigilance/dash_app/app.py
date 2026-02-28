@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=256)
-def _cached_render_or_crop(pdf_path: str, page: int, scale: float, bbox_key: str) -> bytes:
+def _cached_render_or_crop(
+    pdf_path: str, page: int, scale: float, bbox_key: str
+) -> bytes:
     """Return PNG bytes: cropped if bbox_key valid, else full page. Cached for UI performance."""
     if not bbox_key:
         raw = get_pdf_preview(pdf_path, page, scale=scale)
@@ -33,8 +35,10 @@ def _cached_render_or_crop(pdf_path: str, page: int, scale: float, bbox_key: str
     raw = get_pdf_preview(pdf_path, page, scale=scale)
     return raw if raw else b""
 
+
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
@@ -54,14 +58,13 @@ from dash import (
     State,
     callback,
     clientside_callback,
+    ctx,
     dcc,
     html,
     no_update,
-    ctx
 )
 from dash.exceptions import PreventUpdate
 
-from app.i18n import t
 from app.comparison_canonical import (
     get_meta_value,
     is_canonical_comparison,
@@ -69,8 +72,8 @@ from app.comparison_canonical import (
 )
 from app.comparison_runner import run_comparison_with_sections
 from app.dash_app.components.pdf_preview import pdf_images_from_base64
+from app.dash_app.components.review_detail import build_proofs_section, build_review_detail
 from app.dash_app.components.review_queue import build_review_queue
-from app.dash_app.components.review_detail import build_review_detail
 from app.dash_app.layouts import (
     build_page_results,
     build_page_upload,
@@ -78,6 +81,7 @@ from app.dash_app.layouts import (
     build_sidebar,
 )
 from app.dash_app.layouts.page_results import build_analyst_kpi_card
+from app.i18n import t
 from app.review_adapters import build_review_items_from_indicator_result
 from app.review_export import (
     export_review_items_json_fr,
@@ -102,7 +106,7 @@ from app.ui_detection import (
     get_pdf_preview,
     get_section_preview_images,
 )
-from app.ui_indicators import build_indicator_change_rows, run_indicator_auto_pipeline
+from app.ui_indicators import build_indicator_change_rows
 from app.ui_io import (
     get_available_indicator_comparison_options,
     load_comparison_result,
@@ -137,6 +141,7 @@ stores = [
     dcc.Store(id="store-indicator-meta", data=None),
     dcc.Store(id="store-review-items", data=None),
     dcc.Store(id="store-review-current-idx", data=0),
+    dcc.Store(id="store-review-current-indicator-idx", data=0),
     dcc.Store(id="store-analysis-running", data=False),
     dcc.Store(id="store-analysis-start-ms", data=None),
     dcc.Store(id="store-validation-start-ms", data=None),
@@ -145,7 +150,9 @@ stores = [
     dcc.Store(id="store-review-filters", data={"section": "all", "status": "all"}),
     dcc.Store(id="store-proof-display-mode", data="crop"),
     dcc.Store(id="store-nav-debug", data=None),
-    dcc.Interval(id="analysis-timer-interval", interval=1000, n_intervals=0, disabled=True),
+    dcc.Interval(
+        id="analysis-timer-interval", interval=1000, n_intervals=0, disabled=True
+    ),
 ]
 
 # Layout
@@ -154,7 +161,9 @@ app.layout = html.Div(
         dbc.Navbar(
             dbc.Container(
                 [
-                    dbc.NavbarBrand("Comparateur Bancaire", href="/", className="fw-bold"),
+                    dbc.NavbarBrand(
+                        "Comparateur Bancaire", href="/", className="fw-bold"
+                    ),
                     dbc.Nav(
                         [
                             dbc.NavItem(dbc.NavLink("Accueil", href="#")),
@@ -178,7 +187,9 @@ app.layout = html.Div(
                         build_sidebar(),
                         dbc.Col(
                             [
-                                html.Div(id="main-content", children=build_page_upload()),
+                                html.Div(
+                                    id="main-content", children=build_page_upload()
+                                ),
                                 html.Div(
                                     id="analysis-progress-container",
                                     children=[
@@ -281,7 +292,10 @@ def on_upload_t1(content, filename):
     """Stocker l'upload T1."""
     if not content:
         return None, ""
-    return {"content": content, "filename": filename or "t1.pdf"}, f"T1: {filename or 't1.pdf'}"
+    return {
+        "content": content,
+        "filename": filename or "t1.pdf",
+    }, f"T1: {filename or 't1.pdf'}"
 
 
 @callback(
@@ -294,7 +308,10 @@ def on_upload_t2(content, filename):
     """Stocker l'upload T2."""
     if not content:
         return None, ""
-    return {"content": content, "filename": filename or "t2.pdf"}, f"T2: {filename or 't2.pdf'}"
+    return {
+        "content": content,
+        "filename": filename or "t2.pdf",
+    }, f"T2: {filename or 't2.pdf'}"
 
 
 @callback(
@@ -307,7 +324,10 @@ def on_upload_t3(content, filename):
     """Stocker l'upload T3."""
     if not content:
         return None, ""
-    return {"content": content, "filename": filename or "t3.pdf"}, f"T3: {filename or 't3.pdf'}"
+    return {
+        "content": content,
+        "filename": filename or "t3.pdf",
+    }, f"T3: {filename or 't3.pdf'}"
 
 
 @callback(
@@ -342,20 +362,20 @@ def on_detect(n_clicks, upl_t1, upl_t2, upl_t3, bank_code, q1, q2):
     # If comparison is T2 vs T3 -> Use T2 and T3
     # For now, we simplify: Always expect T1 and T2 uploaded for the primary flow.
     # But if T3 is present and requested, handle logic.
-    
+
     # Mapping simplistic logic for now:
     # upl_A = upl_t1
     # upl_B = upl_t2
     # If user wants T2 vs T3, they should ideally upload T2 in slot 1 and T3 in slot 2 OR we handle mapping.
-    # Let's stick to strict slots: Slot 1 = T1, Slot 2 = T2. 
+    # Let's stick to strict slots: Slot 1 = T1, Slot 2 = T2.
     # If a user uploads to T3, we can use it if we implement specific logic.
     # Given the constraint "T1 vs T2 or T2 vs T3", let's assume standard flow uses T1 and T2 slots for the active pair.
-    
+
     active_upl_1 = upl_t1
     active_upl_2 = upl_t2
-    
+
     # If T3 is involved (future logic), swap here.
-    
+
     if not active_upl_1 or not active_upl_2 or not bank_code:
         return (
             None,
@@ -380,7 +400,16 @@ def on_detect(n_clicks, upl_t1, upl_t2, upl_t3, bank_code, q1, q2):
         path_t1, path_t2 = save_pdfs_to_temp(b1, b2, temp_dir=Path(temp_dir))
         paths = {"pdf_t1": path_t1, "pdf_t2": path_t2}
     except ValueError as e:
-        return None, None, None, False, build_page_upload(), dbc.Alert(str(e), color="danger"), None, False
+        return (
+            None,
+            None,
+            None,
+            False,
+            build_page_upload(),
+            dbc.Alert(str(e), color="danger"),
+            None,
+            False,
+        )
 
     try:
         mapping_t1 = _detect_sections_core(path_t1, bank_code)
@@ -399,6 +428,7 @@ def on_detect(n_clicks, upl_t1, upl_t2, upl_t3, bank_code, q1, q2):
 
     detection = {"detection_t1": mapping_t1, "detection_t2": mapping_t2}
     import time
+
     validation_start_ms = int(time.time() * 1000)
     return (
         paths,
@@ -469,7 +499,9 @@ def render_validation_sections(detection, paths, adjusted_sections):
                     imgs = get_section_preview_images(path, section, max_pages=5)
                     preview_imgs = pdf_images_from_base64(imgs, captions[: len(imgs)])
                 except Exception:
-                    preview_imgs = html.Div("Preview indisponible", className="text-muted")
+                    preview_imgs = html.Div(
+                        "Preview indisponible", className="text-muted"
+                    )
             else:
                 preview_imgs = html.Div("Chemin PDF manquant", className="text-muted")
 
@@ -502,7 +534,11 @@ def render_validation_sections(detection, paths, adjusted_sections):
                     ),
                     dbc.Button(
                         "Voir preview",
-                        id={"type": "section-preview-btn", "index": idx, "doc": doc_key},
+                        id={
+                            "type": "section-preview-btn",
+                            "index": idx,
+                            "doc": doc_key,
+                        },
                         color="link",
                         size="sm",
                         className="p-0 mb-2",
@@ -720,15 +756,22 @@ def on_analyze(
             False,
         )
 
-    indicator_result = result if is_canonical_comparison(result) else to_canonical_payload(result)
-    indicator_meta = indicator_result.get("meta", {}) if isinstance(indicator_result, dict) else {}
+    indicator_result = (
+        result if is_canonical_comparison(result) else to_canonical_payload(result)
+    )
+    indicator_meta = (
+        indicator_result.get("meta", {}) if isinstance(indicator_result, dict) else {}
+    )
 
     # Calculate validation duration
     import time
+
     validation_duration_sec = None
     if validation_start_ms:
         validation_end_ms = int(time.time() * 1000)
-        validation_duration_sec = max(0, (validation_end_ms - validation_start_ms) // 1000)
+        validation_duration_sec = max(
+            0, (validation_end_ms - validation_start_ms) // 1000
+        )
 
     return (
         result,
@@ -745,6 +788,7 @@ def on_analyze(
 # =============================================================================
 # Modern Review Dashboard Callbacks
 # =============================================================================
+
 
 @callback(
     Output("review-queue-container", "children"),
@@ -763,7 +807,9 @@ def on_analyze(
     Input("btn-reject", "n_clicks"),
     prevent_initial_call=True,
 )
-def update_review_queue(review_items_data, current_idx, show_results, filters, _btn_approve, _btn_reject):
+def update_review_queue(
+    review_items_data, current_idx, show_results, filters, _btn_approve, _btn_reject
+):
     """Update the left-side review queue and top KPIs."""
     if not show_results:
         raise PreventUpdate
@@ -771,30 +817,42 @@ def update_review_queue(review_items_data, current_idx, show_results, filters, _
     if review_items_data is None:
         return (
             html.Div(
-                [html.I(className="bi bi-hourglass-split me-2"), "Chargement de la file de revue..."],
+                [
+                    html.I(className="bi bi-hourglass-split me-2"),
+                    "Chargement de la file de revue...",
+                ],
                 className="text-muted p-3",
             ),
             build_analyst_kpi_card(t("file_review_total"), "-", color="white"),
             build_analyst_kpi_card(t("validated"), "-", color="white"),
             build_analyst_kpi_card(t("rejected"), "-", color="white"),
             build_analyst_kpi_card(t("pending"), "-", color="white"),
-            0, 0, 0
+            0,
+            0,
+            0,
         )
     if len(review_items_data) == 0:
         return (
-            html.Div(t("no_changes_review", "Aucun changement a revoir."), className="text-muted p-3"),
+            html.Div(
+                t("no_changes_review", "Aucun changement a revoir."),
+                className="text-muted p-3",
+            ),
             build_analyst_kpi_card(t("file_review_total"), "0", color="white"),
             build_analyst_kpi_card(t("validated"), "0", color="white"),
             build_analyst_kpi_card(t("rejected"), "0", color="white"),
             build_analyst_kpi_card(t("pending"), "0", color="white"),
-            0, 0, 0
+            0,
+            0,
+            0,
         )
 
     items = review_items_data
     total = len(items)
     approved = sum(1 for i in items if i.get("review_status") == REVIEW_STATUS_APPROVED)
     rejected = sum(1 for i in items if i.get("review_status") == REVIEW_STATUS_REJECTED)
-    pending = total - approved - rejected  # Tout le reste = en attente (y compris statut manquant/invalide)
+    pending = (
+        total - approved - rejected
+    )  # Tout le reste = en attente (y compris statut manquant/invalide)
 
     pct_approved = (approved / total) * 100 if total else 0
     pct_rejected = (rejected / total) * 100 if total else 0
@@ -808,7 +866,9 @@ def update_review_queue(review_items_data, current_idx, show_results, filters, _
         build_analyst_kpi_card(t("validated"), str(approved), color="white"),
         build_analyst_kpi_card(t("rejected"), str(rejected), color="white"),
         build_analyst_kpi_card(t("pending"), str(pending), color="white"),
-        pct_approved, pct_rejected, pct_pending
+        pct_approved,
+        pct_rejected,
+        pct_pending,
     )
 
 
@@ -831,6 +891,7 @@ def on_filter_section(n_clicks, current_filters):
 
 @callback(
     Output("store-review-current-idx", "data", allow_duplicate=True),
+    Output("store-review-current-indicator-idx", "data", allow_duplicate=True),
     Output("store-nav-debug", "data", allow_duplicate=True),
     Input({"type": "review-item", "index": ALL}, "n_clicks"),
     State("store-review-current-idx", "data"),
@@ -838,7 +899,7 @@ def on_filter_section(n_clicks, current_filters):
     prevent_initial_call=True,
 )
 def on_queue_item_click(n_clicks, current_idx, items):
-    """Handle click on a review item in the queue. Clamp index to valid range."""
+    """Handle click on a review item in the queue. Resets indicator_idx to 0."""
     if not ctx.triggered:
         raise PreventUpdate
 
@@ -859,13 +920,25 @@ def on_queue_item_click(n_clicks, current_idx, items):
     if items and isinstance(items, list):
         clicked_index = max(0, min(clicked_index, total - 1))
 
-    dbg = {"writer": "on_queue_item_click", "trigger": str(button_id), "from": current_idx, "to": clicked_index, "total": total}
-    logger.info("[on_queue_item_click] trig=%s current_idx=%r total=%s -> new_idx=%s", button_id, current_idx, total, clicked_index)
-    return clicked_index, dbg
+    dbg = {
+        "writer": "on_queue_item_click",
+        "trigger": str(button_id),
+        "from": current_idx,
+        "to": clicked_index,
+        "total": total,
+    }
+    logger.info(
+        "[on_queue_item_click] trig=%s current_idx=%r total=%s -> new_idx=%s",
+        button_id,
+        current_idx,
+        total,
+        clicked_index,
+    )
+    return clicked_index, 0, dbg
 
 
 @callback(
-    Output("review-detail-container", "children"),
+    Output("review-proof-container", "children"),
     Input("store-review-items", "data"),
     Input("store-review-current-idx", "data"),
     Input("store-pdf-paths", "data"),
@@ -873,12 +946,12 @@ def on_queue_item_click(n_clicks, current_idx, items):
     Input("store-proof-display-mode", "data"),
     prevent_initial_call=True,
 )
-def update_review_detail(review_items_data, current_idx, paths, show_results, proof_display_mode):
-    """Update the right-side detail view."""
+def update_review_proofs(review_items_data, current_idx, paths, show_results, proof_display_mode):
+    """Update proof images section only (table-scoped; stable across indicator navigation)."""
     if not show_results:
         raise PreventUpdate
     if not review_items_data:
-        return html.Div("Veuillez lancer une analyse pour voir les détails.", className="text-center text-muted mt-5")
+        return html.Div("Veuillez lancer une analyse pour voir les details.", className="text-center text-muted mt-5")
 
     idx = max(0, min(int(current_idx or 0), len(review_items_data) - 1))
     item = review_items_data[idx]
@@ -888,14 +961,42 @@ def update_review_detail(review_items_data, current_idx, paths, show_results, pr
 
     img_t1_b64 = _get_proof_image_b64_for_item(item, "t1", paths or {}, proof_display_mode=mode)
     img_t2_b64 = _get_proof_image_b64_for_item(item, "t2", paths or {}, proof_display_mode=mode)
+    return build_proofs_section(item=item, img_t1_b64=img_t1_b64, img_t2_b64=img_t2_b64, proof_display_mode=mode)
+
+
+@callback(
+    Output("review-meta-container", "children"),
+    Input("store-review-items", "data"),
+    Input("store-review-current-idx", "data"),
+    Input("store-review-current-indicator-idx", "data"),
+    Input("store-show-results-page", "data"),
+    prevent_initial_call=True,
+)
+def update_review_meta(review_items_data, current_idx, indicator_idx, show_results):
+    """Update metadata + indicator decisions section (indicator-scoped)."""
+    if not show_results:
+        raise PreventUpdate
+    if not review_items_data:
+        return html.Div("Veuillez lancer une analyse pour voir les details.", className="text-center text-muted mt-5")
+
+    idx = max(0, min(int(current_idx or 0), len(review_items_data) - 1))
+    item = review_items_data[idx]
+    ind_idx = int(indicator_idx or 0)
+    indicators = item.get("indicators", [])
+    if indicators:
+        ind_idx = max(0, min(ind_idx, len(indicators) - 1))
+    else:
+        ind_idx = 0
 
     return build_review_detail(
         item=item,
-        img_t1_b64=img_t1_b64,
-        img_t2_b64=img_t2_b64,
+        img_t1_b64=None,
+        img_t2_b64=None,
         current_idx=idx,
         total_items=len(review_items_data),
-        proof_display_mode=mode,
+        proof_display_mode="crop",
+        indicator_idx=ind_idx,
+        show_proofs=False,
     )
 
 
@@ -910,54 +1011,115 @@ def on_proof_display_mode_change(value):
     return no_update
 
 
+def _derive_table_status(indicators: list[dict]) -> str:
+    """Derive table-level review status from per-indicator statuses."""
+    if not indicators:
+        return REVIEW_STATUS_APPROVED
+    statuses = [ind.get("review_status", REVIEW_STATUS_PENDING) for ind in indicators]
+    if all(s == REVIEW_STATUS_APPROVED for s in statuses):
+        return REVIEW_STATUS_APPROVED
+    if all(s == REVIEW_STATUS_REJECTED for s in statuses):
+        return REVIEW_STATUS_REJECTED
+    if all(s in (REVIEW_STATUS_APPROVED, REVIEW_STATUS_REJECTED) for s in statuses):
+        return REVIEW_STATUS_APPROVED
+    return REVIEW_STATUS_PENDING
+
+
 @callback(
     Output("store-review-items", "data", allow_duplicate=True),
+    Output("store-review-current-indicator-idx", "data", allow_duplicate=True),
+    Output("store-review-current-idx", "data", allow_duplicate=True),
     Input("btn-approve", "n_clicks"),
     Input("btn-reject", "n_clicks"),
     Input("btn-apply", "n_clicks"),
     State("store-review-items", "data"),
     State("store-review-current-idx", "data"),
+    State("store-review-current-indicator-idx", "data"),
     State("review-comment", "value"),
     prevent_initial_call=True,
 )
-def on_review_action_modern(btn_approve, btn_reject, btn_apply, review_items, current_idx, comment):
-    """Handle review actions (Approve, Reject, Comment) in the modern UI."""
-    from dash import ctx
+def on_review_action_modern(
+    btn_approve, btn_reject, btn_apply, review_items, current_idx, indicator_idx, comment
+):
+    """Handle review actions per-indicator: Approve/Reject applies to the current indicator only.
+
+    Auto-advance rules:
+    - After decision, advance to next indicator in same table (images stable).
+    - When last indicator of table is decided, auto-advance to next table + reset indicator_idx.
+    """
     import json
+
+    from dash import ctx
 
     if not ctx.triggered_id or not review_items:
         raise PreventUpdate
 
     idx = max(0, min(int(current_idx or 0), len(review_items) - 1))
     item_dict = review_items[idx]
-    
-    # Determine action
-    triggered = ctx.triggered_id
-    new_status = item_dict.get("review_status")
-    
-    if triggered == "btn-approve":
-        new_status = REVIEW_STATUS_APPROVED
-    elif triggered == "btn-reject":
-        new_status = REVIEW_STATUS_REJECTED
-    elif triggered == "btn-apply":
-        # Just saving comment, status remains unless explicitly changed elsewhere
-        pass
+    indicators = item_dict.get("indicators", [])
+    ind_idx = int(indicator_idx or 0)
 
-    # Deep copy to ensure Dash detects the change
+    triggered = ctx.triggered_id
+
+    if triggered == "btn-approve":
+        if not btn_approve:
+            raise PreventUpdate
+        new_ind_status = REVIEW_STATUS_APPROVED
+    elif triggered == "btn-reject":
+        if not btn_reject:
+            raise PreventUpdate
+        new_ind_status = REVIEW_STATUS_REJECTED
+    elif triggered == "btn-apply":
+        if not btn_apply:
+            raise PreventUpdate
+        updated_item = json.loads(json.dumps(item_dict))
+        if comment is not None:
+            updated_item["comment"] = comment
+        new_items = json.loads(json.dumps(review_items))
+        new_items[idx] = updated_item
+        return new_items, no_update, no_update
+    else:
+        raise PreventUpdate
+
     updated_item = json.loads(json.dumps(item_dict))
-    updated_item["review_status"] = new_status
+    updated_indicators = updated_item.get("indicators", [])
+
+    if updated_indicators and 0 <= ind_idx < len(updated_indicators):
+        updated_indicators[ind_idx]["review_status"] = new_ind_status
+    elif not updated_indicators:
+        updated_item["review_status"] = new_ind_status
+
+    updated_item["review_status"] = _derive_table_status(updated_indicators)
     if comment is not None:
         updated_item["comment"] = comment
 
-    # Create a completely new list with deep copies
     new_items = json.loads(json.dumps(review_items))
     new_items[idx] = updated_item
-    
-    return new_items
+
+    next_ind_idx = ind_idx
+    next_table_idx = idx
+
+    if not updated_indicators:
+        return new_items, next_ind_idx, no_update
+
+    def _is_decided(s: str | None) -> bool:
+        return s in (REVIEW_STATUS_APPROVED, REVIEW_STATUS_REJECTED)
+
+    all_decided = all(_is_decided(ind.get("review_status")) for ind in updated_indicators)
+
+    if ind_idx < len(updated_indicators) - 1:
+        next_ind_idx = ind_idx + 1
+        return new_items, next_ind_idx, no_update
+    if all_decided and idx < len(new_items) - 1:
+        next_table_idx = idx + 1
+        next_ind_idx = 0
+        return new_items, next_ind_idx, next_table_idx
+    return new_items, next_ind_idx, no_update
 
 
 @callback(
     Output("store-review-current-idx", "data", allow_duplicate=True),
+    Output("store-review-current-indicator-idx", "data", allow_duplicate=True),
     Output("store-nav-debug", "data", allow_duplicate=True),
     Input("btn-prev", "n_clicks"),
     Input("btn-next", "n_clicks"),
@@ -966,8 +1128,13 @@ def on_review_action_modern(btn_approve, btn_reject, btn_apply, review_items, cu
     prevent_initial_call=True,
 )
 def on_modern_nav(prev_clicks, next_clicks, current_idx, items):
-    """Handle Previous/Next buttons in modern UI. Clamp idx to [0, total-1]."""
-    logger.info("[on_modern_nav] ENTER trig=%s current_idx=%r items_len=%s", ctx.triggered_id, current_idx, len(items) if items else 0)
+    """Handle Previous/Next table buttons. Resets indicator_idx to 0 on table change."""
+    logger.info(
+        "[on_modern_nav] ENTER trig=%s current_idx=%r items_len=%s",
+        ctx.triggered_id,
+        current_idx,
+        len(items) if items else 0,
+    )
 
     if not items or not isinstance(items, list):
         logger.warning("[on_modern_nav] PreventUpdate: no items")
@@ -989,13 +1156,39 @@ def on_modern_nav(prev_clicks, next_clicks, current_idx, items):
     elif triggered == "btn-next":
         idx = idx + 1
     else:
-        logger.warning("[on_modern_nav] PreventUpdate: trig=%r (not btn-prev/btn-next)", triggered)
+        logger.warning(
+            "[on_modern_nav] PreventUpdate: trig=%r (not btn-prev/btn-next)", triggered
+        )
         raise PreventUpdate
 
     idx = max(0, min(idx, total - 1))
-    dbg = {"writer": "on_modern_nav", "trigger": triggered, "from": current_idx, "to": idx, "total": total}
+    dbg = {
+        "writer": "on_modern_nav",
+        "trigger": triggered,
+        "from": current_idx,
+        "to": idx,
+        "total": total,
+    }
     logger.info("[on_modern_nav] EXIT -> new_idx=%s total=%s", idx, total)
-    return idx, dbg
+    return idx, 0, dbg
+
+
+@callback(
+    Output("store-review-current-indicator-idx", "data", allow_duplicate=True),
+    Input({"type": "indicator-item", "index": ALL}, "n_clicks"),
+    prevent_initial_call=True,
+)
+def on_indicator_item_click(n_clicks):
+    """Handle click on an individual indicator row in the detail panel."""
+    if not ctx.triggered:
+        raise PreventUpdate
+    button_id = ctx.triggered_id
+    if not button_id or not isinstance(button_id, dict):
+        raise PreventUpdate
+    clicked_index = button_id.get("index")
+    if clicked_index is None:
+        raise PreventUpdate
+    return int(clicked_index)
 
 
 @callback(
@@ -1008,7 +1201,9 @@ def render_nav_debug(idx, dbg, items):
     """Debug panel: show current idx, total items, last writer (to detect nav / reset)."""
     total = len(items) if items and isinstance(items, list) else None
     payload = {"idx": idx, "total": total, "dbg": dbg}
-    return html.Pre(json.dumps(payload, ensure_ascii=False, indent=2), className="mb-0 small")
+    return html.Pre(
+        json.dumps(payload, ensure_ascii=False, indent=2), className="mb-0 small"
+    )
 
 
 @callback(
@@ -1019,12 +1214,23 @@ def render_nav_debug(idx, dbg, items):
     Input("store-show-results-page", "data"),
 )
 def update_review_nav_disabled(current_idx, items, show_results):
-    """Disable Prev/Next when at first/last item; disable both when no results."""
+    """Disable Prev/Next when at first/last item.
+    btn-next also disabled if current table has pending indicators."""
     if not show_results or not items:
         return True, True
     idx = max(0, min(int(current_idx or 0), len(items) - 1))
     n = len(items)
-    return idx <= 0, idx >= n - 1
+    at_first = idx <= 0
+    at_last = idx >= n - 1
+
+    current_item = items[idx]
+    indicators = current_item.get("indicators", [])
+    has_pending = any(
+        ind.get("review_status", REVIEW_STATUS_PENDING) == REVIEW_STATUS_PENDING
+        for ind in indicators
+    )
+    next_disabled = at_last or has_pending
+    return at_first, next_disabled
 
 
 @callback(
@@ -1044,6 +1250,7 @@ def update_validation_time_footer(duration_sec, show_results):
 # =============================================================================
 # Legacy / Existing Callbacks (Kept for compatibility where needed)
 # =============================================================================
+
 
 @callback(
     Output("results-header", "children"),
@@ -1066,7 +1273,9 @@ def render_results(comparison, indicator, show_results):
     data = indicator if indicator else comparison
     if comparison:
         bank = comparison.get("bank_code", "N/A")
-        title = comparison.get("comparison", comparison.get("comparison_date", "Comparaison"))
+        title = comparison.get(
+            "comparison", comparison.get("comparison_date", "Comparaison")
+        )
     elif indicator:
         bank = indicator.get("bank_code", "N/A")
         title = "Indicateurs"
@@ -1100,8 +1309,12 @@ def render_results(comparison, indicator, show_results):
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.P(f"{t('tables')} T1", className="small text-muted mb-0"),
-                            html.H4(str(kpi.get("tables_t1", 0)), className="mb-0 fw-bold"),
+                            html.P(
+                                f"{t('tables')} T1", className="small text-muted mb-0"
+                            ),
+                            html.H4(
+                                str(kpi.get("tables_t1", 0)), className="mb-0 fw-bold"
+                            ),
                         ],
                         className="p-2 text-center",
                     ),
@@ -1113,8 +1326,12 @@ def render_results(comparison, indicator, show_results):
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.P(f"{t('tables')} T2", className="small text-muted mb-0"),
-                            html.H4(str(kpi.get("tables_t2", 0)), className="mb-0 fw-bold"),
+                            html.P(
+                                f"{t('tables')} T2", className="small text-muted mb-0"
+                            ),
+                            html.H4(
+                                str(kpi.get("tables_t2", 0)), className="mb-0 fw-bold"
+                            ),
                         ],
                         className="p-2 text-center",
                     ),
@@ -1127,7 +1344,10 @@ def render_results(comparison, indicator, show_results):
                     dbc.CardBody(
                         [
                             html.P(t("matched"), className="small text-muted mb-0"),
-                            html.H4(str(kpi.get("tables_matched", 0)), className="mb-0 fw-bold"),
+                            html.H4(
+                                str(kpi.get("tables_matched", 0)),
+                                className="mb-0 fw-bold",
+                            ),
                         ],
                         className="p-2 text-center",
                     ),
@@ -1139,7 +1359,9 @@ def render_results(comparison, indicator, show_results):
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.P(t("fusion_split"), className="small text-muted mb-0"),
+                            html.P(
+                                t("fusion_split"), className="small text-muted mb-0"
+                            ),
                             html.H4(str(structure_change), className="mb-0 fw-bold"),
                         ],
                         className="p-2 text-center",
@@ -1181,7 +1403,9 @@ def render_results(comparison, indicator, show_results):
     return header, executive_summary, html.Div(kpis)
 
 
-def _build_kpi_card(title: str, value: str | int, delta_icon: str | None = None, color: str = "light") -> dbc.Card:
+def _build_kpi_card(
+    title: str, value: str | int, delta_icon: str | None = None, color: str = "light"
+) -> dbc.Card:
     """Build a single KPI card for the analyst panel."""
     body_children = [
         html.P(title, className="text-muted mb-1 small"),
@@ -1256,26 +1480,34 @@ def render_secondary_kpis(indicator_result, validation_duration_sec):
     # Count tables with changes
     comparisons = indicator_result.get("table_comparisons", [])
     tables_with_changes = [
-        c for c in comparisons
+        c
+        for c in comparisons
         if (
             len(c.get("added_indicators", []))
             + len(c.get("removed_indicators", []))
             + len(c.get("renamed_indicators", []))
-        ) > 0
+        )
+        > 0
     ]
     n_tables = len(tables_with_changes)
 
     # Sum indicators
     total_added = sum(len(c.get("added_indicators", [])) for c in tables_with_changes)
-    total_removed = sum(len(c.get("removed_indicators", [])) for c in tables_with_changes)
+    total_removed = sum(
+        len(c.get("removed_indicators", [])) for c in tables_with_changes
+    )
 
-    header_text = f"Differences d'indicateurs ({n_tables} {t('tables')} avec changements)"
+    header_text = (
+        f"Differences d'indicateurs ({n_tables} {t('tables')} avec changements)"
+    )
 
     return (
         header_text,
         _build_kpi_card(t("kpi_removed"), total_removed, delta_icon=None),
         _build_kpi_card(t("kpi_added"), total_added, delta_icon=None),
-        _build_kpi_card(t("validation_time"), _format_duration(validation_duration_sec)),
+        _build_kpi_card(
+            t("validation_time"), _format_duration(validation_duration_sec)
+        ),
     )
 
 
@@ -1345,14 +1577,17 @@ def render_sections_tab(indicator_result, show_results):
 
     # Determine which sections to expand by default (those with changes)
     active_items = [
-        f"section-{i}" for i, (_, data) in enumerate(sorted(sections.items()))
+        f"section-{i}"
+        for i, (_, data) in enumerate(sorted(sections.items()))
         if data["changes"] or data["added"] or data["removed"]
     ]
 
     return dbc.Accordion(
         accordion_items,
         id="sections-accordion",
-        active_item=active_items[:3] if active_items else None,  # Expand first 3 with changes
+        active_item=active_items[:3]
+        if active_items
+        else None,  # Expand first 3 with changes
         always_open=True,
     )
 
@@ -1386,7 +1621,13 @@ def init_review_items(indicator_result, paths):
     )
     serialized = [it.to_dict() for it in items]
     total = len(serialized)
-    dbg = {"writer": "init_review_items", "trigger": "init", "from": None, "to": 0, "total": total}
+    dbg = {
+        "writer": "init_review_items",
+        "trigger": "init",
+        "from": None,
+        "to": 0,
+        "total": total,
+    }
     logger.info("[init_review_items] total=%s -> idx=0", total)
     return serialized, 0, dbg
 
@@ -1414,7 +1655,9 @@ def _build_comparison_statement(item: ReviewItem) -> str:
 
 def _filter_noise(items: list[str]) -> list[str]:
     """Filter out noise lines (dates, units, footnotes) using normalize_indicator_for_comparison."""
-    return [x for x in items if x and normalize_indicator_for_comparison(str(x).strip())]
+    return [
+        x for x in items if x and normalize_indicator_for_comparison(str(x).strip())
+    ]
 
 
 def _get_proof_image_b64_for_item(
@@ -1450,7 +1693,12 @@ def _get_proof_image_b64_for_item(
             base_img_b64 = base64.b64encode(raw).decode("ascii")
         except Exception:
             pass
-    if base_img_b64 is None and ref and Path(ref).exists() and Path(ref).suffix.lower() in {".png", ".jpg", ".jpeg"}:
+    if (
+        base_img_b64 is None
+        and ref
+        and Path(ref).exists()
+        and Path(ref).suffix.lower() in {".png", ".jpg", ".jpeg"}
+    ):
         try:
             with open(ref, "rb") as f:
                 raw = f.read()
@@ -1470,8 +1718,12 @@ def _get_proof_image_b64_for_item(
         if use_crop and bbox and isinstance(bbox, list) and len(bbox) == 4:
             bbox_key = json.dumps(bbox)
         try:
-            raw_bytes = _cached_render_or_crop(str(pdf_path), page_effective, 1.5, bbox_key)
-            base_img_b64 = base64.b64encode(raw_bytes).decode("ascii") if raw_bytes else None
+            raw_bytes = _cached_render_or_crop(
+                str(pdf_path), page_effective, 1.5, bbox_key
+            )
+            base_img_b64 = (
+                base64.b64encode(raw_bytes).decode("ascii") if raw_bytes else None
+            )
         except Exception as e:
             logger.warning("Render/crop failed: %s", e)
             base_img_b64 = None
@@ -1533,7 +1785,11 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
     if not pdf_path:
         pdf_path = ref
 
-    if ref and Path(ref).exists() and Path(ref).suffix.lower() in {".png", ".jpg", ".jpeg"}:
+    if (
+        ref
+        and Path(ref).exists()
+        and Path(ref).suffix.lower() in {".png", ".jpg", ".jpeg"}
+    ):
         try:
             with open(ref, "rb") as f:
                 raw = f.read()
@@ -1580,8 +1836,12 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
     proof_image_path = current_dict.get("proof_image_path", "") or ""
     proof_mode = current_dict.get("proof_mode", "") or ""
 
-    img_t1_b64 = _get_proof_image_b64_for_item(current_dict, "t1", paths or {}, proof_display_mode="crop")
-    img_t2_b64 = _get_proof_image_b64_for_item(current_dict, "t2", paths or {}, proof_display_mode="crop")
+    img_t1_b64 = _get_proof_image_b64_for_item(
+        current_dict, "t1", paths or {}, proof_display_mode="crop"
+    )
+    img_t2_b64 = _get_proof_image_b64_for_item(
+        current_dict, "t2", paths or {}, proof_display_mode="crop"
+    )
 
     def _img_div(b64, label, caption):
         if b64:
@@ -1589,8 +1849,12 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
             return html.Div(
                 [
                     html.P(label, className="small text-muted mb-1"),
-                    html.Img(src=src, style={"maxWidth": "100%", "border": "1px solid #ddd"}),
-                    html.P(caption, className="small text-muted mt-1") if caption else None,
+                    html.Img(
+                        src=src, style={"maxWidth": "100%", "border": "1px solid #ddd"}
+                    ),
+                    html.P(caption, className="small text-muted mt-1")
+                    if caption
+                    else None,
                 ],
                 className="mb-2",
             )
@@ -1608,7 +1872,10 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
             f"Mode {proof_mode}" if proof_mode else None,
         )
         col2_content = html.Div(
-            [html.P("Tn+1", className="small text-muted"), html.P("Inclus dans la preuve tableau entier.")]
+            [
+                html.P("Tn+1", className="small text-muted"),
+                html.P("Inclus dans la preuve tableau entier."),
+            ]
         )
     else:
         col1_content = _img_div(
@@ -1655,15 +1922,28 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
             dbc.Row(
                 [
                     dbc.Col(
-                        dbc.Button("Precedent", id="btn-review-prev", color="secondary", size="sm"),
+                        dbc.Button(
+                            "Precedent",
+                            id="btn-review-prev",
+                            color="secondary",
+                            size="sm",
+                        ),
                         width="auto",
                     ),
                     dbc.Col(
-                        dbc.Button("Suivant", id="btn-review-next", color="secondary", size="sm"),
+                        dbc.Button(
+                            "Suivant",
+                            id="btn-review-next",
+                            color="secondary",
+                            size="sm",
+                        ),
                         width="auto",
                     ),
                     dbc.Col(
-                        html.Span(f"Changement {idx + 1} / {len(items)}", className="text-muted"),
+                        html.Span(
+                            f"Changement {idx + 1} / {len(items)}",
+                            className="text-muted",
+                        ),
                         width="auto",
                     ),
                 ],
@@ -1686,15 +1966,24 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
             dbc.Row(
                 [
                     dbc.Col(
-                        dbc.Button("Valider", id="btn-review-approve", color="success", size="sm"),
+                        dbc.Button(
+                            "Valider",
+                            id="btn-review-approve",
+                            color="success",
+                            size="sm",
+                        ),
                         width="auto",
                     ),
                     dbc.Col(
-                        dbc.Button("Rejeter", id="btn-review-reject", color="danger", size="sm"),
+                        dbc.Button(
+                            "Rejeter", id="btn-review-reject", color="danger", size="sm"
+                        ),
                         width="auto",
                     ),
                     dbc.Col(
-                        dbc.Button("Passer", id="btn-review-pass", color="secondary", size="sm"),
+                        dbc.Button(
+                            "Passer", id="btn-review-pass", color="secondary", size="sm"
+                        ),
                         width="auto",
                     ),
                 ],
@@ -1727,8 +2016,20 @@ def on_review_navigate(prev_clicks, next_clicks, review_items, current_idx):
         idx = min(n - 1, idx + 1)
     else:
         raise PreventUpdate
-    dbg = {"writer": "on_review_navigate", "trigger": ctx.triggered_id, "from": current_idx, "to": idx, "total": n}
-    logger.info("[on_review_navigate] trig=%s current_idx=%r total=%s -> new_idx=%s", ctx.triggered_id, current_idx, n, idx)
+    dbg = {
+        "writer": "on_review_navigate",
+        "trigger": ctx.triggered_id,
+        "from": current_idx,
+        "to": idx,
+        "total": n,
+    }
+    logger.info(
+        "[on_review_navigate] trig=%s current_idx=%r total=%s -> new_idx=%s",
+        ctx.triggered_id,
+        current_idx,
+        n,
+        idx,
+    )
     return idx, dbg
 
 
@@ -1741,10 +2042,13 @@ def on_review_navigate(prev_clicks, next_clicks, review_items, current_idx):
     State("store-review-current-idx", "data"),
     prevent_initial_call=True,
 )
-def on_review_status(approve_clicks, reject_clicks, pass_clicks, review_items, current_idx):
+def on_review_status(
+    approve_clicks, reject_clicks, pass_clicks, review_items, current_idx
+):
     """Appliquer Valider/Rejeter/Passer sur l'item courant."""
-    from dash import ctx
     import json
+
+    from dash import ctx
 
     if not ctx.triggered_id or not review_items:
         raise PreventUpdate
@@ -1761,7 +2065,7 @@ def on_review_status(approve_clicks, reject_clicks, pass_clicks, review_items, c
 
     item = ReviewItem.from_dict(review_items[idx])
     updated = set_review_status(item, status)
-    
+
     # Deep copy to ensure Dash detects the change
     new_items = json.loads(json.dumps(review_items))
     new_items[idx] = updated.to_dict()
@@ -1791,7 +2095,9 @@ def render_table_tab(indicator_result, comparison_result, show_results):
             return html.Div("Aucun changement a afficher.", className="text-muted")
         headers = list(rows[0].keys()) if rows else []
         header_row = html.Tr([html.Th(h) for h in headers])
-        body_rows = [html.Tr([html.Td(str(row.get(h, ""))) for h in headers]) for row in rows]
+        body_rows = [
+            html.Tr([html.Td(str(row.get(h, ""))) for h in headers]) for row in rows
+        ]
         return html.Div(
             [
                 html.P(f"{len(rows)} changement(s) detecte(s)", className="mb-2"),
@@ -1814,7 +2120,9 @@ def render_table_tab(indicator_result, comparison_result, show_results):
             return html.Div("Aucun changement a afficher.", className="text-muted")
         headers = list(rows[0].keys()) if rows else []
         header_row = html.Tr([html.Th(h) for h in headers])
-        body_rows = [html.Tr([html.Td(str(row.get(h, ""))) for h in headers]) for row in rows]
+        body_rows = [
+            html.Tr([html.Td(str(row.get(h, ""))) for h in headers]) for row in rows
+        ]
         return html.Div(
             [
                 html.P(f"{len(rows)} changement(s) detecte(s)", className="mb-2"),
@@ -1830,7 +2138,9 @@ def render_table_tab(indicator_result, comparison_result, show_results):
     if comparison_result:
         changes = comparison_result.get("changes", [])
         if not changes:
-            return html.Div("Aucun changement structurel detecte.", className="text-muted")
+            return html.Div(
+                "Aucun changement structurel detecte.", className="text-muted"
+            )
         flat = []
         for c in changes:
             for ind in c.get("rows_added", []):
@@ -1862,7 +2172,9 @@ def render_table_tab(indicator_result, comparison_result, show_results):
             ]
         headers = list(flat[0].keys()) if flat else []
         header_row = html.Tr([html.Th(h) for h in headers])
-        body_rows = [html.Tr([html.Td(str(r.get(h, ""))) for h in headers]) for r in flat]
+        body_rows = [
+            html.Tr([html.Td(str(r.get(h, ""))) for h in headers]) for r in flat
+        ]
         return html.Div(
             [
                 html.P(f"{len(changes)} changement(s) structurel(s)", className="mb-2"),
@@ -1939,7 +2251,10 @@ def render_export_tab(review_items_data, indicator_result, show_results):
         content.append(
             html.Div(
                 [
-                    html.P("Export payload canonical complet (summary, status_counts, structure_change_detected)", className="mb-2"),
+                    html.P(
+                        "Export payload canonical complet (summary, status_counts, structure_change_detected)",
+                        className="mb-2",
+                    ),
                     dbc.Button(
                         "Telecharger JSON brut",
                         id="btn-download-indicator-json-brut",
@@ -2099,7 +2414,9 @@ def on_download_indicator_json_brut(n_clicks, indicator_result):
     q_from = str(indicator_result.get("quarter_from", "t1"))
     q_to = str(indicator_result.get("quarter_to", "t2"))
     year_val = str(indicator_result.get("year", "2025"))
-    base_name = f"{bank}_{q_from}_vs_{q_to}_{year_val}_canonical".replace(" ", "_").lower()
+    base_name = f"{bank}_{q_from}_vs_{q_to}_{year_val}_canonical".replace(
+        " ", "_"
+    ).lower()
     json_str = json.dumps(indicator_result, ensure_ascii=False, indent=2)
     return dict(content=json_str, filename=f"{base_name}.json")
 
@@ -2121,9 +2438,26 @@ def on_download_indicator_json_brut(n_clicks, indicator_result):
 def on_reset(n_clicks):
     """Reinitialiser pour nouvelle analyse."""
     if n_clicks:
-        dbg = {"writer": "on_reset", "trigger": "btn-reset", "from": None, "to": 0, "total": None}
+        dbg = {
+            "writer": "on_reset",
+            "trigger": "btn-reset",
+            "from": None,
+            "to": 0,
+            "total": None,
+        }
         logger.info("[on_reset] -> idx=0")
-        return None, None, None, False, None, 0, build_page_upload(), False, {"section": "all", "status": "all"}, dbg
+        return (
+            None,
+            None,
+            None,
+            False,
+            None,
+            0,
+            build_page_upload(),
+            False,
+            {"section": "all", "status": "all"},
+            dbg,
+        )
     raise PreventUpdate
 
 
