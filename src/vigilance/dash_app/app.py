@@ -1304,6 +1304,8 @@ def render_results(comparison, indicator, show_results):
         kpi = indicator.get("summary", indicator.get("kpi_metier", {}))
         status_counts = kpi.get("status_counts", {}) or {}
         structure_change = status_counts.get("structure_change", 0)
+        changed_t1 = kpi.get("tables_changed_t1", 0)
+        changed_t2 = kpi.get("tables_changed_t2", 0)
         cols = [
             dbc.Col(
                 dbc.Card(
@@ -1363,6 +1365,38 @@ def render_results(comparison, indicator, show_results):
                                 t("fusion_split"), className="small text-muted mb-0"
                             ),
                             html.H4(str(structure_change), className="mb-0 fw-bold"),
+                        ],
+                        className="p-2 text-center",
+                    ),
+                    className="shadow-sm border-0",
+                ),
+                width=2,
+            ),
+            dbc.Col(
+                dbc.Card(
+                    dbc.CardBody(
+                        [
+                            html.P(
+                                t("kpi_changed_t1"),
+                                className="small text-muted mb-0",
+                            ),
+                            html.H4(str(changed_t1), className="mb-0 fw-bold"),
+                        ],
+                        className="p-2 text-center",
+                    ),
+                    className="shadow-sm border-0",
+                ),
+                width=2,
+            ),
+            dbc.Col(
+                dbc.Card(
+                    dbc.CardBody(
+                        [
+                            html.P(
+                                t("kpi_changed_t2"),
+                                className="small text-muted mb-0",
+                            ),
+                            html.H4(str(changed_t2), className="mb-0 fw-bold"),
                         ],
                         className="p-2 text-center",
                     ),

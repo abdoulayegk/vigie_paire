@@ -63,8 +63,12 @@ _DEFAULTS: dict[str, float] = {
     "rescue_split_merge_min_union_containment": 0.80,
     "rescue_split_merge_min_header_schema": 0.65,
     "title_override_min_similarity": 0.85,
+    "title_override_body_similarity": 0.92,
     "title_override_min_structure": 0.50,
     "title_override_min_overlap": 0.55,
+    "title_override_max_size_ratio": 0.25,
+    "hash_exact_min_title_similarity": 0.85,
+    "hash_exact_min_body_similarity": 0.92,
     "title_match_min_similarity": 0.88,
     "title_match_min_structure": 0.50,
     "table_number_low_overlap_header_title_min_similarity": 0.88,
@@ -79,6 +83,7 @@ _DEFAULTS: dict[str, float] = {
     "weight_s_title": 0.10,
     "weight_s_size": 0.05,
     "size_mismatch_reject_threshold": 0.60,
+    "ignore_table_id_for_number": 0.0,
     "include_explanation": False,
     "split_diagnostic_max_candidates": 5.0,
     "use_post_hungarian_threshold": False,
@@ -747,15 +752,39 @@ def match_decision(
     # Skip if table_number conflict: different bases block even with same indicators.
     label_t1 = _extract_table_label(table_t1)
     label_t2 = _extract_table_label(table_t2)
+    ignore_table_id_for_number = bool(th.get("ignore_table_id_for_number", False))
     table_number_conflict = bool(
-        label_t1 and label_t2 and label_t1.base != label_t2.base
+        label_t1
+        and label_t2
+        and label_t1.base != label_t2.base
+        and not ignore_table_id_for_number
     )
     _, hash_t1 = _get_table_features(table_t1)
     _, hash_t2 = _get_table_features(table_t2)
     if not table_number_conflict and hash_t1 and hash_t2 and hash_t1 == hash_t2:
         if section_state == "same_known":
             title_sim = _title_similarity(table_t1, table_t2, bank_code=bank_code)
-            if title_sim >= 0.0:
+            body_t1 = _title_body_without_table_number(table_t1.title, bank_code)
+            body_t2 = _title_body_without_table_number(table_t2.title, bank_code)
+            body_similarity = (
+                SequenceMatcher(None, body_t1, body_t2).ratio()
+                if body_t1 and body_t2
+                else 0.0
+            )
+            hash_title_min = float(
+                th.get(
+                    "hash_exact_min_title_similarity",
+                    th.get("title_override_min_similarity", 0.85),
+                )
+            )
+            hash_body_min = float(
+                th.get(
+                    "hash_exact_min_body_similarity",
+                    th.get("title_override_body_similarity", 0.92),
+                )
+            )
+            # Guard rail: hash alone must not force match when titles diverge semantically.
+            if title_sim >= hash_title_min and body_similarity >= hash_body_min:
                 tn_match = bool(
                     label_t1 and label_t2 and label_t1.full == label_t2.full
                 )
@@ -787,6 +816,15 @@ def match_decision(
                     decision_level="match",
                     soft_indicator_overlap=1.0,
                 )
+            logger.debug(
+                "Skip hash_exact for %s <-> %s: title_sim=%.3f body_sim=%.3f (min %.3f/%.3f)",
+                t1_uid,
+                t2_uid,
+                title_sim,
+                body_similarity,
+                hash_title_min,
+                hash_body_min,
+            )
     section_match = section_state == "same_known"
     table_number_match = bool(label_t1 and label_t2 and label_t1.full == label_t2.full)
     table_label_base_match = bool(

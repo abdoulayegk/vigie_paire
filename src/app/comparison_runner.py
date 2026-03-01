@@ -27,6 +27,7 @@ _INDICATOR_DEFAULTS = {
     "indicator_gate_min_token_overlap": 1,
 }
 
+from app.comparison_canonical import compute_changed_tables_t1, compute_changed_tables_t2
 from app.ui_config import INDICATOR_COMPARISON_DIR, LOGS_DIR
 
 _SEMANTIC_JUDGE_LOG = LOGS_DIR / "semantic_judge_decisions.jsonl"
@@ -1282,6 +1283,7 @@ def run_comparison_with_sections(
     comparisons: list[dict[str, Any]] = []
     table_pair_embed_debug: list[dict[str, Any]] = []
     all_rename_pair_debug: list[dict[str, Any]] = []
+    all_unmatched_indicator_candidates: list[dict[str, Any]] = []
     for pair in strict.get("pairs", []):
         t1_uid = str(pair.get("t1_uid", ""))
         t2_uid = str(pair.get("t2_uid", ""))
@@ -1313,6 +1315,13 @@ def run_comparison_with_sections(
                     e_with_ctx["table_id_t1"] = table_t1.table_id
                     e_with_ctx["table_id_t2"] = table_t2.table_id
                     all_rename_pair_debug.append(e_with_ctx)
+                unmatched = indicator_debug.get("unmatched_removed_with_candidates") or []
+                if unmatched:
+                    all_unmatched_indicator_candidates.append({
+                        "table_id_t1": table_t1.table_id,
+                        "table_id_t2": table_t2.table_id,
+                        "unmatched_removed_with_top_candidates": unmatched,
+                    })
             if indicator_debug and logger.isEnabledFor(logging.DEBUG):
                 logger.debug(
                     "indicator_pairing %s:%s gated=%s renames=%s scores=%s",
@@ -1453,6 +1462,7 @@ def run_comparison_with_sections(
             "table_number": getattr(t2_t, "table_number", None) if t2_t else None,
             "page": item.get("page_t2"),
             "section": item.get("section", ""),
+            "source_reason": str(item.get("source_reason", "")),
             "source_method": _source_method(t2_uid_added, t2_by_uid),
             "quality_flags": [],
             "indicators": list(item.get("first_column_indicators", []) or []),
@@ -1484,6 +1494,7 @@ def run_comparison_with_sections(
             "table_number": getattr(t1_t, "table_number", None) if t1_t else None,
             "page": item.get("page_t1"),
             "section": item.get("section", ""),
+            "source_reason": str(item.get("source_reason", "")),
             "source_method": _source_method(t1_uid_removed, t1_by_uid),
             "quality_flags": [],
             "indicators": list(item.get("first_column_indicators", []) or []),
@@ -1527,6 +1538,42 @@ def run_comparison_with_sections(
                 batch_results = classifier.classify_batch([c for _, c in to_classify])
                 for (idx, _comp), analysis in zip(to_classify, batch_results):
                     comparisons[idx]["genai_analysis"] = analysis
+
+            # Classify added/removed tables (synthetic payloads for same classifier)
+            def _synthetic_comp_added(t: dict[str, Any]) -> dict[str, Any]:
+                return {
+                    "section": t.get("section", ""),
+                    "table_title": t.get("title", "") or t.get("table_id", ""),
+                    "title_t1": "",
+                    "title_t2": t.get("title", "") or t.get("table_id", ""),
+                    "table_status": "ajoute",
+                    "added_indicators": list(t.get("indicators", []) or t.get("all_indicators_t2", []))[:30],
+                    "removed_indicators": [],
+                    "renamed_indicators": [],
+                }
+
+            def _synthetic_comp_removed(t: dict[str, Any]) -> dict[str, Any]:
+                return {
+                    "section": t.get("section", ""),
+                    "table_title": t.get("title", "") or t.get("table_id", ""),
+                    "title_t1": t.get("title", "") or t.get("table_id", ""),
+                    "title_t2": "",
+                    "table_status": "supprime",
+                    "added_indicators": [],
+                    "removed_indicators": list(t.get("indicators", []) or t.get("all_indicators_t1", []))[:30],
+                    "renamed_indicators": [],
+                }
+
+            if tables_added:
+                added_payloads = [_synthetic_comp_added(t) for t in tables_added]
+                added_analyses = classifier.classify_batch(added_payloads)
+                for t, analysis in zip(tables_added, added_analyses):
+                    t["genai_analysis"] = analysis
+            if tables_removed:
+                removed_payloads = [_synthetic_comp_removed(t) for t in tables_removed]
+                removed_analyses = classifier.classify_batch(removed_payloads)
+                for t, analysis in zip(tables_removed, removed_analyses):
+                    t["genai_analysis"] = analysis
 
             logger.info(
                 "GenAI classification: %d calls, %d errors, %.1fs total, "
@@ -1659,6 +1706,7 @@ def run_comparison_with_sections(
                 "indicator_rename_count": total_renamed,
                 "table_pair_debug": table_pair_embed_debug,
                 "rename_pair_debug": all_rename_pair_debug,
+                "indicator_unmatched_with_candidates": all_unmatched_indicator_candidates,
             },
             "semantic_judge_debug": {
                 "enabled": semantic_judge_enabled,
@@ -1669,6 +1717,9 @@ def run_comparison_with_sections(
             },
         },
     }
+
+    result["summary"]["tables_changed_t1"] = compute_changed_tables_t1(result)
+    result["summary"]["tables_changed_t2"] = compute_changed_tables_t2(result)
 
     # -- GenAI executive summary enrichment (feature-flagged via bank_profiles.yaml) --
     if api_key:
