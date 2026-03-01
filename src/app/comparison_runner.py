@@ -27,6 +27,7 @@ _INDICATOR_DEFAULTS = {
     "indicator_gate_min_token_overlap": 1,
 }
 
+from app.comparison_canonical import compute_changed_tables_t1, compute_changed_tables_t2
 from app.ui_config import INDICATOR_COMPARISON_DIR, LOGS_DIR
 
 _SEMANTIC_JUDGE_LOG = LOGS_DIR / "semantic_judge_decisions.jsonl"
@@ -1669,6 +1670,9 @@ def run_comparison_with_sections(
             },
         },
     }
+
+    result["summary"]["tables_changed_t1"] = compute_changed_tables_t1(result)
+    result["summary"]["tables_changed_t2"] = compute_changed_tables_t2(result)
 
     # -- GenAI executive summary enrichment (feature-flagged via bank_profiles.yaml) --
     if api_key:

@@ -63,6 +63,8 @@ UI_LABELS: dict[str, str] = {
     "kpi_added": "Indicateurs ajoutés",
     "kpi_removed": "Indicateurs retirés",
     "kpi_renamed": "Renommages",
+    "kpi_changed_t1": "Tableaux changés (T1)",
+    "kpi_changed_t2": "Tableaux changés (T2)",
     "btn_approve": "Valider",
     "btn_reject": "Rejeter",
     "btn_apply": "Appliquer",
