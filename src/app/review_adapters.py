@@ -343,6 +343,7 @@ def build_review_items_from_indicator_result(
                 bbox_t2=table.get("bbox_t2"),
                 added_indicators=all_indicators_t2,
                 removed_indicators=[],
+                genai_analysis=table.get("genai_analysis") or {},
                 match_metadata=match_meta_added,
             )
         )
@@ -390,6 +391,7 @@ def build_review_items_from_indicator_result(
                 bbox_t2=table.get("bbox_t2"),
                 added_indicators=[],
                 removed_indicators=all_indicators_t1,
+                genai_analysis=table.get("genai_analysis") or {},
                 match_metadata=match_meta_removed,
             )
         )
