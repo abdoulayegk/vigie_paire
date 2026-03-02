@@ -45,6 +45,7 @@ packages = [
     "vigilance.comparison",
     "vigilance.config",
     "vigilance.embedding",
+    "vigilance.genai",
     "vigilance.extraction",
     "vigilance.extract",
     "vigilance.models",

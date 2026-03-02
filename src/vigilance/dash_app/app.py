@@ -1554,6 +1554,119 @@ def render_results(comparison, indicator, show_results):
             ),
         ]
         kpis.append(dbc.Row(cols, className="mb-3"))
+
+        meta = indicator.get("meta", {}) or {}
+        validation_summary = (
+            meta.get("validation_summary", {}) if isinstance(meta, dict) else {}
+        )
+        if isinstance(validation_summary, dict):
+            vp = validation_summary.get("vision_pair", {}) or {}
+            rv = validation_summary.get("rename_validator", {}) or {}
+            atv = validation_summary.get("added_table_validator", {}) or {}
+            iv = validation_summary.get("indicator_validator", {}) or {}
+            if any(
+                bool(block.get("enabled", False))
+                for block in (vp, rv, atv, iv)
+                if isinstance(block, dict)
+            ):
+                validation_cols = [
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.P(
+                                        "Validation paires (Vision)",
+                                        className="small text-muted mb-0",
+                                    ),
+                                    html.H5(
+                                        f"{int(vp.get('accepted', 0))}/{int(vp.get('rejected', 0))}",
+                                        className="mb-0 fw-bold",
+                                    ),
+                                    html.Small(
+                                        f"calls={int(vp.get('calls', 0))} err={int(vp.get('errors', 0))}",
+                                        className="text-muted",
+                                    ),
+                                ],
+                                className="p-2 text-center",
+                            ),
+                            className="shadow-sm border-0",
+                        ),
+                        width=3,
+                    ),
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.P(
+                                        "Validation renommages",
+                                        className="small text-muted mb-0",
+                                    ),
+                                    html.H5(
+                                        f"{int(rv.get('accepted', 0))}/{int(rv.get('rejected', 0))}",
+                                        className="mb-0 fw-bold",
+                                    ),
+                                    html.Small(
+                                        (
+                                            f"band={int(rv.get('candidates_in_band', 0))} "
+                                            f"skip={int(rv.get('auto_accepted_out_of_band', 0))}"
+                                        ),
+                                        className="text-muted",
+                                    ),
+                                ],
+                                className="p-2 text-center",
+                            ),
+                            className="shadow-sm border-0",
+                        ),
+                        width=3,
+                    ),
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.P(
+                                        "Validation tableaux ajoutés",
+                                        className="small text-muted mb-0",
+                                    ),
+                                    html.H5(
+                                        f"{int(atv.get('accepted', 0))}/{int(atv.get('rejected', 0))}",
+                                        className="mb-0 fw-bold",
+                                    ),
+                                    html.Small(
+                                        f"calls={int(atv.get('calls', 0))} err={int(atv.get('errors', 0))}",
+                                        className="text-muted",
+                                    ),
+                                ],
+                                className="p-2 text-center",
+                            ),
+                            className="shadow-sm border-0",
+                        ),
+                        width=3,
+                    ),
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.P(
+                                        "Validation indicateurs",
+                                        className="small text-muted mb-0",
+                                    ),
+                                    html.H5(
+                                        f"-{int(iv.get('filtered_added', 0))}/-{int(iv.get('filtered_removed', 0))}",
+                                        className="mb-0 fw-bold",
+                                    ),
+                                    html.Small(
+                                        f"calls={int(iv.get('calls', 0))} err={int(iv.get('errors', 0))}",
+                                        className="text-muted",
+                                    ),
+                                ],
+                                className="p-2 text-center",
+                            ),
+                            className="shadow-sm border-0",
+                        ),
+                        width=3,
+                    ),
+                ]
+                kpis.append(dbc.Row(validation_cols, className="mb-3"))
     elif comparison:
         summary = comparison.get("summary", {})
         total_changes = summary.get("total_changes")

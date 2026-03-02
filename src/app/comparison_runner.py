@@ -42,10 +42,15 @@ from app.comparison_canonical import compute_changed_tables_t1, compute_changed_
 from app.ui_config import INDICATOR_COMPARISON_DIR, LOGS_DIR
 
 _SEMANTIC_JUDGE_LOG = LOGS_DIR / "semantic_judge_decisions.jsonl"
+_VALIDATION_LOG = LOGS_DIR / "validation.jsonl"
 from vigilance.compare import run_strict_intra_section_compare
 from vigilance.compare.table_fragment_merger import merge_table_fragments
 from vigilance.comparison.footnote_comparator import FootnoteComparator
-from vigilance.config import get_matching_thresholds, get_quality_gate_config
+from vigilance.config import (
+    get_matching_thresholds,
+    get_quality_gate_config,
+    get_validation_config,
+)
 from vigilance.models.table_models import TableArtifact
 from vigilance.utils.footnotes_utils import (
     footnotes_list_to_dict,
@@ -110,6 +115,18 @@ def _write_match_decision_log(record: dict[str, Any]) -> None:
             fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
     except Exception as exc:
         logger.debug("match_decision log write failed: %s", exc)
+
+
+def _write_validation_log(record: dict[str, Any], *, run_id: str | None = None) -> None:
+    """Append a structured validation record to the JSONL validation log."""
+    try:
+        payload = dict(record or {})
+        if run_id and not payload.get("run_id"):
+            payload["run_id"] = run_id
+        with open(_VALIDATION_LOG, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(payload, ensure_ascii=False, default=str) + "\n")
+    except Exception as exc:
+        logger.debug("validation log write failed: %s", exc)
 
 
 def _compare_table_footnotes(t1: TableArtifact, t2: TableArtifact) -> dict[str, Any]:
@@ -1556,6 +1573,9 @@ def run_comparison_with_sections(
     semantic_judge_enabled = False
     semantic_judge_results: dict[str, dict[str, Any]] = {}
     semantic_judge_stats = {"calls": 0, "errors": 0, "overrides": 0}
+    val_cfg_early = get_validation_config(bank_code=bank_code) or {}
+    sj_config_enabled = val_cfg_early.get("semantic_judge_enabled")
+    sj_banks = val_cfg_early.get("semantic_judge_banks")
     if api_key:
         try:
             from vigilance.comparison.semantic_judge import (
@@ -1566,7 +1586,16 @@ def run_comparison_with_sections(
                 _needs_semantic_validation_unmatched,
             )
 
-            semantic_judge_enabled = is_bank_allowed(bank_code)
+            if sj_config_enabled is False:
+                semantic_judge_enabled = False
+            elif sj_config_enabled is True:
+                semantic_judge_enabled = (
+                    is_bank_allowed(bank_code, allowed_banks=sj_banks)
+                    if sj_banks
+                    else is_bank_allowed(bank_code)
+                )
+            else:
+                semantic_judge_enabled = is_bank_allowed(bank_code)
         except ImportError:
             semantic_judge_enabled = False
 
@@ -1667,15 +1696,92 @@ def run_comparison_with_sections(
 
     comparisons: list[dict[str, Any]] = []
     rejected_by_vision_pair: list[dict[str, Any]] = []
+    vision_rejected_added_items: list[dict[str, Any]] = []
+    vision_rejected_removed_items: list[dict[str, Any]] = []
+    vision_pair_stats: dict[str, int] = {
+        "calls": 0,
+        "rejected": 0,
+        "accepted": 0,
+        "errors": 0,
+    }
+    rename_validator_stats: dict[str, int | float] = {
+        "calls": 0,
+        "pairs_validated": 0,
+        "accepted": 0,
+        "rejected": 0,
+        "errors": 0,
+        "candidates_in_band": 0,
+        "auto_accepted_out_of_band": 0,
+    }
+    added_table_validator_stats: dict[str, int] = {
+        "calls": 0,
+        "accepted": 0,
+        "rejected": 0,
+        "errors": 0,
+    }
+    indicator_validator_stats: dict[str, Any] = {
+        "enabled": False,
+        "calls": 0,
+        "filtered_added": 0,
+        "filtered_removed": 0,
+        "errors": 0,
+        "use_vision": False,
+        "vision_fallback_count": 0,
+    }
     table_pair_embed_debug: list[dict[str, Any]] = []
     all_rename_pair_debug: list[dict[str, Any]] = []
     all_unmatched_indicator_candidates: list[dict[str, Any]] = []
     try:
         from vigilance.config import get_vision_extraction_config as _gvec
+
         vec = _gvec(bank_code=bank_code) or {}
     except Exception:
         vec = {}
-    vision_pair_validation = vec.get("vision_pair_validation", False)
+    val_cfg = get_validation_config(bank_code=bank_code) or {}
+    vision_pair_validation = val_cfg.get(
+        "vision_pair_validation", vec.get("vision_pair_validation", False)
+    )
+    vision_pair_confidence_min = float(
+        val_cfg.get("vision_pair_confidence_min", 0.75)
+    )
+    rename_validator_enabled = bool(val_cfg.get("rename_validator_enabled", False))
+    rename_validator_confidence_min = float(
+        val_cfg.get("rename_validator_confidence_min", 0.8)
+    )
+    rename_validator_batch_size = int(
+        val_cfg.get("rename_validator_batch_size", 10)
+    )
+    rename_band_raw = val_cfg.get("rename_validator_uncertain_score_band", [0.85, 0.95])
+    rename_band_min = 0.85
+    rename_band_max = 0.95
+    if isinstance(rename_band_raw, (list, tuple)) and len(rename_band_raw) == 2:
+        try:
+            rename_band_min = float(rename_band_raw[0])
+            rename_band_max = float(rename_band_raw[1])
+        except (TypeError, ValueError):
+            rename_band_min, rename_band_max = 0.85, 0.95
+    rename_band_min = max(0.0, min(1.0, rename_band_min))
+    rename_band_max = max(0.0, min(1.0, rename_band_max))
+    if rename_band_min > rename_band_max:
+        rename_band_min, rename_band_max = rename_band_max, rename_band_min
+    added_table_validator_enabled = bool(
+        val_cfg.get("added_table_validator_enabled", False)
+    )
+    added_table_validator_confidence_min = float(
+        val_cfg.get("added_table_validator_confidence_min", 0.75)
+    )
+    indicator_validator_enabled = bool(
+        val_cfg.get("indicator_validator_enabled", False)
+    )
+    indicator_validator_use_vision = bool(
+        val_cfg.get("indicator_validator_use_vision", True)
+    )
+    indicator_validator_confidence_min = float(
+        val_cfg.get("indicator_validator_confidence_min", 0.8)
+    )
+    indicator_validator_batch_size = int(
+        val_cfg.get("indicator_validator_batch_size", 8)
+    )
     bottom_ext = float(vec.get("bottom_extension_footnotes", 0.12))
     for pair in strict.get("pairs", []):
         t1_uid = str(pair.get("t1_uid", ""))
@@ -1690,6 +1796,107 @@ def run_comparison_with_sections(
         suspicious_low_overlap, suspicious_reason = _pre_diff_safety_check(
             table_t1, table_t2, pair_indicator_overlap
         )
+        rescue_type = pair.get("rescue_type")
+
+        # Validate table pair with Vision before indicator diff.
+        vision_rejected = False
+        if (
+            vision_pair_validation
+            and api_key
+            and (pair_indicator_overlap < 0.5 or rescue_type)
+        ):
+            bbox_t1 = _normalize_bbox_ltrb_norm(getattr(table_t1, "bbox", None))
+            bbox_t2 = _normalize_bbox_ltrb_norm(getattr(table_t2, "bbox", None))
+            pdf_t1 = table_t1.pdf_path or pdf_path_t1
+            pdf_t2 = table_t2.pdf_path or pdf_path_t2
+            if bbox_t1 and bbox_t2 and pdf_t1 and pdf_t2:
+                try:
+                    from vigilance.extraction.vision_pair_validator import (
+                        validate_pair_same_concept,
+                    )
+
+                    same_concept, confidence = validate_pair_same_concept(
+                        pdf_t1,
+                        table_t1.page_pdf,
+                        bbox_t1,
+                        pdf_t2,
+                        table_t2.page_pdf,
+                        bbox_t2,
+                        api_key,
+                        bottom_extension=bottom_ext,
+                    )
+                    vision_pair_stats["calls"] += 1
+                    if same_concept:
+                        vision_pair_stats["accepted"] += 1
+                    elif confidence >= vision_pair_confidence_min:
+                        vision_rejected = True
+                        vision_pair_stats["rejected"] += 1
+                        rejected_by_vision_pair.append({
+                            "table_id_t1": table_t1.table_id,
+                            "table_id_t2": table_t2.table_id,
+                            "title_t1": table_t1.title or "",
+                            "title_t2": table_t2.title or "",
+                            "indicator_overlap": pair_indicator_overlap,
+                            "rescue_type": rescue_type,
+                            "confidence": round(confidence, 3),
+                        })
+                        _write_validation_log(
+                            {
+                                "validator": "vision_pair",
+                                "bank": bank_code,
+                                "t1_uid": t1_uid,
+                                "t2_uid": t2_uid,
+                                "decision": "rejected",
+                                "same_concept": same_concept,
+                                "confidence": round(confidence, 3),
+                                "timestamp": datetime.now().isoformat(
+                                    timespec="seconds"
+                                ),
+                            },
+                            run_id=extraction_run_id,
+                        )
+                        vision_rejected_added_items.append({
+                            "t2_uid": t2_uid,
+                            "t2_table_id": table_t2.table_id,
+                            "section": table_t1.section or table_t2.section or "",
+                            "page_t2": table_t2.page_pdf,
+                            "title_t2": table_t2.title or "",
+                            "reason": "unmatched",
+                            "source_reason": "vision_pair_rejected",
+                            "first_column_indicators": list(
+                                getattr(table_t2, "first_column_indicators", [])
+                                or []
+                            ),
+                            "first_column_indicators_raw": list(
+                                getattr(table_t2, "first_column_indicators_raw", None)
+                                or []
+                            ),
+                        })
+                        vision_rejected_removed_items.append({
+                            "t1_uid": t1_uid,
+                            "t1_table_id": table_t1.table_id,
+                            "section": table_t1.section or table_t2.section or "",
+                            "page_t1": table_t1.page_pdf,
+                            "title_t1": table_t1.title or "",
+                            "reason": "unmatched",
+                            "source_reason": "vision_pair_rejected",
+                            "first_column_indicators": list(
+                                getattr(table_t1, "first_column_indicators", [])
+                                or []
+                            ),
+                            "first_column_indicators_raw": list(
+                                getattr(table_t1, "first_column_indicators_raw", None)
+                                or []
+                            ),
+                        })
+                    else:
+                        vision_pair_stats["accepted"] += 1
+                except Exception as exc:
+                    vision_pair_stats["errors"] += 1
+                    logger.debug("Vision pair validation error: %s", exc)
+
+        if vision_rejected:
+            continue
 
         added, removed, had_fusion_split, excluded_counts = _indicator_diff(
             table_t1, table_t2
@@ -1730,6 +1937,245 @@ def run_comparison_with_sections(
             added, removed, renamed_pairs = _fuzzy_pair_added_removed(
                 added, removed, bank_code
             )
+
+        if (
+            rename_validator_enabled
+            and api_key
+            and renamed_pairs
+        ):
+            try:
+                from vigilance.genai import validate_rename_pairs
+
+                pair_score_map: dict[tuple[str, str], float] = {}
+                if use_hungarian and indicator_debug:
+                    rpd = indicator_debug.get("rename_pair_debug") or []
+                    if len(rpd) == len(renamed_pairs):
+                        for (old_l, new_l), dbg in zip(renamed_pairs, rpd):
+                            try:
+                                score = float(dbg.get("final_score", 0.0))
+                                if score > 1.0:
+                                    score = score / 100.0
+                                pair_score_map[(old_l, new_l)] = max(
+                                    0.0, min(1.0, score)
+                                )
+                            except (TypeError, ValueError):
+                                continue
+
+                candidates_for_validation: list[tuple[str, str]] = []
+                auto_accepted_pairs: list[tuple[str, str]] = []
+                original_renamed_pairs = list(renamed_pairs)
+                for old_l, new_l in renamed_pairs:
+                    pair_key = (old_l, new_l)
+                    score = pair_score_map.get(pair_key)
+                    if score is not None and not (
+                        rename_band_min <= score <= rename_band_max
+                    ):
+                        auto_accepted_pairs.append(pair_key)
+                    else:
+                        candidates_for_validation.append(pair_key)
+
+                rename_validator_stats["candidates_in_band"] = (
+                    rename_validator_stats.get("candidates_in_band", 0)
+                    + len(candidates_for_validation)
+                )
+                rename_validator_stats["auto_accepted_out_of_band"] = (
+                    rename_validator_stats.get("auto_accepted_out_of_band", 0)
+                    + len(auto_accepted_pairs)
+                )
+
+                accepted_pairs: list[tuple[str, str]] = []
+                rejected_pairs: list[tuple[str, str]] = []
+                rv_stats: dict[str, Any] = {
+                    "calls": 0,
+                    "pairs_validated": 0,
+                    "accepted": 0,
+                    "rejected": 0,
+                    "errors": 0,
+                }
+                if candidates_for_validation:
+                    accepted_pairs, rejected_pairs, rv_stats = validate_rename_pairs(
+                        candidates_for_validation,
+                        api_key=api_key,
+                        batch_size=rename_validator_batch_size,
+                        confidence_min=rename_validator_confidence_min,
+                    )
+
+                rename_validator_stats["calls"] = (
+                    rename_validator_stats.get("calls", 0) + rv_stats.get("calls", 0)
+                )
+                rename_validator_stats["pairs_validated"] = (
+                    rename_validator_stats.get("pairs_validated", 0)
+                    + rv_stats.get("pairs_validated", 0)
+                )
+                rename_validator_stats["accepted"] = (
+                    rename_validator_stats.get("accepted", 0)
+                    + rv_stats.get("accepted", 0)
+                )
+                rename_validator_stats["rejected"] = (
+                    rename_validator_stats.get("rejected", 0)
+                    + rv_stats.get("rejected", 0)
+                )
+                rename_validator_stats["errors"] = (
+                    rename_validator_stats.get("errors", 0)
+                    + rv_stats.get("errors", 0)
+                )
+
+                accepted_set = set(accepted_pairs)
+                auto_accepted_set = set(auto_accepted_pairs)
+                renamed_pairs = []
+                for pair_candidate in original_renamed_pairs:
+                    if (
+                        pair_candidate in auto_accepted_set
+                        or pair_candidate in accepted_set
+                    ):
+                        renamed_pairs.append(pair_candidate)
+
+                for (r_label, a_label) in rejected_pairs:
+                    added.append(a_label)
+                    removed.append(r_label)
+                if rejected_pairs:
+                    _write_validation_log(
+                        {
+                            "validator": "rename",
+                            "bank": bank_code,
+                            "table_id_t1": table_t1.table_id,
+                            "table_id_t2": table_t2.table_id,
+                            "rejected_count": len(rejected_pairs),
+                            "sample_rejected": [
+                                {"from": r[:60], "to": a[:60]}
+                                for (r, a) in rejected_pairs[:3]
+                            ],
+                            "timestamp": datetime.now().isoformat(timespec="seconds"),
+                        },
+                        run_id=extraction_run_id,
+                    )
+            except Exception as exc:
+                logger.debug("Rename validator error: %s", exc)
+                rename_validator_stats["errors"] = (
+                    rename_validator_stats.get("errors", 0) + 1
+                )
+
+        if (
+            indicator_validator_enabled
+            and api_key
+            and (added or removed)
+        ):
+            indicator_validator_stats["enabled"] = True
+            indicator_validator_stats["use_vision"] = indicator_validator_use_vision
+            added_count_before = len(added)
+            removed_count_before = len(removed)
+            all_t1 = list(table_t1.first_column_indicators or [])
+            all_t2 = list(table_t2.first_column_indicators or [])
+            pdf_t1 = table_t1.pdf_path or pdf_path_t1
+            pdf_t2 = table_t2.pdf_path or pdf_path_t2
+            try:
+                if indicator_validator_use_vision:
+                    from vigilance.extraction.vision_indicator_added_validator import (
+                        try_vision_validate_indicators,
+                    )
+
+                    (
+                        added,
+                        removed,
+                        vision_stats,
+                    ) = try_vision_validate_indicators(
+                        added,
+                        removed,
+                        table_t1,
+                        table_t2,
+                        pdf_t1,
+                        pdf_t2,
+                        api_key,
+                        indicator_validator_confidence_min,
+                    )
+                    indicator_validator_stats["calls"] += vision_stats.get(
+                        "vision_calls", 0
+                    )
+                    indicator_validator_stats["filtered_added"] += vision_stats.get(
+                        "vision_filtered_added", 0
+                    )
+                    indicator_validator_stats["filtered_removed"] += vision_stats.get(
+                        "vision_filtered_removed", 0
+                    )
+                    if vision_stats.get("vision_fallback_reason"):
+                        indicator_validator_stats["vision_fallback_count"] = (
+                            indicator_validator_stats.get(
+                                "vision_fallback_count", 0
+                            )
+                            + 1
+                        )
+                    if (
+                        vision_stats.get("vision_fallback_reason")
+                        and (added or removed)
+                    ):
+                        from vigilance.genai import validate_indicator_added_removed
+
+                        added, removed, genai_stats = validate_indicator_added_removed(
+                            added,
+                            removed,
+                            all_t1,
+                            all_t2,
+                            api_key=api_key,
+                            batch_size=indicator_validator_batch_size,
+                            confidence_min=indicator_validator_confidence_min,
+                        )
+                        indicator_validator_stats["calls"] += genai_stats.get(
+                            "calls", 0
+                        )
+                        indicator_validator_stats["filtered_added"] += genai_stats.get(
+                            "filtered_added", 0
+                        )
+                        indicator_validator_stats["filtered_removed"] += (
+                            genai_stats.get("filtered_removed", 0)
+                        )
+                        indicator_validator_stats["errors"] += genai_stats.get(
+                            "errors", 0
+                        )
+                else:
+                    from vigilance.genai import validate_indicator_added_removed
+
+                    added, removed, genai_stats = validate_indicator_added_removed(
+                        added,
+                        removed,
+                        all_t1,
+                        all_t2,
+                        api_key=api_key,
+                        batch_size=indicator_validator_batch_size,
+                        confidence_min=indicator_validator_confidence_min,
+                    )
+                    indicator_validator_stats["calls"] += genai_stats.get(
+                        "calls", 0
+                    )
+                    indicator_validator_stats["filtered_added"] += genai_stats.get(
+                        "filtered_added", 0
+                    )
+                    indicator_validator_stats["filtered_removed"] += (
+                        genai_stats.get("filtered_removed", 0)
+                    )
+                    indicator_validator_stats["errors"] += genai_stats.get(
+                        "errors", 0
+                    )
+                filtered_added_this = added_count_before - len(added)
+                filtered_removed_this = removed_count_before - len(removed)
+                if filtered_added_this or filtered_removed_this:
+                    _write_validation_log(
+                        {
+                            "validator": "indicator_added_removed",
+                            "bank": bank_code,
+                            "table_id_t1": table_t1.table_id,
+                            "table_id_t2": table_t2.table_id,
+                            "filtered_added": filtered_added_this,
+                            "filtered_removed": filtered_removed_this,
+                            "timestamp": datetime.now().isoformat(timespec="seconds"),
+                        },
+                        run_id=extraction_run_id,
+                    )
+            except Exception as exc:
+                logger.debug("Indicator validator error: %s", exc)
+                indicator_validator_stats["errors"] = (
+                    indicator_validator_stats.get("errors", 0) + 1
+                )
+
         renamed_indicators = [{"from": r, "to": a} for (r, a) in renamed_pairs]
         added_indicators_raw = _clean_values_to_raw_display(added, t2_clean_to_raw)
         removed_indicators_raw = _clean_values_to_raw_display(removed, t1_clean_to_raw)
@@ -1773,7 +2219,6 @@ def run_comparison_with_sections(
                 ),
             }
         )
-        rescue_type = pair.get("rescue_type")
         match_decision_level = str(pair.get("decision_level") or "match")
         conf_t1 = _extraction_confidence(table_t1)
         conf_t2 = _extraction_confidence(table_t2)
@@ -1801,48 +2246,6 @@ def run_comparison_with_sections(
         dm_t2 = table_t2.debug_metrics or {}
         arb_t1 = dm_t1.get("vision_arbitration")
         arb_t2 = dm_t2.get("vision_arbitration")
-
-        # Vision pair validation: rejeter faux positifs (low overlap ou rescue)
-        vision_rejected = False
-        if (
-            vision_pair_validation
-            and api_key
-            and (pair_indicator_overlap < 0.5 or rescue_type)
-        ):
-            bbox_t1 = _normalize_bbox_ltrb_norm(getattr(table_t1, "bbox", None))
-            bbox_t2 = _normalize_bbox_ltrb_norm(getattr(table_t2, "bbox", None))
-            pdf_t1 = table_t1.pdf_path or pdf_path_t1
-            pdf_t2 = table_t2.pdf_path or pdf_path_t2
-            if bbox_t1 and bbox_t2 and pdf_t1 and pdf_t2:
-                try:
-                    from vigilance.extraction.vision_pair_validator import (
-                        validate_pair_same_concept,
-                    )
-                    same_concept, _ = validate_pair_same_concept(
-                        pdf_t1,
-                        table_t1.page_pdf,
-                        bbox_t1,
-                        pdf_t2,
-                        table_t2.page_pdf,
-                        bbox_t2,
-                        api_key,
-                        bottom_extension=bottom_ext,
-                    )
-                    if not same_concept:
-                        vision_rejected = True
-                        rejected_by_vision_pair.append({
-                            "table_id_t1": table_t1.table_id,
-                            "table_id_t2": table_t2.table_id,
-                            "title_t1": table_t1.title or "",
-                            "title_t2": table_t2.title or "",
-                            "indicator_overlap": pair_indicator_overlap,
-                            "rescue_type": rescue_type,
-                        })
-                except Exception as exc:
-                    logger.debug("Vision pair validation error: %s", exc)
-
-        if vision_rejected:
-            continue
 
         comparisons.append(
             {
@@ -1935,8 +2338,11 @@ def run_comparison_with_sections(
         t = by_uid.get(uid)
         return (getattr(t, "extraction_method", None) or "docling") if t else "docling"
 
+    added_tables_sources = list(strict.get("added_tables", [])) + vision_rejected_added_items
+    removed_tables_sources = list(strict.get("removed_tables", [])) + vision_rejected_removed_items
+
     tables_added = []
-    for item in strict.get("added_tables", []):
+    for item in added_tables_sources:
         t2_uid_added = str(item.get("t2_uid", ""))
         t2_t = t2_by_uid.get(t2_uid_added)
         entry: dict[str, Any] = {
@@ -1967,9 +2373,50 @@ def run_comparison_with_sections(
         sj = semantic_judge_results.get(f"added_{t2_uid_added}")
         if sj is not None:
             entry["semantic_judge"] = sj
+
+        if added_table_validator_enabled and api_key and entry.get("bbox_t2") and entry.get("page"):
+            pdf_added = (t2_t.pdf_path if t2_t else None) or pdf_path_t2
+            if pdf_added:
+                try:
+                    from vigilance.extraction.vision_added_table_validator import (
+                        validate_added_table,
+                    )
+
+                    is_real_new, conf = validate_added_table(
+                        pdf_added,
+                        int(entry["page"]),
+                        entry["bbox_t2"],
+                        api_key,
+                        bottom_extension=bottom_ext,
+                        title=str(entry.get("title", ""))[:200],
+                    )
+                    added_table_validator_stats["calls"] += 1
+                    if not is_real_new and conf >= added_table_validator_confidence_min:
+                        added_table_validator_stats["rejected"] += 1
+                        _write_validation_log(
+                            {
+                                "validator": "added_table",
+                                "bank": bank_code,
+                                "table_id": entry.get("table_id"),
+                                "title": str(entry.get("title", ""))[:80],
+                                "decision": "rejected",
+                                "is_real_new": is_real_new,
+                                "confidence": round(conf, 3),
+                                "timestamp": datetime.now().isoformat(
+                                    timespec="seconds"
+                                ),
+                            },
+                            run_id=extraction_run_id,
+                        )
+                        continue
+                    added_table_validator_stats["accepted"] += 1
+                except Exception as exc:
+                    added_table_validator_stats["errors"] += 1
+                    logger.debug("Added table validator error: %s", exc)
+
         tables_added.append(entry)
     tables_removed = []
-    for item in strict.get("removed_tables", []):
+    for item in removed_tables_sources:
         t1_uid_removed = str(item.get("t1_uid", ""))
         t1_t = t1_by_uid.get(t1_uid_removed)
         entry_r: dict[str, Any] = {
@@ -2205,6 +2652,61 @@ def run_comparison_with_sections(
                 "total_calls": semantic_judge_stats["calls"],
                 "total_errors": semantic_judge_stats["errors"],
                 "structural_overrides": semantic_judge_stats["overrides"],
+            },
+            "validation_summary": {
+                "vision_pair": {
+                    "enabled": vision_pair_validation,
+                    "calls": vision_pair_stats["calls"],
+                    "accepted": vision_pair_stats["accepted"],
+                    "rejected": vision_pair_stats["rejected"],
+                    "errors": vision_pair_stats["errors"],
+                },
+                "semantic_judge": {
+                    "enabled": semantic_judge_enabled,
+                    "calls": semantic_judge_stats["calls"],
+                    "errors": semantic_judge_stats["errors"],
+                    "structural_overrides": semantic_judge_stats["overrides"],
+                },
+                "rename_validator": {
+                    "enabled": rename_validator_enabled,
+                    "uncertain_score_band": [
+                        round(rename_band_min, 4),
+                        round(rename_band_max, 4),
+                    ],
+                    "calls": rename_validator_stats.get("calls", 0),
+                    "pairs_validated": rename_validator_stats.get("pairs_validated", 0),
+                    "candidates_in_band": rename_validator_stats.get(
+                        "candidates_in_band", 0
+                    ),
+                    "auto_accepted_out_of_band": rename_validator_stats.get(
+                        "auto_accepted_out_of_band", 0
+                    ),
+                    "accepted": rename_validator_stats.get("accepted", 0),
+                    "rejected": rename_validator_stats.get("rejected", 0),
+                    "errors": rename_validator_stats.get("errors", 0),
+                },
+                "added_table_validator": {
+                    "enabled": added_table_validator_enabled,
+                    "calls": added_table_validator_stats.get("calls", 0),
+                    "accepted": added_table_validator_stats.get("accepted", 0),
+                    "rejected": added_table_validator_stats.get("rejected", 0),
+                    "errors": added_table_validator_stats.get("errors", 0),
+                },
+                "indicator_validator": {
+                    "enabled": indicator_validator_stats.get("enabled", False),
+                    "calls": indicator_validator_stats.get("calls", 0),
+                    "filtered_added": indicator_validator_stats.get(
+                        "filtered_added", 0
+                    ),
+                    "filtered_removed": indicator_validator_stats.get(
+                        "filtered_removed", 0
+                    ),
+                    "errors": indicator_validator_stats.get("errors", 0),
+                    "use_vision": indicator_validator_stats.get("use_vision", False),
+                    "vision_fallback_count": indicator_validator_stats.get(
+                        "vision_fallback_count", 0
+                    ),
+                },
             },
             "extraction_kpis": extraction_quality_kpis,
             "extraction_quality": extraction_quality_kpis,
