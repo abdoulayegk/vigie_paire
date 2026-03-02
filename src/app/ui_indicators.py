@@ -39,7 +39,8 @@ def build_indicator_change_rows(
         page_t2 = comp.get("page_t2")
         status = comp.get("table_status", "")
 
-        for indicator in comp.get("added_indicators", []) or []:
+        added_display = comp.get("added_indicators_raw", []) or comp.get("added_indicators", []) or []
+        for indicator in added_display:
             row = {
                 "Type": t("indicator_add"),
                 "Section": section,
@@ -53,7 +54,8 @@ def build_indicator_change_rows(
                 row["Review"] = comp.get("review_status", "")
             rows.append(row)
 
-        for indicator in comp.get("removed_indicators", []) or []:
+        removed_display = comp.get("removed_indicators_raw", []) or comp.get("removed_indicators", []) or []
+        for indicator in removed_display:
             row = {
                 "Type": t("indicator_removal"),
                 "Section": section,
@@ -67,7 +69,8 @@ def build_indicator_change_rows(
                 row["Review"] = comp.get("review_status", "")
             rows.append(row)
 
-        for renamed in comp.get("renamed_indicators", []) or []:
+        renamed_display = comp.get("renamed_indicators_raw", []) or comp.get("renamed_indicators", []) or []
+        for renamed in renamed_display:
             if isinstance(renamed, dict):
                 label = f"{renamed.get('from', '')} -> {renamed.get('to', '')}"
             else:

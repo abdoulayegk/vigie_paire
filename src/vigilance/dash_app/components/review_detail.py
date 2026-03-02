@@ -12,8 +12,10 @@ from app.review_models import (
     CHANGE_TYPE_MODIFIED,
     CHANGE_TYPE_REMOVED,
     CHANGE_TYPE_RENAMED,
+    CHANGE_TYPE_STRUCTURE,
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
+    CHANGE_TYPE_UNCERTAIN,
     REVIEW_STATUS_APPROVED,
     REVIEW_STATUS_PENDING,
     REVIEW_STATUS_REJECTED,
@@ -47,8 +49,17 @@ _SECTION_LABELS = {
 def section_display_label(section: str | None) -> str:
     value = (section or "").strip()
     if not value:
-        return ""
-    return _SECTION_LABELS.get(value, value.replace("_", " ").title())
+        return "Autre section"
+    lowered = value.lower()
+    if lowered in _SECTION_LABELS:
+        return _SECTION_LABELS[lowered]
+    if "capital" in lowered or "fonds propres" in lowered:
+        return "Gestion du capital"
+    if "risque" in lowered or "risk" in lowered:
+        return "Gestion des risques"
+    if "reglement" in lowered or "regulatory" in lowered:
+        return "Reglementation"
+    return "Autre section"
 
 
 def _clean_title_for_display(raw_title: str) -> str:
@@ -168,6 +179,8 @@ def _indicator_badge(change_type: str) -> dbc.Badge:
         CHANGE_TYPE_TABLE_REMOVED: (t("table_removed").upper(), "dark"),
         CHANGE_TYPE_FOOTNOTE: ("NOTE", "info"),
         CHANGE_TYPE_MODIFIED: ("MODIFIE", "warning"),
+        CHANGE_TYPE_UNCERTAIN: ("INCERTAIN", "secondary"),
+        CHANGE_TYPE_STRUCTURE: ("FUSION/SPLIT", "primary"),
     }
     label, color = mapping.get(change_type, ("?", "secondary"))
     extra = {"text_color": "dark"} if color == "warning" else {}
@@ -183,6 +196,62 @@ def _indicator_status_icon(status: str):
     if status == REVIEW_STATUS_REJECTED:
         return html.I(className="bi bi-x-circle-fill text-danger me-2")
     return html.I(className="bi bi-circle text-warning me-2")
+
+
+def _indicator_row_content(ind: dict, change_type: str) -> html.Div | html.Span:
+    """Build the label content for an indicator row with type-specific styling."""
+    name = ind.get("name", "")
+    base_class = "small flex-grow-1"
+
+    if change_type == CHANGE_TYPE_RENAMED:
+        old_val = ind.get("from", "")
+        new_val = ind.get("to", "")
+        if old_val or new_val:
+            return html.Div(
+                [
+                    html.Div(
+                        [html.Small("T1: ", className="fw-bold text-danger"), html.Small(old_val or "-")],
+                        className="mb-0",
+                    ),
+                    html.Div(
+                        [html.Small("T2: ", className="fw-bold text-success"), html.Small(new_val or "-")],
+                        className="mb-0",
+                    ),
+                ],
+                className=base_class,
+            )
+        return html.Span(name, className=f"{base_class} text-warning")
+
+    if change_type == CHANGE_TYPE_ADDED:
+        return html.Div(
+            [
+                html.I(className="bi bi-plus-circle-fill text-success me-1 small"),
+                html.Span(name, className="text-success"),
+            ],
+            className=f"{base_class} d-flex align-items-center",
+        )
+
+    if change_type == CHANGE_TYPE_REMOVED:
+        return html.Div(
+            [
+                html.I(className="bi bi-dash-circle-fill text-danger me-1 small"),
+                html.Span(name, className="text-danger"),
+            ],
+            className=f"{base_class} d-flex align-items-center",
+        )
+
+    if change_type == CHANGE_TYPE_FOOTNOTE:
+        return html.Span(name, className=f"{base_class} text-info")
+
+    if change_type == CHANGE_TYPE_MODIFIED:
+        return html.Span(name, className=f"{base_class} text-warning")
+
+    if change_type == CHANGE_TYPE_TABLE_ADDED:
+        return html.Span(name, className=f"{base_class} text-info")
+    if change_type == CHANGE_TYPE_TABLE_REMOVED:
+        return html.Span(name, className=f"{base_class} text-dark")
+
+    return html.Span(name, className=base_class)
 
 
 def _bbox_normalized_for_overlay(bbox: list | None) -> list[float] | None:
@@ -415,12 +484,13 @@ def build_review_detail(
         if is_current:
             row_class += " bg-primary bg-opacity-10 border border-primary"
 
+        row_content = _indicator_row_content(ind, change_type)
         indicator_rows.append(
             html.Div(
                 [
                     _indicator_status_icon(ind_status),
                     _indicator_badge(change_type),
-                    html.Span(name, className="small flex-grow-1"),
+                    row_content,
                     html.I(className="bi bi-chevron-right text-primary") if is_current else html.Span(),
                 ],
                 id={"type": "indicator-item", "index": i},
@@ -592,63 +662,8 @@ def build_review_detail(
         className="bg-light border-0",
     )
 
-    # -- Match metadata block (overlap, fragmentation, suspicious, semantic judge) --
-    match_meta = item.get("match_metadata") or {}
+    # Signaux de qualite section removed from UI (overlap, vision flags, extraction confidence, etc.)
     match_metadata_section = html.Div()
-    if match_meta:
-        meta_pills: list = []
-
-        ind_ov = match_meta.get("indicator_overlap")
-        if ind_ov is not None:
-            meta_pills.append(
-                dbc.Badge(f"Overlap: {ind_ov:.2%}", color="info", className="me-1 mb-1")
-            )
-        eff_ov = match_meta.get("effective_label_overlap")
-        if eff_ov is not None and eff_ov != ind_ov:
-            meta_pills.append(
-                dbc.Badge(f"Eff. overlap: {eff_ov:.2%}", color="info", className="me-1 mb-1")
-            )
-
-        frag_t1 = match_meta.get("fragmentation_detected_t1")
-        frag_t2 = match_meta.get("fragmentation_detected_t2")
-        if frag_t1:
-            meta_pills.append(dbc.Badge("Frag. T1", color="warning", text_color="dark", className="me-1 mb-1"))
-        if frag_t2:
-            meta_pills.append(dbc.Badge("Frag. T2", color="warning", text_color="dark", className="me-1 mb-1"))
-
-        if match_meta.get("suspicious_low_overlap"):
-            reason = match_meta.get("suspicious_reason") or ""
-            meta_pills.append(
-                dbc.Badge("Suspicieux", color="danger", className="me-1 mb-1", title=reason)
-            )
-
-        sj = match_meta.get("semantic_judge")
-        if isinstance(sj, dict) and sj.get("final_decision"):
-            sj_decision = sj.get("final_decision", "")
-            sj_conf = sj.get("original_gpt_decision", {})
-            sj_confidence = float(sj_conf.get("confidence", 0.0) or 0.0) if isinstance(sj_conf, dict) else 0.0
-            sj_guard = sj.get("guard_action", "")
-            sj_color = {
-                "match": "success", "no_match": "danger", "review": "warning",
-                "structural_kept": "primary", "structural_fallback": "secondary",
-            }.get(sj_decision, "secondary")
-            sj_label = f"Judge: {sj_decision}"
-            if sj_confidence:
-                sj_label += f" ({sj_confidence:.0%})"
-            meta_pills.append(dbc.Badge(sj_label, color=sj_color, className="me-1 mb-1"))
-            if sj_guard and sj_guard != "none":
-                meta_pills.append(
-                    dbc.Badge(f"Rail: {sj_guard}", color="dark", text_color="white", className="me-1 mb-1")
-                )
-
-        if meta_pills:
-            match_metadata_section = html.Div(
-                [
-                    html.H6("Signaux de qualite", className="text-muted small mb-2"),
-                    html.Div(meta_pills, className="d-flex flex-wrap"),
-                ],
-                className="mb-3 p-2 border rounded",
-            )
 
     _REL_DISPLAY = {
         "REGLEMENTAIRE": "Reglementaire",

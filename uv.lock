@@ -84,6 +84,7 @@ dependencies = [
     { name = "openai" },
     { name = "openpyxl" },
     { name = "pdfplumber" },
+    { name = "pydantic" },
     { name = "pymupdf" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
@@ -98,6 +99,11 @@ dev = [
     { name = "reportlab" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "dash", specifier = ">=4.0.0" },
@@ -106,6 +112,7 @@ requires-dist = [
     { name = "openai", specifier = ">=2.21.0" },
     { name = "openpyxl", specifier = ">=3.1.0" },
     { name = "pdfplumber", specifier = ">=0.10" },
+    { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pymupdf", specifier = ">=1.27.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
@@ -115,6 +122,9 @@ requires-dist = [
     { name = "scipy", specifier = ">=1.11.0" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "beautifulsoup4"

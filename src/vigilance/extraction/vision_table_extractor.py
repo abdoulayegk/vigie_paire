@@ -157,7 +157,7 @@ INSTRUCTIONS CRITIQUES:
 1. Lis CHAQUE ligne, meme les sous-totaux, totaux et les lignes indentees
 2. Preserve les valeurs exactement (avec $, %, M, G, parentheses pour negatifs)
 3. Si la premiere colonne est vide, utilise le contexte de la ligne precedente
-4. Capture les notes de bas de page (*, (1), (2), etc.)
+4. Capture les notes de bas de page (*, (1), (2),Superscript ¹²³⁴⁵⁶⁷⁸⁹⁰ etc.)
 5. EXTRAIT le numero de tableau ("TABLEAU 23", "T18") s'il est visible
 
 HEADERS COMPLEXES (TRES IMPORTANT):
@@ -278,7 +278,9 @@ class VisionTableExtractor:
             return
 
         if not OPENAI_AVAILABLE:
-            raise ImportError("Package openai requis. Installez avec: pip install openai")
+            raise ImportError(
+                "Package openai requis. Installez avec: pip install openai"
+            )
 
         if not self._api_key:
             raise ValueError("Cle API OpenAI requise. Definissez OPENAI_API_KEY.")
@@ -396,10 +398,15 @@ class VisionTableExtractor:
     # PHASE 2: SCANNER (Detection GPT-4o)
     # --------------------------------------------------------------------------
 
-    def _scan_page_for_tables(self, page_image: bytes, page_num: int) -> list[DetectedTable]:
+    def _scan_page_for_tables(
+        self, page_image: bytes, page_num: int
+    ) -> list[DetectedTable]:
         """Detecter tous les tableaux sur une page via GPT-4o Vision."""
         try:
-            image_b64 = base64.b64encode(page_image).decode("utf-8")
+            from .vision_image_preprocessor import preprocess_for_vision
+
+            processed = preprocess_for_vision(page_image)
+            image_b64 = base64.b64encode(processed).decode("utf-8")
 
             response = self._client.chat.completions.create(
                 model=self.model,
@@ -423,12 +430,14 @@ class VisionTableExtractor:
                     },
                 ],
                 max_completion_tokens=1000,
-                temperature=0.1,
+                temperature=0,
                 response_format={"type": "json_object"},
             )
 
             self._api_calls_count += 1
-            self._total_tokens_used += response.usage.total_tokens if response.usage else 0
+            self._total_tokens_used += (
+                response.usage.total_tokens if response.usage else 0
+            )
 
             data = json.loads(response.choices[0].message.content)
 
@@ -470,11 +479,16 @@ class VisionTableExtractor:
     ) -> ExtractedTableData | None:
         """Extraire les donnees structurees d'un tableau via GPT-4o Vision."""
         try:
-            image_b64 = base64.b64encode(table_image).decode("utf-8")
+            from .vision_image_preprocessor import preprocess_for_vision
+
+            processed = preprocess_for_vision(table_image)
+            image_b64 = base64.b64encode(processed).decode("utf-8")
 
             labels_only = self._labels_only
             system_prompt = (
-                EXTRACTION_SYSTEM_PROMPT_LABELS_ONLY if labels_only else EXTRACTION_SYSTEM_PROMPT
+                EXTRACTION_SYSTEM_PROMPT_LABELS_ONLY
+                if labels_only
+                else EXTRACTION_SYSTEM_PROMPT
             )
             user_prompt = (
                 "Extrais uniquement les libelles de la premiere colonne en JSON."
@@ -503,12 +517,14 @@ class VisionTableExtractor:
                     },
                 ],
                 max_completion_tokens=4096,
-                temperature=0.1,
+                temperature=0,
                 response_format={"type": "json_object"},
             )
 
             self._api_calls_count += 1
-            self._total_tokens_used += response.usage.total_tokens if response.usage else 0
+            self._total_tokens_used += (
+                response.usage.total_tokens if response.usage else 0
+            )
 
             data = json.loads(response.choices[0].message.content)
 
@@ -631,7 +647,7 @@ class VisionTableExtractor:
             return None
 
     def _crop_table_image(self, page_image: bytes, bbox: tuple) -> bytes:
-        """Decouper une region de l'image de page."""
+        """Decouper une region de l'image de page avec padding de 3%."""
         try:
             import io
 
@@ -640,11 +656,12 @@ class VisionTableExtractor:
             img = Image.open(io.BytesIO(page_image))
             width, height = img.size
 
+            pad = 0.03
             x, y, w, h = bbox
-            left = int(x * width)
-            top = int(y * height)
-            right = int((x + w) * width)
-            bottom = int((y + h) * height)
+            left = int(max(0.0, x - pad) * width)
+            top = int(max(0.0, y - pad) * height)
+            right = int(min(1.0, x + w + pad) * width)
+            bottom = int(min(1.0, y + h + pad) * height)
 
             cropped = img.crop((left, top, right, bottom))
 

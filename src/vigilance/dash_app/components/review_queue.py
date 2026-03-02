@@ -6,6 +6,7 @@ import dash_bootstrap_components as dbc
 from dash import html
 
 from app.i18n import t
+from app.review_priority import get_priority_signals
 from app.review_models import (
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
@@ -17,6 +18,34 @@ from vigilance.dash_app.components.review_detail import (
     section_display_label,
     table_display_label,
 )
+
+_RELEVANCE_DISPLAY = {
+    "REGLEMENTAIRE": "Reglementaire",
+    "NOUVELLE_DIVULGATION": "Nouvelle divulgation",
+    "STRUCTUREL": "Structurel",
+    "NON_SIGNIFICATIF": "Non significatif",
+    "NON_CLASSIFIE": "Non classifie",
+}
+
+_RELEVANCE_COLORS = {
+    "REGLEMENTAIRE": "danger",
+    "NOUVELLE_DIVULGATION": "info",
+    "STRUCTUREL": "primary",
+    "NON_SIGNIFICATIF": "secondary",
+    "NON_CLASSIFIE": "light",
+}
+
+_RISK_DISPLAY = {
+    "ELEVE": "Eleve",
+    "MODERE": "Modere",
+    "FAIBLE": "Faible",
+}
+
+_RISK_COLORS = {
+    "ELEVE": "danger",
+    "MODERE": "warning",
+    "FAIBLE": "success",
+}
 
 
 def _queue_page_summary(item: dict) -> str:
@@ -50,15 +79,19 @@ def build_review_queue(
     active_section = (active_filters or {}).get("section", "all")
     active_status = (active_filters or {}).get("status", "all")
 
-    filtered_items = items
-    if active_section and active_section != "all":
-        filtered_items = [
-            i for i in filtered_items if i.get("section") == active_section
-        ]
-    if active_status and active_status != "all":
-        filtered_items = [
-            i for i in filtered_items if i.get("review_status") == active_status
-        ]
+    def _matches_filters(item: dict) -> bool:
+        if active_section and active_section != "all":
+            if item.get("section") != active_section:
+                return False
+        if active_status and active_status != "all":
+            if item.get("review_status") != active_status:
+                return False
+        return True
+
+    filtered_with_full_idx = [
+        (idx, item) for idx, item in enumerate(items) if _matches_filters(item)
+    ]
+    filtered_items = [it for _, it in filtered_with_full_idx]
 
     total = len(filtered_items)
     approved = sum(
@@ -100,11 +133,6 @@ def build_review_queue(
         )
 
     filter_bar = html.Div(filter_buttons, className="mb-3 p-2 bg-white rounded border")
-
-    # Build (full_idx, item) for filtered items so click sets store to full list index
-    filtered_with_full_idx = [
-        (i, items[i]) for i in range(len(items)) if items[i] in filtered_items
-    ]
 
     list_items = []
     for full_idx, item in filtered_with_full_idx:
@@ -198,6 +226,33 @@ def build_review_queue(
                         className="me-1",
                     )
                 )
+
+        relevance, risk, conf_f = get_priority_signals(item)
+        if relevance:
+            badge_children.append(
+                dbc.Badge(
+                    _RELEVANCE_DISPLAY.get(relevance, relevance),
+                    color=_RELEVANCE_COLORS.get(relevance, "secondary"),
+                    className="me-1",
+                )
+            )
+        if risk:
+            badge_children.append(
+                dbc.Badge(
+                    f"Risque {_RISK_DISPLAY.get(risk, risk)}",
+                    color=_RISK_COLORS.get(risk, "secondary"),
+                    className="me-1",
+                )
+            )
+        if conf_f >= 0:
+            badge_children.append(
+                dbc.Badge(
+                    f"Conf {round(conf_f * 100):.0f}%",
+                    color="light",
+                    text_color="dark",
+                    className="me-1",
+                )
+            )
 
         progress_badge = dbc.Badge(
             f"{n_decided}/{n_indicators}",

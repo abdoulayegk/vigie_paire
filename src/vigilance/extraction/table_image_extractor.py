@@ -18,6 +18,8 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from ..utils.indicator_line_merge import IndicatorLineMergeConfig, merge_indicator_lines
+
 logger = logging.getLogger(__name__)
 _PATTERN_LOADER_IMPORT_LOGGED = False
 
@@ -61,7 +63,9 @@ DATE_FILTER_PATTERNS = [
 
 # Pattern pour detecter le debut d'un tableau financier
 # Utilise pour separer plusieurs tableaux sur une meme page
-TABLE_START_PATTERN = r"\(en\s+(millions|milliards)\s+de\s+dollars(\s+canadiens)?[^)]*\)"
+TABLE_START_PATTERN = (
+    r"\(en\s+(millions|milliards)\s+de\s+dollars(\s+canadiens)?[^)]*\)"
+)
 
 
 def _load_extraction_patterns(bank_code: str | None = None):
@@ -71,7 +75,9 @@ def _load_extraction_patterns(bank_code: str | None = None):
         from vigilance.utils.pattern_loader import get_patterns
     except Exception as exc:
         if not _PATTERN_LOADER_IMPORT_LOGGED:
-            logger.debug("Pattern loader indisponible, fallback par defaut utilise: %s", exc)
+            logger.debug(
+                "Pattern loader indisponible, fallback par defaut utilise: %s", exc
+            )
             _PATTERN_LOADER_IMPORT_LOGGED = True
         return None
 
@@ -195,12 +201,18 @@ class TableImageExtractor:
             logger.debug(f"Patterns charges pour banque: {bank_code or 'default'}")
 
         if not PDFPLUMBER_AVAILABLE:
-            raise ImportError("pdfplumber requis. Installez avec: pip install pdfplumber")
+            raise ImportError(
+                "pdfplumber requis. Installez avec: pip install pdfplumber"
+            )
         if not PIL_AVAILABLE:
             raise ImportError("PIL requis. Installez avec: pip install Pillow")
 
     def extract_table_images(
-        self, pdf_path: str, start_page: int = 1, end_page: int | None = None, section: str = ""
+        self,
+        pdf_path: str,
+        start_page: int = 1,
+        end_page: int | None = None,
+        section: str = "",
     ) -> ExtractionResult:
         """
         Extraire les tableaux comme images PNG.
@@ -317,12 +329,18 @@ class TableImageExtractor:
             logger.info(
                 f"pdfplumber n'a trouve aucun tableau page {page_num}, essai avec PyMuPDF..."
             )
-            pymupdf_tables = self._extract_with_pymupdf(pdf_path, page_num, output_dir, section)
+            pymupdf_tables = self._extract_with_pymupdf(
+                pdf_path, page_num, output_dir, section
+            )
             if pymupdf_tables:
-                logger.info(f"PyMuPDF a trouve {len(pymupdf_tables)} tableau(x) page {page_num}")
+                logger.info(
+                    f"PyMuPDF a trouve {len(pymupdf_tables)} tableau(x) page {page_num}"
+                )
                 return pymupdf_tables
             else:
-                logger.warning(f"Aucun tableau trouve page {page_num} avec pdfplumber ni PyMuPDF")
+                logger.warning(
+                    f"Aucun tableau trouve page {page_num} avec pdfplumber ni PyMuPDF"
+                )
                 return []
 
         if not tables:
@@ -347,7 +365,10 @@ class TableImageExtractor:
 
                 # Extraire l'image du tableau
                 table_img = self._crop_table_image(
-                    page_image=page_image, bbox=bbox, page_width=page.width, page_height=page.height
+                    page_image=page_image,
+                    bbox=bbox,
+                    page_width=page.width,
+                    page_height=page.height,
                 )
 
                 if table_img is None:
@@ -362,6 +383,20 @@ class TableImageExtractor:
                     image_width=table_img.width,
                     image_height=table_img.height,
                 )
+                indicators, merges_count = merge_indicator_lines(
+                    indicators,
+                    config=IndicatorLineMergeConfig(
+                        max_next_tokens=6, max_combined_length=120
+                    ),
+                )
+                if merges_count > 0:
+                    logger.info(
+                        "indicator_line_merge: table=%s page=%s merges_count=%d",
+                        f"vision_table_{table_idx}",
+                        page_num,
+                        merges_count,
+                    )
+                    row_bboxes = []
 
                 # Extraire les en-tetes de colonnes (premiere ligne de table.extract())
                 headers = self._extract_table_headers(table)
@@ -406,7 +441,9 @@ class TableImageExtractor:
                 )
 
             except Exception as e:
-                logger.warning(f"Erreur extraction table {table_idx} page {page_num}: {e}")
+                logger.warning(
+                    f"Erreur extraction table {table_idx} page {page_num}: {e}"
+                )
 
         return table_images
 
@@ -466,7 +503,11 @@ class TableImageExtractor:
                 return []
             first_row = extracted[0]
             if isinstance(first_row, (list, tuple)):
-                return [str(c).strip() for c in first_row if c is not None and str(c).strip()]
+                return [
+                    str(c).strip()
+                    for c in first_row
+                    if c is not None and str(c).strip()
+                ]
             return []
         except Exception:
             return []
@@ -559,7 +600,9 @@ class TableImageExtractor:
             # On calcule le x0 min de toutes les cellules pour definir le "bord gauche"
             min_x0 = min(c[0] for c in cells) if cells else 0
             # Tolerance pour etre considere comme "premiere colonne" (configurable)
-            col_x_tolerance = self.patterns.table_extraction.x_tolerance if self.patterns else 10.0
+            col_x_tolerance = (
+                self.patterns.table_extraction.x_tolerance if self.patterns else 10.0
+            )
 
             # Pour chaque ligne extraite
             row_idx = 0
@@ -607,7 +650,9 @@ class TableImageExtractor:
 
                 # Trouver la cellule de la premiere colonne
                 # Elle doit etre alignee a gauche (proche de min_x0)
-                first_col_cells = [c for c in row_cells if abs(c[0] - min_x0) < col_x_tolerance]
+                first_col_cells = [
+                    c for c in row_cells if abs(c[0] - min_x0) < col_x_tolerance
+                ]
 
                 if first_col_cells:
                     cell = first_col_cells[0]
@@ -644,13 +689,16 @@ class TableImageExtractor:
 
                     # FILTRAGE STRICT (longueur minimale configurable)
                     min_length = (
-                        self.patterns.table_extraction.min_indicator_length if self.patterns else 2
+                        self.patterns.table_extraction.min_indicator_length
+                        if self.patterns
+                        else 2
                     )
 
                     # FILTRER LES DATES (ne sont pas des indicateurs metier)
                     # Ex: "31 janvier", "30 avril", "Au 31 octobre", "T1 2025"
                     is_date_pattern = any(
-                        re.search(p, indicator, re.IGNORECASE) for p in DATE_FILTER_PATTERNS
+                        re.search(p, indicator, re.IGNORECASE)
+                        for p in DATE_FILTER_PATTERNS
                     )
 
                     if (
@@ -678,7 +726,9 @@ class TableImageExtractor:
 
             # Si on n'a pas pu extraire les positions, fallback sur les indicateurs seuls
             if not row_bboxes and indicators:
-                logger.debug("Pas de positions de cellules disponibles, utilisation fallback")
+                logger.debug(
+                    "Pas de positions de cellules disponibles, utilisation fallback"
+                )
 
         except Exception as e:
             logger.warning(f"Erreur extraction indicateurs avec positions: {e}")
@@ -705,7 +755,8 @@ class TableImageExtractor:
                     if indicator and not self._is_numeric_only(indicator):
                         # FILTRER LES DATES (ne sont pas des indicateurs metier)
                         is_date = any(
-                            re.search(p, indicator, re.IGNORECASE) for p in DATE_FILTER_PATTERNS
+                            re.search(p, indicator, re.IGNORECASE)
+                            for p in DATE_FILTER_PATTERNS
                         )
                         if not is_date:
                             indicators.append(indicator)
@@ -902,8 +953,23 @@ class TableImageExtractor:
 
                 # Extraire indicateurs (1ere colonne)
                 indicators = [
-                    line.strip() for line in lines if line.strip() and len(line.strip()) > 3
+                    line.strip()
+                    for line in lines
+                    if line.strip() and len(line.strip()) > 3
                 ]
+                indicators, merges_count = merge_indicator_lines(
+                    indicators,
+                    config=IndicatorLineMergeConfig(
+                        max_next_tokens=6, max_combined_length=120
+                    ),
+                )
+                if merges_count > 0:
+                    logger.info(
+                        "indicator_line_merge: table=%s page=%s merges_count=%d",
+                        "pymupdf_fallback_0",
+                        page_num,
+                        merges_count,
+                    )
             except:
                 pass
 
@@ -925,7 +991,9 @@ class TableImageExtractor:
             )
 
             doc.close()
-            logger.info(f"Extraction PyMuPDF fallback: 1 image creee pour page {page_num}")
+            logger.info(
+                f"Extraction PyMuPDF fallback: 1 image creee pour page {page_num}"
+            )
 
         except Exception as e:
             logger.error(f"Erreur extraction PyMuPDF page {page_num}: {e}")
@@ -943,7 +1011,9 @@ class PyMuPDFTableExtractor(TableImageExtractor):
         if not PYMUPDF_AVAILABLE:
             logger.warning("PyMuPDF non disponible, utilisation de pdfplumber")
 
-    def _page_to_image_pymupdf(self, pdf_path: str, page_num: int) -> Image.Image | None:
+    def _page_to_image_pymupdf(
+        self, pdf_path: str, page_num: int
+    ) -> Image.Image | None:
         """Convertir une page en image avec PyMuPDF (meilleure qualite)."""
         if not PYMUPDF_AVAILABLE:
             return None
@@ -997,7 +1067,9 @@ def extract_tables_as_images(
     Returns:
         ExtractionResult avec les images
     """
-    extractor = TableImageExtractor(output_dir=output_dir, dpi=dpi, save_images=bool(output_dir))
+    extractor = TableImageExtractor(
+        output_dir=output_dir, dpi=dpi, save_images=bool(output_dir)
+    )
 
     return extractor.extract_table_images(
         pdf_path=pdf_path, start_page=start_page, end_page=end_page, section=section
@@ -1005,7 +1077,11 @@ def extract_tables_as_images(
 
 
 def get_table_images_for_comparison(
-    pdf_path_t1: str, pdf_path_t2: str, start_page: int, end_page: int, section: str = ""
+    pdf_path_t1: str,
+    pdf_path_t2: str,
+    start_page: int,
+    end_page: int,
+    section: str = "",
 ) -> tuple[list[TableImage], list[TableImage]]:
     """
     Extraire les images de tableaux de deux PDFs pour comparaison.

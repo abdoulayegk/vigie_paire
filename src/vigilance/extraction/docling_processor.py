@@ -18,6 +18,7 @@ import logging
 import os
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -25,9 +26,20 @@ from typing import Any
 import fitz  # Import PyMuPDF (fitz)
 
 from ..utils.feature_flags import is_vision_fallback_enabled
+from ..utils.footnotes_utils import normalize_footnotes_to_canonical
 from ..utils.genai import get_openai_api_key
-from ..utils.indicator_cleaner import normalize_indicator_for_comparison
-from ..utils.matching_normalizer import is_date_only_line, is_non_indicator_line, strip_temporal_expressions
+from ..utils.indicator_cleaner import (
+    clean_table_title_contamination,
+    is_table_title_contaminated,
+    normalize_indicator_for_comparison,
+)
+from ..utils.indicator_line_merge import IndicatorLineMergeConfig, merge_indicator_lines
+from ..utils.indicator_normalizer import get_canonical_text, get_token_sorted_text
+from ..utils.matching_normalizer import (
+    is_date_only_line,
+    is_non_indicator_line,
+    strip_temporal_expressions,
+)
 from .docling_normalization import (
     _extract_table_context_split,
     _is_footnote_row,
@@ -41,6 +53,52 @@ from .table_title_resolver import (
 )
 
 logger = logging.getLogger(__name__)
+
+_ENV_TRUE = {"1", "true", "yes", "on"}
+_ENV_FALSE = {"0", "false", "no", "off"}
+
+
+def _env_bool(*names: str) -> bool | None:
+    """Parse bool-like env var from the first provided var that exists."""
+    for name in names:
+        raw = os.environ.get(name)
+        if raw is None:
+            continue
+        value = str(raw).strip().lower()
+        if value in _ENV_TRUE:
+            return True
+        if value in _ENV_FALSE:
+            return False
+    return None
+
+
+def _resolve_vision_primary_mode(bank_code: str, explicit: bool | None) -> bool:
+    """Resolution order: explicit arg > legacy env > bank config."""
+    if explicit is not None:
+        return bool(explicit)
+
+    env_choice = _env_bool("VIGILANCE_VISION_PRIMARY")
+    if env_choice is not None:
+        return env_choice
+
+    try:
+        from ..config import get_vision_extraction_config
+
+        cfg = get_vision_extraction_config(bank_code=bank_code) or {}
+        if "enabled" in cfg:
+            return bool(cfg.get("enabled"))
+    except Exception:
+        pass
+    return False
+
+
+def _resolve_vision_fallback_mode(explicit: bool | None) -> bool:
+    """Resolution order: explicit arg > legacy env fallback."""
+    if explicit is not None:
+        return bool(explicit)
+    env_choice = _env_bool("VIGILANCE_VISION_FALLBACK", "ENABLE_VISION_FALLBACK")
+    return bool(env_choice)
+
 
 # Import de la gestion memoire
 try:
@@ -107,6 +165,20 @@ COMPILED_SECTION_PATTERNS = [
     for pattern, name, phase in SECTION_TITLE_PATTERNS
 ]
 
+_CONTINUATION_PREFIX_RE = re.compile(
+    r"^(?:de|du|des|et|ou|dont|aux?|au|sur|sous|pour|par|avec|sans|dans|en|d|l|la|le|les|autres?"
+    r"|correspondant|indique(?:s|es)?|lie(?:s|es)?|net(?:s|tes)?|relatif(?:s|ves)?|a\s+titre)\b",
+    re.IGNORECASE,
+)
+_CONTINUATION_PREV_END_RE = re.compile(r"[,;:\-(/]\s*$")
+
+_STRUCTURAL_ROW_RE = re.compile(
+    r"^(?:total|sous[\s\-]?total|actif|passif|capitaux\s+propres|avoir\s+des\s+actionnaires"
+    r"|benefice|perte|resultat|revenu|produit|charge|marge|provision|depreciation"
+    r"|amortissement|goodwill|ecart|note|renvoi|elements?\s+hors)\b",
+    re.IGNORECASE,
+)
+
 
 @dataclass
 class ExtractedTable:
@@ -118,7 +190,7 @@ class ExtractedTable:
     headers: list[str]
     rows: list[list[str]]
     first_column_indicators: list[str] = field(default_factory=list)  # Fingerprint
-    footnotes: list[str] = field(default_factory=list)
+    footnotes: list[dict[str, str]] = field(default_factory=list)
     section: str | None = None
     section_phase: int | None = None  # Phase de la section (1, 2, 3)
     table_number: str | None = None  # Numéro extrait du titre (ex: "28", "31", "5a")
@@ -130,7 +202,9 @@ class ExtractedTable:
     context_after: str = ""  # 1-2 lignes en-dessous
     bbox: list[float] | None = None  # [l, t, r, b] normalisées 0–1 depuis Docling prov
     first_column_indicators_raw: list[str] | None = None  # Brut avant normalisation
-    debug_metrics: dict[str, Any] = field(default_factory=dict)  # row_count, merge_count, etc.
+    debug_metrics: dict[str, Any] = field(
+        default_factory=dict
+    )  # row_count, merge_count, etc.
     extraction_method: str | None = None  # docling | vision_fallback_gpt4o
     fragmentation_detected: bool = False
 
@@ -200,7 +274,7 @@ class DoclingProcessor:
         self,
         use_ocr: bool = False,
         enhance_images: bool = True,
-        use_vision_fallback: bool = False,  # Désactivé pour le moment (coût/latence)
+        use_vision_fallback: bool | None = None,
         openai_api_key: str | None = None,
         use_cache: bool = False,
         cache_dir: str | None = None,
@@ -212,6 +286,7 @@ class DoclingProcessor:
             use_ocr: Activer l'OCR pour les documents numerises
             enhance_images: Appliquer l'amelioration d'image avant le traitement
             use_vision_fallback: Activer le fallback GPT-4 Vision pour tableaux complexes
+                (None -> legacy env compatibility)
             openai_api_key: Clé API OpenAI pour le fallback Vision
             use_cache: Activer le cache des extractions (defaut False, desactive pour eviter de conserver des extractions de mauvaise qualite)
             cache_dir: Repertoire du cache (optionnel)
@@ -221,11 +296,14 @@ class DoclingProcessor:
 
         # Securisation de l'usage de Vision
         self.openai_api_key = openai_api_key
-        if use_vision_fallback:
+        fallback_enabled = _resolve_vision_fallback_mode(use_vision_fallback)
+        if fallback_enabled:
             from ..utils.genai import is_genai_configured
 
             if not is_genai_configured() and not openai_api_key:
-                logger.warning("OPENAI_API_KEY non disponible. Fallback Vision désactivé.")
+                logger.warning(
+                    "OPENAI_API_KEY non disponible. Fallback Vision désactivé."
+                )
                 self.use_vision_fallback = False
             else:
                 self.use_vision_fallback = True
@@ -237,7 +315,9 @@ class DoclingProcessor:
         self._vision_fallback = None
 
         # Charger les patterns configurables
-        self.bank_code_for_patterns: str | None = None  # Sera set lors de extract_document
+        self.bank_code_for_patterns: str | None = (
+            None  # Sera set lors de extract_document
+        )
         self.extraction_patterns = None
         try:
             from ..utils.pattern_loader import get_patterns
@@ -267,7 +347,9 @@ class DoclingProcessor:
             pipeline_options = PdfPipelineOptions()
             pipeline_options.do_ocr = self.use_ocr
             pipeline_options.do_table_structure = True
-            pipeline_options.do_picture_description = False  # Desactiver pour acceleration
+            pipeline_options.do_picture_description = (
+                False  # Desactiver pour acceleration
+            )
 
             _raw_threads = os.environ.get("DOCLING_NUM_THREADS") or os.environ.get(
                 "OMP_NUM_THREADS"
@@ -296,7 +378,9 @@ class DoclingProcessor:
                 pass  # Utiliser les options par defaut de Docling
 
             self._converter = DocumentConverter(
-                format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)}
+                format_options={
+                    InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+                }
             )
             self._initialized = True
             logger.info(
@@ -307,7 +391,9 @@ class DoclingProcessor:
             )
 
         except ImportError as e:
-            logger.warning(f"Docling non disponible: {e}. Utilisation de l'extraction de secours.")
+            logger.warning(
+                f"Docling non disponible: {e}. Utilisation de l'extraction de secours."
+            )
             self._initialized = True
         except Exception as e:
             logger.warning(
@@ -335,6 +421,7 @@ class DoclingProcessor:
         page_ranges: list[tuple[int, int]] | None = None,
         section: str | None = None,
         labels_only: bool = False,
+        use_vision_primary: bool | None = None,
     ) -> ExtractedDocument:
         """
         Extraire tout le contenu d'un document PDF.
@@ -355,10 +442,14 @@ class DoclingProcessor:
             page_ranges: Liste optionnelle de tuples (start_page, end_page) pour extraction ciblee
                          Si None, extrait tout le document
             section: Nom de la section pour le cache (optionnel)
+            use_vision_primary: Si True, Vision comme source contenu pour tous les tableaux.
+                Si None, lu depuis config vision_extraction.enabled.
 
         Returns:
             ExtractedDocument avec tout le contenu extrait
         """
+        use_vision_primary = _resolve_vision_primary_mode(bank_code, use_vision_primary)
+
         pdf_path = Path(pdf_path)
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF non trouve: {pdf_path}")
@@ -372,7 +463,9 @@ class DoclingProcessor:
                 self.bank_code_for_patterns = bank_code
                 logger.debug(f"Patterns rechargés pour banque: {bank_code}")
             except Exception as e:
-                logger.warning(f"Impossible de recharger les patterns pour {bank_code}: {e}")
+                logger.warning(
+                    f"Impossible de recharger les patterns pour {bank_code}: {e}"
+                )
 
         # Verifier et nettoyer la memoire si necessaire
         if MEMORY_UTILS_AVAILABLE:
@@ -414,11 +507,23 @@ class DoclingProcessor:
                 f"traitement par chunks de {CHUNK_SIZE_PAGES} pages"
             )
             result = self._extract_chunked(
-                pdf_path, bank_code, quarter, year, total_pages, labels_only=labels_only
+                pdf_path,
+                bank_code,
+                quarter,
+                year,
+                total_pages,
+                labels_only=labels_only,
+                use_vision_primary=use_vision_primary,
             )
         elif self._converter is not None:
             result = self._extract_with_docling(
-                pdf_path, bank_code, quarter, year, page_ranges, labels_only=labels_only
+                pdf_path,
+                bank_code,
+                quarter,
+                year,
+                page_ranges,
+                labels_only=labels_only,
+                use_vision_primary=use_vision_primary,
             )
         else:
             result = self._extract_with_fallback(
@@ -469,6 +574,7 @@ class DoclingProcessor:
         total_pages: int,
         *,
         labels_only: bool = False,
+        use_vision_primary: bool = False,
     ) -> ExtractedDocument:
         """
         Extraction par chunks pour gros documents.
@@ -502,11 +608,22 @@ class DoclingProcessor:
 
             if self._converter is not None:
                 chunk_result = self._extract_with_docling(
-                    pdf_path, bank_code, quarter, year, page_ranges, labels_only=labels_only
+                    pdf_path,
+                    bank_code,
+                    quarter,
+                    year,
+                    page_ranges,
+                    labels_only=labels_only,
+                    use_vision_primary=use_vision_primary,
                 )
             else:
                 chunk_result = self._extract_with_fallback(
-                    pdf_path, bank_code, quarter, year, page_ranges, labels_only=labels_only
+                    pdf_path,
+                    bank_code,
+                    quarter,
+                    year,
+                    page_ranges,
+                    labels_only=labels_only,
                 )
 
             # Accumuler les resultats
@@ -558,7 +675,7 @@ class DoclingProcessor:
                     rows=t.get("rows", []),
                     first_column_indicators=t.get("first_column_indicators", []),
                     first_column_indicators_raw=t.get("first_column_indicators_raw"),
-                    footnotes=t.get("footnotes", []),
+                    footnotes=normalize_footnotes_to_canonical(t.get("footnotes", [])),
                     section=t.get("section"),
                     section_phase=t.get("section_phase"),
                     table_number=t.get("table_number"),
@@ -586,22 +703,26 @@ class DoclingProcessor:
                         title=t.get("title"),
                         headers=t.get("headers", []),
                         rows=t.get("rows", []),
-                    first_column_indicators=t.get("first_column_indicators", []),
-                    first_column_indicators_raw=t.get("first_column_indicators_raw"),
-                    footnotes=t.get("footnotes", []),
-                    section=t.get("section"),
-                    section_phase=t.get("section_phase"),
-                    table_number=t.get("table_number"),
-                    title_clean=t.get("title_clean"),
-                    title_raw=t.get("title_raw"),
-                    unit_context=t.get("unit_context"),
-                    title_resolution_method=t.get("title_resolution_method"),
-                    context_before=t.get("context_before", ""),
-                    context_after=t.get("context_after", ""),
-                    bbox=t.get("bbox"),
-                    debug_metrics=t.get("debug_metrics", {}),
-                    extraction_method=t.get("extraction_method"),
-                )
+                        first_column_indicators=t.get("first_column_indicators", []),
+                        first_column_indicators_raw=t.get(
+                            "first_column_indicators_raw"
+                        ),
+                        footnotes=normalize_footnotes_to_canonical(
+                            t.get("footnotes", [])
+                        ),
+                        section=t.get("section"),
+                        section_phase=t.get("section_phase"),
+                        table_number=t.get("table_number"),
+                        title_clean=t.get("title_clean"),
+                        title_raw=t.get("title_raw"),
+                        unit_context=t.get("unit_context"),
+                        title_resolution_method=t.get("title_resolution_method"),
+                        context_before=t.get("context_before", ""),
+                        context_after=t.get("context_after", ""),
+                        bbox=t.get("bbox"),
+                        debug_metrics=t.get("debug_metrics", {}),
+                        extraction_method=t.get("extraction_method"),
+                    )
                 )
 
             sections.append(
@@ -627,7 +748,9 @@ class DoclingProcessor:
             metadata=data.get("metadata", {}),
         )
 
-    def _is_page_in_ranges(self, page_num: int, page_ranges: list[tuple[int, int]] | None) -> bool:
+    def _is_page_in_ranges(
+        self, page_num: int, page_ranges: list[tuple[int, int]] | None
+    ) -> bool:
         """Verifier si une page est dans les plages cibles."""
         if page_ranges is None:
             return True
@@ -647,19 +770,27 @@ class DoclingProcessor:
                 start = int(start_raw)
                 end = int(end_raw)
             except (TypeError, ValueError):
-                logger.warning("Plage de pages invalide ignoree a l'index %s: %s", idx, page_range)
+                logger.warning(
+                    "Plage de pages invalide ignoree a l'index %s: %s", idx, page_range
+                )
                 continue
 
             start_norm = max(1, start)
             if start_norm != start:
                 logger.warning(
-                    "Plage de pages corrigee a l'index %s: start=%s -> %s", idx, start, start_norm
+                    "Plage de pages corrigee a l'index %s: start=%s -> %s",
+                    idx,
+                    start,
+                    start_norm,
                 )
 
             end_norm = max(start_norm, end)
             if end_norm != end:
                 logger.warning(
-                    "Plage de pages corrigee a l'index %s: end=%s -> %s", idx, end, end_norm
+                    "Plage de pages corrigee a l'index %s: end=%s -> %s",
+                    idx,
+                    end,
+                    end_norm,
                 )
 
             normalized.append((start_norm, end_norm))
@@ -698,6 +829,7 @@ class DoclingProcessor:
         page_ranges: list[tuple[int, int]] | None = None,
         *,
         labels_only: bool = False,
+        use_vision_primary: bool = False,
     ) -> ExtractedDocument:
         """Extraire en utilisant la bibliotheque Docling avec pipeline de prétraitement."""
         try:
@@ -711,21 +843,75 @@ class DoclingProcessor:
             result = self._converter.convert(str(pdf_path), **convert_kwargs)
             doc = result.document
 
+            def _get_vision_extraction_config(bank: str) -> dict:
+                try:
+                    from ..config import get_vision_extraction_config as _gvec
+
+                    return _gvec(bank_code=bank) or {}
+                except Exception:
+                    return {}
+
+            # Vision primary: GPT-4o comme source contenu (indicateurs + footnotes) pour TOUS les tableaux
+            vision_primary = use_vision_primary
+            vision_extraction_cfg: dict = {}
+            bottom_extension_footnotes = 0.0
+            fallback_to_docling = True
+            vision_extractor = None
+            pdf_sha = ""
+            if vision_primary:
+                try:
+                    vision_extraction_cfg = _get_vision_extraction_config(bank_code)
+                    bottom_extension_footnotes = float(
+                        vision_extraction_cfg.get("bottom_extension_footnotes", 0.12)
+                    )
+                    fallback_to_docling = vision_extraction_cfg.get(
+                        "fallback_to_docling_on_error", True
+                    )
+                    from ..utils.genai import get_openai_api_key
+                    from .vision_cache import compute_pdf_sha256
+                    from .vision_full_extractor import VisionFullExtractor
+
+                    pdf_sha = compute_pdf_sha256(str(pdf_path))
+                    api_key = self.openai_api_key or get_openai_api_key()
+                    if api_key:
+                        vision_extractor = VisionFullExtractor(
+                            api_key=api_key, use_cache=True
+                        )
+                    else:
+                        logger.warning(
+                            "Vision primary: OPENAI_API_KEY absente, desactivation"
+                        )
+                        vision_primary = False
+                except Exception as e:
+                    logger.warning("Vision primary init failed: %s", e)
+                    vision_primary = False
+
             # Extraire les tableaux
             all_tables = []
             failed_tables = []  # Tables qui ont échoué et nécessitent fallback
             tables_by_page: dict[int, int] = {}
+            vision_tasks: list[
+                tuple[Any, str, str, str, int, int, list[float], bool, dict, str | None]
+            ] = []
 
             for idx, table in enumerate(doc.tables):
                 page_num = table.prov[0].page_no if table.prov else 0
 
                 table_bbox: list[float] | None = None
                 try:
-                    if table.prov and hasattr(table.prov[0], "bbox") and table.prov[0].bbox is not None:
+                    if (
+                        table.prov
+                        and hasattr(table.prov[0], "bbox")
+                        and table.prov[0].bbox is not None
+                    ):
                         raw_bbox = table.prov[0].bbox
-                        page_obj = doc.pages.get(page_num) if hasattr(doc, "pages") else None
+                        page_obj = (
+                            doc.pages.get(page_num) if hasattr(doc, "pages") else None
+                        )
                         if page_obj and hasattr(page_obj, "size") and page_obj.size:
-                            norm = raw_bbox.to_top_left_origin(page_height=page_obj.size.height)
+                            norm = raw_bbox.to_top_left_origin(
+                                page_height=page_obj.size.height
+                            )
                             norm = norm.normalized(page_obj.size)
                             table_bbox = [norm.l, norm.t, norm.r, norm.b]
                         elif hasattr(raw_bbox, "as_tuple"):
@@ -752,7 +938,11 @@ class DoclingProcessor:
                 if extraction_quality < 0.5:
                     # Marquer pour fallback
                     failed_tables.append(
-                        {"idx": idx, "page_number": page_num, "reason": "low_quality_extraction"}
+                        {
+                            "idx": idx,
+                            "page_number": page_num,
+                            "reason": "low_quality_extraction",
+                        }
                     )
                     logger.warning(
                         f"Table {idx} page {page_num}: qualité faible, fallback nécessaire"
@@ -774,7 +964,9 @@ class DoclingProcessor:
                 title_raw = title_resolution.get("title_raw") or caption_title
                 table_number = title_resolution.get("table_number") or None
                 unit_context = title_resolution.get("unit_context") or None
-                title_resolution_method = title_resolution.get("resolution_method") or None
+                title_resolution_method = (
+                    title_resolution.get("resolution_method") or None
+                )
 
                 if not table_number:
                     parsed_number, parsed_inline = self._extract_table_number(title_raw)
@@ -786,30 +978,41 @@ class DoclingProcessor:
                     resolved_title = title_raw
 
                 title_clean = resolved_title or None
+                if title_clean and is_table_title_contaminated(title_clean):
+                    before_title = title_clean
+                    cleaned = clean_table_title_contamination(title_clean)
+                    if cleaned:
+                        title_clean = cleaned
+                        logger.info(
+                            "title_contaminated: table=%s page=%s before=%r after=%r",
+                            f"tableau_{idx}",
+                            page_num,
+                            before_title[:60]
+                            + ("..." if len(before_title) > 60 else ""),
+                            title_clean[:60] + ("..." if len(title_clean) > 60 else ""),
+                        )
 
                 # Exclure les lignes de notes du grid avant indicateurs et sortie
                 data_rows = [r for r in rows if not _is_footnote_row(r)]
                 footnote_row_filtered_count = len(rows) - len(data_rows)
 
-                # Extraire les indicateurs (première colonne) - comportement inchangé
-                first_column_indicators_raw_list: list[str] = []
-                indicators: list[str] = []
-                for row in data_rows:
-                    if not row or len(row) == 0:
-                        continue
-                    cell = str(row[0]).strip() if row[0] else ""
-                    if cell and not is_date_only_line(cell):
-                        first_column_indicators_raw_list.append(cell)
-                        indicators.append(normalize_indicator_for_comparison(cell))
+                # Extraire les indicateurs (premiere colonne) avec reconstruction de lignes.
+                first_column_indicators_raw_list, indicators, indicator_metrics = (
+                    self._collect_first_column_indicators(data_rows)
+                )
 
                 # Métriques en lecture seule (observabilité, pas de changement de comportement)
                 merge_count = row_count_before_merge - row_count_after_merge
                 unique_normalized = len(set(indicators))
                 duplicate_ratio = (
-                    0 if len(indicators) == 0 else 1 - (unique_normalized / len(indicators))
+                    0
+                    if len(indicators) == 0
+                    else 1 - (unique_normalized / len(indicators))
                 )
                 header_like_count = sum(
-                    1 for r in first_column_indicators_raw_list if is_non_indicator_line(r)
+                    1
+                    for r in first_column_indicators_raw_list
+                    if is_non_indicator_line(r)
                 )
                 header_like_ratio = (
                     header_like_count / len(first_column_indicators_raw_list)
@@ -825,7 +1028,19 @@ class DoclingProcessor:
                     "duplicate_ratio": duplicate_ratio,
                     "header_like_ratio": header_like_ratio,
                     "table_quality_score": extraction_quality,
+                    **indicator_metrics,
                 }
+
+                line_merges_count = int(
+                    indicator_metrics.get("line_reconstruction_merges", 0) or 0
+                )
+                if line_merges_count > 0:
+                    logger.info(
+                        "indicator_line_merge: table=%s page=%s merges_count=%d",
+                        f"tableau_{idx}",
+                        page_num,
+                        line_merges_count,
+                    )
 
                 out_headers = [] if labels_only else headers
                 out_rows = [] if labels_only else data_rows
@@ -843,52 +1058,264 @@ class DoclingProcessor:
                     title_clean=title_clean,
                     title_raw=title_raw,
                     unit_context=unit_context,
-                    title_resolution_method=title_resolution_method or ("caption" if caption_title else None),
+                    title_resolution_method=title_resolution_method
+                    or ("caption" if caption_title else None),
                     bbox=table_bbox,
                     debug_metrics=debug_metrics,
                     fragmentation_detected=merge_fragmentation,
                 )
-                all_tables.append(extracted_table)
 
+                # Vision primary: extraction indicateurs + footnotes pour TOUS les tableaux (pas de gating)
                 if (
-                    os.environ.get("ENABLE_VISION_FALLBACK") == "1"
+                    vision_primary
+                    and vision_extractor
                     and table_bbox
                     and len(table_bbox) == 4
                 ):
                     try:
-                        from .vision_fallback_integration import _try_vision_first_column_fallback
+                        from ..utils.pdf_crop import crop_table_region_to_bytes
 
-                        _try_vision_first_column_fallback(
-                            extracted_table=extracted_table,
-                            pdf_path=str(pdf_path),
+                        def _recrop(ext: float) -> bytes:
+                            return crop_table_region_to_bytes(
+                                str(pdf_path),
+                                page_num,
+                                table_bbox,
+                                bottom_extension=ext,
+                                dpi=300,
+                            )
+
+                        crop_bytes = _recrop(bottom_extension_footnotes)
+                        if not crop_bytes:
+                            raise ValueError("crop returned empty bytes")
+
+                        vision_result = vision_extractor.extract_with_quality_pass(
+                            crop_bytes=crop_bytes,
                             bank_code=bank_code,
-                            quarter=quarter,
-                            year=year,
-                            page_num=page_num,
-                            table_bbox=table_bbox,
+                            pdf_sha=pdf_sha,
+                            page_number=page_num,
+                            bbox_norm=table_bbox,
+                            vision_cfg=vision_extraction_cfg,
+                            initial_bottom_extension=bottom_extension_footnotes,
+                            get_recrop_fn=_recrop,
                         )
+                        if vision_result and vision_result.indicators:
+                            extracted_table.first_column_indicators_raw = list(
+                                vision_result.indicators
+                            )
+                            extracted_table.first_column_indicators = [
+                                normalize_indicator_for_comparison(x)
+                                for x in vision_result.indicators
+                            ]
+                            extracted_table.footnotes = (
+                                vision_result.to_footnotes_list()
+                            )
+                            extracted_table.extraction_method = "vision_full_gpt4o"
+                            debug_metrics["vision_primary_applied"] = True
+                            debug_metrics["vision_primary_confidence"] = (
+                                vision_result.confidence
+                            )
+                        else:
+                            if fallback_to_docling:
+                                logger.warning(
+                                    "Vision primary: echec table %s page %s, fallback Docling",
+                                    extracted_table.table_id,
+                                    page_num,
+                                )
+                                debug_metrics["vision_primary_fallback"] = True
+                            else:
+                                debug_metrics["vision_primary_failed"] = True
+                    except Exception as e:
+                        if fallback_to_docling:
+                            logger.warning(
+                                "Vision primary exception table %s page %s: %s",
+                                extracted_table.table_id,
+                                page_num,
+                                e,
+                            )
+                        debug_metrics["vision_primary_error"] = str(e)[:200]
+
+                all_tables.append(extracted_table)
+
+                # Vision fallback pipeline - disabled when vision_primary is active.
+                should_run_vision = False
+                if not vision_primary:
+                    debug_metrics["vision_fallback_attempted"] = False
+                    debug_metrics["vision_fallback_applied"] = False
+                    fallback_pipeline_enabled = bool(self.use_vision_fallback)
+                    debug_metrics["vision_fallback_enabled"] = fallback_pipeline_enabled
+                    if fallback_pipeline_enabled:
+                        from .vision_gating import (
+                            is_table_extraction_suspect as _is_suspect,
+                        )
+
+                        manual_vision_flag = (
+                            os.environ.get("ENABLE_VISION_FALLBACK") == "1"
+                        )
+                        disabled_bank = (
+                            os.environ.get("DISABLE_VISION_FOR_BANK") or ""
+                        ).lower()
+                        bank_disabled = (
+                            disabled_bank
+                            and disabled_bank == (bank_code or "").strip().lower()
+                        )
+                        env_auto = os.environ.get("ENABLE_AUTO_VISION_ON_SUSPECT")
+                        if env_auto is not None:
+                            auto_vision_flag = env_auto == "1" and not bank_disabled
+                        else:
+                            try:
+                                from ..config import get_matching_thresholds as _get_th
+
+                                _cfg = _get_th(bank_code=bank_code) or {}
+                                auto_vision_flag = (
+                                    bool(_cfg.get("vision_auto_on_suspect", True))
+                                    and not bank_disabled
+                                )
+                            except Exception:
+                                auto_vision_flag = not bank_disabled
+                        quality_suspect = _is_suspect(extracted_table)
+                        force_vision = manual_vision_flag and not bank_disabled
+                        debug_metrics["quality_suspect_for_vision"] = bool(
+                            quality_suspect
+                        )
+                        should_run_vision = (
+                            (force_vision or (auto_vision_flag and quality_suspect))
+                            and table_bbox
+                            and len(table_bbox) == 4
+                        )
+                    else:
+                        debug_metrics["quality_suspect_for_vision"] = False
+
+                if should_run_vision:
+                    debug_metrics["vision_fallback_attempted"] = True
+                    vision_cfg = {}
+                    try:
+                        from ..config import get_matching_thresholds
+
+                        vision_cfg = get_matching_thresholds(bank_code=bank_code) or {}
                     except Exception:
                         pass
+                    before_method = extracted_table.extraction_method
+                    vision_tasks.append(
+                        (
+                            extracted_table,
+                            str(pdf_path),
+                            bank_code,
+                            quarter,
+                            year,
+                            page_num,
+                            table_bbox,
+                            force_vision,
+                            vision_cfg,
+                            before_method,
+                        )
+                    )
 
-                if os.environ.get("ENABLE_TABLE_CROP_DUMP") == "1" and table_bbox and len(table_bbox) == 4:
+                if (
+                    os.environ.get("ENABLE_TABLE_CROP_DUMP") == "1"
+                    and table_bbox
+                    and len(table_bbox) == 4
+                ):
                     try:
                         from ..utils.pdf_crop import crop_table_image
 
-                        crop_dir = Path("outputs/debug_crops") / f"{bank_code}_{quarter}_{year}"
-                        crop_path = crop_dir / f"{extracted_table.table_id}_p{page_num}.png"
+                        crop_dir = (
+                            Path("outputs/debug_crops")
+                            / f"{bank_code}_{quarter}_{year}"
+                        )
+                        crop_path = (
+                            crop_dir / f"{extracted_table.table_id}_p{page_num}.png"
+                        )
                         crop_table_image(
                             str(pdf_path),
                             page_num,
                             table_bbox,
                             str(crop_path),
                             dpi=300,
+                            bottom_extension=bottom_extension_footnotes,
                         )
                     except Exception:
                         pass
 
+            # Run Vision fallback in parallel to reduce total runtime
+            if vision_tasks:
+                from .vision_fallback_integration import (
+                    _try_vision_first_column_fallback,
+                )
+
+                _raw_workers = os.environ.get("VISION_PARALLEL_WORKERS", "4")
+                try:
+                    max_workers = max(1, min(8, int(_raw_workers)))
+                except (TypeError, ValueError):
+                    max_workers = 4
+                logger.info(
+                    "Vision fallback: %s table(s), running with %s worker(s)",
+                    len(vision_tasks),
+                    max_workers,
+                )
+
+                def _run_vision_task(
+                    task: tuple[
+                        Any,
+                        str,
+                        str,
+                        str,
+                        int,
+                        int,
+                        list[float],
+                        bool,
+                        dict,
+                        str | None,
+                    ],
+                ) -> None:
+                    (
+                        ext_table,
+                        pdf,
+                        bcode,
+                        qtr,
+                        yr,
+                        pnum,
+                        bbox,
+                        force,
+                        v_cfg,
+                        before_m,
+                    ) = task
+                    try:
+                        _try_vision_first_column_fallback(
+                            extracted_table=ext_table,
+                            pdf_path=pdf,
+                            bank_code=bcode,
+                            quarter=qtr,
+                            year=yr,
+                            page_num=pnum,
+                            table_bbox=bbox,
+                            force_vision=force,
+                            vision_min_confidence=float(
+                                v_cfg.get("vision_min_confidence", 0.80)
+                            ),
+                            vision_count_ratio_min=float(
+                                v_cfg.get("vision_count_ratio_min", 0.50)
+                            ),
+                            vision_count_ratio_max=float(
+                                v_cfg.get("vision_count_ratio_max", 2.00)
+                            ),
+                        )
+                        dm = getattr(ext_table, "debug_metrics", None) or {}
+                        dm["vision_fallback_applied"] = (
+                            before_m != getattr(ext_table, "extraction_method", None)
+                            and getattr(ext_table, "extraction_method", None)
+                            == "vision_fallback_gpt4o"
+                        )
+                    except Exception:
+                        pass
+
+                with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                    list(executor.map(_run_vision_task, vision_tasks))
+
             # Log par page pour analyse de completude
             if tables_by_page:
-                counts_str = ", ".join(f"p{k}:{v}" for k, v in sorted(tables_by_page.items()))
+                counts_str = ", ".join(
+                    f"p{k}:{v}" for k, v in sorted(tables_by_page.items())
+                )
                 logger.info(f"Docling tableaux par page: {counts_str}")
 
             # Appliquer fallback pour les tables échouées
@@ -961,7 +1388,9 @@ class DoclingProcessor:
         allow_vision = is_vision_fallback_enabled()
 
         if not allow_vision:
-            logger.warning("Fallback Vision desactive; retour Docling-only avec warning.")
+            logger.warning(
+                "Fallback Vision desactive; retour Docling-only avec warning."
+            )
             return ExtractedDocument(
                 file_path=str(pdf_path),
                 bank_code=bank_code,
@@ -1032,7 +1461,9 @@ class DoclingProcessor:
                 )
                 extracted_tables = getattr(result, "extracted_tables", None)
                 if not isinstance(extracted_tables, list):
-                    raise ValueError("Vision payload invalide: extracted_tables manquant")
+                    raise ValueError(
+                        "Vision payload invalide: extracted_tables manquant"
+                    )
             except Exception as e:
                 msg = f"Vision fallback error {start_page}-{end_page}: {e}"
                 logger.warning(msg)
@@ -1041,13 +1472,21 @@ class DoclingProcessor:
 
             for extracted in extracted_tables:
                 try:
-                    table_number, title_clean = self._extract_table_number(extracted.title)
+                    table_number, title_clean = self._extract_table_number(
+                        extracted.title
+                    )
                     out_headers = [] if labels_only else extracted.headers
                     out_rows = [] if labels_only else extracted.rows
-                    out_footnotes = [] if labels_only else extracted.footnotes
+                    out_footnotes = (
+                        []
+                        if labels_only
+                        else normalize_footnotes_to_canonical(extracted.footnotes)
+                    )
                     title_raw = getattr(extracted, "title_raw", None) or extracted.title
                     unit_context = getattr(extracted, "unit_context", None)
-                    resolution_method = getattr(extracted, "title_resolution_method", None)
+                    resolution_method = getattr(
+                        extracted, "title_resolution_method", None
+                    )
                     all_tables.append(
                         ExtractedTable(
                             table_id=extracted.table_id,
@@ -1147,12 +1586,16 @@ class DoclingProcessor:
         number, inline = extract_table_number_and_inline_title(value)
         if number and inline:
             inline_temporal = bool(
-                strip_temporal_expressions(inline, target="title", aggressive=True).strip()
+                strip_temporal_expressions(
+                    inline, target="title", aggressive=True
+                ).strip()
             )
             if inline_temporal:
                 score += 1
 
-        temporal_free = strip_temporal_expressions(value, target="title", aggressive=True)
+        temporal_free = strip_temporal_expressions(
+            value, target="title", aggressive=True
+        )
         if temporal_free.strip():
             score += 1
 
@@ -1167,12 +1610,18 @@ class DoclingProcessor:
         if not lines:
             return []
 
-        number_indices = [idx for idx, line in enumerate(lines) if is_table_number_line(line)]
+        number_indices = [
+            idx for idx, line in enumerate(lines) if is_table_number_line(line)
+        ]
         candidates: list[dict[str, str]] = []
 
         if not number_indices:
             candidate = self._resolve_title_metadata_from_lines(lines)
-            if candidate.get("title") or candidate.get("table_number") or candidate.get("title_raw"):
+            if (
+                candidate.get("title")
+                or candidate.get("table_number")
+                or candidate.get("title_raw")
+            ):
                 candidates.append(candidate)
             return candidates
 
@@ -1290,7 +1739,11 @@ class DoclingProcessor:
                 page_tables = tables_by_page[page_num]
 
                 # CIBC: un candidat par tableau (lignes page + first_column de chaque tableau)
-                if bank_code == "cibc" and len(page_tables) >= 1 and len(candidates) <= 1:
+                if (
+                    bank_code == "cibc"
+                    and len(page_tables) >= 1
+                    and len(candidates) <= 1
+                ):
                     lines = self._normalize_text_lines(page_text)
                     per_table_candidates: list[dict[str, str]] = []
                     for table in page_tables:
@@ -1345,13 +1798,15 @@ class DoclingProcessor:
                     candidate_title_raw = (candidate.get("title_raw") or "").strip()
                     candidate_number = (candidate.get("table_number") or "").strip()
                     candidate_unit = (candidate.get("unit_context") or "").strip()
-                    candidate_method = (candidate.get("resolution_method") or "").strip()
+                    candidate_method = (
+                        candidate.get("resolution_method") or ""
+                    ).strip()
 
                     # On remplace si le candidat est clairement meilleur semantiquement.
                     current_title = (table.title or "").strip()
-                    if self._title_quality_score(candidate_title) > self._title_quality_score(
-                        current_title
-                    ):
+                    if self._title_quality_score(
+                        candidate_title
+                    ) > self._title_quality_score(current_title):
                         table.title = candidate_title or current_title or None
                         table.title_clean = candidate_title or table.title_clean
                     if candidate_method and not table.title_resolution_method:
@@ -1398,7 +1853,9 @@ class DoclingProcessor:
                         continue
                     page = pdf.pages[page_num - 1]
                     text = page.extract_text() or ""
-                    cb, ca = _extract_table_context_split(text, table.title or table.title_clean)
+                    cb, ca = _extract_table_context_split(
+                        text, table.title or table.title_clean
+                    )
                     table.context_before = cb
                     table.context_after = ca
         except (FileNotFoundError, OSError) as e:
@@ -1491,7 +1948,9 @@ class DoclingProcessor:
                 # On ne peut pas directement mapper ligne -> page sans page_breaks
                 # Donc on utilise une heuristique : sections apparaissent avant leurs tableaux
                 # Pour l'instant, on assigne la dernière section vue
-                if section["line_num"] < (table.page_number * 50):  # Estimation ~50 lignes/page
+                if section["line_num"] < (
+                    table.page_number * 50
+                ):  # Estimation ~50 lignes/page
                     best_section = section
 
             if best_section:
@@ -1507,7 +1966,8 @@ class DoclingProcessor:
                 grid = table.data.grid
                 if grid and len(grid) > 0:
                     return [
-                        str(cell.text) if hasattr(cell, "text") else str(cell) for cell in grid[0]
+                        str(cell.text) if hasattr(cell, "text") else str(cell)
+                        for cell in grid[0]
                     ]
         except Exception as e:
             logger.debug(f"Erreur lors de l'extraction des en-tetes: {e}")
@@ -1522,23 +1982,138 @@ class DoclingProcessor:
                     rows = []
                     for row in grid[1:]:
                         rows.append(
-                            [str(cell.text) if hasattr(cell, "text") else str(cell) for cell in row]
+                            [
+                                str(cell.text) if hasattr(cell, "text") else str(cell)
+                                for cell in row
+                            ]
                         )
                     return rows
         except Exception as e:
             logger.debug(f"Erreur lors de l'extraction des lignes: {e}")
         return []
 
-    def _extract_table_footnotes(self, table) -> list[str]:
-        """Extraire les notes de bas de page associees a un tableau."""
-        footnotes = []
+    def _extract_row_primary_label(
+        self, row: list[str] | tuple[str, ...] | None
+    ) -> str:
+        """Return the best primary label candidate from first cells."""
+        if not row:
+            return ""
+        candidates = [str(c).strip() for c in list(row)[:3] if str(c).strip()]
+        if not candidates:
+            return ""
+
+        def _is_textual(value: str) -> bool:
+            return sum(1 for ch in value if ch.isalpha()) >= 2
+
+        for candidate in candidates:
+            if _is_textual(candidate):
+                return candidate
+        return candidates[0]
+
+    def _is_indicator_line_continuation(self, previous: str, current: str) -> bool:
+        """Heuristic to merge line-wrapped first-column labels.
+
+        Guards against over-merging structural rows (Total, Actif, Passif, ...).
+        """
+        prev = str(previous or "").strip()
+        cur = str(current or "").strip()
+        if not prev or not cur:
+            return False
+        if is_non_indicator_line(cur) or is_date_only_line(cur):
+            return False
+        if _STRUCTURAL_ROW_RE.match(cur):
+            return False
+        if cur[0].islower():
+            return True
+        if _CONTINUATION_PREV_END_RE.search(prev):
+            return True
+        if _CONTINUATION_PREFIX_RE.match(cur):
+            return True
+        word_count = len(cur.split())
+        if word_count <= 2 and not cur[0].isupper():
+            return True
+        return False
+
+    def _reconstruct_indicator_lines(self, labels: list[str]) -> tuple[list[str], int]:
+        """Merge wrapped indicator lines while preserving order."""
+        cfg = IndicatorLineMergeConfig(max_next_tokens=6, max_combined_length=120)
+        return merge_indicator_lines(labels, config=cfg)
+
+    def _build_indicator_entries(self, labels: list[str]) -> list[dict[str, Any]]:
+        """Build canonical indicator entries for extraction audit/debug."""
+        entries: list[dict[str, Any]] = []
+        for label in labels:
+            raw = str(label or "").strip()
+            if not raw:
+                continue
+            canonical = get_canonical_text(raw)
+            token_sorted = get_token_sorted_text(raw)
+            entries.append(
+                {
+                    "raw_text": raw,
+                    "canonical_text": canonical,
+                    "token_sorted": token_sorted,
+                    "anchor_tokens": token_sorted.split()[:12] if token_sorted else [],
+                    "line_role": "header_like"
+                    if is_non_indicator_line(raw)
+                    else "indicator",
+                }
+            )
+        return entries
+
+    def _collect_first_column_indicators(
+        self, data_rows: list[list[str]]
+    ) -> tuple[list[str], list[str], dict[str, Any]]:
+        """Extract+normalize first-column indicators with line reconstruction."""
+        raw_labels: list[str] = []
+        for row in data_rows:
+            if not row or len(row) == 0:
+                continue
+            cell = self._extract_row_primary_label(row)
+            if cell and not is_date_only_line(cell):
+                raw_labels.append(cell)
+
+        reconstructed_raw, reconstruction_merges = self._reconstruct_indicator_lines(
+            raw_labels
+        )
+        normalized = [
+            normalize_indicator_for_comparison(x)
+            for x in reconstructed_raw
+            if x.strip()
+        ]
+        indicator_entries = self._build_indicator_entries(reconstructed_raw)
+
+        metrics = {
+            "raw_indicator_count_before_reconstruction": len(raw_labels),
+            "raw_indicator_count_after_reconstruction": len(reconstructed_raw),
+            "line_reconstruction_merges": reconstruction_merges,
+            "indicator_entries_count": len(indicator_entries),
+            "indicator_entries_sample": indicator_entries[:20],
+        }
+        return reconstructed_raw, normalized, metrics
+
+    def _extract_table_footnotes(self, table) -> list[dict[str, str]]:
+        """Extraire les footnotes en format canonique list[{id,text}] sans stringifier les dicts."""
+        raw_footnotes: list[Any] = []
         try:
             if hasattr(table, "footnotes"):
                 for fn in table.footnotes:
-                    footnotes.append(str(fn))
+                    if isinstance(fn, dict):
+                        raw_footnotes.append(fn)
+                        continue
+                    marker = (
+                        getattr(fn, "id", None)
+                        or getattr(fn, "ref", None)
+                        or getattr(fn, "marker", None)
+                    )
+                    text = getattr(fn, "text", None) or getattr(fn, "value", None)
+                    if marker is not None or text is not None:
+                        raw_footnotes.append({"id": marker, "text": text})
+                    else:
+                        raw_footnotes.append(fn)
         except Exception:
             pass
-        return footnotes
+        return normalize_footnotes_to_canonical(raw_footnotes)
 
     def _infer_table_title(self, page_text: str, table_idx: int) -> str | None:
         """Inferer le titre du tableau a partir du texte environnant."""
@@ -1646,24 +2221,30 @@ class DoclingProcessor:
 
                             # Appel Fusion (Docling + Vision)
                             merged_result = self._vision_fallback.smart_merge_results(
-                                docling_data_dict, vision_result, context=f"Tableau page {page_num}"
+                                docling_data_dict,
+                                vision_result,
+                                context=f"Tableau page {page_num}",
                             )
 
-                            # Recalculer les indicateurs (comportement inchangé: cell + not is_date_only_line)
-                            indicators_fb: list[str] = []
-                            first_column_raw_fb: list[str] = []
-                            for row in merged_result.rows or []:
-                                if not row or len(row) == 0:
-                                    continue
-                                cell = str(row[0]).strip() if row[0] else ""
-                                if cell and not is_date_only_line(cell):
-                                    first_column_raw_fb.append(cell)
-                                    indicators_fb.append(normalize_indicator_for_comparison(cell))
+                            # Recalculer les indicateurs avec reconstruction/canonical entries.
+                            first_column_raw_fb, indicators_fb, indicator_metrics_fb = (
+                                self._collect_first_column_indicators(
+                                    merged_result.rows or []
+                                )
+                            )
                             n_rows = len(merged_result.rows or [])
                             unique_fb = len(set(indicators_fb))
-                            dup_ratio_fb = 0 if not indicators_fb else 1 - (unique_fb / len(indicators_fb))
+                            dup_ratio_fb = (
+                                0
+                                if not indicators_fb
+                                else 1 - (unique_fb / len(indicators_fb))
+                            )
                             hdr_like_fb = (
-                                sum(1 for r in first_column_raw_fb if is_non_indicator_line(r))
+                                sum(
+                                    1
+                                    for r in first_column_raw_fb
+                                    if is_non_indicator_line(r)
+                                )
                                 / len(first_column_raw_fb)
                                 if first_column_raw_fb
                                 else 0.0
@@ -1676,6 +2257,9 @@ class DoclingProcessor:
                                 "indicator_count": len(indicators_fb),
                                 "duplicate_ratio": dup_ratio_fb,
                                 "header_like_ratio": hdr_like_fb,
+                                **indicator_metrics_fb,
+                                "vision_fallback_attempted": True,
+                                "vision_fallback_applied": True,
                             }
 
                             out_headers = [] if labels_only else merged_result.headers
@@ -1692,7 +2276,8 @@ class DoclingProcessor:
                                 section=original_table.section,
                                 table_number=original_table.table_number,
                                 title_clean=original_table.title_clean,
-                                title_raw=original_table.title_raw or original_table.title,
+                                title_raw=original_table.title_raw
+                                or original_table.title,
                                 unit_context=original_table.unit_context,
                                 title_resolution_method=original_table.title_resolution_method,
                                 first_column_indicators=indicators_fb,
@@ -1728,8 +2313,9 @@ def extract_pdf(
     year: int,
     use_ocr: bool = False,
     enhance_images: bool = True,
-    use_vision_fallback: bool = False,  # Désactivé pour le moment
+    use_vision_fallback: bool | None = None,
     page_ranges: list[tuple[int, int]] | None = None,
+    use_vision_primary: bool | None = None,
 ) -> ExtractedDocument:
     """Extraire tout le contenu d'un PDF."""
     processor = DoclingProcessor(
@@ -1737,7 +2323,14 @@ def extract_pdf(
         enhance_images=enhance_images,
         use_vision_fallback=use_vision_fallback,
     )
-    return processor.extract_document(pdf_path, bank_code, quarter, year, page_ranges)
+    return processor.extract_document(
+        pdf_path,
+        bank_code,
+        quarter,
+        year,
+        page_ranges=page_ranges,
+        use_vision_primary=use_vision_primary,
+    )
 
 
 def extract_pdf_targeted(
@@ -1747,6 +2340,7 @@ def extract_pdf_targeted(
     year: int,
     page_ranges: list[tuple[int, int]],
     use_ocr: bool = False,
+    use_vision_primary: bool | None = None,
 ) -> ExtractedDocument:
     """Extraire des pages specifiques d'un PDF."""
     return extract_pdf(
@@ -1757,6 +2351,7 @@ def extract_pdf_targeted(
         use_ocr=use_ocr,
         use_vision_fallback=False,
         page_ranges=page_ranges,
+        use_vision_primary=use_vision_primary,
     )
 
 
@@ -1813,6 +2408,8 @@ def extract_tables_docling_by_sections(
     quarter: str,
     year: int,
     section_ranges: list[dict[str, Any]] | None = None,
+    use_vision_primary: bool | None = None,
+    use_vision_fallback: bool | None = None,
 ) -> list[ExtractedTable]:
     """Extract tables on selected section ranges and tag them with section names."""
     normalized_ranges: list[tuple[str, int, int]] = []
@@ -1835,6 +2432,8 @@ def extract_tables_docling_by_sections(
         quarter=quarter,
         year=year,
         page_ranges=page_ranges or None,
+        use_vision_primary=use_vision_primary,
+        use_vision_fallback=use_vision_fallback,
     )
 
     if not normalized_ranges:
@@ -1850,7 +2449,9 @@ def extract_tables_docling_by_sections(
     try:
         from .extraction_debug_writer import write_extraction_debug
 
-        write_extraction_debug(bank=bank_code, quarter=quarter, year=year, tables=tables)
+        write_extraction_debug(
+            bank=bank_code, quarter=quarter, year=year, tables=tables
+        )
     except Exception:
         pass
 
@@ -1863,10 +2464,18 @@ def extract_tables_docling_priority(
     quarter: str,
     year: int,
     page_ranges: list[tuple[int, int]] | None = None,
+    use_vision_primary: bool | None = None,
+    use_vision_fallback: bool | None = None,
 ) -> list[ExtractedTable]:
     """Extraire uniquement les tableaux via Docling."""
     doc = extract_pdf(
-        pdf_path, bank_code, quarter, year, page_ranges=page_ranges, use_vision_fallback=False
+        pdf_path,
+        bank_code,
+        quarter,
+        year,
+        page_ranges=page_ranges,
+        use_vision_fallback=use_vision_fallback,
+        use_vision_primary=use_vision_primary,
     )
     return doc.all_tables
 
@@ -1877,6 +2486,16 @@ def extract_tables_with_context(
     quarter: str,
     year: int,
     page_ranges: list[tuple[int, int]] | None = None,
+    use_vision_primary: bool | None = None,
+    use_vision_fallback: bool | None = None,
 ) -> list[ExtractedTable]:
     """Extraire les tableaux avec contexte enrichi."""
-    return extract_tables_docling_priority(pdf_path, bank_code, quarter, year, page_ranges)
+    return extract_tables_docling_priority(
+        pdf_path,
+        bank_code,
+        quarter,
+        year,
+        page_ranges=page_ranges,
+        use_vision_primary=use_vision_primary,
+        use_vision_fallback=use_vision_fallback,
+    )

@@ -12,24 +12,31 @@ from .vision_first_column_provider import VisionFirstColumnResult
 
 logger = logging.getLogger(__name__)
 
-EXTRACT_FIRST_COLUMN_PROMPT = """You are extracting structured financial table data from a cropped table image.
+EXTRACT_FIRST_COLUMN_PROMPT = """Tu es un expert en extraction de donnees de rapports bancaires canadiens (BNC, BMO, CIBC, TD, RBC, BNS).
 
-Task:
-Extract ONLY the first column row labels (financial indicators).
+TACHE: Extraire UNIQUEMENT les libelles de la premiere colonne (indicateurs financiers) de cette image de tableau.
 
-Rules:
-- Return labels in visual top-to-bottom order.
-- Merge multi-line labels into one single string.
-- Do NOT include column headers.
-- Do NOT include footnote rows.
-- Do NOT include unit lines.
-- Keep exact text as written (no normalization).
-- Do not infer or summarize.
-- Output strict JSON:
+INSTRUCTIONS:
+1. Retourne les libelles dans l'ordre visuel de haut en bas
+2. Fusionne les libelles multi-lignes en une seule chaine
+3. Conserve la hierarchie : les sous-lignes indentees doivent etre incluses avec leurs espaces en debut
+4. Inclure TOUTES les lignes : sous-totaux, totaux, lignes indentees
+5. Conserver les references de notes (1), (2), *, etc. dans le texte
+6. NE PAS inclure les en-tetes de colonnes (dates, periodes, etc.)
+7. NE PAS inclure les lignes de notes de bas de page
+8. NE PAS inclure les lignes d'unites (en millions, en milliers, etc.)
+9. Conserver le texte EXACTEMENT tel qu'il apparait (pas de normalisation)
+10. Ne pas inferer ni resumer
+
+FORMAT DE REPONSE (JSON strict):
 {
-  "indicators": ["...", "...", "..."],
+  "indicators": ["Libelle 1", "  Sous-libelle 1a", "Total", "..."],
   "confidence": 0.0
 }
+
+REGLES:
+- indicators = TOUS les libelles de la premiere colonne, dans l'ordre visuel
+- confidence entre 0.0 et 1.0 selon la lisibilite de l'image
 """
 
 
@@ -72,7 +79,10 @@ class GPT4oVisionFirstColumnProvider:
             )
 
         try:
-            image_b64 = base64.standard_b64encode(path.read_bytes()).decode("ascii")
+            from .vision_image_preprocessor import preprocess_for_vision
+
+            processed = preprocess_for_vision(path.read_bytes())
+            image_b64 = base64.standard_b64encode(processed).decode("ascii")
         except Exception:
             return VisionFirstColumnResult(
                 indicators_raw=[],
@@ -102,6 +112,7 @@ class GPT4oVisionFirstColumnProvider:
                         },
                     ]},
                 ],
+                response_format={"type": "json_object"},
                 temperature=0,
                 max_completion_tokens=4096,
             )
@@ -114,11 +125,36 @@ class GPT4oVisionFirstColumnProvider:
                 provider="gpt-4o",
             )
 
-        return self._parse_response(raw_content)
+        result = self._parse_response(raw_content)
+        if not result.indicators_raw:
+            logger.warning(
+                "GPT-4o Vision returned 0 indicators. Raw response (first 200 chars): %s",
+                repr(raw_content[:200]),
+            )
+        else:
+            logger.info(
+                "GPT-4o Vision extracted %d indicators (confidence=%.2f)",
+                len(result.indicators_raw),
+                result.confidence,
+            )
+        return result
+
+    @staticmethod
+    def _strip_markdown_fences(text: str) -> str:
+        """Remove markdown code fences that GPT-4o sometimes wraps around JSON."""
+        stripped = text.strip()
+        if stripped.startswith("```"):
+            first_nl = stripped.find("\n")
+            if first_nl != -1:
+                stripped = stripped[first_nl + 1:]
+            if stripped.endswith("```"):
+                stripped = stripped[:-3].rstrip()
+        return stripped
 
     def _parse_response(self, raw: str) -> VisionFirstColumnResult:
         try:
-            data = json.loads(raw)
+            cleaned = self._strip_markdown_fences(raw)
+            data = json.loads(cleaned)
             if not isinstance(data, dict):
                 return VisionFirstColumnResult(
                     indicators_raw=[],
