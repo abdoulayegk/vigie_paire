@@ -431,6 +431,27 @@ def _compute_extraction_kpis(
         1 for t in all_tables
         if (t.debug_metrics or {}).get("vision_fallback_applied")
     )
+    vision_primary_attempted = sum(
+        1
+        for t in all_tables
+        if (t.debug_metrics or {}).get("vision_primary_attempted")
+    )
+    vision_primary_applied = sum(
+        1
+        for t in all_tables
+        if (t.debug_metrics or {}).get("vision_primary_applied")
+    )
+    vision_schema_contract_fail_count = sum(
+        1
+        for t in all_tables
+        if (t.debug_metrics or {}).get("vision_schema_contract_failed")
+    )
+    vision_primary_disabled_reason = ""
+    for t in all_tables:
+        reason = (t.debug_metrics or {}).get("vision_primary_disabled_reason")
+        if isinstance(reason, str) and reason.strip():
+            vision_primary_disabled_reason = reason.strip()
+            break
 
     disagree_count = 0
     for t in all_tables:
@@ -467,6 +488,10 @@ def _compute_extraction_kpis(
         "tables_total": len(all_tables),
         "vision_attempted_count": vision_attempted,
         "vision_applied_count": vision_applied,
+        "vision_primary_attempted_count": vision_primary_attempted,
+        "vision_primary_applied_count": vision_primary_applied,
+        "vision_schema_contract_fail_count": vision_schema_contract_fail_count,
+        "vision_primary_disabled_reason": vision_primary_disabled_reason or None,
         "disagreement_count": disagree_count,
         "incertain_count": sum(1 for c in comparisons if c.get("table_status") == "incertain"),
     }
@@ -1399,6 +1424,8 @@ def run_comparison_with_sections(
             tables_t1 = fut_t1.result()
             tables_t2 = fut_t2.result()
     except Exception as exc:
+        if "Vision schema contract invalid" in str(exc):
+            raise
         return _empty_result(bank_code, year, f"Extraction impossible: {exc}")
 
     if not tables_t1 and not tables_t2:
@@ -2078,6 +2105,10 @@ def run_comparison_with_sections(
         f"{total_removed} suppressions, {len(tables_added)} tableaux ajoutes, {len(tables_removed)} supprimes."
     )
 
+    extraction_quality_kpis = _compute_extraction_kpis(
+        tables_t1, tables_t2, comparisons, tables_added, tables_removed
+    )
+
     result: dict[str, Any] = {
         "schema_version": "comparison_canonical_v1",
         "bank_code": bank_code,
@@ -2175,9 +2206,8 @@ def run_comparison_with_sections(
                 "total_errors": semantic_judge_stats["errors"],
                 "structural_overrides": semantic_judge_stats["overrides"],
             },
-            "extraction_kpis": _compute_extraction_kpis(
-                tables_t1, tables_t2, comparisons, tables_added, tables_removed
-            ),
+            "extraction_kpis": extraction_quality_kpis,
+            "extraction_quality": extraction_quality_kpis,
             "quality_gate": quality_gate_status,
             "extraction_artifacts": {
                 "run_id": extraction_run_id,

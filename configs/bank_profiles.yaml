@@ -5,6 +5,7 @@ vision_extraction:
   bottom_extension_footnotes: 0.12
   run_on_all_tables: true
   fallback_to_docling_on_error: true
+  schema_failure_policy: fail_fast
   save_indicators_footnotes_json: true
   vision_pair_validation: false
 

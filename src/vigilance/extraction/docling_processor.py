@@ -856,8 +856,12 @@ class DoclingProcessor:
             vision_extraction_cfg: dict = {}
             bottom_extension_footnotes = 0.0
             fallback_to_docling = True
+            schema_failure_policy = "fail_fast"
             vision_extractor = None
             pdf_sha = ""
+            vision_primary_disabled_reason: str | None = None
+            vision_schema_contract_failed = False
+            vision_schema_error_cls: type[Exception] = Exception
             if vision_primary:
                 try:
                     vision_extraction_cfg = _get_vision_extraction_config(bank_code)
@@ -867,9 +871,20 @@ class DoclingProcessor:
                     fallback_to_docling = vision_extraction_cfg.get(
                         "fallback_to_docling_on_error", True
                     )
+                    schema_failure_policy = str(
+                        vision_extraction_cfg.get("schema_failure_policy", "fail_fast")
+                    ).strip().lower()
+                    if schema_failure_policy not in {
+                        "fail_fast",
+                        "degrade_to_docling",
+                    }:
+                        schema_failure_policy = "fail_fast"
                     from ..utils.genai import get_openai_api_key
                     from .vision_cache import compute_pdf_sha256
-                    from .vision_full_extractor import VisionFullExtractor
+                    from .vision_full_extractor import (
+                        VisionFullExtractor,
+                        VisionSchemaContractError,
+                    )
 
                     pdf_sha = compute_pdf_sha256(str(pdf_path))
                     api_key = self.openai_api_key or get_openai_api_key()
@@ -882,6 +897,7 @@ class DoclingProcessor:
                             "Vision primary: OPENAI_API_KEY absente, desactivation"
                         )
                         vision_primary = False
+                    vision_schema_error_cls = VisionSchemaContractError
                 except Exception as e:
                     logger.warning("Vision primary init failed: %s", e)
                     vision_primary = False
@@ -1028,8 +1044,17 @@ class DoclingProcessor:
                     "duplicate_ratio": duplicate_ratio,
                     "header_like_ratio": header_like_ratio,
                     "table_quality_score": extraction_quality,
+                    "vision_primary_attempted": False,
+                    "vision_primary_applied": False,
+                    "vision_schema_contract_failed": False,
                     **indicator_metrics,
                 }
+                if vision_primary_disabled_reason:
+                    debug_metrics["vision_primary_disabled_reason"] = (
+                        vision_primary_disabled_reason
+                    )
+                if vision_schema_contract_failed:
+                    debug_metrics["vision_schema_contract_failed"] = True
 
                 line_merges_count = int(
                     indicator_metrics.get("line_reconstruction_merges", 0) or 0
@@ -1073,6 +1098,7 @@ class DoclingProcessor:
                     and len(table_bbox) == 4
                 ):
                     try:
+                        debug_metrics["vision_primary_attempted"] = True
                         from ..utils.pdf_crop import crop_table_region_to_bytes
 
                         def _recrop(ext: float) -> bytes:
@@ -1124,6 +1150,21 @@ class DoclingProcessor:
                                 debug_metrics["vision_primary_fallback"] = True
                             else:
                                 debug_metrics["vision_primary_failed"] = True
+                    except vision_schema_error_cls as e:
+                        vision_schema_contract_failed = True
+                        reason = f"Vision schema contract invalid: {e}"
+                        debug_metrics["vision_schema_contract_failed"] = True
+                        debug_metrics["vision_primary_disabled_reason"] = reason[:300]
+                        debug_metrics["vision_primary_error"] = str(e)[:200]
+                        if schema_failure_policy == "degrade_to_docling":
+                            vision_primary_disabled_reason = reason
+                            vision_primary = False
+                            logger.error(
+                                "Vision primary desactive pour le reste du run (schema contract): %s",
+                                e,
+                            )
+                        else:
+                            raise RuntimeError(reason) from e
                     except Exception as e:
                         if fallback_to_docling:
                             logger.warning(
@@ -1363,6 +1404,8 @@ class DoclingProcessor:
             )
 
         except Exception as e:
+            if "Vision schema contract invalid" in str(e):
+                raise
             logger.error(
                 "Echec de l'extraction Docling (%s): %s",
                 type(e).__name__,

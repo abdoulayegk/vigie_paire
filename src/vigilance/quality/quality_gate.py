@@ -11,7 +11,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from vigilance.utils.indicator_cleaner import is_table_title_contaminated
+from vigilance.utils.indicator_cleaner import (
+    clean_table_title_contamination,
+    is_table_title_contaminated,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +23,7 @@ _DEFAULT_CONFIG: dict[str, Any] = {
     "duplicate_ratio_threshold": 0.15,
     "max_tables_duplicate_excess": 3,
     "max_contaminated_titles": 2,
+    "allow_date_header_titles": True,
     "line_split_max_per_table": 2,
     "missing_marker_majority_threshold": 0.5,
     "title_numeric_density_threshold": 0.45,
@@ -31,6 +35,12 @@ _MARKER_ONLY_RE = re.compile(
 )
 _PUNCT_ONLY_RE = re.compile(r"^\s*[\-–—.,:;!?/\\|_+=~`\"'()\[\]{}]+\s*$")
 _DICTISH_RE = re.compile(r"^\s*\{.*\}\s*$", re.DOTALL)
+_MONTH_TOKEN_RE = (
+    r"(?:janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|"
+    r"novembre|decembre|january|february|march|april|may|june|july|august|"
+    r"september|october|november|december)"
+)
+_FULL_DATE_RE = re.compile(rf"\b\d{{1,2}}\s+{_MONTH_TOKEN_RE}\s+\d{{4}}\b")
 
 _SUPERSCRIPT_TO_DIGIT = str.maketrans(
     {
@@ -176,6 +186,99 @@ def _is_line_split_suspicious(text: str) -> bool:
     return False
 
 
+def _is_date_header_title(title: str) -> bool:
+    """Return True if title looks like a date header rather than a semantic title."""
+    folded = _ascii_fold(_normalize_text(title))
+    if not folded:
+        return False
+    has_full_date = bool(_FULL_DATE_RE.search(folded))
+    if not has_full_date:
+        return False
+
+    # Remove explicit dates and verify only lightweight header glue remains.
+    remainder = _FULL_DATE_RE.sub(" ", folded)
+    remainder = re.sub(r"[^\w\s]", " ", remainder)
+    tokens = [t for t in remainder.split() if t]
+    if not tokens:
+        return True
+
+    allowed = {
+        "au",
+        "as",
+        "at",
+        "of",
+        "for",
+        "the",
+        "pour",
+        "le",
+        "la",
+        "les",
+        "des",
+        "de",
+        "du",
+        "d",
+        "trimestre",
+        "quarter",
+        "clos",
+        "ended",
+        "en",
+        "date",
+        "au",
+    }
+    return all(tok in allowed for tok in tokens)
+
+
+def _is_title_contaminated_basic(title: str, *, title_density_threshold: float) -> bool:
+    return bool(
+        is_table_title_contaminated(title)
+        or _has_trailing_numeric_run(title, min_run=2)
+        or (
+            _title_numeric_density(title) >= title_density_threshold
+            and len(title.split()) >= 3
+        )
+    )
+
+
+def _assess_title_quality(
+    title: str,
+    *,
+    title_density_threshold: float,
+    allow_date_header_titles: bool,
+) -> tuple[bool, bool, bool, str]:
+    """
+    Return (title_contaminated, date_header_title, title_auto_cleaned, title_effective).
+
+    - date_header_title: date-like heading (allowed, does not fail contamination gate)
+    - title_auto_cleaned: contamination detected on raw title but removed by canonical cleaner
+    - title_effective: cleaned title used for quality decision
+    """
+    raw = _normalize_text(title)
+    if not raw:
+        return False, False, False, raw
+
+    if allow_date_header_titles and _is_date_header_title(raw):
+        return False, True, False, raw
+
+    contaminated_raw = _is_title_contaminated_basic(
+        raw,
+        title_density_threshold=title_density_threshold,
+    )
+    if not contaminated_raw:
+        return False, False, False, raw
+
+    cleaned = _normalize_text(clean_table_title_contamination(raw))
+    if cleaned and cleaned != raw:
+        has_alpha = bool(re.search(r"[A-Za-zÀ-ÿ]", cleaned))
+        contaminated_cleaned = _is_title_contaminated_basic(
+            cleaned,
+            title_density_threshold=title_density_threshold,
+        )
+        if has_alpha and not contaminated_cleaned and not _is_date_header_title(cleaned):
+            return False, False, True, cleaned
+
+    return True, False, False, (cleaned or raw)
+
+
 def _make_footnote_index(
     foot_tables: list[dict[str, Any]],
 ) -> tuple[dict[tuple[str, str, int], dict[str, Any]], dict[tuple[str, str], list[dict[str, Any]]]]:
@@ -286,6 +389,7 @@ def evaluate_quality(
     duplicate_threshold = float(cfg["duplicate_ratio_threshold"])
     max_dup = int(cfg["max_tables_duplicate_excess"])
     max_titles = int(cfg["max_contaminated_titles"])
+    allow_date_header_titles = bool(cfg.get("allow_date_header_titles", True))
     title_density_threshold = float(cfg["title_numeric_density_threshold"])
     missing_marker_majority_threshold = float(cfg["missing_marker_majority_threshold"])
 
@@ -303,6 +407,8 @@ def evaluate_quality(
     per_table: list[dict[str, Any]] = []
     duplicates_excess_count = 0
     contaminated_titles_count = 0
+    date_header_titles_count = 0
+    titles_auto_cleaned_count = 0
     footnote_fails_count = 0
 
     for idx, entry in enumerate(indicators_tables):
@@ -335,11 +441,20 @@ def evaluate_quality(
             )
             suspicious_count += sum(1 for line in lines if _is_line_split_suspicious(line))
 
-        title_contaminated = bool(
-            is_table_title_contaminated(title)
-            or _has_trailing_numeric_run(title, min_run=2)
-            or (_title_numeric_density(title) >= title_density_threshold and len(title.split()) >= 3)
+        (
+            title_contaminated,
+            date_header_title,
+            title_auto_cleaned,
+            title_effective,
+        ) = _assess_title_quality(
+            title,
+            title_density_threshold=title_density_threshold,
+            allow_date_header_titles=allow_date_header_titles,
         )
+        if date_header_title:
+            date_header_titles_count += 1
+        if title_auto_cleaned:
+            titles_auto_cleaned_count += 1
         if title_contaminated:
             contaminated_titles_count += 1
 
@@ -381,6 +496,9 @@ def evaluate_quality(
                     "page": int(entry.get("page", 0) or 0),
                 },
                 "title": title,
+                "title_effective": title_effective,
+                "date_header_title": date_header_title,
+                "title_auto_cleaned": title_auto_cleaned,
                 "title_contaminated": title_contaminated,
                 "duplicate_ratio": round(max_dup_ratio, 4),
                 "duplicate_ratio_by_section": dup_by_section,
@@ -417,6 +535,10 @@ def evaluate_quality(
         recommended_actions.append(
             "Renforcer le nettoyage des titres contamines (runs numeriques en fin de titre)."
         )
+    if titles_auto_cleaned_count:
+        recommended_actions.append(
+            "Ameliorer l'extraction upstream des titres pour eviter la contamination nettoyee a posteriori."
+        )
     if duplicates_excess_count:
         recommended_actions.append(
             "Verifier les sections avec duplication d'indicateurs et ajuster dedupe/segmentation."
@@ -439,6 +561,7 @@ def evaluate_quality(
             "duplicate_ratio_threshold": duplicate_threshold,
             "max_tables_duplicate_excess": max_dup,
             "max_contaminated_titles": max_titles,
+            "allow_date_header_titles": allow_date_header_titles,
             "line_split_max_per_table": int(cfg["line_split_max_per_table"]),
             "missing_marker_majority_threshold": missing_marker_majority_threshold,
             "title_numeric_density_threshold": title_density_threshold,
@@ -448,6 +571,8 @@ def evaluate_quality(
             "tables_failed_footnote_integrity": footnote_fails_count,
             "tables_duplicate_ratio_excess": duplicates_excess_count,
             "tables_title_contaminated": contaminated_titles_count,
+            "tables_date_header_titles": date_header_titles_count,
+            "tables_title_auto_cleaned": titles_auto_cleaned_count,
         },
         "fail_reasons": fail_reasons,
         "recommended_actions": recommended_actions,
@@ -485,12 +610,19 @@ def _report_markdown(report: dict[str, Any]) -> str:
     lines.append(
         f"- Contaminated titles: {int(summary.get('tables_title_contaminated', 0) or 0)}"
     )
+    lines.append(
+        f"- Date-header titles (exempted): {int(summary.get('tables_date_header_titles', 0) or 0)}"
+    )
+    lines.append(
+        f"- Auto-cleaned titles (non-blocking): {int(summary.get('tables_title_auto_cleaned', 0) or 0)}"
+    )
     lines.append("")
     lines.append("## Thresholds")
     for key in (
         "duplicate_ratio_threshold",
         "max_tables_duplicate_excess",
         "max_contaminated_titles",
+        "allow_date_header_titles",
         "line_split_max_per_table",
         "missing_marker_majority_threshold",
         "title_numeric_density_threshold",
@@ -557,6 +689,9 @@ def run_quality_gate(
                 "duplicate_ratio_threshold": float(cfg["duplicate_ratio_threshold"]),
                 "max_tables_duplicate_excess": int(cfg["max_tables_duplicate_excess"]),
                 "max_contaminated_titles": int(cfg["max_contaminated_titles"]),
+                "allow_date_header_titles": bool(
+                    cfg.get("allow_date_header_titles", True)
+                ),
                 "line_split_max_per_table": int(cfg["line_split_max_per_table"]),
                 "missing_marker_majority_threshold": float(
                     cfg["missing_marker_majority_threshold"]
@@ -570,6 +705,8 @@ def run_quality_gate(
                 "tables_failed_footnote_integrity": 0,
                 "tables_duplicate_ratio_excess": 0,
                 "tables_title_contaminated": 0,
+                "tables_date_header_titles": 0,
+                "tables_title_auto_cleaned": 0,
             },
             "fail_reasons": [f"quality_gate_runtime_error({exc})"],
             "recommended_actions": [

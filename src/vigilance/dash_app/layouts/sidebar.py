@@ -242,7 +242,7 @@ def build_sidebar() -> dbc.Col:
                     dbc.Checklist(
                         id="option-footnotes",
                         options=[{"label": "Notes de bas de tableau (footnotes)", "value": "footnotes"}],
-                        value=[],
+                        value=["footnotes"],
                         switch=True,
                         className="small mb-1",
                     ),

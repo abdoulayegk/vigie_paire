@@ -1183,7 +1183,7 @@ def match_decision(
             raw_header_title_similarity >= low_overlap_header_title_min
             and structure_similarity >= low_overlap_header_struct_min
         ):
-            logger.warning(
+            logger.debug(
                 "Title/structure rescue on low label overlap: %s <-> %s  raw_title_sim=%.3f  ss=%.3f  eo=%.3f",
                 t1_uid,
                 t2_uid,

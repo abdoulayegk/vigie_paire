@@ -765,13 +765,19 @@ def on_analyze(
             include_genai_classification=include_genai_classification,
         )
     except Exception as e:
+        err_text = str(e)
+        if "Vision schema contract invalid" in err_text:
+            err_text = (
+                "Run interrompu: contrat de schema Vision invalide. "
+                "Corriger l'extracteur avant relance."
+            )
         return (
             None,
             None,
             None,
             False,
             build_page_validation(),
-            dbc.Alert(f"Erreur analyse: {e}", color="danger"),
+            dbc.Alert(err_text, color="danger"),
             None,
             False,
         )

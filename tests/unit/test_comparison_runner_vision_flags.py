@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import os
 
-from app.comparison_runner import _extract_tables, _resolve_vision_primary_mode
+from app.comparison_runner import (
+    _compute_extraction_kpis,
+    _extract_tables,
+    _resolve_vision_primary_mode,
+)
+from vigilance.models.table_models import TableArtifact
 
 
 def test_resolve_vision_primary_explicit_overrides_env(monkeypatch) -> None:
@@ -54,3 +59,36 @@ def test_extract_tables_forwards_flags_without_env_mutation(monkeypatch) -> None
     assert seen["use_vision_primary"] is False
     assert seen["use_vision_fallback"] is False
     assert os.environ.get("ENABLE_VISION_FALLBACK") == "1"
+
+
+def test_extraction_kpis_include_vision_primary_contract_fields() -> None:
+    table = TableArtifact(
+        bank_code="bnc",
+        section="capital_management",
+        page_pdf=21,
+        table_id="t1",
+        title="Table",
+        headers=[],
+        rows=[],
+        first_column_indicators=[],
+        extraction_method="docling",
+        debug_metrics={
+            "vision_primary_attempted": True,
+            "vision_primary_applied": False,
+            "vision_schema_contract_failed": True,
+            "vision_primary_disabled_reason": "Vision schema contract invalid: Missing 'appears_truncated'",
+        },
+    )
+    kpis = _compute_extraction_kpis(
+        [table],
+        [],
+        comparisons=[],
+        tables_added=[],
+        tables_removed=[],
+    )
+    assert kpis["vision_primary_attempted_count"] == 1
+    assert kpis["vision_primary_applied_count"] == 0
+    assert kpis["vision_schema_contract_fail_count"] == 1
+    assert "Vision schema contract invalid" in str(
+        kpis["vision_primary_disabled_reason"]
+    )
