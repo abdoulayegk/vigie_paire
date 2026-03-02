@@ -2,13 +2,24 @@
 
 from __future__ import annotations
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 import json
 import logging
+import os
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+_ENV_TRUE = {"1", "true", "yes", "on"}
+_ENV_FALSE = {"0", "false", "no", "off"}
 
 try:
     from rapidfuzz import fuzz as rapidfuzz_fuzz
@@ -34,10 +45,15 @@ _SEMANTIC_JUDGE_LOG = LOGS_DIR / "semantic_judge_decisions.jsonl"
 from vigilance.compare import run_strict_intra_section_compare
 from vigilance.compare.table_fragment_merger import merge_table_fragments
 from vigilance.comparison.footnote_comparator import FootnoteComparator
-from vigilance.config import get_matching_thresholds
+from vigilance.config import get_matching_thresholds, get_quality_gate_config
 from vigilance.models.table_models import TableArtifact
-from vigilance.utils.footnotes_utils import footnotes_list_to_dict
+from vigilance.utils.footnotes_utils import (
+    footnotes_list_to_dict,
+    normalize_footnotes_to_canonical,
+)
 from vigilance.utils.indicator_cleaner import (
+    dedupe_indicators,
+    merge_line_split_indicators,
     normalize_indicator_for_comparison,
     post_normalize_indicator,
 )
@@ -49,6 +65,42 @@ from vigilance.utils.matching_normalizer import _classify_excluded_line
 
 
 _MATCH_DECISIONS_LOG = LOGS_DIR / "match_decisions.jsonl"
+
+
+def _env_bool(name: str) -> bool | None:
+    raw = os.environ.get(name)
+    if raw is None:
+        return None
+    value = str(raw).strip().lower()
+    if value in _ENV_TRUE:
+        return True
+    if value in _ENV_FALSE:
+        return False
+    return None
+
+
+def _resolve_vision_primary_mode(
+    bank_code: str,
+    explicit: bool | None,
+    *,
+    allow_env_legacy: bool = True,
+) -> bool:
+    """Resolution order: explicit > legacy env > bank config."""
+    if explicit is not None:
+        return bool(explicit)
+    if allow_env_legacy:
+        env_choice = _env_bool("VIGILANCE_VISION_PRIMARY")
+        if env_choice is not None:
+            return env_choice
+    try:
+        from vigilance.config import get_vision_extraction_config
+
+        cfg = get_vision_extraction_config(bank_code=bank_code) or {}
+        if "enabled" in cfg:
+            return bool(cfg.get("enabled"))
+    except Exception:
+        pass
+    return False
 
 
 def _write_match_decision_log(record: dict[str, Any]) -> None:
@@ -149,36 +201,57 @@ def _table_to_artifact(
 ) -> TableArtifact:
     rows = [list(row) for row in (getattr(table, "rows", []) or [])]
     headers = [str(h) for h in (getattr(table, "headers", []) or []) if h is not None]
-    indicators = [
-        str(item).strip()
-        for item in (getattr(table, "first_column_indicators", []) or [])
-        if str(item).strip()
-    ]
-    if not indicators:
+    raw = getattr(table, "first_column_indicators_raw", None)
+    if raw is not None:
+        raw = [str(x).strip() for x in raw if str(x).strip()]
+    else:
+        indicators_fallback = [
+            str(item).strip()
+            for item in (getattr(table, "first_column_indicators", []) or [])
+            if str(item).strip()
+        ]
+        raw = indicators_fallback
+    if not raw:
         for row in rows:
             if row and str(row[0]).strip():
-                indicators.append(str(row[0]).strip())
+                raw.append(str(row[0]).strip())
+
+    # Quality pass 1: line-split merge (deterministic)
+    raw, line_merge_count = merge_line_split_indicators(raw)
+    if line_merge_count > 0:
+        logger.info(
+            "indicators_line_merge: table=%s page=%s merges=%d",
+            getattr(table, "table_id", ""),
+            getattr(table, "page_number", 0),
+            line_merge_count,
+        )
+
+    # Quality pass 2: dedupe (if duplicate_ratio >= 0.15)
+    raw, duplicate_ratio, dup_removed = dedupe_indicators(raw)
+    if dup_removed > 0:
+        logger.info(
+            "indicators_dedupe: table=%s page=%s removed=%d duplicate_ratio=%.3f",
+            getattr(table, "table_id", ""),
+            getattr(table, "page_number", 0),
+            dup_removed,
+            duplicate_ratio,
+        )
 
     # Parts A & B: post-normalize cleaned indicators (camelCase split + tag-space fix).
-    # Only modifies the cleaned field, never raw.
     fragmentation_from_post_norm = False
     post_normed: list[str] = []
-    for ind in indicators:
-        fixed, camel_hit, tag_hit = post_normalize_indicator(ind)
+    for ind in raw:
+        fixed, camel_hit, tag_hit = post_normalize_indicator(
+            normalize_indicator_for_comparison(ind)
+        )
         if camel_hit or tag_hit:
             fragmentation_from_post_norm = True
         post_normed.append(fixed)
     indicators = post_normed
 
-    raw = getattr(table, "first_column_indicators_raw", None)
-    if raw is not None:
-        raw = [str(x).strip() for x in raw if str(x).strip()]
-    else:
-        raw = None
-
     footnotes_raw = getattr(table, "footnotes", None)
-    if footnotes_raw is not None:
-        footnotes_out = [str(fn) for fn in footnotes_raw]
+    if footnotes_raw:
+        footnotes_out = normalize_footnotes_to_canonical(footnotes_raw)
     else:
         footnotes_out = None
 
@@ -187,13 +260,22 @@ def _table_to_artifact(
     fragmentation_detected = frag_from_extraction or fragmentation_from_post_norm
 
     section = _canonical_section_name(str(getattr(table, "section", "")))
+    dm_raw = getattr(table, "debug_metrics", None)
+    debug_metrics = dict(dm_raw) if isinstance(dm_raw, dict) else None
+
+    title_raw = getattr(table, "title_raw", None) or getattr(table, "title", None)
+    title_clean = getattr(table, "title_clean", None)
+    title_display = title_clean or getattr(table, "title", None)
+
     return TableArtifact(
         bank_code=bank_code,
         section=section,
         page_pdf=int(getattr(table, "page_number", 0) or 0),
         table_id=str(getattr(table, "table_id", "")),
-        title=getattr(table, "title", None),
+        title=title_display,
         headers=headers,
+        title_clean=title_clean,
+        title_raw=title_raw,
         rows=rows,
         first_column_indicators=indicators,
         first_column_indicators_raw=raw,
@@ -204,6 +286,7 @@ def _table_to_artifact(
         pdf_path=pdf_path,
         footnotes=footnotes_out,
         fragmentation_detected=fragmentation_detected,
+        debug_metrics=debug_metrics,
     )
 
 
@@ -216,17 +299,17 @@ def _extract_tables(
     section_ranges: list[dict[str, Any]],
     use_vision_fallback: bool,
     api_key: str | None,
+    use_vision_primary: bool | None = None,
 ) -> list[TableArtifact]:
-    import os
-
     from vigilance.extraction.docling_processor import (
         extract_tables_docling_by_sections,
     )
 
-    if use_vision_fallback:
-        os.environ["ENABLE_VISION_FALLBACK"] = "1"
-    else:
-        os.environ.pop("ENABLE_VISION_FALLBACK", None)
+    use_vision_primary = _resolve_vision_primary_mode(
+        bank_code,
+        use_vision_primary,
+        allow_env_legacy=True,
+    )
     del api_key
 
     raw_tables = extract_tables_docling_by_sections(
@@ -235,6 +318,8 @@ def _extract_tables(
         quarter=quarter,
         year=year,
         section_ranges=section_ranges,
+        use_vision_primary=use_vision_primary,
+        use_vision_fallback=use_vision_fallback,
     )
 
     return [
@@ -273,6 +358,118 @@ def _compute_indicator_overlap(t1: TableArtifact, t2: TableArtifact) -> float:
     if not a or not b:
         return 0.0
     return len(a & b) / len(a | b)
+
+
+def _extract_quality_flags(table: TableArtifact) -> list[str]:
+    """Build quality flag strings from debug_metrics for comparison output."""
+    dm = table.debug_metrics or {}
+    flags: list[str] = []
+    if dm.get("quality_suspect_for_vision"):
+        flags.append("quality_suspect")
+    if dm.get("vision_fallback_applied"):
+        flags.append("vision_applied")
+    elif dm.get("vision_fallback_attempted"):
+        flags.append("vision_attempted_not_applied")
+    arb = dm.get("vision_arbitration")
+    if isinstance(arb, dict):
+        decision = arb.get("decision", "")
+        if "rejected" in decision:
+            flags.append(f"vision_{decision}")
+        agreement = arb.get("agreement_signals", {}).get("agreement", "")
+        if agreement == "strong_disagree":
+            flags.append("extraction_strong_disagree")
+    if table.fragmentation_detected:
+        flags.append("fragmentation")
+    dup = dm.get("duplicate_ratio", 0)
+    if isinstance(dup, (int, float)) and dup > 0.20:
+        flags.append(f"high_duplicate_ratio({dup:.2f})")
+    hlr = dm.get("header_like_ratio", 0)
+    if isinstance(hlr, (int, float)) and hlr > 0.20:
+        flags.append(f"high_header_like({hlr:.2f})")
+    return flags
+
+
+def _extraction_confidence(table: TableArtifact) -> str:
+    """Return extraction confidence level: high, medium, low, or unknown."""
+    dm = table.debug_metrics or {}
+    arb = dm.get("vision_arbitration")
+    if isinstance(arb, dict):
+        decision = arb.get("decision", "")
+        agreement = arb.get("agreement_signals", {}).get("agreement", "")
+        if decision.startswith("accepted") and agreement == "agree":
+            return "high"
+        if decision.startswith("accepted"):
+            return "medium"
+        if "rejected" in decision and dm.get("quality_suspect_for_vision"):
+            return "low"
+    quality = dm.get("table_quality_score")
+    if isinstance(quality, (int, float)):
+        if quality >= 0.75:
+            return "high"
+        if quality >= 0.50:
+            return "medium"
+        return "low"
+    return "unknown"
+
+
+def _compute_extraction_kpis(
+    tables_t1: list[TableArtifact],
+    tables_t2: list[TableArtifact],
+    comparisons: list[dict[str, Any]],
+    tables_added: list[dict[str, Any]],
+    tables_removed: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Compute aggregate extraction reliability KPIs for the comparison output."""
+    all_tables = list(tables_t1) + list(tables_t2)
+    total = len(all_tables) or 1
+
+    vision_attempted = sum(
+        1 for t in all_tables
+        if (t.debug_metrics or {}).get("vision_fallback_attempted")
+    )
+    vision_applied = sum(
+        1 for t in all_tables
+        if (t.debug_metrics or {}).get("vision_fallback_applied")
+    )
+
+    disagree_count = 0
+    for t in all_tables:
+        arb = (t.debug_metrics or {}).get("vision_arbitration")
+        if isinstance(arb, dict):
+            agreement = arb.get("agreement_signals", {}).get("agreement", "")
+            if agreement in ("disagree", "strong_disagree"):
+                disagree_count += 1
+
+    matched_with_changes = sum(
+        1 for c in comparisons
+        if c.get("added_indicators") or c.get("removed_indicators")
+    )
+    matched_total = len(comparisons) or 1
+    noise_rate = matched_with_changes / matched_total
+
+    renamed_total = sum(len(c.get("renamed_indicators", [])) for c in comparisons)
+    add_remove_total = (
+        sum(len(c.get("added_indicators", [])) for c in comparisons)
+        + sum(len(c.get("removed_indicators", [])) for c in comparisons)
+    )
+    rename_conversion = (
+        renamed_total / (renamed_total + add_remove_total)
+        if (renamed_total + add_remove_total) > 0
+        else 0.0
+    )
+
+    return {
+        "vision_attempt_rate": round(vision_attempted / total, 3),
+        "vision_applied_rate": round(vision_applied / total, 3),
+        "docling_vision_disagreement_rate": round(disagree_count / total, 3),
+        "added_removed_noise_rate_on_matched_tables": round(noise_rate, 3),
+        "rename_conversion_rate": round(rename_conversion, 3),
+        "tables_total": len(all_tables),
+        "vision_attempted_count": vision_attempted,
+        "vision_applied_count": vision_applied,
+        "disagreement_count": disagree_count,
+        "incertain_count": sum(1 for c in comparisons if c.get("table_status") == "incertain"),
+    }
 
 
 def _pre_diff_safety_check(
@@ -364,6 +561,52 @@ def _all_indicators_value_clean_ordered(table: TableArtifact) -> list[str]:
         if not key:
             continue
         result.append(cleaned)
+    return result
+
+
+def _build_clean_to_raw_indicator_lookup(table: TableArtifact) -> dict[str, str]:
+    """Build stable mapping from canonical clean key to raw display indicator text."""
+    clean_values = list(getattr(table, "first_column_indicators", None) or [])
+    raw_values = list(getattr(table, "first_column_indicators_raw", None) or [])
+    if not raw_values:
+        raw_values = clean_values
+
+    lookup: dict[str, str] = {}
+    for idx, clean_item in enumerate(clean_values):
+        clean_text = str(clean_item).strip()
+        if not clean_text:
+            continue
+        value_clean = _strip_footnote_markers_from_indicator(clean_text)
+        key = _canonical_indicator_key(value_clean)
+        if not key or key in lookup:
+            continue
+        raw_text = str(raw_values[idx]).strip() if idx < len(raw_values) else clean_text
+        lookup[key] = raw_text or clean_text
+
+    # Defensive fallback when clean/raw arrays drift.
+    for raw_item in raw_values:
+        raw_text = str(raw_item).strip()
+        if not raw_text:
+            continue
+        value_clean = _strip_footnote_markers_from_indicator(raw_text)
+        key = _canonical_indicator_key(value_clean)
+        if key and key not in lookup:
+            lookup[key] = raw_text
+    return lookup
+
+
+def _clean_values_to_raw_display(
+    clean_values: list[str], lookup: dict[str, str]
+) -> list[str]:
+    """Convert clean indicator values to raw display values using canonical key lookup."""
+    result: list[str] = []
+    for value in clean_values:
+        clean_text = str(value).strip()
+        if not clean_text:
+            continue
+        value_clean = _strip_footnote_markers_from_indicator(clean_text)
+        key = _canonical_indicator_key(value_clean)
+        result.append(str(lookup.get(key) or clean_text))
     return result
 
 
@@ -1004,6 +1247,30 @@ def _fuzzy_pair_added_removed(
     return added_restant, removed_restant, renamed_pairs
 
 
+def _derive_table_status(
+    *,
+    rescue_type: str | None,
+    extraction_low_confidence: bool,
+    added: list[str],
+    removed: list[str],
+    renamed_indicators: list[dict[str, str]],
+) -> tuple[str, bool]:
+    """Derive table status for Dash/review queue.
+
+    Important: had_fusion_split from indicator normalization is not a structural change.
+    Only explicit table-level split/merge rescue marks structure_change.
+    """
+    rescue = str(rescue_type or "").strip().lower()
+    structure_change_detected = rescue == "split_merge_rescue"
+    has_changes = bool(added or removed or renamed_indicators)
+
+    if structure_change_detected:
+        return "structure_change", True
+    if extraction_low_confidence and (added or removed) and not renamed_indicators:
+        return "incertain", False
+    return ("modifie" if has_changes else "stable"), False
+
+
 def _empty_result(bank_code: str, year: int, reason: str) -> dict[str, Any]:
     now = datetime.now().isoformat(timespec="seconds")
     return {
@@ -1077,11 +1344,25 @@ def run_comparison_with_sections(
     api_key: str | None = None,
     generate_visual_proofs: bool = False,
     use_vision_fallback: bool = False,
+    use_vision_primary: bool | None = None,
+    use_vision_primary_override: bool | None = None,
     include_footnotes: bool = False,
     include_genai_classification: bool = False,
 ) -> dict[str, Any]:
-    """Execute end-to-end comparison used by the Dash Analyze callback."""
+    """Execute end-to-end comparison used by the Dash Analyze callback.
+
+    Args:
+        use_vision_primary: If True/False, overrides config vision_extraction.enabled
+            for this run. If None, config is used.
+    """
     del use_genai, generate_visual_proofs  # kept for backward-compatible signature
+    if use_vision_primary is not None and use_vision_primary_override is not None:
+        if bool(use_vision_primary) != bool(use_vision_primary_override):
+            raise ValueError(
+                "Conflicting values for use_vision_primary and use_vision_primary_override."
+            )
+    if use_vision_primary is None and use_vision_primary_override is not None:
+        use_vision_primary = use_vision_primary_override
 
     year = _infer_year(pdf_path_t1, pdf_path_t2)
     ranges_t1 = _normalize_ranges(sections_t1)
@@ -1091,24 +1372,32 @@ def run_comparison_with_sections(
         return _empty_result(bank_code, year, "Aucune section valide fournie.")
 
     try:
-        tables_t1 = _extract_tables(
-            pdf_path=pdf_path_t1,
-            bank_code=bank_code,
-            quarter="t1",
-            year=year,
-            section_ranges=ranges_t1,
-            use_vision_fallback=use_vision_fallback,
-            api_key=api_key,
-        )
-        tables_t2 = _extract_tables(
-            pdf_path=pdf_path_t2,
-            bank_code=bank_code,
-            quarter="t2",
-            year=year,
-            section_ranges=ranges_t2,
-            use_vision_fallback=use_vision_fallback,
-            api_key=api_key,
-        )
+        # Run both report extractions in parallel to cut total runtime (Docling + Vision per PDF)
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            fut_t1 = executor.submit(
+                _extract_tables,
+                pdf_path=pdf_path_t1,
+                bank_code=bank_code,
+                quarter="t1",
+                year=year,
+                section_ranges=ranges_t1,
+                use_vision_fallback=use_vision_fallback,
+                api_key=api_key,
+                use_vision_primary=use_vision_primary,
+            )
+            fut_t2 = executor.submit(
+                _extract_tables,
+                pdf_path=pdf_path_t2,
+                bank_code=bank_code,
+                quarter="t2",
+                year=year,
+                section_ranges=ranges_t2,
+                use_vision_fallback=use_vision_fallback,
+                api_key=api_key,
+                use_vision_primary=use_vision_primary,
+            )
+            tables_t1 = fut_t1.result()
+            tables_t2 = fut_t2.result()
     except Exception as exc:
         return _empty_result(bank_code, year, f"Extraction impossible: {exc}")
 
@@ -1143,6 +1432,75 @@ def run_comparison_with_sections(
             tables_t2,
             merge_score_min=merge_score_min,
         )
+
+    extraction_run_id: str | None = None
+    extraction_out_dir: str | None = None
+    quality_gate_status: dict[str, Any] = {
+        "enabled": False,
+        "status": "SKIPPED",
+        "eligible_for_review": True,
+        "fail_reasons": [],
+    }
+
+    # Sauvegarde indicators.json et footnotes.json pour audit + Quality Gate
+    qg_enabled = False
+    try:
+        from vigilance.config import get_vision_extraction_config
+
+        vec = get_vision_extraction_config(bank_code=bank_code)
+        qg_cfg = get_quality_gate_config(bank_code=bank_code) or {}
+        qg_enabled = bool(qg_cfg.get("enabled", False))
+        should_write_extraction_audit = bool(
+            vec.get("save_indicators_footnotes_json")
+        ) or qg_enabled
+
+        if should_write_extraction_audit:
+            from app.ui_config import OUTPUT_DIR
+            from vigilance.extraction.vision_extraction_writer import (
+                write_footnotes_json,
+                write_indicators_json,
+            )
+
+            extraction_run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+            out_dir = (
+                OUTPUT_DIR
+                / "comparisons"
+                / bank_code
+                / "extractions"
+                / extraction_run_id
+            )
+            indicators_path = write_indicators_json(
+                tables_t1, tables_t2, out_dir, bank_code, extraction_run_id
+            )
+            footnotes_path = write_footnotes_json(
+                tables_t1, tables_t2, out_dir, bank_code, extraction_run_id
+            )
+            extraction_out_dir = str(out_dir)
+
+            if qg_enabled:
+                from vigilance.quality.quality_gate import run_quality_gate
+
+                qg_result = run_quality_gate(
+                    indicators_path=indicators_path,
+                    footnotes_path=footnotes_path,
+                    out_dir=out_dir,
+                    bank_code=bank_code,
+                    run_id=extraction_run_id,
+                    config=qg_cfg,
+                )
+                quality_gate_status = {
+                    "enabled": True,
+                    **qg_result,
+                }
+    except Exception as exc:
+        if qg_enabled:
+            quality_gate_status = {
+                "enabled": True,
+                "status": "FAIL",
+                "eligible_for_review": False,
+                "fail_reasons": [f"quality_gate_execution_error({exc})"],
+            }
+        logger.warning("Extraction writer/quality gate skipped: %s", exc)
 
     embedding_service = None
     if cfg.get("use_embeddings") and api_key:
@@ -1281,9 +1639,17 @@ def run_comparison_with_sections(
             )
 
     comparisons: list[dict[str, Any]] = []
+    rejected_by_vision_pair: list[dict[str, Any]] = []
     table_pair_embed_debug: list[dict[str, Any]] = []
     all_rename_pair_debug: list[dict[str, Any]] = []
     all_unmatched_indicator_candidates: list[dict[str, Any]] = []
+    try:
+        from vigilance.config import get_vision_extraction_config as _gvec
+        vec = _gvec(bank_code=bank_code) or {}
+    except Exception:
+        vec = {}
+    vision_pair_validation = vec.get("vision_pair_validation", False)
+    bottom_ext = float(vec.get("bottom_extension_footnotes", 0.12))
     for pair in strict.get("pairs", []):
         t1_uid = str(pair.get("t1_uid", ""))
         t2_uid = str(pair.get("t2_uid", ""))
@@ -1301,6 +1667,8 @@ def run_comparison_with_sections(
         added, removed, had_fusion_split, excluded_counts = _indicator_diff(
             table_t1, table_t2
         )
+        t1_clean_to_raw = _build_clean_to_raw_indicator_lookup(table_t1)
+        t2_clean_to_raw = _build_clean_to_raw_indicator_lookup(table_t2)
         use_hungarian = cfg.get("indicator_hungarian_enabled", True)
         if use_hungarian:
             added, removed, renamed_pairs, indicator_debug = (
@@ -1336,6 +1704,31 @@ def run_comparison_with_sections(
                 added, removed, bank_code
             )
         renamed_indicators = [{"from": r, "to": a} for (r, a) in renamed_pairs]
+        added_indicators_raw = _clean_values_to_raw_display(added, t2_clean_to_raw)
+        removed_indicators_raw = _clean_values_to_raw_display(removed, t1_clean_to_raw)
+        renamed_indicators_raw = [
+            {
+                "from": str(
+                    t1_clean_to_raw.get(
+                        _canonical_indicator_key(
+                            _strip_footnote_markers_from_indicator(removed_clean)
+                        )
+                    )
+                    or removed_clean
+                ),
+                "to": str(
+                    t2_clean_to_raw.get(
+                        _canonical_indicator_key(
+                            _strip_footnote_markers_from_indicator(added_clean)
+                        )
+                    )
+                    or added_clean
+                ),
+                "from_clean": removed_clean,
+                "to_clean": added_clean,
+            }
+            for (removed_clean, added_clean) in renamed_pairs
+        ]
 
         table_pair_embed_debug.append(
             {
@@ -1355,20 +1748,74 @@ def run_comparison_with_sections(
         )
         rescue_type = pair.get("rescue_type")
         match_decision_level = str(pair.get("decision_level") or "match")
-        structure_change_detected = bool(
-            had_fusion_split or rescue_type == "split_merge_rescue"
+        conf_t1 = _extraction_confidence(table_t1)
+        conf_t2 = _extraction_confidence(table_t2)
+        extraction_low_confidence = conf_t1 == "low" or conf_t2 == "low"
+
+        table_status, structure_change_detected = _derive_table_status(
+            rescue_type=str(rescue_type or ""),
+            extraction_low_confidence=extraction_low_confidence,
+            added=added,
+            removed=removed,
+            renamed_indicators=renamed_indicators,
         )
-        if structure_change_detected:
-            table_status = "structure_change"
-        else:
-            table_status = (
-                "modifie" if (added or removed or renamed_indicators) else "stable"
-            )
+
+        uncertain_diff = table_status == "incertain"
 
         # Part E: effective_label_overlap from pair if available
         effective_label_overlap = float(
             pair.get("soft_indicator_overlap", pair_indicator_overlap) or pair_indicator_overlap
         )
+
+        qf_t1 = _extract_quality_flags(table_t1)
+        qf_t2 = _extract_quality_flags(table_t2)
+
+        dm_t1 = table_t1.debug_metrics or {}
+        dm_t2 = table_t2.debug_metrics or {}
+        arb_t1 = dm_t1.get("vision_arbitration")
+        arb_t2 = dm_t2.get("vision_arbitration")
+
+        # Vision pair validation: rejeter faux positifs (low overlap ou rescue)
+        vision_rejected = False
+        if (
+            vision_pair_validation
+            and api_key
+            and (pair_indicator_overlap < 0.5 or rescue_type)
+        ):
+            bbox_t1 = _normalize_bbox_ltrb_norm(getattr(table_t1, "bbox", None))
+            bbox_t2 = _normalize_bbox_ltrb_norm(getattr(table_t2, "bbox", None))
+            pdf_t1 = table_t1.pdf_path or pdf_path_t1
+            pdf_t2 = table_t2.pdf_path or pdf_path_t2
+            if bbox_t1 and bbox_t2 and pdf_t1 and pdf_t2:
+                try:
+                    from vigilance.extraction.vision_pair_validator import (
+                        validate_pair_same_concept,
+                    )
+                    same_concept, _ = validate_pair_same_concept(
+                        pdf_t1,
+                        table_t1.page_pdf,
+                        bbox_t1,
+                        pdf_t2,
+                        table_t2.page_pdf,
+                        bbox_t2,
+                        api_key,
+                        bottom_extension=bottom_ext,
+                    )
+                    if not same_concept:
+                        vision_rejected = True
+                        rejected_by_vision_pair.append({
+                            "table_id_t1": table_t1.table_id,
+                            "table_id_t2": table_t2.table_id,
+                            "title_t1": table_t1.title or "",
+                            "title_t2": table_t2.title or "",
+                            "indicator_overlap": pair_indicator_overlap,
+                            "rescue_type": rescue_type,
+                        })
+                except Exception as exc:
+                    logger.debug("Vision pair validation error: %s", exc)
+
+        if vision_rejected:
+            continue
 
         comparisons.append(
             {
@@ -1376,6 +1823,7 @@ def run_comparison_with_sections(
                 "table_id_t2": table_t2.table_id,
                 "title_t1": table_t1.title or "",
                 "title_t2": table_t2.title or "",
+                "table_title_raw": (getattr(table_t1, "title_raw", None) or table_t1.title or ""),
                 "table_number": getattr(table_t2, "table_number", None) or getattr(table_t1, "table_number", None),
                 "page_t1": table_t1.page_pdf,
                 "page_t2": table_t2.page_pdf,
@@ -1390,6 +1838,9 @@ def run_comparison_with_sections(
                 "added_indicators": added,
                 "removed_indicators": removed,
                 "renamed_indicators": renamed_indicators,
+                "added_indicators_raw": added_indicators_raw,
+                "removed_indicators_raw": removed_indicators_raw,
+                "renamed_indicators_raw": renamed_indicators_raw,
                 "renamed_probable_indicators": [],
                 "all_indicators_t1": _all_indicators_value_clean_ordered(table_t1),
                 "all_indicators_t2": _all_indicators_value_clean_ordered(table_t2),
@@ -1397,7 +1848,7 @@ def run_comparison_with_sections(
                 "bbox_t2": _normalize_bbox_ltrb_norm(getattr(table_t2, "bbox", None)),
                 "indicator_decisions": [],
                 "review_reasons": [],
-                "uncertain_diff": False,
+                "uncertain_diff": uncertain_diff,
                 "structure_change_detected": structure_change_detected,
                 "table_status": table_status,
                 "counts": {
@@ -1411,11 +1862,10 @@ def run_comparison_with_sections(
                 },
                 "source_method_t1": table_t1.extraction_method,
                 "source_method_t2": table_t2.extraction_method,
-                "quality_flags_t1": [],
-                "quality_flags_t2": [],
+                "quality_flags_t1": qf_t1,
+                "quality_flags_t2": qf_t2,
                 "source_pdf_t1": table_t1.pdf_path or "",
                 "source_pdf_t2": table_t2.pdf_path or "",
-                # Part D & E: match_metadata + Phase 2 semantic judge
                 "match_metadata": {
                     "indicator_overlap": round(pair_indicator_overlap, 4),
                     "effective_label_overlap": round(effective_label_overlap, 4),
@@ -1424,6 +1874,13 @@ def run_comparison_with_sections(
                     "suspicious_low_overlap": suspicious_low_overlap,
                     "suspicious_reason": suspicious_reason if suspicious_low_overlap else None,
                     "semantic_judge": semantic_judge_results.get(t1_uid) if semantic_judge_enabled else None,
+                    "extraction_confidence_t1": conf_t1,
+                    "extraction_confidence_t2": conf_t2,
+                    "quality_flags_t1": qf_t1,
+                    "quality_flags_t2": qf_t2,
+                    "vision_arbitration_t1": arb_t1,
+                    "vision_arbitration_t2": arb_t2,
+                    "fusion_split_normalization_applied": had_fusion_split,
                 },
             }
         )
@@ -1464,7 +1921,8 @@ def run_comparison_with_sections(
             "section": item.get("section", ""),
             "source_reason": str(item.get("source_reason", "")),
             "source_method": _source_method(t2_uid_added, t2_by_uid),
-            "quality_flags": [],
+            "quality_flags": _extract_quality_flags(t2_t) if t2_t else [],
+            "extraction_confidence": _extraction_confidence(t2_t) if t2_t else "unknown",
             "indicators": list(item.get("first_column_indicators", []) or []),
             "first_column_indicators_raw": list(
                 item.get("first_column_indicators_raw")
@@ -1496,7 +1954,8 @@ def run_comparison_with_sections(
             "section": item.get("section", ""),
             "source_reason": str(item.get("source_reason", "")),
             "source_method": _source_method(t1_uid_removed, t1_by_uid),
-            "quality_flags": [],
+            "quality_flags": _extract_quality_flags(t1_t) if t1_t else [],
+            "extraction_confidence": _extraction_confidence(t1_t) if t1_t else "unknown",
             "indicators": list(item.get("first_column_indicators", []) or []),
             "first_column_indicators_raw": list(
                 item.get("first_column_indicators_raw")
@@ -1604,7 +2063,7 @@ def run_comparison_with_sections(
         "stable": sum(1 for c in comparisons if c.get("table_status") == "stable"),
         "modifie": sum(1 for c in comparisons if c.get("table_status") == "modifie"),
         "renommage_probable": 0,
-        "incertain": 0,
+        "incertain": sum(1 for c in comparisons if c.get("table_status") == "incertain"),
         "needs_review": 0,
         "structure_change": sum(
             1 for c in comparisons if c.get("table_status") == "structure_change"
@@ -1658,6 +2117,7 @@ def run_comparison_with_sections(
         "tables_added": tables_added,
         "tables_removed": tables_removed,
         "probable_pairs": list(strict.get("probable_pairs", [])),
+        "rejected_by_vision_pair": rejected_by_vision_pair,
         "debug_unmatched_candidates": list(
             strict.get("debug_unmatched_candidates", [])
         ),
@@ -1715,11 +2175,22 @@ def run_comparison_with_sections(
                 "total_errors": semantic_judge_stats["errors"],
                 "structural_overrides": semantic_judge_stats["overrides"],
             },
+            "extraction_kpis": _compute_extraction_kpis(
+                tables_t1, tables_t2, comparisons, tables_added, tables_removed
+            ),
+            "quality_gate": quality_gate_status,
+            "extraction_artifacts": {
+                "run_id": extraction_run_id,
+                "out_dir": extraction_out_dir,
+            },
         },
     }
 
     result["summary"]["tables_changed_t1"] = compute_changed_tables_t1(result)
     result["summary"]["tables_changed_t2"] = compute_changed_tables_t2(result)
+    eligible_for_review = bool(quality_gate_status.get("eligible_for_review", True))
+    result["summary"]["eligible_for_review"] = eligible_for_review
+    result["eligible_for_review"] = eligible_for_review
 
     # -- GenAI executive summary enrichment (feature-flagged via bank_profiles.yaml) --
     if api_key:

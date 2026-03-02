@@ -10,7 +10,9 @@ from app.comparison_runner import _compare_table_footnotes
 from vigilance.models.table_models import TableArtifact
 
 
-def _make_artifact(footnotes: list[str] | None = None, **kwargs) -> TableArtifact:
+def _make_artifact(
+    footnotes: list[str] | list[dict[str, str]] | None = None, **kwargs
+) -> TableArtifact:
     defaults = dict(
         bank_code="bnc",
         section="gestion_capital",
@@ -25,6 +27,24 @@ def _make_artifact(footnotes: list[str] | None = None, **kwargs) -> TableArtifac
     )
     defaults.update(kwargs)
     return TableArtifact(**defaults)
+
+
+class TestNormalizeFootnotesToCanonical:
+    def test_empty_or_none(self) -> None:
+        from vigilance.utils.footnotes_utils import normalize_footnotes_to_canonical
+
+        assert normalize_footnotes_to_canonical(None) == []
+        assert normalize_footnotes_to_canonical([]) == []
+
+    def test_mixed_types(self) -> None:
+        from vigilance.utils.footnotes_utils import normalize_footnotes_to_canonical
+
+        raw = ["Plain string.", {"id": "2", "text": "Dict note."}]
+        out = normalize_footnotes_to_canonical(raw)
+        assert out == [
+            {"id": "1", "text": "Plain string."},
+            {"id": "2", "text": "Dict note."},
+        ]
 
 
 class TestFootnotesListToDict:
@@ -43,6 +63,30 @@ class TestFootnotesListToDict:
         ]
         result = footnotes_list_to_dict(items)
         assert result == {"a": "Note A", "2": "Note B"}
+
+    def test_marker_text_items(self) -> None:
+        items = [
+            {"marker": "(1)", "text": "Texte parenthetique"},
+            {"marker": "*", "text": "Texte etoile"},
+        ]
+        result = footnotes_list_to_dict(items)
+        assert result == {"(1)": "Texte parenthetique", "*": "Texte etoile"}
+
+    def test_stringified_dict_recovery(self) -> None:
+        items = ["{'id': '1', 'text': 'Recovered text'}"]
+        result = footnotes_list_to_dict(items)
+        assert result == {"1": "Recovered text"}
+
+    def test_stringified_dict_in_value_recovery(self) -> None:
+        items = [
+            {"id": "1", "value": "{'id': '1', 'text': 'Nested recovered text'}"},
+            {"marker": "2", "value": "Direct value text"},
+        ]
+        result = footnotes_list_to_dict(items)
+        assert result == {
+            "1": "Nested recovered text",
+            "2": "Direct value text",
+        }
 
 
 class TestFootnoteComparator:
@@ -161,7 +205,10 @@ class TestTableToArtifactCopiesFootnotes:
             footnotes=["Note 1", "Note 2"],
         )
         art = _table_to_artifact(fake_table, bank_code="bnc", quarter="t1", pdf_path="/tmp/test.pdf")
-        assert art.footnotes == ["Note 1", "Note 2"]
+        assert art.footnotes == [
+            {"id": "1", "text": "Note 1"},
+            {"id": "2", "text": "Note 2"},
+        ]
 
     def test_none_when_missing(self) -> None:
         from types import SimpleNamespace
@@ -195,6 +242,220 @@ class TestFootnotesDiffInPayload:
         t2 = _make_artifact(footnotes=None, table_id="T2")
         result = _compare_table_footnotes(t1, t2)
         assert result["counts"] == {"added": 0, "removed": 0, "modified": 0}
+
+
+class TestFootnoteNormalizationDoclingLegacy:
+    """Regression: Docling-only list[str] footnotes work through pipeline."""
+
+    def test_docling_list_str_normalized_to_canonical(self) -> None:
+        from vigilance.utils.footnotes_utils import normalize_footnotes_to_canonical
+
+        raw = ["Methodology note.", "Basel III compliance."]
+        out = normalize_footnotes_to_canonical(raw)
+        assert out == [
+            {"id": "1", "text": "Methodology note."},
+            {"id": "2", "text": "Basel III compliance."},
+        ]
+
+    def test_docling_through_table_to_artifact_and_comparator(self) -> None:
+        from types import SimpleNamespace
+        from app.comparison_runner import _compare_table_footnotes, _table_to_artifact
+
+        fake = SimpleNamespace(
+            rows=[["a", "1"]],
+            headers=["Col1", "Col2"],
+            first_column_indicators=["Ind"],
+            first_column_indicators_raw=None,
+            section="",
+            page_number=1,
+            table_id="T1",
+            title="Table",
+            extraction_method="docling",
+            table_number=None,
+            bbox=None,
+            footnotes=["Docling footnote text here."],
+        )
+        art = _table_to_artifact(fake, bank_code="bnc", quarter="t1", pdf_path="/tmp/x.pdf")
+        fn_dict = footnotes_list_to_dict(art.footnotes or [])
+        assert fn_dict == {"1": "Docling footnote text here."}
+        assert "Docling footnote text here." in fn_dict.values()
+        assert not any("dict" in str(v) or "'" in str(v) for v in fn_dict.values())
+
+    def test_docling_through_writer_produces_real_text(self) -> None:
+        from pathlib import Path
+        from types import SimpleNamespace
+        from app.comparison_runner import _table_to_artifact
+        from vigilance.extraction.vision_extraction_writer import write_footnotes_json
+
+        fake = SimpleNamespace(
+            rows=[["a", "1"]],
+            headers=["Col1"],
+            first_column_indicators=["Ind"],
+            first_column_indicators_raw=None,
+            section="",
+            page_number=42,
+            table_id="TABLEAU 39",
+            title="RATIO DE LIQUIDITE",
+            extraction_method="docling",
+            table_number=None,
+            bbox=None,
+            footnotes=["LCR calcule conformement aux normes BSIF."],
+        )
+        art = _table_to_artifact(fake, bank_code="rbc", quarter="t1", pdf_path="/tmp/t1.pdf")
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp)
+            write_footnotes_json([art], [], out_dir, "rbc", "test_run")
+            data = __import__("json").loads((out_dir / "footnotes.json").read_text())
+        entry = data["tables"][0]
+        assert entry["footnotes_content"]["1"] == "LCR calcule conformement aux normes BSIF."
+        assert "dict" not in entry["footnotes_content"]["1"]
+        assert "{" not in entry["footnotes_content"]["1"]
+
+
+class TestFootnoteNormalizationVisionPrimary:
+    """Regression: Vision-primary list[dict] footnotes preserved through pipeline."""
+
+    def test_vision_list_dict_preserved_not_stringified(self) -> None:
+        from types import SimpleNamespace
+        from app.comparison_runner import _table_to_artifact
+
+        fake = SimpleNamespace(
+            rows=[["a", "1"]],
+            headers=["Col1"],
+            first_column_indicators=["Ind"],
+            first_column_indicators_raw=None,
+            section="",
+            page_number=5,
+            table_id="T1",
+            title="Table",
+            extraction_method="vision_full_gpt4o",
+            table_number=None,
+            bbox=None,
+            footnotes=[
+                {"id": "1", "text": "Le LCR represente la moyenne des 62 donnees quotidiennes."},
+                {"id": "2", "text": "Valeurs non ponderees des entrees et sorties."},
+            ],
+        )
+        art = _table_to_artifact(fake, bank_code="rbc", quarter="t1", pdf_path="/tmp/x.pdf")
+        assert art.footnotes == [
+            {"id": "1", "text": "Le LCR represente la moyenne des 62 donnees quotidiennes."},
+            {"id": "2", "text": "Valeurs non ponderees des entrees et sorties."},
+        ]
+        fn_dict = footnotes_list_to_dict(art.footnotes or [])
+        assert fn_dict["1"] == "Le LCR represente la moyenne des 62 donnees quotidiennes."
+        assert fn_dict["2"] == "Valeurs non ponderees des entrees et sorties."
+        assert not any("{" in v or "'" in v for v in fn_dict.values())
+
+    def test_vision_through_footnote_comparator_and_writer(self) -> None:
+        from types import SimpleNamespace
+        from app.comparison_runner import _compare_table_footnotes, _table_to_artifact
+
+        fn_vision = [
+            {"id": "1", "text": "Original methodology text."},
+            {"id": "2", "text": "Regulatory reference."},
+        ]
+        fake = SimpleNamespace(
+            rows=[["a", "1"]],
+            headers=["Col1"],
+            first_column_indicators=["Ind"],
+            first_column_indicators_raw=None,
+            section="",
+            page_number=1,
+            table_id="T1",
+            title="Table",
+            extraction_method="vision_full_gpt4o",
+            table_number=None,
+            bbox=None,
+            footnotes=fn_vision,
+        )
+        t1 = _table_to_artifact(fake, bank_code="bnc", quarter="t1", pdf_path="/tmp/t1.pdf")
+        t2_art = _table_to_artifact(
+            SimpleNamespace(
+                rows=[["a", "1"]],
+                headers=["Col1"],
+                first_column_indicators=["Ind"],
+                first_column_indicators_raw=None,
+                section="",
+                page_number=1,
+                table_id="T2",
+                title="Table",
+                extraction_method="vision_full_gpt4o",
+                table_number=None,
+                bbox=None,
+                footnotes=[
+                    {"id": "1", "text": "Revised methodology text."},
+                    {"id": "2", "text": "Regulatory reference."},
+                ],
+            ),
+            bank_code="bnc",
+            quarter="t2",
+            pdf_path="/tmp/t2.pdf",
+        )
+        result = _compare_table_footnotes(t1, t2_art)
+        assert result["counts"]["modified"] == 1
+        mod = result["modified"][0]
+        assert mod["old_text"] == "Original methodology text."
+        assert mod["new_text"] == "Revised methodology text."
+        assert "dict" not in str(mod["old_text"])
+        assert "{" not in str(mod["old_text"])
+
+    def test_vision_writer_output_has_real_text(self) -> None:
+        from pathlib import Path
+        from types import SimpleNamespace
+        from app.comparison_runner import _table_to_artifact
+        from vigilance.extraction.vision_extraction_writer import write_footnotes_json
+
+        fake = SimpleNamespace(
+            rows=[["a", "1"]],
+            headers=["Col1"],
+            first_column_indicators=["Ind"],
+            first_column_indicators_raw=None,
+            section="",
+            page_number=42,
+            table_id="TABLEAU 39",
+            title="RATIO DE LIQUIDITE",
+            extraction_method="vision_full_gpt4o",
+            table_number=None,
+            bbox=None,
+            footnotes=[
+                {"id": "1", "text": "Le LCR pour le trimestre clos le 31 janvier 2025."},
+                {"id": "2", "text": "Valeurs ponderees selon ligne directrice BSIF."},
+            ],
+        )
+        art = _table_to_artifact(fake, bank_code="rbc", quarter="t1", pdf_path="/tmp/t1.pdf")
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp)
+            write_footnotes_json([art], [], out_dir, "rbc", "vision_test")
+            data = __import__("json").loads((out_dir / "footnotes.json").read_text())
+        entry = data["tables"][0]
+        assert entry["footnotes_content"]["1"] == "Le LCR pour le trimestre clos le 31 janvier 2025."
+        assert entry["footnotes_content"]["2"] == "Valeurs ponderees selon ligne directrice BSIF."
+        for v in entry["footnotes_content"].values():
+            assert "dict" not in v
+            assert "{" not in v
+
+    def test_writer_meta_reports_repr_suspect_count(self) -> None:
+        from pathlib import Path
+        from types import SimpleNamespace
+        from vigilance.extraction.vision_extraction_writer import write_footnotes_json
+
+        table_like = SimpleNamespace(
+            table_id="T1",
+            title="Table",
+            page_number=1,
+            footnotes=["{'id': '1', 'text': 'Recovered text'}"],
+        )
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = Path(tmp)
+            write_footnotes_json([table_like], [], out_dir, "bnc", "repr_test")
+            data = __import__("json").loads((out_dir / "footnotes.json").read_text())
+        assert data["meta"]["tables_total"] == 1
+        assert data["meta"]["footnote_entries_total"] == 1
+        assert data["meta"]["repr_suspect_count"] == 1
+        assert data["warnings"][0]["code"] == "repr_suspect_detected"
 
 
 class TestReviewAdapterFootnotes:

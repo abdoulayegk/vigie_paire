@@ -220,6 +220,18 @@ def build_sidebar() -> dbc.Col:
                         switch=True,
                         className="small mb-1",
                     ),
+                    html.Div("Mode Vision-primary", className="small text-muted mt-1 mb-1"),
+                    dbc.RadioItems(
+                        id="option-vision-primary-mode",
+                        options=[
+                            {"label": "Suivre config banque", "value": "auto"},
+                            {"label": "Forcer ON", "value": "on"},
+                            {"label": "Forcer OFF", "value": "off"},
+                        ],
+                        value="auto",
+                        className="small mb-2",
+                        inline=False,
+                    ),
                     dbc.Checklist(
                         id="option-auto-indicator",
                         options=[{"label": "Auto-Comparaison", "value": "compare"}],

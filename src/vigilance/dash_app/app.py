@@ -72,7 +72,11 @@ from app.comparison_canonical import (
 )
 from app.comparison_runner import run_comparison_with_sections
 from app.dash_app.components.pdf_preview import pdf_images_from_base64
-from app.dash_app.components.review_detail import build_proofs_section, build_review_detail
+from app.dash_app.components.review_detail import (
+    build_proofs_section,
+    build_review_detail,
+    section_display_label,
+)
 from app.dash_app.components.review_queue import build_review_queue
 from app.dash_app.layouts import (
     build_page_results,
@@ -82,6 +86,7 @@ from app.dash_app.layouts import (
 )
 from app.dash_app.layouts.page_results import build_analyst_kpi_card
 from app.i18n import t
+from app.review_priority import sort_review_items_by_priority
 from app.review_adapters import build_review_items_from_indicator_result
 from app.review_export import (
     export_review_items_json_fr,
@@ -674,6 +679,7 @@ def compile_adjusted_sections(starts, ends, ids_start, ids_end, detection):
     State("bank-code", "value"),
     State("option-visual-proofs", "value"),
     State("option-vision", "value"),
+    State("option-vision-primary-mode", "value"),
     State("option-auto-indicator", "value"),
     State("option-footnotes", "value"),
     State("option-genai-classification", "value"),
@@ -696,6 +702,7 @@ def on_analyze(
     bank_code,
     visual_proofs,
     vision,
+    vision_primary_mode,
     auto_indicator,
     footnotes_opt,
     genai_classification_opt,
@@ -725,6 +732,18 @@ def on_analyze(
 
     generate_visual_proofs = visual_proofs and "proofs" in visual_proofs
     use_vision_fallback = vision and "vision" in vision
+    if vision_primary_mode == "on":
+        use_vision_primary = True
+    elif vision_primary_mode == "off":
+        use_vision_primary = False
+    else:
+        try:
+            from vigilance.config import get_vision_extraction_config
+
+            cfg = get_vision_extraction_config(bank_code=bank_code) or {}
+            use_vision_primary = bool(cfg.get("enabled", False))
+        except Exception:
+            use_vision_primary = False
     include_footnotes = bool(footnotes_opt and "footnotes" in footnotes_opt)
     include_genai_classification = bool(
         genai_classification_opt and "classify" in genai_classification_opt and api_key
@@ -741,6 +760,7 @@ def on_analyze(
             api_key=api_key,
             generate_visual_proofs=generate_visual_proofs,
             use_vision_fallback=bool(use_vision_fallback),
+            use_vision_primary=use_vision_primary,
             include_footnotes=include_footnotes,
             include_genai_classification=include_genai_classification,
         )
@@ -762,6 +782,26 @@ def on_analyze(
     indicator_meta = (
         indicator_result.get("meta", {}) if isinstance(indicator_result, dict) else {}
     )
+    quality_gate = (
+        indicator_meta.get("quality_gate", {})
+        if isinstance(indicator_meta, dict)
+        else {}
+    )
+    qg_status = str(quality_gate.get("status", "") or "").upper()
+    qg_fail_reasons = quality_gate.get("fail_reasons", []) or []
+    if not isinstance(qg_fail_reasons, list):
+        qg_fail_reasons = [str(qg_fail_reasons)]
+
+    if qg_status == "FAIL":
+        fail_msg = "; ".join(str(x) for x in qg_fail_reasons[:2]) or "regles de qualite non satisfaites"
+        analyze_notification = dbc.Alert(
+            f"Analyse terminee mais non eligible pour revue analyste (Quality Gate FAIL): {fail_msg}",
+            color="danger",
+        )
+    else:
+        analyze_notification = dbc.Alert(
+            "Analyse terminée. Indicateurs comparés.", color="success"
+        )
 
     # Calculate validation duration
     import time
@@ -779,7 +819,7 @@ def on_analyze(
         indicator_meta,
         True,
         build_page_results(),
-        dbc.Alert("Analyse terminée. Indicateurs comparés.", color="success"),
+        analyze_notification,
         validation_duration_sec,
         True,
     )
@@ -800,6 +840,7 @@ def on_analyze(
     Output("progress-rejected", "value"),
     Output("progress-pending", "value"),
     Input("store-review-items", "data"),
+    Input("store-indicator-result", "data"),
     Input("store-review-current-idx", "data"),
     Input("store-show-results-page", "data"),
     Input("store-review-filters", "data"),
@@ -808,7 +849,13 @@ def on_analyze(
     prevent_initial_call=True,
 )
 def update_review_queue(
-    review_items_data, current_idx, show_results, filters, _btn_approve, _btn_reject
+    review_items_data,
+    indicator_result,
+    current_idx,
+    show_results,
+    filters,
+    _btn_approve,
+    _btn_reject,
 ):
     """Update the left-side review queue and top KPIs."""
     if not show_results:
@@ -832,9 +879,27 @@ def update_review_queue(
             0,
         )
     if len(review_items_data) == 0:
+        quality_gate = {}
+        if isinstance(indicator_result, dict):
+            meta = indicator_result.get("meta", {}) or {}
+            if isinstance(meta, dict):
+                quality_gate = meta.get("quality_gate", {}) or {}
+        qg_status = str(quality_gate.get("status", "") or "").upper()
+        qg_fail_reasons = quality_gate.get("fail_reasons", []) or []
+        if not isinstance(qg_fail_reasons, list):
+            qg_fail_reasons = [str(qg_fail_reasons)]
+        blocked_msg = (
+            "Run bloque par Quality Gate (FAIL): "
+            + ("; ".join(str(x) for x in qg_fail_reasons[:2]) or "qualite insuffisante")
+        )
+        empty_msg = (
+            blocked_msg
+            if qg_status == "FAIL"
+            else t("no_changes_review", "Aucun changement a revoir.")
+        )
         return (
             html.Div(
-                t("no_changes_review", "Aucun changement a revoir."),
+                empty_msg,
                 className="text-muted p-3",
             ),
             build_analyst_kpi_card(t("file_review_total"), "0", color="white"),
@@ -1281,23 +1346,100 @@ def render_results(comparison, indicator, show_results):
         title = "Indicateurs"
     header = html.H5(f"{str(bank).upper()} - {title}")
 
-    executive_summary = None
-    if isinstance(data, dict):
-        meta = data.get("meta", {}) or {}
-        summary_text = get_meta_value(meta, "executive_summary", "content") or ""
-        if summary_text:
-            executive_summary = dbc.Accordion(
-                [
-                    dbc.AccordionItem(
-                        html.P(summary_text, className="mb-0 small text-muted"),
-                        title="Résumé Exécutif (Cliquer pour dérouler)",
-                    )
-                ],
-                start_collapsed=True,
-                className="mb-3 shadow-sm",
+    executive_summary = html.Div()
+    if indicator and isinstance(indicator, dict):
+        kpi = indicator.get("summary", indicator.get("kpi_metier", {})) or {}
+        status_counts = kpi.get("status_counts", {}) or {}
+        tables_t1 = kpi.get("tables_t1", 0)
+        tables_t2 = kpi.get("tables_t2", 0)
+        tables_matched = kpi.get("tables_matched", 0)
+        structure_change = status_counts.get("structure_change", 0)
+        incertain = status_counts.get("incertain", 0)
+        added = kpi.get("total_added_indicators", 0)
+        removed = kpi.get("total_removed_indicators", 0)
+        renamed = kpi.get("total_renamed_indicators", 0)
+
+        comparisons = indicator.get("table_comparisons", []) or []
+        tables_added = indicator.get("tables_added", []) or []
+        tables_removed = indicator.get("tables_removed", []) or []
+        section_counts: dict[str, int] = {}
+        for comp in comparisons:
+            n_changes = (
+                len(comp.get("added_indicators", []))
+                + len(comp.get("removed_indicators", []))
+                + len(comp.get("renamed_indicators", []))
             )
-    if executive_summary is None:
-        executive_summary = html.Div()
+            fn = comp.get("footnotes_counts", {}) or {}
+            n_changes += sum(fn.get(k, 0) for k in ("added", "removed", "modified"))
+            if n_changes > 0:
+                sec = comp.get("section", "Autres")
+                section_counts[sec] = section_counts.get(sec, 0) + 1
+        for tab in tables_added:
+            sec = tab.get("section", "Autres")
+            section_counts[sec] = section_counts.get(sec, 0) + 1
+        for tab in tables_removed:
+            sec = tab.get("section", "Autres")
+            section_counts[sec] = section_counts.get(sec, 0) + 1
+
+        notes_total = 0
+        for comp in comparisons:
+            fn = comp.get("footnotes_counts", {}) or {}
+            notes_total += sum(fn.get(k, 0) for k in ("added", "removed", "modified"))
+
+        parts = [
+            f"{tables_t1} {t('tables')} en T1, {tables_t2} en T2. "
+            f"{tables_matched} apparies",
+        ]
+        if structure_change:
+            parts.append(f", {structure_change} fusion/split")
+        if incertain:
+            parts.append(f", {incertain} incertain(s)")
+        parts.append(". ")
+        if added or removed or renamed:
+            sub = []
+            if added:
+                sub.append(f"{added} ajout(s)")
+            if removed:
+                sub.append(f"{removed} retrait(s)")
+            if renamed:
+                sub.append(f"{renamed} renommage(s)")
+            parts.append(", ".join(sub))
+            parts.append(". ")
+        if section_counts:
+            sections_str = ", ".join(
+                f"{section_display_label(s)} ({n} tableaux)"
+                for s, n in sorted(section_counts.items())
+            )
+            parts.append(f"Sections impactees : {sections_str}. ")
+        if notes_total:
+            parts.append(f"{notes_total} note(s) de bas de tableau modifiees.")
+        else:
+            parts.append("Aucune note de bas de tableau modifiee.")
+
+        summary_text = "".join(parts)
+        executive_summary = dbc.Alert(
+            html.P(summary_text, className="mb-0 small"),
+            color="info",
+            className="mb-3",
+        )
+        meta = indicator.get("meta", {}) or {}
+        genai_text = get_meta_value(meta, "executive_summary", "content") or ""
+        if genai_text:
+            executive_summary = html.Div(
+                [
+                    executive_summary,
+                    dbc.Accordion(
+                        [
+                            dbc.AccordionItem(
+                                html.P(genai_text, className="mb-0 small text-muted"),
+                                title="Résumé GenAI (cliquer pour dérouler)",
+                            )
+                        ],
+                        start_collapsed=True,
+                        className="mb-3 shadow-sm",
+                    ),
+                ]
+            )
 
     kpis = []
     if indicator:
@@ -1601,7 +1743,7 @@ def render_sections_tab(indicator_result, show_results):
     accordion_items = []
     for i, (section_name, data) in enumerate(sorted(sections.items())):
         item = build_section_accordion_item(
-            section_name=section_name,
+            section_name=section_display_label(section_name),
             tables_with_changes=data["changes"],
             tables_added=data["added"],
             tables_removed=data["removed"],
@@ -1639,6 +1781,28 @@ def init_review_items(indicator_result, paths):
     if not indicator_result or not paths:
         raise PreventUpdate
 
+    meta = indicator_result.get("meta", {}) if isinstance(indicator_result, dict) else {}
+    quality_gate = meta.get("quality_gate", {}) if isinstance(meta, dict) else {}
+    qg_status = str(quality_gate.get("status", "") or "").upper()
+    eligible = bool(quality_gate.get("eligible_for_review", True))
+    if qg_status == "FAIL" or not eligible:
+        fail_reasons = quality_gate.get("fail_reasons", []) or []
+        if not isinstance(fail_reasons, list):
+            fail_reasons = [str(fail_reasons)]
+        logger.warning(
+            "[init_review_items] blocked by quality gate: %s",
+            "; ".join(str(x) for x in fail_reasons) if fail_reasons else "FAIL",
+        )
+        dbg = {
+            "writer": "init_review_items_quality_gate_blocked",
+            "trigger": "init",
+            "from": None,
+            "to": 0,
+            "total": 0,
+            "reason": "; ".join(str(x) for x in fail_reasons[:3]),
+        }
+        return [], 0, dbg
+
     path_t1 = paths.get("pdf_t1", "")
     path_t2 = paths.get("pdf_t2", "")
     bank_code = str(indicator_result.get("bank_code", ""))
@@ -1653,7 +1817,7 @@ def init_review_items(indicator_result, paths):
         pdf_path_t1=path_t1,
         pdf_path_t2=path_t2,
     )
-    serialized = [it.to_dict() for it in items]
+    serialized = sort_review_items_by_priority([it.to_dict() for it in items])
     total = len(serialized)
     dbg = {
         "writer": "init_review_items",

@@ -1,7 +1,27 @@
 version: "1.0"
 
+vision_extraction:
+  enabled: true
+  bottom_extension_footnotes: 0.12
+  run_on_all_tables: true
+  fallback_to_docling_on_error: true
+  save_indicators_footnotes_json: true
+  vision_pair_validation: false
+
+quality_gate:
+  enabled: true
+  duplicate_ratio_threshold: 0.15
+  max_tables_duplicate_excess: 3
+  max_contaminated_titles: 2
+  line_split_max_per_table: 2
+  missing_marker_majority_threshold: 0.5
+  title_numeric_density_threshold: 0.45
+
 banks:
   bnc:
+    vision_extraction:
+      footnote_marker_type: "parenthetical"
+      expected_markers: ["(1)", "(2)", "(3)", "(4)", "(5)"]
     name: "Banque Nationale du Canada"
     short_name: "BNC"
     file_patterns:
@@ -51,6 +71,9 @@ banks:
       - "Annexes"
 
   rbc:
+    vision_extraction:
+      footnote_marker_type: "superscript"
+      expected_markers: ["1", "2", "3", "4", "5"]
     name: "Banque Royale du Canada"
     short_name: "RBC"
     file_patterns:
@@ -136,6 +159,9 @@ banks:
       use_post_hungarian_threshold: true
 
   td:
+    vision_extraction:
+      footnote_marker_type: "superscript"
+      expected_markers: ["1", "2", "3", "4", "5"]
     name: "Banque Toronto-Dominion"
     short_name: "TD"
     file_patterns:
@@ -182,7 +208,13 @@ banks:
       table_rename_threshold: 0.78
       table_probable_threshold: 0.58
       indicator_similarity_threshold: 0.88
-      indicator_fuzzy_token_threshold: 0.85
+      indicator_fuzzy_token_threshold: 0.80
+      # TD noisy false positives: stricter fragment merge to avoid cross-table contamination.
+      merge_fragment_score_min: 0.93
+      # TD rename tuning: convert semantic rewrites into RENOMMAGE instead of AJOUT/SUPPRESSION.
+      indicator_rename_min_score: 0.74
+      indicator_gate_min_len_ratio: 0.45
+      indicator_gate_min_token_overlap: 0
       title_match_min_similarity: 0.88
       title_match_min_structure: 0.50
       overlap_threshold: 0.45
@@ -197,6 +229,9 @@ banks:
       title_override_max_size_ratio: 0.80
 
   bmo:
+    vision_extraction:
+      footnote_marker_type: "superscript"
+      expected_markers: ["1", "2", "3", "4", "5"]
     name: "Banque de Montreal"
     short_name: "BMO"
     file_patterns:
@@ -265,6 +300,9 @@ banks:
       rescue_single_min_title_similarity: 0.60
 
   bns:
+    vision_extraction:
+      footnote_marker_type: "parenthetical"
+      expected_markers: ["(1)", "(2)", "(3)", "(4)", "(5)"]
     name: "Banque de Nouvelle-Ecosse (Scotiabank)"
     short_name: "Scotia"
     file_patterns:
@@ -334,6 +372,9 @@ banks:
       margin_threshold: 0.10
 
   cibc:
+    vision_extraction:
+      footnote_marker_type: "superscript"
+      expected_markers: ["1", "2", "3", "4", "5"]
     name: "Banque Canadienne Imperiale de Commerce"
     short_name: "CIBC"
     page_number_offset: 3
@@ -538,7 +579,8 @@ matching_thresholds:
   indicator_low_score_uncertain: 0.60
   indicator_match_reject_title_similarity: 0.70
   indicator_match_reject_jaccard: 0.35
-  indicator_rename_threshold: 0.86
+  indicator_rename_threshold: 0.80
+  indicator_fuzzy_token_threshold: 0.80
   indicator_rename_probable_threshold: 0.90
   indicator_rename_short_label_threshold: 0.95
   indicator_rename_position_weight: 0.10
@@ -581,6 +623,12 @@ matching_thresholds:
   use_vision_validation: false
   vision_validation_min_confidence: 80
   vision_validation_only_on_probable: true
+
+  # Vision-first extraction policy (all banks by default)
+  vision_auto_on_suspect: true
+  vision_min_confidence: 0.80
+  vision_count_ratio_min: 0.50
+  vision_count_ratio_max: 2.00
   min_label_overlap_reject: 0.55
   soft_overlap_weight: 0.5
   generic_title_min_containment: 0.70

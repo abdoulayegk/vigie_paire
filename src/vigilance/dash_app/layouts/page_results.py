@@ -45,6 +45,10 @@ def build_section_accordion_item(
                 badges.append(
                     dbc.Badge(t("fusion_split"), color="warning", className="ms-2")
                 )
+            if comp.get("table_status") == "incertain":
+                badges.append(
+                    dbc.Badge("INCERTAIN", color="secondary", className="ms-2")
+                )
             if fn_total:
                 badges.append(
                     dbc.Badge(

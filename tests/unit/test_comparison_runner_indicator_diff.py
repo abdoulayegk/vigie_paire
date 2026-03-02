@@ -5,6 +5,8 @@ from __future__ import annotations
 import pytest
 
 from app.comparison_runner import (
+    _build_clean_to_raw_indicator_lookup,
+    _clean_values_to_raw_display,
     _detect_fusion_split,
     _fuzzy_pair_added_removed,
     _hungarian_pair_added_removed,
@@ -30,6 +32,26 @@ def _table(indicators: list[str]) -> TableArtifact:
         quarter="t1",
         pdf_path="dummy.pdf",
     )
+
+
+def test_clean_to_raw_display_mapping_prefers_raw_text() -> None:
+    table = TableArtifact(
+        bank_code="bmo",
+        section="capital_management",
+        page_pdf=1,
+        table_id="tableau_raw",
+        title="Montant",
+        headers=["Indicateur", "Montant"],
+        rows=[],
+        first_column_indicators=["fonds propre de categorie 1", "autre ligne"],
+        first_column_indicators_raw=["fonds propre de categorie 1¹", "autre ligne"],
+        extraction_method="docling",
+        quarter="t1",
+        pdf_path="dummy.pdf",
+    )
+    lookup = _build_clean_to_raw_indicator_lookup(table)
+    display = _clean_values_to_raw_display(["fonds propre de categorie 1"], lookup)
+    assert display == ["fonds propre de categorie 1¹"]
 
 
 def test_indicator_diff_ignores_trailing_note_numbers() -> None:

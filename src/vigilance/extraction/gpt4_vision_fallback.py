@@ -95,7 +95,6 @@ RÈGLES:
 - Si une cellule est vide, utilise ""
 - Fusionne les en-têtes multi-lignes avec " - "
 - confidence entre 0.0 et 1.0 selon la clarté de l'image
-- confidence entre 0.0 et 1.0 selon la clarté de l'image
 """
 
     # Prompt de fusion intelligente (Smart Merge) inspiré du prototype Jad
@@ -205,7 +204,7 @@ FORMAT DE SORTIE (JSON strict) :
                         },
                     ],
                     max_completion_tokens=max_completion_tokens,
-                    temperature=0.1,  # Faible température pour extraction précise
+                    temperature=0,
                     response_format={"type": "json_object"},
                 )
 
@@ -384,7 +383,10 @@ FORMAT DE SORTIE (JSON strict) :
         except ImportError:
             raise ImportError("Pillow requis. Installez avec: pip install pillow")
 
+        from .vision_image_preprocessor import preprocess_pil_image
+
         pil_img = Image.fromarray(image)
+        pil_img = preprocess_pil_image(pil_img)
         buf = BytesIO()
         pil_img.save(buf, format="PNG")
         return base64.b64encode(buf.getvalue()).decode("utf-8")

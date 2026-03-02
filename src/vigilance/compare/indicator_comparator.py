@@ -2308,18 +2308,51 @@ def run_strict_intra_section_compare(
     pair_t2_uids = {str(p.get("t2_uid", "")) for p in pairs}
     assert len(pair_t1_uids) == len(pairs), "duplicate t1_uid in pairs"
     assert len(pair_t2_uids) == len(pairs), "duplicate t2_uid in pairs"
-    merge_members_t1: set[str] = set()
+    merge_members_t1_set: set[str] = set()
     for p in pairs:
         for uid in p.get("merge_members_t1") or []:
-            merge_members_t1.add(str(uid))
-    split_members_t2: set[str] = set()
+            merge_members_t1_set.add(str(uid))
+    split_members_t2_set: set[str] = set()
     for p in pairs:
         for uid in p.get("split_members_t2") or []:
-            split_members_t2.add(str(uid))
-    covered_t1 = pair_t1_uids | merge_members_t1 | set(remaining_t1.keys())
-    covered_t2 = pair_t2_uids | split_members_t2 | set(remaining_t2.keys())
+            split_members_t2_set.add(str(uid))
+    covered_t1 = pair_t1_uids | merge_members_t1_set | set(remaining_t1.keys())
+    covered_t2 = pair_t2_uids | split_members_t2_set | set(remaining_t2.keys())
     all_t1_uids = set(table_by_t1_uid.keys())
     all_t2_uids = set(table_by_t2_uid.keys())
+
+    # Ensure any T1/T2 UID missing from coverage (e.g. empty t1_uid in unmatched item) is added to remaining and unmatched.
+    missing_t1 = all_t1_uids - covered_t1
+    for uid in missing_t1:
+        tbl = table_by_t1_uid.get(uid)
+        if tbl is None:
+            continue
+        remaining_t1[uid] = {
+            "t1_uid": uid,
+            "t1_table_id": getattr(tbl, "table_id", ""),
+            "section": getattr(tbl, "section", ""),
+            "page_t1": getattr(tbl, "page_pdf", None),
+            "title_t1": getattr(tbl, "title", ""),
+            "reason": "coverage_fixup",
+        }
+        unmatched_t1.append(remaining_t1[uid])
+    missing_t2 = all_t2_uids - covered_t2
+    for uid in missing_t2:
+        tbl = table_by_t2_uid.get(uid)
+        if tbl is None:
+            continue
+        remaining_t2[uid] = {
+            "t2_uid": uid,
+            "t2_table_id": getattr(tbl, "table_id", ""),
+            "section": getattr(tbl, "section", ""),
+            "page_t2": getattr(tbl, "page_pdf", None),
+            "title_t2": getattr(tbl, "title", ""),
+            "reason": "unmatched",
+        }
+        unmatched_t2.append(remaining_t2[uid])
+
+    covered_t1 = pair_t1_uids | merge_members_t1_set | set(remaining_t1.keys())
+    covered_t2 = pair_t2_uids | split_members_t2_set | set(remaining_t2.keys())
     assert all_t1_uids == covered_t1, (
         "T1 coverage: every t1_uid must be in pairs, merge_members_t1, or remaining_t1"
     )

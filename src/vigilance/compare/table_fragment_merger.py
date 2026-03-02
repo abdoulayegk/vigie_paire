@@ -7,6 +7,7 @@ from difflib import SequenceMatcher
 from typing import Any
 
 from vigilance.models.table_models import TableArtifact
+from vigilance.utils.footnotes_utils import normalize_footnotes_to_canonical
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.matching_normalizer import (
     header_schema_similarity,
@@ -258,6 +259,31 @@ def _merge_bbox(left: TableArtifact, right: TableArtifact) -> list[float] | None
     return [x0, y0, x1, y1]
 
 
+def _merge_footnotes(left: TableArtifact, right: TableArtifact) -> list[dict[str, str]] | None:
+    """Merge footnotes from both fragments, dedupe by normalized (id, text), preserve order."""
+    combined = normalize_footnotes_to_canonical(
+        list(left.footnotes or []) + list(right.footnotes or [])
+    )
+    if not combined:
+        return None
+
+    merged: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for item in combined:
+        raw_id = str(item.get("id") or "").strip()
+        raw_text = str(item.get("text") or "").strip()
+        if not raw_text:
+            continue
+        norm_id = re.sub(r"\s+", "", raw_id).lower()
+        norm_text = re.sub(r"\s+", " ", raw_text).strip().lower()
+        dedupe_key = (norm_id, norm_text)
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+        merged.append({"id": raw_id or str(len(merged) + 1), "text": raw_text})
+    return merged or None
+
+
 def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
     merged_rows = list(left.rows or []) + list(right.rows or [])
     merged_indicators = _dedupe_preserve(
@@ -283,12 +309,16 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
     if left_raw or right_raw:
         merged_raw = _dedupe_preserve(list(left_raw) + list(right_raw))
 
+    title_clean = getattr(left, "title_clean", None) or getattr(right, "title_clean", None)
+    title_raw = getattr(left, "title_raw", None) or getattr(right, "title_raw", None)
+    title_display = title_clean or (left.title or right.title)
+
     return TableArtifact(
         bank_code=left.bank_code or right.bank_code,
         section=left.section or right.section,
         page_pdf=min(int(left.page_pdf or 0), int(right.page_pdf or 0)),
         table_id=f"{left.table_id}__{right.table_id}",
-        title=(left.title or right.title),
+        title=title_display,
         headers=merged_headers,
         rows=merged_rows,
         first_column_indicators=merged_indicators,
@@ -298,6 +328,10 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
         quarter=left.quarter or right.quarter,
         pdf_path=left.pdf_path or right.pdf_path,
         first_column_indicators_raw=merged_raw,
+        footnotes=_merge_footnotes(left, right),
+        fragmentation_detected=True,
+        title_clean=title_clean,
+        title_raw=title_raw,
     )
 
 
@@ -361,4 +395,3 @@ def merge_table_fragments(
 
 
 __all__ = ["merge_table_fragments"]
-

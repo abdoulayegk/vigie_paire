@@ -14,6 +14,7 @@ def _table(
     page: int,
     rows: list[list[str]],
     bbox: list[float] | None = None,
+    footnotes: list[dict[str, str]] | None = None,
 ) -> TableArtifact:
     return TableArtifact(
         bank_code="rbc",
@@ -29,6 +30,7 @@ def _table(
         bbox=bbox,
         quarter="t2-2025",
         pdf_path="dummy.pdf",
+        footnotes=footnotes,
     )
 
 
@@ -144,3 +146,38 @@ def test_does_not_merge_unknown_sections() -> None:
     assert len(merged) == 2
     assert events == []
 
+
+def test_merge_pair_preserves_and_dedupes_footnotes() -> None:
+    left = _table(
+        table_id="t_left",
+        section="risk_management",
+        title="Analyse des echeances",
+        page=10,
+        rows=[["segment a", "1"]],
+        bbox=[0.05, 0.60, 0.95, 0.95],
+        footnotes=[
+            {"id": "1", "text": "Texte note A"},
+            {"id": "2", "text": "Texte note B"},
+        ],
+    )
+    right = _table(
+        table_id="t_right",
+        section="risk_management",
+        title="Analyse des echeances (suite)",
+        page=11,
+        rows=[["segment c", "3"]],
+        bbox=[0.05, 0.10, 0.95, 0.40],
+        footnotes=[
+            {"id": "2", "text": "Texte note B"},
+            {"id": "3", "text": "Texte note C"},
+        ],
+    )
+
+    merged, events = merge_table_fragments([left, right], merge_score_min=0.85)
+    assert len(merged) == 1
+    assert len(events) == 1
+    assert merged[0].footnotes == [
+        {"id": "1", "text": "Texte note A"},
+        {"id": "2", "text": "Texte note B"},
+        {"id": "3", "text": "Texte note C"},
+    ]

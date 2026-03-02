@@ -6,6 +6,10 @@ import logging
 import re
 import unicodedata
 
+from vigilance.utils.indicator_line_merge import (
+    IndicatorLineMergeConfig,
+    merge_indicator_lines,
+)
 from vigilance.utils.matching_normalizer import (
     _UNIT_HEADER_RE,
     _UNIT_MILLIERS_ACTIONS_RE,
@@ -19,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 _TRAILING_NOTE_RE = re.compile(r"\s*(?:\(\d+\)|\[\d+\]|\*+)\s*$")
 _TRAILING_NUM_RE = re.compile(r"\s+\d{1,4}(?:[.,]\d+)?\s*$")
+# Digits attached to last word (no space): "Total des actifs1" -> "Total des actifs", "Revenue2024" -> "Revenue"
+_TRAILING_WORD_DIGITS_RE = re.compile(r"([^\d\s]+)(\d+)$")
 _DATE_IN_TITLE_RE = re.compile(
     r"\b(?:au|as at|for the quarter ended|trimestre termine le)\b.*$", re.IGNORECASE
 )
@@ -157,9 +163,42 @@ def is_header_footer_table_title(title: str, bank_code: str | None = None) -> bo
     return bool(_HEADER_FOOTER_PAGE_BANK_RE.match(t))
 
 
+def clean_spaced_out_text(text: str) -> str:
+    """Recombine single-letter 'words' from OCR: 'T o t a l' -> 'Total', 'A s s e t s' -> 'Assets'.
+
+    Handles OCR artifacts where letters are improperly separated by spaces.
+    Only merges consecutive single-letter alphabetic tokens (preserves 'A' in 'Section A' etc.
+    when followed by a multi-char token).
+    """
+    if not text or not text.strip():
+        return text or ""
+    tokens = text.split()
+    result: list[str] = []
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if len(tok) == 1 and tok.isalpha():
+            letters = [tok]
+            j = i + 1
+            while j < len(tokens) and len(tokens[j]) == 1 and tokens[j].isalpha():
+                letters.append(tokens[j])
+                j += 1
+            result.append("".join(letters))
+            i = j
+        else:
+            result.append(tok)
+            i += 1
+    return " ".join(result)
+
+
 def strip_trailing_note_or_column_value(text: str) -> str:
-    """Remove trailing note markers and numeric column residue."""
+    """Remove trailing note markers and numeric column residue.
+
+    Includes Jad-style removal of digits attached to the last word (no space):
+    e.g. 'Total des actifs1' -> 'Total des actifs', 'Revenue2024' -> 'Revenue'.
+    """
     value = text or ""
+    value = _TRAILING_WORD_DIGITS_RE.sub(r"\1", value)
     value = _TRAILING_NOTE_RE.sub("", value)
     value = _TRAILING_NUM_RE.sub("", value)
     return re.sub(r"\s+", " ", value).strip()
@@ -199,8 +238,111 @@ def strip_note_refs_from_title(title: str) -> str:
     # Trailing (1), [2], 1), or bare digit 1, 2 when likely a ref
     value = re.sub(r"\s*[\(\[]\d+[\)\]]\s*$", "", value)
     value = re.sub(r"\s*\d+\)\s*$", "", value)
-    value = re.sub(r"([a-zA-ZÀ-ÿ])\d+\s*$", r"\1", value)  # CREDIT1 -> CREDIT, garde "Tableau 12"
-    value = re.sub(r"\s+\d+\s*,\s*\d+(?:\s*,\s*\d+)*\s*$", "", value)  # " 1, 2", " 1, 2, 3" (virgule requise)
+    value = re.sub(
+        r"([a-zA-ZÀ-ÿ])\d+\s*$", r"\1", value
+    )  # CREDIT1 -> CREDIT, garde "Tableau 12"
+    value = re.sub(
+        r"\s+\d+\s*,\s*\d+(?:\s*,\s*\d+)*\s*$", "", value
+    )  # " 1, 2", " 1, 2, 3" (virgule requise)
+    return re.sub(r"\s+", " ", value).strip()
+
+
+# --- Table title contamination (amounts / column values in title) ---
+# Token is "numeric" if it looks like a number (digits, optional commas/dots, e.g. 79, 772, 1,234.56)
+_NUMERIC_TOKEN_RE = re.compile(r"^[\d\s,.]*$")
+# Trailing run of 2+ numbers (so we don't strip "Tableau 28"): "79 772 76 163" or "79,772 76,163"
+_TRAILING_NUMERIC_RUN_RE = re.compile(
+    r"\s+\d+(?:[.,]\d+)?(?:\s*[,]?\s*\d+(?:[.,]\d+)?)+\s*$"
+)
+# Leading run of 2+ numbers at start of title (rare but possible)
+_LEADING_NUMERIC_RUN_RE = re.compile(
+    r"^\s*\d+(?:[.,]\d+)?(?:\s*[,]?\s*\d+(?:[.,]\d+)?)+\s+"
+)
+# Minimum consecutive numeric tokens to consider a "long" run (amount column)
+_NUMERIC_RUN_MIN_LENGTH = 3
+# Max fraction of tokens that can be numeric before title is contaminated (0.4 = 40%)
+_CONTAMINATION_NUMERIC_TOKEN_RATIO = 0.4
+# Minimum trailing numeric tokens to treat as contamination (e.g. "X 79 772")
+_CONTAMINATION_TRAILING_NUMBERS_MIN = 2
+
+
+def _token_is_numeric(tok: str) -> bool:
+    """True if token is purely numeric (digits, commas, dots, spaces)."""
+    if not tok or not tok.strip():
+        return False
+    # Normalize: remove spaces, then check
+    n = tok.replace(" ", "").replace("\u00a0", "")
+    return bool(n) and _NUMERIC_TOKEN_RE.match(n)
+
+
+def is_table_title_contaminated(
+    title: str,
+    *,
+    numeric_ratio_threshold: float = _CONTAMINATION_NUMERIC_TOKEN_RATIO,
+    trailing_numbers_min: int = _CONTAMINATION_TRAILING_NUMBERS_MIN,
+    long_run_min: int = _NUMERIC_RUN_MIN_LENGTH,
+) -> bool:
+    """
+    Return True if the table title looks contaminated by numeric values (amounts/column data).
+
+    Contamination: long numeric run (3+ numbers), or >40% tokens are numbers, or ends with 2+ numbers.
+    """
+    value = (title or "").strip()
+    if not value:
+        return False
+    tokens = value.split()
+    if not tokens:
+        return False
+
+    # Count numeric tokens and find runs
+    numeric_count = sum(1 for t in tokens if _token_is_numeric(t))
+    if numeric_count >= long_run_min:
+        # Check for a consecutive run of 3+ numeric tokens
+        run = 0
+        for t in tokens:
+            if _token_is_numeric(t):
+                run += 1
+                if run >= long_run_min:
+                    return True
+            else:
+                run = 0
+
+    # > X% of tokens are numbers (and at least 2 numeric tokens to avoid "Tableau 28")
+    if (
+        numeric_count >= 2
+        and len(tokens) >= 2
+        and (numeric_count / len(tokens)) > numeric_ratio_threshold
+    ):
+        return True
+
+    # Ends with 2+ numeric tokens (column values captured)
+    trailing_n = 0
+    for t in reversed(tokens):
+        if _token_is_numeric(t):
+            trailing_n += 1
+            if trailing_n >= trailing_numbers_min:
+                return True
+        else:
+            break
+
+    return False
+
+
+def clean_table_title_contamination(title: str) -> str:
+    """
+    Remove amount/column-value contamination from table title.
+
+    - Strips trailing numeric runs (multiple numbers at end, e.g. "79 772 76 163").
+    - Strips leading numeric runs if present.
+    - Preserves real footnote markers: single (1), (2) at end are kept (handled by caller or strip_note_refs).
+    - Applies strip_dates_from_table_title and strip_note_refs_from_title for consistency.
+    """
+    value = (title or "").strip()
+    if not value:
+        return value
+    # Strip trailing numeric run (space/comma separated numbers)
+    value = _TRAILING_NUMERIC_RUN_RE.sub("", value)
+    value = _LEADING_NUMERIC_RUN_RE.sub("", value)
     return re.sub(r"\s+", " ", value).strip()
 
 
@@ -213,6 +355,70 @@ _UNITS_IN_TITLE_RE = re.compile(
     r"\s*[\)\]]?\s*",
     re.IGNORECASE,
 )
+
+
+# --- Indicators dedupe and line-merge (quality passes) ---
+_DEDUPE_DUPLICATE_RATIO_THRESHOLD = 0.15
+_LINE_MERGE_MAX_COMBINED_LENGTH = 120
+
+
+def _normalize_for_dedupe(text: str) -> str:
+    """Whitespace normalization for dedupe key."""
+    return re.sub(r"\s+", " ", (text or "").strip())
+
+
+def dedupe_indicators(
+    indicators: list[str],
+    *,
+    duplicate_ratio_threshold: float = _DEDUPE_DUPLICATE_RATIO_THRESHOLD,
+) -> tuple[list[str], float, int]:
+    """
+    Remove exact duplicates while preserving order. Normalize whitespace for comparison.
+
+    Returns (deduped_list, duplicate_ratio, removed_count).
+    duplicate_ratio = 1 - unique/total. Apply dedupe only if ratio >= threshold.
+    """
+    if not indicators:
+        return [], 0.0, 0
+    total = len(indicators)
+    seen: set[str] = set()
+    result: list[str] = []
+    for ind in indicators:
+        key = _normalize_for_dedupe(ind)
+        if not key:
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(ind)
+    unique = len(result)
+    duplicate_ratio = 1.0 - (unique / total) if total > 0 else 0.0
+    removed = total - unique
+    if duplicate_ratio >= duplicate_ratio_threshold and removed > 0:
+        return result, duplicate_ratio, removed
+    return indicators, duplicate_ratio, 0
+
+
+def merge_line_split_indicators(
+    indicators: list[str],
+    *,
+    max_combined_length: int = _LINE_MERGE_MAX_COMBINED_LENGTH,
+) -> tuple[list[str], int]:
+    """
+    Merge indicator lines when the next line is likely a split continuation.
+
+    Rules (deterministic):
+    - Next line begins with lowercase OR begins with superscript/punctuation only.
+    - Previous line does not end with strong punctuation (. ! ? ; :).
+    - Combined length <= max_combined_length.
+
+    Returns (merged_list, merge_count).
+    """
+    cfg = IndicatorLineMergeConfig(
+        max_next_tokens=6,
+        max_combined_length=max_combined_length,
+    )
+    return merge_indicator_lines(indicators, config=cfg)
 
 
 def strip_units_from_table_title(title: str, bank_code: str | None = None) -> str:
@@ -293,6 +499,73 @@ def post_normalize_indicator(text: str) -> tuple[str, bool, bool]:
     return result, camel, tag
 
 
+_SINGULAR_EXCEPTIONS = frozenset(
+    {
+        "frais",
+        "moins",
+        "plus",
+        "cours",
+        "temps",
+        "cas",
+        "mois",
+        "pays",
+        "tiers",
+        "poids",
+        "biais",
+        "avis",
+        "sens",
+        "fonds",
+        "corps",
+        "bras",
+        "choix",
+        "voix",
+        "prix",
+        "noix",
+        "index",
+        "flux",
+        "taux",
+        "bas",
+        "hors",
+        "sous",
+        "vers",
+        "dans",
+        "sans",
+        "puis",
+        "tres",
+        "apres",
+        "mais",
+        "des",
+        "les",
+        "ces",
+        "ses",
+        "nos",
+        "vos",
+        "tes",
+        "mes",
+        "aux",
+    }
+)
+
+
+def singularize_words(text: str) -> str:
+    """Strip trailing 's' from words to neutralize plural/singular variations.
+
+    Handles: "actions" -> "action", "actifs" -> "actif", "garantis" -> "garanti".
+    Preserves words where the trailing 's' is inherent (frais, cours, mois, fonds, etc.).
+    Only operates on words longer than 3 characters to avoid breaking short words.
+    """
+    if not text:
+        return ""
+    tokens = text.split()
+    result: list[str] = []
+    for tok in tokens:
+        if len(tok) > 3 and tok.endswith("s") and tok not in _SINGULAR_EXCEPTIONS:
+            result.append(tok[:-1])
+        else:
+            result.append(tok)
+    return " ".join(result)
+
+
 def normalize_indicator_for_comparison(text: str) -> str:
     """
     Single canonical key for indicator (first column) comparison.
@@ -313,6 +586,9 @@ def normalize_indicator_for_comparison(text: str) -> str:
     # Normalize Unicode and collapse all whitespace (including U+00A0) to space
     text = unicodedata.normalize("NFD", text)
     text = re.sub(r"\s+", " ", text).strip()
+
+    # OCR: recombine single-letter 'words' (e.g. "T o t a l" -> "Total", "A s s e t s" -> "Assets")
+    text = clean_spaced_out_text(text)
 
     # Lines that are purely date/unit/note/footnote should yield empty (idempotent with extraction filter)
     if is_date_only_line(text) or is_non_indicator_line(text):
@@ -375,5 +651,8 @@ def normalize_indicator_for_comparison(text: str) -> str:
 
     # Espaces et minuscules
     text = re.sub(r"\s+", " ", text).strip().lower()
+
+    # Singularize: "actions" -> "action", "actifs" -> "actif" (neutralizes plural/singular noise)
+    text = singularize_words(text)
 
     return text

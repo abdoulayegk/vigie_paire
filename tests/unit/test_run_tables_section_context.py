@@ -40,7 +40,7 @@ def test_run_tables_keeps_section_context(tmp_path: Path, monkeypatch) -> None:
         encoding="utf-8",
     )
 
-    fake_module = types.ModuleType("extraction.docling_processor")
+    fake_module = types.ModuleType("vigilance.extraction.docling_processor")
 
     def fake_extract_tables_docling_by_sections(
         pdf_path: str,
@@ -48,6 +48,7 @@ def test_run_tables_keeps_section_context(tmp_path: Path, monkeypatch) -> None:
         quarter: str,
         year: int,
         section_ranges: list[dict],
+        use_vision_primary: object = None,
     ) -> list[SimpleNamespace]:
         out: list[SimpleNamespace] = []
         for i, sr in enumerate(section_ranges, start=1):
@@ -65,7 +66,7 @@ def test_run_tables_keeps_section_context(tmp_path: Path, monkeypatch) -> None:
         return out
 
     fake_module.extract_tables_docling_by_sections = fake_extract_tables_docling_by_sections
-    monkeypatch.setitem(sys.modules, "extraction.docling_processor", fake_module)
+    monkeypatch.setitem(sys.modules, "vigilance.extraction.docling_processor", fake_module)
 
     out_root = tmp_path / "outputs"
     main(

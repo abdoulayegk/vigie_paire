@@ -193,3 +193,59 @@ def test_build_indicator_change_rows_excludes_date_only_for_added_removed_tables
     assert "Prets garantis" in indicator_col_added
     assert "Au 31 janvier 2025" not in indicator_col_removed
     assert "Dépôts personnels" in indicator_col_removed
+
+
+def test_review_item_prefers_raw_display_for_matched_table_changes() -> None:
+    indicator_result = {
+        "bank_code": "BMO",
+        "quarter_from": "t1",
+        "quarter_to": "t2",
+        "table_comparisons": [
+            {
+                "section": "Risque",
+                "table_id_t1": "t1_1",
+                "table_id_t2": "t2_1",
+                "title_t1": "Tableau test",
+                "title_t2": "Tableau test",
+                "table_status": "modifie",
+                "match_score": 0.98,
+                "added_indicators": ["fonds propre de categorie 1"],
+                "removed_indicators": ["actif instrument tlac disponible apres ajustement"],
+                "renamed_indicators": [
+                    {
+                        "from": "autre instrument tlac disponible apres ajustement",
+                        "to": "instrument tlac disponible apres ajustement",
+                    }
+                ],
+                "added_indicators_raw": ["fonds propre de categorie 1¹"],
+                "removed_indicators_raw": ["actif instrument tlac disponible apres ajustement¹"],
+                "renamed_indicators_raw": [
+                    {
+                        "from": "autre instrument tlac disponible apres ajustement¹",
+                        "to": "instrument tlac disponible apres ajustement²",
+                    }
+                ],
+            }
+        ],
+        "tables_added": [],
+        "tables_removed": [],
+    }
+    items = build_review_items_from_indicator_result(
+        indicator_result,
+        bank_code="BMO",
+        quarter_from="t1",
+        quarter_to="t2",
+        pdf_path_t1="/fake/t1.pdf",
+        pdf_path_t2="/fake/t2.pdf",
+    )
+    assert len(items) == 1
+    item = items[0]
+    # Keep clean lists for highlight/matching compatibility.
+    assert item.added_indicators == ["fonds propre de categorie 1"]
+    assert item.removed_indicators == ["actif instrument tlac disponible apres ajustement"]
+    names = [ind.get("name", "") for ind in item.indicators]
+    assert "fonds propre de categorie 1¹" in names
+    assert "actif instrument tlac disponible apres ajustement¹" in names
+    renamed = next(ind for ind in item.indicators if ind.get("type") == "renamed")
+    assert renamed.get("from") == "autre instrument tlac disponible apres ajustement¹"
+    assert renamed.get("to") == "instrument tlac disponible apres ajustement²"

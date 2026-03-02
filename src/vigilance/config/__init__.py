@@ -90,4 +90,84 @@ def get_matching_thresholds(
     return base
 
 
-__all__ = ["load_config", "get_bank_cfg", "get_matching_thresholds", "load_bank_profiles"]
+def get_vision_extraction_config(
+    config_path: str | Path = "configs/bank_profiles.yaml",
+    bank_code: str | None = None,
+) -> dict[str, Any]:
+    """Load vision_extraction config with optional bank overrides.
+
+    Global keys: enabled, bottom_extension_footnotes, run_on_all_tables,
+    fallback_to_docling_on_error, save_indicators_footnotes_json.
+    Per-bank overrides: footnote_marker_type, expected_markers.
+    """
+    path = _resolve_config_path(config_path)
+    if not path.exists():
+        return {}
+
+    try:
+        cfg = load_config(path)
+    except Exception:
+        return {}
+
+    global_block = cfg.get("vision_extraction")
+    if not isinstance(global_block, dict):
+        base: dict[str, Any] = {}
+    else:
+        base = dict(global_block)
+
+    if bank_code:
+        banks = cfg.get("banks")
+        if isinstance(banks, dict):
+            key = str(bank_code).strip().lower()
+            if key in banks:
+                bank_cfg = banks[key]
+                if isinstance(bank_cfg, dict):
+                    bank_ve = bank_cfg.get("vision_extraction")
+                    if isinstance(bank_ve, dict):
+                        base = {**base, **bank_ve}
+
+    return base
+
+
+def get_quality_gate_config(
+    config_path: str | Path = "configs/bank_profiles.yaml",
+    bank_code: str | None = None,
+) -> dict[str, Any]:
+    """Load quality_gate config with optional bank overrides."""
+    path = _resolve_config_path(config_path)
+    if not path.exists():
+        return {}
+
+    try:
+        cfg = load_config(path)
+    except Exception:
+        return {}
+
+    global_block = cfg.get("quality_gate")
+    if not isinstance(global_block, dict):
+        base: dict[str, Any] = {}
+    else:
+        base = dict(global_block)
+
+    if bank_code:
+        banks = cfg.get("banks")
+        if isinstance(banks, dict):
+            key = str(bank_code).strip().lower()
+            if key in banks:
+                bank_cfg = banks[key]
+                if isinstance(bank_cfg, dict):
+                    bank_qg = bank_cfg.get("quality_gate")
+                    if isinstance(bank_qg, dict):
+                        base = {**base, **bank_qg}
+
+    return base
+
+
+__all__ = [
+    "load_config",
+    "get_bank_cfg",
+    "get_matching_thresholds",
+    "load_bank_profiles",
+    "get_vision_extraction_config",
+    "get_quality_gate_config",
+]

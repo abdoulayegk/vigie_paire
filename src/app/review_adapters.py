@@ -50,6 +50,9 @@ def build_review_items_from_indicator_result(
         added = comp.get("added_indicators", []) or []
         removed = comp.get("removed_indicators", []) or []
         renamed = comp.get("renamed_indicators", []) or []
+        added_raw = comp.get("added_indicators_raw", []) or []
+        removed_raw = comp.get("removed_indicators_raw", []) or []
+        renamed_raw = comp.get("renamed_indicators_raw", []) or []
         table_status_raw = str(comp.get("table_status", "") or "").strip().lower()
 
         if not added and not removed and not renamed:
@@ -126,6 +129,7 @@ def build_review_items_from_indicator_result(
             or comp.get("table_id_t1")
             or ""
         )
+        table_title_raw_value = str(comp.get("table_title_raw") or table_name)
         page_t1 = comp.get("page_t1")
         page_t2 = comp.get("page_t2")
         table_id_t1 = str(comp.get("table_id_t1", ""))
@@ -135,16 +139,50 @@ def build_review_items_from_indicator_result(
 
         indicators: list[dict[str, str]] = []
 
-        for ind in added:
-            indicators.append({"name": str(ind), "type": CHANGE_TYPE_ADDED, "review_status": "pending"})
+        for idx, ind in enumerate(added):
+            display_name = str(ind)
+            if isinstance(added_raw, list) and idx < len(added_raw):
+                candidate = str(added_raw[idx]).strip()
+                if candidate:
+                    display_name = candidate
+            indicators.append(
+                {
+                    "name": display_name,
+                    "name_clean": str(ind),
+                    "type": CHANGE_TYPE_ADDED,
+                    "review_status": "pending",
+                }
+            )
 
-        for ind in removed:
-            indicators.append({"name": str(ind), "type": CHANGE_TYPE_REMOVED, "review_status": "pending"})
+        for idx, ind in enumerate(removed):
+            display_name = str(ind)
+            if isinstance(removed_raw, list) and idx < len(removed_raw):
+                candidate = str(removed_raw[idx]).strip()
+                if candidate:
+                    display_name = candidate
+            indicators.append(
+                {
+                    "name": display_name,
+                    "name_clean": str(ind),
+                    "type": CHANGE_TYPE_REMOVED,
+                    "review_status": "pending",
+                }
+            )
 
-        for ren in renamed:
+        for idx, ren in enumerate(renamed):
+            ren_raw = renamed_raw[idx] if isinstance(renamed_raw, list) and idx < len(renamed_raw) else {}
             if isinstance(ren, dict):
-                old_val = str(ren.get("from", ""))
-                new_val = str(ren.get("to", ""))
+                old_clean = str(ren.get("from", ""))
+                new_clean = str(ren.get("to", ""))
+                old_val = old_clean
+                new_val = new_clean
+                if isinstance(ren_raw, dict):
+                    old_raw = str(ren_raw.get("from", "")).strip()
+                    new_raw = str(ren_raw.get("to", "")).strip()
+                    if old_raw:
+                        old_val = old_raw
+                    if new_raw:
+                        new_val = new_raw
                 label = f"{old_val} -> {new_val}" if old_val or new_val else ""
                 indicators.append(
                     {
@@ -152,11 +190,23 @@ def build_review_items_from_indicator_result(
                         "type": CHANGE_TYPE_RENAMED,
                         "from": old_val,
                         "to": new_val,
+                        "from_clean": old_clean,
+                        "to_clean": new_clean,
                         "review_status": "pending",
                     }
                 )
             else:
-                indicators.append({"name": str(ren), "type": CHANGE_TYPE_RENAMED, "review_status": "pending"})
+                display_name = str(ren)
+                if isinstance(ren_raw, str) and ren_raw.strip():
+                    display_name = ren_raw.strip()
+                indicators.append(
+                    {
+                        "name": display_name,
+                        "name_clean": str(ren),
+                        "type": CHANGE_TYPE_RENAMED,
+                        "review_status": "pending",
+                    }
+                )
 
         n_added = len(added)
         n_removed = len(removed)
@@ -193,7 +243,7 @@ def build_review_items_from_indicator_result(
                 source_ref_t1=pdf_path_t1,
                 source_ref_t2=pdf_path_t2,
                 confidence=confidence,
-                table_title_raw=table_name,
+                table_title_raw=table_title_raw_value,
                 table_status=str(comp.get("table_status", "")),
                 indicators=indicators,
                 match_method=match_method,
