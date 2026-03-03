@@ -1,0 +1,3 @@
+removed_text,added_text,expected_rename
+Ratio CET1 (phase-in),Ratio CET1,true
+Actifs ponderes risques,Actifs ponderes en fonction des risques,true

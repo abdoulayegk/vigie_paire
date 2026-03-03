@@ -14,7 +14,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..utils.genai import get_openai_api_key
 from .vision_cache import (
@@ -43,7 +43,7 @@ TACHE: Analyser cette image de tableau et extraire:
 
 2. FOOTNOTES (notes sous le tableau):
    - Detecter les deux formats: parenthesiques (1)(2)(3) OU superscript/chiffres 123 ou 1 2 3
-   - Dictionnaire marqueur -> texte (cles normalisees "1", "2", "3" pour matching)
+   - Retourner une liste structuree [{id, text}] (id normalise "1", "2", "3" pour matching)
    - Si aucune note visible, retourner footnotes_content vide et footnote_markers vide
 
 REGLES:
@@ -56,7 +56,7 @@ _PROMPT_JSON_STRICT = """
 REPONSE JSON STRICT (pas de texte avant/apres):
 {
   "indicators": ["Libelle 1", "  Sous-libelle", "Total", "..."],
-  "footnotes_content": {"1": "texte note 1", "2": "..."},
+  "footnotes_content": [{"id": "1", "text": "texte note 1"}, {"id": "2", "text": "..."}],
   "footnote_markers": ["1", "2", "3"],
   "confidence": 0.95,
   "appears_truncated": false,
@@ -72,15 +72,34 @@ Corrige uniquement le JSON pour qu'il soit valide. Retourne uniquement le JSON c
 """
 
 
+class VisionFootnoteItem(BaseModel):
+    """Strict item schema for one footnote entry."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(description="Marqueur de note (ex: 1, (1), a)")
+    text: str = Field(description="Texte de la note")
+
+    @field_validator("id", "text", mode="before")
+    @classmethod
+    def _coerce_non_empty_str(cls, v: Any) -> str:
+        s = str(v or "").strip()
+        if not s:
+            raise ValueError("must be non-empty")
+        return s
+
+
 class VisionFullResponseSchema(BaseModel):
     """Pydantic schema for Vision extraction API response. Used for validation and Structured Outputs."""
+
+    model_config = ConfigDict(extra="forbid")
 
     indicators: list[str] = Field(
         description="Libelles de la premiere colonne, ordre visuel haut vers bas",
     )
-    footnotes_content: dict[str, str] = Field(
-        description="Dictionnaire marqueur -> texte (cles normalisees 1, 2, 3)",
-        default_factory=dict,
+    footnotes_content: list[VisionFootnoteItem] = Field(
+        description="Liste de notes structurees [{id, text}]",
+        default_factory=list,
     )
     footnote_markers: list[str] = Field(
         description="Liste des marqueurs detectes (1, 2, 3 ou format parenthesique)",
@@ -107,10 +126,34 @@ class VisionFullResponseSchema(BaseModel):
     def _normalize_indicators(cls, v: list[str]) -> list[str]:
         return [str(x).strip() for x in v if str(x).strip()]
 
-    @field_validator("footnotes_content", mode="after")
+    @field_validator("footnotes_content", mode="before")
     @classmethod
-    def _normalize_footnotes_content(cls, v: dict[str, str]) -> dict[str, str]:
-        return {str(k): str(val).strip() for k, val in v.items() if str(val).strip()}
+    def _coerce_footnotes_content(cls, v: Any) -> list[dict[str, str]]:
+        # Backward-compat: accept legacy dict marker->text and normalize to list[dict]
+        if isinstance(v, dict):
+            out: list[dict[str, str]] = []
+            for k, val in v.items():
+                marker = str(k).strip()
+                text = str(val).strip()
+                if marker and text:
+                    out.append({"id": marker, "text": text})
+            return out
+        if isinstance(v, list):
+            out: list[dict[str, str]] = []
+            for item in v:
+                if not isinstance(item, dict):
+                    continue
+                marker = str(
+                    item.get("id")
+                    or item.get("marker")
+                    or item.get("ref")
+                    or ""
+                ).strip()
+                text = str(item.get("text") or item.get("value") or "").strip()
+                if marker and text:
+                    out.append({"id": marker, "text": text})
+            return out
+        return []
 
     @field_validator("footnote_markers", mode="after")
     @classmethod
@@ -118,24 +161,114 @@ class VisionFullResponseSchema(BaseModel):
         return [str(x).strip() for x in v if str(x).strip()]
 
 
+class VisionSchemaContractError(RuntimeError):
+    """Raised when OpenAI Structured Outputs schema contract is invalid."""
+
+
 def _build_openai_json_schema() -> dict[str, Any]:
     """Build OpenAI json_schema format from Pydantic model for Structured Outputs."""
     schema = VisionFullResponseSchema.model_json_schema()
     props = schema.get("properties", {})
-    # OpenAI expects strict schema; we require core fields for API contract
+    defs = schema.get("$defs", {})
+    required = list(props.keys())
+    strict_schema: dict[str, Any] = {
+        "type": "object",
+        "properties": props,
+        "required": required,
+        "additionalProperties": False,
+    }
+    if isinstance(defs, dict) and defs:
+        strict_schema["$defs"] = defs
+
     return {
         "type": "json_schema",
         "json_schema": {
             "name": "vision_full_extraction",
             "strict": True,
-            "schema": {
-                "type": "object",
-                "properties": props,
-                "required": ["indicators", "footnotes_content", "footnote_markers", "confidence"],
-                "additionalProperties": False,
-            },
+            "schema": strict_schema,
         },
     }
+
+
+def _validate_openai_strict_schema_contract(schema: dict[str, Any]) -> None:
+    """Validate local Structured Outputs strict contract before API call."""
+    try:
+        if schema.get("type") != "json_schema":
+            raise VisionSchemaContractError("schema.type must be 'json_schema'")
+        json_schema = schema["json_schema"]
+        block = json_schema["schema"]
+        properties = block["properties"]
+        required = block["required"]
+    except Exception as exc:
+        raise VisionSchemaContractError(
+            f"schema malformed for Structured Outputs: {exc}"
+        ) from exc
+
+    if not isinstance(properties, dict):
+        raise VisionSchemaContractError("schema.properties must be a dict")
+    if not isinstance(required, list):
+        raise VisionSchemaContractError("schema.required must be a list")
+
+    prop_keys = set(properties.keys())
+    req_keys = {str(k) for k in required}
+    if prop_keys != req_keys:
+        missing = sorted(prop_keys - req_keys)
+        extra = sorted(req_keys - prop_keys)
+        details: list[str] = []
+        if missing:
+            details.append(f"missing_in_required={missing}")
+        if extra:
+            details.append(f"unknown_in_required={extra}")
+        joined = ", ".join(details) if details else "required/properties mismatch"
+        raise VisionSchemaContractError(
+            "Structured Outputs strict contract invalid: "
+            f"required must exactly match properties ({joined})"
+        )
+    _validate_no_map_like_objects(block, path="$")
+
+
+def _validate_no_map_like_objects(node: Any, path: str) -> None:
+    if not isinstance(node, dict):
+        return
+    node_type = node.get("type")
+    if node_type == "object":
+        # OpenAI strict schema handling is fragile with map-like additionalProperties objects.
+        if "additionalProperties" in node and node.get("additionalProperties") not in (False, None):
+            raise VisionSchemaContractError(
+                f"Structured Outputs strict contract invalid: map-like object not allowed at {path}"
+            )
+        props = node.get("properties")
+        if isinstance(props, dict):
+            for key, sub in props.items():
+                _validate_no_map_like_objects(sub, f"{path}.properties.{key}")
+    if node_type == "array":
+        _validate_no_map_like_objects(node.get("items"), f"{path}.items")
+    for key in ("anyOf", "oneOf", "allOf"):
+        variants = node.get(key)
+        if isinstance(variants, list):
+            for idx, sub in enumerate(variants):
+                _validate_no_map_like_objects(sub, f"{path}.{key}[{idx}]")
+    defs = node.get("$defs")
+    if isinstance(defs, dict):
+        for key, sub in defs.items():
+            _validate_no_map_like_objects(sub, f"{path}.$defs.{key}")
+
+
+def _classify_openai_error(exc: Exception) -> str:
+    """Classify OpenAI API error to choose deterministic handling."""
+    msg = str(exc).lower()
+    if (
+        "invalid schema for response_format" in msg
+        or ("missing '" in msg and "response_format" in msg and "required" in msg)
+    ):
+        return "schema_contract_invalid"
+    if (
+        "json_schema" in msg
+        and "response_format" in msg
+        and ("not supported" in msg or "unsupported" in msg)
+    ):
+        return "structured_output_unsupported"
+    return "other"
 
 
 @dataclass
@@ -208,7 +341,11 @@ def _parse_vision_result(raw: str | dict[str, Any]) -> VisionFullResult | None:
 
     return VisionFullResult(
         indicators=validated.indicators,
-        footnotes_content=validated.footnotes_content,
+        footnotes_content={
+            str(item.id).strip(): str(item.text).strip()
+            for item in validated.footnotes_content
+            if str(item.id).strip() and str(item.text).strip()
+        },
         footnote_markers=validated.footnote_markers,
         confidence=validated.confidence,
         extraction_method=_EXTRACTION_METHOD,
@@ -239,6 +376,9 @@ class VisionFullExtractor:
         self._max_retries_json = max_retries_json
         self._use_cache = use_cache
         self._client: Any = None
+        self._disabled_reason: str | None = None
+        self._schema_contract_checked = False
+        self._schema_contract_error_logged = False
 
     def _ensure_client(self) -> None:
         if self._client is not None:
@@ -277,6 +417,9 @@ class VisionFullExtractor:
         Returns:
             VisionFullResult or None on failure
         """
+        if self._disabled_reason:
+            raise VisionSchemaContractError(self._disabled_reason)
+
         vision_cfg = vision_cfg or {}
         cache_key = ""
         if self._use_cache and pdf_sha and page_number and bbox_norm and len(bbox_norm) == 4:
@@ -355,11 +498,29 @@ class VisionFullExtractor:
 
         raw_content = ""
         use_structured = True
+        openai_schema: dict[str, Any] | None = None
+        if use_structured:
+            openai_schema = _build_openai_json_schema()
+            if not self._schema_contract_checked:
+                try:
+                    _validate_openai_strict_schema_contract(openai_schema)
+                    self._schema_contract_checked = True
+                except VisionSchemaContractError as exc:
+                    self._schema_contract_checked = True
+                    self._disabled_reason = str(exc)
+                    if not self._schema_contract_error_logged:
+                        logger.error(
+                            "Vision schema contract invalid (local validation): %s",
+                            exc,
+                        )
+                        self._schema_contract_error_logged = True
+                    raise
+
         for attempt in range(self._max_retries_json + 1):
             try:
                 # Use json_object on retry (fix prompt) for flexibility; Structured Outputs on first try
                 response_format: dict[str, Any] = (
-                    _build_openai_json_schema()
+                    (openai_schema or {"type": "json_object"})
                     if (use_structured and attempt == 0)
                     else {"type": "json_object"}
                 )
@@ -372,8 +533,18 @@ class VisionFullExtractor:
                 )
                 raw_content = response.choices[0].message.content or ""
             except Exception as e:
-                if use_structured and "json_schema" in str(e).lower():
-                    logger.debug("Structured Outputs not supported, falling back to json_object: %s", e)
+                err_kind = _classify_openai_error(e)
+                if err_kind == "schema_contract_invalid":
+                    self._disabled_reason = f"Vision schema contract invalid: {e}"
+                    if not self._schema_contract_error_logged:
+                        logger.error("%s", self._disabled_reason)
+                        self._schema_contract_error_logged = True
+                    raise VisionSchemaContractError(self._disabled_reason) from e
+                if use_structured and err_kind == "structured_output_unsupported":
+                    logger.debug(
+                        "Structured Outputs unsupported, falling back to json_object: %s",
+                        e,
+                    )
                     use_structured = False
                     continue
                 logger.warning("Vision full extraction API error: %s", e)

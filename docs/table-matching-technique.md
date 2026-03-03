@@ -152,7 +152,13 @@ Si `|n1 - n2| / max(n1, n2) > 0.60` (ratio de difference de taille) :
 - Rejet du match.
 - Raison : `size_mismatch_reject`.
 
-### 5.5 Anti-greedy margin (uncertain_competition)
+### 5.5 Validation post-matching (GenAI / Vision)
+
+Les validateurs post-matching (Vision pour paires de tableaux, GenAI pour renommages d'indicateurs)
+sont configurables via la section `validation` dans `bank_profiles.yaml`. Voir
+[docs/comparison-validation.md](comparison-validation.md) pour le schema et les valeurs recommendees.
+
+### 5.6 Anti-greedy margin (uncertain_competition)
 
 Quand les **deux meilleurs candidats** ont un score tres proche (ecart < `margin_threshold` = 0.10) :
 

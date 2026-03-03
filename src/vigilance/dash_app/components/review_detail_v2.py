@@ -1,0 +1,607 @@
+"""Review Detail Component V2 - Per-change validation UI.
+
+This component renders the right panel of the review UI showing:
+- Proof images (T1 and T2)
+- List of changes for the current table
+- Per-change validation buttons
+- Navigation controls
+"""
+
+from __future__ import annotations
+
+import dash_bootstrap_components as dbc
+from dash import html
+
+from app.review_models_v2 import ChangeType
+
+_CHANGE_TYPE_LABELS = {
+    ChangeType.INDICATOR_ADDED.value: "Ajouté",
+    ChangeType.INDICATOR_REMOVED.value: "Supprimé",
+    ChangeType.INDICATOR_RENAMED.value: "Renommé",
+    ChangeType.FOOTNOTE_ADDED.value: "Note ajoutée",
+    ChangeType.FOOTNOTE_REMOVED.value: "Note supprimée",
+    ChangeType.FOOTNOTE_MODIFIED.value: "Note modifiée",
+    ChangeType.TABLE_ADDED.value: "Tableau ajouté",
+    ChangeType.TABLE_REMOVED.value: "Tableau supprimé",
+    ChangeType.STRUCTURE_CHANGE.value: "Structure modifiée",
+    ChangeType.UNCERTAIN.value: "Incertain",
+    ChangeType.MODIFIED.value: "Modifié",
+    "indicator_added": "Ajouté",
+    "indicator_removed": "Supprimé",
+    "indicator_renamed": "Renommé",
+    "footnote_added": "Note ajoutée",
+    "footnote_removed": "Note supprimée",
+    "footnote_modified": "Note modifiée",
+    "table_added": "Tableau ajouté",
+    "table_removed": "Tableau supprimé",
+    "structure_change": "Structure modifiée",
+    "uncertain": "Incertain",
+    "modified": "Modifié",
+}
+
+_CHANGE_TYPE_COLORS = {
+    ChangeType.INDICATOR_ADDED.value: "success",
+    ChangeType.INDICATOR_REMOVED.value: "danger",
+    ChangeType.INDICATOR_RENAMED.value: "warning",
+    ChangeType.FOOTNOTE_ADDED.value: "info",
+    ChangeType.FOOTNOTE_REMOVED.value: "dark",
+    ChangeType.FOOTNOTE_MODIFIED.value: "info",
+    ChangeType.TABLE_ADDED.value: "success",
+    ChangeType.TABLE_REMOVED.value: "danger",
+    ChangeType.STRUCTURE_CHANGE.value: "primary",
+    ChangeType.UNCERTAIN.value: "secondary",
+    ChangeType.MODIFIED.value: "primary",
+    "indicator_added": "success",
+    "indicator_removed": "danger",
+    "indicator_renamed": "warning",
+    "footnote_added": "info",
+    "footnote_removed": "dark",
+    "footnote_modified": "info",
+    "table_added": "success",
+    "table_removed": "danger",
+    "structure_change": "primary",
+    "uncertain": "secondary",
+    "modified": "primary",
+}
+
+
+def _format_section(section: str) -> str:
+    """Format section name for display."""
+    if not section:
+        return "Autre"
+    return " ".join(w.capitalize() for w in section.replace("_", " ").split())
+
+
+def _get_change_description(change: dict) -> str:
+    """Get human-readable description for a change."""
+    change_type = change.get("change_type", "")
+    payload = change.get("payload", {})
+
+    if change_type in (
+        "indicator_added",
+        "indicator_removed",
+        ChangeType.INDICATOR_ADDED.value,
+        ChangeType.INDICATOR_REMOVED.value,
+    ):
+        return payload.get("indicator_name", "(indicateur)")
+
+    if change_type in ("indicator_renamed", ChangeType.INDICATOR_RENAMED.value):
+        from_val = payload.get("from", "")
+        to_val = payload.get("to", "")
+        return f"{from_val} → {to_val}"
+
+    if "footnote" in change_type:
+        ref = payload.get("footnote_ref", "")
+        old_text = payload.get("old_text", "")
+        new_text = payload.get("new_text", "")
+        if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
+            return (
+                f"[{ref}] {new_text[:80]}..."
+                if len(new_text) > 80
+                else f"[{ref}] {new_text}"
+            )
+        elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
+            return (
+                f"[{ref}] {old_text[:80]}..."
+                if len(old_text) > 80
+                else f"[{ref}] {old_text}"
+            )
+        else:
+            old_preview = old_text[:40] + "..." if len(old_text) > 40 else old_text
+            new_preview = new_text[:40] + "..." if len(new_text) > 40 else new_text
+            return f"[{ref}] {old_preview} → {new_preview}"
+
+    if change_type in (
+        "table_added",
+        "table_removed",
+        ChangeType.TABLE_ADDED.value,
+        ChangeType.TABLE_REMOVED.value,
+    ):
+        return payload.get("description", "Tableau entier")
+
+    return payload.get("description", "Changement")
+
+
+def build_change_list_v2(
+    changes: list[dict],
+    current_change_idx: int,
+) -> dbc.ListGroup:
+    """Build the list of changes for a table.
+
+    Args:
+        changes: List of ChangeItem dicts
+        current_change_idx: Index of currently selected change
+
+    Returns:
+        Div containing the change list
+    """
+    if not changes:
+        return html.Div(
+            [
+                html.P("Aucun changement dans ce tableau.", className="text-muted"),
+            ]
+        )
+
+    change_rows = []
+    for idx, change in enumerate(changes):
+        is_current = idx == current_change_idx
+        status = change.get("validation_status", "pending")
+        change_type = change.get("change_type", "")
+        is_required = change.get("is_required", True)
+
+        # Status icon
+        if status == "approved":
+            status_icon = html.I(className="bi bi-check-circle-fill text-success me-2")
+        elif status == "rejected":
+            status_icon = html.I(className="bi bi-x-circle-fill text-danger me-2")
+        elif status == "skipped":
+            status_icon = html.I(className="bi bi-dash-circle text-secondary me-2")
+        else:
+            status_icon = html.I(className="bi bi-circle text-warning me-2")
+
+        # Change type badge
+        type_label = _CHANGE_TYPE_LABELS.get(change_type, change_type)
+        type_color = _CHANGE_TYPE_COLORS.get(change_type, "secondary")
+
+        # Description
+        description = _get_change_description(change)
+
+        # Required indicator
+        required_badge = None
+        if not is_required:
+            required_badge = dbc.Badge(
+                "Optionnel", color="light", text_color="dark", className="ms-2"
+            )
+
+        # Current item highlight
+        current_class = (
+            "bg-primary bg-opacity-10 border-start border-3 border-primary"
+            if is_current
+            else ""
+        )
+
+        row = dbc.ListGroupItem(
+            [
+                html.Div(
+                    [
+                        status_icon,
+                        dbc.Badge(
+                            type_label,
+                            color=type_color,
+                            className="me-2",
+                        ),
+                        html.Span(
+                            description,
+                            className="small",
+                            style={"wordBreak": "break-word"},
+                        ),
+                        required_badge,
+                    ],
+                    className="d-flex align-items-center flex-wrap",
+                ),
+                # Show validation notes if present
+                html.Small(
+                    change.get("validation_notes", ""),
+                    className="text-muted d-block mt-1 fst-italic",
+                )
+                if change.get("validation_notes")
+                else None,
+            ],
+            id={"type": "change-row-v2", "index": idx},
+            className=f"p-2 {current_class}",
+            style={"cursor": "pointer"},
+            action=True,
+        )
+        change_rows.append(row)
+
+    return dbc.ListGroup(change_rows, flush=True, className="mb-3")
+
+
+def build_validation_panel_v2(
+    table: dict,
+    current_change_idx: int,
+) -> html.Div:
+    """Build the validation buttons and notes input for current change.
+
+    Args:
+        table: Current ReviewTableItem dict
+        current_change_idx: Index of current change in the table
+
+    Returns:
+        Div containing validation controls
+    """
+    changes = table.get("changes", [])
+    n_changes = len(changes)
+
+    if not changes or current_change_idx >= n_changes:
+        return html.Div()
+
+    current_change = changes[current_change_idx]
+    change_type = current_change.get("change_type", "")
+    status = current_change.get("validation_status", "pending")
+    description = _get_change_description(current_change)
+
+    # Current change info
+    change_info = html.Div(
+        [
+            html.H6("Changement actuel", className="mb-2"),
+            html.Div(
+                [
+                    dbc.Badge(
+                        _CHANGE_TYPE_LABELS.get(change_type, change_type),
+                        color=_CHANGE_TYPE_COLORS.get(change_type, "secondary"),
+                        className="me-2",
+                    ),
+                    html.Span(description, className="fw-semibold"),
+                ],
+                className="mb-2",
+            ),
+        ]
+    )
+
+    # Notes input
+    notes_input = dbc.Textarea(
+        id="validation-notes-v2",
+        placeholder="Notes de validation (optionnel)...",
+        value=current_change.get("validation_notes", ""),
+        className="mb-3",
+        rows=2,
+    )
+
+    # Validation buttons
+    is_validated = status in ("approved", "rejected", "skipped")
+    validation_buttons = html.Div(
+        [
+            dbc.Button(
+                [html.I(className="bi bi-check-lg me-1"), "Approuver"],
+                id="btn-approve-change-v2",
+                color="success",
+                className="me-2",
+                disabled=is_validated,
+            ),
+            dbc.Button(
+                [html.I(className="bi bi-x-lg me-1"), "Rejeter"],
+                id="btn-reject-change-v2",
+                color="danger",
+                className="me-2",
+                disabled=is_validated,
+            ),
+            dbc.Button(
+                [html.I(className="bi bi-arrow-right me-1"), "Passer"],
+                id="btn-skip-change-v2",
+                color="secondary",
+                outline=True,
+                disabled=is_validated,
+            ),
+        ],
+        className="mb-3",
+    )
+
+    # Status indicator if already validated
+    status_indicator = None
+    if is_validated:
+        if status == "approved":
+            status_indicator = dbc.Alert(
+                [html.I(className="bi bi-check-circle me-2"), "Approuvé"],
+                color="success",
+                className="py-2",
+            )
+        elif status == "rejected":
+            status_indicator = dbc.Alert(
+                [html.I(className="bi bi-x-circle me-2"), "Rejeté"],
+                color="danger",
+                className="py-2",
+            )
+        elif status == "skipped":
+            status_indicator = dbc.Alert(
+                [html.I(className="bi bi-dash-circle me-2"), "Passé"],
+                color="secondary",
+                className="py-2",
+            )
+
+    # Navigation buttons
+    nav_buttons = html.Div(
+        [
+            dbc.Button(
+                [html.I(className="bi bi-chevron-left me-1"), "Précédent"],
+                id="btn-prev-change-v2",
+                color="light",
+                className="me-2",
+                disabled=current_change_idx <= 0,
+            ),
+            dbc.Button(
+                ["Suivant", html.I(className="bi bi-chevron-right ms-1")],
+                id="btn-next-change-v2",
+                color="light",
+                disabled=current_change_idx >= n_changes - 1,
+            ),
+            html.Span(
+                f" {current_change_idx + 1} / {n_changes}",
+                className="ms-3 text-muted small",
+            ),
+        ],
+        className="mb-3",
+    )
+
+    return html.Div(
+        [
+            change_info,
+            notes_input,
+            validation_buttons,
+            status_indicator,
+            html.Hr(),
+            nav_buttons,
+        ]
+    )
+
+
+def build_review_detail_v2(
+    table: dict | None,
+    current_change_idx: int,
+    proof_image_t1_b64: str = "",
+    proof_image_t2_b64: str = "",
+) -> html.Div:
+    """Build the complete review detail panel V2.
+
+    Args:
+        table: Current ReviewTableItem dict
+        current_change_idx: Index of current change
+        proof_image_t1_b64: Base64 encoded T1 proof image
+        proof_image_t2_b64: Base64 encoded T2 proof image
+
+    Returns:
+        Complete review detail panel
+    """
+    if not table:
+        return html.Div(
+            [
+                html.H5("Aucun element selectionne"),
+                html.P(
+                    "Selectionnez un tableau dans la file de revue.",
+                    className="text-muted",
+                ),
+            ]
+        )
+
+    table_name = table.get("table_name", "Tableau")
+    section = _format_section(table.get("section", ""))
+    page_t1 = table.get("page_t1")
+    page_t2 = table.get("page_t2")
+    table_status = table.get("table_status", "pending")
+    summary = table.get("summary", {})
+
+    # Header with table info
+    header = html.Div(
+        [
+            html.Div(
+                [
+                    html.H5(table_name, className="mb-1"),
+                    html.Small(
+                        [
+                            f"Section: {section}",
+                            html.Span(" | ", className="text-muted"),
+                            f"Pages: T1 p.{page_t1 or '?'} / T2 p.{page_t2 or '?'}",
+                        ],
+                        className="text-muted",
+                    ),
+                ]
+            ),
+            # Status badge
+            dbc.Badge(
+                "Complété"
+                if table_status == "completed"
+                else ("En cours" if table_status == "partial" else "En attente"),
+                color="success"
+                if table_status == "completed"
+                else ("info" if table_status == "partial" else "warning"),
+                className="ms-auto",
+            ),
+        ],
+        className="d-flex justify-content-between align-items-start mb-3",
+    )
+
+    # Summary badges
+    summary_badges = html.Div(
+        [
+            dbc.Badge(
+                f"+{summary.get('indicators_added', 0)}",
+                color="success",
+                className="me-1",
+            )
+            if summary.get("indicators_added", 0)
+            else None,
+            dbc.Badge(
+                f"-{summary.get('indicators_removed', 0)}",
+                color="danger",
+                className="me-1",
+            )
+            if summary.get("indicators_removed", 0)
+            else None,
+            dbc.Badge(
+                f"~{summary.get('indicators_renamed', 0)}",
+                color="warning",
+                className="me-1",
+            )
+            if summary.get("indicators_renamed", 0)
+            else None,
+            dbc.Badge(
+                f"FN {summary.get('footnotes_changed', 0)}",
+                color="info",
+                className="me-1",
+            )
+            if summary.get("footnotes_changed", 0)
+            else None,
+            html.Span(
+                f"Validé: {summary.get('validated', 0)}/{summary.get('total_changes', 0)}",
+                className="ms-2 text-muted small",
+            ),
+        ],
+        className="mb-3",
+    )
+
+    # Proof images
+    proof_section = html.Div(
+        [
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            html.H6(
+                                [
+                                    html.I(className="bi bi-file-earmark-pdf me-2"),
+                                    "T1 (Ancien)",
+                                ],
+                                className="mb-2",
+                            ),
+                            html.Img(
+                                src=f"data:image/png;base64,{proof_image_t1_b64}"
+                                if proof_image_t1_b64
+                                else "",
+                                className="img-fluid border rounded",
+                                style={
+                                    "maxHeight": "400px",
+                                    "width": "100%",
+                                    "objectFit": "contain",
+                                },
+                            )
+                            if proof_image_t1_b64
+                            else html.Div(
+                                "Image non disponible",
+                                className="text-muted p-4 bg-light rounded text-center",
+                            ),
+                        ],
+                        md=6,
+                    ),
+                    dbc.Col(
+                        [
+                            html.H6(
+                                [
+                                    html.I(className="bi bi-file-earmark-pdf me-2"),
+                                    "T2 (Nouveau)",
+                                ],
+                                className="mb-2",
+                            ),
+                            html.Img(
+                                src=f"data:image/png;base64,{proof_image_t2_b64}"
+                                if proof_image_t2_b64
+                                else "",
+                                className="img-fluid border rounded",
+                                style={
+                                    "maxHeight": "400px",
+                                    "width": "100%",
+                                    "objectFit": "contain",
+                                },
+                            )
+                            if proof_image_t2_b64
+                            else html.Div(
+                                "Image non disponible",
+                                className="text-muted p-4 bg-light rounded text-center",
+                            ),
+                        ],
+                        md=6,
+                    ),
+                ]
+            ),
+        ],
+        className="mb-4",
+    )
+
+    # Changes list
+    changes = table.get("changes", [])
+    changes_section = html.Div(
+        [
+            html.H6(
+                [
+                    html.I(className="bi bi-list-check me-2"),
+                    f"Changements ({len(changes)})",
+                ],
+                className="mb-2",
+            ),
+            build_change_list_v2(changes, current_change_idx),
+        ],
+        className="mb-4",
+    )
+
+    # Validation panel
+    validation_section = html.Div(
+        [
+            html.H6(
+                [html.I(className="bi bi-clipboard-check me-2"), "Validation"],
+                className="mb-2",
+            ),
+            build_validation_panel_v2(table, current_change_idx),
+        ]
+    )
+
+    # Table navigation buttons
+    table_nav = html.Div(
+        [
+            html.Hr(),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            dbc.Button(
+                                [
+                                    html.I(className="bi bi-arrow-left me-1"),
+                                    "Tableau précédent",
+                                ],
+                                id="btn-prev-table-v2",
+                                color="outline-primary",
+                                className="w-100",
+                            ),
+                        ],
+                        md=6,
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Button(
+                                [
+                                    "Tableau suivant",
+                                    html.I(className="bi bi-arrow-right ms-1"),
+                                ],
+                                id="btn-next-table-v2",
+                                color="primary",
+                                className="w-100",
+                            ),
+                        ],
+                        md=6,
+                    ),
+                ],
+                className="g-2",
+            ),
+        ],
+        className="mt-4",
+    )
+
+    return html.Div(
+        [
+            header,
+            summary_badges,
+            html.Hr(),
+            proof_section,
+            changes_section,
+            validation_section,
+            table_nav,
+        ]
+    )

@@ -1,0 +1,24 @@
+{
+  "schema_version": "comparison_canonical_v1",
+  "bank_code": "rbc",
+  "quarter_from": "t1",
+  "quarter_to": "t2",
+  "year": 2025,
+  "table_comparisons": [
+    {
+      "table_id_t1": "t1_capital_1",
+      "table_id_t2": "t2_capital_1",
+      "section": "capital_management",
+      "page_t1": 10,
+      "page_t2": 11,
+      "renamed_indicators": [
+        {"from": "Ratio CET1 (phase-in)", "to": "Ratio CET1"},
+        {"from": "Actifs ponderes risques", "to": "Actifs ponderes en fonction des risques"}
+      ],
+      "added_indicators": ["Nouvelle ligne"],
+      "removed_indicators": []
+    }
+  ],
+  "tables_added": [],
+  "tables_removed": []
+}

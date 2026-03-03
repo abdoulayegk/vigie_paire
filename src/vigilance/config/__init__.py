@@ -129,6 +129,53 @@ def get_vision_extraction_config(
     return base
 
 
+def get_validation_config(
+    config_path: str | Path = "configs/bank_profiles.yaml",
+    bank_code: str | None = None,
+) -> dict[str, Any]:
+    """Load validation config (post-matching validators) with optional bank overrides.
+
+    Keys: vision_pair_validation, vision_pair_confidence_min, semantic_judge_enabled,
+    semantic_judge_banks, rename_validator_enabled, rename_validator_confidence_min,
+    rename_validator_batch_size, rename_validator_uncertain_score_band,
+    added_table_validator_enabled,
+    indicator_validator_enabled, indicator_validator_use_vision,
+    indicator_validator_confidence_min, indicator_validator_batch_size.
+
+    For backward compatibility, if vision_pair_validation is absent here, falls back
+    to vision_extraction.vision_pair_validation.
+    """
+    path = _resolve_config_path(config_path)
+    cfg: dict[str, Any] = {}
+    if path.exists():
+        try:
+            cfg = load_config(path)
+        except Exception:
+            pass
+
+    global_block = cfg.get("validation")
+    if not isinstance(global_block, dict):
+        base: dict[str, Any] = {}
+    else:
+        base = dict(global_block)
+
+    if bank_code and isinstance(cfg.get("banks"), dict):
+        key = str(bank_code).strip().lower()
+        bank_cfg = cfg["banks"].get(key)
+        if isinstance(bank_cfg, dict):
+            bank_val = bank_cfg.get("validation")
+            if isinstance(bank_val, dict):
+                base = {**base, **bank_val}
+
+    # Fallback: vision_pair_validation from vision_extraction if not in validation
+    if "vision_pair_validation" not in base:
+        ve = cfg.get("vision_extraction")
+        if isinstance(ve, dict) and "vision_pair_validation" in ve:
+            base["vision_pair_validation"] = ve["vision_pair_validation"]
+
+    return base
+
+
 def get_quality_gate_config(
     config_path: str | Path = "configs/bank_profiles.yaml",
     bank_code: str | None = None,
@@ -170,4 +217,5 @@ __all__ = [
     "load_bank_profiles",
     "get_vision_extraction_config",
     "get_quality_gate_config",
+    "get_validation_config",
 ]

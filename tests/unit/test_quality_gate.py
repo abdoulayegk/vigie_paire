@@ -140,9 +140,7 @@ def test_quality_gate_fails_policy_on_duplicates_and_titles() -> None:
 
     assert report["status"] == "FAIL"
     assert report["summary"]["tables_duplicate_ratio_excess"] >= 1
-    assert report["summary"]["tables_title_contaminated"] >= 1
     assert any("duplicate_ratio_excess_tables" in r for r in report["fail_reasons"])
-    assert any("contaminated_titles" in r for r in report["fail_reasons"])
 
 
 def test_quality_gate_detects_line_split_suspicion() -> None:
@@ -163,3 +161,80 @@ def test_quality_gate_detects_line_split_suspicion() -> None:
     report = evaluate_quality(indicators, footnotes)
     table = report["tables"][0]
     assert int(table["suspicious_line_splits"]) >= 2
+
+
+def test_quality_gate_exempts_date_header_titles_by_default() -> None:
+    indicators = {
+        "tables": [
+            {
+                "table_id": "d1",
+                "title": "Au 31 janvier 2025",
+                "page": 1,
+                "source": "t1",
+                "sections": [{"section": "s", "indicators": ["CET1"]}],
+            },
+            {
+                "table_id": "d2",
+                "title": "Pour le trimestre clos le 31 janvier 2025 31 octobre 2024",
+                "page": 2,
+                "source": "t2",
+                "sections": [{"section": "s", "indicators": ["RWA"]}],
+            },
+        ]
+    }
+    report = evaluate_quality(
+        indicators,
+        {"tables": []},
+        config={"max_contaminated_titles": 0},
+    )
+    assert report["status"] == "PASS"
+    assert report["summary"]["tables_title_contaminated"] == 0
+    assert report["summary"]["tables_date_header_titles"] == 2
+    assert all(not t["title_contaminated"] for t in report["tables"])
+
+
+def test_quality_gate_still_flags_true_numeric_title_contamination() -> None:
+    indicators = {
+        "tables": [
+            {
+                "table_id": "n1",
+                "title": "239 323 240 796",
+                "page": 3,
+                "source": "t1",
+                "sections": [{"section": "s", "indicators": ["Actifs"]}],
+            }
+        ]
+    }
+    report = evaluate_quality(
+        indicators,
+        {"tables": []},
+        config={"max_contaminated_titles": 0},
+    )
+    assert report["status"] == "FAIL"
+    assert report["summary"]["tables_title_contaminated"] == 1
+    assert report["summary"]["tables_date_header_titles"] == 0
+    assert report["tables"][0]["title_contaminated"] is True
+
+
+def test_quality_gate_auto_cleaned_title_is_non_blocking() -> None:
+    indicators = {
+        "tables": [
+            {
+                "table_id": "n2",
+                "title": "BMO (societe mere) 239 323 240 796",
+                "page": 4,
+                "source": "t2",
+                "sections": [{"section": "s", "indicators": ["Actifs"]}],
+            }
+        ]
+    }
+    report = evaluate_quality(
+        indicators,
+        {"tables": []},
+        config={"max_contaminated_titles": 0},
+    )
+    assert report["status"] == "PASS"
+    assert report["summary"]["tables_title_contaminated"] == 0
+    assert report["summary"]["tables_title_auto_cleaned"] == 1
+    assert report["tables"][0]["title_auto_cleaned"] is True
+    assert report["tables"][0]["title_effective"] == "BMO (societe mere)"

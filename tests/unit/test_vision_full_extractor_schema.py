@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import pytest
+
 from vigilance.extraction.vision_full_extractor import (
+    VisionFullExtractor,
+    VisionSchemaContractError,
     _build_openai_json_schema,
+    _classify_openai_error,
     _parse_vision_result,
+    _validate_openai_strict_schema_contract,
 )
 
 
@@ -77,4 +83,65 @@ def test_openai_json_schema_contains_strict_contract() -> None:
     s = block["schema"]
     assert s["additionalProperties"] is False
     required = set(s["required"])
-    assert {"indicators", "footnotes_content", "footnote_markers", "confidence"} <= required
+    properties = set(s["properties"].keys())
+    assert required == properties
+    assert "appears_truncated" in required
+    assert "estimated_content_height" in required
+
+
+def test_openai_schema_validator_rejects_missing_required_key() -> None:
+    schema = _build_openai_json_schema()
+    required = list(schema["json_schema"]["schema"]["required"])
+    required.remove("appears_truncated")
+    schema["json_schema"]["schema"]["required"] = required
+    with pytest.raises(VisionSchemaContractError):
+        _validate_openai_strict_schema_contract(schema)
+
+
+def test_classify_openai_error_detects_schema_contract_invalid() -> None:
+    err = RuntimeError(
+        "Invalid schema for response_format 'vision_full_extraction': "
+        "Missing 'appears_truncated'."
+    )
+    assert _classify_openai_error(err) == "schema_contract_invalid"
+
+
+def test_extract_raises_schema_contract_error_once_and_circuit_breaks(monkeypatch) -> None:
+    class _FakeCompletions:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def create(self, **kwargs):  # type: ignore[no-untyped-def]
+            del kwargs
+            self.calls += 1
+            raise RuntimeError(
+                "Error code: 400 - {'error': {'message': "
+                "\"Invalid schema for response_format 'vision_full_extraction': "
+                "In context=(), 'required' is required to be supplied and to be an "
+                "array including every key in properties. Missing 'appears_truncated'.\"}}"
+            )
+
+    fake_completions = _FakeCompletions()
+    fake_client = type(
+        "FakeClient",
+        (),
+        {
+            "chat": type(
+                "FakeChat",
+                (),
+                {"completions": fake_completions},
+            )()
+        },
+    )()
+
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False)
+    extractor._client = fake_client
+    monkeypatch.setattr(extractor, "_ensure_client", lambda: None)
+
+    with pytest.raises(VisionSchemaContractError):
+        extractor.extract(crop_bytes=b"abc", bank_code="bnc")
+    assert fake_completions.calls == 1
+
+    with pytest.raises(VisionSchemaContractError):
+        extractor.extract(crop_bytes=b"abc", bank_code="bnc")
+    assert fake_completions.calls == 1
