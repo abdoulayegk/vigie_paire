@@ -2104,10 +2104,17 @@ def run_comparison_with_sections(
                             )
                             + 1
                         )
-                    if (
-                        vision_stats.get("vision_fallback_reason")
-                        and (added or removed)
-                    ):
+                    could_validate_added = vision_stats.get(
+                        "could_validate_added", False
+                    )
+                    could_validate_removed = vision_stats.get(
+                        "could_validate_removed", False
+                    )
+                    need_genai_fallback = (
+                        (added and not could_validate_added)
+                        or (removed and not could_validate_removed)
+                    )
+                    if need_genai_fallback and (added or removed):
                         from vigilance.genai import validate_indicator_added_removed
 
                         added, removed, genai_stats = validate_indicator_added_removed(
@@ -2157,6 +2164,18 @@ def run_comparison_with_sections(
                     )
                 filtered_added_this = added_count_before - len(added)
                 filtered_removed_this = removed_count_before - len(removed)
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(
+                        "indicator_validator pair t1=%s t2=%s before: added=%d removed=%d -> after: added=%d removed=%d (filtered_added=%d filtered_removed=%d)",
+                        table_t1.table_id,
+                        table_t2.table_id,
+                        added_count_before,
+                        removed_count_before,
+                        len(added),
+                        len(removed),
+                        filtered_added_this,
+                        filtered_removed_this,
+                    )
                 if filtered_added_this or filtered_removed_this:
                     _write_validation_log(
                         {

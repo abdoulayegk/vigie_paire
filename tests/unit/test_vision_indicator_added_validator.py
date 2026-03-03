@@ -52,7 +52,7 @@ class TestValidateIndicatorAddedVision:
                 validate_indicator_added_vision,
             )
 
-            same, conf = validate_indicator_added_vision(
+            same, conf, called_api = validate_indicator_added_vision(
                 "Revenus nets (Total)",
                 "added",
                 "/path/t2.pdf",
@@ -66,6 +66,7 @@ class TestValidateIndicatorAddedVision:
             )
             assert same is True
             assert conf == 0.9
+            assert called_api is True
 
     @patch("vigilance.utils.pdf_crop.crop_table_region_to_bytes")
     def test_validate_indicator_added_vision_no_row_bbox(
@@ -76,7 +77,7 @@ class TestValidateIndicatorAddedVision:
             validate_indicator_added_vision,
         )
 
-        same, conf = validate_indicator_added_vision(
+        same, conf, called_api = validate_indicator_added_vision(
             "X",
             "added",
             "/path/t2.pdf",
@@ -90,6 +91,7 @@ class TestValidateIndicatorAddedVision:
         )
         assert same is False
         assert conf == 0.0
+        assert called_api is False
         mock_crop.assert_not_called()
 
 

@@ -199,18 +199,19 @@ def validate_indicator_added_vision(
         bottom_extension: Extra height for row crop
 
     Returns:
-        (same_concept: bool, confidence: float).
-        On error, returns (False, 0.0) to keep the indicator (conservative).
+        (same_concept: bool, confidence: float, called_api: bool).
+        On error or when row bbox not found, returns (False, 0.0, False) to keep the indicator (conservative).
+        called_api=True only when the Vision API was actually invoked.
     """
     from ..utils.pdf_crop import crop_table_region_to_bytes
 
     dims = _get_page_dimensions(pdf_row_path, page_row)
     if not dims:
-        return False, 0.0
+        return False, 0.0, False
     page_width, page_height = dims
 
     if table_row_bbox_norm is None:
-        return False, 0.0
+        return False, 0.0, False
 
     row_bbox_norm: list[float] | None = None
     if row_bboxes:
@@ -222,7 +223,7 @@ def validate_indicator_added_vision(
             page_height,
         )
     if not row_bbox_norm:
-        return False, 0.0
+        return False, 0.0, False
 
     try:
         row_crop = crop_table_region_to_bytes(
@@ -241,14 +242,14 @@ def validate_indicator_added_vision(
         )
     except Exception as e:
         logger.debug("Crop failed for indicator validation: %s", e)
-        return False, 0.0
+        return False, 0.0, False
 
     if not row_crop or not table_crop:
-        return False, 0.0
+        return False, 0.0, False
 
     combined = _create_side_by_side(row_crop, table_crop)
     if not combined:
-        return False, 0.0
+        return False, 0.0, False
 
     prompt = (
         _VALIDATE_ADDED_PROMPT if indicator_type == "added" else _VALIDATE_REMOVED_PROMPT
@@ -285,10 +286,10 @@ def validate_indicator_added_vision(
         same = bool(data.get("same_concept", False))
         conf = float(data.get("confidence", 0.5))
         conf = max(0.0, min(1.0, conf))
-        return same, conf
+        return same, conf, True
     except Exception as e:
         logger.warning("Vision indicator validation API error: %s", e)
-        return False, 0.0
+        return False, 0.0, False
 
 
 def try_vision_validate_indicators(
@@ -316,6 +317,8 @@ def try_vision_validate_indicators(
         "vision_filtered_added": 0,
         "vision_filtered_removed": 0,
         "vision_fallback_reason": None,
+        "could_validate_added": False,
+        "could_validate_removed": False,
     }
 
     bbox_t1 = _normalize_bbox(getattr(table_t1, "bbox", None))
@@ -357,7 +360,7 @@ def try_vision_validate_indicators(
     for ind in added:
         if not row_bboxes_t2:
             break
-        same, conf = validate_indicator_added_vision(
+        same, conf, called_api = validate_indicator_added_vision(
             ind,
             "added",
             pdf_path_t2,
@@ -369,7 +372,9 @@ def try_vision_validate_indicators(
             row_bboxes=row_bboxes_t2,
             table_row_bbox_norm=bbox_t2,
         )
-        stats["vision_calls"] += 1
+        if called_api:
+            stats["vision_calls"] += 1
+            stats["could_validate_added"] = True
         if same and conf >= confidence_min:
             to_remove_added.add(ind)
             stats["vision_filtered_added"] += 1
@@ -377,7 +382,7 @@ def try_vision_validate_indicators(
     for ind in removed:
         if not row_bboxes_t1:
             break
-        same, conf = validate_indicator_added_vision(
+        same, conf, called_api = validate_indicator_added_vision(
             ind,
             "removed",
             pdf_path_t1,
@@ -389,7 +394,9 @@ def try_vision_validate_indicators(
             row_bboxes=row_bboxes_t1,
             table_row_bbox_norm=bbox_t1,
         )
-        stats["vision_calls"] += 1
+        if called_api:
+            stats["vision_calls"] += 1
+            stats["could_validate_removed"] = True
         if same and conf >= confidence_min:
             to_remove_removed.add(ind)
             stats["vision_filtered_removed"] += 1
