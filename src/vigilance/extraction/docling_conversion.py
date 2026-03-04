@@ -1,4 +1,10 @@
-"""Conversion des structures Docling vers un format standardisé."""
+"""Conversion des structures Docling vers un format standardisé.
+
+DEPRECATED (Steps 2+3 refactor): _extract_table_footnotes() and _docling_table_to_dict()
+are no longer called from docling_processor.py (Vision is the sole content source).
+These functions may still be referenced via docling_extraction.py legacy helpers.
+Do not add new call sites from the Vision pipeline.
+"""
 
 from __future__ import annotations
 
@@ -42,9 +48,12 @@ def _docling_table_to_dict(table, page_num: int) -> dict:
                 # Parser le texte brut du tableau
                 lines = table.text.strip().split("\n")
                 if lines:
-                    headers = lines[0].split("\t") if "\t" in lines[0] else lines[0].split()
+                    headers = (
+                        lines[0].split("\t") if "\t" in lines[0] else lines[0].split()
+                    )
                     rows = [
-                        line.split("\t") if "\t" in line else line.split() for line in lines[1:]
+                        line.split("\t") if "\t" in line else line.split()
+                        for line in lines[1:]
                     ]
 
         # Nettoyer les données
@@ -55,7 +64,9 @@ def _docling_table_to_dict(table, page_num: int) -> dict:
         rows = [row for row in rows if any(cell for cell in row)]
 
         # Extraire les indicateurs (première colonne)
-        indicators = [row[0].strip() for row in rows if row and len(row) > 0 and row[0].strip()]
+        indicators = [
+            row[0].strip() for row in rows if row and len(row) > 0 and row[0].strip()
+        ]
 
         footnotes = _extract_table_footnotes(table)
 

@@ -18,7 +18,8 @@ import logging
 import os
 import re
 import sys
-from concurrent.futures import ThreadPoolExecutor
+
+# ThreadPoolExecutor removed: vision fallback batch no longer used (Steps 2+3 refactor)
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -29,21 +30,14 @@ from ..utils.feature_flags import is_vision_fallback_enabled
 from ..utils.footnotes_utils import normalize_footnotes_to_canonical
 from ..utils.genai import get_openai_api_key
 from ..utils.indicator_cleaner import (
-    clean_table_title_contamination,
-    is_table_title_contaminated,
     normalize_indicator_for_comparison,
 )
-from ..utils.indicator_line_merge import IndicatorLineMergeConfig, merge_indicator_lines
-from ..utils.indicator_normalizer import get_canonical_text, get_token_sorted_text
 from ..utils.matching_normalizer import (
-    is_date_only_line,
-    is_non_indicator_line,
     strip_temporal_expressions,
 )
 from .docling_normalization import (
     _extract_table_context_split,
-    _is_footnote_row,
-    _merge_fragmented_cells,
+    # _is_footnote_row and _merge_fragmented_cells removed: Docling content no longer extracted.
 )
 from .table_title_resolver import (
     extract_table_number_and_inline_title,
@@ -164,20 +158,6 @@ COMPILED_SECTION_PATTERNS = [
     (re.compile(pattern, re.IGNORECASE), name, phase)
     for pattern, name, phase in SECTION_TITLE_PATTERNS
 ]
-
-_CONTINUATION_PREFIX_RE = re.compile(
-    r"^(?:de|du|des|et|ou|dont|aux?|au|sur|sous|pour|par|avec|sans|dans|en|d|l|la|le|les|autres?"
-    r"|correspondant|indique(?:s|es)?|lie(?:s|es)?|net(?:s|tes)?|relatif(?:s|ves)?|a\s+titre)\b",
-    re.IGNORECASE,
-)
-_CONTINUATION_PREV_END_RE = re.compile(r"[,;:\-(/]\s*$")
-
-_STRUCTURAL_ROW_RE = re.compile(
-    r"^(?:total|sous[\s\-]?total|actif|passif|capitaux\s+propres|avoir\s+des\s+actionnaires"
-    r"|benefice|perte|resultat|revenu|produit|charge|marge|provision|depreciation"
-    r"|amortissement|goodwill|ecart|note|renvoi|elements?\s+hors)\b",
-    re.IGNORECASE,
-)
 
 
 @dataclass
@@ -312,7 +292,6 @@ class DoclingProcessor:
 
         self._converter = None
         self._initialized = False
-        self._vision_fallback = None
 
         # Charger les patterns configurables
         self.bank_code_for_patterns: str | None = (
@@ -400,17 +379,6 @@ class DoclingProcessor:
                 f"Erreur initialisation Docling: {e}. Utilisation de l'extraction de secours."
             )
             self._initialized = True
-
-        # Initialiser le fallback Vision si activé
-        if self.use_vision_fallback:
-            try:
-                from .gpt4_vision_fallback import GPT4VisionFallback
-
-                self._vision_fallback = GPT4VisionFallback(api_key=self.openai_api_key)
-                logger.info("Fallback GPT-4 Vision initialisé")
-            except ImportError as e:
-                logger.warning(f"Fallback Vision non disponible: {e}")
-                self._vision_fallback = None
 
     def extract_document(
         self,
@@ -855,7 +823,7 @@ class DoclingProcessor:
             vision_primary = use_vision_primary
             vision_extraction_cfg: dict = {}
             bottom_extension_footnotes = 0.0
-            fallback_to_docling = True
+            # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
             schema_failure_policy = "fail_fast"
             vision_extractor = None
             pdf_sha = ""
@@ -868,12 +836,16 @@ class DoclingProcessor:
                     bottom_extension_footnotes = float(
                         vision_extraction_cfg.get("bottom_extension_footnotes", 0.12)
                     )
-                    fallback_to_docling = vision_extraction_cfg.get(
-                        "fallback_to_docling_on_error", True
+                    # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
+                    schema_failure_policy = (
+                        str(
+                            vision_extraction_cfg.get(
+                                "schema_failure_policy", "fail_fast"
+                            )
+                        )
+                        .strip()
+                        .lower()
                     )
-                    schema_failure_policy = str(
-                        vision_extraction_cfg.get("schema_failure_policy", "fail_fast")
-                    ).strip().lower()
                     if schema_failure_policy not in {
                         "fail_fast",
                         "degrade_to_docling",
@@ -902,17 +874,20 @@ class DoclingProcessor:
                     logger.warning("Vision primary init failed: %s", e)
                     vision_primary = False
 
-            # Extraire les tableaux
+            # ---------------------------------------------------------------------------
+            # Steps 2+3: Docling = structure only. Vision = single content source.
+            # ---------------------------------------------------------------------------
+            # Docling provides: page_num, table_bbox, table_id — nothing else.
+            # Vision provides: title, headers, rows, indicators, footnotes.
+            # On Vision failure: content fields are empty; no Docling backfill (Rule 5).
+            # ---------------------------------------------------------------------------
             all_tables = []
-            failed_tables = []  # Tables qui ont échoué et nécessitent fallback
             tables_by_page: dict[int, int] = {}
-            vision_tasks: list[
-                tuple[Any, str, str, str, int, int, list[float], bool, dict, str | None]
-            ] = []
 
             for idx, table in enumerate(doc.tables):
                 page_num = table.prov[0].page_no if table.prov else 0
 
+                # --- Docling structure only: bbox extraction ---
                 table_bbox: list[float] | None = None
                 try:
                     if (
@@ -935,174 +910,39 @@ class DoclingProcessor:
                 except Exception:
                     table_bbox = None
 
-                # Filtrer par plage de pages si specifie
+                # Ne traiter que les tableaux dont la page est dans les plages selectionnees (SectionLocator / UI).
                 if not self._is_page_in_ranges(page_num, effective_page_ranges):
                     continue
 
                 tables_by_page[page_num] = tables_by_page.get(page_num, 0) + 1
 
-                headers = self._extract_table_headers(table)
-                rows_raw = self._extract_table_rows(table)
-                row_count_before_merge = len(rows_raw)
-                rows = _merge_fragmented_cells(rows_raw)
-                row_count_after_merge = len(rows)
-                merge_fragmentation = row_count_after_merge < row_count_before_merge
+                table_id = f"tableau_{idx}"
 
-                # Vérifier si l'extraction a réussi
-                extraction_quality = self._assess_table_quality(headers, rows)
+                # --- Vision extraction: single content source ---
+                # All content fields come from Vision. No Docling content extraction.
+                vision_status_str = "failed"
+                warnings_list: list[str] = []
+                title: str = ""
+                table_number: str | None = None
+                title_clean: str | None = None
+                title_raw: str | None = None
+                out_headers: list[str] = []
+                out_rows: list[list[str]] = []
+                indicators_raw: list[str] = []
+                indicators: list[str] = []
+                footnotes: list[dict] = []
+                vision_confidence = 0.0
+                vision_primary_attempted = False
 
-                if extraction_quality < 0.5:
-                    # Marquer pour fallback
-                    failed_tables.append(
-                        {
-                            "idx": idx,
-                            "page_number": page_num,
-                            "reason": "low_quality_extraction",
-                        }
-                    )
-                    logger.warning(
-                        f"Table {idx} page {page_num}: qualité faible, fallback nécessaire"
-                    )
-
-                # Extraire le titre et le numero avec resolution robuste (caption en premier signal)
-                caption_title = self._find_table_title(table)
-                title_lines = [caption_title] if caption_title else []
-                first_row_cells: list[str] | None = None
-                if (bank_code or "").lower() == "cibc" and rows:
-                    first_row_cells = [
-                        str(row[0]).strip() for row in rows if row and len(row) > 0
-                    ]
-                title_resolution = self._resolve_title_metadata_from_lines(
-                    title_lines, first_row_cells=first_row_cells
-                )
-
-                resolved_title = title_resolution.get("title") or ""
-                title_raw = title_resolution.get("title_raw") or caption_title
-                table_number = title_resolution.get("table_number") or None
-                unit_context = title_resolution.get("unit_context") or None
-                title_resolution_method = (
-                    title_resolution.get("resolution_method") or None
-                )
-
-                if not table_number:
-                    parsed_number, parsed_inline = self._extract_table_number(title_raw)
-                    table_number = parsed_number
-                    if not resolved_title and parsed_inline:
-                        resolved_title = parsed_inline
-
-                if not resolved_title and title_raw:
-                    resolved_title = title_raw
-
-                title_clean = resolved_title or None
-                if title_clean and is_table_title_contaminated(title_clean):
-                    before_title = title_clean
-                    cleaned = clean_table_title_contamination(title_clean)
-                    if cleaned:
-                        title_clean = cleaned
-                        logger.info(
-                            "title_contaminated: table=%s page=%s before=%r after=%r",
-                            f"tableau_{idx}",
-                            page_num,
-                            before_title[:60]
-                            + ("..." if len(before_title) > 60 else ""),
-                            title_clean[:60] + ("..." if len(title_clean) > 60 else ""),
+                if vision_extractor and table_bbox and len(table_bbox) == 4:
+                    vision_primary_attempted = True
+                    try:
+                        from ..utils.pdf_crop import (
+                            render_page_with_bbox_highlight_to_bytes,
                         )
 
-                # Exclure les lignes de notes du grid avant indicateurs et sortie
-                data_rows = [r for r in rows if not _is_footnote_row(r)]
-                footnote_row_filtered_count = len(rows) - len(data_rows)
-
-                # Extraire les indicateurs (premiere colonne) avec reconstruction de lignes.
-                first_column_indicators_raw_list, indicators, indicator_metrics = (
-                    self._collect_first_column_indicators(data_rows)
-                )
-
-                # Métriques en lecture seule (observabilité, pas de changement de comportement)
-                merge_count = row_count_before_merge - row_count_after_merge
-                unique_normalized = len(set(indicators))
-                duplicate_ratio = (
-                    0
-                    if len(indicators) == 0
-                    else 1 - (unique_normalized / len(indicators))
-                )
-                header_like_count = sum(
-                    1
-                    for r in first_column_indicators_raw_list
-                    if is_non_indicator_line(r)
-                )
-                header_like_ratio = (
-                    header_like_count / len(first_column_indicators_raw_list)
-                    if first_column_indicators_raw_list
-                    else 0.0
-                )
-                debug_metrics = {
-                    "row_count_before_merge": row_count_before_merge,
-                    "row_count_after_merge": row_count_after_merge,
-                    "merge_count": merge_count,
-                    "footnote_row_filtered_count": footnote_row_filtered_count,
-                    "indicator_count": len(indicators),
-                    "duplicate_ratio": duplicate_ratio,
-                    "header_like_ratio": header_like_ratio,
-                    "table_quality_score": extraction_quality,
-                    "vision_primary_attempted": False,
-                    "vision_primary_applied": False,
-                    "vision_schema_contract_failed": False,
-                    **indicator_metrics,
-                }
-                if vision_primary_disabled_reason:
-                    debug_metrics["vision_primary_disabled_reason"] = (
-                        vision_primary_disabled_reason
-                    )
-                if vision_schema_contract_failed:
-                    debug_metrics["vision_schema_contract_failed"] = True
-
-                line_merges_count = int(
-                    indicator_metrics.get("line_reconstruction_merges", 0) or 0
-                )
-                if line_merges_count > 0:
-                    logger.info(
-                        "indicator_line_merge: table=%s page=%s merges_count=%d",
-                        f"tableau_{idx}",
-                        page_num,
-                        line_merges_count,
-                    )
-
-                out_headers = [] if labels_only else headers
-                out_rows = [] if labels_only else data_rows
-
-                extracted_table = ExtractedTable(
-                    table_id=f"tableau_{idx}",
-                    page_number=page_num,
-                    title=resolved_title or title_raw,
-                    headers=out_headers,
-                    rows=out_rows,
-                    first_column_indicators=indicators,
-                    first_column_indicators_raw=first_column_indicators_raw_list,
-                    footnotes=self._extract_table_footnotes(table),
-                    table_number=table_number,
-                    title_clean=title_clean,
-                    title_raw=title_raw,
-                    unit_context=unit_context,
-                    title_resolution_method=title_resolution_method
-                    or ("caption" if caption_title else None),
-                    bbox=table_bbox,
-                    debug_metrics=debug_metrics,
-                    fragmentation_detected=merge_fragmentation,
-                )
-
-                # Vision primary: extraction indicateurs + footnotes pour TOUS les tableaux (pas de gating)
-                if (
-                    vision_primary
-                    and vision_extractor
-                    and table_bbox
-                    and len(table_bbox) == 4
-                ):
-                    try:
-                        debug_metrics["vision_primary_attempted"] = True
-                        from ..utils.pdf_crop import crop_table_region_to_bytes
-
                         def _recrop(ext: float) -> bytes:
-                            return crop_table_region_to_bytes(
+                            return render_page_with_bbox_highlight_to_bytes(
                                 str(pdf_path),
                                 page_num,
                                 table_bbox,
@@ -1124,133 +964,90 @@ class DoclingProcessor:
                             initial_bottom_extension=bottom_extension_footnotes,
                             get_recrop_fn=_recrop,
                         )
-                        if vision_result and vision_result.indicators:
-                            extracted_table.first_column_indicators_raw = list(
-                                vision_result.indicators
+                        if vision_result is not None:
+                            title = vision_result.table_title or ""
+                            table_number, title_clean = self._extract_table_number(
+                                title or None
                             )
-                            extracted_table.first_column_indicators = [
+                            title_raw = title or None
+                            out_headers = (
+                                [] if labels_only else (vision_result.headers or [])
+                            )
+                            out_rows = [] if labels_only else (vision_result.rows or [])
+                            indicators_raw = list(vision_result.indicators or [])
+                            indicators = [
                                 normalize_indicator_for_comparison(x)
-                                for x in vision_result.indicators
+                                for x in indicators_raw
                             ]
-                            extracted_table.footnotes = (
-                                vision_result.to_footnotes_list()
+                            # footnotes: ordered list, visual order — no sort (Rule 3)
+                            footnotes = (
+                                [] if labels_only else vision_result.to_footnotes_list()
                             )
-                            extracted_table.extraction_method = "vision_full_gpt4o"
-                            debug_metrics["vision_primary_applied"] = True
-                            debug_metrics["vision_primary_confidence"] = (
-                                vision_result.confidence
-                            )
+                            vision_confidence = vision_result.confidence
+                            vision_status_str = vision_result.vision_status or "ok"
+                            warnings_list = list(vision_result.warnings or [])
                         else:
-                            if fallback_to_docling:
-                                logger.warning(
-                                    "Vision primary: echec table %s page %s, fallback Docling",
-                                    extracted_table.table_id,
-                                    page_num,
-                                )
-                                debug_metrics["vision_primary_fallback"] = True
-                            else:
-                                debug_metrics["vision_primary_failed"] = True
+                            vision_status_str = "failed"
+                            warnings_list = ["VisionFullExtractor returned None"]
+                            logger.warning(
+                                "Vision returned None for table %s page %s",
+                                table_id,
+                                page_num,
+                            )
                     except vision_schema_error_cls as e:
                         vision_schema_contract_failed = True
                         reason = f"Vision schema contract invalid: {e}"
-                        debug_metrics["vision_schema_contract_failed"] = True
-                        debug_metrics["vision_primary_disabled_reason"] = reason[:300]
-                        debug_metrics["vision_primary_error"] = str(e)[:200]
+                        vision_status_str = "failed"
+                        warnings_list = [reason[:300]]
                         if schema_failure_policy == "degrade_to_docling":
                             vision_primary_disabled_reason = reason
-                            vision_primary = False
+                            vision_extractor = None  # disable for remaining tables
                             logger.error(
-                                "Vision primary desactive pour le reste du run (schema contract): %s",
+                                "Vision desactive pour le reste du run (schema contract): %s",
                                 e,
                             )
                         else:
                             raise RuntimeError(reason) from e
                     except Exception as e:
-                        if fallback_to_docling:
-                            logger.warning(
-                                "Vision primary exception table %s page %s: %s",
-                                extracted_table.table_id,
-                                page_num,
-                                e,
-                            )
-                        debug_metrics["vision_primary_error"] = str(e)[:200]
-
-                all_tables.append(extracted_table)
-
-                # Vision fallback pipeline - disabled when vision_primary is active.
-                should_run_vision = False
-                if not vision_primary:
-                    debug_metrics["vision_fallback_attempted"] = False
-                    debug_metrics["vision_fallback_applied"] = False
-                    fallback_pipeline_enabled = bool(self.use_vision_fallback)
-                    debug_metrics["vision_fallback_enabled"] = fallback_pipeline_enabled
-                    if fallback_pipeline_enabled:
-                        from .vision_gating import (
-                            is_table_extraction_suspect as _is_suspect,
-                        )
-
-                        manual_vision_flag = (
-                            os.environ.get("ENABLE_VISION_FALLBACK") == "1"
-                        )
-                        disabled_bank = (
-                            os.environ.get("DISABLE_VISION_FOR_BANK") or ""
-                        ).lower()
-                        bank_disabled = (
-                            disabled_bank
-                            and disabled_bank == (bank_code or "").strip().lower()
-                        )
-                        env_auto = os.environ.get("ENABLE_AUTO_VISION_ON_SUSPECT")
-                        if env_auto is not None:
-                            auto_vision_flag = env_auto == "1" and not bank_disabled
-                        else:
-                            try:
-                                from ..config import get_matching_thresholds as _get_th
-
-                                _cfg = _get_th(bank_code=bank_code) or {}
-                                auto_vision_flag = (
-                                    bool(_cfg.get("vision_auto_on_suspect", True))
-                                    and not bank_disabled
-                                )
-                            except Exception:
-                                auto_vision_flag = not bank_disabled
-                        quality_suspect = _is_suspect(extracted_table)
-                        force_vision = manual_vision_flag and not bank_disabled
-                        debug_metrics["quality_suspect_for_vision"] = bool(
-                            quality_suspect
-                        )
-                        should_run_vision = (
-                            (force_vision or (auto_vision_flag and quality_suspect))
-                            and table_bbox
-                            and len(table_bbox) == 4
-                        )
-                    else:
-                        debug_metrics["quality_suspect_for_vision"] = False
-
-                if should_run_vision:
-                    debug_metrics["vision_fallback_attempted"] = True
-                    vision_cfg = {}
-                    try:
-                        from ..config import get_matching_thresholds
-
-                        vision_cfg = get_matching_thresholds(bank_code=bank_code) or {}
-                    except Exception:
-                        pass
-                    before_method = extracted_table.extraction_method
-                    vision_tasks.append(
-                        (
-                            extracted_table,
-                            str(pdf_path),
-                            bank_code,
-                            quarter,
-                            year,
+                        vision_status_str = "failed"
+                        warnings_list = [str(e)[:300]]
+                        logger.warning(
+                            "Vision exception table %s page %s: %s",
+                            table_id,
                             page_num,
-                            table_bbox,
-                            force_vision,
-                            vision_cfg,
-                            before_method,
+                            e,
                         )
+                else:
+                    vision_status_str = "failed"
+                    if not vision_extractor:
+                        warnings_list = [
+                            "no vision extractor (API key missing or init failed)"
+                        ]
+                    elif not table_bbox:
+                        warnings_list = ["no bbox from Docling"]
+                    else:
+                        warnings_list = ["bbox invalid"]
+                    logger.debug(
+                        "Vision skipped for table %s page %s: %s",
+                        table_id,
+                        page_num,
+                        warnings_list[0] if warnings_list else "unknown",
                     )
 
+                debug_metrics = {
+                    "vision_status": vision_status_str,
+                    "vision_primary_attempted": vision_primary_attempted,
+                    "vision_primary_applied": vision_status_str == "ok",
+                    "vision_primary_confidence": vision_confidence,
+                    "vision_schema_contract_failed": vision_schema_contract_failed,
+                    "warnings": warnings_list,
+                }
+                if vision_primary_disabled_reason:
+                    debug_metrics["vision_primary_disabled_reason"] = (
+                        vision_primary_disabled_reason
+                    )
+
+                # debug crop dump (kept for observability)
                 if (
                     os.environ.get("ENABLE_TABLE_CROP_DUMP") == "1"
                     and table_bbox
@@ -1263,9 +1060,7 @@ class DoclingProcessor:
                             Path("outputs/debug_crops")
                             / f"{bank_code}_{quarter}_{year}"
                         )
-                        crop_path = (
-                            crop_dir / f"{extracted_table.table_id}_p{page_num}.png"
-                        )
+                        crop_path = crop_dir / f"{table_id}_p{page_num}.png"
                         crop_table_image(
                             str(pdf_path),
                             page_num,
@@ -1277,107 +1072,41 @@ class DoclingProcessor:
                     except Exception:
                         pass
 
-            # Run Vision fallback in parallel to reduce total runtime
-            if vision_tasks:
-                from .vision_fallback_integration import (
-                    _try_vision_first_column_fallback,
+                extracted_table = ExtractedTable(
+                    table_id=table_id,
+                    page_number=page_num,
+                    title=title or None,
+                    headers=out_headers,
+                    rows=out_rows,
+                    first_column_indicators=indicators,
+                    first_column_indicators_raw=indicators_raw,
+                    footnotes=footnotes,
+                    bbox=table_bbox,
+                    table_number=table_number,
+                    title_clean=title_clean,
+                    title_raw=title_raw,
+                    extraction_method=(
+                        "vision_full_gpt4o"
+                        if vision_status_str == "ok"
+                        else "vision_failed"
+                    ),
+                    debug_metrics=debug_metrics,
                 )
-
-                _raw_workers = os.environ.get("VISION_PARALLEL_WORKERS", "4")
-                try:
-                    max_workers = max(1, min(8, int(_raw_workers)))
-                except (TypeError, ValueError):
-                    max_workers = 4
-                logger.info(
-                    "Vision fallback: %s table(s), running with %s worker(s)",
-                    len(vision_tasks),
-                    max_workers,
-                )
-
-                def _run_vision_task(
-                    task: tuple[
-                        Any,
-                        str,
-                        str,
-                        str,
-                        int,
-                        int,
-                        list[float],
-                        bool,
-                        dict,
-                        str | None,
-                    ],
-                ) -> None:
-                    (
-                        ext_table,
-                        pdf,
-                        bcode,
-                        qtr,
-                        yr,
-                        pnum,
-                        bbox,
-                        force,
-                        v_cfg,
-                        before_m,
-                    ) = task
-                    try:
-                        _try_vision_first_column_fallback(
-                            extracted_table=ext_table,
-                            pdf_path=pdf,
-                            bank_code=bcode,
-                            quarter=qtr,
-                            year=yr,
-                            page_num=pnum,
-                            table_bbox=bbox,
-                            force_vision=force,
-                            vision_min_confidence=float(
-                                v_cfg.get("vision_min_confidence", 0.80)
-                            ),
-                            vision_count_ratio_min=float(
-                                v_cfg.get("vision_count_ratio_min", 0.50)
-                            ),
-                            vision_count_ratio_max=float(
-                                v_cfg.get("vision_count_ratio_max", 2.00)
-                            ),
-                        )
-                        dm = getattr(ext_table, "debug_metrics", None) or {}
-                        dm["vision_fallback_applied"] = (
-                            before_m != getattr(ext_table, "extraction_method", None)
-                            and getattr(ext_table, "extraction_method", None)
-                            == "vision_fallback_gpt4o"
-                        )
-                    except Exception:
-                        pass
-
-                with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                    list(executor.map(_run_vision_task, vision_tasks))
+                all_tables.append(extracted_table)
 
             # Log par page pour analyse de completude
             if tables_by_page:
                 counts_str = ", ".join(
                     f"p{k}:{v}" for k, v in sorted(tables_by_page.items())
                 )
-                logger.info(f"Docling tableaux par page: {counts_str}")
-
-            # Appliquer fallback pour les tables échouées
-            if failed_tables and self._vision_fallback:
-                all_tables = self._apply_fallback_extraction(
-                    pdf_path, all_tables, failed_tables, labels_only=labels_only
-                )
-
-            # Enrichir les tableaux sans titre en cherchant dans le texte PDF
-            all_tables = self._enrich_tables_with_titles(all_tables, pdf_path)
-            all_tables = self._enrich_tables_with_context(all_tables, pdf_path)
-
-            # Compter les tableaux avec numéros
-            tables_with_numbers = sum(1 for t in all_tables if t.table_number)
-            if tables_with_numbers > 0:
-                logger.info(
-                    f"Tableaux avec numéros détectés: {tables_with_numbers}/{len(all_tables)}"
-                )
+                logger.info("Docling tableaux par page: %s", counts_str)
 
             # Extraire le contenu textuel pour les sections
             text_content = doc.export_to_markdown()
+
+            # Enrichir les titres manquants depuis le texte de la page (pdfplumber)
+            # sans melanger contenu Docling/Vision : seul le champ titre est complete.
+            all_tables = self._enrich_tables_with_titles(all_tables, pdf_path)
 
             # Associer les tableaux à leurs sections parentes
             all_tables = self._associate_tables_with_sections(all_tables, text_content)
@@ -1385,7 +1114,7 @@ class DoclingProcessor:
             # Compter les sections détectées
             sections_found = set(t.section for t in all_tables if t.section)
             if sections_found:
-                logger.info(f"Sections détectées: {', '.join(sections_found)}")
+                logger.info("Sections détectées: %s", ", ".join(sections_found))
 
             return ExtractedDocument(
                 file_path=str(pdf_path),
@@ -1395,11 +1124,10 @@ class DoclingProcessor:
                 total_pages=len(doc.pages) if hasattr(doc, "pages") else 0,
                 all_tables=all_tables,
                 metadata={
-                    "extraction_method": "docling",
-                    "failed_tables_count": len(failed_tables),
+                    "extraction_method": "vision_full_gpt4o",
                     "sections_detected": list(sections_found),
                     "page_ranges": page_ranges,
-                    "text_content": text_content[:50000],  # Limite pour la memoire
+                    "text_content": text_content[:50000],
                 },
             )
 
@@ -1817,6 +1545,9 @@ class DoclingProcessor:
                 available = set(range(len(candidates)))
 
                 for table in page_tables:
+                    # Ne pas ecraser le contenu fourni par Vision (seule source de verite).
+                    if getattr(table, "extraction_method", None) == "vision_full_gpt4o":
+                        continue
                     selected_idx: int | None = None
                     current_number = str(table.table_number or "").strip()
 
@@ -1999,347 +1730,6 @@ class DoclingProcessor:
             if best_section:
                 table.section = best_section["name"]
                 table.section_phase = best_section["phase"]
-
-        return tables
-
-    def _extract_table_headers(self, table) -> list[str]:
-        """Extraire les en-tetes du tableau Docling."""
-        try:
-            if hasattr(table, "data") and table.data:
-                grid = table.data.grid
-                if grid and len(grid) > 0:
-                    return [
-                        str(cell.text) if hasattr(cell, "text") else str(cell)
-                        for cell in grid[0]
-                    ]
-        except Exception as e:
-            logger.debug(f"Erreur lors de l'extraction des en-tetes: {e}")
-        return []
-
-    def _extract_table_rows(self, table) -> list[list[str]]:
-        """Extraire les lignes de donnees du tableau Docling."""
-        try:
-            if hasattr(table, "data") and table.data:
-                grid = table.data.grid
-                if grid and len(grid) > 1:
-                    rows = []
-                    for row in grid[1:]:
-                        rows.append(
-                            [
-                                str(cell.text) if hasattr(cell, "text") else str(cell)
-                                for cell in row
-                            ]
-                        )
-                    return rows
-        except Exception as e:
-            logger.debug(f"Erreur lors de l'extraction des lignes: {e}")
-        return []
-
-    def _extract_row_primary_label(
-        self, row: list[str] | tuple[str, ...] | None
-    ) -> str:
-        """Return the best primary label candidate from first cells."""
-        if not row:
-            return ""
-        candidates = [str(c).strip() for c in list(row)[:3] if str(c).strip()]
-        if not candidates:
-            return ""
-
-        def _is_textual(value: str) -> bool:
-            return sum(1 for ch in value if ch.isalpha()) >= 2
-
-        for candidate in candidates:
-            if _is_textual(candidate):
-                return candidate
-        return candidates[0]
-
-    def _is_indicator_line_continuation(self, previous: str, current: str) -> bool:
-        """Heuristic to merge line-wrapped first-column labels.
-
-        Guards against over-merging structural rows (Total, Actif, Passif, ...).
-        """
-        prev = str(previous or "").strip()
-        cur = str(current or "").strip()
-        if not prev or not cur:
-            return False
-        if is_non_indicator_line(cur) or is_date_only_line(cur):
-            return False
-        if _STRUCTURAL_ROW_RE.match(cur):
-            return False
-        if cur[0].islower():
-            return True
-        if _CONTINUATION_PREV_END_RE.search(prev):
-            return True
-        if _CONTINUATION_PREFIX_RE.match(cur):
-            return True
-        word_count = len(cur.split())
-        if word_count <= 2 and not cur[0].isupper():
-            return True
-        return False
-
-    def _reconstruct_indicator_lines(self, labels: list[str]) -> tuple[list[str], int]:
-        """Merge wrapped indicator lines while preserving order."""
-        cfg = IndicatorLineMergeConfig(max_next_tokens=6, max_combined_length=120)
-        return merge_indicator_lines(labels, config=cfg)
-
-    def _build_indicator_entries(self, labels: list[str]) -> list[dict[str, Any]]:
-        """Build canonical indicator entries for extraction audit/debug."""
-        entries: list[dict[str, Any]] = []
-        for label in labels:
-            raw = str(label or "").strip()
-            if not raw:
-                continue
-            canonical = get_canonical_text(raw)
-            token_sorted = get_token_sorted_text(raw)
-            entries.append(
-                {
-                    "raw_text": raw,
-                    "canonical_text": canonical,
-                    "token_sorted": token_sorted,
-                    "anchor_tokens": token_sorted.split()[:12] if token_sorted else [],
-                    "line_role": "header_like"
-                    if is_non_indicator_line(raw)
-                    else "indicator",
-                }
-            )
-        return entries
-
-    def _collect_first_column_indicators(
-        self, data_rows: list[list[str]]
-    ) -> tuple[list[str], list[str], dict[str, Any]]:
-        """Extract+normalize first-column indicators with line reconstruction."""
-        raw_labels: list[str] = []
-        for row in data_rows:
-            if not row or len(row) == 0:
-                continue
-            cell = self._extract_row_primary_label(row)
-            if cell and not is_date_only_line(cell):
-                raw_labels.append(cell)
-
-        reconstructed_raw, reconstruction_merges = self._reconstruct_indicator_lines(
-            raw_labels
-        )
-        normalized = [
-            normalize_indicator_for_comparison(x)
-            for x in reconstructed_raw
-            if x.strip()
-        ]
-        indicator_entries = self._build_indicator_entries(reconstructed_raw)
-
-        metrics = {
-            "raw_indicator_count_before_reconstruction": len(raw_labels),
-            "raw_indicator_count_after_reconstruction": len(reconstructed_raw),
-            "line_reconstruction_merges": reconstruction_merges,
-            "indicator_entries_count": len(indicator_entries),
-            "indicator_entries_sample": indicator_entries[:20],
-        }
-        return reconstructed_raw, normalized, metrics
-
-    def _extract_table_footnotes(self, table) -> list[dict[str, str]]:
-        """Extraire les footnotes en format canonique list[{id,text}] sans stringifier les dicts."""
-        raw_footnotes: list[Any] = []
-        try:
-            if hasattr(table, "footnotes"):
-                for fn in table.footnotes:
-                    if isinstance(fn, dict):
-                        raw_footnotes.append(fn)
-                        continue
-                    marker = (
-                        getattr(fn, "id", None)
-                        or getattr(fn, "ref", None)
-                        or getattr(fn, "marker", None)
-                    )
-                    text = getattr(fn, "text", None) or getattr(fn, "value", None)
-                    if marker is not None or text is not None:
-                        raw_footnotes.append({"id": marker, "text": text})
-                    else:
-                        raw_footnotes.append(fn)
-        except Exception:
-            pass
-        return normalize_footnotes_to_canonical(raw_footnotes)
-
-    def _infer_table_title(self, page_text: str, table_idx: int) -> str | None:
-        """Inferer le titre du tableau a partir du texte environnant."""
-        # Rechercher les patterns de titres courants dans les rapports bancaires francais
-        title_patterns = [
-            "Tableau",
-            "Table",
-            "Sommaire",
-            "Resume",
-            "Ratio",
-            "Indicateur",
-            "Analyse",
-        ]
-
-        lines = page_text.split("\n")
-        for i, line in enumerate(lines):
-            for pattern in title_patterns:
-                if pattern.lower() in line.lower() and len(line) < 200:
-                    return line.strip()
-
-        return f"Tableau {table_idx + 1}"
-
-    def _assess_table_quality(self, headers: list[str], rows: list[list[str]]) -> float:
-        """
-        Évaluer la qualité d'une extraction de tableau.
-
-        Returns:
-            Score entre 0.0 (mauvais) et 1.0 (excellent)
-        """
-        if not headers and not rows:
-            return 0.0
-
-        score = 0.0
-
-        # Vérifier la présence d'en-têtes
-        if headers:
-            score += 0.3
-            # Vérifier que les en-têtes ne sont pas vides
-            non_empty_headers = [h for h in headers if h and h.strip()]
-            if non_empty_headers:
-                score += 0.1 * (len(non_empty_headers) / len(headers))
-
-        # Vérifier la présence de lignes
-        if rows:
-            score += 0.3
-            # Vérifier la cohérence du nombre de colonnes
-            col_counts = [len(row) for row in rows]
-            if col_counts:
-                most_common = max(set(col_counts), key=col_counts.count)
-                consistency = col_counts.count(most_common) / len(col_counts)
-                score += 0.2 * consistency
-
-        # Vérifier que le nombre de colonnes correspond aux en-têtes
-        if headers and rows:
-            header_count = len(headers)
-            matching_rows = sum(1 for row in rows if len(row) == header_count)
-            if matching_rows > 0:
-                score += 0.1 * (matching_rows / len(rows))
-
-        return min(1.0, score)
-
-    def _apply_fallback_extraction(
-        self,
-        pdf_path: Path,
-        tables: list[ExtractedTable],
-        failed_tables: list[dict],
-        *,
-        labels_only: bool = False,
-    ) -> list[ExtractedTable]:
-        """
-        Appliquer le fallback GPT-4 Vision pour les tables échouées.
-        """
-        for failed in failed_tables:
-            idx = failed["idx"]
-            page_num = failed["page_number"]
-
-            logger.info(f"Fallback pour table {idx} page {page_num}")
-
-            try:
-                page_image = None
-                try:
-                    from ..utils.pdf_image import pdf_page_to_image
-
-                    page_image = pdf_page_to_image(str(pdf_path), page_num)
-                except Exception as e:
-                    logger.warning(f"Impossible de charger la page en image: {e}")
-
-                if self._vision_fallback and page_image is not None:
-                    try:
-                        vision_result = self._vision_fallback.extract_table_from_image(
-                            page_image,
-                            context=f"Tableau de rapport bancaire, page {page_num}",
-                        )
-
-                        if vision_result.success:
-                            # SMART MERGE: Fusionner avec les données Docling existantes
-                            original_table = tables[idx]
-
-                            docling_data_dict = {
-                                "title": original_table.title,
-                                "headers": original_table.headers,
-                                "rows": original_table.rows,
-                                "footnotes": original_table.footnotes,
-                            }
-
-                            # Appel Fusion (Docling + Vision)
-                            merged_result = self._vision_fallback.smart_merge_results(
-                                docling_data_dict,
-                                vision_result,
-                                context=f"Tableau page {page_num}",
-                            )
-
-                            # Recalculer les indicateurs avec reconstruction/canonical entries.
-                            first_column_raw_fb, indicators_fb, indicator_metrics_fb = (
-                                self._collect_first_column_indicators(
-                                    merged_result.rows or []
-                                )
-                            )
-                            n_rows = len(merged_result.rows or [])
-                            unique_fb = len(set(indicators_fb))
-                            dup_ratio_fb = (
-                                0
-                                if not indicators_fb
-                                else 1 - (unique_fb / len(indicators_fb))
-                            )
-                            hdr_like_fb = (
-                                sum(
-                                    1
-                                    for r in first_column_raw_fb
-                                    if is_non_indicator_line(r)
-                                )
-                                / len(first_column_raw_fb)
-                                if first_column_raw_fb
-                                else 0.0
-                            )
-                            debug_metrics_fb = {
-                                "row_count_before_merge": n_rows,
-                                "row_count_after_merge": n_rows,
-                                "merge_count": 0,
-                                "footnote_row_filtered_count": 0,
-                                "indicator_count": len(indicators_fb),
-                                "duplicate_ratio": dup_ratio_fb,
-                                "header_like_ratio": hdr_like_fb,
-                                **indicator_metrics_fb,
-                                "vision_fallback_attempted": True,
-                                "vision_fallback_applied": True,
-                            }
-
-                            out_headers = [] if labels_only else merged_result.headers
-                            out_rows = [] if labels_only else merged_result.rows
-
-                            # Remplacer les données de la table
-                            tables[idx] = ExtractedTable(
-                                table_id=original_table.table_id,
-                                page_number=page_num,
-                                title=merged_result.table_title or original_table.title,
-                                headers=out_headers,
-                                rows=out_rows,
-                                footnotes=merged_result.footnotes,
-                                section=original_table.section,
-                                table_number=original_table.table_number,
-                                title_clean=original_table.title_clean,
-                                title_raw=original_table.title_raw
-                                or original_table.title,
-                                unit_context=original_table.unit_context,
-                                title_resolution_method=original_table.title_resolution_method,
-                                first_column_indicators=indicators_fb,
-                                first_column_indicators_raw=first_column_raw_fb,
-                                debug_metrics=debug_metrics_fb,
-                                context_before=original_table.context_before,
-                                context_after=original_table.context_after,
-                                bbox=getattr(original_table, "bbox", None),
-                            )
-
-                            logger.info(
-                                f"Table {idx} : Smart Merge Docling+Vision appliqué "
-                                f"({len(merged_result.rows)} lignes, confiance {merged_result.confidence:.2f})"
-                            )
-                    except Exception as e:
-                        logger.warning(f"Fallback Vision échoué: {e}")
-
-            except Exception as e:
-                logger.error(f"Fallback complet échoué pour table {idx}: {e}")
 
         return tables
 

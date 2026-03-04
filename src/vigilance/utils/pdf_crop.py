@@ -79,7 +79,9 @@ def _validate_bbox(bbox_norm: list[float]) -> bool:
         )
     except (TypeError, ValueError):
         return False
-    if not (0 <= l_norm <= 1 and 0 <= t_norm <= 1 and 0 <= r_norm <= 1 and 0 <= b_norm <= 1):
+    if not (
+        0 <= l_norm <= 1 and 0 <= t_norm <= 1 and 0 <= r_norm <= 1 and 0 <= b_norm <= 1
+    ):
         return False
     if r_norm <= l_norm or b_norm <= t_norm:
         return False
@@ -138,6 +140,144 @@ def crop_table_region_to_bytes(
             y0 = rect.y0 + t_norm * rect.height
             x1 = rect.x0 + r_norm * rect.width
             y1 = rect.y0 + b_norm_effective * rect.height
+            clip = fitz.Rect(x0, y0, x1, y1)
+            mat = fitz.Matrix(zoom, zoom)
+            pix = page.get_pixmap(matrix=mat, clip=clip, alpha=False)
+            return pix.tobytes("png")
+        finally:
+            doc.close()
+    except Exception:
+        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
+        return full if full else b""
+
+
+def render_page_with_bbox_highlight_to_bytes(
+    pdf_path: str,
+    page_number: int,
+    bbox_norm: list[float],
+    scale: float = 1.5,
+    bottom_extension: float = 0.0,
+    dpi: int | None = None,
+) -> bytes:
+    """
+    Render a full PDF page to PNG with a red bounding box around the table.
+
+    Args:
+        pdf_path: Path to the PDF file.
+        page_number: 1-based page number.
+        bbox_norm: Normalized bounding box [l, t, r, b] in 0..1.
+        scale: Render scale when dpi is not set.
+        bottom_extension: Extra height included in the red box (e.g. for footnotes), in normalized 0..1.
+        dpi: If set, render at this resolution (72 * zoom); overrides scale. Use 300 for Vision/OCR.
+
+    Returns:
+        PNG bytes of the full page with a red highlight box, or normal full page if bbox invalid.
+    """
+    from vigilance.extraction.pdf_preview import render_pdf_page
+
+    zoom = (dpi / 72.0) if dpi is not None else scale
+
+    if not _validate_bbox(bbox_norm):
+        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
+        return full if full else b""
+
+    try:
+        import fitz  # type: ignore[import-untyped]
+    except ImportError:
+        logger.debug(
+            "PyMuPDF (fitz) not available for render_page_with_bbox_highlight_to_bytes"
+        )
+        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
+        return full if full else b""
+
+    try:
+        doc = fitz.open(pdf_path)
+        try:
+            page_idx = page_number - 1
+            if page_idx < 0 or page_idx >= len(doc):
+                full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
+                return full if full else b""
+            page = doc[page_idx]
+            rect = page.rect
+            l_norm, t_norm, r_norm, b_norm = bbox_norm
+            b_norm_effective = min(1.0, b_norm + bottom_extension)
+
+            x0 = rect.x0 + l_norm * rect.width
+            y0 = rect.y0 + t_norm * rect.height
+            x1 = rect.x0 + r_norm * rect.width
+            y1 = rect.y0 + b_norm_effective * rect.height
+
+            # Draw a bright red rectangle with 3px width on the page
+            page.draw_rect(fitz.Rect(x0, y0, x1, y1), color=(1, 0, 0), width=3)
+
+            mat = fitz.Matrix(zoom, zoom)
+            pix = page.get_pixmap(matrix=mat, alpha=False)
+            return pix.tobytes("png")
+        finally:
+            doc.close()
+    except Exception:
+        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
+        return full if full else b""
+
+
+def crop_footnote_region_to_bytes(
+    pdf_path: str,
+    page_number: int,
+    table_bbox_norm: list[float],
+    scale: float = 1.5,
+    footnote_height: float = 0.25,
+    dpi: int | None = None,
+) -> bytes:
+    """
+    Crop only the footnote region below a table from a PDF page.
+
+    Args:
+        pdf_path: Path to the PDF file.
+        page_number: 1-based page number.
+        table_bbox_norm: Normalized bounding box of the table [l, t, r, b] in 0..1.
+        scale: Render scale when dpi is not set.
+        footnote_height: Height of footnote region as fraction of page (default 0.25 = 25%).
+        dpi: If set, render at this resolution; overrides scale.
+
+    Returns:
+        PNG bytes of the footnote region below the table.
+    """
+    from vigilance.extraction.pdf_preview import render_pdf_page
+
+    zoom = (dpi / 72.0) if dpi is not None else scale
+
+    if not _validate_bbox(table_bbox_norm):
+        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
+        return full if full else b""
+
+    try:
+        import fitz  # type: ignore[import-untyped]
+    except ImportError:
+        logger.debug("PyMuPDF (fitz) not available for crop_footnote_region_to_bytes")
+        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
+        return full if full else b""
+
+    try:
+        doc = fitz.open(pdf_path)
+        try:
+            page_idx = page_number - 1
+            if page_idx < 0 or page_idx >= len(doc):
+                full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
+                return full if full else b""
+            page = doc[page_idx]
+            rect = page.rect
+            l_norm, t_norm, r_norm, b_norm = table_bbox_norm
+
+            # Footnote region: from bottom of table to footnote_height below (or page bottom)
+            footnote_top = b_norm
+            footnote_bottom = min(1.0, b_norm + footnote_height)
+
+            # Use full page width for footnotes (they often span the whole width)
+            x0 = rect.x0
+            y0 = rect.y0 + footnote_top * rect.height
+            x1 = rect.x1
+            y1 = rect.y0 + footnote_bottom * rect.height
+
             clip = fitz.Rect(x0, y0, x1, y1)
             mat = fitz.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, clip=clip, alpha=False)

@@ -1,16 +1,22 @@
-"""Tests: exclude date/unit lines from indicators for tables_added and tables_removed."""
+"""Tests: whole-table events have no indicator list; matched pairs have indicators."""
 
 from __future__ import annotations
 
 import pytest
 
 from app.review_adapters import build_review_items_from_indicator_result
-from app.review_models import CHANGE_TYPE_TABLE_ADDED, CHANGE_TYPE_TABLE_REMOVED
+from app.review_models import (
+    CHANGE_TYPE_TABLE_ADDED,
+    CHANGE_TYPE_TABLE_REMOVED,
+    EVENT_TYPE_MATCHED_PAIR,
+    EVENT_TYPE_TABLE_ADDED,
+    EVENT_TYPE_TABLE_REMOVED,
+)
 from app.ui_indicators import build_indicator_change_rows
 
 
-def test_tables_added_excludes_date_only_indicators() -> None:
-    """build_review_items_from_indicator_result filters date-only lines for tables_added."""
+def test_tables_added_has_no_indicators_and_event_type() -> None:
+    """Whole-table events: table_added has indicators=[] and event_type=table_added (no indicator list in UI)."""
     indicator_result = {
         "bank_code": "BMO",
         "quarter_from": "t1",
@@ -41,14 +47,13 @@ def test_tables_added_excludes_date_only_indicators() -> None:
     )
     table_added_items = [i for i in items if i.change_type == CHANGE_TYPE_TABLE_ADDED]
     assert len(table_added_items) == 1
-    indicators = table_added_items[0].indicators
-    assert len(indicators) == 1
-    assert indicators[0]["name"] == "Prets garantis par un bien immobilier"
-    assert indicators[0]["type"] == "added"
+    item = table_added_items[0]
+    assert item.event_type == EVENT_TYPE_TABLE_ADDED
+    assert item.indicators == []
 
 
-def test_tables_removed_excludes_date_only_indicators() -> None:
-    """build_review_items_from_indicator_result filters date-only lines for tables_removed."""
+def test_tables_removed_has_no_indicators_and_event_type() -> None:
+    """Whole-table events: table_removed has indicators=[] and event_type=table_removed (no indicator list in UI)."""
     indicator_result = {
         "bank_code": "BMO",
         "quarter_from": "t1",
@@ -78,14 +83,13 @@ def test_tables_removed_excludes_date_only_indicators() -> None:
     )
     table_removed_items = [i for i in items if i.change_type == CHANGE_TYPE_TABLE_REMOVED]
     assert len(table_removed_items) == 1
-    indicators = table_removed_items[0].indicators
-    assert len(indicators) == 1
-    assert indicators[0]["name"] == "Dépôts personnels"
-    assert indicators[0]["type"] == "removed"
+    item = table_removed_items[0]
+    assert item.event_type == EVENT_TYPE_TABLE_REMOVED
+    assert item.indicators == []
 
 
-def test_tables_added_highlight_string_space() -> None:
-    """added_indicators for tables_added uses value_clean (all_indicators_t2) for highlights."""
+def test_tables_added_event_type_and_all_indicators_t2() -> None:
+    """table_added item has event_type and all_indicators_t2 from source (no indicator list)."""
     indicator_result = {
         "bank_code": "BMO",
         "quarter_from": "t1",
@@ -117,11 +121,13 @@ def test_tables_added_highlight_string_space() -> None:
     table_added_items = [i for i in items if i.change_type == CHANGE_TYPE_TABLE_ADDED]
     assert len(table_added_items) == 1
     item = table_added_items[0]
-    assert set(item.added_indicators) == set(item.all_indicators_t2)
+    assert item.event_type == EVENT_TYPE_TABLE_ADDED
+    assert item.indicators == []
+    assert item.all_indicators_t2 == ["Prets garantis", "Depots"]
 
 
-def test_tables_removed_highlight_string_space() -> None:
-    """removed_indicators for tables_removed uses value_clean (all_indicators_t1) for highlights."""
+def test_tables_removed_event_type_and_all_indicators_t1() -> None:
+    """table_removed item has event_type and all_indicators_t1 from source (no indicator list)."""
     indicator_result = {
         "bank_code": "BMO",
         "quarter_from": "t1",
@@ -153,7 +159,9 @@ def test_tables_removed_highlight_string_space() -> None:
     table_removed_items = [i for i in items if i.change_type == CHANGE_TYPE_TABLE_REMOVED]
     assert len(table_removed_items) == 1
     item = table_removed_items[0]
-    assert set(item.removed_indicators) == set(item.all_indicators_t1)
+    assert item.event_type == EVENT_TYPE_TABLE_REMOVED
+    assert item.indicators == []
+    assert item.all_indicators_t1 == ["Depots personnels", "Bilan"]
 
 
 def test_build_indicator_change_rows_excludes_date_only_for_added_removed_tables() -> None:
@@ -240,6 +248,7 @@ def test_review_item_prefers_raw_display_for_matched_table_changes() -> None:
     )
     assert len(items) == 1
     item = items[0]
+    assert item.event_type == EVENT_TYPE_MATCHED_PAIR
     # Keep clean lists for highlight/matching compatibility.
     assert item.added_indicators == ["fonds propre de categorie 1"]
     assert item.removed_indicators == ["actif instrument tlac disponible apres ajustement"]

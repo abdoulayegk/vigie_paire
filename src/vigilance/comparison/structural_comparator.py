@@ -120,7 +120,9 @@ class StructuralChange:
     """Represente un changement structurel detecte."""
 
     table_title: str
-    change_type: str  # "row_added", "row_removed", "row_renamed", "table_added", "table_removed"
+    change_type: (
+        str  # "row_added", "row_removed", "row_renamed", "table_added", "table_removed"
+    )
     indicator: str  # Texte de la premiere colonne (label de ligne)
 
     # Metadata optionnelle
@@ -135,7 +137,9 @@ class StructuralChange:
         """Convertir en dictionnaire pour serialisation."""
         from vigilance.utils.type_metier import compute_type_metier
 
-        type_metier_val = self.type_metier or compute_type_metier(self.section, self.change_type)
+        type_metier_val = self.type_metier or compute_type_metier(
+            self.section, self.change_type
+        )
         return {
             "table_title": self.table_title,
             "change_type": self.change_type,
@@ -182,7 +186,9 @@ class StructuralChangeAnalyzed:
         """Convertir en dictionnaire pour serialisation."""
         from vigilance.utils.type_metier import compute_type_metier
 
-        type_metier_val = self.type_metier or compute_type_metier(self.titre, self.change_type)
+        type_metier_val = self.type_metier or compute_type_metier(
+            self.titre, self.change_type
+        )
         return {
             "titre": self.titre,
             "page": self.page,
@@ -220,7 +226,9 @@ class AnalyzedComparisonResult:
     Format de sortie JSON complet avec legende et resume.
     """
 
-    comparison_date: str = field(default_factory=lambda: datetime.now().isoformat()[:10])
+    comparison_date: str = field(
+        default_factory=lambda: datetime.now().isoformat()[:10]
+    )
     mode: str = "structural_analyzed"
     bank_code: str | None = None
 
@@ -243,7 +251,9 @@ class AnalyzedComparisonResult:
             "total": len(self.changes),
             "nouvelles_idees": sum(1 for c in self.changes if c.nouvelle_idee == "Oui"),
             "pertinents": sum(1 for c in self.changes if c.pertinence == "pertinent"),
-            "non_pertinents": sum(1 for c in self.changes if c.pertinence == "non_pertinent"),
+            "non_pertinents": sum(
+                1 for c in self.changes if c.pertinence == "non_pertinent"
+            ),
             "ajouts": sum(1 for c in self.changes if c.change_type == "ajoute"),
             "suppressions": sum(1 for c in self.changes if c.change_type == "supprime"),
             "verifies": sum(1 for c in self.changes if c.verified),
@@ -256,8 +266,12 @@ class AnalyzedComparisonResult:
             summary["total_tables_matched_probable"] = len(
                 self.table_matching.get("probable_matches", [])
             )
-            summary["total_tables_unmatched_t1"] = len(self.table_matching.get("unmatched_t1", []))
-            summary["total_tables_unmatched_t2"] = len(self.table_matching.get("unmatched_t2", []))
+            summary["total_tables_unmatched_t1"] = len(
+                self.table_matching.get("unmatched_t1", [])
+            )
+            summary["total_tables_unmatched_t2"] = len(
+                self.table_matching.get("unmatched_t2", [])
+            )
 
         changements_par_tableau = group_changes_by_table(self.changes)
 
@@ -322,7 +336,9 @@ class TableStructuralChanges:
 class StructuralComparisonResult:
     """Resultat complet de la comparaison structurelle."""
 
-    comparison_date: str = field(default_factory=lambda: datetime.now().isoformat()[:10])
+    comparison_date: str = field(
+        default_factory=lambda: datetime.now().isoformat()[:10]
+    )
     mode: str = "structural_only"
 
     # Changements par tableau
@@ -438,14 +454,20 @@ class StructuralComparisonResult:
                 for t in self.tables_removed
             ],
             "table_matching": {
-                "strong_matches": [format_match_entry(m) for m in self.matched_tables_strong],
-                "probable_matches": [format_match_entry(m) for m in self.matched_tables_probable],
+                "strong_matches": [
+                    format_match_entry(m) for m in self.matched_tables_strong
+                ],
+                "probable_matches": [
+                    format_match_entry(m) for m in self.matched_tables_probable
+                ],
                 "unmatched_t1": [
                     {
                         "title": get_table_title(t),
                         "table_number": get_table_number(t),
                         "page": t.get("page_number", 0) if isinstance(t, dict) else 0,
-                        "table_id": t.get("table_id", "") if isinstance(t, dict) else "",
+                        "table_id": t.get("table_id", "")
+                        if isinstance(t, dict)
+                        else "",
                     }
                     for t in self.unmatched_tables_t1
                 ],
@@ -454,7 +476,9 @@ class StructuralComparisonResult:
                         "title": get_table_title(t),
                         "table_number": get_table_number(t),
                         "page": t.get("page_number", 0) if isinstance(t, dict) else 0,
-                        "table_id": t.get("table_id", "") if isinstance(t, dict) else "",
+                        "table_id": t.get("table_id", "")
+                        if isinstance(t, dict)
+                        else "",
                     }
                     for t in self.unmatched_tables_t2
                 ],
@@ -617,11 +641,20 @@ class StructuralTableComparator:
         self._apply_displacement_filter(result.table_changes)
 
         # Etape 3: Enregistrer les tables entierement ajoutees/supprimees (objets complets)
-        result.tables_added = added_tables  # Stocker les objets complets avec page_number
-        result.tables_removed = removed_tables  # Stocker les objets complets avec page_number
+        result.tables_added = (
+            added_tables  # Stocker les objets complets avec page_number
+        )
+        result.tables_removed = (
+            removed_tables  # Stocker les objets complets avec page_number
+        )
 
         # Etape 4: Generer les preuves visuelles si demande
-        if visual_proofs_dir and pdf_t1_path and pdf_t2_path and VISUAL_PROOFS_AVAILABLE:
+        if (
+            visual_proofs_dir
+            and pdf_t1_path
+            and pdf_t2_path
+            and VISUAL_PROOFS_AVAILABLE
+        ):
             result.visual_proofs_dir = str(visual_proofs_dir)
             result.visual_proofs = self._generate_visual_proofs(
                 matched_tables=matched_tables,
@@ -632,7 +665,9 @@ class StructuralTableComparator:
                 bank_code=bank_code,
                 section=section,
             )
-            logger.info(f"Preuves visuelles generees: {len(result.visual_proofs)} fichiers PNG")
+            logger.info(
+                f"Preuves visuelles generees: {len(result.visual_proofs)} fichiers PNG"
+            )
 
         # Log du resume
         logger.info(
@@ -691,7 +726,9 @@ class StructuralTableComparator:
             has_changes = title_t1 in changed_titles or title_t2 in changed_titles
 
             # Generer la cle unique
-            safe_title = re.sub(r"[^\w\-]", "_", title_t1[:50]) if title_t1 else f"table_{i}"
+            safe_title = (
+                re.sub(r"[^\w\-]", "_", title_t1[:50]) if title_t1 else f"table_{i}"
+            )
             prefix = f"{bank_code}_{section}_" if bank_code and section else ""
             match_key = f"{prefix}{safe_title}"
 
@@ -793,8 +830,12 @@ class StructuralTableComparator:
                 logger.debug(f"Match exact: '{title}'")
 
         # Pour les non-matches, essayer par similarite des indicateurs
-        unmatched_t1 = [(i, t) for i, t in enumerate(tables_t1) if i not in matched_t1_indices]
-        unmatched_t2 = [(j, t) for j, t in enumerate(tables_t2) if j not in matched_t2_indices]
+        unmatched_t1 = [
+            (i, t) for i, t in enumerate(tables_t1) if i not in matched_t1_indices
+        ]
+        unmatched_t2 = [
+            (j, t) for j, t in enumerate(tables_t2) if j not in matched_t2_indices
+        ]
 
         for i, t1 in unmatched_t1:
             best_match = None
@@ -861,10 +902,18 @@ class StructuralTableComparator:
                 )
 
         # Tables non matchees
-        added_tables = [t for j, t in enumerate(tables_t2) if j not in matched_t2_indices]
-        removed_tables = [t for i, t in enumerate(tables_t1) if i not in matched_t1_indices]
-        unmatched_t1 = [t for i, t in enumerate(tables_t1) if i not in matched_t1_indices]
-        unmatched_t2 = [t for j, t in enumerate(tables_t2) if j not in matched_t2_indices]
+        added_tables = [
+            t for j, t in enumerate(tables_t2) if j not in matched_t2_indices
+        ]
+        removed_tables = [
+            t for i, t in enumerate(tables_t1) if i not in matched_t1_indices
+        ]
+        unmatched_t1 = [
+            t for i, t in enumerate(tables_t1) if i not in matched_t1_indices
+        ]
+        unmatched_t2 = [
+            t for j, t in enumerate(tables_t2) if j not in matched_t2_indices
+        ]
 
         return (
             strong_matches,
@@ -932,7 +981,9 @@ class StructuralTableComparator:
         # Fuzzy matching: retirer les paires dont la similarite >= seuil
         if rapidfuzz_fuzz and rows_added and rows_removed:
             threshold_pct = int(self.indicator_similarity_threshold * 100)
-            matched_pairs = self._fuzzy_match_indicators(rows_added, rows_removed, threshold_pct)
+            matched_pairs = self._fuzzy_match_indicators(
+                rows_added, rows_removed, threshold_pct
+            )
             for added_text, removed_text in matched_pairs:
                 if added_text in rows_added and removed_text in rows_removed:
                     rows_added.remove(added_text)
@@ -963,7 +1014,10 @@ class StructuralTableComparator:
 
                 for match in matches:
                     # Vérifier que les lignes sont toujours disponibles (non traitées)
-                    if match.t1_indicator in rows_removed and match.t2_indicator in rows_added:
+                    if (
+                        match.t1_indicator in rows_removed
+                        and match.t2_indicator in rows_added
+                    ):
                         # Retirer des listes d'ajout/suppression
                         rows_removed.remove(match.t1_indicator)
                         rows_added.remove(match.t2_indicator)
@@ -997,7 +1051,9 @@ class StructuralTableComparator:
             page_t2=table_t2.get("page_number"),
         )
 
-    def _apply_displacement_filter(self, table_changes: list[TableStructuralChanges]) -> None:
+    def _apply_displacement_filter(
+        self, table_changes: list[TableStructuralChanges]
+    ) -> None:
         """
         Detecte les indicateurs deplaces entre tableaux et met a jour table_changes.
 
@@ -1023,7 +1079,9 @@ class StructuralTableComparator:
             key_str = _tc_key_str(tc)
             section = None
             # Pre-calcul normalisation pour voisinage
-            rem_list = [(text, self._normalize_indicator(text)) for text in tc.rows_removed]
+            rem_list = [
+                (text, self._normalize_indicator(text)) for text in tc.rows_removed
+            ]
             for i, (text, canonical) in enumerate(rem_list):
                 if not canonical:
                     continue
@@ -1046,7 +1104,9 @@ class StructuralTableComparator:
                     )
                 )
 
-            add_list = [(text, self._normalize_indicator(text)) for text in tc.rows_added]
+            add_list = [
+                (text, self._normalize_indicator(text)) for text in tc.rows_added
+            ]
             for i, (text, canonical) in enumerate(add_list):
                 if not canonical:
                     continue
@@ -1077,13 +1137,17 @@ class StructuralTableComparator:
             for tc in table_changes:
                 if _tc_key_str(tc) == d.from_table_id:
                     tc.rows_removed = [
-                        t for t in tc.rows_removed if self._normalize_indicator(t) != d.canonical
+                        t
+                        for t in tc.rows_removed
+                        if self._normalize_indicator(t) != d.canonical
                     ]
                     break
             for tc in table_changes:
                 if _tc_key_str(tc) == d.to_table_id:
                     tc.rows_added = [
-                        t for t in tc.rows_added if self._normalize_indicator(t) != d.canonical
+                        t
+                        for t in tc.rows_added
+                        if self._normalize_indicator(t) != d.canonical
                     ]
                     tc.rows_displaced.append(d.to_dict())
                     break
@@ -1149,9 +1213,16 @@ class StructuralTableComparator:
 
         Retourne les paires (added, removed) dont la similarite >= threshold_pct.
         Affectation gourmande par score decroissant pour eviter les conflits.
+
+        Uses normalized text for scoring to avoid false renames from
+        accent/note-marker/series-suffix differences.
         """
         if not rows_added or not rows_removed:
             return []
+
+        # Pre-normalize all texts for fuzzy scoring (avoids OCR noise like g/9, accents, notes)
+        norm_added = {a: self._normalize_indicator(a) for a in rows_added}
+        norm_removed = {r: self._normalize_indicator(r) for r in rows_removed}
 
         # Toutes les paires (added, removed, score)
         # Utilise ratio et token_set_ratio pour restructurations (ex. Dépôts X vs Dépôts Y)
@@ -1160,9 +1231,16 @@ class StructuralTableComparator:
         )
         candidates: list[tuple] = []
         for added in rows_added:
+            na = norm_added[added]
+            if not na:
+                continue
             for removed in rows_removed:
-                ratio_score = rapidfuzz_fuzz.ratio(added, removed)
-                token_score = rapidfuzz_fuzz.token_set_ratio(added, removed)
+                nr = norm_removed[removed]
+                if not nr:
+                    continue
+                # Score on normalized text to ignore accents, notes, series suffixes
+                ratio_score = rapidfuzz_fuzz.ratio(na, nr)
+                token_score = rapidfuzz_fuzz.token_set_ratio(na, nr)
                 score = max(ratio_score, token_score)
                 if score >= threshold_pct or token_score >= token_threshold_pct:
                     candidates.append((added, removed, score))
@@ -1192,7 +1270,12 @@ class StructuralTableComparator:
         Returns:
             Titre du tableau
         """
-        return table.get("title", "") or table.get("table_title", "") or table.get("name", "") or ""
+        return (
+            table.get("title", "")
+            or table.get("table_title", "")
+            or table.get("name", "")
+            or ""
+        )
 
     def _jaccard_similarity(self, set1: list[str], set2: list[str]) -> float:
         """
@@ -1306,7 +1389,9 @@ def get_structural_changes_summary(result: StructuralComparisonResult) -> str:
     lines.append(f"Tableaux entiers ajoutes: {summary['total_tables_added']}")
     lines.append(f"Tableaux entiers supprimes: {summary['total_tables_removed']}")
     lines.append(f"Matchs forts: {summary.get('total_tables_matched_strong', 0)}")
-    lines.append(f"Matchs probables (revue): {summary.get('total_tables_matched_probable', 0)}")
+    lines.append(
+        f"Matchs probables (revue): {summary.get('total_tables_matched_probable', 0)}"
+    )
     lines.append("")
 
     # Details par tableau
@@ -1344,7 +1429,12 @@ def get_structural_changes_summary(result: StructuralComparisonResult) -> str:
     def get_table_title(table: Any) -> str:
         if isinstance(table, str):
             return table
-        return table.get("title", "") or table.get("table_title", "") or table.get("name", "") or ""
+        return (
+            table.get("title", "")
+            or table.get("table_title", "")
+            or table.get("name", "")
+            or ""
+        )
 
     def get_table_number(table: Any) -> str | None:
         if isinstance(table, dict):
@@ -1358,7 +1448,11 @@ def get_structural_changes_summary(result: StructuralComparisonResult) -> str:
             table_number = get_table_number(table)
             page = table.get("page_number", 0) if isinstance(table, dict) else 0
             if table_number:
-                title = f"Tableau {table_number} - {title}" if title else f"Tableau {table_number}"
+                title = (
+                    f"Tableau {table_number} - {title}"
+                    if title
+                    else f"Tableau {table_number}"
+                )
             lines.append(f"  + {title} (page {page})")
 
     if result.tables_removed:
@@ -1368,7 +1462,11 @@ def get_structural_changes_summary(result: StructuralComparisonResult) -> str:
             table_number = get_table_number(table)
             page = table.get("page_number", 0) if isinstance(table, dict) else 0
             if table_number:
-                title = f"Tableau {table_number} - {title}" if title else f"Tableau {table_number}"
+                title = (
+                    f"Tableau {table_number} - {title}"
+                    if title
+                    else f"Tableau {table_number}"
+                )
             lines.append(f"  - {title} (page {page})")
 
     return "\n".join(lines)
@@ -1491,7 +1589,12 @@ Reponds UNIQUEMENT en JSON:
         """Obtenir le titre d'un tableau depuis un dictionnaire ou string."""
         if isinstance(table, str):
             return table
-        return table.get("title", "") or table.get("table_title", "") or table.get("name", "") or ""
+        return (
+            table.get("title", "")
+            or table.get("table_title", "")
+            or table.get("name", "")
+            or ""
+        )
 
     def _get_table_number_from_dict(self, table: Any) -> str | None:
         """Obtenir le numero d'un tableau depuis un dictionnaire."""
@@ -1578,9 +1681,15 @@ Reponds UNIQUEMENT en JSON:
             title = self._get_table_title_from_dict(table)
             table_number = self._get_table_number_from_dict(table)
             page = table.get("page_number", 0) if isinstance(table, dict) else 0
-            section_label = SECTION_LABELS.get(section_type or "unknown_section", "unknown_section")
+            section_label = SECTION_LABELS.get(
+                section_type or "unknown_section", "unknown_section"
+            )
             if table_number:
-                title = f"Tableau {table_number} - {title}" if title else f"Tableau {table_number}"
+                title = (
+                    f"Tableau {table_number} - {title}"
+                    if title
+                    else f"Tableau {table_number}"
+                )
             raw_changes.append(
                 {
                     "phrase": _format_whole_table_phrase(
@@ -1604,9 +1713,15 @@ Reponds UNIQUEMENT en JSON:
             title = self._get_table_title_from_dict(table)
             table_number = self._get_table_number_from_dict(table)
             page = table.get("page_number", 0) if isinstance(table, dict) else 0
-            section_label = SECTION_LABELS.get(section_type or "unknown_section", "unknown_section")
+            section_label = SECTION_LABELS.get(
+                section_type or "unknown_section", "unknown_section"
+            )
             if table_number:
-                title = f"Tableau {table_number} - {title}" if title else f"Tableau {table_number}"
+                title = (
+                    f"Tableau {table_number} - {title}"
+                    if title
+                    else f"Tableau {table_number}"
+                )
             raw_changes.append(
                 {
                     "phrase": _format_whole_table_phrase(
@@ -1632,7 +1747,9 @@ Reponds UNIQUEMENT en JSON:
             for row in excluded:
                 filter_result = row.get("filter_result")
                 reason = (
-                    getattr(filter_result, "exclusion_reason", None) if filter_result else None
+                    getattr(filter_result, "exclusion_reason", None)
+                    if filter_result
+                    else None
                 ) or "Regle ContentFilter"
                 analyzed_result.changes.append(
                     self._make_non_pertinent_change(row, f"Exclu par regle: {reason}")
@@ -1682,7 +1799,9 @@ Reponds UNIQUEMENT en JSON:
                         results_by_idx[idx] = analyzed
                     except Exception as e:
                         logger.warning(f"Erreur analyse changement {idx}: {e}")
-                        results_by_idx[idx] = self._analyze_with_rules(changes_to_analyze[idx])
+                        results_by_idx[idx] = self._analyze_with_rules(
+                            changes_to_analyze[idx]
+                        )
             for analyzed in results_by_idx:
                 if analyzed is not None:
                     analyzed_result.changes.append(analyzed)
@@ -1714,10 +1833,14 @@ Reponds UNIQUEMENT en JSON:
             table_number=change.get("table_number"),
             page_t1=change.get("page_t1"),
             page_t2=change.get("page_t2"),
-            type_metier=compute_type_metier(change.get("section"), change.get("change_type")),
+            type_metier=compute_type_metier(
+                change.get("section"), change.get("change_type")
+            ),
         )
 
-    def _analyze_single_change(self, change: dict[str, Any]) -> StructuralChangeAnalyzed:
+    def _analyze_single_change(
+        self, change: dict[str, Any]
+    ) -> StructuralChangeAnalyzed:
         """
         Analyser un seul changement avec GenAI ou regles.
 
@@ -1843,7 +1966,9 @@ Reponds UNIQUEMENT en JSON:
                 table_number=change.get("table_number"),
                 page_t1=change.get("page_t1"),
                 page_t2=change.get("page_t2"),
-                type_metier=compute_type_metier(change.get("section"), change.get("change_type")),
+                type_metier=compute_type_metier(
+                    change.get("section"), change.get("change_type")
+                ),
             )
 
         except Exception as e:
@@ -2108,13 +2233,19 @@ def generate_markdown_report(result: AnalyzedComparisonResult) -> str:
     # Tableau: Titre | Type metier | Page | Phrase | Nouvelle idee | Justification
     lines.append("## Tableau - Analyse")
     lines.append("")
-    lines.append("| Titre | Type metier | Page | Phrase | Nouvelle idee | Justification |")
-    lines.append("|-------|-------------|------|--------|---------------|---------------|")
+    lines.append(
+        "| Titre | Type metier | Page | Phrase | Nouvelle idee | Justification |"
+    )
+    lines.append(
+        "|-------|-------------|------|--------|---------------|---------------|"
+    )
 
     for change in result.changes:
         from vigilance.utils.type_metier import compute_type_metier
 
-        type_metier = change.type_metier or compute_type_metier(change.titre, change.change_type)
+        type_metier = change.type_metier or compute_type_metier(
+            change.titre, change.change_type
+        )
         phrase = change.phrase.replace("|", "\\|")
         justification = change.justification.replace("|", "\\|")
         lines.append(
@@ -2171,7 +2302,9 @@ def _format_whole_table_phrase(
     """Construire une phrase explicite pour ajout/suppression de tableau entier."""
     action = "ajouté" if change_type == "ajoute" else "supprimé"
     title_display = (
-        table_title.strip() if table_title and table_title.strip() else "(titre non disponible)"
+        table_title.strip()
+        if table_title and table_title.strip()
+        else "(titre non disponible)"
     )
     page_display = str(page) if isinstance(page, int) and page > 0 else "non disponible"
     return (
@@ -2195,7 +2328,9 @@ def _sort_analyzed_changes(
             else (2 if change.change_type == "deplacement" else 1)
         )
         section = (change.titre or "").lower()
-        page = change.page if isinstance(change.page, int) and change.page > 0 else 10**9
+        page = (
+            change.page if isinstance(change.page, int) and change.page > 0 else 10**9
+        )
         phrase = (change.phrase or "").lower()
         return (nouvelle_rank, change_rank, section, page, phrase)
 
@@ -2246,7 +2381,11 @@ def analyze_and_format_structural_changes_multi_section(
         page_t2 = tc.page_t2 or 0
 
         # Determiner la section basee sur la page
-        section_type = page_to_section_t2.get(page_t2) or page_to_section_t1.get(page_t1) or "unknown_section"
+        section_type = (
+            page_to_section_t2.get(page_t2)
+            or page_to_section_t1.get(page_t1)
+            or "unknown_section"
+        )
         section_label = SECTION_LABELS.get(section_type, section_type)
         table_number = tc.table_number
         table_title_display = tc.table_title
@@ -2323,7 +2462,12 @@ def analyze_and_format_structural_changes_multi_section(
     def get_table_title(table: Any) -> str:
         if isinstance(table, str):
             return table
-        return table.get("title", "") or table.get("table_title", "") or table.get("name", "") or ""
+        return (
+            table.get("title", "")
+            or table.get("table_title", "")
+            or table.get("name", "")
+            or ""
+        )
 
     # Tableaux entiers ajoutes (nouveaux dans T2)
     for table in result.tables_added:
@@ -2336,7 +2480,11 @@ def analyze_and_format_structural_changes_multi_section(
         section_label = SECTION_LABELS.get(section_type, "unknown_section")
 
         if table_number:
-            title = f"Tableau {table_number} - {title}" if title else f"Tableau {table_number}"
+            title = (
+                f"Tableau {table_number} - {title}"
+                if title
+                else f"Tableau {table_number}"
+            )
 
         raw_changes.append(
             {
@@ -2368,7 +2516,11 @@ def analyze_and_format_structural_changes_multi_section(
         section_label = SECTION_LABELS.get(section_type, "unknown_section")
 
         if table_number:
-            title = f"Tableau {table_number} - {title}" if title else f"Tableau {table_number}"
+            title = (
+                f"Tableau {table_number} - {title}"
+                if title
+                else f"Tableau {table_number}"
+            )
 
         raw_changes.append(
             {
@@ -2397,7 +2549,9 @@ def analyze_and_format_structural_changes_multi_section(
         for row in excluded:
             filter_result = row.get("filter_result")
             reason = (
-                getattr(filter_result, "exclusion_reason", None) if filter_result else None
+                getattr(filter_result, "exclusion_reason", None)
+                if filter_result
+                else None
             ) or "Regle ContentFilter"
             analyzed_result.changes.append(
                 analyzer._make_non_pertinent_change(row, f"Exclu par regle: {reason}")

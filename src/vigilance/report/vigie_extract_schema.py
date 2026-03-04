@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any, TypedDict
 
 from vigilance.models.table_models import TableArtifact
-from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
 SCHEMA_VERSION = "vigie_extract_v1"
 
@@ -41,6 +40,7 @@ SLUG_TO_CANONICAL: dict[str, str] = {v: k for k, v in CANONICAL_TO_SLUG.items()}
 # ---------------------------------------------------------------------------
 # TypedDict definitions (for documentation / IDE completion)
 # ---------------------------------------------------------------------------
+
 
 class FirstColumnEntry(TypedDict):
     row_idx: int
@@ -107,11 +107,31 @@ class VigieExtractPayload(TypedDict):
 # Text normalisation (mirrors section_taxonomy logic)
 # ---------------------------------------------------------------------------
 
+
+# Strip variant suffix after "Série/Series YYYY" to avoid OCR confusion (e.g. g vs 9)
+# "Série 2023-g(7)" and "Série 2023-9(7)" -> "serie 2023"
+_SERIES_SUFFIX_RE = re.compile(
+    r"(s[eé]ries?\s+\d{4})[-\s]*[a-z0-9]+(?:\(\d+\))?",
+    re.IGNORECASE,
+)
+
+
 def normalize_text(raw: str) -> str:
     """Accent-stripped, lower-cased, whitespace-collapsed normalisation."""
     text = unicodedata.normalize("NFD", raw or "")
     text = text.encode("ascii", "ignore").decode("utf-8")
     text = text.lower()
+    # Strip digits glued after closing paren (footnote ref from OCR)
+    # e.g. "amorti)3" -> "amorti)"
+    text = re.sub(r"\)\s*\d{1,3}", ")", text)
+    # Strip 1-2 bare trailing digits glued to a letter (footnote ref)
+    # e.g. "region2" -> "region", but "cet1", "tier1" kept (< 5 letters)
+    text = re.sub(r"(?<=[a-z]{5})\d{1,2}(?=\W|$)", "", text)
+    # Strip note reference patterns: (1), [2]
+    text = re.sub(r"\(\d+\)", "", text)
+    text = re.sub(r"\[\d+\]", "", text)
+    # Strip series variant suffixes before general cleanup
+    text = _SERIES_SUFFIX_RE.sub(r"\1", text)
     text = re.sub(r"[^a-z0-9]+", " ", text)
     return " ".join(text.split()).strip()
 
@@ -120,18 +140,62 @@ def normalize_text(raw: str) -> str:
 # Footnote-reference detection in indicator labels
 # ---------------------------------------------------------------------------
 
-_NOTE_REF_RE = re.compile(r"\((\d+)\)\s*$|\s+\((\d+)\)|\s*\((\d+)\)")
+# Extended pattern to capture all footnote marker formats from Vision extraction:
+# - Numeric parentheses: (1), (2), (3)
+# - Superscript digits: ¹, ², ³, ⁴, ⁵, ⁶, ⁷, ⁸, ⁹
+# - Asterisk/dagger: *, †, ‡
+# - Letter markers: (a), (b), a), b)
+_NOTE_REF_RE = re.compile(
+    r"\(([\d]+)\)"  # (1), (2), (12)
+    r"|([¹²³⁴⁵⁶⁷⁸⁹⁰]+)"  # superscript digits
+    r"|([\*†‡])"  # *, †, ‡
+    r"|\(([a-zA-Z])\)"  # (a), (b)
+    r"|\b([a-z])\)"  # a), b) at word boundary
+    r"|(?<=\))(\d{1,3})"  # digits glued after ): amorti)3
+)
+
+# Map superscript digits to normal digits for normalization
+_SUPERSCRIPT_MAP = str.maketrans("¹²³⁴⁵⁶⁷⁸⁹⁰", "1234567890")
+
 
 def _extract_note_refs(label: str) -> tuple[str, list[str]]:
-    """Return (cleaned_text, [ref_markers]) from a label like 'Ratio (1)'."""
+    """Return (cleaned_text, [ref_markers]) from a label like 'Ratio (1)' or 'Ratio¹'.
+
+    Handles multiple marker formats from Vision extraction:
+    - (1), (2) -> '1', '2'
+    - ¹, ² -> '1', '2'
+    - *, †, ‡ -> '*', '†', '‡'
+    - (a), a) -> 'a'
+    """
     refs: list[str] = []
     cleaned = label
-    for m in _NOTE_REF_RE.finditer(label):
-        ref = m.group(1) or m.group(2) or m.group(3)
+
+    # Pre-pass: strip bare trailing digits glued to letters (min 5 letters).
+    # e.g. "Région2" -> "Région" with ref '2', but "CET1"/"Tier1" stay.
+    _bare_trailing = re.compile(r"(?<=[a-zA-Z]{5})(\d{1,2})$")
+    _bt = _bare_trailing.search(cleaned)
+    if _bt:
+        refs.append(_bt.group(1))
+        cleaned = cleaned[: _bt.start()] + cleaned[_bt.end() :]
+
+    for m in _NOTE_REF_RE.finditer(cleaned):
+        # Find which group matched (groups 1-6)
+        ref = (
+            m.group(1)
+            or m.group(2)
+            or m.group(3)
+            or m.group(4)
+            or m.group(5)
+            or m.group(6)
+        )
         if ref:
+            # Normalize superscript digits to regular digits
+            if m.group(2):  # superscript group
+                ref = ref.translate(_SUPERSCRIPT_MAP)
             refs.append(ref)
     if refs:
-        cleaned = _NOTE_REF_RE.sub("", label).strip()
+        cleaned = _NOTE_REF_RE.sub("", cleaned).strip()
+        # Also strip the bare trailing digit (already removed from cleaned above)
     return cleaned, refs
 
 
@@ -139,16 +203,20 @@ def _extract_note_refs(label: str) -> tuple[str, list[str]]:
 # First-column parsing
 # ---------------------------------------------------------------------------
 
+
 def parse_first_column(indicators: list[str]) -> list[FirstColumnEntry]:
     """Transform raw first_column_indicators into structured entries."""
     entries: list[FirstColumnEntry] = []
     for idx, raw in enumerate(indicators):
         text, note_refs = _extract_note_refs(raw.strip())
+        # Use local aggressive normalize_text to guarantee accents,
+        # punctuation, and extra spaces are stripped for matching.
+        text_norm = normalize_text(text)
         entries.append(
             FirstColumnEntry(
                 row_idx=idx,
                 text=text,
-                text_norm=normalize_indicator_for_comparison(text),
+                text_norm=text_norm,
                 note_refs=note_refs,
             )
         )
@@ -161,6 +229,7 @@ def parse_first_column(indicators: list[str]) -> list[FirstColumnEntry]:
 
 _FOOTNOTE_MARKER_RE = re.compile(r"^\s*\(?(\d+)\)?\s*[.:\-–—]?\s*")
 
+
 def parse_footnotes(raw_footnotes: list[str]) -> list[FootnoteEntry]:
     """Transform raw footnote strings into structured entries."""
     entries: list[FootnoteEntry] = []
@@ -170,7 +239,7 @@ def parse_footnotes(raw_footnotes: list[str]) -> list[FootnoteEntry]:
             continue
         m = _FOOTNOTE_MARKER_RE.match(raw_stripped)
         marker = m.group(1) if m else ""
-        text = raw_stripped[m.end():].strip() if m else raw_stripped
+        text = raw_stripped[m.end() :].strip() if m else raw_stripped
         entries.append(
             FootnoteEntry(
                 marker=marker,
@@ -186,6 +255,7 @@ def parse_footnotes(raw_footnotes: list[str]) -> list[FootnoteEntry]:
 # ---------------------------------------------------------------------------
 # Table UID generation
 # ---------------------------------------------------------------------------
+
 
 def make_table_uid(
     bank_code: str,
@@ -206,6 +276,7 @@ def make_table_uid(
 # Features computation
 # ---------------------------------------------------------------------------
 
+
 def compute_features(first_column: list[FirstColumnEntry]) -> TableFeatures:
     """Compute table features from the parsed first column."""
     norms = sorted(entry["text_norm"] for entry in first_column if entry["text_norm"])
@@ -221,6 +292,7 @@ def compute_features(first_column: list[FirstColumnEntry]) -> TableFeatures:
 # ---------------------------------------------------------------------------
 # Section slug resolution
 # ---------------------------------------------------------------------------
+
 
 def canonical_to_slug(canonical: str) -> str:
     """Map a canonical section key to the output slug."""
@@ -238,6 +310,7 @@ def section_title_for_slug(slug: str, evidence_title: str | None = None) -> str:
 # Extraction metadata helpers
 # ---------------------------------------------------------------------------
 
+
 def compute_pdf_hash(pdf_path: str | Path) -> str:
     return "sha256:" + hashlib.sha256(Path(pdf_path).read_bytes()).hexdigest()
 
@@ -245,6 +318,7 @@ def compute_pdf_hash(pdf_path: str | Path) -> str:
 def get_docling_version() -> str:
     try:
         import docling
+
         return getattr(docling, "__version__", "unknown")
     except ImportError:
         return "unknown"
@@ -253,6 +327,7 @@ def get_docling_version() -> str:
 # ---------------------------------------------------------------------------
 # Builder: assemble the full vigie_extract_v1 payload
 # ---------------------------------------------------------------------------
+
 
 def build_vigie_extract(
     *,
@@ -368,6 +443,7 @@ def build_vigie_extract(
 # Writer
 # ---------------------------------------------------------------------------
 
+
 def write_vigie_extract(
     out_dir: str | Path,
     payload: VigieExtractPayload,
@@ -395,6 +471,7 @@ def write_vigie_extract(
 # ---------------------------------------------------------------------------
 # Loader: vigie_extract_v1 JSON -> list[TableArtifact]
 # ---------------------------------------------------------------------------
+
 
 def _slug_to_canonical(slug: str) -> str:
     """Reverse-map an output slug back to the canonical section key."""

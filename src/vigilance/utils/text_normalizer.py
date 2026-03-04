@@ -20,7 +20,12 @@ class TextNormalizer:
     ) -> str:
         value = text or ""
         if remove_notes:
-            value = re.sub(r"\s*(?:\(\d+\)|\[\d+\]|\*+)\s*", " ", value)
+            # Extended: strip all footnote marker formats
+            value = re.sub(
+                r"\s*(?:\(\d+\)|\[\d+\]|\([a-zA-Z]\)|[a-zA-Z]\)|[\*†‡]+|[¹²³⁴⁵⁶⁷⁸⁹⁰]+)\s*",
+                " ",
+                value,
+            )
         value = normalize_for_matching(value)
         if not lowercase:
             value = value.upper()

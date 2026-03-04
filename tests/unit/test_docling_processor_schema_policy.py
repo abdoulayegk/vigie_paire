@@ -54,29 +54,7 @@ def _build_processor_with_fake_doc(monkeypatch, pages: list[int]) -> DoclingProc
     processor = DoclingProcessor(use_vision_fallback=False, openai_api_key="test-key")
     processor._converter = fake_converter
     processor._initialized = True
-    processor._extract_table_headers = lambda table: ["Col1"]  # type: ignore[method-assign]
-    processor._extract_table_rows = lambda table: [["Indic", "1"]]  # type: ignore[method-assign]
-    processor._assess_table_quality = lambda headers, rows: 1.0  # type: ignore[method-assign]
-    processor._find_table_title = lambda table: "Tableau X"  # type: ignore[method-assign]
-    processor._resolve_title_metadata_from_lines = (  # type: ignore[method-assign]
-        lambda title_lines, first_row_cells=None: {
-            "title": "Tableau X",
-            "title_raw": "Tableau X",
-            "table_number": None,
-            "unit_context": None,
-            "resolution_method": "caption",
-        }
-    )
-    processor._extract_table_footnotes = lambda table: []  # type: ignore[method-assign]
-    processor._collect_first_column_indicators = (  # type: ignore[method-assign]
-        lambda rows: (["Indic"], ["indic"], {})
-    )
-    processor._enrich_tables_with_titles = (  # type: ignore[method-assign]
-        lambda tables, pdf_path: tables
-    )
-    processor._enrich_tables_with_context = (  # type: ignore[method-assign]
-        lambda tables, pdf_path: tables
-    )
+    # Vision-only path: no Docling content helpers are called; only Vision extract runs.
     processor._associate_tables_with_sections = (  # type: ignore[method-assign]
         lambda tables, text_content: tables
     )

@@ -1,4 +1,10 @@
-"""Gating logic to decide when Vision fallback is warranted for table extraction."""
+"""Gating logic to decide when Vision fallback is warranted for table extraction.
+
+DEPRECATED (Steps 2+3 refactor): is_table_extraction_suspect() is no longer called
+in the primary pipeline. Vision is now the sole content source for all tables, so
+there is no Docling-quality-based gating. This file is kept to avoid import errors
+from any external callers. Do not add new call sites.
+"""
 
 from __future__ import annotations
 

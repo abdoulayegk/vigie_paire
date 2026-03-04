@@ -16,6 +16,9 @@ from app.review_models import (
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
     CHANGE_TYPE_UNCERTAIN,
+    EVENT_TYPE_MATCHED_PAIR,
+    EVENT_TYPE_TABLE_ADDED,
+    EVENT_TYPE_TABLE_REMOVED,
     REVIEW_STATUS_APPROVED,
     REVIEW_STATUS_PENDING,
     REVIEW_STATUS_REJECTED,
@@ -158,7 +161,9 @@ def table_display_label(item: dict) -> str:
     if table_num:
         page_part = f" (p.{page})" if page is not None else ""
         section_part = f" - {section}" if section else ""
-        return f"{prefix} {table_num}{page_part}{section_part}" or f"{prefix} {table_num}"
+        return (
+            f"{prefix} {table_num}{page_part}{section_part}" or f"{prefix} {table_num}"
+        )
     if has_title:
         return f"{prefix}: {title}"
     if page is not None and section:
@@ -210,11 +215,17 @@ def _indicator_row_content(ind: dict, change_type: str) -> html.Div | html.Span:
             return html.Div(
                 [
                     html.Div(
-                        [html.Small("T1: ", className="fw-bold text-danger"), html.Small(old_val or "-")],
+                        [
+                            html.Small("T1: ", className="fw-bold text-danger"),
+                            html.Small(old_val or "-"),
+                        ],
                         className="mb-0",
                     ),
                     html.Div(
-                        [html.Small("T2: ", className="fw-bold text-success"), html.Small(new_val or "-")],
+                        [
+                            html.Small("T2: ", className="fw-bold text-success"),
+                            html.Small(new_val or "-"),
+                        ],
                         className="mb-0",
                     ),
                 ],
@@ -259,7 +270,12 @@ def _bbox_normalized_for_overlay(bbox: list | None) -> list[float] | None:
     if not bbox or not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
         return None
     try:
-        l_, top, r, bottom = float(bbox[0]), float(bbox[1]), float(bbox[2]), float(bbox[3])
+        l_, top, r, bottom = (
+            float(bbox[0]),
+            float(bbox[1]),
+            float(bbox[2]),
+            float(bbox[3]),
+        )
     except (TypeError, ValueError):
         return None
     if not (0 <= l_ <= 1 and 0 <= top <= 1 and 0 <= r <= 1 and 0 <= bottom <= 1):
@@ -273,6 +289,7 @@ def _bbox_normalized_for_overlay(bbox: list | None) -> list[float] | None:
 # Proof images section (table-scoped, stable across indicator navigation)
 # ---------------------------------------------------------------------------
 
+
 def build_proofs_section(
     item: dict,
     img_t1_b64: str | None,
@@ -285,7 +302,11 @@ def build_proofs_section(
 
     def _img_card(b64, label, placeholder=None, bbox_norm=None, side: str = "t1"):
         if not b64:
-            msg = placeholder if placeholder else t("image_unavailable", "Image non disponible")
+            msg = (
+                placeholder
+                if placeholder
+                else t("image_unavailable", "Image non disponible")
+            )
             return dbc.Card(
                 dbc.CardBody(html.P(msg, className="text-muted text-center small")),
                 className="h-100 bg-light border-0",
@@ -311,7 +332,11 @@ def build_proofs_section(
             bbox_side_class = f"proof-bbox-{side}"
             wrapper = html.Div(
                 [img_el, overlay],
-                style={"position": "relative", "display": "inline-block", "width": "100%"},
+                style={
+                    "position": "relative",
+                    "display": "inline-block",
+                    "width": "100%",
+                },
                 className=f"proof-img-with-bbox {bbox_side_class}",
             )
             return dbc.Card(
@@ -344,25 +369,55 @@ def build_proofs_section(
         return html.Div([badge, card], className=card_class)
 
     change_type = item.get("change_type", "")
-    bbox_t1_norm = _bbox_normalized_for_overlay(item.get("bbox_t1")) if mode_full else None
-    bbox_t2_norm = _bbox_normalized_for_overlay(item.get("bbox_t2")) if mode_full else None
+    bbox_t1_norm = (
+        _bbox_normalized_for_overlay(item.get("bbox_t1")) if mode_full else None
+    )
+    bbox_t2_norm = (
+        _bbox_normalized_for_overlay(item.get("bbox_t2")) if mode_full else None
+    )
 
     if change_type == CHANGE_TYPE_TABLE_ADDED:
-        card_t1 = _img_card(None, "T1 (Ancien)", placeholder=t("no_table_added_t2", "Aucun tableau (ajoute en T2)"))
-        card_t2 = _img_card(img_t2_b64, "T2 (Nouveau)", bbox_norm=bbox_t2_norm, side="t2")
+        card_t1 = _img_card(
+            None,
+            "T1 (Ancien)",
+            placeholder=t("no_table_added_t2", "Aucun tableau (ajoute en T2)"),
+        )
+        card_t2 = _img_card(
+            img_t2_b64, "T2 (Nouveau)", bbox_norm=bbox_t2_norm, side="t2"
+        )
     elif change_type == CHANGE_TYPE_TABLE_REMOVED:
-        card_t1 = _img_card(img_t1_b64, "T1 (Ancien)", bbox_norm=bbox_t1_norm, side="t1")
-        card_t2 = _img_card(None, "T2 (Nouveau)", placeholder=t("no_table_removed_t2", "Aucun tableau (supprime en T2)"))
+        card_t1 = _img_card(
+            img_t1_b64, "T1 (Ancien)", bbox_norm=bbox_t1_norm, side="t1"
+        )
+        card_t2 = _img_card(
+            None,
+            "T2 (Nouveau)",
+            placeholder=t("no_table_removed_t2", "Aucun tableau (supprime en T2)"),
+        )
     else:
-        card_t1 = _img_card(img_t1_b64, "T1 (Ancien)", bbox_norm=bbox_t1_norm, side="t1")
-        card_t2 = _img_card(img_t2_b64, "T2 (Nouveau)", bbox_norm=bbox_t2_norm, side="t2")
+        card_t1 = _img_card(
+            img_t1_b64, "T1 (Ancien)", bbox_norm=bbox_t1_norm, side="t1"
+        )
+        card_t2 = _img_card(
+            img_t2_b64, "T2 (Nouveau)", bbox_norm=bbox_t2_norm, side="t2"
+        )
 
     col_t1 = dbc.Col(
-        _proof_wrapper(card_t1, flag_state["t1_class"], flag_state["badge_t1"], flag_state["badge_class_t1"]),
+        _proof_wrapper(
+            card_t1,
+            flag_state["t1_class"],
+            flag_state["badge_t1"],
+            flag_state["badge_class_t1"],
+        ),
         width=6,
     )
     col_t2 = dbc.Col(
-        _proof_wrapper(card_t2, flag_state["t2_class"], flag_state["badge_t2"], flag_state["badge_class_t2"]),
+        _proof_wrapper(
+            card_t2,
+            flag_state["t2_class"],
+            flag_state["badge_t2"],
+            flag_state["badge_class_t2"],
+        ),
         width=6,
     )
 
@@ -374,7 +429,8 @@ def build_proofs_section(
                     id="proof-display-mode",
                     options=[
                         {"label": "Crop (focus)", "value": "crop"},
-                        {"label": "Page complete + bbox (contexte)", "value": "full"},
+                        {"label": "Page complète + bbox", "value": "full"},
+                        {"label": "Note de bas de table", "value": "footnote"},
                     ],
                     value=(proof_display_mode or "crop"),
                     inline=True,
@@ -395,10 +451,195 @@ def build_proofs_section(
 
 
 # ---------------------------------------------------------------------------
-# Main detail panel (indicator-scoped)
+# GenAI analysis block (shared by table-only and indicator-diff views)
 # ---------------------------------------------------------------------------
 
-def build_review_detail(
+
+def _build_genai_analysis_section(item: dict) -> html.Div:
+    """Build the GenAI analysis block for display in the detail panel."""
+    _REL_DISPLAY = {
+        "REGLEMENTAIRE": "Reglementaire",
+        "NON_SIGNIFICATIF": "Non significatif",
+        "STRUCTUREL": "Structurel",
+        "NOUVELLE_DIVULGATION": "Nouvelle divulgation",
+        "NON_CLASSIFIE": "Non classifie",
+    }
+    _REL_COLORS = {
+        "REGLEMENTAIRE": "danger",
+        "NON_SIGNIFICATIF": "secondary",
+        "STRUCTUREL": "primary",
+        "NOUVELLE_DIVULGATION": "info",
+        "NON_CLASSIFIE": "light",
+    }
+    _RISK_DISPLAY = {"ELEVE": "Eleve", "MODERE": "Modere", "FAIBLE": "Faible"}
+    _RISK_COLORS = {"ELEVE": "danger", "MODERE": "warning", "FAIBLE": "success"}
+    ga = item.get("genai_analysis") or {}
+    if not ga.get("relevance"):
+        return html.Div()
+    rel = ga.get("relevance", "")
+    risk = ga.get("risk_level", "")
+    conf = ga.get("confidence", 0.0)
+    just = ga.get("justification", "")
+    rel_label = _REL_DISPLAY.get(rel, rel)
+    risk_label = _RISK_DISPLAY.get(risk, risk)
+    return html.Div(
+        [
+            html.H6("Analyse GenAI", className="text-muted small mb-2"),
+            html.Div(
+                [
+                    dbc.Badge(
+                        rel_label,
+                        color=_REL_COLORS.get(rel, "secondary"),
+                        className="me-2",
+                    ),
+                    dbc.Badge(
+                        f"Risque : {risk_label}",
+                        color=_RISK_COLORS.get(risk, "secondary"),
+                        className="me-2",
+                    ),
+                    html.Small(f"Confiance : {conf:.0%}", className="text-muted"),
+                ],
+                className="d-flex align-items-center mb-2",
+            ),
+            html.Div(
+                html.Small(just, className="text-muted fst-italic"),
+                className="p-2 bg-light rounded",
+            )
+            if just
+            else html.Div(),
+        ],
+        className="mb-3 p-2 border rounded",
+    )
+
+
+# ---------------------------------------------------------------------------
+# WHOLE-TABLE view: proof + GenAI + single "Validate table" action. No indicator list.
+# ---------------------------------------------------------------------------
+
+
+def render_table_only_view(
+    item: dict,
+    img_t1_b64: str | None,
+    img_t2_b64: str | None,
+    current_idx: int,
+    total_items: int,
+    proof_display_mode: str = "crop",
+    show_proofs: bool = True,
+) -> html.Div:
+    """Detail panel for table_added / table_removed. Unit of validation is the TABLE.
+    Displays: table proof, GenAI analysis, single Validate/Reject table action.
+    Must NOT display: Indicateurs (N), indicator rows (AJOUT/SUPPRESSION)."""
+    table_display = table_display_label(item)
+    page_t1 = item.get("page_t1")
+    page_t2 = item.get("page_t2")
+    if page_t1 is None and page_t2 is not None:
+        page_text = f"Page T2: p.{page_t2}"
+    elif page_t2 is None and page_t1 is not None:
+        page_text = f"Page T1: p.{page_t1}"
+    else:
+        page_t1_str = str(page_t1) if page_t1 is not None else "-"
+        page_t2_str = str(page_t2) if page_t2 is not None else "-"
+        page_text = f"Pages: T1: p.{page_t1_str}, T2: p.{page_t2_str}"
+    confidence = item.get("confidence", 0.0)
+    review_status = item.get("review_status", REVIEW_STATUS_PENDING)
+
+    header_row = dbc.Row(
+        [
+            dbc.Col(
+                [
+                    html.H5(
+                        t("detail_changement", "Detail du Changement"), className="mb-1"
+                    ),
+                    html.Div(
+                        html.Span(
+                            f"Tableau {current_idx + 1}/{total_items}",
+                            className="me-3 fw-bold",
+                        ),
+                        className="small text-muted mb-2",
+                    ),
+                    html.Div(
+                        [
+                            html.Span(table_display, className="d-block fw-semibold"),
+                            html.Small(page_text, className="text-muted"),
+                        ],
+                        className="p-2 bg-light rounded",
+                    ),
+                ],
+                width=10,
+            ),
+            dbc.Col(
+                html.H3(f"{confidence:.2f}", className="text-end text-muted"),
+                width=2,
+                className="d-flex align-items-center justify-content-end",
+            ),
+        ],
+        className="mb-3",
+    )
+
+    proofs_section = (
+        build_proofs_section(
+            item=item,
+            img_t1_b64=img_t1_b64,
+            img_t2_b64=img_t2_b64,
+            proof_display_mode=proof_display_mode,
+        )
+        if show_proofs
+        else html.Div()
+    )
+    genai_section = _build_genai_analysis_section(item)
+    decision_section = dbc.Card(
+        dbc.CardBody(
+            [
+                html.H6(
+                    t("decision_analyst", "Decision de l'Analyste"), className="mb-3"
+                ),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                dbc.Button(
+                                    [
+                                        html.I(className="bi bi-check-lg me-2"),
+                                        t("btn_approve", "Valider le tableau"),
+                                    ],
+                                    id="btn-approve",
+                                    color="success"
+                                    if review_status == REVIEW_STATUS_APPROVED
+                                    else "outline-success",
+                                    className="me-2 mb-2 w-100 text-start",
+                                ),
+                                dbc.Button(
+                                    [
+                                        html.I(className="bi bi-x-lg me-2"),
+                                        t("btn_reject", "Rejeter le tableau"),
+                                    ],
+                                    id="btn-reject",
+                                    color="danger"
+                                    if review_status == REVIEW_STATUS_REJECTED
+                                    else "outline-danger",
+                                    className="w-100 text-start",
+                                ),
+                            ],
+                            width=12,
+                        ),
+                    ]
+                ),
+            ]
+        ),
+        className="bg-light border-0",
+    )
+    return html.Div(
+        [header_row, proofs_section, genai_section, decision_section],
+        className="h-100 d-flex flex-column",
+    )
+
+
+# ---------------------------------------------------------------------------
+# INDICATOR-DIFF view: indicator list (AJOUT/SUPPRESSION/MODIF) + optional footnotes. Only for matched_pair / footnote_only.
+# ---------------------------------------------------------------------------
+
+
+def render_indicator_diff_view(
     item: dict,
     img_t1_b64: str | None,
     img_t2_b64: str | None,
@@ -408,8 +649,8 @@ def build_review_detail(
     indicator_idx: int = 0,
     show_proofs: bool = True,
 ) -> html.Div:
-    """Build the right-side review detail panel with per-indicator validation."""
-
+    """Detail panel for matched_pair / footnote_only. Unit of validation is INDICATOR.
+    Displays: indicator list (AJOUT/SUPPRESSION/MODIF), optional footnotes, per-indicator decisions."""
     table_display = table_display_label(item)
     page_t1 = item.get("page_t1")
     page_t2 = item.get("page_t2")
@@ -426,7 +667,9 @@ def build_review_detail(
     indicators = item.get("indicators", [])
     n_indicators = len(indicators)
 
-    n_decided = sum(1 for ind in indicators if ind.get("review_status", "pending") != "pending")
+    n_decided = sum(
+        1 for ind in indicators if ind.get("review_status", "pending") != "pending"
+    )
     all_decided = n_decided == n_indicators if n_indicators else True
 
     if n_indicators:
@@ -437,20 +680,31 @@ def build_review_detail(
         current_ind = None
         current_ind_status = "pending"
 
-    progress_text = f"Indicateur {indicator_idx + 1}/{n_indicators}" if n_indicators else "Aucun indicateur"
+    progress_text = (
+        f"Indicateur {indicator_idx + 1}/{n_indicators}"
+        if n_indicators
+        else "Aucun indicateur"
+    )
 
     header_row = dbc.Row(
         [
             dbc.Col(
                 [
-                    html.H5(t("detail_changement", "Detail du Changement"), className="mb-1"),
+                    html.H5(
+                        t("detail_changement", "Detail du Changement"), className="mb-1"
+                    ),
                     html.Div(
                         [
-                            html.Span(f"Tableau {current_idx + 1}/{total_items}", className="me-3 fw-bold"),
+                            html.Span(
+                                f"Tableau {current_idx + 1}/{total_items}",
+                                className="me-3 fw-bold",
+                            ),
                             html.Span(
                                 f" | {progress_text} ({n_decided}/{n_indicators} decides)",
                                 className="text-primary fw-semibold",
-                            ) if n_indicators else html.Span(),
+                            )
+                            if n_indicators
+                            else html.Span(),
                         ],
                         className="small text-muted mb-2",
                     ),
@@ -478,7 +732,7 @@ def build_review_detail(
         name = ind.get("name", "")
         change_type = ind.get("type", "")
         ind_status = ind.get("review_status", "pending")
-        is_current = (i == indicator_idx)
+        is_current = i == indicator_idx
 
         row_class = "d-flex align-items-center py-1 border-bottom px-2 rounded"
         if is_current:
@@ -491,7 +745,9 @@ def build_review_detail(
                     _indicator_status_icon(ind_status),
                     _indicator_badge(change_type),
                     row_content,
-                    html.I(className="bi bi-chevron-right text-primary") if is_current else html.Span(),
+                    html.I(className="bi bi-chevron-right text-primary")
+                    if is_current
+                    else html.Span(),
                 ],
                 id={"type": "indicator-item", "index": i},
                 className=row_class,
@@ -522,8 +778,13 @@ def build_review_detail(
             html.H6(section_title, className="text-muted small mb-2"),
             table_done_banner,
             html.Div(
-                indicator_rows if indicator_rows else [
-                    html.P(t("no_indicators", "Aucun indicateur"), className="text-muted small")
+                indicator_rows
+                if indicator_rows
+                else [
+                    html.P(
+                        t("no_indicators", "Aucun indicateur"),
+                        className="text-muted small",
+                    )
                 ],
                 className="mb-3",
                 style={"maxHeight": "220px", "overflowY": "auto"},
@@ -556,8 +817,12 @@ def build_review_detail(
                     [
                         dbc.Badge(badge_label, color=badge_color, className="me-2"),
                         html.Strong(f"[{ref}]", className="me-2"),
-                        dbc.Badge(significance, color="secondary", className="me-1") if significance else None,
-                        dbc.Badge(category, color="secondary", className="me-1") if category else None,
+                        dbc.Badge(significance, color="secondary", className="me-1")
+                        if significance
+                        else None,
+                        dbc.Badge(category, color="secondary", className="me-1")
+                        if category
+                        else None,
                     ],
                     className="d-flex align-items-center mb-1",
                 ),
@@ -565,14 +830,20 @@ def build_review_detail(
             if old_text:
                 detail_children.append(
                     html.Div(
-                        [html.Small("T1: ", className="fw-bold text-danger"), html.Small(old_text[:300])],
+                        [
+                            html.Small("T1: ", className="fw-bold text-danger"),
+                            html.Small(old_text[:300]),
+                        ],
                         className="ms-3 mb-1 bg-light p-1 rounded",
                     )
                 )
             if new_text:
                 detail_children.append(
                     html.Div(
-                        [html.Small("T2: ", className="fw-bold text-success"), html.Small(new_text[:300])],
+                        [
+                            html.Small("T2: ", className="fw-bold text-success"),
+                            html.Small(new_text[:300]),
+                        ],
                         className="ms-3 mb-1 bg-light p-1 rounded",
                     )
                 )
@@ -584,7 +855,10 @@ def build_review_detail(
         html.Div(
             [
                 html.H6("Detail des notes", className="text-muted small mb-2"),
-                html.Div(footnote_detail_rows, style={"maxHeight": "200px", "overflowY": "auto"}),
+                html.Div(
+                    footnote_detail_rows,
+                    style={"maxHeight": "200px", "overflowY": "auto"},
+                ),
             ],
             className="mb-3",
         )
@@ -592,9 +866,16 @@ def build_review_detail(
         else html.Div()
     )
 
-    proofs_section = build_proofs_section(
-        item=item, img_t1_b64=img_t1_b64, img_t2_b64=img_t2_b64, proof_display_mode=proof_display_mode,
-    ) if show_proofs else html.Div()
+    proofs_section = (
+        build_proofs_section(
+            item=item,
+            img_t1_b64=img_t1_b64,
+            img_t2_b64=img_t2_b64,
+            proof_display_mode=proof_display_mode,
+        )
+        if show_proofs
+        else html.Div()
+    )
 
     decision_indicator_label = html.Div()
     if current_ind is not None:
@@ -610,22 +891,34 @@ def build_review_detail(
     decision_section = dbc.Card(
         dbc.CardBody(
             [
-                html.H6(t("decision_analyst", "Decision de l'Analyste"), className="mb-3"),
+                html.H6(
+                    t("decision_analyst", "Decision de l'Analyste"), className="mb-3"
+                ),
                 decision_indicator_label,
                 dbc.Row(
                     [
                         dbc.Col(
                             [
                                 dbc.Button(
-                                    [html.I(className="bi bi-check-lg me-2"), t("btn_approve", "Valider")],
+                                    [
+                                        html.I(className="bi bi-check-lg me-2"),
+                                        t("btn_approve", "Valider"),
+                                    ],
                                     id="btn-approve",
-                                    color="success" if current_ind_status == REVIEW_STATUS_APPROVED else "outline-success",
+                                    color="success"
+                                    if current_ind_status == REVIEW_STATUS_APPROVED
+                                    else "outline-success",
                                     className="me-2 mb-2 w-100 text-start",
                                 ),
                                 dbc.Button(
-                                    [html.I(className="bi bi-x-lg me-2"), t("btn_reject", "Rejeter")],
+                                    [
+                                        html.I(className="bi bi-x-lg me-2"),
+                                        t("btn_reject", "Rejeter"),
+                                    ],
                                     id="btn-reject",
-                                    color="danger" if current_ind_status == REVIEW_STATUS_REJECTED else "outline-danger",
+                                    color="danger"
+                                    if current_ind_status == REVIEW_STATUS_REJECTED
+                                    else "outline-danger",
                                     className="w-100 text-start",
                                 ),
                             ],
@@ -635,7 +928,9 @@ def build_review_detail(
                             [
                                 dbc.Textarea(
                                     id="review-comment",
-                                    placeholder=t("comment_optional", "Commentaire (Optionnel)"),
+                                    placeholder=t(
+                                        "comment_optional", "Commentaire (Optionnel)"
+                                    ),
                                     value=comment,
                                     rows=3,
                                     className="mb-2",
@@ -662,61 +957,8 @@ def build_review_detail(
         className="bg-light border-0",
     )
 
-    # Signaux de qualite section removed from UI (overlap, vision flags, extraction confidence, etc.)
     match_metadata_section = html.Div()
-
-    _REL_DISPLAY = {
-        "REGLEMENTAIRE": "Reglementaire",
-        "NON_SIGNIFICATIF": "Non significatif",
-        "STRUCTUREL": "Structurel",
-        "NOUVELLE_DIVULGATION": "Nouvelle divulgation",
-        "NON_CLASSIFIE": "Non classifie",
-    }
-    _REL_COLORS = {
-        "REGLEMENTAIRE": "danger",
-        "NON_SIGNIFICATIF": "secondary",
-        "STRUCTUREL": "primary",
-        "NOUVELLE_DIVULGATION": "info",
-        "NON_CLASSIFIE": "light",
-    }
-    _RISK_DISPLAY = {
-        "ELEVE": "Eleve",
-        "MODERE": "Modere",
-        "FAIBLE": "Faible",
-    }
-    _RISK_COLORS = {
-        "ELEVE": "danger",
-        "MODERE": "warning",
-        "FAIBLE": "success",
-    }
-
-    genai_analysis_section = html.Div()
-    ga = item.get("genai_analysis") or {}
-    if ga.get("relevance"):
-        rel = ga.get("relevance", "")
-        risk = ga.get("risk_level", "")
-        conf = ga.get("confidence", 0.0)
-        just = ga.get("justification", "")
-        rel_label = _REL_DISPLAY.get(rel, rel)
-        risk_label = _RISK_DISPLAY.get(risk, risk)
-        genai_analysis_section = html.Div(
-            [
-                html.H6("Analyse GenAI", className="text-muted small mb-2"),
-                html.Div(
-                    [
-                        dbc.Badge(rel_label, color=_REL_COLORS.get(rel, "secondary"), className="me-2"),
-                        dbc.Badge(f"Risque : {risk_label}", color=_RISK_COLORS.get(risk, "secondary"), className="me-2"),
-                        html.Small(f"Confiance : {conf:.0%}", className="text-muted"),
-                    ],
-                    className="d-flex align-items-center mb-2",
-                ),
-                html.Div(
-                    html.Small(just, className="text-muted fst-italic"),
-                    className="p-2 bg-light rounded",
-                ) if just else html.Div(),
-            ],
-            className="mb-3 p-2 border rounded",
-        )
+    genai_analysis_section = _build_genai_analysis_section(item)
 
     return html.Div(
         [
@@ -729,4 +971,45 @@ def build_review_detail(
             decision_section,
         ],
         className="h-100 d-flex flex-column",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Main detail panel: branch by event_type (business rule)
+# ---------------------------------------------------------------------------
+
+
+def build_review_detail(
+    item: dict,
+    img_t1_b64: str | None,
+    img_t2_b64: str | None,
+    current_idx: int,
+    total_items: int,
+    proof_display_mode: str = "crop",
+    indicator_idx: int = 0,
+    show_proofs: bool = True,
+) -> html.Div:
+    """Build the right-side review detail panel. Dispatches by event_type:
+    - table_added / table_removed: table-only view (proof + GenAI + single Validate table). No indicator list.
+    - matched_pair / footnote_only: indicator-diff view (Indicateurs (N), AJOUT/SUPPRESSION, per-indicator decisions)."""
+    event_type = (item.get("event_type") or "").strip() or EVENT_TYPE_MATCHED_PAIR
+    if event_type in (EVENT_TYPE_TABLE_ADDED, EVENT_TYPE_TABLE_REMOVED):
+        return render_table_only_view(
+            item=item,
+            img_t1_b64=img_t1_b64,
+            img_t2_b64=img_t2_b64,
+            current_idx=current_idx,
+            total_items=total_items,
+            proof_display_mode=proof_display_mode,
+            show_proofs=show_proofs,
+        )
+    return render_indicator_diff_view(
+        item=item,
+        img_t1_b64=img_t1_b64,
+        img_t2_b64=img_t2_b64,
+        current_idx=current_idx,
+        total_items=total_items,
+        proof_display_mode=proof_display_mode,
+        indicator_idx=indicator_idx,
+        show_proofs=show_proofs,
     )

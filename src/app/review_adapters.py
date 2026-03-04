@@ -15,10 +15,12 @@ from app.review_models import (
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
     CHANGE_TYPE_UNCERTAIN,
+    EVENT_TYPE_FOOTNOTE_ONLY,
+    EVENT_TYPE_MATCHED_PAIR,
+    EVENT_TYPE_TABLE_ADDED,
+    EVENT_TYPE_TABLE_REMOVED,
     ReviewItem,
 )
-from app.ui_indicators import get_display_indicators
-from vigilance.utils.matching_normalizer import _classify_excluded_line
 
 
 def _make_change_id(prefix: str, index: int) -> str:
@@ -116,6 +118,7 @@ def build_review_items_from_indicator_result(
                     removed_indicators=[],
                     genai_analysis=comp.get("genai_analysis") or {},
                     match_metadata=comp.get("match_metadata") or {},
+                    event_type=EVENT_TYPE_MATCHED_PAIR,
                 )
             )
             seq += 1
@@ -255,6 +258,7 @@ def build_review_items_from_indicator_result(
                 removed_indicators=removed,
                 genai_analysis=comp.get("genai_analysis") or {},
                 match_metadata=comp.get("match_metadata") or {},
+                event_type=EVENT_TYPE_MATCHED_PAIR,
             )
         )
         seq += 1
@@ -346,6 +350,7 @@ def build_review_items_from_indicator_result(
                 bbox_t1=comp.get("bbox_t1"),
                 bbox_t2=comp.get("bbox_t2"),
                 item_type="footnote",
+                event_type=EVENT_TYPE_FOOTNOTE_ONLY,
                 footnote_changes=all_fn_changes,
             )
         )
@@ -361,12 +366,6 @@ def build_review_items_from_indicator_result(
         page_t2 = table.get("page")
         table_id_t2 = str(table.get("table_id", ""))
         table_number = str(table.get("table_number") or "")
-        display_list = get_display_indicators(table)
-        display_list = [n for n in display_list if _classify_excluded_line(n) is None]
-        table_indicators = [
-            {"name": name, "type": CHANGE_TYPE_ADDED, "review_status": "pending"} for name in display_list
-        ]
-        all_indicators_t2 = table.get("all_indicators_t2") or []
 
         match_meta_added: dict[str, Any] = {}
         if table.get("semantic_judge") is not None:
@@ -386,15 +385,16 @@ def build_review_items_from_indicator_result(
                 confidence=1.0,
                 table_title_raw=table_name,
                 table_status="ajoute",
-                indicators=table_indicators,
+                indicators=[],
                 all_indicators_t1=table.get("all_indicators_t1") or [],
-                all_indicators_t2=all_indicators_t2,
+                all_indicators_t2=table.get("all_indicators_t2") or [],
                 bbox_t1=table.get("bbox_t1"),
                 bbox_t2=table.get("bbox_t2"),
-                added_indicators=all_indicators_t2,
+                added_indicators=[],
                 removed_indicators=[],
                 genai_analysis=table.get("genai_analysis") or {},
                 match_metadata=match_meta_added,
+                event_type=EVENT_TYPE_TABLE_ADDED,
             )
         )
         seq += 1
@@ -409,12 +409,6 @@ def build_review_items_from_indicator_result(
         page_t1 = table.get("page")
         table_id_t1 = str(table.get("table_id", ""))
         table_number = str(table.get("table_number") or "")
-        display_list = get_display_indicators(table)
-        display_list = [n for n in display_list if _classify_excluded_line(n) is None]
-        table_indicators = [
-            {"name": name, "type": CHANGE_TYPE_REMOVED, "review_status": "pending"} for name in display_list
-        ]
-        all_indicators_t1 = table.get("all_indicators_t1") or []
 
         match_meta_removed: dict[str, Any] = {}
         if table.get("semantic_judge") is not None:
@@ -434,15 +428,16 @@ def build_review_items_from_indicator_result(
                 confidence=1.0,
                 table_title_raw=table_name,
                 table_status="supprime",
-                indicators=table_indicators,
-                all_indicators_t1=all_indicators_t1,
+                indicators=[],
+                all_indicators_t1=table.get("all_indicators_t1") or [],
                 all_indicators_t2=table.get("all_indicators_t2") or [],
                 bbox_t1=table.get("bbox_t1"),
                 bbox_t2=table.get("bbox_t2"),
                 added_indicators=[],
-                removed_indicators=all_indicators_t1,
+                removed_indicators=[],
                 genai_analysis=table.get("genai_analysis") or {},
                 match_metadata=match_meta_removed,
+                event_type=EVENT_TYPE_TABLE_REMOVED,
             )
         )
         seq += 1

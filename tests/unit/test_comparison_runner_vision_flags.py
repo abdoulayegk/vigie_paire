@@ -54,6 +54,7 @@ def test_extract_tables_forwards_flags_without_env_mutation(monkeypatch) -> None
         use_vision_fallback=False,
         api_key=None,
         use_vision_primary=False,
+        use_stored_extraction_if_available=False,
     )
 
     assert seen["use_vision_primary"] is False

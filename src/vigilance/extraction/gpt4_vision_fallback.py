@@ -152,10 +152,15 @@ FORMAT DE SORTIE (JSON strict) :
             logger.info(f"Client OpenAI initialisé (modèle: {self.model})")
 
         except ImportError:
-            raise ImportError("Package openai requis. Installez avec: pip install openai")
+            raise ImportError(
+                "Package openai requis. Installez avec: pip install openai"
+            )
 
     def extract_table_from_image(
-        self, image: np.ndarray, context: str | None = None, max_completion_tokens: int = 4096
+        self,
+        image: np.ndarray,
+        context: str | None = None,
+        max_completion_tokens: int = 4096,
     ) -> VisionExtractionResult:
         """
         Extraire un tableau depuis une image via GPT-4 Vision.
@@ -234,103 +239,23 @@ FORMAT DE SORTIE (JSON strict) :
                 error=str(e),
             )
 
+    # -------------------------------------------------------------------------
+    # DEAD CODE — NOT CALLED (Steps 2+3 refactor)
+    # smart_merge_results merged Docling + Vision content, violating Rule 1:
+    # "Never merge Docling content with Vision content."
+    # The only call site was _apply_fallback_extraction (also dead).
+    # -------------------------------------------------------------------------
     def smart_merge_results(
         self,
         docling_data: dict,
         vision_result: VisionExtractionResult,
         context: str | None = None,
     ) -> VisionExtractionResult:
-        """
-        Fusionner intelligemment les résultats Docling et Vision via LLM.
-
-        Args:
-            docling_data: Données extraites par Docling (dict)
-            vision_result: Résultat de l'extraction Vision
-            context: Contexte optionnel
-
-        Returns:
-            VisionExtractionResult fusionné
-        """
-        self._ensure_client()
-
-        # Si l'un des deux est vide/invalide, retourner l'autre
-        if not docling_data or not docling_data.get("rows"):
-            return vision_result
-
-        if not vision_result.success:
-            return VisionExtractionResult(
-                success=True,
-                headers=docling_data.get("headers", []),
-                rows=docling_data.get("rows", []),
-                footnotes=docling_data.get("footnotes", []),
-                table_title=docling_data.get("title"),
-                confidence=0.5,  # Confiance moyenne si fallback texte uniquement
-                raw_response="Fallback Docling only (Vision failed)",
-            )
-
-        try:
-            logger.info("Lancement du Smart Merge (Docling + Vision)...")
-
-            # Préparer les données pour le prompt
-            merge_input = {
-                "DOCLING_EXTRACTION": {
-                    "title": docling_data.get("title"),
-                    "headers": docling_data.get("headers"),
-                    "rows": docling_data.get("rows")[:50],  # Limiter pour le prompt
-                    "row_count": len(docling_data.get("rows", [])),
-                },
-                "VISION_EXTRACTION": {
-                    "title": vision_result.table_title,
-                    "headers": vision_result.headers,
-                    "rows": vision_result.rows[:50],
-                    "row_count": len(vision_result.rows),
-                },
-                "CONTEXT": context or "Tableau financier",
-            }
-
-            # Appliquer rate limiting
-            if RETRY_AVAILABLE:
-                openai_limiter.acquire()
-
-            # Appel API
-            response = self._client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": self.MERGE_PROMPT},
-                    {
-                        "role": "user",
-                        "content": f"Fusionne ces deux extractions :\n{json.dumps(merge_input, indent=2, ensure_ascii=False)}",
-                    },
-                ],
-                max_completion_tokens=4096,
-                temperature=0.0,
-                response_format={"type": "json_object"},
-            )
-
-            # Parser le résultat
-            merged_content = response.choices[0].message.content
-            merged_data = json.loads(merged_content)
-
-            # Créer le résultat fusionné
-            merged_result = VisionExtractionResult(
-                success=True,
-                headers=merged_data.get("headers", []),
-                rows=merged_data.get("rows", []),
-                footnotes=merged_data.get("footnotes", []) or vision_result.footnotes,
-                table_title=merged_data.get("table_title") or vision_result.table_title,
-                confidence=merged_data.get("confidence", 0.9),
-                raw_response=merged_content,
-            )
-
-            logger.info(
-                f"Smart Merge réussi : {len(merged_result.rows)} lignes (Notes: {merged_data.get('merge_notes')})"
-            )
-            return merged_result
-
-        except Exception as e:
-            logger.error(f"Erreur Smart Merge: {e}")
-            # En cas d'erreur de fusion, on retourne le résultat Vision (souvent plus cohérent structurellement en fallback)
-            return vision_result
+        """[DEAD CODE] Formerly: smart merge Docling+Vision. Violates Rule 1. Do not call."""
+        raise NotImplementedError(
+            "smart_merge_results is dead code (Steps 2+3 refactor). "
+            "It merged Docling + Vision content, violating Rule 1."
+        )
 
     def extract_table_from_pdf_region(
         self,
@@ -391,7 +316,9 @@ FORMAT DE SORTIE (JSON strict) :
         pil_img.save(buf, format="PNG")
         return base64.b64encode(buf.getvalue()).decode("utf-8")
 
-    def _pdf_to_image(self, pdf_path: str, page_number: int, dpi: int = 300) -> np.ndarray:
+    def _pdf_to_image(
+        self, pdf_path: str, page_number: int, dpi: int = 300
+    ) -> np.ndarray:
         """Convertir une page PDF en image numpy RGB."""
         try:
             import fitz  # PyMuPDF
@@ -404,7 +331,9 @@ FORMAT DE SORTIE (JSON strict) :
         mat = fitz.Matrix(dpi / 72, dpi / 72)
         pix = page.get_pixmap(matrix=mat)
 
-        img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, pix.n)
+        img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(
+            pix.height, pix.width, pix.n
+        )
 
         if pix.n == 4:
             img = img[:, :, :3]
@@ -495,13 +424,17 @@ class VisionTableValidator:
             header_count = len(result.headers)
             for i, row in enumerate(result.rows):
                 if len(row) != header_count:
-                    issues.append(f"Ligne {i + 1}: {len(row)} colonnes vs {header_count} en-têtes")
+                    issues.append(
+                        f"Ligne {i + 1}: {len(row)} colonnes vs {header_count} en-têtes"
+                    )
 
         # Vérifier la confiance
         if result.confidence < 0.5:
             issues.append(f"Confiance faible: {result.confidence:.2f}")
 
-        is_valid = len(issues) == 0 or (len(issues) == 1 and "Confiance faible" in issues[0])
+        is_valid = len(issues) == 0 or (
+            len(issues) == 1 and "Confiance faible" in issues[0]
+        )
 
         return is_valid, issues
 

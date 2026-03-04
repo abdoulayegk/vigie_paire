@@ -20,18 +20,40 @@ logger = logging.getLogger(__name__)
 
 @lru_cache(maxsize=256)
 def _cached_render_or_crop(
-    pdf_path: str, page: int, scale: float, bbox_key: str
+    pdf_path: str, page: int, scale: float, bbox_key: str, display_mode: str = "crop"
 ) -> bytes:
-    """Return PNG bytes: cropped if bbox_key valid, else full page. Cached for UI performance."""
+    """Return PNG bytes based on display_mode: crop, full (page + bbox highlight), or footnote."""
+    from vigilance.utils.pdf_crop import (
+        crop_footnote_region_to_bytes,
+        crop_table_region_to_bytes,
+        render_page_with_bbox_highlight_to_bytes,
+    )
+
     if not bbox_key:
         raw = get_pdf_preview(pdf_path, page, scale=scale)
         return raw if raw else b""
+
     try:
         bbox = json.loads(bbox_key)
-        if isinstance(bbox, list) and len(bbox) == 4:
-            return crop_table_region_to_bytes(pdf_path, page, bbox, scale=scale)
+        if not (isinstance(bbox, list) and len(bbox) == 4):
+            raw = get_pdf_preview(pdf_path, page, scale=scale)
+            return raw if raw else b""
     except (json.JSONDecodeError, TypeError):
+        raw = get_pdf_preview(pdf_path, page, scale=scale)
+        return raw if raw else b""
+
+    try:
+        if display_mode == "full":
+            return render_page_with_bbox_highlight_to_bytes(
+                pdf_path, page, bbox, scale=scale
+            )
+        elif display_mode == "footnote":
+            return crop_footnote_region_to_bytes(pdf_path, page, bbox, scale=scale)
+        else:  # "crop" (default)
+            return crop_table_region_to_bytes(pdf_path, page, bbox, scale=scale)
+    except Exception:
         pass
+
     raw = get_pdf_preview(pdf_path, page, scale=scale)
     return raw if raw else b""
 
@@ -86,7 +108,6 @@ from app.dash_app.layouts import (
 )
 from app.dash_app.layouts.page_results import build_analyst_kpi_card
 from app.i18n import t
-from app.review_priority import sort_review_items_by_priority
 from app.review_adapters import build_review_items_from_indicator_result
 from app.review_export import (
     export_review_items_json_fr,
@@ -104,6 +125,7 @@ from app.review_models import (
     REVIEW_STATUS_REJECTED,
     ReviewItem,
 )
+from app.review_priority import sort_review_items_by_priority
 from app.review_state import set_review_status
 from app.ui_config import INDICATOR_COMPARISON_DIR
 from app.ui_detection import (
@@ -119,7 +141,6 @@ from app.ui_io import (
 )
 from vigilance.extraction.table_annotator import annotate_table_with_changes
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
-from vigilance.utils.pdf_crop import crop_table_region_to_bytes
 
 # Theme Bootstrap
 APP_THEME = dbc.themes.FLATLY
@@ -799,7 +820,10 @@ def on_analyze(
         qg_fail_reasons = [str(qg_fail_reasons)]
 
     if qg_status == "FAIL":
-        fail_msg = "; ".join(str(x) for x in qg_fail_reasons[:2]) or "regles de qualite non satisfaites"
+        fail_msg = (
+            "; ".join(str(x) for x in qg_fail_reasons[:2])
+            or "regles de qualite non satisfaites"
+        )
         analyze_notification = dbc.Alert(
             f"Analyse terminee mais non eligible pour revue analyste (Quality Gate FAIL): {fail_msg}",
             color="danger",
@@ -894,9 +918,8 @@ def update_review_queue(
         qg_fail_reasons = quality_gate.get("fail_reasons", []) or []
         if not isinstance(qg_fail_reasons, list):
             qg_fail_reasons = [str(qg_fail_reasons)]
-        blocked_msg = (
-            "Run bloque par Quality Gate (FAIL): "
-            + ("; ".join(str(x) for x in qg_fail_reasons[:2]) or "qualite insuffisante")
+        blocked_msg = "Run bloque par Quality Gate (FAIL): " + (
+            "; ".join(str(x) for x in qg_fail_reasons[:2]) or "qualite insuffisante"
         )
         empty_msg = (
             blocked_msg
@@ -1017,22 +1040,33 @@ def on_queue_item_click(n_clicks, current_idx, items):
     Input("store-proof-display-mode", "data"),
     prevent_initial_call=True,
 )
-def update_review_proofs(review_items_data, current_idx, paths, show_results, proof_display_mode):
+def update_review_proofs(
+    review_items_data, current_idx, paths, show_results, proof_display_mode
+):
     """Update proof images section only (table-scoped; stable across indicator navigation)."""
     if not show_results:
         raise PreventUpdate
     if not review_items_data:
-        return html.Div("Veuillez lancer une analyse pour voir les details.", className="text-center text-muted mt-5")
+        return html.Div(
+            "Veuillez lancer une analyse pour voir les details.",
+            className="text-center text-muted mt-5",
+        )
 
     idx = max(0, min(int(current_idx or 0), len(review_items_data) - 1))
     item = review_items_data[idx]
     mode = (proof_display_mode or "crop").strip().lower()
-    if mode not in ("crop", "full"):
+    if mode not in ("crop", "full", "footnote"):
         mode = "crop"
 
-    img_t1_b64 = _get_proof_image_b64_for_item(item, "t1", paths or {}, proof_display_mode=mode)
-    img_t2_b64 = _get_proof_image_b64_for_item(item, "t2", paths or {}, proof_display_mode=mode)
-    return build_proofs_section(item=item, img_t1_b64=img_t1_b64, img_t2_b64=img_t2_b64, proof_display_mode=mode)
+    img_t1_b64 = _get_proof_image_b64_for_item(
+        item, "t1", paths or {}, proof_display_mode=mode
+    )
+    img_t2_b64 = _get_proof_image_b64_for_item(
+        item, "t2", paths or {}, proof_display_mode=mode
+    )
+    return build_proofs_section(
+        item=item, img_t1_b64=img_t1_b64, img_t2_b64=img_t2_b64, proof_display_mode=mode
+    )
 
 
 @callback(
@@ -1048,7 +1082,10 @@ def update_review_meta(review_items_data, current_idx, indicator_idx, show_resul
     if not show_results:
         raise PreventUpdate
     if not review_items_data:
-        return html.Div("Veuillez lancer une analyse pour voir les details.", className="text-center text-muted mt-5")
+        return html.Div(
+            "Veuillez lancer une analyse pour voir les details.",
+            className="text-center text-muted mt-5",
+        )
 
     idx = max(0, min(int(current_idx or 0), len(review_items_data) - 1))
     item = review_items_data[idx]
@@ -1110,7 +1147,13 @@ def _derive_table_status(indicators: list[dict]) -> str:
     prevent_initial_call=True,
 )
 def on_review_action_modern(
-    btn_approve, btn_reject, btn_apply, review_items, current_idx, indicator_idx, comment
+    btn_approve,
+    btn_reject,
+    btn_apply,
+    review_items,
+    current_idx,
+    indicator_idx,
+    comment,
 ):
     """Handle review actions per-indicator: Approve/Reject applies to the current indicator only.
 
@@ -1154,13 +1197,16 @@ def on_review_action_modern(
 
     updated_item = json.loads(json.dumps(item_dict))
     updated_indicators = updated_item.get("indicators", [])
+    event_type = (updated_item.get("event_type") or "").strip()
 
     if updated_indicators and 0 <= ind_idx < len(updated_indicators):
         updated_indicators[ind_idx]["review_status"] = new_ind_status
     elif not updated_indicators:
         updated_item["review_status"] = new_ind_status
 
-    updated_item["review_status"] = _derive_table_status(updated_indicators)
+    # Whole-table events: keep item-level status from button. Matched/footnote: derive from indicators.
+    if event_type not in ("table_added", "table_removed"):
+        updated_item["review_status"] = _derive_table_status(updated_indicators)
     if comment is not None:
         updated_item["comment"] = comment
 
@@ -1176,7 +1222,9 @@ def on_review_action_modern(
     def _is_decided(s: str | None) -> bool:
         return s in (REVIEW_STATUS_APPROVED, REVIEW_STATUS_REJECTED)
 
-    all_decided = all(_is_decided(ind.get("review_status")) for ind in updated_indicators)
+    all_decided = all(
+        _is_decided(ind.get("review_status")) for ind in updated_indicators
+    )
 
     if ind_idx < len(updated_indicators) - 1:
         next_ind_idx = ind_idx + 1
@@ -1787,7 +1835,9 @@ def init_review_items(indicator_result, paths):
     if not indicator_result or not paths:
         raise PreventUpdate
 
-    meta = indicator_result.get("meta", {}) if isinstance(indicator_result, dict) else {}
+    meta = (
+        indicator_result.get("meta", {}) if isinstance(indicator_result, dict) else {}
+    )
     quality_gate = meta.get("quality_gate", {}) if isinstance(meta, dict) else {}
     qg_status = str(quality_gate.get("status", "") or "").upper()
     eligible = bool(quality_gate.get("eligible_for_review", True))
@@ -1867,13 +1917,15 @@ def _filter_noise(items: list[str]) -> list[str]:
 def _get_proof_image_b64_for_item(
     item_dict: dict, side: str, paths: dict, *, proof_display_mode: str = "crop"
 ) -> str | None:
-    """Get proof image base64. With proof_display_mode='full' skip crop (full page); with 'crop' use bbox."""
+    """Get proof image base64. With proof_display_mode='full' skip crop (full page); with 'crop' use bbox; with 'footnote' show only footnote region."""
+    display_mode = (proof_display_mode or "crop").strip().lower()
+
     table_status = (item_dict.get("table_status") or "").strip().lower()
-    if table_status == "stable":
+    if table_status == "stable" and display_mode == "crop":
         return _get_proof_image_b64(item_dict, side, paths)
 
     proof_image_path = item_dict.get("proof_image_path", "") or ""
-    if side == "t2" and proof_image_path:
+    if side == "t2" and proof_image_path and display_mode == "crop":
         return None
 
     ref = item_dict.get("source_ref_t1" if side == "t1" else "source_ref_t2", "")
@@ -1884,6 +1936,27 @@ def _get_proof_image_b64_for_item(
     if not pdf_path:
         pdf_path = ref
 
+    # For "footnote" or "full" modes, always render from PDF (ignore pre-existing images)
+    if display_mode in ("footnote", "full"):
+        if not pdf_path or page is None:
+            return _get_proof_image_b64(item_dict, side, paths)
+
+        page_effective = max(1, int(page))
+        bbox = item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
+        bbox_key = ""
+        if bbox and isinstance(bbox, list) and len(bbox) == 4:
+            bbox_key = json.dumps(bbox)
+        try:
+            raw_bytes = _cached_render_or_crop(
+                str(pdf_path), page_effective, 1.5, bbox_key, display_mode
+            )
+            if raw_bytes:
+                return base64.b64encode(raw_bytes).decode("ascii")
+        except Exception as e:
+            logger.warning("Render failed for mode %s: %s", display_mode, e)
+        return _get_proof_image_b64(item_dict, side, paths)
+
+    # For "crop" mode, use existing images if available
     base_img_b64: str | None = None
     if (
         side == "t1"
@@ -1910,8 +1983,6 @@ def _get_proof_image_b64_for_item(
         except Exception:
             pass
 
-    use_crop = (proof_display_mode or "crop").strip().lower() == "crop"
-
     if base_img_b64 is None:
         if not pdf_path or page is None:
             return _get_proof_image_b64(item_dict, side, paths)
@@ -1919,11 +1990,11 @@ def _get_proof_image_b64_for_item(
         page_effective = max(1, int(page))
         bbox = item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
         bbox_key = ""
-        if use_crop and bbox and isinstance(bbox, list) and len(bbox) == 4:
+        if bbox and isinstance(bbox, list) and len(bbox) == 4:
             bbox_key = json.dumps(bbox)
         try:
             raw_bytes = _cached_render_or_crop(
-                str(pdf_path), page_effective, 1.5, bbox_key
+                str(pdf_path), page_effective, 1.5, bbox_key, display_mode
             )
             base_img_b64 = (
                 base64.b64encode(raw_bytes).decode("ascii") if raw_bytes else None

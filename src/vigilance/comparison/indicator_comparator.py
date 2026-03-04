@@ -63,6 +63,7 @@ def _sections_strict_match(left: str | None, right: str | None) -> bool:
         return False
     return left_norm == right_norm
 
+
 _MONTH_NAMES = (
     "janvier",
     "fevrier",
@@ -121,7 +122,13 @@ _GENERIC_HEADER_TOKENS = (
     | {"et", "ou", "dune"}
 )
 _HEADER_SHORT_ALLOWLIST = {"depots", "actifs", "passifs", "passif", "capitaux", "total"}
-_LOWERCASE_NUMERIC_KEEP_PREFIXES = {"augmentation", "diminution", "hausse", "baisse", "variation"}
+_LOWERCASE_NUMERIC_KEEP_PREFIXES = {
+    "augmentation",
+    "diminution",
+    "hausse",
+    "baisse",
+    "variation",
+}
 
 # Labels generiques courts qui ne doivent pas etre apparies entre eux sauf similarite tres elevee.
 _SHORT_GENERIC_LABELS = frozenset(
@@ -157,7 +164,9 @@ _MONTH_NAMES_ASCII = (
 _ECHEANT_LE_TEXTUAL_DATE_PATTERN = re.compile(
     rf"\b(echeant le)\s+\d{{1,2}}\s+(?:{'|'.join(_MONTH_NAMES_ASCII)})(?:\s+\d{{4}})?\b"
 )
-_ECHEANT_LE_NUMERIC_DATE_PATTERN = re.compile(r"\b(echeant le)\s+\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b")
+_ECHEANT_LE_NUMERIC_DATE_PATTERN = re.compile(
+    r"\b(echeant le)\s+\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b"
+)
 _STRICT_STRUCTURAL_LINE_PATTERNS = (
     re.compile(r"^actif(?:s)?$"),
     re.compile(r"^passif(?:s)?$"),
@@ -255,7 +264,12 @@ def load_indicator_tables(
             return None
         if isinstance(value, (list, tuple)) and len(value) == 4:
             try:
-                return (float(value[0]), float(value[1]), float(value[2]), float(value[3]))
+                return (
+                    float(value[0]),
+                    float(value[1]),
+                    float(value[2]),
+                    float(value[3]),
+                )
             except (TypeError, ValueError):
                 return None
         if isinstance(value, dict):
@@ -295,7 +309,8 @@ def load_indicator_tables(
         indicators = []
         for row in data.get("indicators", []):
             text = row.get("text") or ""
-            text_norm = TextNormalizer.normalize_indicator(text)
+            # Use the same canonical normalizer as matching to ensure consistency
+            text_norm = normalize_indicator_for_comparison(text)
             indicators.append(
                 IndicatorItem(
                     text=text,
@@ -354,7 +369,9 @@ def match_tables(
             thresholds.get("table_match_score", thresholds.get("minimum_match", 0.58))
         )
     low_score_uncertain = float(thresholds.get("indicator_low_score_uncertain", 0.60))
-    reject_title_similarity = float(thresholds.get("indicator_match_reject_title_similarity", 0.70))
+    reject_title_similarity = float(
+        thresholds.get("indicator_match_reject_title_similarity", 0.70)
+    )
     reject_jaccard = float(thresholds.get("indicator_match_reject_jaccard", 0.35))
     matches: list[TableMatch] = []
     unmatched_t1 = tables_t1[:]
@@ -379,7 +396,9 @@ def match_tables(
             signals = _compute_table_match_signals(t1, t2)
             if _is_safe_id_match(t1, t2, signals):
                 score = _compute_table_match_score(t1, t2, precomputed=signals)
-                matches.append(TableMatch(table_t1=t1, table_t2=t2, score=score, match_reason="id"))
+                matches.append(
+                    TableMatch(table_t1=t1, table_t2=t2, score=score, match_reason="id")
+                )
                 matched_t1.add(id(t1))
                 matched_t2.add(id(t2))
             else:
@@ -430,7 +449,9 @@ def match_tables(
             and signals["jaccard"] < reject_jaccard
         ):
             continue
-        matches.append(TableMatch(table_t1=t1, table_t2=t2, score=score, match_reason="score"))
+        matches.append(
+            TableMatch(table_t1=t1, table_t2=t2, score=score, match_reason="score")
+        )
         used_t1.add(id(t1))
         used_t2.add(id(t2))
 
@@ -447,22 +468,34 @@ def match_tables(
 
 
 def compare_indicators(
-    table_t1: IndicatorTable, table_t2: IndicatorTable, rename_threshold: float | None = None
+    table_t1: IndicatorTable,
+    table_t2: IndicatorTable,
+    rename_threshold: float | None = None,
 ) -> dict:
     """Comparer les indicateurs d'un tableau matché avec cascade exact/near/ambigu."""
     thresholds = get_matching_thresholds()
     if rename_threshold is None:
         rename_threshold = float(thresholds.get("indicator_rename_threshold", 0.86))
-    near_exact_threshold = float(thresholds.get("indicator_exist_near_exact_threshold", 0.95))
+    near_exact_threshold = float(
+        thresholds.get("indicator_exist_near_exact_threshold", 0.95)
+    )
     llm_band_min = float(thresholds.get("indicator_exist_llm_band_min", 0.85))
-    llm_band_max = float(thresholds.get("indicator_exist_llm_band_max", near_exact_threshold))
+    llm_band_max = float(
+        thresholds.get("indicator_exist_llm_band_max", near_exact_threshold)
+    )
     length_ratio_min = float(thresholds.get("indicator_length_ratio_min", 0.75))
     group_strict = bool(thresholds.get("indicator_group_strict", True))
-    llm_same_context_only = bool(thresholds.get("llm_ambiguity_same_context_only", True))
+    llm_same_context_only = bool(
+        thresholds.get("llm_ambiguity_same_context_only", True)
+    )
     enable_llm_ambiguity = bool(thresholds.get("enable_llm_ambiguity_resolver", False))
 
-    prepared_t1, ignored_t1 = _prepare_indicator_items(table_t1.indicators, table_t1.page)
-    prepared_t2, ignored_t2 = _prepare_indicator_items(table_t2.indicators, table_t2.page)
+    prepared_t1, ignored_t1 = _prepare_indicator_items(
+        table_t1.indicators, table_t1.page
+    )
+    prepared_t2, ignored_t2 = _prepare_indicator_items(
+        table_t2.indicators, table_t2.page
+    )
     indicator_decisions: list[dict[str, Any]] = []
 
     exact_pairs, remaining_t1, remaining_t2 = _consume_exact_matches(
@@ -531,10 +564,16 @@ def compare_indicators(
                 )
             )
 
-    residual_t1 = [entry for idx, entry in enumerate(remaining_t1) if idx not in split_merge_t1]
-    residual_t2 = [entry for idx, entry in enumerate(remaining_t2) if idx not in split_merge_t2]
+    residual_t1 = [
+        entry for idx, entry in enumerate(remaining_t1) if idx not in split_merge_t1
+    ]
+    residual_t2 = [
+        entry for idx, entry in enumerate(remaining_t2) if idx not in split_merge_t2
+    ]
 
-    rename_probable_threshold = float(thresholds.get("indicator_rename_probable_threshold", 0.90))
+    rename_probable_threshold = float(
+        thresholds.get("indicator_rename_probable_threshold", 0.90)
+    )
     renamed, used_t1, used_t2 = _match_renames_with_context(
         residual_t1=residual_t1,
         residual_t2=residual_t2,
@@ -662,7 +701,8 @@ def compare_indicators(
     if renamed_probable_list:
         review_reasons.append("rename_uncertain")
     if group_strict and any(
-        (entry.get("group") or "unknown") == "unknown" for entry in prepared_t1 + prepared_t2
+        (entry.get("group") or "unknown") == "unknown"
+        for entry in prepared_t1 + prepared_t2
     ):
         review_reasons.append("group_unknown")
     if ambiguous_t1 and not enable_llm_ambiguity:
@@ -671,16 +711,23 @@ def compare_indicators(
     return {
         "added_indicators": [entry["text"] for entry in added_items],
         "removed_indicators": [entry["text"] for entry in removed_items],
-        "ambiguous_indicators": [residual_t1[idx]["text"] for idx in sorted(ambiguous_t1)],
+        "ambiguous_indicators": [
+            residual_t1[idx]["text"] for idx in sorted(ambiguous_t1)
+        ],
         "renamed_indicators": [
             {
                 "from": item["left"]["text"],
                 "to": item["right"]["text"],
                 "similarity": round(item["score_meta"]["score"], 3),
                 "composite_score": round(
-                    item["score_meta"].get("composite_score", item["score_meta"]["score"]), 3
+                    item["score_meta"].get(
+                        "composite_score", item["score_meta"]["score"]
+                    ),
+                    3,
                 ),
-                "status": "confirmed" if item not in renamed_probable_list else "probable",
+                "status": "confirmed"
+                if item not in renamed_probable_list
+                else "probable",
             }
             for item in renamed
         ],
@@ -690,7 +737,10 @@ def compare_indicators(
                 "to": item["right"]["text"],
                 "similarity": round(item["score_meta"]["score"], 3),
                 "composite_score": round(
-                    item["score_meta"].get("composite_score", item["score_meta"]["score"]), 3
+                    item["score_meta"].get(
+                        "composite_score", item["score_meta"]["score"]
+                    ),
+                    3,
                 ),
             }
             for item in renamed_probable_list
@@ -723,9 +773,15 @@ def compare_indicator_exports(
     """Comparer deux trimestres d'indicateurs a partir des JSON."""
     thresholds = get_matching_thresholds()
     low_score_uncertain = float(thresholds.get("indicator_low_score_uncertain", 0.60))
-    change_rate_review_threshold = float(thresholds.get("table_change_rate_review_threshold", 0.30))
-    tables_t1 = load_indicator_tables(directory, bank_code, quarter_from, year, section=section)
-    tables_t2 = load_indicator_tables(directory, bank_code, quarter_to, year, section=section)
+    change_rate_review_threshold = float(
+        thresholds.get("table_change_rate_review_threshold", 0.30)
+    )
+    tables_t1 = load_indicator_tables(
+        directory, bank_code, quarter_from, year, section=section
+    )
+    tables_t2 = load_indicator_tables(
+        directory, bank_code, quarter_to, year, section=section
+    )
 
     matches, removed_tables, added_tables = match_tables(tables_t1, tables_t2)
     removed_pool = _build_indicator_canonical_pool(removed_tables)
@@ -780,7 +836,9 @@ def compare_indicator_exports(
                 "renamed": diff.get("counts", {}).get("renamed", 0),
                 "renamed_probable": diff.get("counts", {}).get("renamed_probable", 0),
             }
-            diff["suppressed_header_containment_artifacts"] = suppressed_header_artifacts
+            diff["suppressed_header_containment_artifacts"] = (
+                suppressed_header_artifacts
+            )
 
         (
             filtered_added,
@@ -804,10 +862,13 @@ def compare_indicator_exports(
         fused_t1 = UNCERTAINTY_FUSED_FLAG in set(match.table_t1.quality_flags)
         fused_t2 = UNCERTAINTY_FUSED_FLAG in set(match.table_t2.quality_flags)
         title_missing = (
-            not (match.table_t1.title or "").strip() and not (match.table_t2.title or "").strip()
+            not (match.table_t1.title or "").strip()
+            and not (match.table_t2.title or "").strip()
         )
         low_score = match.score < low_score_uncertain
-        weak_score_no_title = match.match_reason == "score" and title_missing and match.score < 0.65
+        weak_score_no_title = (
+            match.match_reason == "score" and title_missing and match.score < 0.65
+        )
         split_merge_noise = int(diff.get("suppressed_split_merge_artifacts", 0)) >= 2
         ambiguous_count = len(diff.get("ambiguous_indicators", []))
         split_merge_ambiguous = int(diff.get("split_merge_ambiguous_count", 0))
@@ -859,7 +920,9 @@ def compare_indicator_exports(
                 removed=int(diff["counts"].get("removed", 0)),
                 renamed=int(diff["counts"].get("renamed", 0)),
             )
-        decision_reason = _aggregate_decision_reasons(diff.get("indicator_decisions", []))
+        decision_reason = _aggregate_decision_reasons(
+            diff.get("indicator_decisions", [])
+        )
 
         comparisons.append(
             {
@@ -1018,15 +1081,23 @@ def compare_indicator_exports(
             "tables_matched": len(matches),
             "tables_added": len(added_tables),
             "tables_removed": len(removed_tables),
-            "total_added_indicators": sum(c["counts"]["added"] for c in certain_comparisons),
-            "total_removed_indicators": sum(c["counts"]["removed"] for c in certain_comparisons),
-            "total_renamed_indicators": sum(c["counts"]["renamed"] for c in certain_comparisons),
+            "total_added_indicators": sum(
+                c["counts"]["added"] for c in certain_comparisons
+            ),
+            "total_removed_indicators": sum(
+                c["counts"]["removed"] for c in certain_comparisons
+            ),
+            "total_renamed_indicators": sum(
+                c["counts"]["renamed"] for c in certain_comparisons
+            ),
             "total_displaced_indicators": len(displaced_list),
             "total_added_indicators_raw": total_added_raw,
             "total_removed_indicators_raw": total_removed_raw,
             "total_renamed_indicators_raw": total_renamed_raw,
             "uncertain_tables": len(uncertain_comparisons),
-            "uncertain_added_indicators": sum(c["counts"]["added"] for c in uncertain_comparisons),
+            "uncertain_added_indicators": sum(
+                c["counts"]["added"] for c in uncertain_comparisons
+            ),
             "uncertain_removed_indicators": sum(
                 c["counts"]["removed"] for c in uncertain_comparisons
             ),
@@ -1106,12 +1177,18 @@ def _compute_table_match_score(
     )
 
 
-def _compute_table_match_signals(t1: IndicatorTable, t2: IndicatorTable) -> dict[str, float]:
-    id_match = 1.0 if t1.table_id and t2.table_id and t1.table_id == t2.table_id else 0.0
+def _compute_table_match_signals(
+    t1: IndicatorTable, t2: IndicatorTable
+) -> dict[str, float]:
+    id_match = (
+        1.0 if t1.table_id and t2.table_id and t1.table_id == t2.table_id else 0.0
+    )
 
     title1 = (t1.title or "").strip().lower()
     title2 = (t2.title or "").strip().lower()
-    title_similarity = SequenceMatcher(None, title1, title2).ratio() if title1 and title2 else 0.0
+    title_similarity = (
+        SequenceMatcher(None, title1, title2).ratio() if title1 and title2 else 0.0
+    )
 
     jaccard = _jaccard_similarity(t1.indicator_norm_set, t2.indicator_norm_set)
 
@@ -1137,7 +1214,9 @@ def _rescue_unmatched_tables(
     unmatched_t2: list[IndicatorTable],
 ) -> tuple[list[TableMatch], list[IndicatorTable], list[IndicatorTable]]:
     thresholds = get_matching_thresholds()
-    rescue_split_merge_min = float(thresholds.get("indicator_rescue_split_merge_min", 0.60))
+    rescue_split_merge_min = float(
+        thresholds.get("indicator_rescue_split_merge_min", 0.60)
+    )
     rescue_jaccard_min = float(thresholds.get("indicator_rescue_jaccard_min", 0.55))
     title_similarity_min = float(thresholds.get("title_similarity_min", 0.75))
     rescue_candidates: list[tuple[float, IndicatorTable, IndicatorTable, str]] = []
@@ -1153,7 +1232,8 @@ def _rescue_unmatched_tables(
 
             split_merge_candidate = split_merge_score >= rescue_split_merge_min
             high_jaccard_candidate = (
-                signals["jaccard"] >= rescue_jaccard_min and signals["page_proximity"] >= 0.85
+                signals["jaccard"] >= rescue_jaccard_min
+                and signals["page_proximity"] >= 0.85
             )
             if not split_merge_candidate and not high_jaccard_candidate:
                 continue
@@ -1163,7 +1243,9 @@ def _rescue_unmatched_tables(
                 signals["jaccard"],
                 0.5 * split_merge_score + 0.5 * signals["page_proximity"],
             )
-            reason = "rescue_split_merge" if split_merge_candidate else "rescue_high_jaccard"
+            reason = (
+                "rescue_split_merge" if split_merge_candidate else "rescue_high_jaccard"
+            )
             rescue_candidates.append((rescue_score, t1, t2, reason))
 
     rescue_candidates.sort(key=lambda x: x[0], reverse=True)
@@ -1180,7 +1262,9 @@ def _rescue_unmatched_tables(
         title2 = (t2.title or "").strip()
         if title1 and title2 and signals["title_similarity"] < title_similarity_min:
             continue
-        matches.append(TableMatch(table_t1=t1, table_t2=t2, score=score, match_reason=reason))
+        matches.append(
+            TableMatch(table_t1=t1, table_t2=t2, score=score, match_reason=reason)
+        )
         used_t1.add(id(t1))
         used_t2.add(id(t2))
 
@@ -1189,7 +1273,9 @@ def _rescue_unmatched_tables(
     return matches, remaining_t1, remaining_t2
 
 
-def _compute_split_merge_compatibility_score(t1: IndicatorTable, t2: IndicatorTable) -> float:
+def _compute_split_merge_compatibility_score(
+    t1: IndicatorTable, t2: IndicatorTable
+) -> float:
     prepared_t1, _ = _prepare_indicator_items(t1.indicators, t1.page)
     prepared_t2, _ = _prepare_indicator_items(t2.indicators, t2.page)
     remaining_t1, remaining_t2 = _drop_exact_canonical_matches(prepared_t1, prepared_t2)
@@ -1204,7 +1290,9 @@ def _compute_split_merge_compatibility_score(t1: IndicatorTable, t2: IndicatorTa
     return artifacts / max(1, residual_min)
 
 
-def _is_safe_id_match(t1: IndicatorTable, t2: IndicatorTable, signals: dict[str, float]) -> bool:
+def _is_safe_id_match(
+    t1: IndicatorTable, t2: IndicatorTable, signals: dict[str, float]
+) -> bool:
     """Valider un match par id pour eviter les faux appariements massifs."""
     if signals["id_match"] < 1.0:
         return False
@@ -1258,7 +1346,9 @@ def _strip_contextual_dates(canonical: str) -> str:
 
 
 def _is_meta_indicator_line(text: str) -> bool:
-    lowered = TextNormalizer.normalize(text, aggressive=False, remove_notes=False, lowercase=True)
+    lowered = TextNormalizer.normalize(
+        text, aggressive=False, remove_notes=False, lowercase=True
+    )
     if not lowered:
         return True
 
@@ -1285,7 +1375,9 @@ def _is_meta_indicator_line(text: str) -> bool:
             return True
 
     # Lignes "trimestre termine le ..." ou "trimestre clos le ..." coupees
-    if "trimestre" in lowered_ascii and ("termine" in lowered_ascii or "clos" in lowered_ascii):
+    if "trimestre" in lowered_ascii and (
+        "termine" in lowered_ascii or "clos" in lowered_ascii
+    ):
         return True
 
     # Fragments de ligne OCR (continuation de la ligne precedente).
@@ -1403,7 +1495,11 @@ def _consume_exact_matches(
     entries_t1: list[dict[str, Any]],
     entries_t2: list[dict[str, Any]],
     group_strict: bool,
-) -> tuple[list[tuple[dict[str, Any], dict[str, Any]]], list[dict[str, Any]], list[dict[str, Any]]]:
+) -> tuple[
+    list[tuple[dict[str, Any], dict[str, Any]]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+]:
     exact_pairs: list[tuple[dict[str, Any], dict[str, Any]]] = []
     used_t2: set[int] = set()
     remaining_t1: list[dict[str, Any]] = []
@@ -1507,7 +1603,9 @@ def _detect_split_merge_collisions(
         for j, right in enumerate(entries_t2):
             if not _is_group_compatible(left["group"], right["group"], group_strict):
                 continue
-            score_meta = _score_indicator_similarity(left["canonical"], right["canonical"])
+            score_meta = _score_indicator_similarity(
+                left["canonical"], right["canonical"]
+            )
             if score_meta["length_ratio"] < length_ratio_min:
                 continue
             if band_min <= score_meta["score"] < band_max:
@@ -1578,7 +1676,10 @@ def _is_short_generic_label(canonical: str) -> bool:
     """Verifie si un canonical est un label court et generique."""
     if canonical in _SHORT_GENERIC_LABELS:
         return True
-    return len(canonical) <= _SHORT_LABEL_MAX_LEN and canonical not in _HEADER_SHORT_ALLOWLIST
+    return (
+        len(canonical) <= _SHORT_LABEL_MAX_LEN
+        and canonical not in _HEADER_SHORT_ALLOWLIST
+    )
 
 
 def _match_renames_with_context(
@@ -1591,9 +1692,13 @@ def _match_renames_with_context(
     all_prepared_t2: list[dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], set[int], set[int]]:
     thresholds = get_matching_thresholds()
-    short_label_threshold = float(thresholds.get("indicator_rename_short_label_threshold", 0.95))
+    short_label_threshold = float(
+        thresholds.get("indicator_rename_short_label_threshold", 0.95)
+    )
     position_weight = float(thresholds.get("indicator_rename_position_weight", 0.10))
-    neighborhood_weight = float(thresholds.get("indicator_rename_neighborhood_weight", 0.05))
+    neighborhood_weight = float(
+        thresholds.get("indicator_rename_neighborhood_weight", 0.05)
+    )
     text_weight = 1.0 - position_weight - neighborhood_weight
 
     total_t1 = len(all_prepared_t1) if all_prepared_t1 else len(residual_t1)
@@ -1629,7 +1734,9 @@ def _match_renames_with_context(
                 text_score = score_meta["score"]
 
                 # Seuil plus eleve pour labels courts generiques
-                effective_threshold = short_label_threshold if both_short_generic else threshold
+                effective_threshold = (
+                    short_label_threshold if both_short_generic else threshold
+                )
 
                 if text_score < effective_threshold:
                     continue
@@ -1694,7 +1801,9 @@ def _match_renames_with_context(
     return renamed, used_t1, used_t2
 
 
-def _resolve_ambiguous_with_llm(left: dict[str, Any], right: dict[str, Any]) -> tuple[bool, str]:
+def _resolve_ambiguous_with_llm(
+    left: dict[str, Any], right: dict[str, Any]
+) -> tuple[bool, str]:
     """Stub defensif: LLM desactive par defaut; retourne false si indisponible."""
     _ = (left, right)
     return False, "llm_resolver_unavailable"
@@ -1737,7 +1846,9 @@ def _prepare_indicator_items(
             {
                 "text": text,
                 "canonical": canonical,
-                "group": explicit_group if explicit_group != "unknown" else current_group,
+                "group": explicit_group
+                if explicit_group != "unknown"
+                else current_group,
                 "row_idx": row_idx,
                 "page": page,
                 "neighbor_prev": None,
@@ -1854,7 +1965,9 @@ def _is_split_merge_equivalent(left: str, right: str, similarity: float) -> bool
     right_tokens = set(right.split())
     if not left_tokens or not right_tokens:
         return False
-    overlap = len(left_tokens & right_tokens) / max(1, min(len(left_tokens), len(right_tokens)))
+    overlap = len(left_tokens & right_tokens) / max(
+        1, min(len(left_tokens), len(right_tokens))
+    )
 
     contains_relation = left in right or right in left
     if contains_relation and similarity >= 0.80 and overlap >= 0.70:
@@ -1887,7 +2000,8 @@ def _match_renames(
                 token_sort_score = 0.0
                 if rapidfuzz_fuzz is not None:
                     token_sort_score = (
-                        rapidfuzz_fuzz.token_sort_ratio(rem_canonical, add_canonical) / 100.0
+                        rapidfuzz_fuzz.token_sort_ratio(rem_canonical, add_canonical)
+                        / 100.0
                     )
                 score = max(seq_score, token_sort_score)
                 if score >= threshold:
@@ -1924,7 +2038,9 @@ def _build_indicator_canonical_pool(tables: list[IndicatorTable]) -> set[str]:
     return values
 
 
-def _determine_table_status(uncertain_diff: bool, added: int, removed: int, renamed: int) -> str:
+def _determine_table_status(
+    uncertain_diff: bool, added: int, removed: int, renamed: int
+) -> str:
     if uncertain_diff:
         return "incertain"
     if added > 0 or removed > 0:
@@ -1965,7 +2081,9 @@ def _is_reliable_table_match(match: TableMatch) -> bool:
 
 
 def _soft_canonical(canonical: str) -> str:
-    tokens = [token for token in canonical.split() if token and token not in _SOFT_STOPWORDS]
+    tokens = [
+        token for token in canonical.split() if token and token not in _SOFT_STOPWORDS
+    ]
     return " ".join(tokens).strip()
 
 
@@ -2029,7 +2147,9 @@ def _drop_header_containment_artifacts(
         consumed_added.add(i)
         consumed_removed.add(j)
 
-    filtered_added = [value for idx, value in enumerate(added_values) if idx not in consumed_added]
+    filtered_added = [
+        value for idx, value in enumerate(added_values) if idx not in consumed_added
+    ]
     filtered_removed = [
         value for idx, value in enumerate(removed_values) if idx not in consumed_removed
     ]
@@ -2046,14 +2166,18 @@ def _drop_generic_header_artifacts(
 
     for value in added_values:
         canonical = _canonical_indicator_text(value)
-        if canonical and any(p.fullmatch(canonical) for p in _STRICT_STRUCTURAL_LINE_PATTERNS):
+        if canonical and any(
+            p.fullmatch(canonical) for p in _STRICT_STRUCTURAL_LINE_PATTERNS
+        ):
             suppressed += 1
             continue
         filtered_added.append(value)
 
     for value in removed_values:
         canonical = _canonical_indicator_text(value)
-        if canonical and any(p.fullmatch(canonical) for p in _STRICT_STRUCTURAL_LINE_PATTERNS):
+        if canonical and any(
+            p.fullmatch(canonical) for p in _STRICT_STRUCTURAL_LINE_PATTERNS
+        ):
             suppressed += 1
             continue
         filtered_removed.append(value)
@@ -2089,7 +2213,9 @@ def _is_header_containment_artifact(left_canonical: str, right_canonical: str) -
         return True
 
     # Cas fallback: relation prefixe/suffixe tres proche + faible ajout lexical.
-    boundary_relation = longer.startswith(f"{shorter} ") or longer.endswith(f" {shorter}")
+    boundary_relation = longer.startswith(f"{shorter} ") or longer.endswith(
+        f" {shorter}"
+    )
     if boundary_relation:
         ratio = SequenceMatcher(None, shorter, longer).ratio()
         if ratio >= 0.78 and len(remainder_tokens) <= 3:

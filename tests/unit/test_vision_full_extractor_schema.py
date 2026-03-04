@@ -24,10 +24,20 @@ def test_parse_vision_result_valid_with_defaults() -> None:
     parsed = _parse_vision_result(raw)
     assert parsed is not None
     assert parsed.indicators == ["Ratio CET1", "Total"]
-    assert parsed.footnotes_content == {"1": "Note A", "2": "Note B"}
+    # footnotes_content is now an ordered list of dicts with 'marker' key
+    assert parsed.footnotes_content == [
+        {"marker": "1", "text": "Note A"},
+        {"marker": "2", "text": "Note B"},
+    ]
     assert parsed.footnote_markers == ["1", "2"]
     assert parsed.appears_truncated is False
     assert parsed.estimated_content_height is None
+    # New required fields
+    assert parsed.table_title == ""
+    assert parsed.headers == []
+    assert parsed.rows == []
+    assert parsed.vision_status == "ok"
+    assert parsed.warnings == []
 
 
 def test_parse_vision_result_valid_full_payload() -> None:
@@ -43,6 +53,10 @@ def test_parse_vision_result_valid_full_payload() -> None:
     assert parsed is not None
     assert parsed.appears_truncated is True
     assert parsed.estimated_content_height == 72
+    # footnotes_content is now an ordered list
+    assert len(parsed.footnotes_content) == 1
+    assert parsed.footnotes_content[0]["marker"] == "(1)"
+    assert parsed.footnotes_content[0]["text"] == "Texte"
 
 
 def test_parse_vision_result_rejects_missing_required() -> None:
@@ -85,8 +99,13 @@ def test_openai_json_schema_contains_strict_contract() -> None:
     required = set(s["required"])
     properties = set(s["properties"].keys())
     assert required == properties
+    # Original required fields
     assert "appears_truncated" in required
     assert "estimated_content_height" in required
+    # New content fields
+    assert "table_title" in required
+    assert "headers" in required
+    assert "rows" in required
 
 
 def test_openai_schema_validator_rejects_missing_required_key() -> None:
@@ -106,7 +125,9 @@ def test_classify_openai_error_detects_schema_contract_invalid() -> None:
     assert _classify_openai_error(err) == "schema_contract_invalid"
 
 
-def test_extract_raises_schema_contract_error_once_and_circuit_breaks(monkeypatch) -> None:
+def test_extract_raises_schema_contract_error_once_and_circuit_breaks(
+    monkeypatch,
+) -> None:
     class _FakeCompletions:
         def __init__(self) -> None:
             self.calls = 0

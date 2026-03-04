@@ -4,6 +4,7 @@ from __future__ import annotations
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass
@@ -38,7 +39,10 @@ _INDICATOR_DEFAULTS = {
     "indicator_gate_min_token_overlap": 1,
 }
 
-from app.comparison_canonical import compute_changed_tables_t1, compute_changed_tables_t2
+from app.comparison_canonical import (
+    compute_changed_tables_t1,
+    compute_changed_tables_t2,
+)
 from app.ui_config import INDICATOR_COMPARISON_DIR, LOGS_DIR
 
 _SEMANTIC_JUDGE_LOG = LOGS_DIR / "semantic_judge_decisions.jsonl"
@@ -300,10 +304,35 @@ def _extract_tables(
     use_vision_fallback: bool,
     api_key: str | None,
     use_vision_primary: bool | None = None,
+    use_stored_extraction_if_available: bool = True,
+    extraction_base_dir: str | None = None,
 ) -> list[TableArtifact]:
+    from pathlib import Path as _Path
+
     from vigilance.extraction.docling_processor import (
         extract_tables_docling_by_sections,
     )
+
+    base_dir = _Path(extraction_base_dir or "outputs/extractions")
+
+    # Step 4: Load stored extraction if available (avoids re-running Vision)
+    if use_stored_extraction_if_available:
+        try:
+            from app.extraction_storage import load_extraction
+
+            stored = load_extraction(bank_code, year, quarter, base_dir)
+            if stored is not None:
+                stored_tables, stored_meta = stored
+                logger.info(
+                    "Loaded stored extraction: %s/%s/%s (%d tables)",
+                    bank_code,
+                    year,
+                    quarter,
+                    len(stored_tables),
+                )
+                return stored_tables
+        except Exception as e:
+            logger.debug("Could not load stored extraction: %s", e)
 
     use_vision_primary = _resolve_vision_primary_mode(
         bank_code,
@@ -322,12 +351,35 @@ def _extract_tables(
         use_vision_fallback=use_vision_fallback,
     )
 
-    return [
+    artifacts = [
         _table_to_artifact(
             table, bank_code=bank_code, quarter=quarter, pdf_path=pdf_path
         )
         for table in raw_tables
     ]
+
+    # Step 4: Save extraction systematically after every run
+    try:
+        from app.extraction_storage import save_extraction
+
+        save_extraction(
+            bank_code=bank_code,
+            year=year,
+            quarter=quarter,
+            tables=artifacts,
+            meta={
+                "pdf_path": pdf_path,
+                "use_vision_primary": use_vision_primary,
+                "extraction_method": "vision_full_gpt4o",
+                "section_ranges": section_ranges,
+                "schema_version": 2,
+            },
+            base_dir=base_dir,
+        )
+    except Exception as e:
+        logger.warning("Could not save extraction: %s", e)
+
+    return artifacts
 
 
 def _canonical_indicator_key(text: str) -> str:
@@ -343,6 +395,7 @@ _SUSPICIOUS_SIZE_DIFF_RATIO = 0.60
 
 def _compute_indicator_overlap(t1: TableArtifact, t2: TableArtifact) -> float:
     """Jaccard overlap of canonical indicator keys between two tables."""
+
     def _keys(t: TableArtifact) -> set[str]:
         result: set[str] = set()
         for ind in t.first_column_indicators:
@@ -424,22 +477,18 @@ def _compute_extraction_kpis(
     total = len(all_tables) or 1
 
     vision_attempted = sum(
-        1 for t in all_tables
+        1
+        for t in all_tables
         if (t.debug_metrics or {}).get("vision_fallback_attempted")
     )
     vision_applied = sum(
-        1 for t in all_tables
-        if (t.debug_metrics or {}).get("vision_fallback_applied")
+        1 for t in all_tables if (t.debug_metrics or {}).get("vision_fallback_applied")
     )
     vision_primary_attempted = sum(
-        1
-        for t in all_tables
-        if (t.debug_metrics or {}).get("vision_primary_attempted")
+        1 for t in all_tables if (t.debug_metrics or {}).get("vision_primary_attempted")
     )
     vision_primary_applied = sum(
-        1
-        for t in all_tables
-        if (t.debug_metrics or {}).get("vision_primary_applied")
+        1 for t in all_tables if (t.debug_metrics or {}).get("vision_primary_applied")
     )
     vision_schema_contract_fail_count = sum(
         1
@@ -462,17 +511,17 @@ def _compute_extraction_kpis(
                 disagree_count += 1
 
     matched_with_changes = sum(
-        1 for c in comparisons
+        1
+        for c in comparisons
         if c.get("added_indicators") or c.get("removed_indicators")
     )
     matched_total = len(comparisons) or 1
     noise_rate = matched_with_changes / matched_total
 
     renamed_total = sum(len(c.get("renamed_indicators", [])) for c in comparisons)
-    add_remove_total = (
-        sum(len(c.get("added_indicators", [])) for c in comparisons)
-        + sum(len(c.get("removed_indicators", [])) for c in comparisons)
-    )
+    add_remove_total = sum(
+        len(c.get("added_indicators", [])) for c in comparisons
+    ) + sum(len(c.get("removed_indicators", [])) for c in comparisons)
     rename_conversion = (
         renamed_total / (renamed_total + add_remove_total)
         if (renamed_total + add_remove_total) > 0
@@ -493,7 +542,9 @@ def _compute_extraction_kpis(
         "vision_schema_contract_fail_count": vision_schema_contract_fail_count,
         "vision_primary_disabled_reason": vision_primary_disabled_reason or None,
         "disagreement_count": disagree_count,
-        "incertain_count": sum(1 for c in comparisons if c.get("table_status") == "incertain"),
+        "incertain_count": sum(
+            1 for c in comparisons if c.get("table_status") == "incertain"
+        ),
     }
 
 
@@ -509,14 +560,19 @@ def _pre_diff_safety_check(
     n2 = len(t2.first_column_indicators)
     size_diff_ratio = abs(n1 - n2) / max(n1, n2, 1)
 
-    if indicator_overlap < _SUSPICIOUS_OVERLAP_THRESHOLD and size_diff_ratio > _SUSPICIOUS_SIZE_DIFF_RATIO:
+    if (
+        indicator_overlap < _SUSPICIOUS_OVERLAP_THRESHOLD
+        and size_diff_ratio > _SUSPICIOUS_SIZE_DIFF_RATIO
+    ):
         reason = (
             f"indicator_overlap={indicator_overlap:.3f} < {_SUSPICIOUS_OVERLAP_THRESHOLD}, "
             f"size_diff_ratio={size_diff_ratio:.3f} > {_SUSPICIOUS_SIZE_DIFF_RATIO}"
         )
         logger.warning(
             "suspicious_low_overlap: t1=%s t2=%s %s",
-            t1.table_id, t2.table_id, reason,
+            t1.table_id,
+            t2.table_id,
+            reason,
         )
         return True, reason
     return False, ""
@@ -1409,6 +1465,7 @@ def run_comparison_with_sections(
                 use_vision_fallback=use_vision_fallback,
                 api_key=api_key,
                 use_vision_primary=use_vision_primary,
+                use_stored_extraction_if_available=False,
             )
             fut_t2 = executor.submit(
                 _extract_tables,
@@ -1420,6 +1477,7 @@ def run_comparison_with_sections(
                 use_vision_fallback=use_vision_fallback,
                 api_key=api_key,
                 use_vision_primary=use_vision_primary,
+                use_stored_extraction_if_available=False,
             )
             tables_t1 = fut_t1.result()
             tables_t2 = fut_t2.result()
@@ -1477,9 +1535,9 @@ def run_comparison_with_sections(
         vec = get_vision_extraction_config(bank_code=bank_code)
         qg_cfg = get_quality_gate_config(bank_code=bank_code) or {}
         qg_enabled = bool(qg_cfg.get("enabled", False))
-        should_write_extraction_audit = bool(
-            vec.get("save_indicators_footnotes_json")
-        ) or qg_enabled
+        should_write_extraction_audit = (
+            bool(vec.get("save_indicators_footnotes_json")) or qg_enabled
+        )
 
         if should_write_extraction_audit:
             from app.ui_config import OUTPUT_DIR
@@ -1630,7 +1688,9 @@ def run_comparison_with_sections(
                 semantic_judge_results[f"added_{t2_uid_added}"] = judge_result
                 semantic_judge_stats["calls"] += 1
             except Exception as exc:
-                logger.warning("Semantic judge (added) failed for t2=%s: %s", t2_uid_added, exc)
+                logger.warning(
+                    "Semantic judge (added) failed for t2=%s: %s", t2_uid_added, exc
+                )
                 semantic_judge_stats["errors"] += 1
 
         for item in strict.get("removed_tables", []):
@@ -1654,7 +1714,9 @@ def run_comparison_with_sections(
                 semantic_judge_results[f"removed_{t1_uid_removed}"] = judge_result
                 semantic_judge_stats["calls"] += 1
             except Exception as exc:
-                logger.warning("Semantic judge (removed) failed for t1=%s: %s", t1_uid_removed, exc)
+                logger.warning(
+                    "Semantic judge (removed) failed for t1=%s: %s", t1_uid_removed, exc
+                )
                 semantic_judge_stats["errors"] += 1
 
         if semantic_judge_stats["calls"] > 0:
@@ -1672,6 +1734,7 @@ def run_comparison_with_sections(
     all_unmatched_indicator_candidates: list[dict[str, Any]] = []
     try:
         from vigilance.config import get_vision_extraction_config as _gvec
+
         vec = _gvec(bank_code=bank_code) or {}
     except Exception:
         vec = {}
@@ -1710,13 +1773,17 @@ def run_comparison_with_sections(
                     e_with_ctx["table_id_t1"] = table_t1.table_id
                     e_with_ctx["table_id_t2"] = table_t2.table_id
                     all_rename_pair_debug.append(e_with_ctx)
-                unmatched = indicator_debug.get("unmatched_removed_with_candidates") or []
+                unmatched = (
+                    indicator_debug.get("unmatched_removed_with_candidates") or []
+                )
                 if unmatched:
-                    all_unmatched_indicator_candidates.append({
-                        "table_id_t1": table_t1.table_id,
-                        "table_id_t2": table_t2.table_id,
-                        "unmatched_removed_with_top_candidates": unmatched,
-                    })
+                    all_unmatched_indicator_candidates.append(
+                        {
+                            "table_id_t1": table_t1.table_id,
+                            "table_id_t2": table_t2.table_id,
+                            "unmatched_removed_with_top_candidates": unmatched,
+                        }
+                    )
             if indicator_debug and logger.isEnabledFor(logging.DEBUG):
                 logger.debug(
                     "indicator_pairing %s:%s gated=%s renames=%s scores=%s",
@@ -1791,7 +1858,8 @@ def run_comparison_with_sections(
 
         # Part E: effective_label_overlap from pair if available
         effective_label_overlap = float(
-            pair.get("soft_indicator_overlap", pair_indicator_overlap) or pair_indicator_overlap
+            pair.get("soft_indicator_overlap", pair_indicator_overlap)
+            or pair_indicator_overlap
         )
 
         qf_t1 = _extract_quality_flags(table_t1)
@@ -1818,6 +1886,7 @@ def run_comparison_with_sections(
                     from vigilance.extraction.vision_pair_validator import (
                         validate_pair_same_concept,
                     )
+
                     same_concept, _ = validate_pair_same_concept(
                         pdf_t1,
                         table_t1.page_pdf,
@@ -1830,14 +1899,16 @@ def run_comparison_with_sections(
                     )
                     if not same_concept:
                         vision_rejected = True
-                        rejected_by_vision_pair.append({
-                            "table_id_t1": table_t1.table_id,
-                            "table_id_t2": table_t2.table_id,
-                            "title_t1": table_t1.title or "",
-                            "title_t2": table_t2.title or "",
-                            "indicator_overlap": pair_indicator_overlap,
-                            "rescue_type": rescue_type,
-                        })
+                        rejected_by_vision_pair.append(
+                            {
+                                "table_id_t1": table_t1.table_id,
+                                "table_id_t2": table_t2.table_id,
+                                "title_t1": table_t1.title or "",
+                                "title_t2": table_t2.title or "",
+                                "indicator_overlap": pair_indicator_overlap,
+                                "rescue_type": rescue_type,
+                            }
+                        )
                 except Exception as exc:
                     logger.debug("Vision pair validation error: %s", exc)
 
@@ -1850,8 +1921,11 @@ def run_comparison_with_sections(
                 "table_id_t2": table_t2.table_id,
                 "title_t1": table_t1.title or "",
                 "title_t2": table_t2.title or "",
-                "table_title_raw": (getattr(table_t1, "title_raw", None) or table_t1.title or ""),
-                "table_number": getattr(table_t2, "table_number", None) or getattr(table_t1, "table_number", None),
+                "table_title_raw": (
+                    getattr(table_t1, "title_raw", None) or table_t1.title or ""
+                ),
+                "table_number": getattr(table_t2, "table_number", None)
+                or getattr(table_t1, "table_number", None),
                 "page_t1": table_t1.page_pdf,
                 "page_t2": table_t2.page_pdf,
                 "section": table_t1.section or table_t2.section,
@@ -1899,8 +1973,12 @@ def run_comparison_with_sections(
                     "fragmentation_detected_t1": table_t1.fragmentation_detected,
                     "fragmentation_detected_t2": table_t2.fragmentation_detected,
                     "suspicious_low_overlap": suspicious_low_overlap,
-                    "suspicious_reason": suspicious_reason if suspicious_low_overlap else None,
-                    "semantic_judge": semantic_judge_results.get(t1_uid) if semantic_judge_enabled else None,
+                    "suspicious_reason": suspicious_reason
+                    if suspicious_low_overlap
+                    else None,
+                    "semantic_judge": semantic_judge_results.get(t1_uid)
+                    if semantic_judge_enabled
+                    else None,
                     "extraction_confidence_t1": conf_t1,
                     "extraction_confidence_t2": conf_t2,
                     "quality_flags_t1": qf_t1,
@@ -1918,18 +1996,20 @@ def run_comparison_with_sections(
             comparisons[-1]["footnotes_counts"] = fn_result["counts"]
 
         # Part F: structured audit log for each matched pair
-        _write_match_decision_log({
-            "bank": bank_code,
-            "t1_id": table_t1.table_id,
-            "t2_id": table_t2.table_id,
-            "score": round(float(pair.get("score", 0.0) or 0.0), 4),
-            "indicator_overlap": round(pair_indicator_overlap, 4),
-            "match_reason": pair.get("reason", ""),
-            "fragmentation_detected_t1": table_t1.fragmentation_detected,
-            "fragmentation_detected_t2": table_t2.fragmentation_detected,
-            "suspicious_low_overlap_flag": suspicious_low_overlap,
-            "timestamp": datetime.now().isoformat(timespec="seconds"),
-        })
+        _write_match_decision_log(
+            {
+                "bank": bank_code,
+                "t1_id": table_t1.table_id,
+                "t2_id": table_t2.table_id,
+                "score": round(float(pair.get("score", 0.0) or 0.0), 4),
+                "indicator_overlap": round(pair_indicator_overlap, 4),
+                "match_reason": pair.get("reason", ""),
+                "fragmentation_detected_t1": table_t1.fragmentation_detected,
+                "fragmentation_detected_t2": table_t2.fragmentation_detected,
+                "suspicious_low_overlap_flag": suspicious_low_overlap,
+                "timestamp": datetime.now().isoformat(timespec="seconds"),
+            }
+        )
 
     def _source_method(uid: str, by_uid: dict) -> str:
         t = by_uid.get(uid)
@@ -1949,7 +2029,9 @@ def run_comparison_with_sections(
             "source_reason": str(item.get("source_reason", "")),
             "source_method": _source_method(t2_uid_added, t2_by_uid),
             "quality_flags": _extract_quality_flags(t2_t) if t2_t else [],
-            "extraction_confidence": _extraction_confidence(t2_t) if t2_t else "unknown",
+            "extraction_confidence": _extraction_confidence(t2_t)
+            if t2_t
+            else "unknown",
             "indicators": list(item.get("first_column_indicators", []) or []),
             "first_column_indicators_raw": list(
                 item.get("first_column_indicators_raw")
@@ -1982,7 +2064,9 @@ def run_comparison_with_sections(
             "source_reason": str(item.get("source_reason", "")),
             "source_method": _source_method(t1_uid_removed, t1_by_uid),
             "quality_flags": _extract_quality_flags(t1_t) if t1_t else [],
-            "extraction_confidence": _extraction_confidence(t1_t) if t1_t else "unknown",
+            "extraction_confidence": _extraction_confidence(t1_t)
+            if t1_t
+            else "unknown",
             "indicators": list(item.get("first_column_indicators", []) or []),
             "first_column_indicators_raw": list(
                 item.get("first_column_indicators_raw")
@@ -2033,7 +2117,9 @@ def run_comparison_with_sections(
                     "title_t1": "",
                     "title_t2": t.get("title", "") or t.get("table_id", ""),
                     "table_status": "ajoute",
-                    "added_indicators": list(t.get("indicators", []) or t.get("all_indicators_t2", []))[:30],
+                    "added_indicators": list(
+                        t.get("indicators", []) or t.get("all_indicators_t2", [])
+                    )[:30],
                     "removed_indicators": [],
                     "renamed_indicators": [],
                 }
@@ -2046,7 +2132,9 @@ def run_comparison_with_sections(
                     "title_t2": "",
                     "table_status": "supprime",
                     "added_indicators": [],
-                    "removed_indicators": list(t.get("indicators", []) or t.get("all_indicators_t1", []))[:30],
+                    "removed_indicators": list(
+                        t.get("indicators", []) or t.get("all_indicators_t1", [])
+                    )[:30],
                     "renamed_indicators": [],
                 }
 
@@ -2090,7 +2178,9 @@ def run_comparison_with_sections(
         "stable": sum(1 for c in comparisons if c.get("table_status") == "stable"),
         "modifie": sum(1 for c in comparisons if c.get("table_status") == "modifie"),
         "renommage_probable": 0,
-        "incertain": sum(1 for c in comparisons if c.get("table_status") == "incertain"),
+        "incertain": sum(
+            1 for c in comparisons if c.get("table_status") == "incertain"
+        ),
         "needs_review": 0,
         "structure_change": sum(
             1 for c in comparisons if c.get("table_status") == "structure_change"
