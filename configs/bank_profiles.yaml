@@ -8,6 +8,11 @@ vision_extraction:
   schema_failure_policy: fail_fast
   save_indicators_footnotes_json: true
   vision_pair_validation: false
+  page_level_title_assist:
+    enabled: true
+    min_confidence: 0.7
+    max_candidates: 10
+    weak_title_threshold: 3
 
 quality_gate:
   enabled: true
