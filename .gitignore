@@ -18,7 +18,6 @@ eggs/
 venv/
 env/
 ENV/
-.cursorrules
 
 # Testing
 .pytest_cache/
@@ -74,5 +73,6 @@ logs/
 
 # Cursor
 .cursor/
+.cursorrules
 
 # Project-specific (add paths for large/sensitive files if needed)
