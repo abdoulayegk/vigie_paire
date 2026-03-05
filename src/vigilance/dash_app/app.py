@@ -1121,7 +1121,7 @@ def update_review_meta(review_items_data, current_idx, indicator_idx, show_resul
 )
 def on_proof_display_mode_change(value):
     """Persist proof display mode (crop vs full page + bbox)."""
-    if value in ("crop", "full"):
+    if value in ("crop", "full", "footnote"):
         return value
     return no_update
 
