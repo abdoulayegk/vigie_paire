@@ -1,0 +1,2 @@
+t1_uid,t2_uid,expected_match
+capital_management|t1_capital_1|p10,capital_management|t2_capital_1|p11,true

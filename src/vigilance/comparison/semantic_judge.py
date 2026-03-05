@@ -36,9 +36,20 @@ _SYSTEM_PROMPT = (
 )
 
 
-def is_bank_allowed(bank_code: str) -> bool:
-    """Return True if the semantic judge is enabled for this bank."""
-    return (bank_code or "").strip().lower() in _ALLOWED_BANKS
+def is_bank_allowed(
+    bank_code: str,
+    allowed_banks: list[str] | frozenset[str] | None = None,
+) -> bool:
+    """Return True if the semantic judge is enabled for this bank.
+
+    If allowed_banks is provided (from config), use it. Otherwise use the default
+    _ALLOWED_BANKS (rbc, bns, td).
+    """
+    code = (bank_code or "").strip().lower()
+    if allowed_banks is not None:
+        codes = {b.strip().lower() for b in allowed_banks} if isinstance(allowed_banks, list) else allowed_banks
+        return code in codes
+    return code in _ALLOWED_BANKS
 
 
 def _needs_semantic_validation(

@@ -126,6 +126,9 @@ from app.review_models import (
     ReviewItem,
 )
 from app.review_priority import sort_review_items_by_priority
+from app.review_queue_normalizer import (
+    build_normalized_review_queue,
+)
 from app.review_state import set_review_status
 from app.ui_config import INDICATOR_COMPARISON_DIR
 from app.ui_detection import (
@@ -166,8 +169,12 @@ stores = [
     dcc.Store(id="store-indicator-result", data=None),
     dcc.Store(id="store-indicator-meta", data=None),
     dcc.Store(id="store-review-items", data=None),
+    dcc.Store(id="store-review-queue", data=None),  # V2: deduplicated grouped queue
     dcc.Store(id="store-review-current-idx", data=0),
     dcc.Store(id="store-review-current-indicator-idx", data=0),
+    dcc.Store(
+        id="store-current-change-idx", data=0
+    ),  # V2: index within table's changes
     dcc.Store(id="store-analysis-running", data=False),
     dcc.Store(id="store-analysis-start-ms", data=None),
     dcc.Store(id="store-validation-start-ms", data=None),
@@ -1602,6 +1609,119 @@ def render_results(comparison, indicator, show_results):
             ),
         ]
         kpis.append(dbc.Row(cols, className="mb-3"))
+
+        meta = indicator.get("meta", {}) or {}
+        validation_summary = (
+            meta.get("validation_summary", {}) if isinstance(meta, dict) else {}
+        )
+        if isinstance(validation_summary, dict):
+            vp = validation_summary.get("vision_pair", {}) or {}
+            rv = validation_summary.get("rename_validator", {}) or {}
+            atv = validation_summary.get("added_table_validator", {}) or {}
+            iv = validation_summary.get("indicator_validator", {}) or {}
+            if any(
+                bool(block.get("enabled", False))
+                for block in (vp, rv, atv, iv)
+                if isinstance(block, dict)
+            ):
+                validation_cols = [
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.P(
+                                        "Validation paires (Vision)",
+                                        className="small text-muted mb-0",
+                                    ),
+                                    html.H5(
+                                        f"{int(vp.get('accepted', 0))}/{int(vp.get('rejected', 0))}",
+                                        className="mb-0 fw-bold",
+                                    ),
+                                    html.Small(
+                                        f"calls={int(vp.get('calls', 0))} err={int(vp.get('errors', 0))}",
+                                        className="text-muted",
+                                    ),
+                                ],
+                                className="p-2 text-center",
+                            ),
+                            className="shadow-sm border-0",
+                        ),
+                        width=3,
+                    ),
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.P(
+                                        "Validation renommages",
+                                        className="small text-muted mb-0",
+                                    ),
+                                    html.H5(
+                                        f"{int(rv.get('accepted', 0))}/{int(rv.get('rejected', 0))}",
+                                        className="mb-0 fw-bold",
+                                    ),
+                                    html.Small(
+                                        (
+                                            f"band={int(rv.get('candidates_in_band', 0))} "
+                                            f"skip={int(rv.get('auto_accepted_out_of_band', 0))}"
+                                        ),
+                                        className="text-muted",
+                                    ),
+                                ],
+                                className="p-2 text-center",
+                            ),
+                            className="shadow-sm border-0",
+                        ),
+                        width=3,
+                    ),
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.P(
+                                        "Validation tableaux ajoutés",
+                                        className="small text-muted mb-0",
+                                    ),
+                                    html.H5(
+                                        f"{int(atv.get('accepted', 0))}/{int(atv.get('rejected', 0))}",
+                                        className="mb-0 fw-bold",
+                                    ),
+                                    html.Small(
+                                        f"calls={int(atv.get('calls', 0))} err={int(atv.get('errors', 0))}",
+                                        className="text-muted",
+                                    ),
+                                ],
+                                className="p-2 text-center",
+                            ),
+                            className="shadow-sm border-0",
+                        ),
+                        width=3,
+                    ),
+                    dbc.Col(
+                        dbc.Card(
+                            dbc.CardBody(
+                                [
+                                    html.P(
+                                        "Validation indicateurs",
+                                        className="small text-muted mb-0",
+                                    ),
+                                    html.H5(
+                                        f"-{int(iv.get('filtered_added', 0))}/-{int(iv.get('filtered_removed', 0))}",
+                                        className="mb-0 fw-bold",
+                                    ),
+                                    html.Small(
+                                        f"calls={int(iv.get('calls', 0))} err={int(iv.get('errors', 0))}",
+                                        className="text-muted",
+                                    ),
+                                ],
+                                className="p-2 text-center",
+                            ),
+                            className="shadow-sm border-0",
+                        ),
+                        width=3,
+                    ),
+                ]
+                kpis.append(dbc.Row(validation_cols, className="mb-3"))
     elif comparison:
         summary = comparison.get("summary", {})
         total_changes = summary.get("total_changes")
@@ -1824,14 +1944,19 @@ def render_sections_tab(indicator_result, show_results):
 
 @callback(
     Output("store-review-items", "data"),
+    Output("store-review-queue", "data"),  # V2: deduplicated grouped queue
     Output("store-review-current-idx", "data"),
+    Output("store-current-change-idx", "data"),  # V2: reset change index
     Output("store-nav-debug", "data", allow_duplicate=True),
     Input("store-indicator-result", "data"),
     Input("store-pdf-paths", "data"),
     prevent_initial_call=True,
 )
 def init_review_items(indicator_result, paths):
-    """Construire les ReviewItems depuis indicator_result pour la revue."""
+    """Construire les ReviewItems depuis indicator_result pour la revue.
+
+    Also builds the V2 deduplicated review queue.
+    """
     if not indicator_result or not paths:
         raise PreventUpdate
 
@@ -1857,7 +1982,7 @@ def init_review_items(indicator_result, paths):
             "total": 0,
             "reason": "; ".join(str(x) for x in fail_reasons[:3]),
         }
-        return [], 0, dbg
+        return [], [], 0, 0, dbg
 
     path_t1 = paths.get("pdf_t1", "")
     path_t2 = paths.get("pdf_t2", "")
@@ -1874,16 +1999,28 @@ def init_review_items(indicator_result, paths):
         pdf_path_t2=path_t2,
     )
     serialized = sort_review_items_by_priority([it.to_dict() for it in items])
+
+    # V2: Build deduplicated review queue
+    grouped_tables = build_normalized_review_queue(
+        indicator_result,
+        serialized,
+        pdf_path_t1=path_t1,
+        pdf_path_t2=path_t2,
+    )
+    serialized_v2 = [t.to_dict() for t in grouped_tables]
+
     total = len(serialized)
+    total_v2 = len(serialized_v2)
     dbg = {
         "writer": "init_review_items",
         "trigger": "init",
         "from": None,
         "to": 0,
         "total": total,
+        "total_v2": total_v2,
     }
-    logger.info("[init_review_items] total=%s -> idx=0", total)
-    return serialized, 0, dbg
+    logger.info("[init_review_items] total=%s tables_v2=%s -> idx=0", total, total_v2)
+    return serialized, serialized_v2, 0, 0, dbg
 
 
 def _build_comparison_statement(item: ReviewItem) -> str:
@@ -2702,7 +2839,9 @@ def on_download_indicator_json_brut(n_clicks, indicator_result):
     Output("store-indicator-meta", "data", allow_duplicate=True),
     Output("store-sections-validated", "data", allow_duplicate=True),
     Output("store-review-items", "data", allow_duplicate=True),
+    Output("store-review-queue", "data", allow_duplicate=True),  # V2
     Output("store-review-current-idx", "data", allow_duplicate=True),
+    Output("store-current-change-idx", "data", allow_duplicate=True),  # V2
     Output("main-content", "children", allow_duplicate=True),
     Output("store-show-results-page", "data", allow_duplicate=True),
     Output("store-review-filters", "data", allow_duplicate=True),
@@ -2727,7 +2866,9 @@ def on_reset(n_clicks):
             None,
             False,
             None,
+            None,  # store-review-queue
             0,
+            0,  # store-current-change-idx
             build_page_upload(),
             False,
             {"section": "all", "status": "all"},
@@ -2823,6 +2964,222 @@ def on_load_comparison(n_clicks, filename):
         dbc.Alert(f"Comparaison chargee: {filename}", color="success"),
         True,
     )
+
+
+# =============================================================================
+# V2 CALLBACKS: Per-Change Validation in Grouped Review Queue
+# =============================================================================
+
+
+@callback(
+    Output("store-review-queue", "data", allow_duplicate=True),
+    Output("store-current-change-idx", "data", allow_duplicate=True),
+    Output("store-review-current-idx", "data", allow_duplicate=True),
+    Input("btn-approve-change-v2", "n_clicks"),
+    Input("btn-reject-change-v2", "n_clicks"),
+    Input("btn-skip-change-v2", "n_clicks"),
+    State("store-review-queue", "data"),
+    State("store-review-current-idx", "data"),
+    State("store-current-change-idx", "data"),
+    State("validation-notes-v2", "value"),
+    prevent_initial_call=True,
+)
+def on_validate_change_v2(approve, reject, skip, queue, table_idx, change_idx, notes):
+    """Apply validation to current change in V2 queue, auto-advance.
+
+    Auto-advance rules:
+    - After decision, advance to next change in same table
+    - When last change of table is decided, auto-advance to next table
+    """
+    from datetime import datetime
+
+    if not ctx.triggered_id or not queue:
+        raise PreventUpdate
+
+    action_map = {
+        "btn-approve-change-v2": "approved",
+        "btn-reject-change-v2": "rejected",
+        "btn-skip-change-v2": "skipped",
+    }
+    decision = action_map.get(ctx.triggered_id)
+    if not decision:
+        raise PreventUpdate
+
+    table_idx = int(table_idx or 0)
+    change_idx = int(change_idx or 0)
+
+    if table_idx >= len(queue):
+        raise PreventUpdate
+
+    # Deep copy
+    new_queue = json.loads(json.dumps(queue))
+    table = new_queue[table_idx]
+    changes = table.get("changes", [])
+
+    if change_idx >= len(changes):
+        raise PreventUpdate
+
+    # Apply validation
+    changes[change_idx]["validation_status"] = decision
+    changes[change_idx]["validation_decision"] = decision
+    changes[change_idx]["validation_notes"] = notes or ""
+    changes[change_idx]["validated_at"] = datetime.utcnow().isoformat()
+    changes[change_idx]["validated_by"] = "analyst"
+
+    # Update table status
+    table["changes"] = changes
+    n_pending = sum(
+        1 for c in changes if c.get("validation_status", "pending") == "pending"
+    )
+    if n_pending == 0:
+        table["table_status"] = "completed"
+    else:
+        n_validated = sum(
+            1
+            for c in changes
+            if c.get("validation_status", "pending")
+            in ("approved", "rejected", "skipped")
+        )
+        table["table_status"] = "partial" if n_validated > 0 else "pending"
+
+    # Recompute summary
+    summary = {
+        "total_changes": len(changes),
+        "indicators_added": sum(
+            1 for c in changes if c.get("change_type") == "indicator_added"
+        ),
+        "indicators_removed": sum(
+            1 for c in changes if c.get("change_type") == "indicator_removed"
+        ),
+        "indicators_renamed": sum(
+            1 for c in changes if c.get("change_type") == "indicator_renamed"
+        ),
+        "footnotes_changed": sum(
+            1 for c in changes if "footnote" in c.get("change_type", "")
+        ),
+        "validated": len(changes) - n_pending,
+        "pending": n_pending,
+    }
+    table["summary"] = summary
+
+    # Auto-advance logic
+    new_change_idx = change_idx
+    new_table_idx = table_idx
+
+    if change_idx + 1 < len(changes):
+        # Next change in same table
+        new_change_idx = change_idx + 1
+    elif table_idx + 1 < len(new_queue):
+        # Next table, reset change index
+        new_table_idx = table_idx + 1
+        new_change_idx = 0
+    # else: stay at last position
+
+    logger.info(
+        "[on_validate_change_v2] table=%d change=%d decision=%s -> table=%d change=%d",
+        table_idx,
+        change_idx,
+        decision,
+        new_table_idx,
+        new_change_idx,
+    )
+
+    return new_queue, new_change_idx, new_table_idx
+
+
+@callback(
+    Output("store-current-change-idx", "data", allow_duplicate=True),
+    Input("btn-prev-change-v2", "n_clicks"),
+    Input("btn-next-change-v2", "n_clicks"),
+    State("store-review-queue", "data"),
+    State("store-review-current-idx", "data"),
+    State("store-current-change-idx", "data"),
+    prevent_initial_call=True,
+)
+def on_navigate_change_v2(prev, next_c, queue, table_idx, change_idx):
+    """Navigate prev/next within current table's changes (V2)."""
+    if not ctx.triggered_id or not queue:
+        raise PreventUpdate
+
+    table_idx = int(table_idx or 0)
+    change_idx = int(change_idx or 0)
+
+    if table_idx >= len(queue):
+        raise PreventUpdate
+
+    table = queue[table_idx]
+    n_changes = len(table.get("changes", []))
+
+    if ctx.triggered_id == "btn-prev-change-v2":
+        new_idx = max(0, change_idx - 1)
+    elif ctx.triggered_id == "btn-next-change-v2":
+        new_idx = min(n_changes - 1, change_idx + 1) if n_changes > 0 else 0
+    else:
+        raise PreventUpdate
+
+    return new_idx
+
+
+@callback(
+    Output("store-review-current-idx", "data", allow_duplicate=True),
+    Output("store-current-change-idx", "data", allow_duplicate=True),
+    Input("btn-prev-table-v2", "n_clicks"),
+    Input("btn-next-table-v2", "n_clicks"),
+    Input({"type": "queue-table-item-v2", "index": ALL}, "n_clicks"),
+    State("store-review-queue", "data"),
+    State("store-review-current-idx", "data"),
+    prevent_initial_call=True,
+)
+def on_navigate_table_v2(prev, next_t, clicks, queue, table_idx):
+    """Navigate between tables (V2)."""
+    if not queue:
+        raise PreventUpdate
+
+    table_idx = int(table_idx or 0)
+    n_tables = len(queue)
+
+    if ctx.triggered_id == "btn-prev-table-v2":
+        new_idx = max(0, table_idx - 1)
+    elif ctx.triggered_id == "btn-next-table-v2":
+        new_idx = min(n_tables - 1, table_idx + 1)
+    elif (
+        isinstance(ctx.triggered_id, dict)
+        and ctx.triggered_id.get("type") == "queue-table-item-v2"
+    ):
+        new_idx = ctx.triggered_id.get("index", table_idx)
+    else:
+        raise PreventUpdate
+
+    # Reset change_idx when switching tables
+    return new_idx, 0
+
+
+@callback(
+    Output("btn-next-table-v2", "disabled"),
+    Input("store-review-queue", "data"),
+    Input("store-review-current-idx", "data"),
+)
+def block_next_table_until_complete_v2(queue, table_idx):
+    """Disable 'Next Table' if current table has required pending changes."""
+    if not queue:
+        return False
+
+    table_idx = int(table_idx or 0)
+    if table_idx >= len(queue):
+        return False
+
+    table = queue[table_idx]
+    changes = table.get("changes", [])
+
+    # Block if any required change is still pending
+    for c in changes:
+        if (
+            c.get("is_required", True)
+            and c.get("validation_status", "pending") == "pending"
+        ):
+            return True
+
+    return False
 
 
 if __name__ == "__main__":
