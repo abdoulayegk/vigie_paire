@@ -11,7 +11,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -31,44 +31,242 @@ _EXTRACTION_METHOD = "vision_full_gpt4o"
 _CONFIDENCE_RETRY_THRESHOLD = 0.85
 _RECROP_EXTENSION_INCREMENT = 0.06
 
-_PROMPT_BASE = """Tu es un expert en extraction de donnees de rapports bancaires canadiens.
+_PROMPT_BASE = """
+Tu es un expert en extraction de données financières à partir de rapports bancaires canadiens.
 
-TACHE: Analyser cette image de tableau et extraire:
+TÂCHE
+On te fournit l'image d'une page complète d'un rapport financier. 
+Un tableau spécifique a été ENCADRÉ EN ROUGE. 
 
-1. INDICATEURS (1ere colonne uniquement):
-   - Tous les libelles dans l'ordre visuel haut vers bas
-   - Inclure sous-totaux, totaux, lignes indentees
-   - Conserver references notes (1), (2), *, etc.
-   - NE PAS inclure: en-tetes colonnes, dates, periodes, unites (en millions...), notes de bas de page
+Ta mission :
+1. Extrais UNIQUEMENT les données (indicateurs, en-têtes, lignes de données) situées STRICTEMENT à l'intérieur du cadre ROUGE.
+   - Le cadre rouge définit les limites exactes des chiffres et du texte du tableau.
+   - INTERDICTION formelle d'inclure ou de fusionner avec des tableaux voisins hors du cadre.
+2. Regarde juste au-dessus du cadre rouge pour trouver et inclure le TITRE exact du tableau. Si le numéro ("Tableau XX") et le nom du tableau sont sur deux lignes séparées juste au-dessus, inclus l'ensemble dans le titre.
+3. Regarde en dessous du cadre rouge (et jusqu'en bas de la page si nécessaire) pour trouver, lire et rattacher TOUTES les notes de bas de page (footnotes) liées à ce tableau.
+4. Évalue la qualité de l'extraction (has_hierarchy, extraction_confidence, notes) selon la lisibilité et la structure du tableau.
 
-2. FOOTNOTES (notes sous le tableau):
-   - Detecter les deux formats: parenthesiques (1)(2)(3) OU superscript/chiffres 123 ou 1 2 3
-   - Retourner une liste structuree [{id, text}] (id normalise "1", "2", "3" pour matching)
-   - Si aucune note visible, retourner footnotes_content vide et footnote_markers vide
+---
 
-REGLES:
-- Transcribe EXACTEMENT ce que tu vois, pas d'inference
-- Ordre visuel strict
-- Confidence 0.0-1.0 selon lisibilite
+1. INDICATEURS (UNIQUEMENT la première colonne de l'encadré)
+
+---
+
+Extraire tous les libellés de la première colonne du tableau dans l'ordre visuel strict (de haut en bas).
+
+RÈGLE SPÉCIALE : Si la première colonne ne contient que des index numériques (1, 2, 3...), prends le libellé de la deuxième colonne comme indicateur.
+
+LISTE NOIRE (ne JAMAIS extraire comme indicateur) :
+- "Indicateur", "Indicator"
+- "Année", "Year", "Exercice"
+- "Trimestre", "Quarter", "T1", "T2", "T3", "T4", "Q1", "Q2", "Q3", "Q4"
+- "Montant", "Amount", "Solde", "Balance"
+- "Total" seul en en-tête de colonne
+- Dates au format YYYY ou DD/MM/YYYY
+
+Inclure :
+
+- lignes d'indicateurs réelles (lignes associées à des valeurs numériques dans les colonnes)
+- sous-lignes indentées (conserver les espaces d'indentation pour représenter la hiérarchie)
+- sous-totaux
+- totaux
+- lignes contenant des références de notes comme (1), (2), *, †
+
+Exclure :
+
+- marqueurs de notes isolés (ex: (1), *, 1, 2,¹, ², ³) s'ils ne sont pas rattachés à un libellé textuel
+- symboles monétaires seuls (ex: $)
+- titres du tableau
+- en-têtes de colonnes
+- titres de groupes ou sections (lignes sans valeurs associées)
+- années ou périodes (ex : 2024, 2025, T1)
+- unités (ex : %, en millions, en milliards)
+- valeurs numériques
+- notes de bas de page
+
+Règles importantes :
+
+- conserver EXACTEMENT le texte visible
+- conserver l'indentation si visible
+- ne jamais modifier ou interpréter le texte
+- respecter strictement l'ordre visuel
+- ne jamais inventer d'indicateur
+
+RÈGLE ANTI-FUSION (CRITIQUE) :
+- Chaque ligne visuelle distincte du tableau doit produire UN indicateur séparé.
+- Si deux lignes de texte sont proches verticalement mais clairement séparées, crée DEUX objets indicateurs distincts.
+- Ne JAMAIS concaténer ou fusionner plusieurs lignes en un seul indicateur.
+- En cas de doute sur la séparation, privilégie la création d'indicateurs séparés.
+
+EXCLUSION DES PARAGRAPHES NARRATIFS :
+- Ne pas extraire les blocs de texte explicatif (phrases complètes qui traversent plusieurs colonnes).
+- Les paragraphes descriptifs ou les notes intégrées au milieu du tableau ne sont PAS des indicateurs.
+- Un indicateur est typiquement un libellé court (1 à 10 mots) aligné dans la première colonne.
+
+Pour chaque indicateur retourner également :
+
+- bbox : position approximative dans l'image
+- format : [x_min, y_min, x_max, y_max]
+- coordonnées normalisées entre 0 et 1
+
+---
+
+2. NOTES DE BAS DE TABLEAU (FOOTNOTES)
+
+---
+
+Extraire toutes les notes situées en dessous du cadre rouge (et jusqu'au bas de la page).
+
+Formats possibles des marqueurs :
+
+- (1) (2) (3)
+- ¹ ² ³
+- 1 2 3
+- * † ‡
+- a) b)
+
+IMPORTANT :
+
+Les notes doivent être retournées dans leur ordre visuel exact (de haut en bas).
+Ne jamais trier les notes par identifiant.
+
+Pour chaque note retourner :
+
+- id : identifiant normalisé (ex : "1", "2", "*")
+- text : texte complet de la note
+- bbox : position approximative dans l'image
+- format : [x_min, y_min, x_max, y_max]
+
+Règles :
+
+- conserver le texte EXACT
+- ne pas fusionner plusieurs notes
+- ne pas inventer de notes
+- respecter l'ordre visuel
+- si aucune note n'est visible retourner une liste vide
+
+---
+
+REGLES GENERALES
+
+- Transcrire uniquement ce qui est visible dans l'image
+- Ne jamais inventer d'information
+- Respecter l'ordre visuel
+- Les bbox doivent être approximatives mais cohérentes
+- Si une bbox est incertaine, retourner null
+
+Retourner également :
+
+- confidence : score global entre 0.0 et 1.0 basé sur la lisibilité
 """
 
 _PROMPT_JSON_STRICT = """
-REPONSE JSON STRICT (pas de texte avant/apres):
+REPONSE JSON STRICTE.
+Retourner uniquement du JSON valide.
+Aucun texte avant ou après.
+
 {
-  "indicators": ["Libelle 1", "  Sous-libelle", "Total", "..."],
-  "footnotes_content": [{"id": "1", "text": "texte note 1"}, {"id": "2", "text": "..."}],
-  "footnote_markers": ["1", "2", "3"],
-  "confidence": 0.95,
-  "appears_truncated": false,
-  "estimated_content_height": 85
+"table_title": "Tableau 1 - Titre complet ou chaine vide si absent",
+
+"headers": ["Colonne 1", "Colonne 2", "Colonne 3"],
+
+"indicators": [
+  {"text": "Libelle 1", "bbox": [0.10, 0.22, 0.40, 0.25]},
+  {"text": " Sous-libelle", "bbox": [0.10, 0.26, 0.40, 0.30]},
+  {"text": "Total", "bbox": [0.10, 0.31, 0.40, 0.34]}
+],
+
+"rows": [
+  ["Libelle 1", "100", "200"],
+  [" Sous-libelle", "50", "150"]
+],
+
+"footnotes_detected": true,
+
+"footnotes_content": [
+  {"id": "1", "text": "texte note 1"},
+  {"id": "2", "text": "texte note 2"}
+],
+
+"footnote_markers": ["1", "2"],
+
+"has_hierarchy": true,
+"extraction_confidence": "high",
+"notes": "Tableau bien cadré",
+
+"confidence": 0.95,
+"appears_truncated": false,
+"estimated_content_height": null
 }
 
-- appears_truncated: true si le contenu semble coupe (crop trop court, tableaux/footnotes invisibles)
-- estimated_content_height: pourcentage (0-100) du contenu visible, null si inconnu
+REGLES DE VALIDATION
+
+- table_title : inclure le numéro ("Tableau XX") ET le titre s'ils sont présents au-dessus du cadre rouge. Chaine vide si aucun titre visible (NE JAMAIS inventer).
+- headers : liste vide si aucun en-tete visible
+- indicators doit respecter l'ordre visuel du tableau
+- rows : liste vide si aucune donnee visible
+- footnotes_content doit respecter l'ordre visuel des notes (haut → bas)
+- ne jamais trier les notes par identifiant
+- si aucune note n'est visible :
+  footnotes_detected = false
+  footnotes_content = []
+
+DEFINITIONS
+
+table_title
+Titre complet et visible du tableau, incluant le numéro (ex: "Tableau 1") s'il est présent sur la même ligne ou la ligne juste au-dessus. "" si absent.
+
+headers
+Liste des en-tetes de colonnes.
+
+indicators
+Liste des libellés extraits de la première colonne avec leur bbox.
+
+rows
+Liste de listes de chaînes : toutes les lignes de données du tableau.
+
+footnotes_content
+Liste ORDONNEE des notes (ordre visuel strict, haut → bas).
+
+footnote_markers
+Liste simple des marqueurs détectés dans le tableau.
+
+has_hierarchy
+true si le tableau utilise l'indentation ou des sous-catégories.
+
+extraction_confidence
+"high" (lisible et structuré), "medium" (lisible mais doutes), "low" (illisible ou cassé).
+
+notes
+Brefs commentaires sur la qualité de l'image ou du tableau (ex: "flou", "coupé", "ok").
+
+confidence
+Score numérique (0.0 - 1.0) basé sur la lisibilité globale.
+
+appears_truncated
+true si le tableau ou les footnotes semblent coupés.
+
+estimated_content_height
+Pourcentage estimé du contenu visible.
+Mettre null si impossible à estimer.
 """
 
 _PROMPT_JSON_FIX = """
-Corrige uniquement le JSON pour qu'il soit valide. Retourne uniquement le JSON corrige, sans markdown ni commentaire.
+Le JSON suivant est invalide.
+
+Corrige uniquement la structure pour produire un JSON valide.
+
+Règles :
+
+- ne pas modifier le contenu des champs
+- ne pas ajouter d'information
+- ne pas supprimer de données sauf si nécessaire pour rendre le JSON valide
+- ne pas modifier les valeurs textuelles
+- ne pas modifier les bbox
+
+Retourner uniquement le JSON corrigé.
+Aucun markdown.
+Aucun commentaire.
 """
 
 
@@ -90,23 +288,54 @@ class VisionFootnoteItem(BaseModel):
 
 
 class VisionFullResponseSchema(BaseModel):
-    """Pydantic schema for Vision extraction API response. Used for validation and Structured Outputs."""
+    """Pydantic schema for Vision extraction API response. Used for validation and Structured Outputs.
+
+    Source of truth for ALL content fields:
+    - table_title, headers, rows: full table content
+    - indicators: first-column labels in visual order
+    - footnotes_content: ordered list (visual order, never sorted)
+    """
 
     model_config = ConfigDict(extra="forbid")
 
+    table_title: str = Field(
+        default="",
+        description="Titre complet et visible du tableau, incluant le numéro (ex: 'Tableau 1') s'il est au-dessus. Chaine vide si aucun titre visible.",
+    )
+    headers: list[str] = Field(
+        default_factory=list,
+        description="En-tetes de colonnes du tableau, dans l'ordre",
+    )
     indicators: list[str] = Field(
         description="Libelles de la premiere colonne, ordre visuel haut vers bas",
     )
+    rows: list[list[str]] = Field(
+        default_factory=list,
+        description="Lignes de donnees du tableau (liste de listes de chaines)",
+    )
     footnotes_content: list[VisionFootnoteItem] = Field(
-        description="Liste de notes structurees [{id, text}]",
+        description="Liste ORDONNEE de notes structurees [{id, text}] — ordre visuel strict",
         default_factory=list,
     )
     footnote_markers: list[str] = Field(
         description="Liste des marqueurs detectes (1, 2, 3 ou format parenthesique)",
         default_factory=list,
     )
+    has_hierarchy: bool = Field(
+        description="True si le tableau contient des sous-catégories indentées ou une structure hiérarchique explicite.",
+        default=False,
+    )
+    extraction_confidence: str = Field(
+        description="Niveau de confiance qualitatif ('high', 'medium', 'low').",
+        default="medium",
+        pattern="^(high|medium|low)$",
+    )
+    notes: str = Field(
+        description="Observations pertinentes sur la qualité ou la structure (ex: 'flou', 'ratures', 'colonnes décalées').",
+        default="",
+    )
     confidence: float = Field(
-        description="Confiance 0.0-1.0 selon lisibilite",
+        description="Score numérique 0.0-1.0 de confiance globale.",
         ge=0.0,
         le=1.0,
     )
@@ -126,10 +355,29 @@ class VisionFullResponseSchema(BaseModel):
     def _normalize_indicators(cls, v: list[str]) -> list[str]:
         return [str(x).strip() for x in v if str(x).strip()]
 
+    @field_validator("headers", mode="after")
+    @classmethod
+    def _normalize_headers(cls, v: list[str]) -> list[str]:
+        return [str(x).strip() for x in v]
+
+    @field_validator("rows", mode="before")
+    @classmethod
+    def _coerce_rows(cls, v: Any) -> list[list[str]]:
+        if not isinstance(v, list):
+            return []
+        result: list[list[str]] = []
+        for row in v:
+            if isinstance(row, list):
+                result.append([str(cell) for cell in row])
+            elif isinstance(row, str):
+                result.append([row])
+        return result
+
     @field_validator("footnotes_content", mode="before")
     @classmethod
     def _coerce_footnotes_content(cls, v: Any) -> list[dict[str, str]]:
-        # Backward-compat: accept legacy dict marker->text and normalize to list[dict]
+        # Migration shim: accept legacy dict marker->text and normalize to ordered list.
+        # The dict form loses visual order — items are added in insertion order.
         if isinstance(v, dict):
             out: list[dict[str, str]] = []
             for k, val in v.items():
@@ -139,15 +387,12 @@ class VisionFullResponseSchema(BaseModel):
                     out.append({"id": marker, "text": text})
             return out
         if isinstance(v, list):
-            out: list[dict[str, str]] = []
+            out = []
             for item in v:
                 if not isinstance(item, dict):
                     continue
                 marker = str(
-                    item.get("id")
-                    or item.get("marker")
-                    or item.get("ref")
-                    or ""
+                    item.get("id") or item.get("marker") or item.get("ref") or ""
                 ).strip()
                 text = str(item.get("text") or item.get("value") or "").strip()
                 if marker and text:
@@ -233,7 +478,10 @@ def _validate_no_map_like_objects(node: Any, path: str) -> None:
     node_type = node.get("type")
     if node_type == "object":
         # OpenAI strict schema handling is fragile with map-like additionalProperties objects.
-        if "additionalProperties" in node and node.get("additionalProperties") not in (False, None):
+        if "additionalProperties" in node and node.get("additionalProperties") not in (
+            False,
+            None,
+        ):
             raise VisionSchemaContractError(
                 f"Structured Outputs strict contract invalid: map-like object not allowed at {path}"
             )
@@ -257,9 +505,8 @@ def _validate_no_map_like_objects(node: Any, path: str) -> None:
 def _classify_openai_error(exc: Exception) -> str:
     """Classify OpenAI API error to choose deterministic handling."""
     msg = str(exc).lower()
-    if (
-        "invalid schema for response_format" in msg
-        or ("missing '" in msg and "response_format" in msg and "required" in msg)
+    if "invalid schema for response_format" in msg or (
+        "missing '" in msg and "response_format" in msg and "required" in msg
     ):
         return "schema_contract_invalid"
     if (
@@ -273,22 +520,33 @@ def _classify_openai_error(exc: Exception) -> str:
 
 @dataclass
 class VisionFullResult:
-    """Result of Vision full extraction (indicators + footnotes)."""
+    """Result of Vision full extraction (full table content + footnotes).
 
+    Source of truth for ALL content fields when Vision extracts a table.
+    footnotes_content is an ORDERED LIST preserving visual order (haut → bas).
+    No content field is ever backfilled from Docling when Vision is used.
+    """
+
+    # Content fields — all come from Vision, never from Docling
+    table_title: str
+    headers: list[str]
     indicators: list[str]
-    footnotes_content: dict[str, str]
+    rows: list[list[str]]
+    # footnotes as ordered list (visual order preserved, never sorted by marker)
+    footnotes_content: list[dict[str, str]]
     footnote_markers: list[str]
     confidence: float
     extraction_method: str = _EXTRACTION_METHOD
     appears_truncated: bool = False
     estimated_content_height: int | None = None
+    # Status and warnings
+    vision_status: str = "ok"  # "ok" | "partial" | "failed"
+    warnings: list[str] = field(default_factory=list)
 
     def to_footnotes_list(self) -> list[dict[str, str]]:
-        """Convert to list[dict] for ExtractedTable.footnotes."""
-        return [
-            {"id": k, "text": v}
-            for k, v in sorted(self.footnotes_content.items())
-        ]
+        """Return footnotes as ordered list (visual order). No sorting by marker."""
+        # footnotes_content is already the ordered list — return a copy.
+        return list(self.footnotes_content)
 
 
 def _build_prompt(bank_code: str, vision_cfg: dict[str, Any]) -> str:
@@ -312,7 +570,7 @@ def _strip_markdown_fences(text: str) -> str:
     if stripped.startswith("```"):
         first_nl = stripped.find("\n")
         if first_nl != -1:
-            stripped = stripped[first_nl + 1:]
+            stripped = stripped[first_nl + 1 :]
         if stripped.endswith("```"):
             stripped = stripped[:-3].rstrip()
     return stripped
@@ -339,18 +597,27 @@ def _parse_vision_result(raw: str | dict[str, Any]) -> VisionFullResult | None:
         logger.debug("Vision response validation failed: %s", e)
         return None
 
+    # Build ordered footnotes list — preserves visual order from Pydantic validation.
+    # The _coerce_footnotes_content validator already normalized dict->list.
+    footnotes_ordered: list[dict[str, str]] = [
+        {"marker": str(item.id).strip(), "text": str(item.text).strip()}
+        for item in validated.footnotes_content
+        if str(item.id).strip() and str(item.text).strip()
+    ]
+
     return VisionFullResult(
+        table_title=validated.table_title or "",
+        headers=validated.headers or [],
         indicators=validated.indicators,
-        footnotes_content={
-            str(item.id).strip(): str(item.text).strip()
-            for item in validated.footnotes_content
-            if str(item.id).strip() and str(item.text).strip()
-        },
+        rows=validated.rows or [],
+        footnotes_content=footnotes_ordered,
         footnote_markers=validated.footnote_markers,
         confidence=validated.confidence,
         extraction_method=_EXTRACTION_METHOD,
         appears_truncated=validated.appears_truncated,
         estimated_content_height=validated.estimated_content_height,
+        vision_status="ok",
+        warnings=[],
     )
 
 
@@ -422,7 +689,13 @@ class VisionFullExtractor:
 
         vision_cfg = vision_cfg or {}
         cache_key = ""
-        if self._use_cache and pdf_sha and page_number and bbox_norm and len(bbox_norm) == 4:
+        if (
+            self._use_cache
+            and pdf_sha
+            and page_number
+            and bbox_norm
+            and len(bbox_norm) == 4
+        ):
             bbox_with_ext = list(bbox_norm)
             if len(bbox_with_ext) >= 4:
                 bbox_with_ext[3] = min(1.0, bbox_with_ext[3] + bottom_extension_used)
@@ -432,16 +705,41 @@ class VisionFullExtractor:
                 cached = cache_get(cache_dir, cache_key)
                 if cached:
                     indicators = cached.get("indicators")
-                    fn_content = cached.get("footnotes_content", {})
+                    fn_content_raw = cached.get("footnotes_content", [])
                     fn_markers = cached.get("footnote_markers", [])
                     confidence = float(cached.get("confidence", 0.0))
                     appears_truncated = bool(cached.get("appears_truncated", False))
                     estimated_content_height = cached.get("estimated_content_height")
-                    if isinstance(indicators, list) and all(isinstance(x, str) for x in indicators):
-                        if isinstance(fn_content, dict):
-                            fn_content = {str(k): str(v) for k, v in fn_content.items()}
+                    if isinstance(indicators, list) and all(
+                        isinstance(x, str) for x in indicators
+                    ):
+                        # Migration shim: legacy cache may store footnotes as dict.
+                        if isinstance(fn_content_raw, dict):
+                            fn_content: list[dict[str, str]] = [
+                                {"marker": str(k), "text": str(v)}
+                                for k, v in fn_content_raw.items()
+                                if str(k).strip() and str(v).strip()
+                            ]
+                        elif isinstance(fn_content_raw, list):
+                            fn_content = [
+                                item
+                                for item in fn_content_raw
+                                if isinstance(item, dict)
+                                and (item.get("marker") or item.get("id"))
+                                and item.get("text")
+                            ]
+                            # Normalize legacy {id,text} -> {marker,text}
+                            fn_content = [
+                                {
+                                    "marker": str(
+                                        item.get("marker") or item.get("id", "")
+                                    ).strip(),
+                                    "text": str(item.get("text", "")).strip(),
+                                }
+                                for item in fn_content
+                            ]
                         else:
-                            fn_content = {}
+                            fn_content = []
                         if isinstance(fn_markers, list):
                             fn_markers = [str(x) for x in fn_markers]
                         else:
@@ -452,7 +750,10 @@ class VisionFullExtractor:
                             confidence,
                         )
                         return VisionFullResult(
+                            table_title=str(cached.get("table_title") or ""),
+                            headers=list(cached.get("headers") or []),
                             indicators=indicators,
+                            rows=list(cached.get("rows") or []),
                             footnotes_content=fn_content,
                             footnote_markers=fn_markers,
                             confidence=max(0.0, min(1.0, confidence)),
@@ -463,6 +764,8 @@ class VisionFullExtractor:
                                 if estimated_content_height is not None
                                 else None
                             ),
+                            vision_status=str(cached.get("vision_status") or "ok"),
+                            warnings=list(cached.get("warnings") or []),
                         )
 
         try:
@@ -560,19 +863,30 @@ class VisionFullExtractor:
                             cache_dir,
                             cache_key,
                             {
+                                "table_title": result.table_title,
+                                "headers": result.headers,
                                 "indicators": result.indicators,
+                                "rows": result.rows,
+                                # footnotes persisted as ordered list {marker, text}
                                 "footnotes_content": result.footnotes_content,
                                 "footnote_markers": result.footnote_markers,
                                 "confidence": result.confidence,
                                 "appears_truncated": result.appears_truncated,
                                 "estimated_content_height": result.estimated_content_height,
+                                "vision_status": result.vision_status,
+                                "warnings": result.warnings,
                             },
                         )
                     return result
 
             if attempt < self._max_retries_json:
                 content = [
-                    {"type": "text", "text": _PROMPT_JSON_FIX + "\n\nReponse actuelle:\n" + (raw_content[:2000] or "")},
+                    {
+                        "type": "text",
+                        "text": _PROMPT_JSON_FIX
+                        + "\n\nReponse actuelle:\n"
+                        + (raw_content[:2000] or ""),
+                    },
                     {
                         "type": "image_url",
                         "image_url": {
@@ -581,7 +895,9 @@ class VisionFullExtractor:
                         },
                     },
                 ]
-                logger.info("Vision full: JSON invalid, retry %d with fix prompt", attempt + 1)
+                logger.info(
+                    "Vision full: JSON invalid, retry %d with fix prompt", attempt + 1
+                )
 
         logger.warning("Vision full extraction: invalid JSON after retries")
         return None

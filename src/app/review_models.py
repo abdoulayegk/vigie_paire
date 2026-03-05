@@ -19,6 +19,12 @@ REVIEW_STATUS_PENDING = "pending"
 REVIEW_STATUS_APPROVED = "approved"
 REVIEW_STATUS_REJECTED = "rejected"
 
+# Review event type: drives UI (table-only vs indicator-diff) and payload rules.
+EVENT_TYPE_MATCHED_PAIR = "matched_pair"
+EVENT_TYPE_TABLE_ADDED = "table_added"
+EVENT_TYPE_TABLE_REMOVED = "table_removed"
+EVENT_TYPE_FOOTNOTE_ONLY = "footnote_only"
+
 
 def _parse_all_indicators(val: Any) -> list[str]:
     if val is None:
@@ -73,6 +79,7 @@ class ReviewItem:
     added_indicators: list[str] = field(default_factory=list)
     removed_indicators: list[str] = field(default_factory=list)
     item_type: str = "indicator"  # "indicator" or "footnote"
+    event_type: str = EVENT_TYPE_MATCHED_PAIR  # matched_pair | table_added | table_removed | footnote_only
     footnote_changes: list[dict[str, Any]] = field(default_factory=list)
     genai_analysis: dict[str, Any] = field(default_factory=dict)
     match_metadata: dict[str, Any] = field(default_factory=dict)
@@ -111,6 +118,7 @@ class ReviewItem:
             "added_indicators": list(self.added_indicators),
             "removed_indicators": list(self.removed_indicators),
             "item_type": self.item_type,
+            "event_type": self.event_type,
             "footnote_changes": list(self.footnote_changes),
             "genai_analysis": dict(self.genai_analysis) if self.genai_analysis else {},
             "match_metadata": dict(self.match_metadata) if self.match_metadata else {},
@@ -151,6 +159,7 @@ class ReviewItem:
             added_indicators=_parse_all_indicators(data.get("added_indicators")),
             removed_indicators=_parse_all_indicators(data.get("removed_indicators")),
             item_type=str(data.get("item_type", "indicator")),
+            event_type=str(data.get("event_type", EVENT_TYPE_MATCHED_PAIR)),
             footnote_changes=list(data.get("footnote_changes", [])),
             genai_analysis=dict(data.get("genai_analysis") or {}),
             match_metadata=dict(data.get("match_metadata") or {}),

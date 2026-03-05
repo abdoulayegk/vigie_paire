@@ -21,7 +21,17 @@ from vigilance.utils.matching_normalizer import (
 
 logger = logging.getLogger(__name__)
 
-_TRAILING_NOTE_RE = re.compile(r"\s*(?:\(\d+\)|\[\d+\]|\*+)\s*$")
+# Extended pattern for trailing note markers: (1), [2], *, (a), (A), a), †, ‡, ¹²³
+_TRAILING_NOTE_RE = re.compile(
+    r"\s*(?:"
+    r"\(\d+\)"  # (1), (2)
+    r"|\[\d+\]"  # [1], [2]
+    r"|\([a-zA-Z]\)"  # (a), (b), (A), (B)
+    r"|[a-zA-Z]\)"  # a), b)
+    r"|[\*†‡]+"  # *, †, ‡
+    r"|[¹²³⁴⁵⁶⁷⁸⁹⁰]+"  # superscript digits
+    r")\s*$"
+)
 _TRAILING_NUM_RE = re.compile(r"\s+\d{1,4}(?:[.,]\d+)?\s*$")
 # Digits attached to last word (no space): "Total des actifs1" -> "Total des actifs", "Revenue2024" -> "Revenue"
 _TRAILING_WORD_DIGITS_RE = re.compile(r"([^\d\s]+)(\d+)$")
@@ -214,6 +224,11 @@ def is_trailing_number_semantic(text: str) -> bool:
         or re.search(r"\b(?:ratio|note|scenario)\s+[0-9]+\b", value)
         or re.search(r"\b(?:serie|series|tranche|classe|class)\s+[0-9]+\b", value)
         or re.search(r"\b(?:categorie|category)\s+[0-9]+\b", value)
+        # Compact regulatory tokens without space must be preserved (e.g. CET1, Tier1)
+        or re.search(
+            r"\b(?:cet|tier|pilier|pillar|at|tlac|lcr|nsfr)\s*[0-9]+\b",
+            value,
+        )
     )
 
 
@@ -587,8 +602,31 @@ def normalize_indicator_for_comparison(text: str) -> str:
     text = unicodedata.normalize("NFD", text)
     text = re.sub(r"\s+", " ", text).strip()
 
+    # Strip series variant suffixes FIRST (before strip_dates removes the year)
+    # "Série 2023-g(7)" -> "Série 2023" to avoid OCR confusion (g vs 9, etc.)
+    # Must strip combining marks first so é -> e for the regex to match "serie"
+    _text_ascii = text.encode("ascii", "ignore").decode("utf-8")
+    _text_ascii = re.sub(
+        r"(series?\s+\d{4})[-\s]*[a-z0-9]+(?:\(\d+\))?",
+        r"\1",
+        _text_ascii,
+        flags=re.IGNORECASE,
+    )
+    if _text_ascii != text.encode("ascii", "ignore").decode("utf-8"):
+        text = _text_ascii
+
     # OCR: recombine single-letter 'words' (e.g. "T o t a l" -> "Total", "A s s e t s" -> "Assets")
     text = clean_spaced_out_text(text)
+
+    # Strip footnote reference digits/superscripts glued after closing paren
+    # BEFORE strip_dates (which internally drops non-ASCII like ³ but keeps 3).
+    # Ensures "amorti)3" and "amorti)³" both become "amorti)" consistently.
+    text = re.sub(r"\)\s*[\d¹²³⁴⁵⁶⁷⁸⁹⁰]{1,3}", ")", text)
+
+    # Strip bare trailing footnote digits/superscripts glued to letters (no space).
+    # "Région2" → "Région", "Région²" → "Région", but "CET1", "Tier1" kept.
+    # Requires 5+ preceding letter chars to avoid stripping compact regulatory tokens.
+    text = re.sub(r"(?<=[a-zA-Z]{5})[\d¹²³⁴⁵⁶⁷⁸⁹⁰]{1,2}(?=\W|$)", "", text)
 
     # Lines that are purely date/unit/note/footnote should yield empty (idempotent with extraction filter)
     if is_date_only_line(text) or is_non_indicator_line(text):
@@ -628,6 +666,8 @@ def normalize_indicator_for_comparison(text: str) -> str:
     # References de notes: (1), (2), [1], [2], etc.
     text = re.sub(r"\s*[\(\[]\d+[\)\]]\s*", " ", text)
 
+    # Appels de notes lettres avec parentheses: (a), (b), (A), (B)
+    text = re.sub(r"\s*\([a-zA-Z]\)\s*", " ", text)
     # Appels de notes lettres: a), b), a,b, etc. (Spec Basel III)
     text = re.sub(r"\s*[a-z]\)\s*", " ", text, flags=re.IGNORECASE)
     text = re.sub(r"\s*[a-z],\s*[a-z]\s*", " ", text, flags=re.IGNORECASE)
@@ -635,9 +675,9 @@ def normalize_indicator_for_comparison(text: str) -> str:
     # Patterns numeriques sans parenthese ouvrante: 2), 3)
     text = re.sub(r"\s*\d+\)\s*", " ", text)
 
-    # Exposants et asterisques
+    # Exposants, asterisques et symboles dagger
     text = re.sub(r"[¹²³⁴⁵⁶⁷⁸⁹⁰]+", "", text)
-    text = re.sub(r"\*+", "", text)
+    text = re.sub(r"[\*†‡]+", "", text)
 
     # Chiffres isolés en fin (notes ou colonnes), sauf semantique (pilier, tier, serie, etc.)
     if not is_trailing_number_semantic(text):

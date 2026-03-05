@@ -1,4 +1,13 @@
-"""Integration hook for Vision first-column fallback. Called from docling_processor."""
+"""TOMBSTONED (Steps 2+3 refactor): Vision fallback integration hook.
+
+Previously called from docling_processor to run Vision as a fallback for Docling
+content extraction. This hybrid path violated Rules 1+2 (never merge Docling/Vision
+content). After the refactor, docling_processor uses Vision as the SOLE content source
+directly in the per-table loop — this module is no longer invoked.
+
+All content (_try_vision_first_column_fallback and helpers) preserved below for
+reference, but not imported or called from any active code path.
+"""
 
 from __future__ import annotations
 
@@ -39,7 +48,9 @@ def _build_vision_indicator_entries(labels: list[str]) -> list[dict[str, Any]]:
                 "canonical_text": canonical,
                 "token_sorted": token_sorted,
                 "anchor_tokens": token_sorted.split()[:12] if token_sorted else [],
-                "line_role": "header_like" if is_non_indicator_line(raw) else "indicator",
+                "line_role": "header_like"
+                if is_non_indicator_line(raw)
+                else "indicator",
             }
         )
     return entries
@@ -55,7 +66,11 @@ def _compute_agreement_signals(
     if doc_count == 0 and vis_count == 0:
         return {"count_ratio": 1.0, "anchor_overlap": 1.0, "agreement": "both_empty"}
 
-    count_ratio = min(doc_count, vis_count) / max(doc_count, vis_count) if max(doc_count, vis_count) > 0 else 0.0
+    count_ratio = (
+        min(doc_count, vis_count) / max(doc_count, vis_count)
+        if max(doc_count, vis_count) > 0
+        else 0.0
+    )
 
     doc_tokens = set()
     for ind in docling_indicators:
@@ -65,7 +80,11 @@ def _compute_agreement_signals(
         vis_tokens.update(get_token_sorted_text(ind).split())
 
     if doc_tokens or vis_tokens:
-        anchor_overlap = len(doc_tokens & vis_tokens) / len(doc_tokens | vis_tokens) if (doc_tokens | vis_tokens) else 0.0
+        anchor_overlap = (
+            len(doc_tokens & vis_tokens) / len(doc_tokens | vis_tokens)
+            if (doc_tokens | vis_tokens)
+            else 0.0
+        )
     else:
         anchor_overlap = 1.0
 
@@ -170,7 +189,9 @@ def _try_vision_first_column_fallback(
 
         if cached:
             raw_indicators = cached.get("indicators")
-            if isinstance(raw_indicators, list) and all(isinstance(x, str) for x in raw_indicators):
+            if isinstance(raw_indicators, list) and all(
+                isinstance(x, str) for x in raw_indicators
+            ):
                 try:
                     conf = float(cached.get("confidence", 0.0))
                     confidence = max(0.0, min(1.0, conf))
@@ -218,8 +239,12 @@ def _try_vision_first_column_fallback(
                 return
 
         dm = getattr(extracted_table, "debug_metrics", None) or {}
-        docling_raw = list(getattr(extracted_table, "first_column_indicators_raw", None) or [])
-        docling_clean = list(getattr(extracted_table, "first_column_indicators", None) or [])
+        docling_raw = list(
+            getattr(extracted_table, "first_column_indicators_raw", None) or []
+        )
+        docling_clean = list(
+            getattr(extracted_table, "first_column_indicators", None) or []
+        )
         docling_count = dm.get("indicator_count", len(docling_clean))
 
         signals = _compute_agreement_signals(docling_clean, indicators_raw)
@@ -229,11 +254,20 @@ def _try_vision_first_column_fallback(
             reason_parts.append("low_count")
         if dm.get("duplicate_ratio") is not None and dm.get("duplicate_ratio", 0) > 0.2:
             reason_parts.append("high_dup")
-        if dm.get("header_like_ratio") is not None and dm.get("header_like_ratio", 0) > 0.2:
+        if (
+            dm.get("header_like_ratio") is not None
+            and dm.get("header_like_ratio", 0) > 0.2
+        ):
             reason_parts.append("high_header")
-        if dm.get("line_reconstruction_merges") is not None and dm.get("line_reconstruction_merges", 0) > 8:
+        if (
+            dm.get("line_reconstruction_merges") is not None
+            and dm.get("line_reconstruction_merges", 0) > 8
+        ):
             reason_parts.append("high_merge")
-        if dm.get("table_quality_score") is not None and dm.get("table_quality_score", 1) < 0.5:
+        if (
+            dm.get("table_quality_score") is not None
+            and dm.get("table_quality_score", 1) < 0.5
+        ):
             reason_parts.append("low_quality")
         suspect_reason = ",".join(reason_parts) or "suspect"
 
@@ -265,7 +299,9 @@ def _try_vision_first_column_fallback(
 
         accepted = decision.startswith("accepted")
 
-        vision_entries = _build_vision_indicator_entries(indicators_raw) if indicators_raw else []
+        vision_entries = (
+            _build_vision_indicator_entries(indicators_raw) if indicators_raw else []
+        )
         dm["vision_arbitration"] = {
             "decision": decision,
             "decision_reason": decision_reason,

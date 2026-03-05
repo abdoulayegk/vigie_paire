@@ -8,8 +8,8 @@ Enhanced with multi-signal matching strategy from vigie_paire/brgc.
 import hashlib
 import logging
 from dataclasses import dataclass, field
-from typing import Optional, Tuple
 from difflib import SequenceMatcher
+from typing import Optional, Tuple
 
 # Try to import rapidfuzz for faster fuzzy matching
 try:
@@ -19,13 +19,15 @@ try:
 except ImportError:
     RAPIDFUZZ_AVAILABLE = False
 
-# Import French normalization
+# Import canonical indicator normalizer (accent-stripped, note-free, lowercase)
 try:
-    from ..utils.normalize_fr import normalize_fr, FRENCH_STOP_WORDS
+    from ..utils.indicator_cleaner import (
+        normalize_indicator_for_comparison as normalize_fr,
+    )
 except ImportError:
     # Fallback if module not yet available
     normalize_fr = lambda x, **kwargs: x.lower().strip() if x else ""
-    FRENCH_STOP_WORDS = set()
+FRENCH_STOP_WORDS: set[str] = set()
 
 try:
     from vigilance.extraction.section_taxonomy import canonicalize_section
@@ -57,7 +59,12 @@ def _get_table_match_threshold() -> float:
         from ..config import get_matching_thresholds
 
         t = get_matching_thresholds()
-        return float(t.get("table_comparator_threshold", t.get("minimum_match", TABLE_MATCH_THRESHOLD_DEFAULT)))
+        return float(
+            t.get(
+                "table_comparator_threshold",
+                t.get("minimum_match", TABLE_MATCH_THRESHOLD_DEFAULT),
+            )
+        )
     except Exception:
         return TABLE_MATCH_THRESHOLD_DEFAULT
 
@@ -94,7 +101,9 @@ class TableChange:
     row_identifier: Optional[str] = None
     column_identifier: Optional[str] = None
     significance: str = "MINOR"  # "MAJOR", "MODERATE", "MINOR"
-    category: Optional[str] = None  # "REGULATORY", "RISK_EMERGING", "ESG", "INDICATOR", "OTHER"
+    category: Optional[str] = (
+        None  # "REGULATORY", "RISK_EMERGING", "ESG", "INDICATOR", "OTHER"
+    )
 
     def to_dict(self) -> dict:
         return {
@@ -399,7 +408,9 @@ class TableComparator:
             try:
                 from .table_normalizer import TableNormalizer
 
-                self._normalizer = TableNormalizer(similarity_threshold=self.HEADER_MATCH_THRESHOLD)
+                self._normalizer = TableNormalizer(
+                    similarity_threshold=self.HEADER_MATCH_THRESHOLD
+                )
             except ImportError:
                 logger.warning("TableNormalizer not available")
                 self._normalizer = False  # Mark as unavailable
@@ -436,7 +447,9 @@ class TableComparator:
             )
         else:
             # Fallback to direct comparison
-            changes = self._compare_direct(table1_data, table2_data, table1_id, table2_id)
+            changes = self._compare_direct(
+                table1_data, table2_data, table1_id, table2_id
+            )
 
         # Classify changes
         for change in changes:
@@ -446,7 +459,12 @@ class TableComparator:
         return changes
 
     def _compare_with_normalization(
-        self, table1_data: dict, table2_data: dict, table1_id: str, table2_id: str, normalizer
+        self,
+        table1_data: dict,
+        table2_data: dict,
+        table1_id: str,
+        table2_id: str,
+        normalizer,
     ) -> list[TableChange]:
         """Compare tables using normalization for structural differences."""
         changes = []
@@ -535,7 +553,9 @@ class TableComparator:
                 row2 = norm_t2.get_row_by_key(key2)
 
                 if row1 and row2:
-                    row_changes = self._compare_row_values(row1, row2, key1, table2_id, page_num)
+                    row_changes = self._compare_row_values(
+                        row1, row2, key1, table2_id, page_num
+                    )
                     changes.extend(row_changes)
 
         return changes
@@ -572,7 +592,9 @@ class TableComparator:
 
         if val1 != val2:
             # Check text similarity pour l'indicateur uniquement
-            similarity = SequenceMatcher(None, str(val1).lower(), str(val2).lower()).ratio()
+            similarity = SequenceMatcher(
+                None, str(val1).lower(), str(val2).lower()
+            ).ratio()
             if similarity < self.TEXT_SIMILARITY_THRESHOLD:
                 changes.append(
                     TableChange(
@@ -652,7 +674,12 @@ class TableComparator:
         return changes
 
     def _compare_rows(
-        self, rows1: list[list], rows2: list[list], headers: list, table_id: str, page_num: int
+        self,
+        rows1: list[list],
+        rows2: list[list],
+        headers: list,
+        table_id: str,
+        page_num: int,
     ) -> list[TableChange]:
         """Compare table rows to detect row-level changes."""
         changes = []
@@ -786,7 +813,9 @@ class TableComparator:
 
     def _classify_change(self, change: TableChange) -> str:
         """Classify change into category."""
-        text_to_check = f"{change.description} {change.old_value or ''} {change.new_value or ''}"
+        text_to_check = (
+            f"{change.description} {change.old_value or ''} {change.new_value or ''}"
+        )
         text_lower = text_to_check.lower()
 
         # Check for regulatory content
@@ -804,12 +833,19 @@ class TableComparator:
             if keyword in text_lower:
                 return "RISK_EMERGING"
 
-        return "INDICATOR" if change.change_type in ["new_row", "removed_row"] else "OTHER"
+        return (
+            "INDICATOR" if change.change_type in ["new_row", "removed_row"] else "OTHER"
+        )
 
     def _assess_significance(self, change: TableChange) -> str:
         """Assess significance of a change."""
         # New/removed rows and columns are significant
-        if change.change_type in ["new_row", "removed_row", "new_column", "removed_column"]:
+        if change.change_type in [
+            "new_row",
+            "removed_row",
+            "new_column",
+            "removed_column",
+        ]:
             # Regulatory changes are major
             if change.category == "REGULATORY":
                 return "MAJOR"

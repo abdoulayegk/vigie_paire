@@ -1,0 +1,100 @@
+Mar 04, 2026 2:41:52 A.M. org.opendataloader.pdf.processors.DocumentProcessor preprocessing
+INFO: File name: /Users/balde/Desktop/vigie_paire/data/bmo/t1_report_q1.pdf
+Mar 04, 2026 2:41:53 A.M. org.opendataloader.pdf.processors.DocumentProcessor calculateDocumentInfo
+INFO: Number of pages: 78
+Mar 04, 2026 2:41:53 A.M. org.opendataloader.pdf.processors.DocumentProcessor calculateDocumentInfo
+INFO: Author: acampb01
+Mar 04, 2026 2:41:53 A.M. org.opendataloader.pdf.processors.DocumentProcessor calculateDocumentInfo
+INFO: Title: BMO Groupe financier annonce ses résultats du premier trimestre de 2025  
+Mar 04, 2026 2:41:53 A.M. org.opendataloader.pdf.processors.DocumentProcessor calculateDocumentInfo
+INFO: Creation date: D:20250304170301+05'30'
+Mar 04, 2026 2:41:53 A.M. org.opendataloader.pdf.processors.DocumentProcessor calculateDocumentInfo
+INFO: Modification date: D:20250306134855-05'00'
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 10
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 17
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 21
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 25
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 27
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 29
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 31
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 34
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 35
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 41
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 44
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 47
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 48
+Mar 04, 2026 2:41:54 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 49
+Mar 04, 2026 2:41:55 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 61
+Mar 04, 2026 2:41:55 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 62
+Mar 04, 2026 2:41:55 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 65
+Mar 04, 2026 2:41:55 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 66
+Mar 04, 2026 2:41:55 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 70
+Mar 04, 2026 2:41:55 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 74
+Mar 04, 2026 2:41:55 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 76
+Mar 04, 2026 2:41:55 A.M. org.opendataloader.pdf.processors.ContentFilterProcessor processBackgrounds
+WARNING: Detected background on page 77
+Mar 04, 2026 2:42:01 A.M. org.opendataloader.pdf.processors.ListProcessor calculateList
+INFO: List item is connected with different lists
+Mar 04, 2026 2:42:01 A.M. org.opendataloader.pdf.processors.ListProcessor calculateList
+INFO: List item is connected with different lists
+Mar 04, 2026 2:42:01 A.M. org.opendataloader.pdf.processors.ListProcessor calculateList
+WARNING: List is not added to contents
+Mar 04, 2026 2:42:01 A.M. org.opendataloader.pdf.processors.ListProcessor calculateList
+INFO: List item is connected with different lists
+Mar 04, 2026 2:42:01 A.M. org.opendataloader.pdf.processors.ListProcessor calculateList
+INFO: List item is connected with different lists
+Mar 04, 2026 2:42:01 A.M. org.opendataloader.pdf.processors.ListProcessor calculateList
+INFO: List item is connected with different lists
+Mar 04, 2026 2:42:01 A.M. org.opendataloader.pdf.processors.ListProcessor calculateList
+INFO: List item is connected with different lists
+Mar 04, 2026 2:42:01 A.M. org.opendataloader.pdf.processors.ListProcessor calculateList
+INFO: List item is connected with different lists
+Mar 04, 2026 2:42:02 A.M. org.opendataloader.pdf.processors.LevelProcessor setLevels
+WARNING: List without detected level
+Mar 04, 2026 2:42:02 A.M. org.opendataloader.pdf.processors.LevelProcessor setLevels
+WARNING: List without detected level
+Mar 04, 2026 2:42:02 A.M. org.opendataloader.pdf.processors.LevelProcessor setLevels
+WARNING: List without detected level
+Mar 04, 2026 2:42:02 A.M. org.opendataloader.pdf.json.JsonWriter writeToJson
+INFO: Created /Users/balde/Desktop/vigie_paire/data/bmo//t1_report_q1.json
+Mar 04, 2026 2:42:02 A.M. org.opendataloader.pdf.markdown.MarkdownGenerator writeToMarkdown
+INFO: Created /Users/balde/Desktop/vigie_paire/data/bmo//t1_report_q1.md
+Conversion completed. JSON saved in: /Users/balde/Desktop/vigie_paire/data/bmo/
+Found 2 tables on pages: [2, 3]
+Warning: No tables found in requested ranges [(20, 23), (39, 53)]. Processing all tables instead.
+
+--- Hybrid Step: Table Screenshots & Vision ---
+Taking screenshots of tables from page 2 to 3...
+Table image saved: /Users/balde/Desktop/vigie_paire/data/bmo/tables/table_p2_0.png
+Table image saved: /Users/balde/Desktop/vigie_paire/data/bmo/tables/table_p2_1.png
+Table image saved: /Users/balde/Desktop/vigie_paire/data/bmo/tables/table_p3_0.png
+First columns JSON saved to: /Users/balde/Desktop/vigie_paire/data/bmo/t1_report_q1_first_columns.json
+First columns Markdown saved to: /Users/balde/Desktop/vigie_paire/data/bmo/t1_report_q1_first_columns.md
+
+✓ Processing complete!
+  - Page ranges: None
+  - Tables found: 2
+  - Full JSON: /Users/balde/Desktop/vigie_paire/data/bmo/t1_report_q1.json
+  - First columns JSON: /Users/balde/Desktop/vigie_paire/data/bmo/t1_report_q1_first_columns.json
+  - First columns Markdown: /Users/balde/Desktop/vigie_paire/data/bmo/t1_report_q1_first_columns.md
