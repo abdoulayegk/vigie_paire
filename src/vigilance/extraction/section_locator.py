@@ -823,6 +823,24 @@ class SectionLocator:
         offset = bank_data.get("page_number_offset", 0)
         return int(offset) if offset else 0
 
+    def _uses_document_page_numbers(self, detection_method: str) -> bool:
+        """
+        Indiquer si la methode de detection fournit des numeros en numerotation document.
+
+        Seules les sections issues de la TOC ou des overrides manuels utilisent la
+        numerotation document (pied de page / config). Les methodes scan, genai_fallback,
+        visual parcourent le PDF par page physique et retournent deja des numeros physiques.
+
+        Returns:
+            True si l'offset page_number_offset doit etre applique (toc, manual_override*).
+        """
+        if not detection_method:
+            return False
+        return (
+            detection_method.startswith("toc")
+            or detection_method.startswith("manual_override")
+        )
+
     def _get_config_section_names(self, section_type: str) -> list[str]:
         """
         Recuperer les noms configures pour un type de section (banque courante).
@@ -1318,41 +1336,48 @@ class SectionLocator:
 
         # ETAPE 4.5: Offset numerotation document -> physique (CIBC et autres banques avec offset)
         # ============================================================================
-        # Pour les banques avec offset (ex: CIBC offset=3), l'offset s'applique a TOUTES
-        # les methodes de detection (toc, manual_override, scan, genai_fallback, visual)
-        # afin que les plages de pages soient coherentes avec la visionneuse PDF.
+        # L'offset s'applique UNIQUEMENT aux sections dont les numeros sont en numerotation
+        # document (toc, manual_override). Les methodes scan/genai/visual donnent deja
+        # des numeros physiques -> pas d'offset pour eviter double application.
         #   page_document 20 + offset 3 = page_physique 23
         # ============================================================================
         offset = self._get_page_number_offset()
         if offset > 0:
             bank_name = (self.bank_code or "unknown").upper()
             logger.info(
-                f"[{bank_name}] Offset de numerotation detecte: +{offset} pages "
-                f"(toutes methodes -> physique)"
+                f"[{bank_name}] Offset de numerotation: +{offset} pages "
+                f"(methodes document uniquement: toc, manual_override)"
             )
             adjusted = []
             for s in sections:
-                new_start = s.start_page + offset
-                new_end = (s.end_page + offset) if s.end_page is not None else None
-                adjusted.append(
-                    LocatedSection(
-                        section_type=s.section_type,
-                        title_found=s.title_found,
-                        start_page=new_start,
-                        end_page=new_end,
-                        confidence=s.confidence,
-                        detection_method=s.detection_method,
-                        end_detection_method=s.end_detection_method,
-                        detected_span=s.detected_span,
-                        final_span=s.final_span,
-                        constraint_applied=s.constraint_applied,
-                        constraint_reason=s.constraint_reason,
+                if self._uses_document_page_numbers(s.detection_method):
+                    new_start = s.start_page + offset
+                    new_end = (s.end_page + offset) if s.end_page is not None else None
+                    adjusted.append(
+                        LocatedSection(
+                            section_type=s.section_type,
+                            title_found=s.title_found,
+                            start_page=new_start,
+                            end_page=new_end,
+                            confidence=s.confidence,
+                            detection_method=s.detection_method,
+                            end_detection_method=s.end_detection_method,
+                            detected_span=s.detected_span,
+                            final_span=s.final_span,
+                            constraint_applied=s.constraint_applied,
+                            constraint_reason=s.constraint_reason,
+                        )
                     )
-                )
-                logger.info(
-                    f"  -> {s.section_type} ({s.detection_method}): "
-                    f"p.{s.start_page}-{s.end_page or '?'} -> physique p.{new_start}-{new_end or '?'}"
-                )
+                    logger.info(
+                        f"  -> {s.section_type} ({s.detection_method}): "
+                        f"p.{s.start_page}-{s.end_page or '?'} -> physique p.{new_start}-{new_end or '?'}"
+                    )
+                else:
+                    adjusted.append(s)
+                    logger.debug(
+                        f"  -> {s.section_type} ({s.detection_method}): "
+                        f"p.{s.start_page}-{s.end_page or '?'} (deja physique, pas d'offset)"
+                    )
             sections = adjusted
 
         # ETAPE 4.7: Recalage specifique CIBC des 2 sections cibles sur titres reels
