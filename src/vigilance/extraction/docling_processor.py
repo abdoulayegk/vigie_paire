@@ -39,6 +39,7 @@ from .docling_normalization import (
     _extract_table_context_split,
     # _is_footnote_row and _merge_fragmented_cells removed: Docling content no longer extracted.
 )
+from .page_title_assistant import PageTitleAssistant, PageTitleResult
 from .table_title_resolver import (
     extract_table_number_and_inline_title,
     is_table_number_line,
@@ -1104,6 +1105,14 @@ class DoclingProcessor:
             # Extraire le contenu textuel pour les sections
             text_content = doc.export_to_markdown()
 
+            # Page-Level Title Assist: lightweight Vision pre-pass for missing titles
+            all_tables = self._page_level_title_assist(
+                all_tables,
+                pdf_path,
+                bank_code,
+                vision_extraction_cfg,
+            )
+
             # Enrichir les titres manquants depuis le texte de la page (pdfplumber)
             # sans melanger contenu Docling/Vision : seul le champ titre est complete.
             all_tables = self._enrich_tables_with_titles(all_tables, pdf_path)
@@ -1336,6 +1345,162 @@ class DoclingProcessor:
             bank_code=self.bank_code_for_patterns,
             first_row_cells=first_row_cells,
         )
+
+    def _page_level_title_assist(
+        self,
+        tables: list[ExtractedTable],
+        pdf_path: Path,
+        bank_code: str,
+        vision_extraction_cfg: dict[str, Any],
+    ) -> list[ExtractedTable]:
+        """Apply page-level title assist to fill missing/weak titles.
+
+        A lightweight GPT-4o pass on the full page image extracts candidate titles.
+        Only replaces a table's title if:
+        - The current title is empty or has a low quality score
+        - The candidate confidence meets the threshold
+        """
+        assist_cfg = vision_extraction_cfg.get("page_level_title_assist", {})
+        if not isinstance(assist_cfg, dict):
+            assist_cfg = {}
+        if not assist_cfg.get("enabled", False):
+            return tables
+
+        min_confidence = float(assist_cfg.get("min_confidence", 0.7))
+        max_candidates = int(assist_cfg.get("max_candidates", 10))
+        weak_title_threshold = int(assist_cfg.get("weak_title_threshold", 3))
+
+        # Identify pages with at least one weak/missing title
+        pages_needing_assist: dict[int, list[ExtractedTable]] = {}
+        for table in tables:
+            score = self._title_quality_score(table.title)
+            if score < weak_title_threshold:
+                pages_needing_assist.setdefault(table.page_number, []).append(table)
+
+        if not pages_needing_assist:
+            return tables
+
+        try:
+            api_key = self.openai_api_key or get_openai_api_key()
+            if not api_key:
+                logger.debug("Page-level title assist: no API key, skipping")
+                return tables
+            assistant = PageTitleAssistant(
+                api_key=api_key,
+                min_confidence=min_confidence,
+                max_candidates=max_candidates,
+            )
+        except Exception as e:
+            logger.debug("Page-level title assist init failed: %s", e)
+            return tables
+
+        for page_num, page_tables in pages_needing_assist.items():
+            try:
+                from .pdf_preview import render_pdf_page
+
+                page_bytes = render_pdf_page(
+                    str(pdf_path), page_num, scale=2.0, format="png"
+                )
+                if not page_bytes:
+                    continue
+
+                result = assistant.extract_page_titles(page_bytes, page_num)
+                if not result or not result.candidates:
+                    continue
+
+                self._apply_page_title_candidates(
+                    page_tables, result, weak_title_threshold
+                )
+            except Exception as e:
+                logger.debug(
+                    "Page-level title assist failed for page %s: %s", page_num, e
+                )
+
+        return tables
+
+    def _apply_page_title_candidates(
+        self,
+        page_tables: list[ExtractedTable],
+        result: PageTitleResult,
+        weak_title_threshold: int,
+    ) -> None:
+        """Map page-level title candidates to tables and apply when appropriate."""
+        used_candidates: set[int] = set()
+
+        for table in page_tables:
+            current_score = self._title_quality_score(table.title)
+            if current_score >= weak_title_threshold:
+                continue
+
+            candidate: dict[str, Any] | None = None
+            candidate_idx: int | None = None
+
+            # 1) Match by table_number
+            table_num = str(table.table_number or "").strip()
+            if table_num:
+                for idx, c in enumerate(result.candidates):
+                    if idx in used_candidates:
+                        continue
+                    if str(c.get("table_number", "")).strip() == table_num:
+                        candidate = c
+                        candidate_idx = idx
+                        break
+
+            # 2) Match by bbox proximity (title above table)
+            if candidate is None and table.bbox:
+                candidate = result.get_candidate_by_bbox_proximity(table.bbox)
+                if candidate is not None:
+                    for idx, c in enumerate(result.candidates):
+                        if c is candidate and idx not in used_candidates:
+                            candidate_idx = idx
+                            break
+                    else:
+                        candidate = None
+                        candidate_idx = None
+
+            # 3) Positional fallback (first unused candidate)
+            if candidate is None:
+                for idx, c in enumerate(result.candidates):
+                    if idx not in used_candidates:
+                        candidate = c
+                        candidate_idx = idx
+                        break
+
+            if candidate is None or candidate_idx is None:
+                continue
+
+            # Verify candidate quality is better than current
+            candidate_title = str(
+                candidate.get("title_semantic") or candidate.get("title_full") or ""
+            ).strip()
+            candidate_score = self._title_quality_score(candidate_title)
+            if candidate_score <= current_score:
+                continue
+
+            # Apply the candidate
+            used_candidates.add(candidate_idx)
+            table.title = candidate_title or table.title
+            table.title_clean = candidate_title or table.title_clean
+            table.title_raw = (
+                str(candidate.get("title_full") or candidate_title).strip()
+                or table.title_raw
+            )
+
+            candidate_number = str(candidate.get("table_number", "")).strip()
+            if candidate_number and not table.table_number:
+                table.table_number = candidate_number
+
+            table.title_resolution_method = (
+                f"page_level_assist (conf={candidate.get('confidence', 0):.2f})"
+            )
+
+            logger.info(
+                "Page-level title assist: table %s p%s -> '%s' (conf=%.2f)",
+                table.table_id,
+                table.page_number,
+                candidate_title[:60],
+                candidate.get("confidence", 0),
+            )
 
     def _title_quality_score(self, title: str | None) -> int:
         """
