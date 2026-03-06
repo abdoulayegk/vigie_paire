@@ -8,7 +8,6 @@ import sys
 from typing import TYPE_CHECKING
 
 from ..utils.feature_flags import extraction_cache_mode_tag
-from ..utils.genai import get_openai_api_key
 from .docling_conversion import _docling_table_to_dict
 from .docling_normalization import (
     _extract_table_context,
@@ -64,11 +63,11 @@ def extract_pdf_with_fallback(
     openai_api_key: str | None = None,
 ) -> ExtractedDocument:
     """
-    Fonction utilitaire pour extraire un PDF avec tous les fallbacks activés.
+    Fonction utilitaire pour extraire un PDF (Docling structure + Vision par tableau).
     """
     from .docling_processor import DoclingProcessor
 
-    processor = DoclingProcessor(use_vision_fallback=True, openai_api_key=openai_api_key)
+    processor = DoclingProcessor(openai_api_key=openai_api_key)
     return processor.extract_document(pdf_path, bank_code, quarter, year)
 
 
@@ -333,8 +332,6 @@ def _extract_tables_docling_priority_impl(
                 logger.info(f"Cache hit: {len(tables)} tableaux charges depuis cache")
                 return tables
 
-    allow_vision_fallback = False  # Fallback Vision désactivé pour le moment
-
     if fast_mode:
         logger.info(
             "fast_mode demande, mais fallback extraction pdfplumber retire; Docling conserve."
@@ -347,33 +344,11 @@ def _extract_tables_docling_priority_impl(
         tables_result = _extract_with_docling_targeted(
             pdf_path, start_page, end_page, use_ocr=use_ocr
         )
-
         if tables_result:
             logger.info(f"Docling: {len(tables_result)} tableaux extraits")
-        elif allow_vision_fallback:
-            logger.info("Docling n'a extrait aucun tableau, fallback Vision active.")
-            tables_result = _extract_with_vision_targeted(
-                pdf_path=pdf_path,
-                start_page=start_page,
-                end_page=end_page,
-                section_name=section_name,
-                api_key=openai_api_key,
-            )
-
     except Exception as e:
         logger.warning(f"Docling a échoué: {e}")
-        if allow_vision_fallback:
-            logger.info("Fallback vers GPT-4o Vision...")
-            tables_result = _extract_with_vision_targeted(
-                pdf_path=pdf_path,
-                start_page=start_page,
-                end_page=end_page,
-                section_name=section_name,
-                api_key=openai_api_key,
-            )
-        else:
-            logger.warning("Aucun fallback d'extraction actif. Retour liste vide.")
-            tables_result = []
+        tables_result = []
 
     # Sauvegarder en cache
     if use_cache and cache_manager and tables_result:
@@ -390,59 +365,6 @@ def _extract_tables_docling_priority_impl(
         )
 
     return tables_result
-
-
-def _extract_with_vision_targeted(
-    pdf_path: str,
-    start_page: int,
-    end_page: int,
-    section_name: str | None = None,
-    api_key: str | None = None,
-) -> list[dict]:
-    """Extraction Vision ciblée pour remplacer le fallback pdfplumber."""
-    try:
-        from .vision_table_extractor import VisionTableExtractor
-    except ImportError as e:
-        logger.warning(f"VisionTableExtractor non disponible: {e}")
-        return []
-
-    effective_key = api_key or get_openai_api_key()
-    if not effective_key:
-        logger.warning("OPENAI_API_KEY absente: fallback Vision indisponible")
-        return []
-
-    try:
-        extractor = VisionTableExtractor(
-            api_key=effective_key, model="gpt-4o", save_proof_images=False
-        )
-        result = extractor.extract_from_section(
-            pdf_path=pdf_path,
-            start_page=start_page,
-            end_page=end_page,
-            section_name=section_name or "unknown",
-            bank_code="unknown",
-        )
-    except Exception as e:
-        logger.warning(f"Extraction Vision echouee: {e}")
-        return []
-
-    tables: list[dict] = []
-    for extracted in result.extracted_tables:
-        table_data = {
-            "table_id": extracted.table_id,
-            "page_number": extracted.page_number,
-            "title": extracted.title,
-            "headers": extracted.headers,
-            "rows": extracted.rows,
-            "first_column_indicators": extracted.first_column_indicators,
-            "footnotes": extracted.footnotes,
-            "extraction_method": "gpt4o_vision",
-            "confidence": extracted.confidence,
-        }
-        tables.append(table_data)
-
-    logger.info(f"Vision fallback: {len(tables)} tableaux extraits")
-    return tables
 
 
 def _extract_with_docling_targeted(

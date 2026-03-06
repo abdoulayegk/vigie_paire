@@ -317,7 +317,6 @@ def _extract_tables(
     quarter: str,
     year: int,
     section_ranges: list[dict[str, Any]],
-    use_vision_fallback: bool,
     api_key: str | None,
     use_vision_primary: bool | None = None,
     use_stored_extraction_if_available: bool = True,
@@ -364,7 +363,6 @@ def _extract_tables(
         year=year,
         section_ranges=section_ranges,
         use_vision_primary=use_vision_primary,
-        use_vision_fallback=use_vision_fallback,
     )
 
     artifacts = [
@@ -668,6 +666,13 @@ def _build_clean_to_raw_indicator_lookup(table: TableArtifact) -> dict[str, str]
     if not raw_values:
         raw_values = clean_values
 
+    def _display_text(raw_text: str, fallback: str) -> str:
+        cleaned = _strip_footnote_markers_from_indicator(str(raw_text).strip())
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()
+        if cleaned:
+            return cleaned
+        return str(fallback).strip()
+
     lookup: dict[str, str] = {}
     for idx, clean_item in enumerate(clean_values):
         clean_text = str(clean_item).strip()
@@ -678,7 +683,7 @@ def _build_clean_to_raw_indicator_lookup(table: TableArtifact) -> dict[str, str]
         if not key or key in lookup:
             continue
         raw_text = str(raw_values[idx]).strip() if idx < len(raw_values) else clean_text
-        lookup[key] = raw_text or clean_text
+        lookup[key] = _display_text(raw_text, clean_text)
 
     # Defensive fallback when clean/raw arrays drift.
     for raw_item in raw_values:
@@ -688,7 +693,7 @@ def _build_clean_to_raw_indicator_lookup(table: TableArtifact) -> dict[str, str]
         value_clean = _strip_footnote_markers_from_indicator(raw_text)
         key = _canonical_indicator_key(value_clean)
         if key and key not in lookup:
-            lookup[key] = raw_text
+            lookup[key] = _display_text(raw_text, value_clean)
     return lookup
 
 
@@ -1440,7 +1445,6 @@ def run_comparison_with_sections(
     use_genai: bool = False,
     api_key: str | None = None,
     generate_visual_proofs: bool = False,
-    use_vision_fallback: bool = False,
     use_vision_primary: bool | None = None,
     use_vision_primary_override: bool | None = None,
     include_footnotes: bool = False,
@@ -1478,7 +1482,6 @@ def run_comparison_with_sections(
                 quarter="t1",
                 year=year,
                 section_ranges=ranges_t1,
-                use_vision_fallback=use_vision_fallback,
                 api_key=api_key,
                 use_vision_primary=use_vision_primary,
                 use_stored_extraction_if_available=False,
@@ -1490,7 +1493,6 @@ def run_comparison_with_sections(
                 quarter="t2",
                 year=year,
                 section_ranges=ranges_t2,
-                use_vision_fallback=use_vision_fallback,
                 api_key=api_key,
                 use_vision_primary=use_vision_primary,
                 use_stored_extraction_if_available=False,
@@ -1840,6 +1842,161 @@ def run_comparison_with_sections(
         val_cfg.get("indicator_validator_batch_size", 8)
     )
     bottom_ext = float(vec.get("bottom_extension_footnotes", 0.12))
+
+    # Optional post-matching rescue over unmatched tables (usually small set).
+    vision_unmatched_rescue_enabled = bool(
+        val_cfg.get("vision_unmatched_rescue_enabled", True)
+    )
+    vision_unmatched_rescue_confidence_min = float(
+        val_cfg.get(
+            "vision_unmatched_rescue_confidence_min",
+            vision_pair_confidence_min,
+        )
+    )
+    vision_unmatched_rescue_max_pairs = int(
+        val_cfg.get("vision_unmatched_rescue_max_pairs", 25)
+    )
+    vision_unmatched_rescue_summary: dict[str, Any] = {
+        "enabled": bool(vision_unmatched_rescue_enabled),
+        "candidate_pairs_tested": 0,
+        "candidate_matches": 0,
+        "rescued_pairs": 0,
+        "conflicts": 0,
+        "errors": 0,
+        "metrics": {},
+    }
+
+    if vision_unmatched_rescue_enabled and api_key:
+        try:
+            from vigilance.extraction.vision_pair_validator import (
+                AssignmentEntry,
+                VisionMetrics,
+                resolve_bijective_assignment,
+                validate_pair_full,
+            )
+
+            unmatched_added = list(strict.get("added_tables", []) or [])
+            unmatched_removed = list(strict.get("removed_tables", []) or [])
+            if unmatched_added and unmatched_removed:
+                pairs_budget = max(0, vision_unmatched_rescue_max_pairs)
+                tested_pairs = 0
+                scored_candidates: list[AssignmentEntry] = []
+                metrics = VisionMetrics()
+
+                for rem in unmatched_removed:
+                    t1_uid_r = str(rem.get("t1_uid", ""))
+                    t1_tbl = t1_by_uid.get(t1_uid_r)
+                    if t1_tbl is None:
+                        continue
+                    bbox_t1 = _normalize_bbox_ltrb_norm(getattr(t1_tbl, "bbox", None))
+                    pdf_t1 = t1_tbl.pdf_path or pdf_path_t1
+                    if not bbox_t1 or not pdf_t1:
+                        continue
+
+                    for add in unmatched_added:
+                        if tested_pairs >= pairs_budget:
+                            break
+                        t2_uid_a = str(add.get("t2_uid", ""))
+                        t2_tbl = t2_by_uid.get(t2_uid_a)
+                        if t2_tbl is None:
+                            continue
+                        bbox_t2 = _normalize_bbox_ltrb_norm(
+                            getattr(t2_tbl, "bbox", None)
+                        )
+                        pdf_t2 = t2_tbl.pdf_path or pdf_path_t2
+                        if not bbox_t2 or not pdf_t2:
+                            continue
+
+                        vd = validate_pair_full(
+                            pdf_t1,
+                            t1_tbl.page_pdf,
+                            bbox_t1,
+                            pdf_t2,
+                            t2_tbl.page_pdf,
+                            bbox_t2,
+                            api_key,
+                            bottom_extension=bottom_ext,
+                            title_t1=t1_tbl.title or None,
+                            title_t2=t2_tbl.title or None,
+                            section_t1=getattr(t1_tbl, "section", None),
+                            section_t2=getattr(t2_tbl, "section", None),
+                        )
+                        tested_pairs += 1
+                        metrics.record_decision(vd, is_rescue=True)
+                        if (
+                            vd.decision == "match"
+                            and vd.confidence >= vision_unmatched_rescue_confidence_min
+                        ):
+                            scored_candidates.append(
+                                AssignmentEntry(
+                                    t1_uid=t1_uid_r,
+                                    t2_uid=t2_uid_a,
+                                    confidence=float(vd.confidence),
+                                    decision=vd,
+                                    source="vision_unmatched_rescue",
+                                )
+                            )
+                    if tested_pairs >= pairs_budget:
+                        break
+
+                vision_unmatched_rescue_summary["candidate_pairs_tested"] = tested_pairs
+                vision_unmatched_rescue_summary["candidate_matches"] = len(
+                    scored_candidates
+                )
+
+                if scored_candidates:
+                    bijection = resolve_bijective_assignment(scored_candidates)
+                    metrics.record_bijection(bijection)
+
+                    rescued_pairs = []
+                    rescued_t1_uids: set[str] = set()
+                    rescued_t2_uids: set[str] = set()
+                    for ass in bijection.assigned_pairs:
+                        rescued_t1_uids.add(ass.t1_uid)
+                        rescued_t2_uids.add(ass.t2_uid)
+                        rescued_pairs.append(
+                            {
+                                "t1_uid": ass.t1_uid,
+                                "t2_uid": ass.t2_uid,
+                                "score": float(ass.confidence),
+                                "reason": "vision_unmatched_rescue",
+                                "rescue_type": "vision_unmatched_rescue",
+                                "decision_level": "rescue",
+                            }
+                        )
+
+                    strict["pairs"] = list(strict.get("pairs", [])) + rescued_pairs
+                    strict["added_tables"] = [
+                        a
+                        for a in unmatched_added
+                        if str(a.get("t2_uid", "")) not in rescued_t2_uids
+                    ]
+                    strict["removed_tables"] = [
+                        r
+                        for r in unmatched_removed
+                        if str(r.get("t1_uid", "")) not in rescued_t1_uids
+                    ]
+                    strict["rescued_matches_count"] = int(
+                        strict.get("rescued_matches_count", 0) or 0
+                    ) + len(rescued_pairs)
+                    strict["vision_unmatched_rescue_conflicts"] = list(
+                        bijection.conflicts
+                    )
+
+                    vision_unmatched_rescue_summary["rescued_pairs"] = len(
+                        rescued_pairs
+                    )
+                    vision_unmatched_rescue_summary["conflicts"] = len(
+                        bijection.conflicts
+                    )
+
+                vision_unmatched_rescue_summary["metrics"] = metrics.as_dict()
+        except Exception as exc:
+            vision_unmatched_rescue_summary["errors"] = (
+                vision_unmatched_rescue_summary.get("errors", 0) + 1
+            )
+            logger.warning("Vision unmatched rescue failed: %s", exc)
+
     for pair in strict.get("pairs", []):
         t1_uid = str(pair.get("t1_uid", ""))
         t2_uid = str(pair.get("t2_uid", ""))
@@ -1861,6 +2018,8 @@ def run_comparison_with_sections(
             vision_pair_validation
             and api_key
             and (pair_indicator_overlap < 0.5 or rescue_type)
+            and rescue_type
+            != "vision_unmatched_rescue"  # already validated during rescue
         ):
             bbox_t1 = _normalize_bbox_ltrb_norm(getattr(table_t1, "bbox", None))
             bbox_t2 = _normalize_bbox_ltrb_norm(getattr(table_t2, "bbox", None))
@@ -1881,6 +2040,10 @@ def run_comparison_with_sections(
                         bbox_t2,
                         api_key,
                         bottom_extension=bottom_ext,
+                        title_t1=table_t1.title or None,
+                        title_t2=table_t2.title or None,
+                        section_t1=getattr(table_t1, "section", None),
+                        section_t2=getattr(table_t2, "section", None),
                     )
                     vision_pair_stats["calls"] += 1
                     if same_concept:
@@ -2319,50 +2482,6 @@ def run_comparison_with_sections(
         arb_t1 = dm_t1.get("vision_arbitration")
         arb_t2 = dm_t2.get("vision_arbitration")
 
-        # Vision pair validation: rejeter faux positifs (low overlap ou rescue)
-        vision_rejected = False
-        if (
-            vision_pair_validation
-            and api_key
-            and (pair_indicator_overlap < 0.5 or rescue_type)
-        ):
-            bbox_t1 = _normalize_bbox_ltrb_norm(getattr(table_t1, "bbox", None))
-            bbox_t2 = _normalize_bbox_ltrb_norm(getattr(table_t2, "bbox", None))
-            pdf_t1 = table_t1.pdf_path or pdf_path_t1
-            pdf_t2 = table_t2.pdf_path or pdf_path_t2
-            if bbox_t1 and bbox_t2 and pdf_t1 and pdf_t2:
-                try:
-                    from vigilance.extraction.vision_pair_validator import (
-                        validate_pair_same_concept,
-                    )
-
-                    same_concept, _ = validate_pair_same_concept(
-                        pdf_t1,
-                        table_t1.page_pdf,
-                        bbox_t1,
-                        pdf_t2,
-                        table_t2.page_pdf,
-                        bbox_t2,
-                        api_key,
-                        bottom_extension=bottom_ext,
-                    )
-                    if not same_concept:
-                        vision_rejected = True
-                        rejected_by_vision_pair.append(
-                            {
-                                "table_id_t1": table_t1.table_id,
-                                "table_id_t2": table_t2.table_id,
-                                "title_t1": table_t1.title or "",
-                                "title_t2": table_t2.title or "",
-                                "indicator_overlap": pair_indicator_overlap,
-                                "rescue_type": rescue_type,
-                            }
-                        )
-                except Exception as exc:
-                    logger.debug("Vision pair validation error: %s", exc)
-
-        if vision_rejected:
-            continue
         comparisons.append(
             {
                 "table_id_t1": table_t1.table_id,
@@ -2781,7 +2900,7 @@ def run_comparison_with_sections(
                 if embedding_service
                 else 0,
                 "config_use_embeddings": bool(cfg.get("use_embeddings", False)),
-                "fallback_vision_used": use_vision_fallback,
+                "fallback_vision_used": False,
                 "hungarian_table": cfg.get("use_hungarian_matching", False),
                 "hungarian_indicator": cfg.get("indicator_hungarian_enabled", True),
                 "table_pair_count": len(comparisons),
@@ -2804,6 +2923,21 @@ def run_comparison_with_sections(
                     "accepted": vision_pair_stats["accepted"],
                     "rejected": vision_pair_stats["rejected"],
                     "errors": vision_pair_stats["errors"],
+                },
+                "vision_unmatched_rescue": {
+                    "enabled": vision_unmatched_rescue_summary.get("enabled", False),
+                    "candidate_pairs_tested": vision_unmatched_rescue_summary.get(
+                        "candidate_pairs_tested", 0
+                    ),
+                    "candidate_matches": vision_unmatched_rescue_summary.get(
+                        "candidate_matches", 0
+                    ),
+                    "rescued_pairs": vision_unmatched_rescue_summary.get(
+                        "rescued_pairs", 0
+                    ),
+                    "conflicts": vision_unmatched_rescue_summary.get("conflicts", 0),
+                    "errors": vision_unmatched_rescue_summary.get("errors", 0),
+                    "metrics": vision_unmatched_rescue_summary.get("metrics", {}),
                 },
                 "semantic_judge": {
                     "enabled": semantic_judge_enabled,

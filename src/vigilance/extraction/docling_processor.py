@@ -3,9 +3,9 @@ Processeur PDF base sur Docling pour l'extraction de contenu structure des rappo
 Outil principal d'extraction pour les tableaux, le texte et la structure des documents.
 
 Pipeline d'extraction:
-1. Docling (extraction structurée)
-2. GPT-4 Vision (fallback principal)
-3. Docling-only warning si Vision indisponible
+1. Docling (structure: detection tableaux + bbox + page)
+2. Pour chaque tableau: crop (bbox + extension) -> GPT-4o Vision (contenu)
+3. Si Docling indisponible: document vide (pas de fallback Vision full-page)
 
 Fonctionnalités:
 - Cache des extractions pour éviter re-traitement (PDFCacheManager)
@@ -26,7 +26,6 @@ from typing import Any
 
 import fitz  # Import PyMuPDF (fitz)
 
-from ..utils.feature_flags import is_vision_fallback_enabled
 from ..utils.footnotes_utils import normalize_footnotes_to_canonical
 from ..utils.genai import get_openai_api_key
 from ..utils.indicator_cleaner import (
@@ -85,14 +84,6 @@ def _resolve_vision_primary_mode(bank_code: str, explicit: bool | None) -> bool:
     except Exception:
         pass
     return False
-
-
-def _resolve_vision_fallback_mode(explicit: bool | None) -> bool:
-    """Resolution order: explicit arg > legacy env fallback."""
-    if explicit is not None:
-        return bool(explicit)
-    env_choice = _env_bool("VIGILANCE_VISION_FALLBACK", "ENABLE_VISION_FALLBACK")
-    return bool(env_choice)
 
 
 # Import de la gestion memoire
@@ -255,7 +246,6 @@ class DoclingProcessor:
         self,
         use_ocr: bool = False,
         enhance_images: bool = True,
-        use_vision_fallback: bool | None = None,
         openai_api_key: str | None = None,
         use_cache: bool = False,
         cache_dir: str | None = None,
@@ -266,31 +256,13 @@ class DoclingProcessor:
         Args:
             use_ocr: Activer l'OCR pour les documents numerises
             enhance_images: Appliquer l'amelioration d'image avant le traitement
-            use_vision_fallback: Activer le fallback GPT-4 Vision pour tableaux complexes
-                (None -> legacy env compatibility)
-            openai_api_key: Clé API OpenAI pour le fallback Vision
-            use_cache: Activer le cache des extractions (defaut False, desactive pour eviter de conserver des extractions de mauvaise qualite)
+            openai_api_key: Cle API OpenAI pour Vision (contenu par tableau)
+            use_cache: Activer le cache des extractions (defaut False)
             cache_dir: Repertoire du cache (optionnel)
         """
         self.use_ocr = use_ocr
         self.enhance_images = enhance_images
-
-        # Securisation de l'usage de Vision
         self.openai_api_key = openai_api_key
-        fallback_enabled = _resolve_vision_fallback_mode(use_vision_fallback)
-        if fallback_enabled:
-            from ..utils.genai import is_genai_configured
-
-            if not is_genai_configured() and not openai_api_key:
-                logger.warning(
-                    "OPENAI_API_KEY non disponible. Fallback Vision désactivé."
-                )
-                self.use_vision_fallback = False
-            else:
-                self.use_vision_fallback = True
-        else:
-            self.use_vision_fallback = False
-
         self._converter = None
         self._initialized = False
 
@@ -495,8 +467,8 @@ class DoclingProcessor:
                 use_vision_primary=use_vision_primary,
             )
         else:
-            result = self._extract_with_fallback(
-                pdf_path, bank_code, quarter, year, page_ranges, labels_only=labels_only
+            result = self._docling_unavailable_document(
+                pdf_path, bank_code, quarter, year, page_ranges
             )
 
         # Sauvegarder dans le cache si active
@@ -533,6 +505,35 @@ class DoclingProcessor:
         except Exception as e:
             logger.warning(f"Impossible d'obtenir le nombre de pages avec PyMuPDF: {e}")
             return 0
+
+    def _docling_unavailable_document(
+        self,
+        pdf_path: Path,
+        bank_code: str,
+        quarter: str,
+        year: int,
+        page_ranges: list[tuple[int, int]] | None,
+        *,
+        error: str | None = None,
+    ) -> ExtractedDocument:
+        """Retourne un document vide quand Docling est indisponible (pas de fallback)."""
+        total_pages = self._get_page_count(pdf_path)
+        metadata: dict[str, Any] = {
+            "extraction_method": "docling_unavailable",
+            "page_ranges": page_ranges,
+            "warning": "Docling indisponible; extraction non effectuee.",
+        }
+        if error:
+            metadata["error"] = error
+        return ExtractedDocument(
+            file_path=str(pdf_path),
+            bank_code=bank_code,
+            quarter=quarter,
+            year=year,
+            total_pages=total_pages,
+            all_tables=[],
+            metadata=metadata,
+        )
 
     def _extract_chunked(
         self,
@@ -586,13 +587,8 @@ class DoclingProcessor:
                     use_vision_primary=use_vision_primary,
                 )
             else:
-                chunk_result = self._extract_with_fallback(
-                    pdf_path,
-                    bank_code,
-                    quarter,
-                    year,
-                    page_ranges,
-                    labels_only=labels_only,
+                chunk_result = self._docling_unavailable_document(
+                    pdf_path, bank_code, quarter, year, page_ranges
                 )
 
             # Accumuler les resultats
@@ -1149,178 +1145,9 @@ class DoclingProcessor:
                 e,
                 exc_info=True,
             )
-            return self._extract_with_fallback(
-                pdf_path, bank_code, quarter, year, page_ranges, labels_only=labels_only
+            return self._docling_unavailable_document(
+                pdf_path, bank_code, quarter, year, page_ranges, error=str(e)
             )
-
-    def _extract_with_fallback(
-        self,
-        pdf_path: Path,
-        bank_code: str,
-        quarter: str,
-        year: int,
-        page_ranges: list[tuple[int, int]] | None = None,
-        *,
-        labels_only: bool = False,
-    ) -> ExtractedDocument:
-        """Extraction de secours via GPT-4o Vision si Docling indisponible."""
-        total_pages = self._get_page_count(pdf_path)
-        allow_vision = is_vision_fallback_enabled()
-
-        if not allow_vision:
-            logger.warning(
-                "Fallback Vision desactive; retour Docling-only avec warning."
-            )
-            return ExtractedDocument(
-                file_path=str(pdf_path),
-                bank_code=bank_code,
-                quarter=quarter,
-                year=year,
-                total_pages=total_pages,
-                metadata={
-                    "extraction_method": "docling_only_warning",
-                    "vision_status": "disabled_by_flag",
-                    "page_ranges": page_ranges,
-                    "warning": "Docling indisponible et fallback Vision desactive",
-                },
-            )
-
-        try:
-            from .vision_table_extractor import VisionTableExtractor
-        except ImportError as e:
-            logger.warning(f"VisionTableExtractor non disponible: {e}")
-            return ExtractedDocument(
-                file_path=str(pdf_path),
-                bank_code=bank_code,
-                quarter=quarter,
-                year=year,
-                total_pages=total_pages,
-                metadata={
-                    "extraction_method": "docling_only_warning",
-                    "vision_status": "import_error",
-                    "page_ranges": page_ranges,
-                    "warning": "VisionTableExtractor non disponible",
-                },
-            )
-
-        api_key = self.openai_api_key or get_openai_api_key()
-        if not api_key:
-            logger.warning("OPENAI_API_KEY absente: fallback Vision ignore.")
-            return ExtractedDocument(
-                file_path=str(pdf_path),
-                bank_code=bank_code,
-                quarter=quarter,
-                year=year,
-                total_pages=total_pages,
-                metadata={
-                    "extraction_method": "docling_only_warning",
-                    "vision_status": "skipped_no_api_key",
-                    "page_ranges": page_ranges,
-                    "warning": "OPENAI_API_KEY absente, impossible d'utiliser Vision",
-                },
-            )
-
-        ranges = page_ranges or [(1, total_pages)]
-        vision = VisionTableExtractor(
-            api_key=api_key,
-            model="gpt-4o",
-            save_proof_images=False,
-            labels_only=labels_only,
-        )
-
-        all_tables: list[ExtractedTable] = []
-        vision_errors: list[str] = []
-        for start_page, end_page in ranges:
-            try:
-                result = vision.extract_from_section(
-                    pdf_path=str(pdf_path),
-                    start_page=start_page,
-                    end_page=end_page,
-                    section_name="fallback_vision",
-                    bank_code=bank_code,
-                )
-                extracted_tables = getattr(result, "extracted_tables", None)
-                if not isinstance(extracted_tables, list):
-                    raise ValueError(
-                        "Vision payload invalide: extracted_tables manquant"
-                    )
-            except Exception as e:
-                msg = f"Vision fallback error {start_page}-{end_page}: {e}"
-                logger.warning(msg)
-                vision_errors.append(msg)
-                continue
-
-            for extracted in extracted_tables:
-                try:
-                    table_number, title_clean = self._extract_table_number(
-                        extracted.title
-                    )
-                    out_headers = [] if labels_only else extracted.headers
-                    out_rows = [] if labels_only else extracted.rows
-                    out_footnotes = (
-                        []
-                        if labels_only
-                        else normalize_footnotes_to_canonical(extracted.footnotes)
-                    )
-                    title_raw = getattr(extracted, "title_raw", None) or extracted.title
-                    unit_context = getattr(extracted, "unit_context", None)
-                    resolution_method = getattr(
-                        extracted, "title_resolution_method", None
-                    )
-                    all_tables.append(
-                        ExtractedTable(
-                            table_id=extracted.table_id,
-                            page_number=extracted.page_number,
-                            title=extracted.title,
-                            headers=out_headers,
-                            rows=out_rows,
-                            first_column_indicators=extracted.first_column_indicators,
-                            footnotes=out_footnotes,
-                            table_number=table_number,
-                            title_clean=title_clean,
-                            title_raw=title_raw,
-                            unit_context=unit_context,
-                            title_resolution_method=resolution_method,
-                            bbox=getattr(extracted, "bbox", None),
-                        )
-                    )
-                except Exception as e:
-                    msg = (
-                        f"Vision fallback parse error {start_page}-{end_page}: "
-                        f"{type(e).__name__}: {e}"
-                    )
-                    logger.warning(msg)
-                    vision_errors.append(msg)
-                    continue
-
-        if all_tables:
-            metadata = {
-                "extraction_method": "gpt4o_vision",
-                "vision_status": "applied",
-                "page_ranges": page_ranges,
-                "warning": "Docling indisponible: fallback Vision utilise",
-            }
-        else:
-            metadata = {
-                "extraction_method": "docling_only_warning",
-                "vision_status": "failed",
-                "page_ranges": page_ranges,
-                "warning": "Docling indisponible et fallback Vision en echec",
-            }
-        if vision_errors:
-            metadata["vision_errors"] = vision_errors
-
-        all_tables = self._enrich_tables_with_context(all_tables, pdf_path)
-
-        return ExtractedDocument(
-            file_path=str(pdf_path),
-            bank_code=bank_code,
-            quarter=quarter,
-            year=year,
-            total_pages=total_pages,
-            all_tables=all_tables,
-            metadata=metadata,
-        )
 
     @staticmethod
     def _normalize_text_lines(text: str) -> list[str]:
@@ -1911,15 +1738,13 @@ def extract_pdf(
     year: int,
     use_ocr: bool = False,
     enhance_images: bool = True,
-    use_vision_fallback: bool | None = None,
     page_ranges: list[tuple[int, int]] | None = None,
     use_vision_primary: bool | None = None,
 ) -> ExtractedDocument:
-    """Extraire tout le contenu d'un PDF."""
+    """Extraire tout le contenu d'un PDF (Docling structure + Vision par tableau)."""
     processor = DoclingProcessor(
         use_ocr=use_ocr,
         enhance_images=enhance_images,
-        use_vision_fallback=use_vision_fallback,
     )
     return processor.extract_document(
         pdf_path,
@@ -1947,7 +1772,6 @@ def extract_pdf_targeted(
         quarter,
         year,
         use_ocr=use_ocr,
-        use_vision_fallback=False,
         page_ranges=page_ranges,
         use_vision_primary=use_vision_primary,
     )
@@ -1960,10 +1784,8 @@ def extract_pdf_with_fallback(
     year: int,
     use_ocr: bool = False,
 ) -> ExtractedDocument:
-    """Alias pour extract_pdf (fallback Vision désactivé pour le moment)."""
-    return extract_pdf(
-        pdf_path, bank_code, quarter, year, use_ocr=use_ocr, use_vision_fallback=False
-    )
+    """Alias pour extract_pdf (compatibilite API)."""
+    return extract_pdf(pdf_path, bank_code, quarter, year, use_ocr=use_ocr)
 
 
 def extract_section_content(
@@ -2007,7 +1829,6 @@ def extract_tables_docling_by_sections(
     year: int,
     section_ranges: list[dict[str, Any]] | None = None,
     use_vision_primary: bool | None = None,
-    use_vision_fallback: bool | None = None,
 ) -> list[ExtractedTable]:
     """Extract tables on selected section ranges and tag them with section names."""
     normalized_ranges: list[tuple[str, int, int]] = []
@@ -2031,7 +1852,6 @@ def extract_tables_docling_by_sections(
         year=year,
         page_ranges=page_ranges or None,
         use_vision_primary=use_vision_primary,
-        use_vision_fallback=use_vision_fallback,
     )
 
     if not normalized_ranges:
@@ -2063,16 +1883,14 @@ def extract_tables_docling_priority(
     year: int,
     page_ranges: list[tuple[int, int]] | None = None,
     use_vision_primary: bool | None = None,
-    use_vision_fallback: bool | None = None,
 ) -> list[ExtractedTable]:
-    """Extraire uniquement les tableaux via Docling."""
+    """Extraire uniquement les tableaux (Docling structure + Vision par tableau)."""
     doc = extract_pdf(
         pdf_path,
         bank_code,
         quarter,
         year,
         page_ranges=page_ranges,
-        use_vision_fallback=use_vision_fallback,
         use_vision_primary=use_vision_primary,
     )
     return doc.all_tables
@@ -2085,7 +1903,6 @@ def extract_tables_with_context(
     year: int,
     page_ranges: list[tuple[int, int]] | None = None,
     use_vision_primary: bool | None = None,
-    use_vision_fallback: bool | None = None,
 ) -> list[ExtractedTable]:
     """Extraire les tableaux avec contexte enrichi."""
     return extract_tables_docling_priority(
@@ -2095,5 +1912,4 @@ def extract_tables_with_context(
         year,
         page_ranges=page_ranges,
         use_vision_primary=use_vision_primary,
-        use_vision_fallback=use_vision_fallback,
     )

@@ -51,12 +51,18 @@ def _build_processor_with_fake_doc(monkeypatch, pages: list[int]) -> DoclingProc
         convert=lambda *args, **kwargs: SimpleNamespace(document=fake_doc)
     )
 
-    processor = DoclingProcessor(use_vision_fallback=False, openai_api_key="test-key")
+    processor = DoclingProcessor(openai_api_key="test-key")
     processor._converter = fake_converter
     processor._initialized = True
     # Vision-only path: no Docling content helpers are called; only Vision extract runs.
     processor._associate_tables_with_sections = (  # type: ignore[method-assign]
         lambda tables, text_content: tables
+    )
+    processor._page_level_title_assist = (  # type: ignore[method-assign]
+        lambda tables, pdf_path, bank_code, vision_extraction_cfg: tables
+    )
+    processor._enrich_tables_with_titles = (  # type: ignore[method-assign]
+        lambda tables, pdf_path: tables
     )
 
     monkeypatch.setattr(
@@ -68,8 +74,8 @@ def _build_processor_with_fake_doc(monkeypatch, pages: list[int]) -> DoclingProc
         _FailingVisionExtractor,
     )
     monkeypatch.setattr(
-        "vigilance.utils.pdf_crop.crop_table_region_to_bytes",
-        lambda pdf_path, page_number, bbox_norm, bottom_extension=0.0, dpi=300: b"fake",
+        "vigilance.utils.pdf_crop.render_page_with_bbox_highlight_to_bytes",
+        lambda pdf_path, page_number, table_bbox, bottom_extension=0.0, dpi=300: b"fake",
     )
     monkeypatch.setattr(
         "vigilance.extraction.docling_processor.logger",

@@ -22,46 +22,131 @@ logger = logging.getLogger(__name__)
 _PAGE_TITLE_EXTRACTION_METHOD = "page_level_assist_gpt4o"
 
 _PAGE_TITLE_PROMPT = """
-Tu es un expert en extraction de titres de tableaux à partir de rapports financiers bancaires canadiens.
+Tu es un expert en extraction de titres de tableaux dans des rapports financiers bancaires canadiens (RBC, TD, CIBC, BNS, BMO, BNC).
 
-TÂCHE
+## TÂCHE
 On te fournit l'image d'une page complète d'un rapport financier.
 Cette page peut contenir UN ou PLUSIEURS tableaux.
+Ta mission : identifier et lister UNIQUEMENT les titres des tableaux visibles.
 
-Ta mission est UNIQUEMENT d'identifier et de lister les titres des tableaux visibles sur cette page.
+---
 
-Pour chaque tableau visible :
-1. Trouve le numéro du tableau (ex: "Tableau 1", "Table 5", "T3a") s'il est visible.
-2. Trouve le titre sémantique complet du tableau (ex: "Bilan consolidé condensé").
-3. Estime la position verticale approximative du titre sur la page (bbox normalisée 0-1).
+## CE QU'EST UN TITRE DE TABLEAU
 
-RÈGLES :
-- NE PAS extraire le contenu des tableaux (ni indicateurs, ni données, ni notes).
-- NE PAS inventer de titres — uniquement ce qui est visible.
-- Si un tableau n'a pas de titre visible, ne pas l'inclure.
-- Si le numéro et le nom sont sur deux lignes séparées, les combiner dans title_full.
-- Respecter l'ordre visuel (haut vers bas).
+Un titre de tableau est un texte qui :
+- Apparaît DIRECTEMENT au-dessus du tableau (typiquement 0 à 4 lignes avant la première ligne du tableau)
+- Décrit le contenu du tableau (ex : "Fonds propres réglementaires", "Ratio de levier")
+- Peut être précédé d'un numéro (ex : "Tableau 12", "T3a", "Table 5")
+- Peut contenir une unité ou une période entre parenthèses sur la ligne suivante
 
-RÉPONSE JSON STRICTE :
+#### Patterns visuels à reconnaître par banque
 
+RBC :
+- Titre en gras.
+- Phrase descriptive complète.
+- Pas toujours de numéro de tableau.
+- Peut contenir des notes (1).
+- Une phrase explicative peut apparaître entre le titre et le tableau.
+
+TD :
+- Titre commence souvent par "TABLEAU XX :".
+- Texte souvent en majuscules.
+- Peut contenir un tiret ou deux-points.
+
+CIBC :
+- Titre peut être une phrase descriptive longue.
+- Parfois sans numéro de tableau.
+- Peut ressembler à un titre de section mais il est immédiatement suivi d’un tableau.
+
+BNS (Scotia) :
+- Format fréquent : "T20 Titre".
+- Code court suivi du nom du tableau.
+
+BMO :
+- Titre en bleu.
+- Numéro du tableau sur la ligne suivante (ex : TABLEAU 23).
+- Les deux lignes doivent être combinées.
+
+BNC :
+- Phrase descriptive longue.
+- Contient souvent des notes (1) (2).
+- Souvent suivi d’une ligne indiquant l’unité.
+
+Le titre doit toujours être associé au tableau le plus proche situé en dessous.
+Si la distance verticale entre le texte et le tableau est trop grande,
+ce texte n'est probablement pas un titre de tableau.
+
+### Titres sur plusieurs lignes
+Si le titre est réparti sur 2-3 lignes consécutives directement au-dessus du tableau
+(ex: ligne 1 = "Tableau 5", ligne 2 = "Exposition au risque de crédit", ligne 3 = "(en millions de dollars)"),
+COMBINER toutes ces lignes dans `title_full`, et exclure la ligne d'unité de `title_semantic`.
+
+---
+
+## CE QUI N'EST PAS UN TITRE DE TABLEAU
+
+- **Titres de section ou sous-section** : titres de paragraphe qui introduisent du texte narratif (pas un tableau)
+- **Phrases introductives** : "Le tableau ci-après présente..." ou "Les données suivantes illustrent..."
+  → Ces phrases peuvent PRÉCÉDER un tableau — le vrai titre est le texte en gras/majuscule juste au-dessus du tableau lui-même
+- **En-têtes de colonnes** : première ligne à l'intérieur du tableau (ex : "T1 2025 | T4 2024 | T1 2024")
+- **Notes de bas de tableau** : lignes commençant par (1), ¹, *, ou "Note :"
+- **Étiquettes de graphique** : légendes ou titres de figures/graphiques
+
+---
+
+## RÈGLES D'EXTRACTION
+
+1. **NE PAS** extraire le contenu des tableaux (données, indicateurs, notes).
+2. **NE PAS** inventer de titres — uniquement ce qui est visuellement présent.
+3. Si un tableau n'a **aucun titre visible** directement au-dessus de lui, **ne pas l'inclure**.
+4. Respecter l'**ordre visuel** (haut de page → bas de page).
+5. Si le numéro et le titre sont sur deux lignes séparées, les **combiner** dans `title_full`.
+6. `title_semantic` = titre sans le numéro ET sans la mention d'unité/période.
+7. Pour `bbox_title` : coordonnées [x_min, y_min, x_max, y_max] normalisées 0.0–1.0
+   représentant la position du bloc-titre (toutes les lignes du titre incluses).
+
+---
+
+## FORMAT DE RÉPONSE — JSON STRICT UNIQUEMENT
+```json
 {
   "page_table_titles": [
     {
-      "table_number": "1",
-      "title_full": "Tableau 1 - Bilan consolidé condensé",
-      "title_semantic": "Bilan consolidé condensé",
-      "bbox_title": [0.05, 0.10, 0.90, 0.13],
+      "table_number": "12",
+      "title_full": "Tableau 12 – Fonds propres réglementaires (en millions de dollars)",
+      "title_semantic": "Fonds propres réglementaires",
+      "bbox_title": [0.04, 0.08, 0.92, 0.12],
       "confidence": 0.95
     }
   ]
 }
+```
 
-DÉFINITIONS :
-- table_number : numéro extrait (ex: "1", "5a", "28"). Chaîne vide si absent.
-- title_full : titre complet incluant le numéro et le nom.
-- title_semantic : titre sans le numéro (partie sémantique uniquement).
-- bbox_title : [x_min, y_min, x_max, y_max] normalisé 0-1 de la position du titre.
-- confidence : score 0.0-1.0 de confiance pour ce titre.
+Si aucun titre de tableau n'est trouvé sur la page :
+```json
+{ "page_table_titles": [] }
+```
+
+---
+
+## DÉFINITIONS DES CHAMPS
+
+| Champ | Type | Description |
+|---|---|---|
+| `table_number` | string | Numéro extrait (ex: "1", "5a", "28"). Chaîne vide `""` si absent. |
+| `title_full` | string | Titre complet tel qu'il apparaît : numéro + nom + unité si présente. |
+| `title_semantic` | string | Titre sans le numéro et sans la mention d'unité ou de période. |
+| `bbox_title` | float[4] | [x_min, y_min, x_max, y_max] normalisé 0–1. Couvre toutes les lignes du titre. |
+| `confidence` | float | Score 0.0–1.0. Mettre < 0.7 si le titre est ambigu ou partiellement visible. |
+
+---
+
+## EXEMPLES DE CAS LIMITES
+
+- *"Risque de crédit"* seul en gras dans un paragraphe narratif → **NE PAS extraire** (titre de section)
+- *"Tableau 3\nExposition au risque de crédit\n(en millions $)"* au-dessus d'un tableau → **EXTRAIRE**, `title_semantic` = "Exposition au risque de crédit"
+- Une phrase *"Le tableau suivant présente les ratios..."* suivie d'un tableau sans titre en gras → **NE PAS extraire** (pas de titre formel)
+- Titre partiellement coupé en haut de page → extraire avec `confidence` ≤ 0.6
 """
 
 
