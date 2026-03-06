@@ -161,7 +161,7 @@ def _build_genai_input(result: dict[str, Any], max_tables: int = 50) -> str:
 
 _SYSTEM_PROMPT = """\
 Tu es un assistant analyste bancaire reglementaire. Tu analyses les resultats \
-de comparaison de rapports trimestriels (T1 vs T2) pour les banques canadiennes. \
+de comparaison entre trimestre courant et trimestre precedent pour les banques canadiennes. \
 Ton role est de produire un resume executif concis et de classifier chaque \
 tableau modifie par pertinence.
 
@@ -300,15 +300,19 @@ def _heuristic_fallback(result: dict[str, Any]) -> dict[str, Any]:
     tables_removed = summary.get("tables_removed", 0)
 
     if matched:
-        bullets.append(f"{matched} tableaux apparies entre T1 et T2.")
+        bullets.append(
+            f"{matched} tableaux apparies entre le trimestre courant et le trimestre precedent."
+        )
     if added_ind:
         bullets.append(f"{added_ind} indicateur(s) ajoute(s).")
     if removed_ind:
         bullets.append(f"{removed_ind} indicateur(s) supprime(s).")
     if tables_added:
-        bullets.append(f"{tables_added} nouveau(x) tableau(x) en T2.")
+        bullets.append(f"{tables_added} nouveau(x) tableau(x) dans le trimestre courant.")
     if tables_removed:
-        bullets.append(f"{tables_removed} tableau(x) supprime(s) en T2.")
+        bullets.append(
+            f"{tables_removed} tableau(x) retire(s) depuis le trimestre precedent."
+        )
 
     fn_added = summary.get("total_footnotes_added", 0)
     fn_removed = summary.get("total_footnotes_removed", 0)

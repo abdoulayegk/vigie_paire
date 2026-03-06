@@ -400,7 +400,7 @@ def build_review_detail_v2(
                         [
                             f"Section: {section}",
                             html.Span(" | ", className="text-muted"),
-                            f"Pages: T1 p.{page_t1 or '?'} / T2 p.{page_t2 or '?'}",
+                            f"Pages: précédent p.{page_t1 or '?'} / courant p.{page_t2 or '?'}",
                         ],
                         className="text-muted",
                     ),
@@ -469,35 +469,7 @@ def build_review_detail_v2(
                             html.H6(
                                 [
                                     html.I(className="bi bi-file-earmark-pdf me-2"),
-                                    "T1 (Ancien)",
-                                ],
-                                className="mb-2",
-                            ),
-                            html.Img(
-                                src=f"data:image/png;base64,{proof_image_t1_b64}"
-                                if proof_image_t1_b64
-                                else "",
-                                className="img-fluid border rounded",
-                                style={
-                                    "maxHeight": "400px",
-                                    "width": "100%",
-                                    "objectFit": "contain",
-                                },
-                            )
-                            if proof_image_t1_b64
-                            else html.Div(
-                                "Image non disponible",
-                                className="text-muted p-4 bg-light rounded text-center",
-                            ),
-                        ],
-                        md=6,
-                    ),
-                    dbc.Col(
-                        [
-                            html.H6(
-                                [
-                                    html.I(className="bi bi-file-earmark-pdf me-2"),
-                                    "T2 (Nouveau)",
+                                    "Trimestre courant",
                                 ],
                                 className="mb-2",
                             ),
@@ -513,6 +485,34 @@ def build_review_detail_v2(
                                 },
                             )
                             if proof_image_t2_b64
+                            else html.Div(
+                                "Image non disponible",
+                                className="text-muted p-4 bg-light rounded text-center",
+                            ),
+                        ],
+                        md=6,
+                    ),
+                    dbc.Col(
+                        [
+                            html.H6(
+                                [
+                                    html.I(className="bi bi-file-earmark-pdf me-2"),
+                                    "Trimestre précédent",
+                                ],
+                                className="mb-2",
+                            ),
+                            html.Img(
+                                src=f"data:image/png;base64,{proof_image_t1_b64}"
+                                if proof_image_t1_b64
+                                else "",
+                                className="img-fluid border rounded",
+                                style={
+                                    "maxHeight": "400px",
+                                    "width": "100%",
+                                    "objectFit": "contain",
+                                },
+                            )
+                            if proof_image_t1_b64
                             else html.Div(
                                 "Image non disponible",
                                 className="text-muted p-4 bg-light rounded text-center",

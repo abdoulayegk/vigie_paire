@@ -66,7 +66,7 @@ def _queue_page_summary_v2(table: dict) -> str:
     ):
         return f"p.{page_t1}" if page_t1 is not None else ""
     if page_t1 is not None and page_t2 is not None:
-        return f"T1 p.{page_t1} / T2 p.{page_t2}"
+        return f"Préc. p.{page_t1} / Cour. p.{page_t2}"
     if page_t2 is not None:
         return f"p.{page_t2}"
     if page_t1 is not None:

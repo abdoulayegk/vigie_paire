@@ -15,6 +15,19 @@ logger = logging.getLogger(__name__)
 STORAGE_SCHEMA_VERSION = 2
 
 
+def _normalize_storage_quarter(quarter: str) -> str:
+    """Normalize quarter labels to ``t1``..``t4`` for storage."""
+    value = str(quarter or "").strip().lower()
+    match = None
+    if value:
+        import re
+
+        match = re.search(r"([qt])\s*([1-4])", value, flags=re.IGNORECASE)
+    if match:
+        return f"t{match.group(2)}"
+    return value or "t1"
+
+
 def _extraction_dir(base_dir: Path, bank_code: str, year: int, quarter: str) -> Path:
     """Return the directory for one report: {base_dir}/{bank}/{year}/{quarter}/."""
     return base_dir / str(bank_code) / str(year) / str(quarter).lower()
@@ -99,9 +112,7 @@ def save_extraction(
     Writes tables.json and meta.json in outputs/extractions/{bank_code}/{year}/{quarter}/.
     Returns the directory path.
     """
-    quarter_norm = str(quarter).lower().replace("q1", "t1").replace("q2", "t2")
-    if quarter_norm not in ("t1", "t2"):
-        quarter_norm = "t1" if "1" in str(quarter) else "t2"
+    quarter_norm = _normalize_storage_quarter(quarter)
     target_dir = _extraction_dir(base_dir, bank_code, year, quarter_norm)
     target_dir.mkdir(parents=True, exist_ok=True)
 
@@ -155,9 +166,7 @@ def load_extraction(
 
     Returns (tables, meta) or None if not found or invalid.
     """
-    quarter_norm = str(quarter).lower().replace("q1", "t1").replace("q2", "t2")
-    if quarter_norm not in ("t1", "t2"):
-        quarter_norm = "t1" if "1" in str(quarter) else "t2"
+    quarter_norm = _normalize_storage_quarter(quarter)
     target_dir = _extraction_dir(base_dir, bank_code, year, quarter_norm)
     tables_path = target_dir / "tables.json"
     meta_path = target_dir / "meta.json"

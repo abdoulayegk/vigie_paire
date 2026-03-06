@@ -79,7 +79,7 @@ def _clean_title_for_display(raw_title: str) -> str:
 
 
 def compute_flag_state(item: dict) -> dict:
-    """Compute visual flag state for proof cards (T1/T2 borders and badges)."""
+    """Compute visual flag state for proof cards (previous/current borders and badges)."""
     change_type = (item.get("change_type") or "").strip()
     added = item.get("added_indicators") or []
     removed = item.get("removed_indicators") or []
@@ -102,8 +102,8 @@ def compute_flag_state(item: dict) -> dict:
             "has_change": False,
             "t1_class": "proof-card",
             "t2_class": "proof-card",
-            "badge_t1": t("table", "Tableau") + " T1",
-            "badge_t2": t("table", "Tableau") + " T2",
+            "badge_t1": "Trimestre précédent",
+            "badge_t2": "Trimestre courant",
             "badge_class_t1": "neutral",
             "badge_class_t2": "neutral",
         }
@@ -113,8 +113,8 @@ def compute_flag_state(item: dict) -> dict:
             "has_change": True,
             "t1_class": "proof-card",
             "t2_class": "proof-card proof-flag-t2",
-            "badge_t1": "T1 (Ancien)",
-            "badge_t2": "T2 (Nouveau)",
+            "badge_t1": "Trimestre précédent",
+            "badge_t2": "Trimestre courant",
             "badge_class_t1": "neutral",
             "badge_class_t2": "t2",
         }
@@ -123,8 +123,8 @@ def compute_flag_state(item: dict) -> dict:
             "has_change": True,
             "t1_class": "proof-card proof-flag-t1",
             "t2_class": "proof-card",
-            "badge_t1": "T1 (Ancien)",
-            "badge_t2": "T2 (Nouveau)",
+            "badge_t1": "Trimestre précédent",
+            "badge_t2": "Trimestre courant",
             "badge_class_t1": "t1",
             "badge_class_t2": "neutral",
         }
@@ -133,8 +133,8 @@ def compute_flag_state(item: dict) -> dict:
         "has_change": True,
         "t1_class": "proof-card proof-flag-t1",
         "t2_class": "proof-card proof-flag-t2",
-        "badge_t1": "T1 (Ancien)",
-        "badge_t2": "T2 (Nouveau)",
+        "badge_t1": "Trimestre précédent",
+        "badge_t2": "Trimestre courant",
         "badge_class_t1": "t1",
         "badge_class_t2": "t2",
     }
@@ -216,14 +216,14 @@ def _indicator_row_content(ind: dict, change_type: str) -> html.Div | html.Span:
                 [
                     html.Div(
                         [
-                            html.Small("T1: ", className="fw-bold text-danger"),
+                            html.Small("Précédent: ", className="fw-bold text-danger"),
                             html.Small(old_val or "-"),
                         ],
                         className="mb-0",
                     ),
                     html.Div(
                         [
-                            html.Small("T2: ", className="fw-bold text-success"),
+                            html.Small("Courant: ", className="fw-bold text-success"),
                             html.Small(new_val or "-"),
                         ],
                         className="mb-0",
@@ -379,27 +379,33 @@ def build_proofs_section(
     if change_type == CHANGE_TYPE_TABLE_ADDED:
         card_t1 = _img_card(
             None,
-            "T1 (Ancien)",
-            placeholder=t("no_table_added_t2", "Aucun tableau (ajoute en T2)"),
+            "Trimestre précédent",
+            placeholder=t(
+                "no_table_added_t2",
+                "Aucun tableau au trimestre précédent (ajout au trimestre courant)",
+            ),
         )
         card_t2 = _img_card(
-            img_t2_b64, "T2 (Nouveau)", bbox_norm=bbox_t2_norm, side="t2"
+            img_t2_b64, "Trimestre courant", bbox_norm=bbox_t2_norm, side="t2"
         )
     elif change_type == CHANGE_TYPE_TABLE_REMOVED:
         card_t1 = _img_card(
-            img_t1_b64, "T1 (Ancien)", bbox_norm=bbox_t1_norm, side="t1"
+            img_t1_b64, "Trimestre précédent", bbox_norm=bbox_t1_norm, side="t1"
         )
         card_t2 = _img_card(
             None,
-            "T2 (Nouveau)",
-            placeholder=t("no_table_removed_t2", "Aucun tableau (supprime en T2)"),
+            "Trimestre courant",
+            placeholder=t(
+                "no_table_removed_t2",
+                "Aucun tableau au trimestre courant (supprimé depuis le trimestre précédent)",
+            ),
         )
     else:
         card_t1 = _img_card(
-            img_t1_b64, "T1 (Ancien)", bbox_norm=bbox_t1_norm, side="t1"
+            img_t1_b64, "Trimestre précédent", bbox_norm=bbox_t1_norm, side="t1"
         )
         card_t2 = _img_card(
-            img_t2_b64, "T2 (Nouveau)", bbox_norm=bbox_t2_norm, side="t2"
+            img_t2_b64, "Trimestre courant", bbox_norm=bbox_t2_norm, side="t2"
         )
 
     col_t1 = dbc.Col(
@@ -442,7 +448,7 @@ def build_proofs_section(
         className="mb-2",
     )
     proofs_row = dbc.Row(
-        [col_t1, col_t2],
+        [col_t2, col_t1],
         className="mb-4 g-2",
         style={"height": "50vh", "minHeight": "400px"},
     )
@@ -533,13 +539,15 @@ def render_table_only_view(
     page_t1 = item.get("page_t1")
     page_t2 = item.get("page_t2")
     if page_t1 is None and page_t2 is not None:
-        page_text = f"Page T2: p.{page_t2}"
+        page_text = f"Page courante: p.{page_t2}"
     elif page_t2 is None and page_t1 is not None:
-        page_text = f"Page T1: p.{page_t1}"
+        page_text = f"Page précédente: p.{page_t1}"
     else:
         page_t1_str = str(page_t1) if page_t1 is not None else "-"
         page_t2_str = str(page_t2) if page_t2 is not None else "-"
-        page_text = f"Pages: T1: p.{page_t1_str}, T2: p.{page_t2_str}"
+        page_text = (
+            f"Pages: précédent p.{page_t1_str}, courant p.{page_t2_str}"
+        )
     confidence = item.get("confidence", 0.0)
     review_status = item.get("review_status", REVIEW_STATUS_PENDING)
 
@@ -655,13 +663,15 @@ def render_indicator_diff_view(
     page_t1 = item.get("page_t1")
     page_t2 = item.get("page_t2")
     if page_t1 is None and page_t2 is not None:
-        page_text = f"Page T2: p.{page_t2}"
+        page_text = f"Page courante: p.{page_t2}"
     elif page_t2 is None and page_t1 is not None:
-        page_text = f"Page T1: p.{page_t1}"
+        page_text = f"Page précédente: p.{page_t1}"
     else:
         page_t1_str = str(page_t1) if page_t1 is not None else "-"
         page_t2_str = str(page_t2) if page_t2 is not None else "-"
-        page_text = f"Pages: T1: p.{page_t1_str}, T2: p.{page_t2_str}"
+        page_text = (
+            f"Pages: précédent p.{page_t1_str}, courant p.{page_t2_str}"
+        )
     confidence = item.get("confidence", 0.0)
     comment = item.get("comment", "")
     indicators = item.get("indicators", [])
@@ -831,7 +841,9 @@ def render_indicator_diff_view(
                 detail_children.append(
                     html.Div(
                         [
-                            html.Small("T1: ", className="fw-bold text-danger"),
+                            html.Small(
+                                "Précédent: ", className="fw-bold text-danger"
+                            ),
                             html.Small(old_text[:300]),
                         ],
                         className="ms-3 mb-1 bg-light p-1 rounded",
@@ -841,7 +853,7 @@ def render_indicator_diff_view(
                 detail_children.append(
                     html.Div(
                         [
-                            html.Small("T2: ", className="fw-bold text-success"),
+                            html.Small("Courant: ", className="fw-bold text-success"),
                             html.Small(new_text[:300]),
                         ],
                         className="ms-3 mb-1 bg-light p-1 rounded",
