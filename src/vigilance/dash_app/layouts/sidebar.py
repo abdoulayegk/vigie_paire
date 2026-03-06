@@ -14,18 +14,17 @@ def build_sidebar() -> dbc.Col:
         {"label": f"{k.upper()} - {v}", "value": k} for k, v in AVAILABLE_BANKS.items()
     ]
 
-    # Generate years (current + previous 5)
-    current_year = 2026
+    # Generate years from the current year through 2040.
+    current_year = 2025
     year_options = [
         {"label": str(y), "value": str(y)}
-        for y in range(current_year, current_year - 6, -1)
+        for y in range(2040, current_year - 1, -1)
     ]
 
     quarter_options = [
-        {"label": "T1 (Q1)", "value": "Q1"},
-        {"label": "T2 (Q2)", "value": "Q2"},
-        {"label": "T3 (Q3)", "value": "Q3"},
-        {"label": "T4 (Q4)", "value": "Q4"},
+        {"label": "Q1", "value": "Q1"},
+        {"label": "Q2", "value": "Q2"},
+        {"label": "Q3", "value": "Q3"},
     ]
 
     return dbc.Col(
@@ -83,35 +82,13 @@ def build_sidebar() -> dbc.Col:
                 className="mb-3 small",
             ),
             html.Hr(),
-            # 4. Upload Zones (Dynamic based on logic, but for now static 3 slots)
+            # 4. Upload Zones
             html.H5("Rapports PDF", className="mb-2 fs-6"),
-            # T1 Upload
-            html.Label("Rapport T1 (Référence)", className="small text-muted"),
-            dcc.Upload(
-                id="upload-t1",
-                children=html.Div(
-                    [
-                        html.I(className="bi bi-file-earmark-pdf me-2"),
-                        html.Span("Glisser ou cliquer", className="small"),
-                    ],
-                    className="d-flex align-items-center justify-content-center",
-                ),
-                style={
-                    "borderWidth": "1px",
-                    "borderStyle": "dashed",
-                    "borderRadius": "5px",
-                    "textAlign": "center",
-                    "padding": "10px",
-                    "borderColor": "#dee2e6",
-                },
-                multiple=False,
-                className="mb-1",
+            html.Label(
+                "Rapport trimestre courant",
+                id="upload-current-label",
+                className="small text-muted",
             ),
-            html.Div(
-                id="upload-t1-name", className="small text-success mb-2 fst-italic"
-            ),
-            # T2 Upload
-            html.Label("Rapport T2 (Comparaison)", className="small text-muted"),
             dcc.Upload(
                 id="upload-t2",
                 children=html.Div(
@@ -135,10 +112,13 @@ def build_sidebar() -> dbc.Col:
             html.Div(
                 id="upload-t2-name", className="small text-success mb-2 fst-italic"
             ),
-            # T3 Upload (Optional)
-            html.Label("Rapport T3 (Optionnel)", className="small text-muted"),
+            html.Label(
+                "Rapport trimestre precedent",
+                id="upload-previous-label",
+                className="small text-muted",
+            ),
             dcc.Upload(
-                id="upload-t3",
+                id="upload-t1",
                 children=html.Div(
                     [
                         html.I(className="bi bi-file-earmark-pdf me-2"),
@@ -158,38 +138,25 @@ def build_sidebar() -> dbc.Col:
                 className="mb-1",
             ),
             html.Div(
-                id="upload-t3-name", className="small text-success mb-3 fst-italic"
+                id="upload-t1-name", className="small text-success mb-2 fst-italic"
             ),
             # 5. Quarter Selection for Comparison
-            html.Label("Comparaison à effectuer", className="fw-bold small"),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dcc.Dropdown(
-                            id="quarter-1",
-                            options=quarter_options,
-                            value="Q1",
-                            clearable=False,
-                            className="small",
-                        ),
-                        width=5,
-                    ),
-                    dbc.Col(
-                        html.Div("VS", className="text-center pt-2 fw-bold small"),
-                        width=2,
-                    ),
-                    dbc.Col(
-                        dcc.Dropdown(
-                            id="quarter-2",
-                            options=quarter_options,
-                            value="Q2",
-                            clearable=False,
-                            className="small",
-                        ),
-                        width=5,
-                    ),
-                ],
-                className="mb-3 g-1",
+            html.Label("Trimestre courant sélectionné", className="fw-bold small"),
+            dcc.Dropdown(
+                id="current-quarter",
+                options=quarter_options,
+                value="Q2",
+                clearable=False,
+                className="small mb-2",
+            ),
+            html.Label("Trimestre précédent comparé", className="fw-bold small"),
+            html.Div(
+                id="previous-quarter-display",
+                className="small border rounded bg-light px-2 py-2 mb-2 text-muted",
+            ),
+            html.Div(
+                id="comparison-pair-display",
+                className="small text-muted mb-3",
             ),
             html.Hr(),
             # 6. Action Button
@@ -209,46 +176,6 @@ def build_sidebar() -> dbc.Col:
             ),
             dbc.Collapse(
                 [
-                    dbc.Checklist(
-                        id="option-visual-proofs",
-                        options=[{"label": "Preuves Visuelles", "value": "proofs"}],
-                        value=["proofs"],
-                        switch=True,
-                        className="small mb-1",
-                    ),
-                    dbc.Checklist(
-                        id="option-vision",
-                        options=[
-                            {
-                                "label": "Fallback Vision pour indicateurs",
-                                "value": "vision",
-                            }
-                        ],
-                        value=["vision"],
-                        switch=True,
-                        className="small mb-1",
-                    ),
-                    html.Div(
-                        "Mode Vision-primary", className="small text-muted mt-1 mb-1"
-                    ),
-                    dbc.RadioItems(
-                        id="option-vision-primary-mode",
-                        options=[
-                            {"label": "Suivre config banque", "value": "auto"},
-                            {"label": "Forcer ON", "value": "on"},
-                            {"label": "Forcer OFF", "value": "off"},
-                        ],
-                        value="auto",
-                        className="small mb-2",
-                        inline=False,
-                    ),
-                    dbc.Checklist(
-                        id="option-auto-indicator",
-                        options=[{"label": "Auto-Comparaison", "value": "compare"}],
-                        value=["compare"],
-                        switch=True,
-                        className="small mb-1",
-                    ),
                     dbc.Checklist(
                         id="option-footnotes",
                         options=[

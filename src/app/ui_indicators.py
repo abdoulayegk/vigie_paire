@@ -46,8 +46,8 @@ def build_indicator_change_rows(
                 "Section": section,
                 "Tableau": table_name,
                 "Indicateur": str(indicator),
-                "Page T1": page_t1,
-                "Page T2": page_t2,
+                "Page précédente": page_t1,
+                "Page courante": page_t2,
                 "Statut": status_fr(status),
             }
             if include_review_status:
@@ -61,8 +61,8 @@ def build_indicator_change_rows(
                 "Section": section,
                 "Tableau": table_name,
                 "Indicateur": str(indicator),
-                "Page T1": page_t1,
-                "Page T2": page_t2,
+                "Page précédente": page_t1,
+                "Page courante": page_t2,
                 "Statut": status_fr(status),
             }
             if include_review_status:
@@ -80,8 +80,8 @@ def build_indicator_change_rows(
                 "Section": section,
                 "Tableau": table_name,
                 "Indicateur": label,
-                "Page T1": page_t1,
-                "Page T2": page_t2,
+                "Page précédente": page_t1,
+                "Page courante": page_t2,
                 "Statut": status_fr(status),
             }
             if include_review_status:
@@ -98,8 +98,8 @@ def build_indicator_change_rows(
                 "Section": table.get("section", ""),
                 "Tableau": table.get("title") or table.get("table_id") or "",
                 "Indicateur": ", ".join(display_indicators) if display_indicators else "",
-                "Page T1": "",
-                "Page T2": table.get("page", ""),
+                "Page précédente": "",
+                "Page courante": table.get("page", ""),
                 "Statut": status_fr("ajoute"),
             }
         )
@@ -114,8 +114,8 @@ def build_indicator_change_rows(
                 "Section": table.get("section", ""),
                 "Tableau": table.get("title") or table.get("table_id") or "",
                 "Indicateur": ", ".join(display_indicators) if display_indicators else "",
-                "Page T1": table.get("page", ""),
-                "Page T2": "",
+                "Page précédente": table.get("page", ""),
+                "Page courante": "",
                 "Statut": status_fr("supprime"),
             }
         )

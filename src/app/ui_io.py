@@ -8,15 +8,19 @@ from pathlib import Path
 from app.ui_config import INDICATOR_COMPARISON_DIR
 
 
-def save_pdfs_to_temp(pdf_bytes_t1: bytes, pdf_bytes_t2: bytes, *, temp_dir: Path) -> tuple[str, str]:
+def save_pdfs_to_temp(
+    pdf_bytes_t1: bytes, pdf_bytes_t2: bytes, *, temp_dir: Path
+) -> tuple[str, str]:
     """Persist uploaded PDF bytes into a temporary working directory."""
     temp_dir.mkdir(parents=True, exist_ok=True)
 
     if not pdf_bytes_t1 or not pdf_bytes_t2:
-        raise ValueError("Les deux fichiers PDF (T1/T2) sont requis.")
+        raise ValueError(
+            "Les deux fichiers PDF (trimestre precedent et trimestre courant) sont requis."
+        )
 
-    path_t1 = temp_dir / "t1_upload.pdf"
-    path_t2 = temp_dir / "t2_upload.pdf"
+    path_t1 = temp_dir / "previous_upload.pdf"
+    path_t2 = temp_dir / "current_upload.pdf"
 
     path_t1.write_bytes(pdf_bytes_t1)
     path_t2.write_bytes(pdf_bytes_t2)

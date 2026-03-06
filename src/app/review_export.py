@@ -20,10 +20,10 @@ VALIDATION_CSV_COLUMNS = [
     "section",
     "type_élément",
     "type_changement",
-    "page_T1",
-    "page_T2",
-    "indicateur_T1",
-    "indicateur_T2",
+    "page_precedente",
+    "page_courante",
+    "indicateur_precedent",
+    "indicateur_courant",
     "résumé_automatique",
     "score_confiance",
     "suspect",
@@ -139,17 +139,17 @@ def _build_resume_court(
 ) -> str:
     """Genere une phrase interpretative courte pour le superviseur (FR, 1 phrase max)."""
     if indicator_type == "added":
-        base = "Nouvel indicateur détecté."
+        base = "Nouvel indicateur dans le trimestre courant."
     elif indicator_type == "removed":
-        base = "Indicateur présent en T1 mais absent en T2."
+        base = "Indicateur présent au trimestre précédent mais absent au trimestre courant."
     elif indicator_type == "renamed" and (from_val or to_val):
         base = "Renommage probable d'indicateur."
     elif indicator_type == "renamed":
         base = "Renommage probable d'indicateur."
     elif indicator_type == "table_added":
-        base = "Nouveau tableau détecté."
+        base = "Nouveau tableau dans le trimestre courant."
     elif indicator_type == "table_removed":
-        base = "Tableau présent en T1 mais absent en T2."
+        base = "Tableau présent au trimestre précédent mais absent au trimestre courant."
     elif indicator_type == "modified":
         base = "Modification de tableau détectée."
     elif indicator_type == "uncertain":
@@ -269,10 +269,10 @@ def _iter_validation_rows(
                 "section": _section_to_fr(base.get("section", "")),
                 "type_élément": type_elem,
                 "type_changement": type_chg,
-                "page_T1": _format_cell(base.get("page_t1")),
-                "page_T2": _format_cell(base.get("page_t2")),
-                "indicateur_T1": ind_t1,
-                "indicateur_T2": ind_t2,
+                "page_precedente": _format_cell(base.get("page_t1")),
+                "page_courante": _format_cell(base.get("page_t2")),
+                "indicateur_precedent": ind_t1,
+                "indicateur_courant": ind_t2,
                 "résumé_automatique": resume,
                 "score_confiance": score_str,
                 "suspect": suspect,
@@ -329,10 +329,10 @@ def _iter_validation_rows(
                     "section": _section_to_fr(base.get("section", "")),
                     "type_élément": type_elem,
                     "type_changement": type_chg,
-                    "page_T1": _format_cell(base.get("page_t1")),
-                    "page_T2": _format_cell(base.get("page_t2")),
-                    "indicateur_T1": ind_t1,
-                    "indicateur_T2": ind_t2,
+                    "page_precedente": _format_cell(base.get("page_t1")),
+                    "page_courante": _format_cell(base.get("page_t2")),
+                    "indicateur_precedent": ind_t1,
+                    "indicateur_courant": ind_t2,
                     "résumé_automatique": resume,
                     "score_confiance": score_str,
                     "suspect": suspect,
@@ -350,8 +350,8 @@ def generate_validation_csv(
     """Genere le CSV de validation unique (12 colonnes, Excel FR, conformite bancaire).
 
     Schema exact:
-    banque | section | type_élément | type_changement | page_T1 | page_T2 |
-    indicateur_T1 | indicateur_T2 | résumé_automatique |
+    banque | section | type_élément | type_changement | page_precedente | page_courante |
+    indicateur_precedent | indicateur_courant | résumé_automatique |
     score_confiance | suspect | validation_finale
     """
     buffer = io.StringIO()

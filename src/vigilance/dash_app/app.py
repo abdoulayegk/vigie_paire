@@ -108,6 +108,11 @@ from app.dash_app.layouts import (
 )
 from app.dash_app.layouts.page_results import build_analyst_kpi_card
 from app.i18n import t
+from app.quarter_utils import (
+    build_quarter_context,
+    get_payload_quarter_context,
+    quarter_label_from_payload,
+)
 from app.review_adapters import build_review_items_from_indicator_result
 from app.review_export import (
     export_review_items_json_fr,
@@ -159,7 +164,10 @@ app = Dash(
 stores = [
     dcc.Store(id="store-upload-t1", data=None),
     dcc.Store(id="store-upload-t2", data=None),
-    dcc.Store(id="store-upload-t3", data=None),
+    dcc.Store(
+        id="store-quarter-context",
+        data=build_quarter_context("Q2", year=2025),
+    ),
     dcc.Store(id="store-pdf-paths", data=None),
     dcc.Store(id="store-temp-dir", data=None),
     dcc.Store(id="store-detection", data=None),
@@ -187,6 +195,26 @@ stores = [
         id="analysis-timer-interval", interval=1000, n_intervals=0, disabled=True
     ),
 ]
+
+
+def _quarter_context_from_store(data: dict | None) -> dict:
+    if isinstance(data, dict):
+        current = data.get("current")
+        previous = data.get("previous")
+        if isinstance(current, dict) and isinstance(previous, dict):
+            return data
+    return build_quarter_context("Q2", year=2025)
+
+
+def _comparison_export_base_name(payload: dict | None, suffix: str) -> str:
+    ctx = get_payload_quarter_context(payload)
+    bank = str((payload or {}).get("bank_code", "bank")).strip().lower() or "bank"
+    current_label = str(ctx.get("current", {}).get("label") or "current").lower()
+    previous_label = str(ctx.get("previous", {}).get("label") or "previous").lower()
+    year_val = str((payload or {}).get("year", "2025"))
+    current_slug = current_label.replace(" ", "_").replace("-", "_")
+    previous_slug = previous_label.replace(" ", "_").replace("-", "_")
+    return f"{bank}_{current_slug}_vs_{previous_slug}_{year_val}_{suffix}"
 
 # Layout
 app.layout = html.Div(
@@ -330,6 +358,29 @@ clientside_callback(
 
 
 @callback(
+    Output("store-quarter-context", "data"),
+    Output("previous-quarter-display", "children"),
+    Output("comparison-pair-display", "children"),
+    Output("upload-previous-label", "children"),
+    Output("upload-current-label", "children"),
+    Input("analysis-year", "value"),
+    Input("current-quarter", "value"),
+)
+def sync_quarter_context(year_value, current_quarter):
+    """Derive the previous quarter from the selected current quarter."""
+    ctx = build_quarter_context(current_quarter or "Q2", year=year_value or 2025)
+    previous_label = str(ctx["previous"]["label"])
+    current_label = str(ctx["current"]["label"])
+    return (
+        ctx,
+        previous_label,
+        f"Comparaison exécutée: {current_label} vs {previous_label}",
+        f"Rapport trimestre précédent ({previous_label})",
+        f"Rapport trimestre courant ({current_label})",
+    )
+
+
+@callback(
     Output("store-upload-t1", "data"),
     Output("upload-t1-name", "children"),
     Input("upload-t1", "contents"),
@@ -341,8 +392,8 @@ def on_upload_t1(content, filename):
         return None, ""
     return {
         "content": content,
-        "filename": filename or "t1.pdf",
-    }, f"T1: {filename or 't1.pdf'}"
+        "filename": filename or "previous.pdf",
+    }, f"Précédent: {filename or 'previous.pdf'}"
 
 
 @callback(
@@ -357,24 +408,8 @@ def on_upload_t2(content, filename):
         return None, ""
     return {
         "content": content,
-        "filename": filename or "t2.pdf",
-    }, f"T2: {filename or 't2.pdf'}"
-
-
-@callback(
-    Output("store-upload-t3", "data"),
-    Output("upload-t3-name", "children"),
-    Input("upload-t3", "contents"),
-    State("upload-t3", "filename"),
-)
-def on_upload_t3(content, filename):
-    """Stocker l'upload T3."""
-    if not content:
-        return None, ""
-    return {
-        "content": content,
-        "filename": filename or "t3.pdf",
-    }, f"T3: {filename or 't3.pdf'}"
+        "filename": filename or "current.pdf",
+    }, f"Courant: {filename or 'current.pdf'}"
 
 
 @callback(
@@ -389,48 +424,33 @@ def on_upload_t3(content, filename):
     Input("btn-detect", "n_clicks"),
     State("store-upload-t1", "data"),
     State("store-upload-t2", "data"),
-    State("store-upload-t3", "data"),
+    State("store-quarter-context", "data"),
     State("bank-code", "value"),
-    State("quarter-1", "value"),
-    State("quarter-2", "value"),
     prevent_initial_call=True,
 )
-def on_detect(n_clicks, upl_t1, upl_t2, upl_t3, bank_code, q1, q2):
-    """Detecter les sections sur les 2 PDFs selectionnes."""
+def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
+    """Détecter les sections sur le couple courant/précédent."""
     import base64
     import tempfile
 
     if not n_clicks:
         raise PreventUpdate
 
-    # Determine which PDFs to use based on Quarter selection logic
-    # Logic: T1 corresponds to upl_t1, T2 to upl_t2, T3 to upl_t3
-    # If comparison is Q1 vs Q2 -> Use T1 and T2
-    # If comparison is T2 vs T3 -> Use T2 and T3
-    # For now, we simplify: Always expect T1 and T2 uploaded for the primary flow.
-    # But if T3 is present and requested, handle logic.
+    quarter_context = _quarter_context_from_store(quarter_context)
+    previous_label = str(quarter_context["previous"]["label"])
+    current_label = str(quarter_context["current"]["label"])
 
-    # Mapping simplistic logic for now:
-    # upl_A = upl_t1
-    # upl_B = upl_t2
-    # If user wants T2 vs T3, they should ideally upload T2 in slot 1 and T3 in slot 2 OR we handle mapping.
-    # Let's stick to strict slots: Slot 1 = T1, Slot 2 = T2.
-    # If a user uploads to T3, we can use it if we implement specific logic.
-    # Given the constraint "T1 vs T2 or T2 vs T3", let's assume standard flow uses T1 and T2 slots for the active pair.
-
-    active_upl_1 = upl_t1
-    active_upl_2 = upl_t2
-
-    # If T3 is involved (future logic), swap here.
-
-    if not active_upl_1 or not active_upl_2 or not bank_code:
+    if not upl_t1 or not upl_t2 or not bank_code:
         return (
             None,
             None,
             None,
             False,
             build_page_upload(),
-            dbc.Alert("Veuillez uploader les rapports T1 et T2.", color="warning"),
+            dbc.Alert(
+                f"Veuillez uploader les rapports {previous_label} et {current_label}.",
+                color="warning",
+            ),
             None,
             False,
         )
@@ -441,11 +461,16 @@ def on_detect(n_clicks, upl_t1, upl_t2, upl_t3, bank_code, q1, q2):
         return base64.b64decode(content) if content else b""
 
     try:
-        b1 = decode(active_upl_1.get("content"))
-        b2 = decode(active_upl_2.get("content"))
+        b1 = decode(upl_t1.get("content"))
+        b2 = decode(upl_t2.get("content"))
         temp_dir = tempfile.mkdtemp()
         path_t1, path_t2 = save_pdfs_to_temp(b1, b2, temp_dir=Path(temp_dir))
-        paths = {"pdf_t1": path_t1, "pdf_t2": path_t2}
+        paths = {
+            "pdf_t1": path_t1,
+            "pdf_t2": path_t2,
+            "pdf_previous": path_t1,
+            "pdf_current": path_t2,
+        }
     except ValueError as e:
         return (
             None,
@@ -484,7 +509,11 @@ def on_detect(n_clicks, upl_t1, upl_t2, upl_t3, bank_code, q1, q2):
         False,
         build_page_validation(),
         dbc.Alert(
-            f"Sections detectees: T1={len(mapping_t1.get('sections', []))}, T2={len(mapping_t2.get('sections', []))}",
+            (
+                "Sections détectées: "
+                f"{previous_label}={len(mapping_t1.get('sections', []))}, "
+                f"{current_label}={len(mapping_t2.get('sections', []))}"
+            ),
             color="success",
         ),
         validation_start_ms,
@@ -718,11 +747,8 @@ def compile_adjusted_sections(starts, ends, ids_start, ids_end, detection):
     State("store-detection", "data"),
     State("store-adjusted-sections", "data"),
     State("store-pdf-paths", "data"),
+    State("store-quarter-context", "data"),
     State("bank-code", "value"),
-    State("option-visual-proofs", "value"),
-    State("option-vision", "value"),
-    State("option-vision-primary-mode", "value"),
-    State("option-auto-indicator", "value"),
     State("option-footnotes", "value"),
     State("option-genai-classification", "value"),
     State("store-validation-start-ms", "data"),
@@ -741,11 +767,8 @@ def on_analyze(
     detection,
     adjusted_sections,
     paths,
+    quarter_context,
     bank_code,
-    visual_proofs,
-    vision,
-    vision_primary_mode,
-    auto_indicator,
     footnotes_opt,
     genai_classification_opt,
     validation_start_ms,
@@ -755,6 +778,8 @@ def on_analyze(
 
     if not n_clicks or not detection or not paths or not bank_code:
         return None, None, None, False, build_page_validation(), None, None, False
+
+    quarter_context = _quarter_context_from_store(quarter_context)
 
     if (
         adjusted_sections
@@ -766,25 +791,19 @@ def on_analyze(
     else:
         sections_t1 = detection.get("detection_t1", {}).get("sections", [])
         sections_t2 = detection.get("detection_t2", {}).get("sections", [])
-    path_t1 = paths.get("pdf_t1")
-    path_t2 = paths.get("pdf_t2")
+    path_t1 = paths.get("pdf_previous") or paths.get("pdf_t1")
+    path_t2 = paths.get("pdf_current") or paths.get("pdf_t2")
 
     api_key = (os.environ.get("OPENAI_API_KEY") or "").strip() or None
     use_genai = bool(api_key)
 
-    generate_visual_proofs = visual_proofs and "proofs" in visual_proofs
-    if vision_primary_mode == "on":
-        use_vision_primary = True
-    elif vision_primary_mode == "off":
-        use_vision_primary = False
-    else:
-        try:
-            from vigilance.config import get_vision_extraction_config
+    try:
+        from vigilance.config import get_vision_extraction_config
 
-            cfg = get_vision_extraction_config(bank_code=bank_code) or {}
-            use_vision_primary = bool(cfg.get("enabled", False))
-        except Exception:
-            use_vision_primary = False
+        cfg = get_vision_extraction_config(bank_code=bank_code) or {}
+        use_vision_primary = bool(cfg.get("enabled", False))
+    except Exception:
+        use_vision_primary = False
     include_footnotes = bool(footnotes_opt and "footnotes" in footnotes_opt)
     include_genai_classification = bool(
         genai_classification_opt and "classify" in genai_classification_opt and api_key
@@ -792,14 +811,17 @@ def on_analyze(
 
     try:
         result = run_comparison_with_sections(
-            pdf_path_t1=path_t1,
-            pdf_path_t2=path_t2,
+            pdf_path_previous=path_t1,
+            pdf_path_current=path_t2,
             bank_code=bank_code,
-            sections_t1=sections_t1,
-            sections_t2=sections_t2,
+            sections_previous=sections_t1,
+            sections_current=sections_t2,
+            current_quarter=str(quarter_context["current"]["label"]),
+            previous_quarter=str(quarter_context["previous"]["label"]),
+            current_year=int(quarter_context["current"]["year"]),
+            previous_year=int(quarter_context["previous"]["year"]),
             use_genai=use_genai,
             api_key=api_key,
-            generate_visual_proofs=generate_visual_proofs,
             use_vision_primary=use_vision_primary,
             include_footnotes=include_footnotes,
             include_genai_classification=include_genai_classification,
@@ -1417,7 +1439,12 @@ def render_results(comparison, indicator, show_results):
     elif indicator:
         bank = indicator.get("bank_code", "N/A")
         title = "Indicateurs"
-    header = html.H5(f"{str(bank).upper()} - {title}")
+    quarter_context = get_payload_quarter_context(data if isinstance(data, dict) else {})
+    previous_label = str(quarter_context["previous"]["label"])
+    current_label = str(quarter_context["current"]["label"])
+    header = html.H5(
+        f"{str(bank).upper()} - {title} - {current_label} vs {previous_label}"
+    )
 
     executive_summary = html.Div()
     if indicator and isinstance(indicator, dict):
@@ -1460,8 +1487,9 @@ def render_results(comparison, indicator, show_results):
             notes_total += sum(fn.get(k, 0) for k in ("added", "removed", "modified"))
 
         parts = [
-            f"{tables_t1} {t('tables')} en T1, {tables_t2} en T2. "
-            f"{tables_matched} apparies",
+            f"{tables_t1} {t('tables')} au trimestre précédent ({previous_label}), "
+            f"{tables_t2} au trimestre courant ({current_label}). "
+            f"{tables_matched} appariés",
         ]
         if structure_change:
             parts.append(f", {structure_change} fusion/split")
@@ -1527,7 +1555,8 @@ def render_results(comparison, indicator, show_results):
                     dbc.CardBody(
                         [
                             html.P(
-                                f"{t('tables')} T1", className="small text-muted mb-0"
+                                f"{t('tables')} ({previous_label})",
+                                className="small text-muted mb-0",
                             ),
                             html.H4(
                                 str(kpi.get("tables_t1", 0)), className="mb-0 fw-bold"
@@ -1544,7 +1573,8 @@ def render_results(comparison, indicator, show_results):
                     dbc.CardBody(
                         [
                             html.P(
-                                f"{t('tables')} T2", className="small text-muted mb-0"
+                                f"{t('tables')} ({current_label})",
+                                className="small text-muted mb-0",
                             ),
                             html.H4(
                                 str(kpi.get("tables_t2", 0)), className="mb-0 fw-bold"
@@ -1996,11 +2026,11 @@ def init_review_items(indicator_result, paths):
         }
         return [], [], 0, 0, dbg
 
-    path_t1 = paths.get("pdf_t1", "")
-    path_t2 = paths.get("pdf_t2", "")
+    path_t1 = paths.get("pdf_previous", "") or paths.get("pdf_t1", "")
+    path_t2 = paths.get("pdf_current", "") or paths.get("pdf_t2", "")
     bank_code = str(indicator_result.get("bank_code", ""))
-    quarter_from = str(indicator_result.get("quarter_from", "t1"))
-    quarter_to = str(indicator_result.get("quarter_to", "t2"))
+    quarter_from = quarter_label_from_payload(indicator_result, "previous")
+    quarter_to = quarter_label_from_payload(indicator_result, "current")
 
     items = build_review_items_from_indicator_result(
         indicator_result,
@@ -2044,15 +2074,20 @@ def _build_comparison_statement(item: ReviewItem) -> str:
         return f"{table_label} -- {item.indicator}"
     indicator = item.indicator or "(indicateur non disponible)"
     if item.change_type == CHANGE_TYPE_TABLE_ADDED:
-        return f"Tableau entier ajoute en T2: {table_label}"
+        return f"Tableau entier ajouté au trimestre courant: {table_label}"
     if item.change_type == CHANGE_TYPE_TABLE_REMOVED:
-        return f"Tableau entier supprime en T2: {table_label} (present en T1)"
+        return (
+            f"Tableau entier supprimé depuis le trimestre précédent: {table_label} "
+            "(présent au trimestre précédent)"
+        )
     if item.change_type == CHANGE_TYPE_ADDED:
-        return f"Ajoute T2: {indicator} -- absent en T1."
+        return f"Ajout au trimestre courant: {indicator} -- absent au trimestre précédent."
     if item.change_type == CHANGE_TYPE_REMOVED:
-        return f"Supprime en T2: {indicator} -- present en T1."
+        return (
+            f"Suppression au trimestre courant: {indicator} -- présent au trimestre précédent."
+        )
     if item.change_type == CHANGE_TYPE_RENAMED:
-        return f"Renomme entre T1/T2: {indicator}."
+        return f"Renommage entre trimestre précédent et trimestre courant: {indicator}."
     return f"Changement detecte: {indicator}"
 
 
@@ -2292,21 +2327,25 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
     if proof_image_path:
         col1_content = _img_div(
             img_t1_b64,
-            "Preuve tableau entier T1/T2",
+            "Preuve tableau entier courant/précédent",
             f"Mode {proof_mode}" if proof_mode else None,
         )
         col2_content = html.Div(
             [
-                html.P("Tn+1", className="small text-muted"),
+                html.P("Trimestre précédent", className="small text-muted"),
                 html.P("Inclus dans la preuve tableau entier."),
             ]
         )
     else:
         col1_content = _img_div(
-            img_t1_b64, "Tn", f"Page {current.page_t1}" if current.page_t1 else None
+            img_t2_b64,
+            "Trimestre courant",
+            f"Page {current.page_t2}" if current.page_t2 else None,
         )
         col2_content = _img_div(
-            img_t2_b64, "Tn+1", f"Page {current.page_t2}" if current.page_t2 else None
+            img_t1_b64,
+            "Trimestre précédent",
+            f"Page {current.page_t1}" if current.page_t1 else None,
         )
     unit_context_t1 = current_dict.get("unit_context_t1", "") or ""
     unit_context_t2 = current_dict.get("unit_context_t2", "") or ""
@@ -2325,14 +2364,16 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
     if unit_context_t1 or unit_context_t2:
         meta_lines.append(
             html.P(
-                f"Contexte unite T1/T2: {unit_context_t1 or '-'} | {unit_context_t2 or '-'}",
+                "Contexte unité précédent/courant: "
+                f"{unit_context_t1 or '-'} | {unit_context_t2 or '-'}",
                 className="small text-muted mb-1",
             )
         )
     if title_method_t1 or title_method_t2:
         meta_lines.append(
             html.P(
-                f"Methode titre T1/T2: {title_method_t1 or '-'} | {title_method_t2 or '-'}",
+                "Méthode titre précédent/courant: "
+                f"{title_method_t1 or '-'} | {title_method_t2 or '-'}",
                 className="small text-muted mb-1",
             )
         )
@@ -2629,11 +2670,7 @@ def render_export_tab(review_items_data, indicator_result, show_results):
         return html.Div("Aucun resultat a exporter.", className="text-muted")
 
     ir = indicator_result or {}
-    bank = str(ir.get("bank_code", "bank")).lower()
-    q_from = str(ir.get("quarter_from", "t1"))
-    q_to = str(ir.get("quarter_to", "t2"))
-    year_val = str(ir.get("year", "2025"))
-    base_name = f"{bank}_{q_from}_vs_{q_to}_{year_val}_review"
+    base_name = _comparison_export_base_name(ir, "review")
 
     content = [html.H5("Exporter les resultats")]
     if review_items_data or ir:
@@ -2729,21 +2766,29 @@ def on_download_csv(n_clicks, review_items_data, indicator_result, paths):
     if not items and ir:
         # Reconstruire depuis indicator_result si store desynchronise
         paths = paths or {}
-        path_t1 = paths.get("pdf_t1", "") if isinstance(paths, dict) else ""
-        path_t2 = paths.get("pdf_t2", "") if isinstance(paths, dict) else ""
+        path_t1 = (
+            paths.get("pdf_previous", "") or paths.get("pdf_t1", "")
+            if isinstance(paths, dict)
+            else ""
+        )
+        path_t2 = (
+            paths.get("pdf_current", "") or paths.get("pdf_t2", "")
+            if isinstance(paths, dict)
+            else ""
+        )
         items = build_review_items_from_indicator_result(
             ir,
             bank_code=str(ir.get("bank_code", "")),
-            quarter_from=str(ir.get("quarter_from", "t1")),
-            quarter_to=str(ir.get("quarter_to", "t2")),
+            quarter_from=quarter_label_from_payload(ir, "previous"),
+            quarter_to=quarter_label_from_payload(ir, "current"),
             pdf_path_t1=path_t1 or "",
             pdf_path_t2=path_t2 or "",
         )
     bank = str(ir.get("bank_code", "bank")).upper()
-    q_from = str(ir.get("quarter_from", "t1")).upper()
-    q_to = str(ir.get("quarter_to", "t2")).upper()
+    q_from = quarter_label_from_payload(ir, "previous").upper()
+    q_to = quarter_label_from_payload(ir, "current").upper()
     year_val = str(ir.get("year", "2025"))
-    filename = f"Vigie_Comparaison_{bank}_{q_from}_vs_{q_to}_{year_val}.csv"
+    filename = f"Vigie_Comparaison_{bank}_{q_to}_vs_{q_from}_{year_val}.csv"
     csv_str = generate_validation_csv(items, ir)
     return dict(content=csv_str, filename=filename)
 
@@ -2764,16 +2809,19 @@ def on_download_json(n_clicks, review_items_data, indicator_result):
     ir = indicator_result or {}
     items = [ReviewItem.from_dict(d) for d in review_items_data]
     bank = str(ir.get("bank_code", "bank"))
-    q_from = str(ir.get("quarter_from", "t1"))
-    q_to = str(ir.get("quarter_to", "t2"))
+    q_from = quarter_label_from_payload(ir, "previous")
+    q_to = quarter_label_from_payload(ir, "current")
     year_val = str(ir.get("year", "2025"))
-    base_name = f"{bank}_{q_from}_vs_{q_to}_{year_val}_review".replace(" ", "_").lower()
+    base_name = _comparison_export_base_name(ir, "review").replace(" ", "_").lower()
     json_str = export_review_items_json_fr(
         items,
         metadata={
             "bank_code": bank,
             "quarter_from": q_from,
             "quarter_to": q_to,
+            "previous_quarter": q_from,
+            "current_quarter": q_to,
+            "comparison_direction": "current_vs_previous",
             "year": year_val,
             "exported_at": datetime.now().isoformat(timespec="seconds"),
         },
@@ -2802,21 +2850,29 @@ def on_download_excel(n_clicks, review_items_data, indicator_result, paths):
             pass
     if not items and ir:
         paths = paths or {}
-        path_t1 = paths.get("pdf_t1", "") if isinstance(paths, dict) else ""
-        path_t2 = paths.get("pdf_t2", "") if isinstance(paths, dict) else ""
+        path_t1 = (
+            paths.get("pdf_previous", "") or paths.get("pdf_t1", "")
+            if isinstance(paths, dict)
+            else ""
+        )
+        path_t2 = (
+            paths.get("pdf_current", "") or paths.get("pdf_t2", "")
+            if isinstance(paths, dict)
+            else ""
+        )
         items = build_review_items_from_indicator_result(
             ir,
             bank_code=str(ir.get("bank_code", "")),
-            quarter_from=str(ir.get("quarter_from", "t1")),
-            quarter_to=str(ir.get("quarter_to", "t2")),
+            quarter_from=quarter_label_from_payload(ir, "previous"),
+            quarter_to=quarter_label_from_payload(ir, "current"),
             pdf_path_t1=path_t1 or "",
             pdf_path_t2=path_t2 or "",
         )
     bank = str(ir.get("bank_code", "bank")).upper()
-    q_from = str(ir.get("quarter_from", "t1")).upper()
-    q_to = str(ir.get("quarter_to", "t2")).upper()
+    q_from = quarter_label_from_payload(ir, "previous").upper()
+    q_to = quarter_label_from_payload(ir, "current").upper()
     year_val = str(ir.get("year", "2025"))
-    filename = f"Vigie_Comparaison_{bank}_{q_from}_vs_{q_to}_{year_val}.xlsx"
+    filename = f"Vigie_Comparaison_{bank}_{q_to}_vs_{q_from}_{year_val}.xlsx"
     excel_bytes = generate_validation_excel(items, ir)
     b64 = base64.b64encode(excel_bytes).decode("ascii")
     return dict(content=b64, filename=filename, base64=True)
@@ -2835,12 +2891,9 @@ def on_download_indicator_json_brut(n_clicks, indicator_result):
     import json
 
     bank = str(indicator_result.get("bank_code", "bank"))
-    q_from = str(indicator_result.get("quarter_from", "t1"))
-    q_to = str(indicator_result.get("quarter_to", "t2"))
-    year_val = str(indicator_result.get("year", "2025"))
-    base_name = f"{bank}_{q_from}_vs_{q_to}_{year_val}_canonical".replace(
-        " ", "_"
-    ).lower()
+    base_name = _comparison_export_base_name(
+        indicator_result, "canonical"
+    ).replace(" ", "_").lower()
     json_str = json.dumps(indicator_result, ensure_ascii=False, indent=2)
     return dict(content=json_str, filename=f"{base_name}.json")
 

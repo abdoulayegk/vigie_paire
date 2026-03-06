@@ -6,6 +6,8 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any
 
+from app.quarter_utils import get_payload_quarter_context
+
 
 # ---------------------------------------------------------------------------
 # Changed-tables metrics
@@ -89,8 +91,11 @@ def _empty_canonical() -> dict[str, Any]:
     return {
         "schema_version": "comparison_canonical_v1",
         "bank_code": "",
-        "quarter_from": "t1",
-        "quarter_to": "t2",
+        "quarter_from": "",
+        "quarter_to": "",
+        "previous_quarter": "",
+        "current_quarter": "",
+        "comparison_direction": "current_vs_previous",
         "year": datetime.now().year,
         "summary": {
             "tables_t1": 0,
@@ -188,14 +193,24 @@ def to_canonical_payload(payload: Any) -> dict[str, Any]:
         return canonical
 
     canonical["bank_code"] = str(payload.get("bank_code", ""))
-    canonical["quarter_from"] = str(payload.get("quarter_from", "t1"))
-    canonical["quarter_to"] = str(payload.get("quarter_to", "t2"))
+    canonical["quarter_from"] = str(payload.get("quarter_from", ""))
+    canonical["quarter_to"] = str(payload.get("quarter_to", ""))
+    canonical["previous_quarter"] = str(
+        payload.get("previous_quarter", canonical["quarter_from"])
+    )
+    canonical["current_quarter"] = str(
+        payload.get("current_quarter", canonical["quarter_to"])
+    )
+    canonical["comparison_direction"] = str(
+        payload.get("comparison_direction", "current_vs_previous")
+    )
     try:
         canonical["year"] = int(payload.get("year") or canonical["year"])
     except (TypeError, ValueError):
         pass
 
     canonical["meta"]["source_format"] = "unknown"
+    canonical["meta"]["quarter_context"] = get_payload_quarter_context(payload)
     canonical["meta"]["executive_summary"] = {
         "content": "Format de comparaison non reconnu. Resultat vide genere."
     }

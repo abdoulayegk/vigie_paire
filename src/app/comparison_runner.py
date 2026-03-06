@@ -1,4 +1,4 @@
-"""Run T1/T2 comparison from uploaded PDFs and section ranges."""
+"""Run current-vs-previous quarter comparison from uploaded PDFs and section ranges."""
 
 from __future__ import annotations
 
@@ -43,6 +43,7 @@ from app.comparison_canonical import (
     compute_changed_tables_t1,
     compute_changed_tables_t2,
 )
+from app.quarter_utils import build_quarter_context
 from app.ui_config import INDICATOR_COMPARISON_DIR, LOGS_DIR
 
 _SEMANTIC_JUDGE_LOG = LOGS_DIR / "semantic_judge_decisions.jsonl"
@@ -1373,13 +1374,32 @@ def _derive_table_status(
     return ("modifie" if has_changes else "stable"), False
 
 
-def _empty_result(bank_code: str, year: int, reason: str) -> dict[str, Any]:
+def _empty_result(
+    bank_code: str,
+    year: int,
+    reason: str,
+    *,
+    quarter_context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     now = datetime.now().isoformat(timespec="seconds")
+    current_label = (
+        str(quarter_context.get("current", {}).get("label", ""))
+        if isinstance(quarter_context, dict)
+        else ""
+    )
+    previous_label = (
+        str(quarter_context.get("previous", {}).get("label", ""))
+        if isinstance(quarter_context, dict)
+        else ""
+    )
     return {
         "schema_version": "comparison_canonical_v1",
         "bank_code": bank_code,
-        "quarter_from": "t1",
-        "quarter_to": "t2",
+        "quarter_from": previous_label or "t1",
+        "quarter_to": current_label or "t2",
+        "previous_quarter": previous_label or "",
+        "current_quarter": current_label or "",
+        "comparison_direction": "current_vs_previous",
         "year": year,
         "summary": {
             "tables_t1": 0,
@@ -1411,6 +1431,7 @@ def _empty_result(bank_code: str, year: int, reason: str) -> dict[str, Any]:
             "provenance": "comparison_runner",
             "source_format": "empty",
             "error": reason,
+            "quarter_context": quarter_context or {},
             "executive_summary": {
                 "content": "Aucun resultat produit. " + reason,
             },
@@ -1437,11 +1458,19 @@ def _empty_result(bank_code: str, year: int, reason: str) -> dict[str, Any]:
 
 def run_comparison_with_sections(
     *,
-    pdf_path_t1: str,
-    pdf_path_t2: str,
+    pdf_path_t1: str | None = None,
+    pdf_path_t2: str | None = None,
+    pdf_path_previous: str | None = None,
+    pdf_path_current: str | None = None,
     bank_code: str,
-    sections_t1: list[dict[str, Any]] | None,
-    sections_t2: list[dict[str, Any]] | None,
+    sections_t1: list[dict[str, Any]] | None = None,
+    sections_t2: list[dict[str, Any]] | None = None,
+    sections_previous: list[dict[str, Any]] | None = None,
+    sections_current: list[dict[str, Any]] | None = None,
+    current_quarter: str | None = None,
+    previous_quarter: str | None = None,
+    current_year: int | None = None,
+    previous_year: int | None = None,
     use_genai: bool = False,
     api_key: str | None = None,
     generate_visual_proofs: bool = False,
@@ -1465,22 +1494,56 @@ def run_comparison_with_sections(
     if use_vision_primary is None and use_vision_primary_override is not None:
         use_vision_primary = use_vision_primary_override
 
-    year = _infer_year(pdf_path_t1, pdf_path_t2)
-    ranges_t1 = _normalize_ranges(sections_t1)
-    ranges_t2 = _normalize_ranges(sections_t2)
+    pdf_path_previous = pdf_path_previous or pdf_path_t1
+    pdf_path_current = pdf_path_current or pdf_path_t2
+    if not pdf_path_previous or not pdf_path_current:
+        raise ValueError(
+            "Both pdf_path_current and pdf_path_previous are required for comparison."
+        )
+    # Legacy internal aliases: T1 = previous quarter, T2 = current quarter.
+    pdf_path_t1 = pdf_path_previous
+    pdf_path_t2 = pdf_path_current
+
+    ranges_t1 = _normalize_ranges(sections_previous or sections_t1)
+    ranges_t2 = _normalize_ranges(sections_current or sections_t2)
+
+    inferred_year = _infer_year(pdf_path_previous, pdf_path_current)
+    quarter_context = build_quarter_context(
+        current_quarter or "Q2",
+        year=current_year or inferred_year,
+        previous_quarter=previous_quarter,
+    )
+    if previous_year is not None:
+        quarter_context["previous"]["year"] = int(previous_year)
+        quarter_context["previous"]["label"] = (
+            f"Q{quarter_context['previous']['quarter']}-{int(previous_year)}"
+        )
+        quarter_context["comparison_label"] = (
+            f"{quarter_context['current']['label']} vs {quarter_context['previous']['label']}"
+        )
+    year = int(quarter_context["current"]["year"])
+    previous_quarter_code = str(quarter_context["previous"]["code"])
+    current_quarter_code = str(quarter_context["current"]["code"])
+    previous_year_val = int(quarter_context["previous"]["year"])
+    current_year_val = int(quarter_context["current"]["year"])
 
     if not ranges_t1 or not ranges_t2:
-        return _empty_result(bank_code, year, "Aucune section valide fournie.")
+        return _empty_result(
+            bank_code,
+            year,
+            "Aucune section valide fournie.",
+            quarter_context=quarter_context,
+        )
 
     try:
         # Run both report extractions in parallel to cut total runtime (Docling + Vision per PDF)
         with ThreadPoolExecutor(max_workers=2) as executor:
             fut_t1 = executor.submit(
                 _extract_tables,
-                pdf_path=pdf_path_t1,
+                pdf_path=pdf_path_previous,
                 bank_code=bank_code,
-                quarter="t1",
-                year=year,
+                quarter=previous_quarter_code,
+                year=previous_year_val,
                 section_ranges=ranges_t1,
                 api_key=api_key,
                 use_vision_primary=use_vision_primary,
@@ -1488,10 +1551,10 @@ def run_comparison_with_sections(
             )
             fut_t2 = executor.submit(
                 _extract_tables,
-                pdf_path=pdf_path_t2,
+                pdf_path=pdf_path_current,
                 bank_code=bank_code,
-                quarter="t2",
-                year=year,
+                quarter=current_quarter_code,
+                year=current_year_val,
                 section_ranges=ranges_t2,
                 api_key=api_key,
                 use_vision_primary=use_vision_primary,
@@ -1502,11 +1565,19 @@ def run_comparison_with_sections(
     except Exception as exc:
         if "Vision schema contract invalid" in str(exc):
             raise
-        return _empty_result(bank_code, year, f"Extraction impossible: {exc}")
+        return _empty_result(
+            bank_code,
+            year,
+            f"Extraction impossible: {exc}",
+            quarter_context=quarter_context,
+        )
 
     if not tables_t1 and not tables_t2:
         return _empty_result(
-            bank_code, year, "Aucun tableau extrait depuis les sections selectionnees."
+            bank_code,
+            year,
+            "Aucun tableau extrait depuis les sections selectionnees.",
+            quarter_context=quarter_context,
         )
 
     try:
@@ -2810,9 +2881,13 @@ def run_comparison_with_sections(
     }
 
     now = datetime.now().isoformat(timespec="seconds")
+    current_label = str(quarter_context["current"]["label"])
+    previous_label = str(quarter_context["previous"]["label"])
     summary_text = (
+        f"Comparaison {current_label} vs {previous_label}: "
         f"{len(comparisons)} tableaux apparies, {total_added} ajouts d'indicateurs, "
-        f"{total_removed} suppressions, {len(tables_added)} tableaux ajoutes, {len(tables_removed)} supprimes."
+        f"{total_removed} suppressions, {len(tables_added)} tableaux ajoutes dans le trimestre courant, "
+        f"{len(tables_removed)} tableaux retires depuis le trimestre precedent."
     )
 
     extraction_quality_kpis = _compute_extraction_kpis(
@@ -2822,8 +2897,11 @@ def run_comparison_with_sections(
     result: dict[str, Any] = {
         "schema_version": "comparison_canonical_v1",
         "bank_code": bank_code,
-        "quarter_from": "t1",
-        "quarter_to": "t2",
+        "quarter_from": previous_label,
+        "quarter_to": current_label,
+        "previous_quarter": previous_label,
+        "current_quarter": current_label,
+        "comparison_direction": "current_vs_previous",
         "year": year,
         "summary": {
             "tables_t1": len(tables_t1),
@@ -2866,6 +2944,7 @@ def run_comparison_with_sections(
             "generated_at": now,
             "provenance": "comparison_runner",
             "source_format": "strict_intra_section",
+            "quarter_context": quarter_context,
             "algorithm_used": algorithm_used,
             "raw_tables_t1": raw_tables_t1_count,
             "raw_tables_t2": raw_tables_t2_count,
@@ -3013,7 +3092,11 @@ def run_comparison_with_sections(
 
     INDICATOR_COMPARISON_DIR.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = INDICATOR_COMPARISON_DIR / f"{bank_code}_t1_vs_t2_{year}_{stamp}.json"
+    current_slug = current_label.lower().replace(" ", "_")
+    previous_slug = previous_label.lower().replace(" ", "_")
+    out_path = INDICATOR_COMPARISON_DIR / (
+        f"{bank_code}_{current_slug}_vs_{previous_slug}_{stamp}.json"
+    )
     out_path.write_text(
         json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
     )
