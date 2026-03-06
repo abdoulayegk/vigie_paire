@@ -191,6 +191,7 @@ stores = [
     dcc.Store(id="store-review-filters", data={"section": "all", "status": "all"}),
     dcc.Store(id="store-proof-display-mode", data="crop"),
     dcc.Store(id="store-nav-debug", data=None),
+    dcc.Store(id="store-sidebar-collapsed", data=False),
     dcc.Interval(
         id="analysis-timer-interval", interval=1000, n_intervals=0, disabled=True
     ),
@@ -276,12 +277,13 @@ app.layout = html.Div(
                                 ),
                                 html.Div(id="notification", className="mt-3"),
                             ],
-                            md=10,
-                            className="p-4 bg-light",
+                            id="main-content-col",
+                            className="analysis-main-content p-4 bg-light",
                             style={"minHeight": "100vh"},
                         ),
                     ],
-                    className="g-0",
+                    id="analysis-workspace",
+                    className="g-0 analysis-workspace",
                 ),
             ],
             className="container-fluid p-0",
@@ -355,6 +357,46 @@ clientside_callback(
     Input("analysis-timer-interval", "n_intervals"),
     State("store-analysis-start-ms", "data"),
 )
+
+
+@callback(
+    Output("store-sidebar-collapsed", "data"),
+    Input("btn-toggle-sidebar", "n_clicks"),
+    Input("store-show-results-page", "data"),
+    State("store-sidebar-collapsed", "data"),
+    prevent_initial_call=True,
+)
+def update_sidebar_collapsed_state(toggle_clicks, show_results, is_collapsed):
+    """Collapse the sidebar for review by default while keeping manual toggle control."""
+    if ctx.triggered_id == "btn-toggle-sidebar":
+        return not bool(is_collapsed)
+    if ctx.triggered_id == "store-show-results-page" and bool(show_results):
+        return True
+    raise PreventUpdate
+
+
+@callback(
+    Output("analysis-sidebar", "className"),
+    Output("analysis-sidebar-body", "className"),
+    Output("analysis-sidebar-title", "className"),
+    Output("analysis-sidebar-toggle-icon", "className"),
+    Output("main-content-col", "className"),
+    Input("store-sidebar-collapsed", "data"),
+)
+def sync_sidebar_layout(is_collapsed):
+    collapsed = bool(is_collapsed)
+    sidebar_class = "analysis-sidebar bg-light border-end p-3"
+    body_class = "analysis-sidebar-body"
+    title_class = "analysis-sidebar-title mb-0 text-primary"
+    icon_class = "bi bi-layout-sidebar-inset"
+    main_class = "analysis-main-content p-4 bg-light"
+    if collapsed:
+        sidebar_class += " is-collapsed"
+        body_class += " is-collapsed"
+        title_class += " is-collapsed"
+        icon_class = "bi bi-layout-sidebar"
+        main_class += " is-expanded"
+    return sidebar_class, body_class, title_class, icon_class, main_class
 
 
 @callback(
