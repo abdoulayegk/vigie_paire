@@ -1495,6 +1495,8 @@ def render_results(comparison, indicator, show_results):
         tables_t1 = kpi.get("tables_t1", 0)
         tables_t2 = kpi.get("tables_t2", 0)
         tables_matched = kpi.get("tables_matched", 0)
+        ambiguous_tables = kpi.get("ambiguous_tables", 0)
+        vision_rescued_pairs = kpi.get("vision_rescued_pairs", 0)
         structure_change = status_counts.get("structure_change", 0)
         incertain = status_counts.get("incertain", 0)
         added = kpi.get("total_added_indicators", 0)
@@ -1537,6 +1539,8 @@ def render_results(comparison, indicator, show_results):
             parts.append(f", {structure_change} fusion/split")
         if incertain:
             parts.append(f", {incertain} incertain(s)")
+        if ambiguous_tables:
+            parts.append(f", {ambiguous_tables} ambigu(s)")
         parts.append(". ")
         if added or removed or renamed:
             sub = []
@@ -1558,6 +1562,8 @@ def render_results(comparison, indicator, show_results):
             parts.append(f"{notes_total} note(s) de bas de tableau modifiees.")
         else:
             parts.append("Aucune note de bas de tableau modifiee.")
+        if vision_rescued_pairs:
+            parts.append(f" {vision_rescued_pairs} tableau(x) recuperes par Vision.")
 
         summary_text = "".join(parts)
         executive_summary = dbc.Alert(
@@ -1591,6 +1597,10 @@ def render_results(comparison, indicator, show_results):
         structure_change = status_counts.get("structure_change", 0)
         changed_t1 = kpi.get("tables_changed_t1", 0)
         changed_t2 = kpi.get("tables_changed_t2", 0)
+        ambiguous_tables = int(kpi.get("ambiguous_tables", 0) or 0)
+        vision_rescued_pairs = int(kpi.get("vision_rescued_pairs", 0) or 0)
+        tables_added_confirmed = int(kpi.get("tables_added_confirmed", 0) or 0)
+        tables_removed_confirmed = int(kpi.get("tables_removed_confirmed", 0) or 0)
         cols = [
             dbc.Col(
                 dbc.Card(
@@ -1693,6 +1703,80 @@ def render_results(comparison, indicator, show_results):
             ),
         ]
         kpis.append(dbc.Row(cols, className="mb-3"))
+        resolution_cols = [
+            dbc.Col(
+                dbc.Card(
+                    dbc.CardBody(
+                        [
+                            html.P(
+                                "Récupérés par Vision",
+                                className="small text-muted mb-0",
+                            ),
+                            html.H4(
+                                str(vision_rescued_pairs), className="mb-0 fw-bold"
+                            ),
+                        ],
+                        className="p-2 text-center",
+                    ),
+                    className="shadow-sm border-0",
+                ),
+                width=3,
+            ),
+            dbc.Col(
+                dbc.Card(
+                    dbc.CardBody(
+                        [
+                            html.P("Ambigus", className="small text-muted mb-0"),
+                            html.H4(
+                                str(ambiguous_tables), className="mb-0 fw-bold"
+                            ),
+                        ],
+                        className="p-2 text-center",
+                    ),
+                    className="shadow-sm border-0",
+                ),
+                width=3,
+            ),
+            dbc.Col(
+                dbc.Card(
+                    dbc.CardBody(
+                        [
+                            html.P(
+                                "Ajoutés confirmés",
+                                className="small text-muted mb-0",
+                            ),
+                            html.H4(
+                                str(tables_added_confirmed),
+                                className="mb-0 fw-bold",
+                            ),
+                        ],
+                        className="p-2 text-center",
+                    ),
+                    className="shadow-sm border-0",
+                ),
+                width=3,
+            ),
+            dbc.Col(
+                dbc.Card(
+                    dbc.CardBody(
+                        [
+                            html.P(
+                                "Supprimés confirmés",
+                                className="small text-muted mb-0",
+                            ),
+                            html.H4(
+                                str(tables_removed_confirmed),
+                                className="mb-0 fw-bold",
+                            ),
+                        ],
+                        className="p-2 text-center",
+                    ),
+                    className="shadow-sm border-0",
+                ),
+                width=3,
+            ),
+        ]
+        kpis.append(dbc.Row(resolution_cols, className="mb-3"))
 
         meta = indicator.get("meta", {}) or {}
         validation_summary = (
@@ -1700,12 +1784,13 @@ def render_results(comparison, indicator, show_results):
         )
         if isinstance(validation_summary, dict):
             vp = validation_summary.get("vision_pair", {}) or {}
+            vur = validation_summary.get("vision_unmatched_rescue", {}) or {}
             rv = validation_summary.get("rename_validator", {}) or {}
             atv = validation_summary.get("added_table_validator", {}) or {}
             iv = validation_summary.get("indicator_validator", {}) or {}
             if any(
                 bool(block.get("enabled", False))
-                for block in (vp, rv, atv, iv)
+                for block in (vp, vur, rv, atv, iv)
                 if isinstance(block, dict)
             ):
                 validation_cols = [
@@ -1722,7 +1807,11 @@ def render_results(comparison, indicator, show_results):
                                         className="mb-0 fw-bold",
                                     ),
                                     html.Small(
-                                        f"calls={int(vp.get('calls', 0))} err={int(vp.get('errors', 0))}",
+                                        (
+                                            f"calls={int(vp.get('calls', 0))} "
+                                            f"rescue={int(vur.get('rescued_pairs', 0))} "
+                                            f"err={int(vp.get('errors', 0)) + int(vur.get('errors', 0))}"
+                                        ),
                                         className="text-muted",
                                     ),
                                 ],

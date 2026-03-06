@@ -15,6 +15,7 @@ import os
 import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from difflib import SequenceMatcher
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -617,6 +618,516 @@ def _pre_diff_safety_check(
         )
         return True, reason
     return False, ""
+
+
+def _build_unmatched_candidate_maps(
+    strict: dict[str, Any],
+) -> tuple[dict[str, list[dict[str, Any]]], dict[str, list[dict[str, Any]]]]:
+    row_map: dict[str, list[dict[str, Any]]] = {}
+    for item in strict.get("debug_unmatched_candidates", []) or []:
+        if not isinstance(item, dict):
+            continue
+        uid = str(item.get("t1_uid", "")).strip()
+        if uid:
+            row_map[uid] = list(item.get("candidates", []) or [])
+
+    col_map: dict[str, list[dict[str, Any]]] = {}
+    for item in strict.get("debug_unmatched_candidates_t2", []) or []:
+        if not isinstance(item, dict):
+            continue
+        uid = str(item.get("t2_uid", "")).strip()
+        if uid:
+            col_map[uid] = list(item.get("candidates", []) or [])
+    return row_map, col_map
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_int(value: Any, default: int = 0) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _candidate_pair_priority(entry: dict[str, Any]) -> tuple[int, float]:
+    source = str(entry.get("source", "") or "")
+    if source == "suspicious_pair":
+        source_rank = 0
+    elif source == "ambiguous_unmatched":
+        source_rank = 1
+    elif source == "confirmed_unmatched":
+        source_rank = 2
+    else:
+        source_rank = 3
+    return (
+        source_rank,
+        -(
+            _safe_float(entry.get("score"))
+            + 0.20 * _safe_float(entry.get("coverage_min"))
+            + 0.10 * _safe_float(entry.get("distinctive_overlap_score"))
+        ),
+    )
+
+
+def _iter_unique_preserve_order(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for value in values:
+        if value and value not in seen:
+            seen.add(value)
+            out.append(value)
+    return out
+
+
+def _table_rescue_indicator_sequence(table: TableArtifact) -> list[str]:
+    indicators = _all_indicators_value_clean_ordered(table)
+    out: list[str] = []
+    seen: set[str] = set()
+    for value in indicators:
+        normalized = normalize_indicator_for_comparison(str(value or "").strip())
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        out.append(normalized)
+    return out
+
+
+def _table_rescue_title_text(table: TableArtifact) -> str:
+    return normalize_indicator_for_comparison(str(getattr(table, "title", "") or ""))
+
+
+def _table_rescue_headers_text(table: TableArtifact) -> str:
+    headers = [str(h).strip() for h in (getattr(table, "headers", None) or []) if str(h).strip()]
+    return normalize_indicator_for_comparison(" | ".join(headers[:6]))
+
+
+def _table_rescue_fingerprint(table: TableArtifact) -> str:
+    seq = _table_rescue_indicator_sequence(table)
+    if not seq:
+        content = ""
+    else:
+        n = len(seq)
+        top = seq[:3]
+        mid_start = max(0, (n - 3) // 2)
+        middle = seq[mid_start : mid_start + 3]
+        tail = seq[-3:]
+        content = " | ".join(_iter_unique_preserve_order(top + middle + tail))
+    title = _table_rescue_title_text(table)
+    headers = _table_rescue_headers_text(table)
+    return f"{title} || {headers} || {content}".strip()
+
+
+def _sequence_ratio(left: str, right: str) -> float:
+    if not left or not right:
+        return 0.0
+    return SequenceMatcher(None, left, right).ratio()
+
+
+def _indicator_jaccard_from_tables(
+    table_a: TableArtifact, table_b: TableArtifact
+) -> float:
+    seq_a = set(_table_rescue_indicator_sequence(table_a))
+    seq_b = set(_table_rescue_indicator_sequence(table_b))
+    if not seq_a or not seq_b:
+        return 0.0
+    return len(seq_a & seq_b) / max(len(seq_a | seq_b), 1)
+
+
+def _table_rescue_row_count_ratio(table_a: TableArtifact, table_b: TableArtifact) -> float:
+    rows_a = len(getattr(table_a, "rows", None) or [])
+    rows_b = len(getattr(table_b, "rows", None) or [])
+    if rows_a <= 0 or rows_b <= 0:
+        return 1.0
+    return max(rows_a, rows_b) / max(min(rows_a, rows_b), 1)
+
+
+def _table_rescue_page_proximity(table_a: TableArtifact, table_b: TableArtifact) -> float:
+    page_a = _safe_int(getattr(table_a, "page_pdf", 0), 0)
+    page_b = _safe_int(getattr(table_b, "page_pdf", 0), 0)
+    if page_a <= 0 or page_b <= 0:
+        return 0.0
+    diff = abs(page_a - page_b)
+    return max(0.0, 1.0 - (min(diff, 12) / 12.0))
+
+
+def _candidate_gap(candidates: list[dict[str, Any]]) -> float | None:
+    if len(candidates) < 2:
+        return None
+    return _safe_float(candidates[0].get("score")) - _safe_float(
+        candidates[1].get("score")
+    )
+
+
+def _rerank_vision_candidate(
+    *,
+    source_table: TableArtifact,
+    target_table: TableArtifact,
+    candidate_payload: dict[str, Any] | None,
+) -> dict[str, Any]:
+    title_ratio = _sequence_ratio(
+        _table_rescue_title_text(source_table),
+        _table_rescue_title_text(target_table),
+    )
+    header_ratio = _sequence_ratio(
+        _table_rescue_headers_text(source_table),
+        _table_rescue_headers_text(target_table),
+    )
+    fingerprint_ratio = _sequence_ratio(
+        _table_rescue_fingerprint(source_table),
+        _table_rescue_fingerprint(target_table),
+    )
+    indicator_jaccard = _indicator_jaccard_from_tables(source_table, target_table)
+    page_proximity = _table_rescue_page_proximity(source_table, target_table)
+    row_ratio = _table_rescue_row_count_ratio(source_table, target_table)
+    row_ratio_score = 1.0 / max(row_ratio, 1.0)
+
+    base_score = _safe_float((candidate_payload or {}).get("score", 0.0))
+    coverage_min = _safe_float((candidate_payload or {}).get("coverage_min", 0.0))
+    distinctive = _safe_float(
+        (candidate_payload or {}).get("distinctive_overlap_score", 0.0)
+    )
+    top_overlap = _safe_float((candidate_payload or {}).get("top_overlap", 0.0))
+    tail_overlap = _safe_float((candidate_payload or {}).get("tail_overlap", 0.0))
+    suspicion_flags = list((candidate_payload or {}).get("suspicion_flags", []) or [])
+
+    rerank_score = (
+        0.28 * base_score
+        + 0.18 * max(coverage_min, indicator_jaccard)
+        + 0.14 * title_ratio
+        + 0.10 * header_ratio
+        + 0.16 * fingerprint_ratio
+        + 0.08 * page_proximity
+        + 0.06 * row_ratio_score
+    )
+    if "prefix_bias" in suspicion_flags:
+        rerank_score -= 0.03
+    if "subset_superset" in suspicion_flags:
+        rerank_score -= 0.04
+    if top_overlap >= 0.75 and tail_overlap < 0.25:
+        rerank_score -= 0.05
+
+    return {
+        "score": round(rerank_score, 6),
+        "base_score": round(base_score, 6),
+        "coverage_min": round(max(coverage_min, indicator_jaccard), 6),
+        "coverage_gap": round(
+            _safe_float((candidate_payload or {}).get("coverage_gap", 0.0)), 6
+        ),
+        "top_overlap": round(max(top_overlap, indicator_jaccard), 6),
+        "tail_overlap": round(tail_overlap, 6),
+        "distinctive_overlap_score": round(max(distinctive, fingerprint_ratio), 6),
+        "row_count_ratio": round(
+            _safe_float((candidate_payload or {}).get("row_count_ratio", row_ratio), row_ratio),
+            6,
+        ),
+        "title_similarity": round(title_ratio, 6),
+        "header_similarity": round(header_ratio, 6),
+        "fingerprint_similarity": round(fingerprint_ratio, 6),
+        "page_proximity": round(page_proximity, 6),
+        "indicator_jaccard": round(indicator_jaccard, 6),
+        "suspicion_flags": suspicion_flags,
+    }
+
+
+def _collect_vision_rescue_candidates(
+    *,
+    strict: dict[str, Any],
+    t1_by_uid: dict[str, TableArtifact],
+    t2_by_uid: dict[str, TableArtifact],
+    max_candidates_per_table: int,
+    max_tables_per_run: int,
+) -> tuple[list[dict[str, Any]], int]:
+    row_candidates_map, col_candidates_map = _build_unmatched_candidate_maps(strict)
+    pairs = strict.get("pairs", []) or []
+    paired_t1: set[str] = set()
+    paired_t2: set[str] = set()
+    for pair in pairs:
+        paired_t1.add(str(pair.get("t1_uid", "")))
+        paired_t2.add(str(pair.get("t2_uid", "")))
+        for extra_uid in pair.get("merge_members_t1", []) or []:
+            paired_t1.add(str(extra_uid))
+        for extra_uid in pair.get("split_members_t2", []) or []:
+            paired_t2.add(str(extra_uid))
+
+    ambiguous_t1 = {
+        str(item.get("t1_uid", "")): item
+        for item in strict.get("ambiguous_unmatched_previous", []) or []
+        if str(item.get("t1_uid", "")).strip()
+    }
+    ambiguous_t2 = {
+        str(item.get("t2_uid", "")): item
+        for item in strict.get("ambiguous_unmatched_current", []) or []
+        if str(item.get("t2_uid", "")).strip()
+    }
+    confirmed_removed = {
+        str(item.get("t1_uid", "")): item
+        for item in strict.get("removed_tables", []) or []
+        if str(item.get("t1_uid", "")).strip()
+    }
+    confirmed_added = {
+        str(item.get("t2_uid", "")): item
+        for item in strict.get("added_tables", []) or []
+        if str(item.get("t2_uid", "")).strip()
+    }
+
+    section_t2_unpaired = {
+        str(uid): table
+        for uid, table in t2_by_uid.items()
+        if str(uid) not in paired_t2
+    }
+    section_t1_unpaired = {
+        str(uid): table
+        for uid, table in t1_by_uid.items()
+        if str(uid) not in paired_t1
+    }
+
+    source_specs: list[dict[str, Any]] = []
+    seen_sources: set[tuple[str, str]] = set()
+
+    def _add_source(side: str, uid: str, source: str) -> None:
+        uid = str(uid or "").strip()
+        if not uid:
+            return
+        key = (side, uid)
+        if key in seen_sources:
+            return
+        if side == "t1":
+            if uid in paired_t1 or uid not in t1_by_uid:
+                return
+        else:
+            if uid in paired_t2 or uid not in t2_by_uid:
+                return
+        seen_sources.add(key)
+        source_specs.append({"side": side, "uid": uid, "source": source})
+
+    for entry in strict.get("suspicious_pairs", []) or []:
+        if not isinstance(entry, dict):
+            continue
+        _add_source("t1", str(entry.get("t1_uid", "")).strip(), "suspicious_pair")
+        _add_source("t2", str(entry.get("t2_uid", "")).strip(), "suspicious_pair")
+    for uid in ambiguous_t1:
+        _add_source("t1", uid, "ambiguous_unmatched")
+    for uid in ambiguous_t2:
+        _add_source("t2", uid, "ambiguous_unmatched")
+    for uid in confirmed_removed:
+        _add_source("t1", uid, "confirmed_unmatched")
+    for uid in confirmed_added:
+        _add_source("t2", uid, "confirmed_unmatched")
+
+    source_specs.sort(
+        key=lambda item: (
+            0
+            if item["source"] == "suspicious_pair"
+            else 1
+            if item["source"] == "ambiguous_unmatched"
+            else 2,
+            item["uid"],
+        )
+    )
+    if max_tables_per_run > 0:
+        source_specs = source_specs[:max_tables_per_run]
+
+    candidate_entries: list[dict[str, Any]] = []
+    seen_pairs: set[tuple[str, str]] = set()
+
+    for spec in source_specs:
+        side = str(spec["side"])
+        source = str(spec["source"])
+        if side == "t1":
+            source_uid = str(spec["uid"])
+            source_table = t1_by_uid.get(source_uid)
+            if source_table is None:
+                continue
+            section = str(getattr(source_table, "section", "") or "").strip()
+            payload_by_uid = {
+                str(item.get("t2_uid", "")).strip(): item
+                for item in row_candidates_map.get(source_uid, [])
+                if str(item.get("t2_uid", "")).strip()
+            }
+            for entry in strict.get("suspicious_pairs", []) or []:
+                if not isinstance(entry, dict):
+                    continue
+                if str(entry.get("t1_uid", "")).strip() == source_uid:
+                    t2_uid = str(entry.get("t2_uid", "")).strip()
+                    if t2_uid:
+                        payload_by_uid[t2_uid] = dict(entry)
+            all_candidates = []
+            for t2_uid, target_table in section_t2_unpaired.items():
+                if str(getattr(target_table, "section", "") or "").strip() != section:
+                    continue
+                candidate_payload = payload_by_uid.get(t2_uid)
+                reranked = _rerank_vision_candidate(
+                    source_table=source_table,
+                    target_table=target_table,
+                    candidate_payload=candidate_payload,
+                )
+                if reranked["score"] < 0.18:
+                    continue
+                all_candidates.append(
+                    {
+                        "t1_uid": source_uid,
+                        "t2_uid": t2_uid,
+                        "source": source,
+                        **reranked,
+                    }
+                )
+            all_candidates.sort(key=lambda item: item["score"], reverse=True)
+            for candidate in all_candidates[: max_candidates_per_table]:
+                pair_key = (candidate["t1_uid"], candidate["t2_uid"])
+                if pair_key in seen_pairs:
+                    continue
+                seen_pairs.add(pair_key)
+                candidate_entries.append(candidate)
+        else:
+            source_uid = str(spec["uid"])
+            source_table = t2_by_uid.get(source_uid)
+            if source_table is None:
+                continue
+            section = str(getattr(source_table, "section", "") or "").strip()
+            payload_by_uid = {
+                str(item.get("t1_uid", "")).strip(): item
+                for item in col_candidates_map.get(source_uid, [])
+                if str(item.get("t1_uid", "")).strip()
+            }
+            for entry in strict.get("suspicious_pairs", []) or []:
+                if not isinstance(entry, dict):
+                    continue
+                if str(entry.get("t2_uid", "")).strip() == source_uid:
+                    t1_uid = str(entry.get("t1_uid", "")).strip()
+                    if t1_uid:
+                        payload_by_uid[t1_uid] = dict(entry)
+            all_candidates = []
+            for t1_uid, target_table in section_t1_unpaired.items():
+                if str(getattr(target_table, "section", "") or "").strip() != section:
+                    continue
+                candidate_payload = payload_by_uid.get(t1_uid)
+                reranked = _rerank_vision_candidate(
+                    source_table=target_table,
+                    target_table=source_table,
+                    candidate_payload=candidate_payload,
+                )
+                if reranked["score"] < 0.18:
+                    continue
+                all_candidates.append(
+                    {
+                        "t1_uid": t1_uid,
+                        "t2_uid": source_uid,
+                        "source": source,
+                        **reranked,
+                    }
+                )
+            all_candidates.sort(key=lambda item: item["score"], reverse=True)
+            for candidate in all_candidates[: max_candidates_per_table]:
+                pair_key = (candidate["t1_uid"], candidate["t2_uid"])
+                if pair_key in seen_pairs:
+                    continue
+                seen_pairs.add(pair_key)
+                candidate_entries.append(candidate)
+
+    candidate_entries.sort(key=_candidate_pair_priority)
+    return candidate_entries, len(source_specs)
+
+
+def _rebuild_strict_unmatched_state(
+    *,
+    strict: dict[str, Any],
+    rescued_t1_uids: set[str],
+    rescued_t2_uids: set[str],
+    uncertain_t1_uids: set[str],
+    uncertain_t2_uids: set[str],
+) -> None:
+    unmatched_t1 = []
+    for item in strict.get("unmatched_t1", []) or []:
+        t1_uid = str(item.get("t1_uid", "")).strip()
+        if not t1_uid or t1_uid in rescued_t1_uids:
+            continue
+        cloned = dict(item)
+        if t1_uid in uncertain_t1_uids:
+            cloned["unmatched_status"] = "ambiguous"
+            cloned["reason"] = "vision_rescue_uncertain"
+            flags = list(cloned.get("suspicion_flags", []) or [])
+            if "vision_rescue_uncertain" not in flags:
+                flags.append("vision_rescue_uncertain")
+            cloned["suspicion_flags"] = flags
+        unmatched_t1.append(cloned)
+
+    unmatched_t2 = []
+    for item in strict.get("unmatched_t2", []) or []:
+        t2_uid = str(item.get("t2_uid", "")).strip()
+        if not t2_uid or t2_uid in rescued_t2_uids:
+            continue
+        cloned = dict(item)
+        if t2_uid in uncertain_t2_uids:
+            cloned["unmatched_status"] = "ambiguous"
+            cloned["reason"] = "vision_rescue_uncertain"
+            flags = list(cloned.get("suspicion_flags", []) or [])
+            if "vision_rescue_uncertain" not in flags:
+                flags.append("vision_rescue_uncertain")
+            cloned["suspicion_flags"] = flags
+        unmatched_t2.append(cloned)
+
+    strict["unmatched_t1"] = unmatched_t1
+    strict["unmatched_t2"] = unmatched_t2
+    strict["unmatched_confirmed_t1"] = [
+        item for item in unmatched_t1 if item.get("unmatched_status") == "confirmed"
+    ]
+    strict["unmatched_ambiguous_t1"] = [
+        item for item in unmatched_t1 if item.get("unmatched_status") == "ambiguous"
+    ]
+    strict["unmatched_confirmed_t2"] = [
+        item for item in unmatched_t2 if item.get("unmatched_status") == "confirmed"
+    ]
+    strict["unmatched_ambiguous_t2"] = [
+        item for item in unmatched_t2 if item.get("unmatched_status") == "ambiguous"
+    ]
+    strict["ambiguous_unmatched_previous"] = list(strict["unmatched_ambiguous_t1"])
+    strict["ambiguous_unmatched_current"] = list(strict["unmatched_ambiguous_t2"])
+
+    strict["added_tables"] = [
+        item
+        for item in strict.get("added_tables", []) or []
+        if str(item.get("t2_uid", "")).strip() not in rescued_t2_uids
+        and str(item.get("t2_uid", "")).strip() not in uncertain_t2_uids
+    ]
+    strict["removed_tables"] = [
+        item
+        for item in strict.get("removed_tables", []) or []
+        if str(item.get("t1_uid", "")).strip() not in rescued_t1_uids
+        and str(item.get("t1_uid", "")).strip() not in uncertain_t1_uids
+    ]
+    strict["added_tables_confirmed"] = list(strict.get("added_tables", []) or [])
+    strict["removed_tables_confirmed"] = list(strict.get("removed_tables", []) or [])
+    strict["ambiguous_tables"] = [
+        {
+            "side": "previous",
+            "uid": str(item.get("t1_uid", "")).strip(),
+            "table_id": item.get("t1_table_id"),
+            "title": item.get("title_t1"),
+            "page": item.get("page_t1"),
+            "section": item.get("section", ""),
+            "reason": item.get("reason", ""),
+            "suspicion_flags": list(item.get("suspicion_flags", []) or []),
+        }
+        for item in strict["ambiguous_unmatched_previous"]
+    ] + [
+        {
+            "side": "current",
+            "uid": str(item.get("t2_uid", "")).strip(),
+            "table_id": item.get("t2_table_id"),
+            "title": item.get("title_t2"),
+            "page": item.get("page_t2"),
+            "section": item.get("section", ""),
+            "reason": item.get("reason", ""),
+            "suspicion_flags": list(item.get("suspicion_flags", []) or []),
+        }
+        for item in strict["ambiguous_unmatched_current"]
+    ]
 
 
 def _normalize_bbox_ltrb_norm(bbox: Any) -> list[float] | None:
@@ -1957,6 +2468,12 @@ def run_comparison_with_sections(
     vision_unmatched_rescue_max_pairs = int(
         val_cfg.get("vision_unmatched_rescue_max_pairs", 25)
     )
+    vision_unmatched_rescue_max_candidates_per_table = int(
+        val_cfg.get("vision_unmatched_rescue_max_candidates_per_table", 3)
+    )
+    vision_unmatched_rescue_max_tables_per_run = int(
+        val_cfg.get("vision_unmatched_rescue_max_tables_per_run", 20)
+    )
     vision_unmatched_rescue_summary: dict[str, Any] = {
         "enabled": bool(vision_unmatched_rescue_enabled),
         "candidate_pairs_tested": 0,
@@ -1964,6 +2481,10 @@ def run_comparison_with_sections(
         "rescued_pairs": 0,
         "conflicts": 0,
         "errors": 0,
+        "candidate_pairs_considered": 0,
+        "candidate_tables_considered": 0,
+        "vision_rejected_pairs": 0,
+        "vision_unresolved_pairs": 0,
         "metrics": {},
     }
 
@@ -1976,82 +2497,117 @@ def run_comparison_with_sections(
                 validate_pair_full,
             )
 
-            unmatched_added = list(strict.get("added_tables", []) or [])
-            unmatched_removed = list(strict.get("removed_tables", []) or [])
-            if unmatched_added and unmatched_removed:
+            candidate_pairs, source_tables_considered = _collect_vision_rescue_candidates(
+                strict=strict,
+                t1_by_uid=t1_by_uid,
+                t2_by_uid=t2_by_uid,
+                max_candidates_per_table=max(
+                    1, vision_unmatched_rescue_max_candidates_per_table
+                ),
+                max_tables_per_run=max(0, vision_unmatched_rescue_max_tables_per_run),
+            )
+            if candidate_pairs:
                 pairs_budget = max(0, vision_unmatched_rescue_max_pairs)
+                if pairs_budget > 0:
+                    candidate_pairs = candidate_pairs[:pairs_budget]
                 tested_pairs = 0
                 scored_candidates: list[AssignmentEntry] = []
                 metrics = VisionMetrics()
+                rescue_results: list[dict[str, Any]] = []
+                attempted_t1_uids: set[str] = set()
+                attempted_t2_uids: set[str] = set()
+                uncertain_t1_uids: set[str] = set()
+                uncertain_t2_uids: set[str] = set()
+                rejected_pairs: list[dict[str, Any]] = []
 
-                for rem in unmatched_removed:
-                    t1_uid_r = str(rem.get("t1_uid", ""))
+                for candidate in candidate_pairs:
+                    t1_uid_r = str(candidate.get("t1_uid", "")).strip()
+                    t2_uid_a = str(candidate.get("t2_uid", "")).strip()
                     t1_tbl = t1_by_uid.get(t1_uid_r)
-                    if t1_tbl is None:
+                    t2_tbl = t2_by_uid.get(t2_uid_a)
+                    if t1_tbl is None or t2_tbl is None:
                         continue
                     bbox_t1 = _normalize_bbox_ltrb_norm(getattr(t1_tbl, "bbox", None))
+                    bbox_t2 = _normalize_bbox_ltrb_norm(getattr(t2_tbl, "bbox", None))
                     pdf_t1 = t1_tbl.pdf_path or pdf_path_t1
-                    if not bbox_t1 or not pdf_t1:
+                    pdf_t2 = t2_tbl.pdf_path or pdf_path_t2
+                    if not bbox_t1 or not bbox_t2 or not pdf_t1 or not pdf_t2:
                         continue
 
-                    for add in unmatched_added:
-                        if tested_pairs >= pairs_budget:
-                            break
-                        t2_uid_a = str(add.get("t2_uid", ""))
-                        t2_tbl = t2_by_uid.get(t2_uid_a)
-                        if t2_tbl is None:
-                            continue
-                        bbox_t2 = _normalize_bbox_ltrb_norm(
-                            getattr(t2_tbl, "bbox", None)
-                        )
-                        pdf_t2 = t2_tbl.pdf_path or pdf_path_t2
-                        if not bbox_t2 or not pdf_t2:
-                            continue
+                    vd = validate_pair_full(
+                        pdf_t1,
+                        t1_tbl.page_pdf,
+                        bbox_t1,
+                        pdf_t2,
+                        t2_tbl.page_pdf,
+                        bbox_t2,
+                        api_key,
+                        bottom_extension=bottom_ext,
+                        title_t1=t1_tbl.title or None,
+                        title_t2=t2_tbl.title or None,
+                        section_t1=getattr(t1_tbl, "section", None),
+                        section_t2=getattr(t2_tbl, "section", None),
+                    )
+                    tested_pairs += 1
+                    attempted_t1_uids.add(t1_uid_r)
+                    attempted_t2_uids.add(t2_uid_a)
+                    metrics.record_decision(vd, is_rescue=True)
 
-                        vd = validate_pair_full(
-                            pdf_t1,
-                            t1_tbl.page_pdf,
-                            bbox_t1,
-                            pdf_t2,
-                            t2_tbl.page_pdf,
-                            bbox_t2,
-                            api_key,
-                            bottom_extension=bottom_ext,
-                            title_t1=t1_tbl.title or None,
-                            title_t2=t2_tbl.title or None,
-                            section_t1=getattr(t1_tbl, "section", None),
-                            section_t2=getattr(t2_tbl, "section", None),
-                        )
-                        tested_pairs += 1
-                        metrics.record_decision(vd, is_rescue=True)
-                        if (
-                            vd.decision == "match"
-                            and vd.confidence >= vision_unmatched_rescue_confidence_min
-                        ):
-                            scored_candidates.append(
-                                AssignmentEntry(
-                                    t1_uid=t1_uid_r,
-                                    t2_uid=t2_uid_a,
-                                    confidence=float(vd.confidence),
-                                    decision=vd,
-                                    source="vision_unmatched_rescue",
-                                )
+                    result_entry = {
+                        **candidate,
+                        "decision": vd.decision,
+                        "confidence": round(float(vd.confidence or 0.0), 4),
+                        "reason_code": getattr(vd, "reason_code", "") or "",
+                        "analysis": dict(getattr(vd, "analysis", {}) or {}),
+                    }
+                    rescue_results.append(result_entry)
+
+                    if (
+                        vd.decision == "match"
+                        and vd.confidence >= vision_unmatched_rescue_confidence_min
+                    ):
+                        scored_candidates.append(
+                            AssignmentEntry(
+                                t1_uid=t1_uid_r,
+                                t2_uid=t2_uid_a,
+                                confidence=float(vd.confidence),
+                                decision=vd,
+                                source="vision_unmatched_rescue",
                             )
-                    if tested_pairs >= pairs_budget:
-                        break
+                        )
+                    elif vd.decision == "no_match":
+                        rejected_pairs.append(result_entry)
+                    else:
+                        uncertain_t1_uids.add(t1_uid_r)
+                        uncertain_t2_uids.add(t2_uid_a)
 
+                vision_unmatched_rescue_summary["candidate_pairs_considered"] = len(
+                    candidate_pairs
+                )
+                vision_unmatched_rescue_summary["candidate_tables_considered"] = int(
+                    source_tables_considered
+                )
                 vision_unmatched_rescue_summary["candidate_pairs_tested"] = tested_pairs
                 vision_unmatched_rescue_summary["candidate_matches"] = len(
                     scored_candidates
                 )
+                vision_unmatched_rescue_summary["vision_rejected_pairs"] = len(
+                    rejected_pairs
+                )
+
+                rescued_pairs: list[dict[str, Any]] = []
+                rescued_t1_uids: set[str] = set()
+                rescued_t2_uids: set[str] = set()
 
                 if scored_candidates:
                     bijection = resolve_bijective_assignment(scored_candidates)
                     metrics.record_bijection(bijection)
-
-                    rescued_pairs = []
-                    rescued_t1_uids: set[str] = set()
-                    rescued_t2_uids: set[str] = set()
+                    strict["vision_unmatched_rescue_conflicts"] = list(
+                        bijection.conflicts
+                    )
+                    vision_unmatched_rescue_summary["conflicts"] = len(
+                        bijection.conflicts
+                    )
                     for ass in bijection.assigned_pairs:
                         rescued_t1_uids.add(ass.t1_uid)
                         rescued_t2_uids.add(ass.t2_uid)
@@ -2063,40 +2619,78 @@ def run_comparison_with_sections(
                                 "reason": "vision_unmatched_rescue",
                                 "rescue_type": "vision_unmatched_rescue",
                                 "decision_level": "rescue",
+                                "match_source": "vision_unmatched_rescue",
+                                "match_stage": "vision_rescue",
                             }
                         )
 
+                uncertain_t1_uids.difference_update(rescued_t1_uids)
+                uncertain_t2_uids.difference_update(rescued_t2_uids)
+
+                if rescued_pairs:
                     strict["pairs"] = list(strict.get("pairs", [])) + rescued_pairs
-                    strict["added_tables"] = [
-                        a
-                        for a in unmatched_added
-                        if str(a.get("t2_uid", "")) not in rescued_t2_uids
-                    ]
-                    strict["removed_tables"] = [
-                        r
-                        for r in unmatched_removed
-                        if str(r.get("t1_uid", "")) not in rescued_t1_uids
-                    ]
                     strict["rescued_matches_count"] = int(
                         strict.get("rescued_matches_count", 0) or 0
                     ) + len(rescued_pairs)
-                    strict["vision_unmatched_rescue_conflicts"] = list(
-                        bijection.conflicts
-                    )
-
-                    vision_unmatched_rescue_summary["rescued_pairs"] = len(
-                        rescued_pairs
-                    )
-                    vision_unmatched_rescue_summary["conflicts"] = len(
-                        bijection.conflicts
-                    )
-
+                vision_unmatched_rescue_summary["rescued_pairs"] = len(rescued_pairs)
+                vision_unmatched_rescue_summary["vision_unresolved_pairs"] = sum(
+                    1 for item in rescue_results if item.get("decision") == "unknown"
+                )
+                strict["vision_rescued_pairs"] = rescued_pairs
+                strict["vision_unmatched_rescue_candidates"] = candidate_pairs
+                strict["vision_unmatched_rescue_results"] = rescue_results
+                strict["vision_rejected_pairs"] = rejected_pairs
+                _rebuild_strict_unmatched_state(
+                    strict=strict,
+                    rescued_t1_uids=rescued_t1_uids,
+                    rescued_t2_uids=rescued_t2_uids,
+                    uncertain_t1_uids=uncertain_t1_uids,
+                    uncertain_t2_uids=uncertain_t2_uids,
+                )
                 vision_unmatched_rescue_summary["metrics"] = metrics.as_dict()
         except Exception as exc:
             vision_unmatched_rescue_summary["errors"] = (
                 vision_unmatched_rescue_summary.get("errors", 0) + 1
             )
             logger.warning("Vision unmatched rescue failed: %s", exc)
+
+    strict.setdefault("vision_rescued_pairs", [])
+    strict.setdefault("vision_unmatched_rescue_candidates", [])
+    strict.setdefault("vision_unmatched_rescue_results", [])
+    strict.setdefault("vision_rejected_pairs", [])
+    strict.setdefault("added_tables_confirmed", list(strict.get("added_tables", []) or []))
+    strict.setdefault(
+        "removed_tables_confirmed", list(strict.get("removed_tables", []) or [])
+    )
+    strict.setdefault(
+        "ambiguous_tables",
+        [
+            {
+                "side": "previous",
+                "uid": str(item.get("t1_uid", "")).strip(),
+                "table_id": item.get("t1_table_id"),
+                "title": item.get("title_t1"),
+                "page": item.get("page_t1"),
+                "section": item.get("section", ""),
+                "reason": item.get("reason", ""),
+                "suspicion_flags": list(item.get("suspicion_flags", []) or []),
+            }
+            for item in strict.get("ambiguous_unmatched_previous", []) or []
+        ]
+        + [
+            {
+                "side": "current",
+                "uid": str(item.get("t2_uid", "")).strip(),
+                "table_id": item.get("t2_table_id"),
+                "title": item.get("title_t2"),
+                "page": item.get("page_t2"),
+                "section": item.get("section", ""),
+                "reason": item.get("reason", ""),
+                "suspicion_flags": list(item.get("suspicion_flags", []) or []),
+            }
+            for item in strict.get("ambiguous_unmatched_current", []) or []
+        ],
+    )
 
     for pair in strict.get("pairs", []):
         t1_uid = str(pair.get("t1_uid", ""))
@@ -2684,10 +3278,12 @@ def run_comparison_with_sections(
         return (getattr(t, "extraction_method", None) or "docling") if t else "docling"
 
     added_tables_sources = (
-        list(strict.get("added_tables", [])) + vision_rejected_added_items
+        list(strict.get("added_tables_confirmed", strict.get("added_tables", [])))
+        + vision_rejected_added_items
     )
     removed_tables_sources = (
-        list(strict.get("removed_tables", [])) + vision_rejected_removed_items
+        list(strict.get("removed_tables_confirmed", strict.get("removed_tables", [])))
+        + vision_rejected_removed_items
     )
 
     tables_added = []
@@ -2881,6 +3477,11 @@ def run_comparison_with_sections(
         except Exception as exc:
             logger.warning("GenAI classification layer failed: %s", exc)
 
+    ambiguous_tables = list(strict.get("ambiguous_tables", []) or [])
+    added_tables_confirmed = list(strict.get("added_tables_confirmed", []) or tables_added)
+    removed_tables_confirmed = list(strict.get("removed_tables_confirmed", []) or tables_removed)
+    vision_rescued_pairs = list(strict.get("vision_rescued_pairs", []) or [])
+
     total_added = sum(len(c.get("added_indicators", [])) for c in comparisons)
     total_removed = sum(len(c.get("removed_indicators", [])) for c in comparisons)
     total_renamed = sum(len(c.get("renamed_indicators", [])) for c in comparisons)
@@ -2901,13 +3502,14 @@ def run_comparison_with_sections(
         "renommage_probable": 0,
         "incertain": sum(
             1 for c in comparisons if c.get("table_status") == "incertain"
-        ),
+        )
+        + len(ambiguous_tables),
         "needs_review": 0,
         "structure_change": sum(
             1 for c in comparisons if c.get("table_status") == "structure_change"
         ),
-        "ajoute": len(tables_added),
-        "supprime": len(tables_removed),
+        "ajoute": len(added_tables_confirmed),
+        "supprime": len(removed_tables_confirmed),
     }
 
     now = datetime.now().isoformat(timespec="seconds")
@@ -2916,12 +3518,24 @@ def run_comparison_with_sections(
     summary_text = (
         f"Comparaison {current_label} vs {previous_label}: "
         f"{len(comparisons)} tableaux apparies, {total_added} ajouts d'indicateurs, "
-        f"{total_removed} suppressions, {len(tables_added)} tableaux ajoutes dans le trimestre courant, "
-        f"{len(tables_removed)} tableaux retires depuis le trimestre precedent."
+        f"{total_removed} suppressions, {len(added_tables_confirmed)} tableaux ajoutes confirmes dans le trimestre courant, "
+        f"{len(removed_tables_confirmed)} tableaux retires confirmes depuis le trimestre precedent."
     )
+    if ambiguous_tables:
+        summary_text += (
+            f" {len(ambiguous_tables)} tableau(x) restent ambigus apres le rescue."
+        )
+    if vision_rescued_pairs:
+        summary_text += (
+            f" {len(vision_rescued_pairs)} tableau(x) recuperes par validation Vision."
+        )
 
     extraction_quality_kpis = _compute_extraction_kpis(
-        tables_t1, tables_t2, comparisons, tables_added, tables_removed
+        tables_t1,
+        tables_t2,
+        comparisons,
+        added_tables_confirmed,
+        removed_tables_confirmed,
     )
 
     result: dict[str, Any] = {
@@ -2937,8 +3551,12 @@ def run_comparison_with_sections(
             "tables_t1": len(tables_t1),
             "tables_t2": len(tables_t2),
             "tables_matched": len(comparisons),
-            "tables_added": len(tables_added),
-            "tables_removed": len(tables_removed),
+            "tables_added": len(added_tables_confirmed),
+            "tables_removed": len(removed_tables_confirmed),
+            "tables_added_confirmed": len(added_tables_confirmed),
+            "tables_removed_confirmed": len(removed_tables_confirmed),
+            "ambiguous_tables": len(ambiguous_tables),
+            "vision_rescued_pairs": len(vision_rescued_pairs),
             "rescued_matches_count": int(strict.get("rescued_matches_count", 0) or 0),
             "split_merge_rescues_count": int(
                 strict.get("split_merge_rescues_count", 0) or 0
@@ -2963,8 +3581,12 @@ def run_comparison_with_sections(
         },
         "displaced_indicators": [],
         "table_comparisons": comparisons,
-        "tables_added": tables_added,
-        "tables_removed": tables_removed,
+        "tables_added": added_tables_confirmed,
+        "tables_removed": removed_tables_confirmed,
+        "tables_added_confirmed": added_tables_confirmed,
+        "tables_removed_confirmed": removed_tables_confirmed,
+        "ambiguous_tables": ambiguous_tables,
+        "vision_rescued_pairs": vision_rescued_pairs,
         "probable_pairs": list(strict.get("probable_pairs", [])),
         "rejected_by_vision_pair": rejected_by_vision_pair,
         "debug_unmatched_candidates": list(
@@ -3039,11 +3661,23 @@ def run_comparison_with_sections(
                     "candidate_pairs_tested": vision_unmatched_rescue_summary.get(
                         "candidate_pairs_tested", 0
                     ),
+                    "candidate_pairs_considered": vision_unmatched_rescue_summary.get(
+                        "candidate_pairs_considered", 0
+                    ),
+                    "candidate_tables_considered": vision_unmatched_rescue_summary.get(
+                        "candidate_tables_considered", 0
+                    ),
                     "candidate_matches": vision_unmatched_rescue_summary.get(
                         "candidate_matches", 0
                     ),
                     "rescued_pairs": vision_unmatched_rescue_summary.get(
                         "rescued_pairs", 0
+                    ),
+                    "vision_rejected_pairs": vision_unmatched_rescue_summary.get(
+                        "vision_rejected_pairs", 0
+                    ),
+                    "vision_unresolved_pairs": vision_unmatched_rescue_summary.get(
+                        "vision_unresolved_pairs", 0
                     ),
                     "conflicts": vision_unmatched_rescue_summary.get("conflicts", 0),
                     "errors": vision_unmatched_rescue_summary.get("errors", 0),
@@ -3052,6 +3686,7 @@ def run_comparison_with_sections(
                 "strict_matcher": {
                     "pairs": len(strict.get("pairs", [])),
                     "probable_pairs": len(strict.get("probable_pairs", [])),
+                    "suspicious_pairs": len(strict.get("suspicious_pairs", [])),
                     "rescued_matches_count": strict.get("rescued_matches_count", 0),
                     "split_merge_rescues_count": strict.get(
                         "split_merge_rescues_count", 0
@@ -3068,6 +3703,15 @@ def run_comparison_with_sections(
                     "unmatched_ambiguous_t2": len(
                         strict.get("unmatched_ambiguous_t2", [])
                     ),
+                    "ambiguous_unmatched_current": len(
+                        strict.get("ambiguous_unmatched_current", [])
+                    ),
+                    "ambiguous_unmatched_previous": len(
+                        strict.get("ambiguous_unmatched_previous", [])
+                    ),
+                    "suspicious_pairs_payload": strict.get("suspicious_pairs", []),
+                    "vision_rescued_pairs_payload": vision_rescued_pairs,
+                    "ambiguous_tables_payload": ambiguous_tables,
                     "matching_diagnostics": strict.get("matching_diagnostics", {}),
                 },
                 "semantic_judge": {

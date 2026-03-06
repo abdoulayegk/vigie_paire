@@ -161,9 +161,9 @@ def test_multi_signal_match_when_title_structure_and_position_align() -> None:
     t2.page_pdf = 2
 
     decision = match_decision(t1, t2, overlap_threshold=0.95)
-    assert decision.is_match is False
-    assert decision.decision_level in ("probable", "no_match")
-    assert decision.indicator_overlap >= 0.30
+    assert decision.is_match is True
+    assert decision.reason in {"multi_signal_match", "indicator_overlap_match"}
+    assert decision.coverage_min >= 2 / 3
     assert decision.title_similarity >= 0.72
 
 
@@ -380,6 +380,10 @@ def test_bidirectional_single_rescue_recovers_pair_missing_from_t1_pass() -> Non
             header_schema_similarity=0.75,
             section_state="same_known",
             decision_level="match",
+            coverage_previous=score,
+            coverage_current=score,
+            coverage_min=score,
+            coverage_gap=0.0,
         )
 
     with patch(
