@@ -265,6 +265,20 @@ app.layout = html.Div(
         dcc.Download(id="download-review-json"),
         dcc.Download(id="download-review-excel"),
         dcc.Download(id="download-indicator-json-brut"),
+        # Placeholder elements for callbacks that reference dynamically-rendered
+        # button IDs. Dash 2.x validates Input IDs client-side even when
+        # suppress_callback_exceptions=True is set server-side. These elements
+        # are always hidden and never interact with the user.
+        html.Div(
+            [
+                dbc.Button(id="btn-approve", n_clicks=0),
+                dbc.Button(id="btn-reject", n_clicks=0),
+                dbc.Button(id="btn-apply", n_clicks=0),
+                dcc.Textarea(id="review-comment", value=""),
+            ],
+            style={"display": "none"},
+            id="_callback-placeholders",
+        ),
     ],
 )
 
@@ -759,7 +773,6 @@ def on_analyze(
     use_genai = bool(api_key)
 
     generate_visual_proofs = visual_proofs and "proofs" in visual_proofs
-    use_vision_fallback = vision and "vision" in vision
     if vision_primary_mode == "on":
         use_vision_primary = True
     elif vision_primary_mode == "off":
@@ -787,7 +800,6 @@ def on_analyze(
             use_genai=use_genai,
             api_key=api_key,
             generate_visual_proofs=generate_visual_proofs,
-            use_vision_fallback=bool(use_vision_fallback),
             use_vision_primary=use_vision_primary,
             include_footnotes=include_footnotes,
             include_genai_classification=include_genai_classification,

@@ -193,7 +193,6 @@ def _measure_compare(args: argparse.Namespace) -> dict[str, Any]:
             bank_code=args.bank,
             sections_t1=sections_t1,
             sections_t2=sections_t2,
-            use_vision_fallback=False,
         )
         elapsed = time.perf_counter() - started_at
         durations.append(elapsed)

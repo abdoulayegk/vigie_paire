@@ -7,7 +7,7 @@ vision_extraction:
   fallback_to_docling_on_error: true
   schema_failure_policy: fail_fast
   save_indicators_footnotes_json: true
-  vision_pair_validation: false
+  vision_pair_validation: true
   page_level_title_assist:
     enabled: true
     min_confidence: 0.7
@@ -26,17 +26,17 @@ quality_gate:
 # Validation post-matching: filtres GenAI/Vision pour reduire faux positifs.
 # Voir docs/comparison-validation.md pour le schema et valeurs recommandees.
 validation:
-  vision_pair_validation: false
+  vision_pair_validation: true
   vision_pair_confidence_min: 0.75
   semantic_judge_enabled: false
   semantic_judge_banks: [rbc, bns, td]
-  rename_validator_enabled: false
+  rename_validator_enabled: true
   rename_validator_confidence_min: 0.8
   rename_validator_batch_size: 10
   rename_validator_uncertain_score_band: [0.85, 0.95]
-  added_table_validator_enabled: false
+  added_table_validator_enabled: true
   added_table_validator_confidence_min: 0.75
-  indicator_validator_enabled: false
+  indicator_validator_enabled: true
   indicator_validator_use_vision: true
   indicator_validator_confidence_min: 0.8
   indicator_validator_batch_size: 8
@@ -93,6 +93,22 @@ banks:
       - "Divulgation d'information sur les risques"
       - "Informations complementaires"
       - "Annexes"
+    matching_overrides:
+      # Rescue plus actif (comme BMO qui a 92% de matching)
+      rescue_single_min_containment: 0.60
+      rescue_single_min_title_similarity: 0.50
+      # Overlap plus permissif pour capter les tables renommees/restructurees
+      overlap_threshold: 0.50
+      margin_threshold: 0.12
+      # Garde-fous anti-faux appariements
+      min_label_overlap_reject: 0.50
+      size_mismatch_reject_threshold: 0.55
+      # Scoring pondere
+      use_plan_score_formula: true
+      weight_s_labels: 0.70
+      weight_s_anchors: 0.15
+      weight_s_title: 0.10
+      weight_s_size: 0.05
 
   rbc:
     vision_extraction:
@@ -171,16 +187,19 @@ banks:
     matching_overrides:
       few_indicators_max_count: 6
       overlap_floor_min_few_indicators: 0.25
-      overlap_threshold: 0.58
-      margin_threshold: 0.12
-      weight_label_overlap: 0.80
-      weight_title: 0.05
-      weight_structure: 0.05
+      overlap_threshold: 0.50
+      margin_threshold: 0.14
+      weight_label_overlap: 0.70
+      weight_title: 0.10
+      weight_structure: 0.10
       weight_position: 0.05
       weight_containment: 0.05
       weight_header_schema: 0.0
-      min_label_overlap_reject: 0.55
+      min_label_overlap_reject: 0.48
       use_post_hungarian_threshold: true
+      # Rescue (nouveau pour RBC)
+      rescue_single_min_containment: 0.58
+      rescue_single_min_title_similarity: 0.45
 
   td:
     vision_extraction:
@@ -619,7 +638,7 @@ matching_thresholds:
   indicator_displacement_fuzzy_threshold: 0.90
   indicator_displacement_section_strict: true
   table_change_rate_review_threshold: 0.30
-  enable_llm_ambiguity_resolver: false
+  enable_llm_ambiguity_resolver: true
   llm_ambiguity_same_context_only: true
   table_rename_threshold: 0.85
   table_probable_threshold: 0.65

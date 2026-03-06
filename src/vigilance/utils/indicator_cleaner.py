@@ -124,6 +124,86 @@ _UNITS_IN_INDICATOR_PAREN_RE = re.compile(
     re.IGNORECASE,
 )
 
+_REDUNDANT_PAREN_EXPANSION_RE = re.compile(
+    r"^\s*(?P<prefix>[^()]+?)\s*\(\s*(?P<inner>[^()]+?)\s*\)\s*([.])?\s*$"
+)
+_REDUNDANT_SEPARATOR_EXPANSION_RE = re.compile(
+    r"^\s*(?P<prefix>[^:;–—-]+?)\s*[:;–—-]\s*(?P<suffix>.+?)\s*$"
+)
+
+
+def _normalized_phrase_key(text: str) -> str:
+    """Lightweight phrase key for structural prefix checks."""
+    if not text:
+        return ""
+    value = unicodedata.normalize("NFD", text)
+    value = value.encode("ascii", "ignore").decode("utf-8")
+    value = re.sub(r"[^a-zA-Z0-9\s]", " ", value)
+    return re.sub(r"\s+", " ", value).strip().lower()
+
+
+def collapse_redundant_parenthetical_expansion(text: str) -> str:
+    """Collapse ``X (X ...)`` into the expanded form ``X ...``.
+
+    Example:
+    - ``Fonds propres de categorie 1 (fonds propres de categorie 1 sous forme ...)``
+      -> ``fonds propres de categorie 1 sous forme ...``
+
+    This neutralizes explanatory parentheticals that repeat the same semantic
+    prefix and would otherwise inflate fuzzy rename scores.
+    """
+    if not text or "(" not in text or ")" not in text:
+        return text or ""
+    match = _REDUNDANT_PAREN_EXPANSION_RE.match(text)
+    if not match:
+        return text or ""
+
+    prefix = re.sub(r"\s+", " ", match.group("prefix") or "").strip(" -:;,")
+    inner = re.sub(r"\s+", " ", match.group("inner") or "").strip(" -:;,")
+    if not prefix or not inner:
+        return text or ""
+
+    prefix_key = _normalized_phrase_key(prefix)
+    inner_key = _normalized_phrase_key(inner)
+    if not prefix_key or not inner_key:
+        return text or ""
+
+    if inner_key == prefix_key:
+        return prefix
+    if inner_key.startswith(prefix_key + " "):
+        return inner
+    return text or ""
+
+
+def collapse_redundant_separator_expansion(text: str) -> str:
+    """Collapse ``X : X ...`` or ``X - X ...`` into the expanded suffix.
+
+    OCR/layout extraction sometimes produces a short heading followed by a
+    repeated explanatory segment separated by ``:``, ``-`` or an em dash.
+    We keep the expanded form when the suffix clearly restates the same prefix.
+    """
+    if not text:
+        return ""
+    match = _REDUNDANT_SEPARATOR_EXPANSION_RE.match(text)
+    if not match:
+        return text or ""
+
+    prefix = re.sub(r"\s+", " ", match.group("prefix") or "").strip(" -:;,")
+    suffix = re.sub(r"\s+", " ", match.group("suffix") or "").strip(" -:;,")
+    if not prefix or not suffix:
+        return text or ""
+
+    prefix_key = _normalized_phrase_key(prefix)
+    suffix_key = _normalized_phrase_key(suffix)
+    if not prefix_key or not suffix_key:
+        return text or ""
+
+    if suffix_key == prefix_key:
+        return prefix
+    if suffix_key.startswith(prefix_key + " "):
+        return suffix
+    return text or ""
+
 
 def strip_dates_from_indicator_label(text: str) -> str:
     """
@@ -601,6 +681,10 @@ def normalize_indicator_for_comparison(text: str) -> str:
     # Normalize Unicode and collapse all whitespace (including U+00A0) to space
     text = unicodedata.normalize("NFD", text)
     text = re.sub(r"\s+", " ", text).strip()
+
+    # Collapse explanatory forms like "X (X ...)" to a single expanded phrase.
+    text = collapse_redundant_parenthetical_expansion(text)
+    text = collapse_redundant_separator_expansion(text)
 
     # Strip series variant suffixes FIRST (before strip_dates removes the year)
     # "Série 2023-g(7)" -> "Série 2023" to avoid OCR confusion (g vs 9, etc.)

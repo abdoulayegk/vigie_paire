@@ -51,7 +51,27 @@ def test_clean_to_raw_display_mapping_prefers_raw_text() -> None:
     )
     lookup = _build_clean_to_raw_indicator_lookup(table)
     display = _clean_values_to_raw_display(["fonds propre de categorie 1"], lookup)
-    assert display == ["fonds propre de categorie 1¹"]
+    assert display == ["fonds propre de categorie 1"]
+
+
+def test_clean_to_raw_display_strips_parenthesized_footnote_markers() -> None:
+    table = TableArtifact(
+        bank_code="bmo",
+        section="capital_management",
+        page_pdf=1,
+        table_id="tableau_raw_paren",
+        title="Montant",
+        headers=["Indicateur", "Montant"],
+        rows=[],
+        first_column_indicators=["titres vendu a decouvert"],
+        first_column_indicators_raw=["Titres vendus à découvert(4)"],
+        extraction_method="docling",
+        quarter="t1",
+        pdf_path="dummy.pdf",
+    )
+    lookup = _build_clean_to_raw_indicator_lookup(table)
+    display = _clean_values_to_raw_display(["titres vendu a decouvert"], lookup)
+    assert display == ["Titres vendus à découvert"]
 
 
 def test_indicator_diff_ignores_trailing_note_numbers() -> None:

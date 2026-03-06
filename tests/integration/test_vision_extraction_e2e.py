@@ -45,7 +45,6 @@ def test_vision_pipeline_produces_footnotes_with_real_text(tmp_path: Path) -> No
         year: int,
         *,
         page_ranges: object = None,
-        use_vision_fallback: bool = False,
         use_vision_primary: bool | None = None,
     ) -> ExtractedDocument:
         assert use_vision_primary is True
@@ -120,11 +119,9 @@ def test_docling_only_flags_stay_strict_when_disabled(tmp_path: Path) -> None:
         year: int,
         *,
         page_ranges: object = None,
-        use_vision_fallback: object = None,
         use_vision_primary: bool | None = None,
     ) -> ExtractedDocument:
         assert use_vision_primary is False
-        assert use_vision_fallback is False
         return ExtractedDocument(
             file_path=path,
             bank_code=bank_code,
@@ -145,7 +142,6 @@ def test_docling_only_flags_stay_strict_when_disabled(tmp_path: Path) -> None:
             year=2025,
             section_ranges=[{"section": "test_section", "start": 1, "end": 1}],
             use_vision_primary=False,
-            use_vision_fallback=False,
         )
 
     assert tables

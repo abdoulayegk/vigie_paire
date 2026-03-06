@@ -76,7 +76,7 @@ def get_token_sorted_text(text: str) -> str:
         return ""
     normalized = re.sub(r"[-/]", " ", canonical)
     normalized = re.sub(r"[^\w\s]", " ", normalized)
-    tokens: list[str] = []
+    tokens: set[str] = set()
     for t in normalized.split():
         t = t.strip().lower()
         if not t:
@@ -85,9 +85,8 @@ def get_token_sorted_text(text: str) -> str:
             continue
         if _is_mostly_digit_token(t):
             continue
-        tokens.append(t)
-    tokens.sort()
-    return " ".join(tokens)
+        tokens.add(t)
+    return " ".join(sorted(tokens))
 
 
 def get_normalized_forms(text: str) -> tuple[str, str]:
