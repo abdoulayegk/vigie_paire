@@ -32,6 +32,9 @@ _TRAILING_NOTE_RE = re.compile(
     r"|[¹²³⁴⁵⁶⁷⁸⁹⁰]+"  # superscript digits
     r")\s*$"
 )
+_TRAILING_NOTE_CLUSTER_RE = re.compile(
+    r"(?:\s*,?\s*(?:[\(\[]\d+[\)\]]|\([a-zA-Z]\)|[a-zA-Z]\)|[\*†‡]+|[¹²³⁴⁵⁶⁷⁸⁹⁰]+))+[\s,;:.]*$"
+)
 _TRAILING_NUM_RE = re.compile(r"\s+\d{1,4}(?:[.,]\d+)?\s*$")
 # Digits attached to last word (no space): "Total des actifs1" -> "Total des actifs", "Revenue2024" -> "Revenue"
 _TRAILING_WORD_DIGITS_RE = re.compile(r"([^\d\s]+)(\d+)$")
@@ -535,6 +538,7 @@ def strip_units_from_table_title(title: str, bank_code: str | None = None) -> st
 def normalize_indicator_variants(text: str) -> str:
     """Normalize indicator variants into a canonical string."""
     value = text or ""
+    value = _TRAILING_NOTE_CLUSTER_RE.sub("", value)
     value = _TRAILING_NOTE_RE.sub("", value)
     if not is_trailing_number_semantic(value):
         value = _TRAILING_NUM_RE.sub("", value)
@@ -677,6 +681,10 @@ def normalize_indicator_for_comparison(text: str) -> str:
     """
     if not text:
         return ""
+
+    # Normalize apostrophe variants early so "d'actions" and "d’actions"
+    # follow the same canonical path.
+    text = re.sub(r"[’`´ʼʻ＇]", "'", text)
 
     # Normalize Unicode and collapse all whitespace (including U+00A0) to space
     text = unicodedata.normalize("NFD", text)

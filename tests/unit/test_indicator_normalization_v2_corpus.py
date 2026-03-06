@@ -15,6 +15,10 @@ from vigilance.utils.indicator_normalizer import (
         ("Agence de notation¹", "Agence de notation"),
         ("Titres vendus à découvert(4)", "Titres vendus à découvert"),
         (
+            "Options sur actions et attribution d'actions",
+            "Options sur actions et attribution d’actions",
+        ),
+        (
             "Fonds propres de catégorie 1 sous forme d’actions ordinaires "
             "et fonds propres de catégorie 1 supplémentaires (%)",
             "Fonds propres de catégorie 1 "
@@ -55,3 +59,12 @@ def test_token_sorted_text_dedupes_repeated_tokens() -> None:
     token_sorted = get_token_sorted_text(text)
     assert token_sorted.split().count("fonds") == 1
     assert token_sorted.split().count("categorie") == 1
+
+
+def test_canonical_strips_chained_parenthesized_footnotes() -> None:
+    left = "À dividende non cumulatif, série BW (3), (4),"
+    right = "À dividende non cumulatif, série BW (3), (4), (5)"
+    assert normalize_indicator_for_comparison(left) == "a dividende non cumulatif serie bw"
+    assert normalize_indicator_for_comparison(right) == "a dividende non cumulatif serie bw"
+    assert get_canonical_text(left) == get_canonical_text(right)
+    assert get_token_sorted_text(left) == get_token_sorted_text(right)

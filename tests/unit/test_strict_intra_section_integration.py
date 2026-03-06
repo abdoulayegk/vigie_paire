@@ -45,7 +45,8 @@ def test_intra_section_matching_and_reasons() -> None:
     result = match_tables_intra_section(t1_tables, t2_tables)
 
     assert any(
-        pair["reason"] in ("table_number_match", "indicator_set_hash_exact")
+        pair["reason"]
+        in ("table_number_match", "indicator_set_hash_exact", "indicator_overlap_match")
         for pair in result["pairs"]
     )
     assert any(
@@ -61,7 +62,10 @@ def test_intra_section_matching_and_reasons() -> None:
         for item in result["unmatched_t1"]
     )
     assert unknown_t1_handled is True
-    assert any(item["reason"] in {"unknown_section", "unmatched"} for item in result["unmatched_t2"])
+    assert any(
+        item["reason"] in {"unknown_section", "unmatched", "ambiguous_candidate"}
+        for item in result["unmatched_t2"]
+    )
 
 
 def test_strict_compare_one_to_one_and_added_removed() -> None:

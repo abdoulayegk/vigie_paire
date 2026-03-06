@@ -34,6 +34,11 @@ from ..utils.indicator_cleaner import (
 from ..utils.matching_normalizer import (
     strip_temporal_expressions,
 )
+from ..utils.rbc_table_signals import (
+    classify_rbc_title_reliability,
+    is_rbc_bank,
+    is_unreliable_rbc_title,
+)
 from .docling_normalization import (
     _extract_table_context_split,
     # _is_footnote_row and _merge_fragmented_cells removed: Docling content no longer extracted.
@@ -174,6 +179,9 @@ class ExtractedTable:
     context_after: str = ""  # 1-2 lignes en-dessous
     bbox: list[float] | None = None  # [l, t, r, b] normalisées 0–1 depuis Docling prov
     first_column_indicators_raw: list[str] | None = None  # Brut avant normalisation
+    first_column_groups: list[str] | None = None
+    hierarchical_indicator_signature: list[str] | None = None
+    title_reliability: str | None = None
     debug_metrics: dict[str, Any] = field(
         default_factory=dict
     )  # row_count, merge_count, etc.
@@ -651,6 +659,11 @@ class DoclingProcessor:
                     context_before=t.get("context_before", ""),
                     context_after=t.get("context_after", ""),
                     bbox=t.get("bbox"),
+                    first_column_groups=t.get("first_column_groups"),
+                    hierarchical_indicator_signature=t.get(
+                        "hierarchical_indicator_signature"
+                    ),
+                    title_reliability=t.get("title_reliability"),
                     debug_metrics=t.get("debug_metrics", {}),
                     extraction_method=t.get("extraction_method"),
                 )
@@ -685,6 +698,11 @@ class DoclingProcessor:
                         context_before=t.get("context_before", ""),
                         context_after=t.get("context_after", ""),
                         bbox=t.get("bbox"),
+                        first_column_groups=t.get("first_column_groups"),
+                        hierarchical_indicator_signature=t.get(
+                            "hierarchical_indicator_signature"
+                        ),
+                        title_reliability=t.get("title_reliability"),
                         debug_metrics=t.get("debug_metrics", {}),
                         extraction_method=t.get("extraction_method"),
                     )
@@ -1082,6 +1100,10 @@ class DoclingProcessor:
                     table_number=table_number,
                     title_clean=title_clean,
                     title_raw=title_raw,
+                    title_reliability=classify_rbc_title_reliability(
+                        title_clean or title or title_raw,
+                        bank_code=bank_code,
+                    ),
                     extraction_method=(
                         "vision_full_gpt4o"
                         if vision_status_str == "ok"
@@ -1197,11 +1219,16 @@ class DoclingProcessor:
         max_candidates = int(assist_cfg.get("max_candidates", 10))
         weak_title_threshold = int(assist_cfg.get("weak_title_threshold", 3))
 
+        bank_is_rbc = is_rbc_bank(bank_code)
+
         # Identify pages with at least one weak/missing title
         pages_needing_assist: dict[int, list[ExtractedTable]] = {}
         for table in tables:
             score = self._title_quality_score(table.title)
-            if score < weak_title_threshold:
+            needs_assist = score < weak_title_threshold
+            if bank_is_rbc and is_unreliable_rbc_title(table.title, bank_code=bank_code):
+                needs_assist = True
+            if needs_assist:
                 pages_needing_assist.setdefault(table.page_number, []).append(table)
 
         if not pages_needing_assist:
@@ -1253,10 +1280,18 @@ class DoclingProcessor:
     ) -> None:
         """Map page-level title candidates to tables and apply when appropriate."""
         used_candidates: set[int] = set()
+        bank_code = self.bank_code_for_patterns
 
         for table in page_tables:
             current_score = self._title_quality_score(table.title)
-            if current_score >= weak_title_threshold:
+            current_reliability = classify_rbc_title_reliability(
+                table.title,
+                bank_code=bank_code,
+            )
+            if (
+                current_score >= weak_title_threshold
+                and current_reliability == "reliable"
+            ):
                 continue
 
             candidate: dict[str, Any] | None = None
@@ -1301,7 +1336,17 @@ class DoclingProcessor:
                 candidate.get("title_semantic") or candidate.get("title_full") or ""
             ).strip()
             candidate_score = self._title_quality_score(candidate_title)
-            if candidate_score <= current_score:
+            candidate_reliability = classify_rbc_title_reliability(
+                candidate_title,
+                bank_code=bank_code,
+            )
+            better_candidate = candidate_score > current_score
+            if is_rbc_bank(bank_code):
+                better_candidate = better_candidate or (
+                    current_reliability != "reliable"
+                    and candidate_reliability == "reliable"
+                )
+            if not better_candidate:
                 continue
 
             # Apply the candidate
@@ -1316,6 +1361,8 @@ class DoclingProcessor:
             candidate_number = str(candidate.get("table_number", "")).strip()
             if candidate_number and not table.table_number:
                 table.table_number = candidate_number
+
+            table.title_reliability = candidate_reliability
 
             table.title_resolution_method = (
                 f"page_level_assist (conf={candidate.get('confidence', 0):.2f})"

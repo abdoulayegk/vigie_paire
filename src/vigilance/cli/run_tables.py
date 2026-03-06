@@ -10,6 +10,11 @@ from typing import Any
 
 from vigilance.config.loader import get_bank_cfg, load_config
 from vigilance.models.table_models import TableArtifact
+from vigilance.utils.rbc_table_signals import (
+    build_rbc_first_column_signals,
+    classify_rbc_title_reliability,
+    is_rbc_bank,
+)
 from vigilance.report.export_json import write_tables_docling
 
 DEFAULT_CONFIG = "configs/bank_profiles.yaml"
@@ -121,6 +126,22 @@ def _to_artifacts(raw_tables: list[Any], bank: str, quarter: str, pdf_path: str)
         else:
             raw = None
 
+        rows = [list(row) for row in (getattr(table, "rows", []) or [])]
+        first_column_groups: list[str] | None = None
+        hierarchical_indicator_signature: list[str] | None = None
+        if is_rbc_bank(bank):
+            rbc_signals = build_rbc_first_column_signals(
+                rows=rows,
+                raw_indicators=raw or indicators,
+            )
+            if rbc_signals.indicators_raw:
+                indicators = list(rbc_signals.indicators_clean)
+                raw = list(rbc_signals.indicators_raw)
+            first_column_groups = list(rbc_signals.groups_raw)
+            hierarchical_indicator_signature = list(
+                rbc_signals.hierarchical_indicator_signature
+            )
+
         section = _canonicalize_section(getattr(table, "section", None)) or "unknown_section"
         artifacts.append(
             TableArtifact(
@@ -130,14 +151,20 @@ def _to_artifacts(raw_tables: list[Any], bank: str, quarter: str, pdf_path: str)
                 table_id=str(getattr(table, "table_id", f"table_{index}")),
                 title=getattr(table, "title", None),
                 headers=list(getattr(table, "headers", []) or []),
-                rows=[list(row) for row in (getattr(table, "rows", []) or [])],
+                rows=rows,
                 first_column_indicators=indicators,
                 first_column_indicators_raw=raw,
+                first_column_groups=first_column_groups,
+                hierarchical_indicator_signature=hierarchical_indicator_signature,
                 table_number=getattr(table, "table_number", None),
                 bbox=getattr(table, "bbox", None),
                 extraction_method=getattr(table, "extraction_method", None) or "docling",
                 quarter=quarter,
                 pdf_path=pdf_path,
+                title_reliability=classify_rbc_title_reliability(
+                    getattr(table, "title_clean", None) or getattr(table, "title", None),
+                    bank_code=bank,
+                ),
             )
         )
     return artifacts

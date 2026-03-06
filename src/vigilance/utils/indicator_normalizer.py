@@ -14,6 +14,9 @@ _INDICATOR_TRAILING_PAREN_NUM = re.compile(r"\s*[\(\[]\d+[\)\]]\s*$")
 _INDICATOR_TRAILING_NOTE_NUM = re.compile(r"\s+Note\s+\d+\s*\.?\s*$", re.IGNORECASE)
 _INDICATOR_TRAILING_COMMA_NUMS = re.compile(r"\s*,\s*\d+(?:\s*,\s*\d+)*\s*$")
 _INDICATOR_TRAILING_SPACE_NUMS_COMMA = re.compile(r"\s+\d+(?:\s*,\s*\d+)+\s*$")
+_INDICATOR_TRAILING_NOTE_CLUSTER = re.compile(
+    r"(?:\s*,?\s*(?:[\(\[]\d+[\)\]]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+|[*\u2020\u2021\u00A7]+))+[\s,;:.]*$"
+)
 
 _STOPWORDS = frozenset(
     {"de", "du", "des", "la", "le", "les", "et", "ou", "and", "the", "of", "to", "en", "au", "aux", "a", "an"}
@@ -30,6 +33,7 @@ def _strip_footnote_markers(text: str) -> str:
     value = (text or "").strip()
     while True:
         prev = value
+        value = _INDICATOR_TRAILING_NOTE_CLUSTER.sub("", value)
         value = _INDICATOR_TRAILING_SUPER.sub("", value)
         value = _INDICATOR_TRAILING_STARS.sub("", value)
         value = _INDICATOR_TRAILING_PAREN_NUM.sub("", value)

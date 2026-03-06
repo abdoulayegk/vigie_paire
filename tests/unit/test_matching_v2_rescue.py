@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from vigilance.compare.indicator_comparator import match_decision, run_strict_intra_section_compare
+from vigilance.compare.indicator_comparator import (
+    _allow_rbc_split_merge_rescue,
+    match_decision,
+    run_strict_intra_section_compare,
+)
 from vigilance.models.table_models import TableArtifact
 
 
@@ -174,6 +178,47 @@ def test_merge_rescue_two_to_one_fragments() -> None:
     assert len(rescued[0].get("merge_members_t1", [])) == 2
 
 
+def test_rbc_split_merge_guard_blocks_unreliable_title_when_signals_are_weak() -> None:
+    t1 = _table(
+        table_id="t1",
+        section="risk_management",
+        title="Charges grevant les actifs",
+        rows=[
+            ["Titres hypothecaires", "1"],
+            ["Prets hypothecaires", "2"],
+            ["Autres prets", "3"],
+            ["Derives", "4"],
+            ["Autres", "5"],
+        ],
+        headers=["Actifs detenus par la banque", "Total de l'actif", "Actifs greves"],
+        bank_code="rbc",
+    )
+    t2 = _table(
+        table_id="t2",
+        section="risk_management",
+        title="Au 30 avril 2025",
+        rows=[
+            ["Titres hypothecaires", "10"],
+            ["Autres prets", "30"],
+        ],
+        headers=["Montant", "Greve"],
+        bank_code="rbc",
+    )
+
+    decision = match_decision(t1, t2, bank_code="rbc")
+    assert (
+        _allow_rbc_split_merge_rescue(
+            bank_code="rbc",
+            primary_table=t2,
+            counterpart_table=t1,
+            primary_decision=decision,
+            union_containment=0.75,
+            schema_score=0.68,
+        )
+        is False
+    )
+
+
 def test_dates_in_headers_and_titles_do_not_break_logical_match() -> None:
     t1 = _table(
         table_id="t1",
@@ -193,4 +238,3 @@ def test_dates_in_headers_and_titles_do_not_break_logical_match() -> None:
     decision = match_decision(t1, t2, bank_code="cibc")
     assert decision.is_match is True
     assert decision.header_schema_similarity >= 0.8
-

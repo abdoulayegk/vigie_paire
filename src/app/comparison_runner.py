@@ -72,6 +72,11 @@ from vigilance.utils.indicator_normalizer import (
     get_token_sorted_text,
 )
 from vigilance.utils.matching_normalizer import _classify_excluded_line
+from vigilance.utils.rbc_table_signals import (
+    build_rbc_first_column_signals,
+    classify_rbc_title_reliability,
+    is_rbc_bank,
+)
 
 _MATCH_DECISIONS_LOG = LOGS_DIR / "match_decisions.jsonl"
 
@@ -237,6 +242,17 @@ def _table_to_artifact(
             if row and str(row[0]).strip():
                 raw.append(str(row[0]).strip())
 
+    first_column_groups: list[str] | None = None
+    hierarchical_indicator_signature: list[str] | None = None
+    if is_rbc_bank(bank_code):
+        rbc_signals = build_rbc_first_column_signals(rows=rows, raw_indicators=raw)
+        if rbc_signals.indicators_raw:
+            raw = list(rbc_signals.indicators_raw)
+        first_column_groups = list(rbc_signals.groups_raw)
+        hierarchical_indicator_signature = list(
+            rbc_signals.hierarchical_indicator_signature
+        )
+
     # Quality pass 1: line-split merge (deterministic)
     raw, line_merge_count = merge_line_split_indicators(raw)
     if line_merge_count > 0:
@@ -287,6 +303,13 @@ def _table_to_artifact(
     title_raw = getattr(table, "title_raw", None) or getattr(table, "title", None)
     title_clean = getattr(table, "title_clean", None)
     title_display = title_clean or getattr(table, "title", None)
+    title_reliability = (
+        getattr(table, "title_reliability", None)
+        or classify_rbc_title_reliability(
+            title_display or title_raw,
+            bank_code=bank_code,
+        )
+    )
 
     return TableArtifact(
         bank_code=bank_code,
@@ -305,6 +328,9 @@ def _table_to_artifact(
         bbox=getattr(table, "bbox", None),
         quarter=quarter,
         pdf_path=pdf_path,
+        first_column_groups=first_column_groups,
+        hierarchical_indicator_signature=hierarchical_indicator_signature,
+        title_reliability=title_reliability,
         footnotes=footnotes_out,
         fragmentation_detected=fragmentation_detected,
         debug_metrics=debug_metrics,
@@ -720,6 +746,9 @@ _INDICATOR_TRAILING_PAREN_NUM = re.compile(r"\s*[\(\[]\d+[\)\]]\s*$")
 _INDICATOR_TRAILING_NOTE_NUM = re.compile(r"\s+Note\s+\d+\s*\.?\s*$", re.IGNORECASE)
 _INDICATOR_TRAILING_COMMA_NUMS = re.compile(r"\s*,\s*\d+(?:\s*,\s*\d+)*\s*$")
 _INDICATOR_TRAILING_SPACE_NUMS_COMMA = re.compile(r"\s+\d+(?:\s*,\s*\d+)+\s*$")
+_INDICATOR_TRAILING_NOTE_CLUSTER = re.compile(
+    r"(?:\s*,?\s*(?:[\(\[]\d+[\)\]]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+|[*\u2020\u2021\u00A7]+))+[\s,;:.]*$"
+)
 
 
 def _strip_footnote_markers_from_indicator(text: str) -> str:
@@ -729,6 +758,7 @@ def _strip_footnote_markers_from_indicator(text: str) -> str:
     value = (text or "").strip()
     while True:
         prev = value
+        value = _INDICATOR_TRAILING_NOTE_CLUSTER.sub("", value)
         value = _INDICATOR_TRAILING_SUPER.sub("", value)
         value = _INDICATOR_TRAILING_STARS.sub("", value)
         value = _INDICATOR_TRAILING_PAREN_NUM.sub("", value)
@@ -822,7 +852,7 @@ def _hungarian_pair_added_removed(
 ) -> tuple[list[str], list[str], list[tuple[str, str]], dict[str, Any]]:
     """
     Global 1-to-1 pairing between removed and added indicators (renames).
-    Uses Hungarian assignment when scipy is available; otherwise deterministic greedy.
+    Uses global one-to-one assignment for rename pairing.
     Returns (added_restant, removed_restant, list of (removed_text, added_text), debug_dict).
     Debug dict is for logging only; never written to JSON.
     """
@@ -1584,10 +1614,10 @@ def run_comparison_with_sections(
         from vigilance.config import get_matching_thresholds
 
         cfg = get_matching_thresholds(bank_code=bank_code) or {}
-        algorithm_used = "hungarian" if cfg.get("use_hungarian_matching") else "greedy"
+        algorithm_used = "symmetric_assignment"
     except Exception:
         cfg = {}
-        algorithm_used = "greedy"
+        algorithm_used = "symmetric_assignment"
 
     raw_tables_t1_count = len(tables_t1)
     raw_tables_t2_count = len(tables_t2)
@@ -2980,7 +3010,8 @@ def run_comparison_with_sections(
                 else 0,
                 "config_use_embeddings": bool(cfg.get("use_embeddings", False)),
                 "fallback_vision_used": False,
-                "hungarian_table": cfg.get("use_hungarian_matching", False),
+                "hungarian_table": True,
+                "table_matcher_engine": algorithm_used,
                 "hungarian_indicator": cfg.get("indicator_hungarian_enabled", True),
                 "table_pair_count": len(comparisons),
                 "indicator_rename_count": total_renamed,
@@ -3017,6 +3048,27 @@ def run_comparison_with_sections(
                     "conflicts": vision_unmatched_rescue_summary.get("conflicts", 0),
                     "errors": vision_unmatched_rescue_summary.get("errors", 0),
                     "metrics": vision_unmatched_rescue_summary.get("metrics", {}),
+                },
+                "strict_matcher": {
+                    "pairs": len(strict.get("pairs", [])),
+                    "probable_pairs": len(strict.get("probable_pairs", [])),
+                    "rescued_matches_count": strict.get("rescued_matches_count", 0),
+                    "split_merge_rescues_count": strict.get(
+                        "split_merge_rescues_count", 0
+                    ),
+                    "unmatched_confirmed_t1": len(
+                        strict.get("unmatched_confirmed_t1", [])
+                    ),
+                    "unmatched_ambiguous_t1": len(
+                        strict.get("unmatched_ambiguous_t1", [])
+                    ),
+                    "unmatched_confirmed_t2": len(
+                        strict.get("unmatched_confirmed_t2", [])
+                    ),
+                    "unmatched_ambiguous_t2": len(
+                        strict.get("unmatched_ambiguous_t2", [])
+                    ),
+                    "matching_diagnostics": strict.get("matching_diagnostics", {}),
                 },
                 "semantic_judge": {
                     "enabled": semantic_judge_enabled,

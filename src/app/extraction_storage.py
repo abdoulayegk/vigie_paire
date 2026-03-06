@@ -61,6 +61,9 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     quarter = d.get("quarter")
     pdf_path = d.get("pdf_path")
     first_column_indicators_raw = d.get("first_column_indicators_raw")
+    first_column_groups = d.get("first_column_groups")
+    hierarchical_indicator_signature = d.get("hierarchical_indicator_signature")
+    title_reliability = d.get("title_reliability")
     footnotes = d.get("footnotes")
     # Backward compat: old stored extractions may have footnotes as dict {marker: text}
     if isinstance(footnotes, dict):
@@ -92,6 +95,9 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
         quarter=quarter,
         pdf_path=pdf_path,
         first_column_indicators_raw=first_column_indicators_raw,
+        first_column_groups=first_column_groups,
+        hierarchical_indicator_signature=hierarchical_indicator_signature,
+        title_reliability=title_reliability,
         footnotes=footnotes,
         fragmentation_detected=fragmentation_detected,
         debug_metrics=debug_metrics,

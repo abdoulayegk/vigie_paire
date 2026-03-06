@@ -11,6 +11,7 @@ from app.comparison_runner import (
     _fuzzy_pair_added_removed,
     _hungarian_pair_added_removed,
     _indicator_diff,
+    _strip_footnote_markers_from_indicator,
     rapidfuzz_fuzz,
 )
 from vigilance.models.table_models import TableArtifact
@@ -72,6 +73,11 @@ def test_clean_to_raw_display_strips_parenthesized_footnote_markers() -> None:
     lookup = _build_clean_to_raw_indicator_lookup(table)
     display = _clean_values_to_raw_display(["titres vendu a decouvert"], lookup)
     assert display == ["Titres vendus à découvert"]
+
+
+def test_strip_footnote_markers_handles_chained_parenthesized_suffixes() -> None:
+    value = "À dividende non cumulatif, série BW (3), (4),"
+    assert _strip_footnote_markers_from_indicator(value) == "À dividende non cumulatif, série BW"
 
 
 def test_indicator_diff_ignores_trailing_note_numbers() -> None:

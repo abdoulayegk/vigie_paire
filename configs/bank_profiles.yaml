@@ -30,16 +30,17 @@ validation:
   vision_pair_confidence_min: 0.75
   semantic_judge_enabled: false
   semantic_judge_banks: [rbc, bns, td]
-  rename_validator_enabled: true
+  rename_validator_enabled: false
   rename_validator_confidence_min: 0.8
   rename_validator_batch_size: 10
   rename_validator_uncertain_score_band: [0.85, 0.95]
-  added_table_validator_enabled: true
+  added_table_validator_enabled: false
   added_table_validator_confidence_min: 0.75
-  indicator_validator_enabled: true
+  indicator_validator_enabled: false
   indicator_validator_use_vision: true
   indicator_validator_confidence_min: 0.8
   indicator_validator_batch_size: 8
+  vision_unmatched_rescue_enabled: true
 
 banks:
   bnc:
@@ -410,6 +411,7 @@ banks:
       - "Etats financiers"
       - "Donnees complementaires"
     matching_overrides:
+      use_hungarian_matching: true
       min_label_overlap_reject: 0.58
       overlap_threshold: 0.56
       margin_threshold: 0.10
@@ -485,6 +487,7 @@ banks:
       - "Etats financiers consolides"
       - "Annexes"
     matching_overrides:
+      use_hungarian_matching: true
       few_indicators_max_count: 6
       overlap_floor_min_few_indicators: 0.25
       overlap_threshold: 0.58

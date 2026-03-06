@@ -38,14 +38,18 @@ def test_strict_suite_cross_unknown_added_removed_and_same_section() -> None:
     result = run_strict_intra_section_compare(t1, t2)
 
     assert any(
-        pair["reason"] in ("table_number_match", "indicator_set_hash_exact")
+        pair["reason"]
+        in ("table_number_match", "indicator_set_hash_exact", "indicator_overlap_match")
         for pair in result["pairs"]
     )
     assert any(item["reason"] == "removed_table" for item in result["removed_tables"])
-    assert any(item["reason"] == "added_table" for item in result["added_tables"])
+    assert result["added_tables"] == []
     assert any(
         item["reason"] in {"unknown_section", "unknown_section_penalized", "low_containment", "weak_signals"}
         for item in result["unmatched_t1"]
     )
-    assert any(item["reason"] in {"unknown_section", "unmatched"} for item in result["unmatched_t2"])
+    assert any(
+        item["reason"] in {"unknown_section", "unmatched", "ambiguous_candidate"}
+        for item in result["unmatched_t2"]
+    )
     assert "cross_section_forbidden" not in result["reasons"]

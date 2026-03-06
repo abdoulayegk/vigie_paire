@@ -30,6 +30,9 @@ class TableArtifact:
     quarter: str | None = None
     pdf_path: str | None = None
     first_column_indicators_raw: list[str] | None = None
+    first_column_groups: list[str] | None = None
+    hierarchical_indicator_signature: list[str] | None = None
+    title_reliability: str | None = None
     footnotes: FootnoteList | None = None
     fragmentation_detected: bool = False
     debug_metrics: dict[str, Any] | None = None

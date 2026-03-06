@@ -33,6 +33,11 @@ from vigilance.utils.matching_normalizer import (
     is_non_indicator_line,
     normalize_for_matching,
 )
+from vigilance.utils.rbc_table_signals import (
+    build_rbc_first_column_signals,
+    classify_rbc_title_reliability,
+    is_rbc_bank,
+)
 
 try:
     from rapidfuzz import fuzz as rapidfuzz_fuzz
@@ -157,6 +162,72 @@ def _table_uid(table: TableArtifact) -> str:
     return f"{table.section}|{table.table_id}|p{table.page_pdf}"
 
 
+_RBC_SIGNALS_CACHE: dict[str, Any] = {}
+_RBC_SIGNALS_CACHE_MAX = 500
+
+
+def _table_cache_key(table: TableArtifact) -> str:
+    return "|".join(
+        [
+            _table_uid(table),
+            str(getattr(table, "title", "") or ""),
+            str(len(getattr(table, "rows", None) or [])),
+            str(len(getattr(table, "headers", None) or [])),
+            str(len(getattr(table, "first_column_indicators", None) or [])),
+        ]
+    )
+
+
+def _get_rbc_signals(table: TableArtifact) -> Any | None:
+    bank_code = str(getattr(table, "bank_code", "") or "").strip().lower()
+    if not is_rbc_bank(bank_code):
+        return None
+    uid = _table_cache_key(table)
+    if uid in _RBC_SIGNALS_CACHE:
+        return _RBC_SIGNALS_CACHE[uid]
+
+    signals = build_rbc_first_column_signals(
+        rows=list(getattr(table, "rows", None) or []),
+        raw_indicators=list(
+            getattr(table, "first_column_indicators_raw", None)
+            or getattr(table, "first_column_indicators", None)
+            or []
+        ),
+    )
+
+    if len(_RBC_SIGNALS_CACHE) >= _RBC_SIGNALS_CACHE_MAX:
+        _RBC_SIGNALS_CACHE.clear()
+    _RBC_SIGNALS_CACHE[uid] = signals
+    return signals
+
+
+def _table_title_reliability(
+    table: TableArtifact,
+    bank_code: str | None = None,
+) -> str:
+    resolved_bank = bank_code or getattr(table, "bank_code", None)
+    cached = getattr(table, "title_reliability", None)
+    if cached:
+        return str(cached)
+    return classify_rbc_title_reliability(table.title or table.title_raw, bank_code=resolved_bank)
+
+
+def _use_rbc_first_column_enrichment(table: TableArtifact) -> bool:
+    if not is_rbc_bank(getattr(table, "bank_code", None)):
+        return False
+    explicit_groups = list(getattr(table, "first_column_groups", None) or [])
+    explicit_hier = list(getattr(table, "hierarchical_indicator_signature", None) or [])
+    if explicit_groups or any(" > " in str(item) for item in explicit_hier):
+        return True
+    signals = _get_rbc_signals(table)
+    if signals is None:
+        return False
+    return bool(
+        signals.groups_raw
+        or any(" > " in str(item) for item in (signals.hierarchical_indicator_signature or []))
+    )
+
+
 @dataclass(slots=True, frozen=True)
 class TableLabel:
     base: str
@@ -204,6 +275,11 @@ def _canonical_indicator_label(value: str | None) -> str:
 
 
 def _indicator_set(table: TableArtifact) -> set[str]:
+    if _use_rbc_first_column_enrichment(table):
+        signals = _get_rbc_signals(table)
+        if signals and signals.indicators_clean:
+            return set(signals.indicators_clean)
+
     values: set[str] = set()
     if table.rows:
         for row in table.rows:
@@ -235,12 +311,16 @@ def _get_table_features(table: TableArtifact) -> tuple[list[str], str]:
     matching logic. Hash uses vigie_extract_schema for compatibility and fast path.
     Cached by table UID for Hungarian loop efficiency.
     """
-    uid = _table_uid(table)
+    uid = _table_cache_key(table)
     if uid in _FEATURES_CACHE:
         return _FEATURES_CACHE[uid]
     anchors = sorted(_indicator_set(table))
     hash_val = ""
-    indicators: list[str] = list(getattr(table, "first_column_indicators", None) or [])
+    if _use_rbc_first_column_enrichment(table):
+        signals = _get_rbc_signals(table)
+        indicators = list(signals.indicators_raw) if signals and signals.indicators_raw else []
+    else:
+        indicators = list(getattr(table, "first_column_indicators", None) or [])
     indicators = [str(x).strip() for x in indicators if str(x).strip()]
     if not indicators and table.rows:
         for row in table.rows:
@@ -416,12 +496,13 @@ def _is_date_only_title(value: str | None) -> bool:
 def _title_similarity(
     table_a: TableArtifact, table_b: TableArtifact, bank_code: str | None = None
 ) -> float:
+    effective_bank_code = bank_code or _infer_bank_code([table_a], [table_b])
     if is_header_footer_table_title(
-        table_a.title, bank_code
-    ) or is_header_footer_table_title(table_b.title, bank_code):
+        table_a.title, effective_bank_code
+    ) or is_header_footer_table_title(table_b.title, effective_bank_code):
         return 0.0
-    left = _title_for_matching(table_a.title, bank_code)
-    right = _title_for_matching(table_b.title, bank_code)
+    left = _title_for_matching(table_a.title, effective_bank_code)
+    right = _title_for_matching(table_b.title, effective_bank_code)
     if not left and not right:
         return 1.0  # both empty (e.g. date-only CIBC titles) -> same table
     if not left or not right:
@@ -510,7 +591,11 @@ def _sections_candidate_compatible(
 
 def _table_indicators_after_exclusions(table: TableArtifact) -> list[str]:
     """Indicators (first column) after excluding date/unit/total lines; preserves order."""
-    raw = list(getattr(table, "first_column_indicators", None) or [])
+    if _use_rbc_first_column_enrichment(table):
+        signals = _get_rbc_signals(table)
+        raw = list(signals.indicators_raw) if signals and signals.indicators_raw else []
+    else:
+        raw = list(getattr(table, "first_column_indicators", None) or [])
     return [
         str(x).strip()
         for x in raw
@@ -551,6 +636,11 @@ def _table_fingerprint_sample(
 def _table_fingerprint_text(table: TableArtifact) -> str:
     """Build fingerprint text for embedding: title + headers + sampled indicators (top 3 + middle 3 + bottom 3)."""
     title = (table.title or "").strip() or "Untitled"
+    if is_rbc_bank(getattr(table, "bank_code", None)) and _table_title_reliability(
+        table,
+        getattr(table, "bank_code", None),
+    ) != "reliable":
+        title = "Untitled"
     headers = " | ".join((table.headers or [])[:10])
     indicators = _table_indicators_after_exclusions(table)
     sampled = _table_fingerprint_sample(indicators)
@@ -561,6 +651,11 @@ def _table_fingerprint_text(table: TableArtifact) -> str:
 def _table_fingerprint_token_sorted(table: TableArtifact) -> str:
     """Order-invariant fingerprint: content part is token-sorted for matching fragmented/permuted labels."""
     title = (table.title or "").strip() or "Untitled"
+    if is_rbc_bank(getattr(table, "bank_code", None)) and _table_title_reliability(
+        table,
+        getattr(table, "bank_code", None),
+    ) != "reliable":
+        title = "Untitled"
     headers = " | ".join((table.headers or [])[:10])
     indicators = _table_indicators_after_exclusions(table)
     sampled = _table_fingerprint_sample(indicators)
@@ -585,6 +680,47 @@ def _table_fingerprint_embed_gate_ok(
         return False
     tokens = [t for t in content.split() if t and t not in _TABLE_FP_BOILERPLATE]
     return len(tokens) >= min_content_tokens
+
+
+def _rbc_structural_bonus(
+    table_t1: TableArtifact,
+    table_t2: TableArtifact,
+    *,
+    bank_code: str | None,
+    indicator_containment: float,
+    header_schema_similarity_score: float,
+) -> float:
+    if not is_rbc_bank(bank_code):
+        return 0.0
+    if not (
+        _use_rbc_first_column_enrichment(table_t1)
+        or _use_rbc_first_column_enrichment(table_t2)
+    ):
+        return 0.0
+    if indicator_containment < 0.55 or header_schema_similarity_score < 0.45:
+        return 0.0
+
+    signals_t1 = _get_rbc_signals(table_t1)
+    signals_t2 = _get_rbc_signals(table_t2)
+    if signals_t1 is None or signals_t2 is None:
+        return 0.0
+
+    group_a = set(signals_t1.groups_clean or [])
+    group_b = set(signals_t2.groups_clean or [])
+    hier_a = {
+        normalize_indicator_for_comparison(item)
+        for item in (signals_t1.hierarchical_indicator_signature or [])
+        if str(item).strip()
+    }
+    hier_b = {
+        normalize_indicator_for_comparison(item)
+        for item in (signals_t2.hierarchical_indicator_signature or [])
+        if str(item).strip()
+    }
+
+    group_score = len(group_a & group_b) / len(group_a | group_b) if group_a and group_b else 0.0
+    hier_score = len(hier_a & hier_b) / len(hier_a | hier_b) if hier_a and hier_b else 0.0
+    return min(0.10, (0.04 * group_score) + (0.06 * hier_score))
 
 
 def _composite_score(
@@ -722,6 +858,325 @@ def _compute_pair_score_with_guard_rails(
     )
 
 
+def _top_candidates_for_row(
+    *,
+    row_index: int,
+    scores: np.ndarray,
+    decisions: list[list[MatchDecision]],
+    t2_list: list[TableArtifact],
+    limit: int = 3,
+) -> list[dict[str, Any]]:
+    ranked = sorted(
+        [
+            (float(scores[row_index, j]), j)
+            for j in range(len(t2_list))
+            if float(scores[row_index, j]) > -1e8
+        ],
+        key=lambda item: item[0],
+        reverse=True,
+    )
+    payload: list[dict[str, Any]] = []
+    for score, j in ranked[:limit]:
+        decision = decisions[row_index][j]
+        candidate = t2_list[j]
+        payload.append(
+            {
+                "t2_uid": decision.t2_uid,
+                "t2_table_id": candidate.table_id,
+                "score": round(score, 4),
+                "decision_level": decision.decision_level,
+                "reason": decision.reason,
+                "indicator_overlap": round(decision.indicator_overlap, 4),
+                "indicator_containment": round(decision.indicator_containment, 4),
+                "section_state": decision.section_state,
+            }
+        )
+    return payload
+
+
+def _top_candidates_for_column(
+    *,
+    col_index: int,
+    scores: np.ndarray,
+    decisions: list[list[MatchDecision]],
+    t1_list: list[TableArtifact],
+    limit: int = 3,
+) -> list[dict[str, Any]]:
+    ranked = sorted(
+        [
+            (float(scores[i, col_index]), i)
+            for i in range(len(t1_list))
+            if float(scores[i, col_index]) > -1e8
+        ],
+        key=lambda item: item[0],
+        reverse=True,
+    )
+    payload: list[dict[str, Any]] = []
+    for score, i in ranked[:limit]:
+        decision = decisions[i][col_index]
+        candidate = t1_list[i]
+        payload.append(
+            {
+                "t1_uid": decision.t1_uid,
+                "t1_table_id": candidate.table_id,
+                "score": round(score, 4),
+                "decision_level": decision.decision_level,
+                "reason": decision.reason,
+                "indicator_overlap": round(decision.indicator_overlap, 4),
+                "indicator_containment": round(decision.indicator_containment, 4),
+                "section_state": decision.section_state,
+            }
+        )
+    return payload
+
+
+def _score_margin(candidates: list[dict[str, Any]]) -> float | None:
+    if len(candidates) < 2:
+        return None
+    return float(candidates[0]["score"]) - float(candidates[1]["score"])
+
+
+def _rebuild_decision_with_level(
+    decision: MatchDecision,
+    *,
+    decision_level: str,
+) -> MatchDecision:
+    return MatchDecision(
+        is_match=(decision_level == "match"),
+        reason=decision.reason,
+        score=decision.score,
+        section_match=decision.section_match,
+        table_number_match=decision.table_number_match,
+        table_label_base_match=decision.table_label_base_match,
+        table_label_suffix_diff=decision.table_label_suffix_diff,
+        indicator_overlap=decision.indicator_overlap,
+        title_similarity=decision.title_similarity,
+        structure_similarity=decision.structure_similarity,
+        context_heading_similarity=decision.context_heading_similarity,
+        position_proximity=decision.position_proximity,
+        t1_uid=decision.t1_uid,
+        t2_uid=decision.t2_uid,
+        t1_table_id=decision.t1_table_id,
+        t2_table_id=decision.t2_table_id,
+        indicator_containment=decision.indicator_containment,
+        header_schema_similarity=decision.header_schema_similarity,
+        section_state=decision.section_state,
+        decision_level=decision_level,
+        rescue_type=decision.rescue_type,
+        soft_indicator_overlap=decision.soft_indicator_overlap,
+        embed_sim=getattr(decision, "embed_sim", 0.0),
+        embed_sim_canon=getattr(decision, "embed_sim_canon", 0.0),
+        embed_sim_token_sorted=getattr(decision, "embed_sim_token_sorted", 0.0),
+        table_fp_gating=getattr(decision, "table_fp_gating", ""),
+        fingerprint_token_count=getattr(decision, "fingerprint_token_count", 0),
+    )
+
+
+def _run_hungarian_assignment(
+    *,
+    t1_list: list[TableArtifact],
+    t2_list: list[TableArtifact],
+    th: dict[str, float],
+    overlap_threshold: float,
+    bank_code: str | None,
+    margin_threshold: float,
+    borderline_score: float,
+    embedding_service: EmbeddingService | None,
+    use_post_threshold: bool,
+) -> dict[str, Any]:
+    if not t1_list or not t2_list:
+        return {
+            "assignments": [],
+            "unmatched_t1_indices": list(range(len(t1_list))),
+            "unmatched_t2_indices": list(range(len(t2_list))),
+            "ambiguous_t1_indices": set(),
+            "ambiguous_t2_indices": set(),
+            "diagnostics": {
+                "score_matrix": [],
+                "row_top_candidates": {},
+                "column_top_candidates": {},
+                "rejected_by_margin": [],
+            },
+        }
+
+    match_score_v2 = th.get("match_score_v2", 0.70)
+    probable_score_v2 = th.get("probable_score_v2", 0.62)
+    hungarian_min_score = th.get("hungarian_min_score", probable_score_v2)
+
+    n, m = len(t1_list), len(t2_list)
+    decisions: list[list[MatchDecision]] = []
+    scores = np.full((n, m), -1e9, dtype=np.float64)
+
+    for i, t1 in enumerate(t1_list):
+        row_decisions: list[MatchDecision] = []
+        for j, t2 in enumerate(t2_list):
+            if use_post_threshold:
+                score_result = _compute_pair_score_with_guard_rails(
+                    t1,
+                    t2,
+                    overlap_threshold=overlap_threshold,
+                    thresholds=th,
+                    bank_code=bank_code,
+                    embedding_service=embedding_service,
+                )
+                row_decisions.append(score_result.decision)
+                if not score_result.is_blocked:
+                    scores[i, j] = score_result.score
+            else:
+                decision = match_decision(
+                    t1,
+                    t2,
+                    overlap_threshold=overlap_threshold,
+                    thresholds=th,
+                    bank_code=bank_code,
+                    embedding_service=embedding_service,
+                )
+                row_decisions.append(decision)
+                if decision.is_match:
+                    scores[i, j] = decision.score
+        decisions.append(row_decisions)
+
+    row_ind, col_ind = linear_sum_assignment(scores, maximize=True)
+
+    assignments: list[tuple[int, int, MatchDecision]] = []
+    assigned_t1: set[int] = set()
+    assigned_t2: set[int] = set()
+    ambiguous_t1_indices: set[int] = set()
+    ambiguous_t2_indices: set[int] = set()
+    rejected_by_margin: list[dict[str, Any]] = []
+
+    row_top_candidates = {
+        str(_table_uid(t1_list[i])): _top_candidates_for_row(
+            row_index=i,
+            scores=scores,
+            decisions=decisions,
+            t2_list=t2_list,
+        )
+        for i in range(n)
+    }
+    column_top_candidates = {
+        str(_table_uid(t2_list[j])): _top_candidates_for_column(
+            col_index=j,
+            scores=scores,
+            decisions=decisions,
+            t1_list=t1_list,
+        )
+        for j in range(m)
+    }
+
+    for k in range(len(row_ind)):
+        i, j = int(row_ind[k]), int(col_ind[k])
+        decision = decisions[i][j]
+        if float(scores[i, j]) <= -1e8:
+            continue
+        assigned_t1.add(i)
+        assigned_t2.add(j)
+        assignments.append((i, j, decision))
+
+    filtered_assignments: list[tuple[int, int, MatchDecision]] = []
+    for i, j, decision in assignments:
+        row_candidates = row_top_candidates.get(str(_table_uid(t1_list[i])), [])
+        col_candidates = column_top_candidates.get(str(_table_uid(t2_list[j])), [])
+        row_margin = _score_margin(row_candidates)
+        col_margin = _score_margin(col_candidates)
+        row_ambiguous = row_margin is not None and row_margin < margin_threshold
+        col_ambiguous = col_margin is not None and col_margin < margin_threshold
+        if row_ambiguous or col_ambiguous:
+            assigned_t1.discard(i)
+            assigned_t2.discard(j)
+            ambiguous_t1_indices.add(i)
+            ambiguous_t2_indices.add(j)
+            if row_ambiguous and len(row_candidates) > 1:
+                ambiguous_t2_indices.add(
+                    next(
+                        idx
+                        for idx, table in enumerate(t2_list)
+                        if _table_uid(table) == str(row_candidates[1]["t2_uid"])
+                    )
+                )
+            if col_ambiguous and len(col_candidates) > 1:
+                ambiguous_t1_indices.add(
+                    next(
+                        idx
+                        for idx, table in enumerate(t1_list)
+                        if _table_uid(table) == str(col_candidates[1]["t1_uid"])
+                    )
+                )
+            rejected_by_margin.append(
+                {
+                    "t1_uid": decision.t1_uid,
+                    "t2_uid": decision.t2_uid,
+                    "score": round(decision.score, 4),
+                    "row_margin": None if row_margin is None else round(row_margin, 4),
+                    "column_margin": None
+                    if col_margin is None
+                    else round(col_margin, 4),
+                    "row_candidates": row_candidates,
+                    "column_candidates": col_candidates,
+                }
+            )
+            continue
+
+        if use_post_threshold:
+            score = decision.score
+            if score < hungarian_min_score:
+                assigned_t1.discard(i)
+                assigned_t2.discard(j)
+                continue
+            decision_level = (
+                "match"
+                if score >= match_score_v2
+                else "probable"
+                if score >= probable_score_v2
+                else "no_match"
+            )
+            if decision_level == "no_match":
+                assigned_t1.discard(i)
+                assigned_t2.discard(j)
+                continue
+            decision = _rebuild_decision_with_level(
+                decision,
+                decision_level=decision_level,
+            )
+
+        filtered_assignments.append((i, j, decision))
+
+    for _, _, decision in filtered_assignments:
+        if decision.score < borderline_score:
+            logger.warning(
+                "Borderline match (score=%.3f): %s <-> %s  reason=%s  io=%.3f  ts=%.3f",
+                decision.score,
+                decision.t1_uid,
+                decision.t2_uid,
+                decision.reason,
+                decision.indicator_overlap,
+                decision.title_similarity,
+            )
+
+    unmatched_t1_indices = [i for i in range(n) if i not in assigned_t1]
+    unmatched_t2_indices = [j for j in range(m) if j not in assigned_t2]
+    score_matrix = [
+        [
+            None if float(scores[i, j]) <= -1e8 else round(float(scores[i, j]), 4)
+            for j in range(m)
+        ]
+        for i in range(n)
+    ]
+    return {
+        "assignments": filtered_assignments,
+        "unmatched_t1_indices": unmatched_t1_indices,
+        "unmatched_t2_indices": unmatched_t2_indices,
+        "ambiguous_t1_indices": ambiguous_t1_indices,
+        "ambiguous_t2_indices": ambiguous_t2_indices,
+        "diagnostics": {
+            "score_matrix": score_matrix,
+            "row_top_candidates": row_top_candidates,
+            "column_top_candidates": column_top_candidates,
+            "rejected_by_margin": rejected_by_margin,
+        },
+    }
+
+
 def match_decision(
     table_t1: TableArtifact,
     table_t2: TableArtifact,
@@ -759,9 +1214,16 @@ def match_decision(
         and label_t1.base != label_t2.base
         and not ignore_table_id_for_number
     )
-    _, hash_t1 = _get_table_features(table_t1)
-    _, hash_t2 = _get_table_features(table_t2)
-    if not table_number_conflict and hash_t1 and hash_t2 and hash_t1 == hash_t2:
+    anchors_t1, hash_t1 = _get_table_features(table_t1)
+    anchors_t2, hash_t2 = _get_table_features(table_t2)
+    if (
+        not table_number_conflict
+        and anchors_t1
+        and anchors_t2
+        and hash_t1
+        and hash_t2
+        and hash_t1 == hash_t2
+    ):
         if section_state == "same_known":
             title_sim = _title_similarity(table_t1, table_t2, bank_code=bank_code)
             body_t1 = _title_body_without_table_number(table_t1.title, bank_code)
@@ -839,6 +1301,15 @@ def match_decision(
     ) * indicator_overlap + soft_overlap_weight * soft_indicator_overlap
     indicator_containment = _indicator_containment(table_t1, table_t2)
     title_similarity = _title_similarity(table_t1, table_t2, bank_code=bank_code)
+    titles_reliable_for_score = True
+    if is_rbc_bank(bank_code or getattr(table_t1, "bank_code", None)):
+        titles_reliable_for_score = (
+            _table_title_reliability(table_t1, bank_code) == "reliable"
+            and _table_title_reliability(table_t2, bank_code) == "reliable"
+        )
+    effective_title_similarity = (
+        title_similarity if titles_reliable_for_score else 0.0
+    )
     structure_similarity = _structure_similarity(table_t1, table_t2)
     header_schema_similarity_score = header_schema_similarity(
         table_t1.headers or [],
@@ -899,7 +1370,7 @@ def match_decision(
     if use_plan_formula:
         s_labels = effective_label_overlap
         s_anchors = _jaccard_anchors(table_t1, table_t2)
-        s_title = title_similarity
+        s_title = effective_title_similarity
         s_size = structure_similarity
         w_labels = float(
             th.get("weight_s_labels") or th.get("weight_label_overlap", 0.70)
@@ -922,7 +1393,7 @@ def match_decision(
         composite_score = _composite_score(
             table_label_score=table_label_score,
             indicator_containment=indicator_containment,
-            title_similarity=title_similarity,
+            title_similarity=effective_title_similarity,
             structure_similarity=structure_similarity,
             indicator_overlap=effective_label_overlap,
             header_schema_similarity_score=header_schema_similarity_score,
@@ -931,6 +1402,17 @@ def match_decision(
             embed_similarity=embed_sim,
             thresholds=th,
         )
+    composite_score = min(
+        1.0,
+        composite_score
+        + _rbc_structural_bonus(
+            table_t1,
+            table_t2,
+            bank_code=bank_code or getattr(table_t1, "bank_code", None),
+            indicator_containment=indicator_containment,
+            header_schema_similarity_score=header_schema_similarity_score,
+        ),
+    )
     if section_state == "unknown_present":
         composite_score *= max(0.0, 1.0 - unknown_section_penalty)
 
@@ -1324,80 +1806,19 @@ def _match_section_hungarian(
     margin_threshold: float,
     borderline_score: float,
     embedding_service: EmbeddingService | None = None,
-) -> tuple[list[tuple[int, int, MatchDecision]], list[int], set[int]]:
-    """Optimal assignment via Hungarian algorithm for one section.
-    Returns (assignments, unmatched_t1_indices, uncertain_t2_indices).
-    """
-    if not t1_list or not t2_list:
-        return [], list(range(len(t1_list))), set()
-
-    n, m = len(t1_list), len(t2_list)
-    decisions: list[list[MatchDecision]] = []
-    scores = np.full((n, m), -1e9, dtype=np.float64)
-
-    for i, t1 in enumerate(t1_list):
-        row_decisions: list[MatchDecision] = []
-        for j, t2 in enumerate(t2_list):
-            d = match_decision(
-                t1,
-                t2,
-                overlap_threshold=overlap_threshold,
-                thresholds=th,
-                bank_code=bank_code,
-                embedding_service=embedding_service,
-            )
-            row_decisions.append(d)
-            if d.is_match:
-                scores[i, j] = d.score
-        decisions.append(row_decisions)
-
-    row_ind, col_ind = linear_sum_assignment(scores, maximize=True)
-
-    assignments: list[tuple[int, int, MatchDecision]] = []
-    assigned_t1: set[int] = set()
-    assigned_t2: set[int] = set()
-    uncertain_t2_indices: set[int] = set()
-
-    for k in range(len(row_ind)):
-        i, j = int(row_ind[k]), int(col_ind[k])
-        d = decisions[i][j]
-        if not d.is_match or scores[i, j] <= -1e8:
-            continue
-        assigned_t1.add(i)
-        assigned_t2.add(j)
-        assignments.append((i, j, d))
-
-    for i, j, d in list(assignments):
-        row_scores = [
-            (decisions[i][jj].score if decisions[i][jj].is_match else -1e9, jj)
-            for jj in range(m)
-        ]
-        row_scores.sort(key=lambda x: x[0], reverse=True)
-        if len(row_scores) > 1 and row_scores[1][0] > -1e8:
-            diff = row_scores[0][0] - row_scores[1][0]
-            if diff < margin_threshold:
-                assignments = [
-                    (ii, jj, dd) for (ii, jj, dd) in assignments if ii != i or jj != j
-                ]
-                assigned_t1.discard(i)
-                assigned_t2.discard(j)
-                uncertain_t2_indices.add(j)
-                uncertain_t2_indices.add(int(row_scores[1][1]))
-
-    for i, j, d in assignments:
-        if d.score < borderline_score:
-            logger.warning(
-                "Borderline match (score=%.3f): %s <-> %s  reason=%s  io=%.3f  ts=%.3f",
-                d.score,
-                d.t1_uid,
-                d.t2_uid,
-                d.reason,
-                d.indicator_overlap,
-                d.title_similarity,
-            )
-
-    unmatched_t1_indices = [i for i in range(n) if i not in assigned_t1]
-    return assignments, unmatched_t1_indices, uncertain_t2_indices
+) -> dict[str, Any]:
+    """Optimal assignment via Hungarian algorithm for one candidate set."""
+    return _run_hungarian_assignment(
+        t1_list=t1_list,
+        t2_list=t2_list,
+        th=th,
+        overlap_threshold=overlap_threshold,
+        bank_code=bank_code,
+        margin_threshold=margin_threshold,
+        borderline_score=borderline_score,
+        embedding_service=embedding_service,
+        use_post_threshold=False,
+    )
 
 
 def _match_section_hungarian_post_threshold(
@@ -1410,343 +1831,19 @@ def _match_section_hungarian_post_threshold(
     margin_threshold: float,
     borderline_score: float,
     embedding_service: EmbeddingService | None = None,
-) -> tuple[list[tuple[int, int, MatchDecision]], list[int], set[int]]:
-    """Hungarian with post-threshold: matrix uses all non-blocked scores, then
-    apply match_score_v2/probable_score_v2 after assignment."""
-    if not t1_list or not t2_list:
-        return [], list(range(len(t1_list))), set()
-
-    match_score_v2 = th.get("match_score_v2", 0.70)
-    probable_score_v2 = th.get("probable_score_v2", 0.62)
-    hungarian_min_score = th.get("hungarian_min_score", probable_score_v2)
-
-    n, m = len(t1_list), len(t2_list)
-    score_results: list[list[ScoreResult]] = []
-    scores = np.full((n, m), -1e9, dtype=np.float64)
-
-    for i, t1 in enumerate(t1_list):
-        row_results: list[ScoreResult] = []
-        for j, t2 in enumerate(t2_list):
-            sr = _compute_pair_score_with_guard_rails(
-                t1,
-                t2,
-                overlap_threshold=overlap_threshold,
-                thresholds=th,
-                bank_code=bank_code,
-                embedding_service=embedding_service,
-            )
-            row_results.append(sr)
-            if not sr.is_blocked:
-                scores[i, j] = sr.score
-        score_results.append(row_results)
-
-    row_ind, col_ind = linear_sum_assignment(scores, maximize=True)
-
-    assignments: list[tuple[int, int, MatchDecision]] = []
-    assigned_t1: set[int] = set()
-    assigned_t2: set[int] = set()
-    uncertain_t2_indices: set[int] = set()
-
-    for k in range(len(row_ind)):
-        i, j = int(row_ind[k]), int(col_ind[k])
-        sr = score_results[i][j]
-        if sr.is_blocked or scores[i, j] <= -1e8:
-            continue
-        assigned_t1.add(i)
-        assigned_t2.add(j)
-        assignments.append((i, j, sr.decision))
-
-    for i, j, d in list(assignments):
-        row_scores = [
-            (
-                score_results[i][jj].score
-                if not score_results[i][jj].is_blocked
-                else -1e9,
-                jj,
-            )
-            for jj in range(m)
-        ]
-        row_scores.sort(key=lambda x: x[0], reverse=True)
-        if len(row_scores) > 1 and row_scores[1][0] > -1e8:
-            diff = row_scores[0][0] - row_scores[1][0]
-            if diff < margin_threshold:
-                assignments = [
-                    (ii, jj, dd) for (ii, jj, dd) in assignments if ii != i or jj != j
-                ]
-                assigned_t1.discard(i)
-                assigned_t2.discard(j)
-                uncertain_t2_indices.add(j)
-                uncertain_t2_indices.add(int(row_scores[1][1]))
-
-    post_filtered: list[tuple[int, int, MatchDecision]] = []
-    for i, j, d in assignments:
-        score = d.score
-        if score < hungarian_min_score:
-            assigned_t1.discard(i)
-            assigned_t2.discard(j)
-            continue
-        decision_level = (
-            "match"
-            if score >= match_score_v2
-            else "probable"
-            if score >= probable_score_v2
-            else "no_match"
-        )
-        if decision_level == "no_match":
-            assigned_t1.discard(i)
-            assigned_t2.discard(j)
-            continue
-        new_decision = MatchDecision(
-            is_match=(decision_level == "match"),
-            reason=d.reason,
-            score=d.score,
-            section_match=d.section_match,
-            table_number_match=d.table_number_match,
-            table_label_base_match=d.table_label_base_match,
-            table_label_suffix_diff=d.table_label_suffix_diff,
-            indicator_overlap=d.indicator_overlap,
-            title_similarity=d.title_similarity,
-            structure_similarity=d.structure_similarity,
-            embed_sim=getattr(d, "embed_sim", 0.0),
-            context_heading_similarity=d.context_heading_similarity,
-            position_proximity=d.position_proximity,
-            t1_uid=d.t1_uid,
-            t2_uid=d.t2_uid,
-            t1_table_id=d.t1_table_id,
-            t2_table_id=d.t2_table_id,
-            indicator_containment=d.indicator_containment,
-            header_schema_similarity=d.header_schema_similarity,
-            section_state=d.section_state,
-            decision_level=decision_level,
-            rescue_type=d.rescue_type,
-            soft_indicator_overlap=d.soft_indicator_overlap,
-            embed_sim_canon=getattr(d, "embed_sim_canon", 0.0),
-            embed_sim_token_sorted=getattr(d, "embed_sim_token_sorted", 0.0),
-            table_fp_gating=getattr(d, "table_fp_gating", ""),
-            fingerprint_token_count=getattr(d, "fingerprint_token_count", 0),
-        )
-        post_filtered.append((i, j, new_decision))
-
-    for i, j, d in post_filtered:
-        if d.score < borderline_score:
-            logger.warning(
-                "Borderline match (score=%.3f): %s <-> %s  reason=%s  io=%.3f  ts=%.3f",
-                d.score,
-                d.t1_uid,
-                d.t2_uid,
-                d.reason,
-                d.indicator_overlap,
-                d.title_similarity,
-            )
-
-    unmatched_t1_indices = [i for i in range(n) if i not in assigned_t1]
-    return post_filtered, unmatched_t1_indices, uncertain_t2_indices
-
-
-def _match_tables_greedy(
-    tables_t1: list[TableArtifact],
-    tables_t2: list[TableArtifact],
-    *,
-    th: dict[str, float],
-    overlap_threshold: float,
-    effective_bank_code: str | None,
-    margin_threshold: float,
-    borderline_score: float,
-    embedding_service: EmbeddingService | None = None,
-) -> dict[str, list[dict[str, Any]]]:
-    """Greedy table matching (original algorithm)."""
-    pairs: list[dict[str, Any]] = []
-    probable_pairs: list[dict[str, Any]] = []
-    debug_unmatched_candidates: list[dict[str, Any]] = []
-    unmatched_t1: list[dict[str, Any]] = []
-    used_t2_uids: set[str] = set()
-    uncertain_t2_uids: set[str] = set()
-
-    for table_t1 in tables_t1:
-        candidates = [
-            table_t2
-            for table_t2 in tables_t2
-            if (
-                _sections_candidate_compatible(table_t1, table_t2)
-                and _table_uid(table_t2) not in used_t2_uids
-            )
-        ]
-
-        if not candidates:
-            unmatched_t1.append(
-                {
-                    "t1_uid": _table_uid(table_t1),
-                    "t1_table_id": table_t1.table_id,
-                    "section": table_t1.section,
-                    "page_t1": table_t1.page_pdf,
-                    "title_t1": table_t1.title,
-                    "reason": "unknown_section"
-                    if not _is_known_section(table_t1.section)
-                    else "no_candidate_same_section",
-                }
-            )
-            continue
-
-        candidate_decisions = [
-            (
-                candidate,
-                match_decision(
-                    table_t1,
-                    candidate,
-                    overlap_threshold=overlap_threshold,
-                    thresholds=th,
-                    bank_code=effective_bank_code,
-                    embedding_service=embedding_service,
-                ),
-            )
-            for candidate in candidates
-        ]
-        candidate_decisions.sort(key=lambda item: item[1].score, reverse=True)
-        best_candidate, best = candidate_decisions[0]
-
-        # Anti-greedy: if top-2 candidates are too close, do not auto-lock.
-        if best.is_match and len(candidate_decisions) > 1:
-            second = candidate_decisions[1][1]
-            if second.is_match and (best.score - second.score) < margin_threshold:
-                unmatched_t1.append(
-                    {
-                        "t1_uid": _table_uid(table_t1),
-                        "t1_table_id": table_t1.table_id,
-                        "section": table_t1.section,
-                        "page_t1": table_t1.page_pdf,
-                        "title_t1": table_t1.title,
-                        "reason": "uncertain_competition",
-                    }
-                )
-                uncertain_t2_uids.add(best.t2_uid)
-                uncertain_t2_uids.add(second.t2_uid)
-                debug_unmatched_candidates.append(
-                    {
-                        "t1_uid": _table_uid(table_t1),
-                        "candidates": [
-                            {
-                                "t2_uid": decision.t2_uid,
-                                "t2_table_id": candidate.table_id,
-                                "score": round(decision.score, 4),
-                                "decision_level": decision.decision_level,
-                                "reason": decision.reason,
-                                "indicator_overlap": round(
-                                    decision.indicator_overlap, 4
-                                ),
-                                "indicator_containment": round(
-                                    decision.indicator_containment, 4
-                                ),
-                                "section_state": decision.section_state,
-                            }
-                            for candidate, decision in candidate_decisions[
-                                : max(
-                                    1, int(th.get("split_diagnostic_max_candidates", 5))
-                                )
-                            ]
-                        ],
-                    }
-                )
-                continue
-
-        if best.is_match:
-            if best.score < borderline_score:
-                logger.warning(
-                    "Borderline match (score=%.3f): %s <-> %s  reason=%s  io=%.3f  ts=%.3f",
-                    best.score,
-                    best.t1_uid,
-                    best.t2_uid,
-                    best.reason,
-                    best.indicator_overlap,
-                    best.title_similarity,
-                )
-            pair = best.to_dict()
-            pair["section"] = table_t1.section
-            pair["page_t1"] = table_t1.page_pdf
-            pair["title_t1"] = table_t1.title
-            pair["t1_uid"] = best.t1_uid
-            pair["page_t2"] = best_candidate.page_pdf
-            pair["title_t2"] = best_candidate.title
-            pair["t2_uid"] = best.t2_uid
-            used_t2_uids.add(_table_uid(best_candidate))
-            pairs.append(pair)
-        else:
-            if best.decision_level == "probable":
-                probable = best.to_dict()
-                probable["section"] = table_t1.section
-                probable["page_t1"] = table_t1.page_pdf
-                probable["title_t1"] = table_t1.title
-                probable["page_t2"] = best_candidate.page_pdf
-                probable["title_t2"] = best_candidate.title
-                probable["t1_uid"] = best.t1_uid
-                probable["t2_uid"] = best.t2_uid
-                probable_pairs.append(probable)
-            unmatched_t1.append(
-                {
-                    "t1_uid": _table_uid(table_t1),
-                    "t1_table_id": table_t1.table_id,
-                    "section": table_t1.section,
-                    "page_t1": table_t1.page_pdf,
-                    "title_t1": table_t1.title,
-                    "reason": best.reason,
-                    "best_decision_level": best.decision_level,
-                    "best_score": round(best.score, 4),
-                    "best_indicator_overlap": round(best.indicator_overlap, 4),
-                    "best_indicator_containment": round(best.indicator_containment, 4),
-                }
-            )
-            debug_unmatched_candidates.append(
-                {
-                    "t1_uid": _table_uid(table_t1),
-                    "candidates": [
-                        {
-                            "t2_uid": decision.t2_uid,
-                            "t2_table_id": candidate.table_id,
-                            "score": round(decision.score, 4),
-                            "decision_level": decision.decision_level,
-                            "reason": decision.reason,
-                            "indicator_overlap": round(decision.indicator_overlap, 4),
-                            "indicator_containment": round(
-                                decision.indicator_containment, 4
-                            ),
-                            "section_state": decision.section_state,
-                        }
-                        for candidate, decision in candidate_decisions[
-                            : max(1, int(th.get("split_diagnostic_max_candidates", 5)))
-                        ]
-                    ],
-                }
-            )
-
-    unmatched_t2 = []
-    for table_t2 in tables_t2:
-        uid = _table_uid(table_t2)
-        if uid in used_t2_uids:
-            continue
-        reason = (
-            "unknown_section"
-            if not _is_known_section(table_t2.section)
-            else "unmatched"
-        )
-        if uid in uncertain_t2_uids and reason == "unmatched":
-            reason = "uncertain_competition"
-        unmatched_t2.append(
-            {
-                "t2_uid": uid,
-                "t2_table_id": table_t2.table_id,
-                "section": table_t2.section,
-                "page_t2": table_t2.page_pdf,
-                "title_t2": table_t2.title,
-                "reason": reason,
-            }
-        )
-
-    return {
-        "pairs": pairs,
-        "probable_pairs": probable_pairs,
-        "unmatched_t1": unmatched_t1,
-        "unmatched_t2": unmatched_t2,
-        "debug_unmatched_candidates": debug_unmatched_candidates,
-    }
+) -> dict[str, Any]:
+    """Hungarian with post-threshold over all non-blocked candidates."""
+    return _run_hungarian_assignment(
+        t1_list=t1_list,
+        t2_list=t2_list,
+        th=th,
+        overlap_threshold=overlap_threshold,
+        bank_code=bank_code,
+        margin_threshold=margin_threshold,
+        borderline_score=borderline_score,
+        embedding_service=embedding_service,
+        use_post_threshold=True,
+    )
 
 
 def _match_tables_hungarian(
@@ -1760,12 +1857,17 @@ def _match_tables_hungarian(
     borderline_score: float,
     embedding_service: EmbeddingService | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
-    """Hungarian assignment on known sections + greedy fallback for residual/unknown."""
+    """Hungarian assignment on known sections + symmetric residual assignment."""
     pairs: list[dict[str, Any]] = []
     probable_pairs: list[dict[str, Any]] = []
     debug_unmatched_candidates: list[dict[str, Any]] = []
+    debug_unmatched_candidates_t2: list[dict[str, Any]] = []
     used_t1_uids: set[str] = set()
     used_t2_uids: set[str] = set()
+    matcher_diagnostics: dict[str, Any] = {
+        "phases": [],
+        "rejected_by_margin": [],
+    }
 
     use_post_threshold = bool(th.get("use_post_hungarian_threshold", False))
 
@@ -1784,7 +1886,7 @@ def _match_tables_hungarian(
         else:
             section_matcher = _match_section_hungarian
 
-        assignments, _unmatched_indices, _uncertain_t2_idx = section_matcher(
+        section_result = section_matcher(
             t1_section,
             t2_section,
             th=th,
@@ -1794,8 +1896,20 @@ def _match_tables_hungarian(
             borderline_score=borderline_score,
             embedding_service=embedding_service,
         )
+        matcher_diagnostics["phases"].append(
+            {
+                "phase": "hungarian_main",
+                "section": section,
+                "t1_uids": [_table_uid(item) for item in t1_section],
+                "t2_uids": [_table_uid(item) for item in t2_section],
+                **section_result["diagnostics"],
+            }
+        )
+        matcher_diagnostics["rejected_by_margin"].extend(
+            section_result["diagnostics"].get("rejected_by_margin", [])
+        )
 
-        for i, j, d in assignments:
+        for i, j, d in section_result["assignments"]:
             t1_obj = t1_section[i]
             t2_obj = t2_section[j]
             pair = d.to_dict()
@@ -1806,6 +1920,7 @@ def _match_tables_hungarian(
             pair["page_t2"] = t2_obj.page_pdf
             pair["title_t2"] = t2_obj.title
             pair["t2_uid"] = d.t2_uid
+            pair["match_source"] = "hungarian_main"
             used_t2_uids.add(d.t2_uid)
             used_t1_uids.add(d.t1_uid)
             if use_post_threshold and d.decision_level == "probable":
@@ -1815,26 +1930,149 @@ def _match_tables_hungarian(
 
     remaining_t1 = [t for t in tables_t1 if _table_uid(t) not in used_t1_uids]
     remaining_t2 = [t for t in tables_t2 if _table_uid(t) not in used_t2_uids]
-    fallback = _match_tables_greedy(
-        remaining_t1,
-        remaining_t2,
-        th=th,
-        overlap_threshold=overlap_threshold,
-        effective_bank_code=effective_bank_code,
-        margin_threshold=margin_threshold,
-        borderline_score=borderline_score,
-        embedding_service=embedding_service,
+
+    residual_result = (
+        (
+            _match_section_hungarian_post_threshold
+            if use_post_threshold
+            else _match_section_hungarian
+        )(
+            remaining_t1,
+            remaining_t2,
+            th=th,
+            overlap_threshold=overlap_threshold,
+            bank_code=effective_bank_code,
+            margin_threshold=margin_threshold,
+            borderline_score=borderline_score,
+            embedding_service=embedding_service,
+        )
+        if remaining_t1 and remaining_t2
+        else {
+            "assignments": [],
+            "unmatched_t1_indices": list(range(len(remaining_t1))),
+            "unmatched_t2_indices": list(range(len(remaining_t2))),
+            "ambiguous_t1_indices": set(),
+            "ambiguous_t2_indices": set(),
+            "diagnostics": {
+                "score_matrix": [],
+                "row_top_candidates": {},
+                "column_top_candidates": {},
+                "rejected_by_margin": [],
+            },
+        }
     )
-    pairs.extend(fallback["pairs"])
-    probable_pairs.extend(fallback.get("probable_pairs", []))
-    debug_unmatched_candidates.extend(fallback.get("debug_unmatched_candidates", []))
+
+    matcher_diagnostics["phases"].append(
+        {
+            "phase": "hungarian_residual",
+            "section": "__residual__",
+            "t1_uids": [_table_uid(item) for item in remaining_t1],
+            "t2_uids": [_table_uid(item) for item in remaining_t2],
+            **residual_result["diagnostics"],
+        }
+    )
+    matcher_diagnostics["rejected_by_margin"].extend(
+        residual_result["diagnostics"].get("rejected_by_margin", [])
+    )
+
+    for i, j, d in residual_result["assignments"]:
+        t1_obj = remaining_t1[i]
+        t2_obj = remaining_t2[j]
+        pair = d.to_dict()
+        pair["section"] = t1_obj.section
+        pair["page_t1"] = t1_obj.page_pdf
+        pair["title_t1"] = t1_obj.title
+        pair["t1_uid"] = d.t1_uid
+        pair["page_t2"] = t2_obj.page_pdf
+        pair["title_t2"] = t2_obj.title
+        pair["t2_uid"] = d.t2_uid
+        pair["match_source"] = "hungarian_residual"
+        if use_post_threshold and d.decision_level == "probable":
+            probable_pairs.append(pair)
+        else:
+            pairs.append(pair)
+
+    residual_ambiguous_t1 = set(residual_result["ambiguous_t1_indices"])
+    residual_ambiguous_t2 = set(residual_result["ambiguous_t2_indices"])
+    row_top_candidates = residual_result["diagnostics"].get("row_top_candidates", {})
+    column_top_candidates = residual_result["diagnostics"].get(
+        "column_top_candidates", {}
+    )
+
+    unmatched_t1: list[dict[str, Any]] = []
+    for idx in residual_result["unmatched_t1_indices"]:
+        table_t1 = remaining_t1[idx]
+        uid = _table_uid(table_t1)
+        top_candidates = list(row_top_candidates.get(uid, []))
+        status = "ambiguous" if idx in residual_ambiguous_t1 else "confirmed"
+        if not _is_known_section(table_t1.section):
+            reason = "unknown_section"
+        elif status == "ambiguous":
+            reason = "ambiguous_candidate"
+        elif not top_candidates:
+            reason = "no_candidate_same_section"
+        else:
+            reason = str(top_candidates[0].get("reason", "weak_signals") or "weak_signals")
+        unmatched_t1.append(
+            {
+                "t1_uid": uid,
+                "t1_table_id": table_t1.table_id,
+                "section": table_t1.section,
+                "page_t1": table_t1.page_pdf,
+                "title_t1": table_t1.title,
+                "reason": reason,
+                "unmatched_status": status,
+                "best_score": float(top_candidates[0]["score"]) if top_candidates else 0.0,
+                "best_decision_level": top_candidates[0]["decision_level"]
+                if top_candidates
+                else None,
+                "best_indicator_overlap": float(top_candidates[0]["indicator_overlap"])
+                if top_candidates
+                else 0.0,
+                "best_indicator_containment": float(
+                    top_candidates[0]["indicator_containment"]
+                )
+                if top_candidates
+                else 0.0,
+            }
+        )
+        debug_unmatched_candidates.append({"t1_uid": uid, "candidates": top_candidates})
+
+    unmatched_t2: list[dict[str, Any]] = []
+    for idx in residual_result["unmatched_t2_indices"]:
+        table_t2 = remaining_t2[idx]
+        uid = _table_uid(table_t2)
+        top_candidates = list(column_top_candidates.get(uid, []))
+        status = "ambiguous" if idx in residual_ambiguous_t2 else "confirmed"
+        if not _is_known_section(table_t2.section):
+            reason = "unknown_section"
+        elif status == "ambiguous":
+            reason = "ambiguous_candidate"
+        else:
+            reason = "unmatched"
+        unmatched_t2.append(
+            {
+                "t2_uid": uid,
+                "t2_table_id": table_t2.table_id,
+                "section": table_t2.section,
+                "page_t2": table_t2.page_pdf,
+                "title_t2": table_t2.title,
+                "reason": reason,
+                "unmatched_status": status,
+            }
+        )
+        debug_unmatched_candidates_t2.append(
+            {"t2_uid": uid, "candidates": top_candidates}
+        )
 
     return {
         "pairs": pairs,
         "probable_pairs": probable_pairs,
-        "unmatched_t1": fallback["unmatched_t1"],
-        "unmatched_t2": fallback["unmatched_t2"],
+        "unmatched_t1": unmatched_t1,
+        "unmatched_t2": unmatched_t2,
         "debug_unmatched_candidates": debug_unmatched_candidates,
+        "debug_unmatched_candidates_t2": debug_unmatched_candidates_t2,
+        "matching_diagnostics": matcher_diagnostics,
     }
 
 
@@ -1847,7 +2085,7 @@ def match_tables_intra_section(
     use_hungarian: bool | None = None,
     embedding_service: EmbeddingService | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
-    """Table matching with strict intra-section gating. Uses Hungarian or greedy per config."""
+    """Table matching with strict intra-section gating using the symmetric assignment matcher."""
     effective_bank_code = bank_code or _infer_bank_code(tables_t1, tables_t2)
     th = _load_compare_thresholds(bank_code=effective_bank_code)
     if overlap_threshold is None:
@@ -1855,35 +2093,26 @@ def match_tables_intra_section(
     margin_threshold = th["margin_threshold"]
     borderline_score = th["borderline_score_threshold"]
 
+    requested_mode = use_hungarian
     if use_hungarian is None:
-        use_hungarian = False
         try:
             from vigilance.config import get_matching_thresholds
 
-            cfg = get_matching_thresholds(bank_code=effective_bank_code)
-            use_hungarian = bool(cfg.get("use_hungarian_matching", False))
+            get_matching_thresholds(bank_code=effective_bank_code)
         except Exception:
             pass
 
     logger.info(
-        "Table matching: bank=%s use_hungarian=%s",
+        "Table matching: bank=%s matcher=symmetric_assignment requested_use_hungarian=%s",
         effective_bank_code,
-        use_hungarian,
+        requested_mode,
     )
-
-    if use_hungarian:
-        return _match_tables_hungarian(
-            tables_t1,
-            tables_t2,
-            th=th,
-            overlap_threshold=overlap_threshold,
-            effective_bank_code=effective_bank_code,
-            margin_threshold=margin_threshold,
-            borderline_score=borderline_score,
-            embedding_service=embedding_service,
+    if requested_mode is False:
+        logger.warning(
+            "use_hungarian=False is deprecated; the symmetric assignment matcher is used regardless."
         )
 
-    return _match_tables_greedy(
+    return _match_tables_hungarian(
         tables_t1,
         tables_t2,
         th=th,
@@ -1893,6 +2122,32 @@ def match_tables_intra_section(
         borderline_score=borderline_score,
         embedding_service=embedding_service,
     )
+
+
+def _allow_rbc_split_merge_rescue(
+    *,
+    bank_code: str | None,
+    primary_table: TableArtifact,
+    counterpart_table: TableArtifact,
+    primary_decision: MatchDecision,
+    union_containment: float,
+    schema_score: float,
+) -> bool:
+    if not is_rbc_bank(bank_code):
+        return True
+
+    if _table_title_reliability(primary_table, bank_code) == "reliable":
+        return True
+
+    if union_containment < 0.90:
+        return False
+    if primary_decision.indicator_containment < 0.55:
+        return False
+    if primary_decision.structure_similarity < 0.55:
+        return False
+    if schema_score < 0.70:
+        return False
+    return True
 
 
 def run_strict_intra_section_compare(
@@ -1922,8 +2177,10 @@ def run_strict_intra_section_compare(
     pairs = list(base.get("pairs", []))
     probable_pairs = list(base.get("probable_pairs", []))
     debug_unmatched_candidates = list(base.get("debug_unmatched_candidates", []))
+    debug_unmatched_candidates_t2 = list(base.get("debug_unmatched_candidates_t2", []))
     unmatched_t1 = list(base.get("unmatched_t1", []))
     unmatched_t2 = list(base.get("unmatched_t2", []))
+    matching_diagnostics = dict(base.get("matching_diagnostics", {}))
 
     remaining_t1 = {
         str(item.get("t1_uid", "")): item for item in unmatched_t1 if item.get("t1_uid")
@@ -1944,18 +2201,17 @@ def run_strict_intra_section_compare(
     rescued_matches_count = 0
     split_merge_rescues_count = 0
 
-    # Rescue pass 1: one-to-one rescue on remaining unmatched.
+    # Rescue pass 1: bidirectional one-to-one rescue on remaining unmatched.
+    rescue_candidates: dict[tuple[str, str], tuple[MatchDecision, str]] = {}
     for t1_uid in list(remaining_t1.keys()):
         table_t1 = table_by_t1_uid.get(t1_uid)
         if table_t1 is None:
             continue
         best_decision: MatchDecision | None = None
         best_t2_uid = ""
-        for t2_uid, t2_item in remaining_t2.items():
+        for t2_uid in remaining_t2.keys():
             table_t2 = table_by_t2_uid.get(t2_uid)
-            if table_t2 is None:
-                continue
-            if not _sections_candidate_compatible(table_t1, table_t2):
+            if table_t2 is None or not _sections_candidate_compatible(table_t1, table_t2):
                 continue
             decision = match_decision(
                 table_t1,
@@ -1974,23 +2230,68 @@ def run_strict_intra_section_compare(
             and best_decision.indicator_containment >= rescue_single_min_containment
             and best_decision.title_similarity >= rescue_single_min_title_similarity
         ):
-            table_t2 = table_by_t2_uid.get(best_t2_uid)
-            pair = best_decision.to_dict()
-            pair["section"] = table_t1.section
-            pair["page_t1"] = table_t1.page_pdf
-            pair["title_t1"] = table_t1.title
-            pair["t1_uid"] = t1_uid
-            if table_t2 is not None:
-                pair["page_t2"] = table_t2.page_pdf
-                pair["title_t2"] = table_t2.title
-            pair["t2_uid"] = best_t2_uid
-            pair["reason"] = "single_rescue"
-            pair["rescue_type"] = "single_rescue"
-            pair["decision_level"] = "match"
-            pairs.append(pair)
-            rescued_matches_count += 1
-            remaining_t1.pop(t1_uid, None)
-            remaining_t2.pop(best_t2_uid, None)
+            rescue_candidates[(t1_uid, best_t2_uid)] = (best_decision, "t1_to_t2")
+
+    for t2_uid in list(remaining_t2.keys()):
+        table_t2 = table_by_t2_uid.get(t2_uid)
+        if table_t2 is None:
+            continue
+        best_decision: MatchDecision | None = None
+        best_t1_uid = ""
+        for t1_uid in remaining_t1.keys():
+            table_t1 = table_by_t1_uid.get(t1_uid)
+            if table_t1 is None or not _sections_candidate_compatible(table_t1, table_t2):
+                continue
+            decision = match_decision(
+                table_t1,
+                table_t2,
+                overlap_threshold=overlap_threshold,
+                thresholds=th,
+                bank_code=effective_bank_code,
+                embedding_service=embedding_service,
+            )
+            if best_decision is None or decision.score > best_decision.score:
+                best_decision = decision
+                best_t1_uid = t1_uid
+        if (
+            best_decision is not None
+            and best_t1_uid
+            and best_decision.indicator_containment >= rescue_single_min_containment
+            and best_decision.title_similarity >= rescue_single_min_title_similarity
+        ):
+            current = rescue_candidates.get((best_t1_uid, t2_uid))
+            if current is None or best_decision.score > current[0].score:
+                rescue_candidates[(best_t1_uid, t2_uid)] = (best_decision, "t2_to_t1")
+
+    for (t1_uid, t2_uid), (decision, rescue_origin) in sorted(
+        rescue_candidates.items(),
+        key=lambda item: item[1][0].score,
+        reverse=True,
+    ):
+        if t1_uid not in remaining_t1 or t2_uid not in remaining_t2:
+            continue
+        table_t1 = table_by_t1_uid.get(t1_uid)
+        table_t2 = table_by_t2_uid.get(t2_uid)
+        if table_t1 is None:
+            continue
+        pair = decision.to_dict()
+        pair["section"] = table_t1.section
+        pair["page_t1"] = table_t1.page_pdf
+        pair["title_t1"] = table_t1.title
+        pair["t1_uid"] = t1_uid
+        if table_t2 is not None:
+            pair["page_t2"] = table_t2.page_pdf
+            pair["title_t2"] = table_t2.title
+        pair["t2_uid"] = t2_uid
+        pair["reason"] = "single_rescue"
+        pair["rescue_type"] = "single_rescue"
+        pair["decision_level"] = "match"
+        pair["match_source"] = "single_rescue"
+        pair["rescue_origin"] = rescue_origin
+        pairs.append(pair)
+        rescued_matches_count += 1
+        remaining_t1.pop(t1_uid, None)
+        remaining_t2.pop(t2_uid, None)
 
     # Rescue pass 2a: one T1 matches union of two T2 fragments.
     for t1_uid in list(remaining_t1.keys()):
@@ -2000,7 +2301,7 @@ def run_strict_intra_section_compare(
         t1_set = _indicator_set(table_t1)
         if len(t1_set) < 2:
             continue
-        best_combo: tuple[str, str, float] | None = None
+        best_combo: tuple[str, str, float, float, float] | None = None
         for left_uid, right_uid in combinations(list(remaining_t2.keys()), 2):
             left_table = table_by_t2_uid.get(left_uid)
             right_table = table_by_t2_uid.get(right_uid)
@@ -2030,10 +2331,16 @@ def run_strict_intra_section_compare(
             ):
                 combo_score = (0.8 * union_containment) + (0.2 * schema_score)
                 if best_combo is None or combo_score > best_combo[2]:
-                    best_combo = (left_uid, right_uid, combo_score)
+                    best_combo = (
+                        left_uid,
+                        right_uid,
+                        combo_score,
+                        union_containment,
+                        schema_score,
+                    )
         if not best_combo:
             continue
-        left_uid, right_uid, _ = best_combo
+        left_uid, right_uid, _, union_containment, schema_score = best_combo
         left_table = table_by_t2_uid.get(left_uid)
         right_table = table_by_t2_uid.get(right_uid)
         if left_table is None or right_table is None:
@@ -2052,6 +2359,15 @@ def run_strict_intra_section_compare(
         )
         if decision.reason == "table_number_conflict":
             continue
+        if not _allow_rbc_split_merge_rescue(
+            bank_code=effective_bank_code,
+            primary_table=primary_table,
+            counterpart_table=table_t1,
+            primary_decision=decision,
+            union_containment=union_containment,
+            schema_score=schema_score,
+        ):
+            continue
         pair = decision.to_dict()
         pair["section"] = table_t1.section
         pair["page_t1"] = table_t1.page_pdf
@@ -2063,6 +2379,7 @@ def run_strict_intra_section_compare(
         pair["reason"] = "split_merge_rescue"
         pair["rescue_type"] = "split_merge_rescue"
         pair["decision_level"] = "match"
+        pair["match_source"] = "split_merge_rescue"
         pair["split_members_t2"] = [left_uid, right_uid]
         pair["split_probable"] = True
         pairs.append(pair)
@@ -2080,7 +2397,7 @@ def run_strict_intra_section_compare(
         t2_set = _indicator_set(table_t2)
         if len(t2_set) < 2:
             continue
-        best_combo_t1: tuple[str, str, float] | None = None
+        best_combo_t1: tuple[str, str, float, float, float] | None = None
         for left_uid, right_uid in combinations(list(remaining_t1.keys()), 2):
             left_table = table_by_t1_uid.get(left_uid)
             right_table = table_by_t1_uid.get(right_uid)
@@ -2110,10 +2427,16 @@ def run_strict_intra_section_compare(
             ):
                 combo_score = (0.8 * union_containment) + (0.2 * schema_score)
                 if best_combo_t1 is None or combo_score > best_combo_t1[2]:
-                    best_combo_t1 = (left_uid, right_uid, combo_score)
+                    best_combo_t1 = (
+                        left_uid,
+                        right_uid,
+                        combo_score,
+                        union_containment,
+                        schema_score,
+                    )
         if not best_combo_t1:
             continue
-        left_uid, right_uid, _ = best_combo_t1
+        left_uid, right_uid, _, union_containment, schema_score = best_combo_t1
         left_table = table_by_t1_uid.get(left_uid)
         right_table = table_by_t1_uid.get(right_uid)
         if left_table is None or right_table is None:
@@ -2132,6 +2455,15 @@ def run_strict_intra_section_compare(
         )
         if decision.reason == "table_number_conflict":
             continue
+        if not _allow_rbc_split_merge_rescue(
+            bank_code=effective_bank_code,
+            primary_table=primary_table,
+            counterpart_table=table_t2,
+            primary_decision=decision,
+            union_containment=union_containment,
+            schema_score=schema_score,
+        ):
+            continue
         pair = decision.to_dict()
         pair["section"] = primary_table.section
         pair["page_t1"] = primary_table.page_pdf
@@ -2143,6 +2475,7 @@ def run_strict_intra_section_compare(
         pair["reason"] = "split_merge_rescue"
         pair["rescue_type"] = "split_merge_rescue"
         pair["decision_level"] = "match"
+        pair["match_source"] = "split_merge_rescue"
         pair["merge_members_t1"] = [left_uid, right_uid]
         pair["merge_probable"] = True
         pairs.append(pair)
@@ -2161,6 +2494,8 @@ def run_strict_intra_section_compare(
 
     removed_tables_raw: list[dict[str, Any]] = []
     for item in unmatched_t1:
+        if item.get("unmatched_status") != "confirmed":
+            continue
         if item.get("reason") not in {
             "no_candidate_same_section",
             "low_indicator_overlap",
@@ -2192,6 +2527,8 @@ def run_strict_intra_section_compare(
 
     added_tables_raw: list[dict[str, Any]] = []
     for item in unmatched_t2:
+        if item.get("unmatched_status") != "confirmed":
+            continue
         if item.get("reason") != "unmatched":
             continue
         t2_uid = str(item.get("t2_uid", ""))
@@ -2334,6 +2671,7 @@ def run_strict_intra_section_compare(
             "page_t1": getattr(tbl, "page_pdf", None),
             "title_t1": getattr(tbl, "title", ""),
             "reason": "coverage_fixup",
+            "unmatched_status": "confirmed",
         }
         unmatched_t1.append(remaining_t1[uid])
     missing_t2 = all_t2_uids - covered_t2
@@ -2348,6 +2686,7 @@ def run_strict_intra_section_compare(
             "page_t2": getattr(tbl, "page_pdf", None),
             "title_t2": getattr(tbl, "title", ""),
             "reason": "unmatched",
+            "unmatched_status": "confirmed",
         }
         unmatched_t2.append(remaining_t2[uid])
 
@@ -2368,9 +2707,23 @@ def run_strict_intra_section_compare(
         "unmatched_t1": unmatched_t1,
         "unmatched_t2": unmatched_t2,
         "debug_unmatched_candidates": debug_unmatched_candidates,
+        "debug_unmatched_candidates_t2": debug_unmatched_candidates_t2,
         "rescued_matches_count": rescued_matches_count,
         "split_merge_rescues_count": split_merge_rescues_count,
         "reasons": reason_counts,
         "diagnostics": diagnostics,
+        "matching_diagnostics": matching_diagnostics,
+        "unmatched_confirmed_t1": [
+            item for item in unmatched_t1 if item.get("unmatched_status") == "confirmed"
+        ],
+        "unmatched_ambiguous_t1": [
+            item for item in unmatched_t1 if item.get("unmatched_status") == "ambiguous"
+        ],
+        "unmatched_confirmed_t2": [
+            item for item in unmatched_t2 if item.get("unmatched_status") == "confirmed"
+        ],
+        "unmatched_ambiguous_t2": [
+            item for item in unmatched_t2 if item.get("unmatched_status") == "ambiguous"
+        ],
     }
     return result

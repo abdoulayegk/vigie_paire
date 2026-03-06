@@ -139,6 +139,48 @@ def test_save_then_load_roundtrip() -> None:
         shutil.rmtree(base_dir, ignore_errors=True)
 
 
+def test_save_then_load_roundtrip_preserves_rbc_matching_fields() -> None:
+    from app.extraction_storage import load_extraction, save_extraction
+    from vigilance.models.table_models import TableArtifact
+
+    base_dir = Path(tempfile.mkdtemp())
+    try:
+        artifact = TableArtifact(
+            bank_code="rbc",
+            section="risk_management",
+            page_pdf=31,
+            table_id="tableau_31",
+            title="Lien entre le risque de marche et les principales donnees figurant au bilan",
+            headers=["Montant figurant au bilan"],
+            rows=[["Prets de detail", "1"]],
+            first_column_indicators=["pret de detail"],
+            first_column_indicators_raw=["Prets de detail"],
+            first_column_groups=["Prets"],
+            hierarchical_indicator_signature=["Prets > Prets de detail"],
+            title_reliability="reliable",
+            extraction_method="vision_full_gpt4o",
+        )
+        save_extraction(
+            bank_code="rbc",
+            year=2025,
+            quarter="t1",
+            tables=[artifact],
+            meta={"schema_version": 2},
+            base_dir=base_dir,
+        )
+        result = load_extraction("rbc", 2025, "t1", base_dir)
+        assert result is not None
+        tables, _ = result
+        loaded = tables[0]
+        assert loaded.first_column_groups == ["Prets"]
+        assert loaded.hierarchical_indicator_signature == ["Prets > Prets de detail"]
+        assert loaded.title_reliability == "reliable"
+    finally:
+        import shutil
+
+        shutil.rmtree(base_dir, ignore_errors=True)
+
+
 def test_save_writes_schema_version_in_tables_json_root() -> None:
     """After save_extraction, tables.json root must contain schema_version and tables."""
     from app.extraction_storage import save_extraction

@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from vigilance.compare.indicator_comparator import (
+    MatchDecision,
     _compute_pair_score_with_guard_rails,
     _detect_split_diagnostic,
     _get_table_features,
@@ -185,7 +186,11 @@ def test_same_base_different_suffix_not_auto_but_can_match_with_overlap() -> Non
     assert decision.table_number_match is False
     assert decision.table_label_base_match is True
     assert decision.table_label_suffix_diff is True
-    assert decision.reason in {"indicator_overlap_match", "multi_signal_match"}
+    assert decision.reason in {
+        "indicator_overlap_match",
+        "indicator_set_hash_exact",
+        "multi_signal_match",
+    }
 
 
 def test_anti_greedy_margin_marks_uncertain_competition() -> None:
@@ -216,7 +221,190 @@ def test_anti_greedy_margin_marks_uncertain_competition() -> None:
     assert payload["added_tables"] == []
     assert payload["removed_tables"] == []
     assert payload["unmatched_t1"] == []
-    assert all(x["reason"] == "uncertain_competition" for x in payload["unmatched_t2"])
+    assert all(x["reason"] == "ambiguous_candidate" for x in payload["unmatched_t2"])
+    assert all(x["unmatched_status"] == "ambiguous" for x in payload["unmatched_t2"])
+
+
+def test_ambiguous_unmatched_do_not_become_added_removed() -> None:
+    t1 = _table(
+        table_id="t1",
+        section="risk_management",
+        title="Analyse A",
+        rows=[["alpha", "1"]],
+    )
+    t2 = _table(
+        table_id="t2",
+        section="risk_management",
+        title="Analyse B",
+        rows=[["beta", "2"]],
+    )
+
+    base_payload = {
+        "pairs": [],
+        "probable_pairs": [],
+        "unmatched_t1": [
+            {
+                "t1_uid": "risk_management|t1|p1",
+                "t1_table_id": "t1",
+                "section": "risk_management",
+                "page_t1": 1,
+                "title_t1": "Analyse A",
+                "reason": "ambiguous_candidate",
+                "unmatched_status": "ambiguous",
+            }
+        ],
+        "unmatched_t2": [
+            {
+                "t2_uid": "risk_management|t2|p1",
+                "t2_table_id": "t2",
+                "section": "risk_management",
+                "page_t2": 1,
+                "title_t2": "Analyse B",
+                "reason": "ambiguous_candidate",
+                "unmatched_status": "ambiguous",
+            }
+        ],
+        "debug_unmatched_candidates": [],
+    }
+
+    with patch(
+        "vigilance.compare.indicator_comparator.match_tables_intra_section",
+        return_value=base_payload,
+    ):
+        payload = run_strict_intra_section_compare([t1], [t2], overlap_threshold=0.9)
+
+    assert payload["added_tables"] == []
+    assert payload["removed_tables"] == []
+    assert len(payload["unmatched_ambiguous_t1"]) == 1
+    assert len(payload["unmatched_ambiguous_t2"]) == 1
+
+
+def test_bidirectional_single_rescue_recovers_pair_missing_from_t1_pass() -> None:
+    t1a = _table(
+        table_id="t1a",
+        section="risk_management",
+        title="Tableau A",
+        rows=[["alpha", "1"]],
+    )
+    t1b = _table(
+        table_id="t1b",
+        section="risk_management",
+        title="Tableau B",
+        rows=[["beta", "2"]],
+    )
+    t2a = _table(
+        table_id="t2a",
+        section="risk_management",
+        title="Tableau A courant",
+        rows=[["alpha", "3"]],
+    )
+    t2b = _table(
+        table_id="t2b",
+        section="risk_management",
+        title="Tableau B courant",
+        rows=[["beta", "4"]],
+    )
+
+    base_payload = {
+        "pairs": [],
+        "probable_pairs": [],
+        "unmatched_t1": [
+            {
+                "t1_uid": "risk_management|t1a|p1",
+                "t1_table_id": "t1a",
+                "section": "risk_management",
+                "page_t1": 1,
+                "title_t1": "Tableau A",
+                "reason": "weak_signals",
+                "unmatched_status": "confirmed",
+            },
+            {
+                "t1_uid": "risk_management|t1b|p1",
+                "t1_table_id": "t1b",
+                "section": "risk_management",
+                "page_t1": 1,
+                "title_t1": "Tableau B",
+                "reason": "weak_signals",
+                "unmatched_status": "confirmed",
+            },
+        ],
+        "unmatched_t2": [
+            {
+                "t2_uid": "risk_management|t2a|p1",
+                "t2_table_id": "t2a",
+                "section": "risk_management",
+                "page_t2": 1,
+                "title_t2": "Tableau A courant",
+                "reason": "unmatched",
+                "unmatched_status": "confirmed",
+            },
+            {
+                "t2_uid": "risk_management|t2b|p1",
+                "t2_table_id": "t2b",
+                "section": "risk_management",
+                "page_t2": 1,
+                "title_t2": "Tableau B courant",
+                "reason": "unmatched",
+                "unmatched_status": "confirmed",
+            },
+        ],
+        "debug_unmatched_candidates": [],
+    }
+
+    def _decision(table_t1: TableArtifact, table_t2: TableArtifact, **_: object) -> MatchDecision:
+        scores = {
+            ("t1a", "t2a"): 0.95,
+            ("t1a", "t2b"): 0.70,
+            ("t1b", "t2a"): 0.94,
+            ("t1b", "t2b"): 0.89,
+        }
+        score = scores[(table_t1.table_id, table_t2.table_id)]
+        return MatchDecision(
+            is_match=score >= 0.7,
+            reason="indicator_overlap_match" if score >= 0.7 else "weak_signals",
+            score=score,
+            section_match=True,
+            table_number_match=False,
+            table_label_base_match=False,
+            table_label_suffix_diff=False,
+            indicator_overlap=score,
+            title_similarity=0.75,
+            structure_similarity=0.70,
+            context_heading_similarity=0.40,
+            position_proximity=0.50,
+            t1_uid=f"risk_management|{table_t1.table_id}|p1",
+            t2_uid=f"risk_management|{table_t2.table_id}|p1",
+            t1_table_id=table_t1.table_id,
+            t2_table_id=table_t2.table_id,
+            indicator_containment=score,
+            header_schema_similarity=0.75,
+            section_state="same_known",
+            decision_level="match",
+        )
+
+    with patch(
+        "vigilance.compare.indicator_comparator.match_tables_intra_section",
+        return_value=base_payload,
+    ), patch(
+        "vigilance.compare.indicator_comparator.match_decision",
+        side_effect=_decision,
+    ):
+        payload = run_strict_intra_section_compare(
+            [t1a, t1b],
+            [t2a, t2b],
+            overlap_threshold=0.55,
+        )
+
+    rescue_pairs = [pair for pair in payload["pairs"] if pair.get("rescue_type") == "single_rescue"]
+    assert len(rescue_pairs) == 2
+    assert {pair["t1_uid"] for pair in rescue_pairs} == {
+        "risk_management|t1a|p1",
+        "risk_management|t1b|p1",
+    }
+    assert {pair["t2_uid"] for pair in rescue_pairs} == {
+        "risk_management|t2a|p1",
+        "risk_management|t2b|p1",
+    }
 
 
 def test_table_number_conflict_bypass_with_identical_title() -> None:
@@ -320,10 +508,10 @@ def test_indicator_set_strips_trailing_footnote_numbers() -> None:
     )
 
     result = _indicator_set(t)
-    assert "actions ordinaires" in result
-    assert "actions privilegiees de categorie b" in result
-    assert "actions ordinaires 2" not in result
-    assert "actions privilegiees de categorie b 3" not in result
+    assert "action ordinaire" in result
+    assert "action privilegiee de categorie b" in result
+    assert "action ordinaire 2" not in result
+    assert "action privilegiee de categorie b 3" not in result
 
 
 def test_title_matching_strips_date_and_notes() -> None:
@@ -425,11 +613,11 @@ def test_indicator_set_keeps_semantic_trailing_numbers() -> None:
     result = _indicator_set(t)
     assert "serie 2" in result
     assert "serie 3" in result
-    assert "fonds propres de categorie 1" in result
+    assert "fonds propre de categorie 1" in result
 
 
-def test_hungarian_vs_greedy_same_result_when_clear_matches() -> None:
-    """Hungarian et greedy produisent le meme nombre de paires quand les matches sont clairs."""
+def test_legacy_flag_and_explicit_true_same_result_when_clear_matches() -> None:
+    """Le flag legacy use_hungarian=False route vers le meme moteur symetrique."""
     t1 = [
         _table(table_id="t1", section="risk", title="Risques A", rows=[["A", "1"], ["B", "2"]]),
         _table(table_id="t2", section="risk", title="Risques B", rows=[["C", "3"], ["D", "4"]]),
@@ -438,12 +626,12 @@ def test_hungarian_vs_greedy_same_result_when_clear_matches() -> None:
         _table(table_id="t1", section="risk", title="Risques A", rows=[["A", "10"], ["B", "20"]], page_pdf=2),
         _table(table_id="t2", section="risk", title="Risques B", rows=[["C", "30"], ["D", "40"]], page_pdf=2),
     ]
-    greedy = match_tables_intra_section(t1, t2, use_hungarian=False)
-    hungarian = match_tables_intra_section(t1, t2, use_hungarian=True)
-    assert len(greedy["pairs"]) == len(hungarian["pairs"]) == 2
-    greedy_uids = {(p["t1_uid"], p["t2_uid"]) for p in greedy["pairs"]}
-    hungarian_uids = {(p["t1_uid"], p["t2_uid"]) for p in hungarian["pairs"]}
-    assert greedy_uids == hungarian_uids
+    legacy_flag = match_tables_intra_section(t1, t2, use_hungarian=False)
+    explicit_true = match_tables_intra_section(t1, t2, use_hungarian=True)
+    assert len(legacy_flag["pairs"]) == len(explicit_true["pairs"]) == 2
+    legacy_uids = {(p["t1_uid"], p["t2_uid"]) for p in legacy_flag["pairs"]}
+    explicit_uids = {(p["t1_uid"], p["t2_uid"]) for p in explicit_true["pairs"]}
+    assert legacy_uids == explicit_uids
 
 
 def test_hungarian_handles_more_t1_than_t2() -> None:
@@ -480,8 +668,8 @@ def test_hungarian_handles_more_t2_than_t1() -> None:
     assert len(result["unmatched_t2"]) == 1
 
 
-def test_greedy_default_unchanged() -> None:
-    """Avec use_hungarian=False (defaut), le comportement reste inchange."""
+def test_default_matcher_uses_symmetric_engine() -> None:
+    """Le moteur par defaut reste le matcher symetrique."""
     t1 = [
         _table(table_id="t1", section="risk", title="Risques", rows=[["A", "1"], ["B", "2"]]),
     ]
