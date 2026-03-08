@@ -14,9 +14,12 @@ def _mk_table(table_id: str, page: int) -> TableArtifact:
         headers=["metric", "value"],
         rows=[["ratio", "1"]],
         first_column_indicators=["ratio"],
-        extraction_method="vision_primary",
+        first_column_indicators_raw=["ratio"],
+        extraction_method="vision_full_gpt4o",
         bbox=[0.1, 0.1, 0.8, 0.5],
         pdf_path="/tmp/fake.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
 
 
@@ -79,3 +82,66 @@ def test_run_comparison_uses_current_vs_previous_quarter_context(monkeypatch) ->
     assert result["comparison_direction"] == "current_vs_previous"
     assert result["quarter_to"] == "Q1-2026"
     assert result["quarter_from"] == "Q3-2025"
+
+
+def test_run_comparison_surfaces_pairing_metrics_from_strict_matcher(monkeypatch) -> None:
+    previous_table = _mk_table("prev", 10)
+    current_table = _mk_table("curr", 12)
+
+    def _fake_extract_tables(**kwargs):
+        return [previous_table] if kwargs.get("quarter") == "t1" else [current_table]
+
+    monkeypatch.setattr(cr, "_extract_tables", _fake_extract_tables)
+    monkeypatch.setattr(cr, "merge_table_fragments", lambda tables, **_kw: (tables, []))
+    monkeypatch.setattr(
+        cr,
+        "run_strict_intra_section_compare",
+        lambda **_kw: {
+            "pairs": [],
+            "added_tables": [],
+            "removed_tables": [],
+            "tables_comparable_t1": 1,
+            "tables_comparable_t2": 1,
+            "pairing_coverage": 0.0,
+            "ambiguous_pairs": [
+                {"t2_uid": "capital_management|curr|p12", "candidate_t1_uids": ["capital_management|prev|p10"]}
+            ],
+            "ambiguous_tables": [
+                {
+                    "side": "current",
+                    "uid": "capital_management|curr|p12",
+                    "table_id": "curr",
+                    "title": "Capital",
+                    "page": 12,
+                    "section": "capital_management",
+                    "reason": "ambiguous_candidate",
+                }
+            ],
+        },
+    )
+    monkeypatch.setattr(cr, "get_matching_thresholds", lambda **_kw: {})
+    monkeypatch.setattr(cr, "get_quality_gate_config", lambda **_kw: {"enabled": False})
+    monkeypatch.setattr(
+        cr,
+        "get_validation_config",
+        lambda **_kw: {
+            "vision_pair_validation": False,
+            "rename_validator_enabled": False,
+        },
+    )
+
+    result = cr.run_comparison_with_sections(
+        pdf_path_t1="/tmp/q1_2025.pdf",
+        pdf_path_t2="/tmp/q2_2025.pdf",
+        bank_code="bnc",
+        sections_t1=[{"section": "capital_management", "start_page": 1, "end_page": 2}],
+        sections_t2=[{"section": "capital_management", "start_page": 1, "end_page": 2}],
+        api_key="test-key",
+    )
+
+    assert result["summary"]["tables_comparable_t1"] == 1
+    assert result["summary"]["tables_comparable_t2"] == 1
+    assert result["summary"]["pairing_coverage"] == 0.0
+    assert result["summary"]["ambiguous_pairs"] == 1
+    assert result["summary"]["pairing_low_confidence"] is True
+    assert result["meta"]["validation_summary"]["strict_matcher"]["pairing_coverage"] == 0.0

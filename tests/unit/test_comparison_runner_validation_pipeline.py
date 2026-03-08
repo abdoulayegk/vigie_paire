@@ -26,9 +26,12 @@ def _mk_table(
         headers=["col1", "col2"],
         rows=[[ind, "1"] for ind in indicators],
         first_column_indicators=indicators,
-        extraction_method="vision_primary",
+        first_column_indicators_raw=indicators,
+        extraction_method="vision_full_gpt4o",
         bbox=[bbox_left, 0.1, min(0.9, bbox_left + 0.3), 0.6],
         pdf_path="/tmp/fake.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
 
 

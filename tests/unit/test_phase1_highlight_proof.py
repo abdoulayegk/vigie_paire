@@ -77,9 +77,11 @@ def test_all_indicators_value_clean_ordered_skips_noise() -> None:
         rows=[],
         first_column_indicators=["Actif A", "Au 30 avril 2025", "Bilan B"],
         first_column_indicators_raw=["Actif A", "Au 30 avril 2025", "Bilan B"],
-        extraction_method="docling",
+        extraction_method="vision_full_gpt4o",
         quarter="t1",
         pdf_path="dummy.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
     result = _all_indicators_value_clean_ordered(table)
     assert any("actif" in r.lower() for r in result)
@@ -87,8 +89,8 @@ def test_all_indicators_value_clean_ordered_skips_noise() -> None:
     assert not any("30 avril" in r for r in result)
 
 
-def test_all_indicators_value_clean_ordered_fallback_raw() -> None:
-    """Uses first_column_indicators when first_column_indicators_raw is empty."""
+def test_all_indicators_value_clean_ordered_requires_raw_source() -> None:
+    """Returns empty when raw Vision indicators are absent."""
     table = TableArtifact(
         bank_code="bmo",
         section="capital_management",
@@ -99,13 +101,14 @@ def test_all_indicators_value_clean_ordered_fallback_raw() -> None:
         rows=[],
         first_column_indicators_raw=[],
         first_column_indicators=["Indicator One", "Indicator Two"],
-        extraction_method="docling",
+        extraction_method="vision_full_gpt4o",
         quarter="t1",
         pdf_path="dummy.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
     result = _all_indicators_value_clean_ordered(table)
-    assert len(result) >= 1
-    assert "Indicator One" in result or any("indicator" in r.lower() for r in result)
+    assert result == []
 
 
 def test_crop_table_region_to_bytes_invalid_bbox_fallback() -> None:

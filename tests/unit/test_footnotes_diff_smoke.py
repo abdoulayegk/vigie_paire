@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.comparison.footnote_comparator import FootnoteComparator, compare_footnotes
+from vigilance.compare.footnote_comparator import FootnoteComparator, compare_footnotes
 from vigilance.utils.footnotes_utils import footnotes_list_to_dict
 from app.comparison_runner import _compare_table_footnotes
 from vigilance.models.table_models import TableArtifact
@@ -22,8 +22,10 @@ def _make_artifact(
         headers=["Col1", "Col2"],
         rows=[["a", "1"]],
         first_column_indicators=["Indicator A"],
-        extraction_method="docling",
+        first_column_indicators_raw=["Indicator A"],
+        extraction_method="vision_full_gpt4o",
         footnotes=footnotes,
+        content_source="vision_gpt4o",
     )
     defaults.update(kwargs)
     return TableArtifact(**defaults)
@@ -194,15 +196,16 @@ class TestTableToArtifactCopiesFootnotes:
             rows=[["a", "1"]],
             headers=["Col1", "Col2"],
             first_column_indicators=["Ind A"],
-            first_column_indicators_raw=None,
+            first_column_indicators_raw=["Ind A"],
             section="gestion_capital",
             page_number=5,
             table_id="T42",
             title="My Table",
-            extraction_method="docling",
+            extraction_method="vision_full_gpt4o",
             table_number=None,
             bbox=None,
             footnotes=["Note 1", "Note 2"],
+            content_source="vision_gpt4o",
         )
         art = _table_to_artifact(fake_table, bank_code="bnc", quarter="t1", pdf_path="/tmp/test.pdf")
         assert art.footnotes == [
@@ -215,9 +218,10 @@ class TestTableToArtifactCopiesFootnotes:
         from app.comparison_runner import _table_to_artifact
 
         fake_table = SimpleNamespace(
-            rows=[], headers=[], first_column_indicators=[], first_column_indicators_raw=None,
+            rows=[], headers=[], first_column_indicators=[], first_column_indicators_raw=[],
             section="", page_number=1, table_id="T1", title=None,
-            extraction_method="docling", table_number=None, bbox=None,
+            extraction_method="vision_full_gpt4o", table_number=None, bbox=None,
+            content_source="vision_gpt4o",
         )
         art = _table_to_artifact(fake_table, bank_code="bnc", quarter="t1", pdf_path="/tmp/test.pdf")
         assert art.footnotes is None
@@ -265,15 +269,16 @@ class TestFootnoteNormalizationDoclingLegacy:
             rows=[["a", "1"]],
             headers=["Col1", "Col2"],
             first_column_indicators=["Ind"],
-            first_column_indicators_raw=None,
+            first_column_indicators_raw=["Ind"],
             section="",
             page_number=1,
             table_id="T1",
             title="Table",
-            extraction_method="docling",
+            extraction_method="vision_full_gpt4o",
             table_number=None,
             bbox=None,
             footnotes=["Docling footnote text here."],
+            content_source="vision_gpt4o",
         )
         art = _table_to_artifact(fake, bank_code="bnc", quarter="t1", pdf_path="/tmp/x.pdf")
         fn_dict = footnotes_list_to_dict(art.footnotes or [])
@@ -291,15 +296,16 @@ class TestFootnoteNormalizationDoclingLegacy:
             rows=[["a", "1"]],
             headers=["Col1"],
             first_column_indicators=["Ind"],
-            first_column_indicators_raw=None,
+            first_column_indicators_raw=["Ind"],
             section="",
             page_number=42,
             table_id="TABLEAU 39",
             title="RATIO DE LIQUIDITE",
-            extraction_method="docling",
+            extraction_method="vision_full_gpt4o",
             table_number=None,
             bbox=None,
             footnotes=["LCR calcule conformement aux normes BSIF."],
+            content_source="vision_gpt4o",
         )
         art = _table_to_artifact(fake, bank_code="rbc", quarter="t1", pdf_path="/tmp/t1.pdf")
         import tempfile
@@ -324,7 +330,7 @@ class TestFootnoteNormalizationVisionPrimary:
             rows=[["a", "1"]],
             headers=["Col1"],
             first_column_indicators=["Ind"],
-            first_column_indicators_raw=None,
+            first_column_indicators_raw=["Ind"],
             section="",
             page_number=5,
             table_id="T1",
@@ -336,6 +342,7 @@ class TestFootnoteNormalizationVisionPrimary:
                 {"id": "1", "text": "Le LCR represente la moyenne des 62 donnees quotidiennes."},
                 {"id": "2", "text": "Valeurs non ponderees des entrees et sorties."},
             ],
+            content_source="vision_gpt4o",
         )
         art = _table_to_artifact(fake, bank_code="rbc", quarter="t1", pdf_path="/tmp/x.pdf")
         assert art.footnotes == [
@@ -359,7 +366,7 @@ class TestFootnoteNormalizationVisionPrimary:
             rows=[["a", "1"]],
             headers=["Col1"],
             first_column_indicators=["Ind"],
-            first_column_indicators_raw=None,
+            first_column_indicators_raw=["Ind"],
             section="",
             page_number=1,
             table_id="T1",
@@ -368,6 +375,7 @@ class TestFootnoteNormalizationVisionPrimary:
             table_number=None,
             bbox=None,
             footnotes=fn_vision,
+            content_source="vision_gpt4o",
         )
         t1 = _table_to_artifact(fake, bank_code="bnc", quarter="t1", pdf_path="/tmp/t1.pdf")
         t2_art = _table_to_artifact(
@@ -375,7 +383,7 @@ class TestFootnoteNormalizationVisionPrimary:
                 rows=[["a", "1"]],
                 headers=["Col1"],
                 first_column_indicators=["Ind"],
-                first_column_indicators_raw=None,
+                first_column_indicators_raw=["Ind"],
                 section="",
                 page_number=1,
                 table_id="T2",
@@ -387,6 +395,7 @@ class TestFootnoteNormalizationVisionPrimary:
                     {"id": "1", "text": "Revised methodology text."},
                     {"id": "2", "text": "Regulatory reference."},
                 ],
+                content_source="vision_gpt4o",
             ),
             bank_code="bnc",
             quarter="t2",
@@ -410,7 +419,7 @@ class TestFootnoteNormalizationVisionPrimary:
             rows=[["a", "1"]],
             headers=["Col1"],
             first_column_indicators=["Ind"],
-            first_column_indicators_raw=None,
+            first_column_indicators_raw=["Ind"],
             section="",
             page_number=42,
             table_id="TABLEAU 39",
@@ -422,6 +431,7 @@ class TestFootnoteNormalizationVisionPrimary:
                 {"id": "1", "text": "Le LCR pour le trimestre clos le 31 janvier 2025."},
                 {"id": "2", "text": "Valeurs ponderees selon ligne directrice BSIF."},
             ],
+            content_source="vision_gpt4o",
         )
         art = _table_to_artifact(fake, bank_code="rbc", quarter="t1", pdf_path="/tmp/t1.pdf")
         import tempfile

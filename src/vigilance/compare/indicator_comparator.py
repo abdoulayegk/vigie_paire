@@ -18,7 +18,12 @@ except ImportError:
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-from vigilance.models.table_models import TableArtifact
+from vigilance.models.table_models import (
+    VISION_CONTENT_SOURCE,
+    TableArtifact,
+    get_comparison_indicators,
+    get_vision_raw_indicators,
+)
 from vigilance.utils.indicator_cleaner import (
     is_header_footer_table_title,
     normalize_indicator_for_comparison,
@@ -205,7 +210,7 @@ def _table_cache_key(table: TableArtifact) -> str:
             str(getattr(table, "title", "") or ""),
             str(len(getattr(table, "rows", None) or [])),
             str(len(getattr(table, "headers", None) or [])),
-            str(len(getattr(table, "first_column_indicators", None) or [])),
+            str(len(get_comparison_indicators(table))),
         ]
     )
 
@@ -219,12 +224,8 @@ def _get_rbc_signals(table: TableArtifact) -> Any | None:
         return _RBC_SIGNALS_CACHE[uid]
 
     signals = build_rbc_first_column_signals(
-        rows=list(getattr(table, "rows", None) or []),
-        raw_indicators=list(
-            getattr(table, "first_column_indicators_raw", None)
-            or getattr(table, "first_column_indicators", None)
-            or []
-        ),
+        rows=[],
+        raw_indicators=get_vision_raw_indicators(table) or get_comparison_indicators(table),
     )
 
     if len(_RBC_SIGNALS_CACHE) >= _RBC_SIGNALS_CACHE_MAX:
@@ -313,18 +314,10 @@ def _indicator_set(table: TableArtifact) -> set[str]:
             return set(signals.indicators_clean)
 
     values: set[str] = set()
-    if table.rows:
-        for row in table.rows:
-            if not row:
-                continue
-            canonical = _canonical_indicator_label(row[0])
-            if canonical:
-                values.add(canonical)
-    if not values and getattr(table, "first_column_indicators", None):
-        for label in table.first_column_indicators:
-            canonical = _canonical_indicator_label(label)
-            if canonical:
-                values.add(canonical)
+    for label in get_comparison_indicators(table):
+        canonical = _canonical_indicator_label(label)
+        if canonical:
+            values.add(canonical)
     return values
 
 
@@ -344,13 +337,7 @@ def _indicator_sequence(table: TableArtifact) -> list[str]:
             else []
         )
     else:
-        raw_values: list[str] = []
-        if table.rows:
-            for row in table.rows:
-                if row and str(row[0]).strip():
-                    raw_values.append(str(row[0]).strip())
-        if not raw_values:
-            raw_values = list(getattr(table, "first_column_indicators", None) or [])
+        raw_values = get_vision_raw_indicators(table) or get_comparison_indicators(table)
 
     ordered: list[str] = []
     seen: set[str] = set()
@@ -367,6 +354,38 @@ def _indicator_sequence(table: TableArtifact) -> list[str]:
             seen.add(canonical)
             ordered.append(canonical)
     return ordered
+
+
+def _serialize_ineligible_table(table: TableArtifact, *, side: str) -> dict[str, Any]:
+    return {
+        f"{side}_uid": _table_uid(table),
+        f"{side}_table_id": table.table_id,
+        "section": table.section,
+        f"page_{side}": table.page_pdf,
+        f"title_{side}": table.title,
+        "content_source": getattr(table, "content_source", ""),
+        "comparison_eligible": bool(getattr(table, "comparison_eligible", False)),
+        "comparison_blockers": list(getattr(table, "comparison_blockers", None) or []),
+        "reason": "comparison_ineligible",
+    }
+
+
+def _partition_comparison_ready(
+    tables: list[TableArtifact],
+    *,
+    side: str,
+) -> tuple[list[TableArtifact], list[dict[str, Any]]]:
+    eligible: list[TableArtifact] = []
+    blocked: list[dict[str, Any]] = []
+    for table in tables:
+        if (
+            getattr(table, "content_source", "") == VISION_CONTENT_SOURCE
+            and bool(getattr(table, "comparison_eligible", False))
+        ):
+            eligible.append(table)
+            continue
+        blocked.append(_serialize_ineligible_table(table, side=side))
+    return eligible, blocked
 
 
 def _build_pair_scoring_context(
@@ -538,12 +557,8 @@ def _get_table_features(table: TableArtifact) -> tuple[list[str], str]:
         signals = _get_rbc_signals(table)
         indicators = list(signals.indicators_raw) if signals and signals.indicators_raw else []
     else:
-        indicators = list(getattr(table, "first_column_indicators", None) or [])
+        indicators = get_comparison_indicators(table)
     indicators = [str(x).strip() for x in indicators if str(x).strip()]
-    if not indicators and table.rows:
-        for row in table.rows:
-            if row and str(row[0]).strip():
-                indicators.append(str(row[0]).strip())
     try:
         from vigilance.report.vigie_extract_schema import (
             compute_features,
@@ -823,7 +838,7 @@ def _table_indicators_after_exclusions(table: TableArtifact) -> list[str]:
         signals = _get_rbc_signals(table)
         raw = list(signals.indicators_raw) if signals and signals.indicators_raw else []
     else:
-        raw = list(getattr(table, "first_column_indicators", None) or [])
+        raw = get_comparison_indicators(table)
     return [
         str(x).strip()
         for x in raw
@@ -2697,6 +2712,8 @@ def match_tables_intra_section(
     embedding_service: EmbeddingService | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
     """Table matching with strict intra-section gating using the symmetric assignment matcher."""
+    eligible_t1, ineligible_t1 = _partition_comparison_ready(tables_t1, side="t1")
+    eligible_t2, ineligible_t2 = _partition_comparison_ready(tables_t2, side="t2")
     effective_bank_code = bank_code or _infer_bank_code(tables_t1, tables_t2)
     th = _load_compare_thresholds(bank_code=effective_bank_code)
     if overlap_threshold is None:
@@ -2723,9 +2740,9 @@ def match_tables_intra_section(
             "use_hungarian=False is deprecated; the symmetric assignment matcher is used regardless."
         )
 
-    return _match_tables_hungarian(
-        tables_t1,
-        tables_t2,
+    result = _match_tables_hungarian(
+        eligible_t1,
+        eligible_t2,
         th=th,
         overlap_threshold=overlap_threshold,
         effective_bank_code=effective_bank_code,
@@ -2733,6 +2750,13 @@ def match_tables_intra_section(
         borderline_score=borderline_score,
         embedding_service=embedding_service,
     )
+    result["ineligible_t1"] = ineligible_t1
+    result["ineligible_t2"] = ineligible_t2
+    diagnostics = dict(result.get("matching_diagnostics", {}))
+    diagnostics["ineligible_t1_count"] = len(ineligible_t1)
+    diagnostics["ineligible_t2_count"] = len(ineligible_t2)
+    result["matching_diagnostics"] = diagnostics
+    return result
 
 
 def _allow_rbc_split_merge_rescue(
@@ -2792,6 +2816,8 @@ def run_strict_intra_section_compare(
     unmatched_t1 = list(base.get("unmatched_t1", []))
     unmatched_t2 = list(base.get("unmatched_t2", []))
     matching_diagnostics = dict(base.get("matching_diagnostics", {}))
+    ineligible_t1 = list(base.get("ineligible_t1", []))
+    ineligible_t2 = list(base.get("ineligible_t2", []))
 
     remaining_t1 = {
         str(item.get("t1_uid", "")): item for item in unmatched_t1 if item.get("t1_uid")
@@ -3105,6 +3131,12 @@ def run_strict_intra_section_compare(
     unmatched_t2 = [
         item for item in unmatched_t2 if str(item.get("t2_uid", "")) in remaining_t2
     ]
+    ineligible_sections_t1 = {
+        str(item.get("section", "")).strip() for item in ineligible_t1 if item.get("section")
+    }
+    ineligible_sections_t2 = {
+        str(item.get("section", "")).strip() for item in ineligible_t2 if item.get("section")
+    }
 
     removed_tables_raw: list[dict[str, Any]] = []
     for item in unmatched_t1:
@@ -3119,6 +3151,8 @@ def run_strict_intra_section_compare(
             "weak_signals",
         }:
             continue
+        if str(item.get("section", "")).strip() in ineligible_sections_t2:
+            continue
         t1_uid = str(item.get("t1_uid", ""))
         table_t1 = table_by_t1_uid.get(t1_uid)
         removed_tables_raw.append(
@@ -3130,12 +3164,8 @@ def run_strict_intra_section_compare(
                 "title_t1": item.get("title_t1"),
                 "reason": "removed_table",
                 "source_reason": item["reason"],
-                "first_column_indicators": list(
-                    getattr(table_t1, "first_column_indicators", []) or []
-                ),
-                "first_column_indicators_raw": list(
-                    getattr(table_t1, "first_column_indicators_raw", None) or []
-                ),
+                "first_column_indicators": get_comparison_indicators(table_t1),
+                "first_column_indicators_raw": get_vision_raw_indicators(table_t1),
             }
         )
 
@@ -3144,6 +3174,8 @@ def run_strict_intra_section_compare(
         if item.get("unmatched_status") != "confirmed":
             continue
         if item.get("reason") != "unmatched":
+            continue
+        if str(item.get("section", "")).strip() in ineligible_sections_t1:
             continue
         t2_uid = str(item.get("t2_uid", ""))
         table_t2 = table_by_t2_uid.get(t2_uid)
@@ -3156,12 +3188,8 @@ def run_strict_intra_section_compare(
                 "title_t2": item.get("title_t2"),
                 "reason": "added_table",
                 "source_reason": item["reason"],
-                "first_column_indicators": list(
-                    getattr(table_t2, "first_column_indicators", []) or []
-                ),
-                "first_column_indicators_raw": list(
-                    getattr(table_t2, "first_column_indicators_raw", None) or []
-                ),
+                "first_column_indicators": get_comparison_indicators(table_t2),
+                "first_column_indicators_raw": get_vision_raw_indicators(table_t2),
             }
         )
 
@@ -3269,8 +3297,10 @@ def run_strict_intra_section_compare(
             split_members_t2_set.add(str(uid))
     covered_t1 = pair_t1_uids | merge_members_t1_set | set(remaining_t1.keys())
     covered_t2 = pair_t2_uids | split_members_t2_set | set(remaining_t2.keys())
-    all_t1_uids = set(table_by_t1_uid.keys())
-    all_t2_uids = set(table_by_t2_uid.keys())
+    ineligible_t1_uids = {str(item.get("t1_uid", "")) for item in ineligible_t1}
+    ineligible_t2_uids = {str(item.get("t2_uid", "")) for item in ineligible_t2}
+    all_t1_uids = set(table_by_t1_uid.keys()) - ineligible_t1_uids
+    all_t2_uids = set(table_by_t2_uid.keys()) - ineligible_t2_uids
 
     # Ensure any T1/T2 UID missing from coverage (e.g. empty t1_uid in unmatched item) is added to remaining and unmatched.
     missing_t1 = all_t1_uids - covered_t1
@@ -3321,6 +3351,8 @@ def run_strict_intra_section_compare(
         "removed_tables": removed_tables,
         "unmatched_t1": unmatched_t1,
         "unmatched_t2": unmatched_t2,
+        "ineligible_t1": ineligible_t1,
+        "ineligible_t2": ineligible_t2,
         "debug_unmatched_candidates": debug_unmatched_candidates,
         "debug_unmatched_candidates_t2": debug_unmatched_candidates_t2,
         "rescued_matches_count": rescued_matches_count,

@@ -1,4 +1,12 @@
-"""Helpers for canonical comparison payloads used by the Dash UI."""
+"""Helpers for the canonical UI/export comparison payload used by Dash.
+
+Important distinction:
+- ``TableArtifact`` is the canonical in-memory comparison object.
+- This module handles the canonical UI/export payload shape consumed by Dash.
+
+The legacy function names are kept as wrappers for compatibility, but the
+preferred names in this module explicitly mention the UI payload role.
+"""
 
 from __future__ import annotations
 
@@ -7,6 +15,8 @@ from datetime import datetime
 from typing import Any
 
 from app.quarter_utils import get_payload_quarter_context
+
+UI_COMPARISON_PAYLOAD_SCHEMA_VERSION = "comparison_canonical_v1"
 
 
 # ---------------------------------------------------------------------------
@@ -81,15 +91,18 @@ def get_meta_value(meta: dict[str, Any] | None, *keys: str) -> Any:
     return cur
 
 
-def is_canonical_comparison(payload: Any) -> bool:
-    """Return True when payload follows ``comparison_canonical_v1`` contract."""
-    return isinstance(payload, dict) and payload.get("schema_version") == "comparison_canonical_v1"
+def is_ui_comparison_payload(payload: Any) -> bool:
+    """Return True when payload follows the canonical Dash/UI comparison contract."""
+    return (
+        isinstance(payload, dict)
+        and payload.get("schema_version") == UI_COMPARISON_PAYLOAD_SCHEMA_VERSION
+    )
 
 
-def _empty_canonical() -> dict[str, Any]:
+def new_empty_ui_comparison_payload() -> dict[str, Any]:
     now = datetime.now().isoformat(timespec="seconds")
     return {
-        "schema_version": "comparison_canonical_v1",
+        "schema_version": UI_COMPARISON_PAYLOAD_SCHEMA_VERSION,
         "bank_code": "",
         "quarter_from": "",
         "quarter_to": "",
@@ -100,9 +113,21 @@ def _empty_canonical() -> dict[str, Any]:
         "summary": {
             "tables_t1": 0,
             "tables_t2": 0,
+            "tables_extracted_t1": 0,
+            "tables_extracted_t2": 0,
+            "tables_comparable_t1": 0,
+            "tables_comparable_t2": 0,
             "tables_matched": 0,
             "tables_added": 0,
             "tables_removed": 0,
+            "tables_added_confirmed": 0,
+            "tables_removed_confirmed": 0,
+            "ambiguous_tables": 0,
+            "ambiguous_pairs": 0,
+            "pairing_coverage": 0.0,
+            "indicator_change_pairs": 0,
+            "footnote_change_pairs": 0,
+            "pairing_low_confidence": False,
             "tables_changed_t1": 0,
             "tables_changed_t2": 0,
             "total_added_indicators": 0,
@@ -131,18 +156,18 @@ def _empty_canonical() -> dict[str, Any]:
     }
 
 
-def to_canonical_payload(payload: Any) -> dict[str, Any]:
-    """Best-effort conversion to canonical payload used by the Dash app."""
-    if is_canonical_comparison(payload):
+def to_ui_comparison_payload(payload: Any) -> dict[str, Any]:
+    """Best-effort conversion to the canonical payload used by the Dash app."""
+    if is_ui_comparison_payload(payload):
         return deepcopy(payload)
 
-    canonical = _empty_canonical()
+    ui_payload = new_empty_ui_comparison_payload()
     if not isinstance(payload, dict):
-        return canonical
+        return ui_payload
 
     if payload.get("result_type") == "metier_tableaux":
-        canonical["bank_code"] = str(payload.get("bank_code", ""))
-        canonical["year"] = int(payload.get("year") or canonical["year"])
+        ui_payload["bank_code"] = str(payload.get("bank_code", ""))
+        ui_payload["year"] = int(payload.get("year") or ui_payload["year"])
         changes = payload.get("changes") or []
         table_comparisons: list[dict[str, Any]] = []
         for index, change in enumerate(changes):
@@ -173,45 +198,60 @@ def to_canonical_payload(payload: Any) -> dict[str, Any]:
                     "table_status": "modifie" if added or removed else "stable",
                 }
             )
-        canonical["table_comparisons"] = table_comparisons
-        canonical["summary"]["tables_matched"] = len(table_comparisons)
-        canonical["summary"]["total_added_indicators"] = sum(
+        ui_payload["table_comparisons"] = table_comparisons
+        ui_payload["summary"]["tables_matched"] = len(table_comparisons)
+        ui_payload["summary"]["total_added_indicators"] = sum(
             len(item.get("added_indicators", [])) for item in table_comparisons
         )
-        canonical["summary"]["total_removed_indicators"] = sum(
+        ui_payload["summary"]["total_removed_indicators"] = sum(
             len(item.get("removed_indicators", [])) for item in table_comparisons
         )
-        canonical["summary"]["status_counts"]["modifie"] = sum(
+        ui_payload["summary"]["status_counts"]["modifie"] = sum(
             1 for item in table_comparisons if item.get("table_status") == "modifie"
         )
-        canonical["summary"]["tables_changed_t1"] = compute_changed_tables_t1(canonical)
-        canonical["summary"]["tables_changed_t2"] = compute_changed_tables_t2(canonical)
-        canonical["meta"]["source_format"] = "legacy_metier"
-        canonical["meta"]["executive_summary"] = {
+        ui_payload["summary"]["tables_changed_t1"] = compute_changed_tables_t1(ui_payload)
+        ui_payload["summary"]["tables_changed_t2"] = compute_changed_tables_t2(ui_payload)
+        ui_payload["meta"]["source_format"] = "legacy_metier"
+        ui_payload["meta"]["executive_summary"] = {
             "content": "Conversion depuis un format metier legacy."
         }
-        return canonical
+        return ui_payload
 
-    canonical["bank_code"] = str(payload.get("bank_code", ""))
-    canonical["quarter_from"] = str(payload.get("quarter_from", ""))
-    canonical["quarter_to"] = str(payload.get("quarter_to", ""))
-    canonical["previous_quarter"] = str(
-        payload.get("previous_quarter", canonical["quarter_from"])
+    ui_payload["bank_code"] = str(payload.get("bank_code", ""))
+    ui_payload["quarter_from"] = str(payload.get("quarter_from", ""))
+    ui_payload["quarter_to"] = str(payload.get("quarter_to", ""))
+    ui_payload["previous_quarter"] = str(
+        payload.get("previous_quarter", ui_payload["quarter_from"])
     )
-    canonical["current_quarter"] = str(
-        payload.get("current_quarter", canonical["quarter_to"])
+    ui_payload["current_quarter"] = str(
+        payload.get("current_quarter", ui_payload["quarter_to"])
     )
-    canonical["comparison_direction"] = str(
+    ui_payload["comparison_direction"] = str(
         payload.get("comparison_direction", "current_vs_previous")
     )
     try:
-        canonical["year"] = int(payload.get("year") or canonical["year"])
+        ui_payload["year"] = int(payload.get("year") or ui_payload["year"])
     except (TypeError, ValueError):
         pass
 
-    canonical["meta"]["source_format"] = "unknown"
-    canonical["meta"]["quarter_context"] = get_payload_quarter_context(payload)
-    canonical["meta"]["executive_summary"] = {
+    ui_payload["meta"]["source_format"] = "unknown"
+    ui_payload["meta"]["quarter_context"] = get_payload_quarter_context(payload)
+    ui_payload["meta"]["executive_summary"] = {
         "content": "Format de comparaison non reconnu. Resultat vide genere."
     }
-    return canonical
+    return ui_payload
+
+
+def is_canonical_comparison(payload: Any) -> bool:
+    """Backward-compatible alias for :func:`is_ui_comparison_payload`."""
+    return is_ui_comparison_payload(payload)
+
+
+def _empty_canonical() -> dict[str, Any]:
+    """Backward-compatible alias for :func:`new_empty_ui_comparison_payload`."""
+    return new_empty_ui_comparison_payload()
+
+
+def to_canonical_payload(payload: Any) -> dict[str, Any]:
+    """Backward-compatible alias for :func:`to_ui_comparison_payload`."""
+    return to_ui_comparison_payload(payload)

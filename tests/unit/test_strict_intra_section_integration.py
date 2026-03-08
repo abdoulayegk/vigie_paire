@@ -15,6 +15,7 @@ def _table(
     title: str,
     rows: list[list[str]],
 ) -> TableArtifact:
+    raw_labels = [row[0] for row in rows if row]
     return TableArtifact(
         bank_code="rbc",
         section=section,
@@ -23,10 +24,13 @@ def _table(
         title=title,
         headers=["Indicateur", "Valeur"],
         rows=rows,
-        first_column_indicators=[row[0] for row in rows if row],
-        extraction_method="docling",
+        first_column_indicators=raw_labels,
+        first_column_indicators_raw=raw_labels,
+        extraction_method="vision_full_gpt4o",
         quarter="t1-2025",
         pdf_path="dummy.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
 
 

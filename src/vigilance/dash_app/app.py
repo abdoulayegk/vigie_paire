@@ -1598,7 +1598,17 @@ def render_results(comparison, indicator, show_results):
         changed_t1 = kpi.get("tables_changed_t1", 0)
         changed_t2 = kpi.get("tables_changed_t2", 0)
         ambiguous_tables = int(kpi.get("ambiguous_tables", 0) or 0)
+        ambiguous_pairs = int(kpi.get("ambiguous_pairs", 0) or 0)
         vision_rescued_pairs = int(kpi.get("vision_rescued_pairs", 0) or 0)
+        tables_comparable_t1 = int(kpi.get("tables_comparable_t1", 0) or 0)
+        tables_comparable_t2 = int(kpi.get("tables_comparable_t2", 0) or 0)
+        pairing_coverage = float(kpi.get("pairing_coverage", 0.0) or 0.0)
+        pairing_low_confidence = bool(
+            kpi.get("pairing_low_confidence", False)
+            or pairing_coverage < 0.75
+            or ambiguous_tables > 0
+            or ambiguous_pairs > 0
+        )
         tables_added_confirmed = int(kpi.get("tables_added_confirmed", 0) or 0)
         tables_removed_confirmed = int(kpi.get("tables_removed_confirmed", 0) or 0)
         cols = [
@@ -1742,7 +1752,9 @@ def render_results(comparison, indicator, show_results):
                     dbc.CardBody(
                         [
                             html.P(
-                                "Ajoutés confirmés",
+                                "Ajoutes confirms"
+                                if not pairing_low_confidence
+                                else "Ajoutes non apparies",
                                 className="small text-muted mb-0",
                             ),
                             html.H4(
@@ -1761,7 +1773,9 @@ def render_results(comparison, indicator, show_results):
                     dbc.CardBody(
                         [
                             html.P(
-                                "Supprimés confirmés",
+                                "Supprimes confirms"
+                                if not pairing_low_confidence
+                                else "Supprimes non apparies",
                                 className="small text-muted mb-0",
                             ),
                             html.H4(
@@ -1777,6 +1791,21 @@ def render_results(comparison, indicator, show_results):
             ),
         ]
         kpis.append(dbc.Row(resolution_cols, className="mb-3"))
+
+        pairing_context = (
+            f"Comparables: {tables_comparable_t1} ({previous_label}) / "
+            f"{tables_comparable_t2} ({current_label})"
+            f" | Couverture pairing: {pairing_coverage * 100:.0f}%"
+        )
+        if pairing_low_confidence:
+            pairing_context += " | Pairing faible: les tableaux non apparies restent a confirmer."
+        kpis.append(
+            dbc.Alert(
+                pairing_context,
+                color="light",
+                className="mb-3 small shadow-sm border-0",
+            )
+        )
 
         meta = indicator.get("meta", {}) or {}
         validation_summary = (

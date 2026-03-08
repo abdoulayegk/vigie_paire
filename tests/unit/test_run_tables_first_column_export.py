@@ -54,7 +54,20 @@ def test_run_tables_exports_first_column_indicators_region_table(tmp_path: Path,
                     ["États-Unis", "6806"],
                     ["Total", "56714"],
                 ],
-                extraction_method="docling",
+                first_column_indicators_raw=[
+                    "Atlantique",
+                    "Québec",
+                    "Ontario",
+                    "Alberta",
+                    "Colombie-Britannique",
+                    "Ailleurs au Canada",
+                    "Total au Canada",
+                    "États-Unis",
+                    "Total",
+                ],
+                extraction_method="vision_full_gpt4o",
+                footnotes=[],
+                content_source="vision_gpt4o",
             )
         ]
 
@@ -83,7 +96,7 @@ def test_run_tables_exports_first_column_indicators_region_table(tmp_path: Path,
         (out_root / "t1-2025" / "rbc" / "tables_docling.json").read_text(encoding="utf-8")
     )
     table = payload["tables"][0]
-    assert table["first_column_indicators"] == [
+    assert table["first_column_indicators_raw"] == [
         "Atlantique",
         "Québec",
         "Ontario",

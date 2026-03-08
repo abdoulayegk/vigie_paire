@@ -17,6 +17,11 @@ from app.comparison_canonical import (
     _is_comparison_changed,
     compute_changed_tables_t1,
     compute_changed_tables_t2,
+    is_canonical_comparison,
+    is_ui_comparison_payload,
+    new_empty_ui_comparison_payload,
+    to_canonical_payload,
+    to_ui_comparison_payload,
 )
 
 
@@ -177,3 +182,17 @@ class TestComputeChangedTablesMissingFields:
         )
         assert compute_changed_tables_t1(result) == 0
         assert compute_changed_tables_t2(result) == 0
+
+
+class TestUiPayloadAliases:
+    def test_new_ui_payload_aliases_match_legacy_behavior(self):
+        payload = {"bank_code": "bnc"}
+
+        legacy = to_canonical_payload(payload)
+        explicit = to_ui_comparison_payload(payload)
+        empty_payload = new_empty_ui_comparison_payload()
+
+        assert legacy == explicit
+        assert is_canonical_comparison(explicit)
+        assert is_ui_comparison_payload(explicit)
+        assert empty_payload["schema_version"] == "comparison_canonical_v1"

@@ -29,6 +29,11 @@ def _table(
     page_pdf: int = 1,
     headers: list[str] | None = None,
 ) -> TableArtifact:
+    raw_labels = (
+        list(first_column_indicators)
+        if first_column_indicators is not None
+        else [row[0] for row in rows if row]
+    )
     return TableArtifact(
         bank_code="rbc",
         section=section,
@@ -37,11 +42,14 @@ def _table(
         title=title,
         headers=headers or ["Indicateur", "Valeur"],
         rows=rows,
-        first_column_indicators=first_column_indicators or [row[0] for row in rows if row],
-        extraction_method="docling",
+        first_column_indicators=raw_labels,
+        first_column_indicators_raw=raw_labels,
+        extraction_method="vision_full_gpt4o",
         quarter="t1-2025",
         pdf_path="dummy.pdf",
         table_number=table_number,
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
 
 
@@ -143,6 +151,35 @@ def test_official_facade_returns_added_and_removed_tables() -> None:
     assert payload["removed_tables"][0]["reason"] == "removed_table"
     assert payload["added_tables"][0]["t2_table_id"] == "t2"
     assert payload["added_tables"][0]["reason"] == "added_table"
+
+
+def test_ineligible_tables_are_excluded_and_surfaced() -> None:
+    t1 = TableArtifact(
+        bank_code="rbc",
+        section="risk_management",
+        page_pdf=1,
+        table_id="legacy_t1",
+        title="Legacy",
+        headers=["Indicateur", "Valeur"],
+        rows=[["CET1", "1"]],
+        first_column_indicators=["CET1"],
+        extraction_method="docling",
+        quarter="t1-2025",
+        pdf_path="dummy.pdf",
+    )
+    t2 = _table(
+        table_id="t2",
+        section="risk_management",
+        title="Legacy",
+        rows=[["CET1", "2"]],
+    )
+
+    payload = run_strict_intra_section_compare([t1], [t2], overlap_threshold=0.5)
+    assert payload["pairs"] == []
+    assert payload["added_tables"] == []
+    assert payload["removed_tables"] == []
+    assert payload["ineligible_t1"][0]["t1_table_id"] == "legacy_t1"
+    assert payload["matching_diagnostics"]["ineligible_t1_count"] == 1
 
 
 def test_multi_signal_match_when_title_structure_and_position_align() -> None:
@@ -702,6 +739,29 @@ def test_get_table_features_returns_anchors_and_hash() -> None:
     assert "cet1" in anchors or "CET1" in [a.lower() for a in anchors]
     assert hash_val.startswith("sha1:")
     assert len(hash_val) == 45
+
+
+def test_get_table_features_does_not_fallback_to_rows() -> None:
+    t = TableArtifact(
+        bank_code="rbc",
+        section="capital",
+        page_pdf=1,
+        table_id="legacy_rows_only",
+        title="Legacy rows only",
+        headers=["Indicateur", "Valeur"],
+        rows=[["CET1", "1"], ["Tier1", "2"]],
+        first_column_indicators=[],
+        first_column_indicators_raw=[],
+        extraction_method="vision_full_gpt4o",
+        quarter="t1-2025",
+        pdf_path="dummy.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
+    )
+
+    anchors, hash_val = _get_table_features(t)
+    assert anchors == []
+    assert hash_val == "" or hash_val.startswith("sha1:")
 
 
 def test_fast_path_hash_same_indicators_match_score_one() -> None:

@@ -1,0 +1,1219 @@
+"""Official table pairing engine for the active comparison pipeline.
+
+This module implements a conservative pairing flow:
+
+1. Build canonical comparison views from ``TableArtifact``.
+2. Generate a small, high-recall shortlist per current-quarter table.
+3. Route the shortlist through a final decision layer.
+4. Emit explicit ``matched / ambiguous / unmatched`` states.
+
+The default router is deterministic and conservative. An optional LLM router can
+be enabled via configuration for final candidate routing, but the engine keeps
+the shortlist deterministic and bounded.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import math
+import re
+from dataclasses import dataclass, field
+from difflib import SequenceMatcher
+from typing import Any, Protocol
+
+from vigilance.config import get_matching_thresholds
+from vigilance.models.table_models import TableArtifact, get_comparison_indicators
+from vigilance.utils.matching_normalizer import (
+    header_schema_similarity,
+    is_generic_title,
+    normalize_for_matching,
+    strip_temporal_expressions,
+)
+
+logger = logging.getLogger(__name__)
+
+UNKNOWN_SECTIONS = {"", "unknown", "unknown_section"}
+DEFAULT_SHORTLIST_SIZE = 5
+DEFAULT_ROUTER_MODEL = "gpt-4o-mini"
+DEFAULT_ROUTER_TIMEOUT = 30.0
+
+_TABLE_NUMBER_RE = re.compile(
+    r"\b(?:tableau|table)\s*([a-z]?\d+[a-z]?|\d+[a-z]?)\b",
+    re.IGNORECASE,
+)
+_TABLE_NUMBER_SHORT_RE = re.compile(r"\bT\s*([0-9]+[A-Za-z]?)\b")
+
+_GENERIC_INDICATOR_KEYS = frozenset(
+    {
+        "total",
+        "autres",
+        "other",
+        "canada",
+        "etats unis",
+        "etatsunis",
+        "united states",
+        "europe",
+        "royaume uni",
+        "uk",
+        "asie",
+        "amerique latine",
+        "amlat",
+        "particuliers",
+        "entreprises",
+        "secteur public",
+        "administrations publiques",
+    }
+)
+
+
+def _is_generic_indicator_key(value: str) -> bool:
+    normalized = normalize_for_matching(str(value or ""), target="indicator")
+    if not normalized:
+        return True
+    collapsed = normalized.replace(" ", "")
+    if normalized in _GENERIC_INDICATOR_KEYS or collapsed in {
+        item.replace(" ", "") for item in _GENERIC_INDICATOR_KEYS
+    }:
+        return True
+    tokens = set(normalized.split())
+    return tokens.issubset(
+        {
+            "total",
+            "autres",
+            "other",
+            "canada",
+            "etats",
+            "unis",
+            "united",
+            "states",
+            "europe",
+            "royaume",
+            "uni",
+            "uk",
+            "asie",
+            "amerique",
+            "latine",
+            "particuliers",
+            "entreprises",
+            "secteur",
+            "public",
+            "administrations",
+            "publiques",
+        }
+    )
+
+
+def _safe_int(value: Any, default: int = 0) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _table_uid(table: TableArtifact) -> str:
+    return f"{table.section}|{table.table_id}|p{table.page_pdf}"
+
+
+def _dedupe_preserve_order(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for value in values:
+        cleaned = str(value or "").strip()
+        if not cleaned or cleaned in seen:
+            continue
+        seen.add(cleaned)
+        out.append(cleaned)
+    return out
+
+
+def _normalize_title_value(value: str | None) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    cleaned = strip_temporal_expressions(raw, target="title", aggressive=True)
+    return normalize_for_matching(cleaned, target="title")
+
+
+def _normalized_title(table: TableArtifact) -> str:
+    candidates = [
+        getattr(table, "title_clean", None),
+        getattr(table, "title_raw", None),
+        getattr(table, "title", None),
+    ]
+    for candidate in candidates:
+        normalized = _normalize_title_value(candidate)
+        if normalized:
+            return normalized
+    return ""
+
+
+def _normalized_headers(table: TableArtifact) -> list[str]:
+    headers = [str(h or "").strip() for h in (getattr(table, "headers", None) or [])]
+    return [normalize_for_matching(item, target="header") for item in headers if item]
+
+
+def _normalized_table_number(table: TableArtifact) -> str:
+    explicit = normalize_for_matching(str(getattr(table, "table_number", "") or ""))
+    if explicit:
+        return explicit
+    title_candidates = [
+        getattr(table, "title_raw", None),
+        getattr(table, "title_clean", None),
+        getattr(table, "title", None),
+    ]
+    for title in title_candidates:
+        text = str(title or "").strip()
+        if not text:
+            continue
+        match = _TABLE_NUMBER_RE.search(text) or _TABLE_NUMBER_SHORT_RE.search(text)
+        if match:
+            return normalize_for_matching(match.group(1), target="generic")
+    return ""
+
+
+def _indicator_keys(table: TableArtifact) -> list[str]:
+    return _dedupe_preserve_order(get_comparison_indicators(table))
+
+
+def _is_known_section(value: str | None) -> bool:
+    return bool(value and str(value).strip().lower() not in UNKNOWN_SECTIONS)
+
+
+def _section_value(table: TableArtifact) -> str:
+    return str(getattr(table, "section", "") or "").strip().lower()
+
+
+def _same_or_unknown_section(left: TableArtifact, right: TableArtifact) -> bool:
+    left_section = _section_value(left)
+    right_section = _section_value(right)
+    if left_section == right_section:
+        return True
+    if not _is_known_section(left_section) and not _is_known_section(right_section):
+        return True
+    return False
+
+
+def _row_count(table: TableArtifact) -> int:
+    indicators = _indicator_keys(table)
+    if indicators:
+        return len(indicators)
+    return len(getattr(table, "rows", None) or [])
+
+
+def _size_compatibility(left: TableArtifact, right: TableArtifact) -> float:
+    left_count = max(_row_count(left), 1)
+    right_count = max(_row_count(right), 1)
+    return min(left_count, right_count) / max(left_count, right_count)
+
+
+def _jaccard(left: list[str], right: list[str]) -> float:
+    left_set = set(left)
+    right_set = set(right)
+    if not left_set or not right_set:
+        return 0.0
+    return len(left_set & right_set) / max(len(left_set | right_set), 1)
+
+
+def _containment(left: list[str], right: list[str]) -> float:
+    left_set = set(left)
+    right_set = set(right)
+    if not left_set or not right_set:
+        return 0.0
+    return len(left_set & right_set) / max(min(len(left_set), len(right_set)), 1)
+
+
+def _page_bonus(left: TableArtifact, right: TableArtifact) -> float:
+    delta = abs(_safe_int(getattr(left, "page_pdf", 0)) - _safe_int(getattr(right, "page_pdf", 0)))
+    if delta <= 1:
+        return 1.0
+    if delta <= 3:
+        return 0.7
+    if delta <= 6:
+        return 0.4
+    return 0.0
+
+
+def _title_similarity(left: TableArtifact, right: TableArtifact) -> float:
+    title_left = _normalized_title(left)
+    title_right = _normalized_title(right)
+    if not title_left or not title_right:
+        return 0.0
+    if is_generic_title(title_left) or is_generic_title(title_right):
+        return 0.0
+    return SequenceMatcher(None, title_left, title_right).ratio()
+
+
+def _headers_similarity(left: TableArtifact, right: TableArtifact) -> float:
+    headers_left = _normalized_headers(left)
+    headers_right = _normalized_headers(right)
+    if not headers_left or not headers_right:
+        return 0.0
+    return header_schema_similarity(headers_left, headers_right)
+
+
+def _build_section_indicator_frequency(
+    tables_t1: list[TableArtifact],
+    tables_t2: list[TableArtifact],
+) -> dict[str, dict[str, int]]:
+    counts: dict[str, dict[str, int]] = {}
+    for table in [*tables_t1, *tables_t2]:
+        if not bool(getattr(table, "comparison_eligible", False)):
+            continue
+        section = _section_value(table)
+        section_counts = counts.setdefault(section, {})
+        for key in set(_indicator_keys(table)):
+            section_counts[key] = section_counts.get(key, 0) + 1
+    return counts
+
+
+def _distinctive_indicator_keys(
+    table: TableArtifact,
+    *,
+    section_frequencies: dict[str, dict[str, int]],
+    section_table_count: int,
+) -> list[str]:
+    keys = _indicator_keys(table)
+    if not keys:
+        return []
+    section = _section_value(table)
+    counts = section_frequencies.get(section, {})
+    common_threshold = max(3, int(math.ceil(max(section_table_count, 1) * 0.45)))
+    distinctive = [
+        key
+        for key in keys
+        if not _is_generic_indicator_key(key)
+        and counts.get(key, 0) < common_threshold
+    ]
+    if distinctive:
+        return distinctive
+    return [key for key in keys if not _is_generic_indicator_key(key)][:6]
+
+
+@dataclass(slots=True)
+class TableView:
+    table: TableArtifact
+    uid: str
+    section: str
+    normalized_title: str
+    normalized_headers: list[str]
+    normalized_table_number: str
+    indicator_keys: list[str]
+    indicator_distinctive_keys: list[str]
+    table_size: int
+
+    @classmethod
+    def from_table(
+        cls,
+        table: TableArtifact,
+        *,
+        section_frequencies: dict[str, dict[str, int]],
+        section_table_count: int,
+    ) -> "TableView":
+        return cls(
+            table=table,
+            uid=_table_uid(table),
+            section=_section_value(table),
+            normalized_title=_normalized_title(table),
+            normalized_headers=_normalized_headers(table),
+            normalized_table_number=_normalized_table_number(table),
+            indicator_keys=_indicator_keys(table),
+            indicator_distinctive_keys=_distinctive_indicator_keys(
+                table,
+                section_frequencies=section_frequencies,
+                section_table_count=section_table_count,
+            ),
+            table_size=_row_count(table),
+        )
+
+
+@dataclass(slots=True)
+class CandidateScore:
+    t1_view: TableView
+    t2_view: TableView
+    total_score: float
+    section_compatibility: float
+    indicator_distinctive_overlap: float
+    indicator_global_overlap: float
+    indicator_containment: float
+    header_compatibility: float
+    title_similarity: float
+    table_number_bonus: float
+    order_proximity_bonus: float
+    size_compatibility: float
+    table_number_match: bool
+    table_number_conflict: bool
+    explanation: list[str] = field(default_factory=list)
+
+    def as_feature_dict(self) -> dict[str, Any]:
+        return {
+            "t1_uid": self.t1_view.uid,
+            "t2_uid": self.t2_view.uid,
+            "score": round(self.total_score, 6),
+            "section_compatibility": round(self.section_compatibility, 6),
+            "indicator_distinctive_overlap": round(
+                self.indicator_distinctive_overlap, 6
+            ),
+            "indicator_global_overlap": round(self.indicator_global_overlap, 6),
+            "indicator_containment": round(self.indicator_containment, 6),
+            "header_compatibility": round(self.header_compatibility, 6),
+            "title_similarity": round(self.title_similarity, 6),
+            "table_number_bonus": round(self.table_number_bonus, 6),
+            "order_proximity_bonus": round(self.order_proximity_bonus, 6),
+            "size_compatibility": round(self.size_compatibility, 6),
+            "table_number_match": self.table_number_match,
+            "table_number_conflict": self.table_number_conflict,
+            "reasons": list(self.explanation),
+        }
+
+
+def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
+    section_compatibility = 1.0 if _same_or_unknown_section(t1_view.table, t2_view.table) else 0.0
+    indicator_distinctive_overlap = _jaccard(
+        t1_view.indicator_distinctive_keys,
+        t2_view.indicator_distinctive_keys,
+    )
+    indicator_global_overlap = _jaccard(t1_view.indicator_keys, t2_view.indicator_keys)
+    indicator_containment = _containment(t1_view.indicator_keys, t2_view.indicator_keys)
+    header_compatibility = _headers_similarity(t1_view.table, t2_view.table)
+    title_similarity = _title_similarity(t1_view.table, t2_view.table)
+    size_compatibility = _size_compatibility(t1_view.table, t2_view.table)
+    order_proximity_bonus = _page_bonus(t1_view.table, t2_view.table)
+
+    same_number = bool(
+        t1_view.normalized_table_number
+        and t1_view.normalized_table_number == t2_view.normalized_table_number
+    )
+    table_number_conflict = bool(
+        t1_view.normalized_table_number
+        and t2_view.normalized_table_number
+        and t1_view.normalized_table_number != t2_view.normalized_table_number
+    )
+    table_number_bonus = 0.15 if same_number else -0.05 if table_number_conflict else 0.0
+
+    explanation: list[str] = []
+    if same_number:
+        explanation.append("same_table_number")
+    if table_number_conflict:
+        explanation.append("table_number_conflict")
+    if indicator_distinctive_overlap >= 0.45:
+        explanation.append("distinctive_overlap_strong")
+    if indicator_containment >= 0.65:
+        explanation.append("indicator_containment_strong")
+    if title_similarity >= 0.75:
+        explanation.append("title_similarity_strong")
+    if header_compatibility >= 0.70:
+        explanation.append("headers_compatible")
+
+    total = (
+        0.36 * indicator_distinctive_overlap
+        + 0.23 * indicator_containment
+        + 0.12 * header_compatibility
+        + 0.11 * title_similarity
+        + 0.08 * section_compatibility
+        + 0.06 * size_compatibility
+        + 0.04 * order_proximity_bonus
+        + table_number_bonus
+    )
+    total = max(0.0, min(1.0, total))
+
+    return CandidateScore(
+        t1_view=t1_view,
+        t2_view=t2_view,
+        total_score=total,
+        section_compatibility=section_compatibility,
+        indicator_distinctive_overlap=indicator_distinctive_overlap,
+        indicator_global_overlap=indicator_global_overlap,
+        indicator_containment=indicator_containment,
+        header_compatibility=header_compatibility,
+        title_similarity=title_similarity,
+        table_number_bonus=table_number_bonus,
+        order_proximity_bonus=order_proximity_bonus,
+        size_compatibility=size_compatibility,
+        table_number_match=same_number,
+        table_number_conflict=table_number_conflict,
+        explanation=explanation,
+    )
+
+
+def _eligible_table_views(
+    tables: list[TableArtifact],
+    *,
+    section_frequencies: dict[str, dict[str, int]],
+    section_counts: dict[str, int],
+) -> tuple[list[TableView], list[dict[str, Any]]]:
+    views: list[TableView] = []
+    ineligible: list[dict[str, Any]] = []
+    for table in tables:
+        uid = _table_uid(table)
+        if not bool(getattr(table, "comparison_eligible", False)):
+            blockers = list(getattr(table, "comparison_blockers", []) or [])
+            ineligible.append(
+                {
+                    "table_id": table.table_id,
+                    "uid": uid,
+                    "section": table.section,
+                    "page": table.page_pdf,
+                    "title": table.title or "",
+                    "comparison_blockers": blockers,
+                    "reason": "comparison_ineligible",
+                }
+            )
+            continue
+        section = _section_value(table)
+        views.append(
+            TableView.from_table(
+                table,
+                section_frequencies=section_frequencies,
+                section_table_count=section_counts.get(section, 1),
+            )
+        )
+    return views, ineligible
+
+
+def _hard_filter_candidate(t1_view: TableView, t2_view: TableView) -> bool:
+    if not _same_or_unknown_section(t1_view.table, t2_view.table):
+        return False
+    if _size_compatibility(t1_view.table, t2_view.table) < 0.35:
+        return False
+    return True
+
+
+def _shortlist_candidates(
+    t2_view: TableView,
+    t1_views: list[TableView],
+    *,
+    shortlist_size: int,
+) -> list[CandidateScore]:
+    candidates: list[CandidateScore] = []
+    for t1_view in t1_views:
+        if not _hard_filter_candidate(t1_view, t2_view):
+            continue
+        score = _candidate_score(t1_view, t2_view)
+        if score.total_score < 0.12 and score.indicator_global_overlap < 0.15:
+            continue
+        candidates.append(score)
+    if not candidates:
+        return []
+    candidates.sort(key=lambda item: item.total_score, reverse=True)
+
+    selected: list[CandidateScore] = []
+    seen: set[str] = set()
+
+    def _add(candidate: CandidateScore) -> None:
+        if candidate.t1_view.uid in seen:
+            return
+        seen.add(candidate.t1_view.uid)
+        selected.append(candidate)
+
+    _add(candidates[0])
+    by_distinct = max(candidates, key=lambda item: item.indicator_distinctive_overlap)
+    by_global = max(candidates, key=lambda item: item.indicator_global_overlap)
+    by_title = max(candidates, key=lambda item: item.title_similarity)
+    if any(candidate.table_number_match for candidate in candidates):
+        by_number = max(
+            candidates,
+            key=lambda item: (1 if item.table_number_match else 0, item.total_score),
+        )
+        _add(by_number)
+    _add(by_distinct)
+    _add(by_global)
+    if by_title.title_similarity > 0:
+        _add(by_title)
+    for candidate in candidates:
+        _add(candidate)
+        if len(selected) >= shortlist_size:
+            break
+    return selected[:shortlist_size]
+
+
+@dataclass(slots=True)
+class PairingDecision:
+    decision: str
+    matched_t1_uid: str | None
+    confidence: float
+    reason_codes: list[str]
+    requires_review: bool
+
+
+class PairingRouter(Protocol):
+    def route(
+        self,
+        *,
+        t2_view: TableView,
+        candidates: list[CandidateScore],
+    ) -> PairingDecision: ...
+
+
+class ConservativePairingRouter:
+    """Deterministic conservative router used by default."""
+
+    def route(
+        self,
+        *,
+        t2_view: TableView,
+        candidates: list[CandidateScore],
+    ) -> PairingDecision:
+        if not candidates:
+            return PairingDecision(
+                decision="no_match",
+                matched_t1_uid=None,
+                confidence=0.0,
+                reason_codes=["no_candidates"],
+                requires_review=False,
+            )
+
+        top = candidates[0]
+        second = candidates[1] if len(candidates) > 1 else None
+        reasons = list(top.explanation)
+
+        if (
+            top.indicator_global_overlap >= 0.60
+            and top.indicator_distinctive_overlap < 0.25
+        ):
+            reasons = ["family_similarity_without_distinctive_anchor", *reasons]
+            return PairingDecision(
+                decision="ambiguous",
+                matched_t1_uid=None,
+                confidence=min(0.75, top.total_score),
+                reason_codes=reasons,
+                requires_review=True,
+            )
+
+        if second is not None and second.total_score >= 0.55:
+            if abs(top.total_score - second.total_score) < 0.06:
+                reasons.append("close_competing_candidates")
+                return PairingDecision(
+                    decision="ambiguous",
+                    matched_t1_uid=None,
+                    confidence=min(0.80, top.total_score),
+                    reason_codes=reasons,
+                    requires_review=True,
+                )
+
+        if top.table_number_match and top.indicator_containment < 0.35:
+            reasons.append("table_number_only_is_not_enough")
+            return PairingDecision(
+                decision="ambiguous",
+                matched_t1_uid=None,
+                confidence=min(0.70, top.total_score),
+                reason_codes=reasons,
+                requires_review=True,
+            )
+
+        if (
+            top.total_score >= 0.66
+            and top.indicator_containment >= 0.52
+            and (
+                top.indicator_distinctive_overlap >= 0.40
+                or top.title_similarity >= 0.72
+                or top.header_compatibility >= 0.72
+                or top.table_number_match
+            )
+        ):
+            reasons.append("deterministic_router_match")
+            return PairingDecision(
+                decision="match",
+                matched_t1_uid=top.t1_view.uid,
+                confidence=top.total_score,
+                reason_codes=reasons,
+                requires_review=False,
+            )
+
+        if top.total_score >= 0.56 and top.indicator_containment >= 0.45:
+            reasons.append("conservative_router_ambiguous")
+            return PairingDecision(
+                decision="ambiguous",
+                matched_t1_uid=None,
+                confidence=top.total_score,
+                reason_codes=reasons,
+                requires_review=True,
+            )
+
+        reasons.append("insufficient_pairing_signal")
+        return PairingDecision(
+            decision="no_match",
+            matched_t1_uid=None,
+            confidence=top.total_score,
+            reason_codes=reasons,
+            requires_review=False,
+        )
+
+
+def _table_summary_for_router(view: TableView) -> dict[str, Any]:
+    return {
+        "uid": view.uid,
+        "section": view.section,
+        "table_number_raw": getattr(view.table, "table_number", None),
+        "title_raw": getattr(view.table, "title", None),
+        "title_normalized": view.normalized_title,
+        "headers_normalized": view.normalized_headers[:6],
+        "top_distinctive_indicators": view.indicator_distinctive_keys[:8],
+        "top_global_indicators": view.indicator_keys[:10],
+        "table_size": view.table_size,
+    }
+
+
+class BatchLLMPairingRouter:
+    """Optional final router using GPT-4o style batch routing.
+
+    The shortlist is still deterministic; the LLM only chooses between provided
+    candidates or returns ``no_match`` / ``ambiguous``.
+    """
+
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        model: str = DEFAULT_ROUTER_MODEL,
+        timeout: float = DEFAULT_ROUTER_TIMEOUT,
+    ) -> None:
+        self.api_key = api_key
+        self.model = model
+        self.timeout = timeout
+
+    def _build_prompt(self, *, t2_view: TableView, candidates: list[CandidateScore]) -> str:
+        payload = {
+            "instruction": (
+                "Choisis le candidat qui represente le meme tableau conceptuel/reglementaire. "
+                "N'utilise pas l'ordre des lignes comme preuve. Le numero et le titre "
+                "sont secondaires. Une forte similarite de famille sans indicateurs "
+                "distinctifs doit mener a 'ambiguous' ou 'no_match'."
+            ),
+            "allowed_answers": ["match:<t1_uid>", "no_match", "ambiguous"],
+            "t2": _table_summary_for_router(t2_view),
+            "candidates": [
+                {
+                    "candidate": _table_summary_for_router(score.t1_view),
+                    "features": score.as_feature_dict(),
+                }
+                for score in candidates
+            ],
+        }
+        return json.dumps(payload, ensure_ascii=False)
+
+    def route(
+        self,
+        *,
+        t2_view: TableView,
+        candidates: list[CandidateScore],
+    ) -> PairingDecision:
+        if not candidates:
+            return PairingDecision(
+                decision="no_match",
+                matched_t1_uid=None,
+                confidence=0.0,
+                reason_codes=["no_candidates"],
+                requires_review=False,
+            )
+        try:
+            from openai import OpenAI
+        except ImportError:
+            logger.warning("openai package missing; falling back to deterministic router")
+            return ConservativePairingRouter().route(t2_view=t2_view, candidates=candidates)
+
+        client = OpenAI(api_key=self.api_key, timeout=self.timeout)
+        response = client.chat.completions.create(
+            model=self.model,
+            temperature=0,
+            response_format={"type": "json_object"},
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Tu es un routeur de tableaux bancaires. "
+                        "Reponds uniquement en JSON avec decision, matched_t1_uid, "
+                        "confidence et reason_codes."
+                    ),
+                },
+                {"role": "user", "content": self._build_prompt(t2_view=t2_view, candidates=candidates)},
+            ],
+        )
+        content = response.choices[0].message.content if response.choices else ""
+        try:
+            payload = json.loads(content or "{}")
+        except json.JSONDecodeError:
+            logger.warning("LLM router returned invalid JSON; using deterministic fallback")
+            return ConservativePairingRouter().route(t2_view=t2_view, candidates=candidates)
+
+        decision = str(payload.get("decision", "") or "").strip()
+        matched_t1_uid = str(payload.get("matched_t1_uid", "") or "").strip() or None
+        confidence = max(0.0, min(1.0, _safe_float(payload.get("confidence", 0.0))))
+        reason_codes = [
+            str(item).strip()
+            for item in (payload.get("reason_codes", []) or [])
+            if str(item).strip()
+        ]
+        if decision not in {"match", "no_match", "ambiguous"}:
+            return ConservativePairingRouter().route(t2_view=t2_view, candidates=candidates)
+        if decision == "match" and not matched_t1_uid:
+            return ConservativePairingRouter().route(t2_view=t2_view, candidates=candidates)
+        return PairingDecision(
+            decision=decision,
+            matched_t1_uid=matched_t1_uid,
+            confidence=confidence,
+            reason_codes=reason_codes or ["batch_llm_router"],
+            requires_review=decision != "match",
+        )
+
+
+def _build_router(
+    *,
+    api_key: str | None,
+    bank_code: str | None,
+) -> PairingRouter:
+    cfg = get_matching_thresholds(bank_code=bank_code)
+    enabled = bool(cfg.get("batch_llm_pairing_enabled", False))
+    if enabled and api_key:
+        model = str(cfg.get("batch_llm_pairing_model", DEFAULT_ROUTER_MODEL))
+        timeout = _safe_float(cfg.get("batch_llm_pairing_timeout", DEFAULT_ROUTER_TIMEOUT), DEFAULT_ROUTER_TIMEOUT)
+        return BatchLLMPairingRouter(api_key=api_key, model=model, timeout=timeout)
+    return ConservativePairingRouter()
+
+
+def _pair_dict(candidate: CandidateScore, decision: PairingDecision) -> dict[str, Any]:
+    t1 = candidate.t1_view.table
+    t2 = candidate.t2_view.table
+    payload = candidate.as_feature_dict()
+    payload.update(
+        {
+            "t1_uid": candidate.t1_view.uid,
+            "t2_uid": candidate.t2_view.uid,
+            "t1_table_id": t1.table_id,
+            "t2_table_id": t2.table_id,
+            "page_t1": t1.page_pdf,
+            "page_t2": t2.page_pdf,
+            "title_t1": t1.title or "",
+            "title_t2": t2.title or "",
+            "section": t1.section or t2.section or "",
+            "reason": decision.reason_codes[0] if decision.reason_codes else "matched_pair",
+            "reason_codes": list(decision.reason_codes),
+            "decision_level": "match",
+            "router_decision": decision.decision,
+            "pairing_confidence": round(decision.confidence, 6),
+        }
+    )
+    return payload
+
+
+def _unmatched_previous_entry(
+    view: TableView,
+    *,
+    ambiguous: bool,
+    reason: str,
+) -> dict[str, Any]:
+    table = view.table
+    return {
+        "t1_uid": view.uid,
+        "t1_table_id": table.table_id,
+        "section": table.section,
+        "page_t1": table.page_pdf,
+        "title_t1": table.title or "",
+        "reason": reason,
+        "unmatched_status": "ambiguous" if ambiguous else "confirmed",
+        "suspicion_flags": [reason] if ambiguous else [],
+    }
+
+
+def _unmatched_current_entry(
+    view: TableView,
+    *,
+    ambiguous: bool,
+    reason: str,
+) -> dict[str, Any]:
+    table = view.table
+    return {
+        "t2_uid": view.uid,
+        "t2_table_id": table.table_id,
+        "section": table.section,
+        "page_t2": table.page_pdf,
+        "title_t2": table.title or "",
+        "reason": reason,
+        "unmatched_status": "ambiguous" if ambiguous else "confirmed",
+        "suspicion_flags": [reason] if ambiguous else [],
+    }
+
+
+def _added_table_entry(view: TableView) -> dict[str, Any]:
+    table = view.table
+    return {
+        "uid": view.uid,
+        "table_id": table.table_id,
+        "t2_uid": view.uid,
+        "t2_table_id": table.table_id,
+        "section": table.section,
+        "page": table.page_pdf,
+        "page_t2": table.page_pdf,
+        "title": table.title or "",
+        "title_t2": table.title or "",
+        "reason": "added_table",
+        "source_reason": "pairing_unmatched",
+        "first_column_indicators": list(view.indicator_keys),
+        "first_column_indicators_raw": list(getattr(table, "first_column_indicators_raw", None) or []),
+    }
+
+
+def _removed_table_entry(view: TableView) -> dict[str, Any]:
+    table = view.table
+    return {
+        "uid": view.uid,
+        "table_id": table.table_id,
+        "t1_uid": view.uid,
+        "t1_table_id": table.table_id,
+        "section": table.section,
+        "page": table.page_pdf,
+        "page_t1": table.page_pdf,
+        "title": table.title or "",
+        "title_t1": table.title or "",
+        "reason": "removed_table",
+        "source_reason": "pairing_unmatched",
+        "first_column_indicators": list(view.indicator_keys),
+        "first_column_indicators_raw": list(getattr(table, "first_column_indicators_raw", None) or []),
+    }
+
+
+def _candidate_debug_entry_t2(t2_uid: str, candidates: list[CandidateScore]) -> dict[str, Any]:
+    return {
+        "t2_uid": t2_uid,
+        "candidates": [candidate.as_feature_dict() for candidate in candidates],
+    }
+
+
+def _candidate_debug_entry_t1(
+    t1_uid: str,
+    candidates: list[CandidateScore],
+) -> dict[str, Any]:
+    normalized = []
+    for candidate in candidates:
+        item = candidate.as_feature_dict()
+        item["t1_uid"] = t1_uid
+        normalized.append(item)
+    return {"t1_uid": t1_uid, "candidates": normalized}
+
+
+def _resolve_collisions(
+    provisional_matches: list[tuple[TableView, CandidateScore, PairingDecision]],
+) -> tuple[list[tuple[TableView, CandidateScore, PairingDecision]], list[dict[str, Any]]]:
+    matches_by_t1: dict[str, list[tuple[TableView, CandidateScore, PairingDecision]]] = {}
+    for entry in provisional_matches:
+        _, candidate, _ = entry
+        matches_by_t1.setdefault(candidate.t1_view.uid, []).append(entry)
+
+    accepted: list[tuple[TableView, CandidateScore, PairingDecision]] = []
+    ambiguous: list[dict[str, Any]] = []
+
+    for t1_uid, entries in matches_by_t1.items():
+        if len(entries) == 1:
+            accepted.append(entries[0])
+            continue
+        entries_sorted = sorted(entries, key=lambda item: item[2].confidence, reverse=True)
+        top = entries_sorted[0]
+        runner_up = entries_sorted[1]
+        if top[2].confidence - runner_up[2].confidence >= 0.05:
+            accepted.append(top)
+            for t2_view, candidate, decision in entries_sorted[1:]:
+                ambiguous.append(
+                    {
+                        "decision": "ambiguous",
+                        "matched_t1_uid": None,
+                        "confidence": round(decision.confidence, 6),
+                        "reason_codes": ["collision_after_assignment"],
+                        "t2_uid": t2_view.uid,
+                        "candidate_t1_uids": [t1_uid],
+                    }
+                )
+            continue
+        candidate_ids = [candidate.t1_view.uid for _, candidate, _ in entries_sorted]
+        for t2_view, candidate, decision in entries_sorted:
+            ambiguous.append(
+                {
+                    "decision": "ambiguous",
+                    "matched_t1_uid": None,
+                    "confidence": round(decision.confidence, 6),
+                    "reason_codes": ["collision_after_assignment"],
+                    "t2_uid": t2_view.uid,
+                    "candidate_t1_uids": candidate_ids,
+                }
+            )
+    return accepted, ambiguous
+
+
+def run_strict_intra_section_compare(
+    tables_t1: list[TableArtifact],
+    tables_t2: list[TableArtifact],
+    *,
+    overlap_threshold: float | None = None,
+    bank_code: str | None = None,
+    embedding_service: Any | None = None,
+    api_key: str | None = None,
+) -> dict[str, Any]:
+    """Official conservative pairing facade used by the active pipeline."""
+    del overlap_threshold, embedding_service
+
+    section_frequencies = _build_section_indicator_frequency(tables_t1, tables_t2)
+    section_counts: dict[str, int] = {}
+    for table in [*tables_t1, *tables_t2]:
+        if not bool(getattr(table, "comparison_eligible", False)):
+            continue
+        section = _section_value(table)
+        section_counts[section] = section_counts.get(section, 0) + 1
+
+    t1_views, ineligible_t1_raw = _eligible_table_views(
+        tables_t1,
+        section_frequencies=section_frequencies,
+        section_counts=section_counts,
+    )
+    t2_views, ineligible_t2_raw = _eligible_table_views(
+        tables_t2,
+        section_frequencies=section_frequencies,
+        section_counts=section_counts,
+    )
+
+    router = _build_router(api_key=api_key, bank_code=bank_code)
+    shortlist_size = _safe_int(
+        get_matching_thresholds(bank_code=bank_code).get(
+            "pairing_shortlist_size", DEFAULT_SHORTLIST_SIZE
+        ),
+        DEFAULT_SHORTLIST_SIZE,
+    )
+    shortlist_size = max(1, min(shortlist_size, 5))
+
+    candidate_map_t2: dict[str, list[CandidateScore]] = {}
+    candidate_map_t1: dict[str, list[CandidateScore]] = {}
+    ambiguous_pairs: list[dict[str, Any]] = []
+    provisional_matches: list[tuple[TableView, CandidateScore, PairingDecision]] = []
+    explicit_no_match_t2: set[str] = set()
+
+    for t2_view in t2_views:
+        shortlist = _shortlist_candidates(
+            t2_view,
+            t1_views,
+            shortlist_size=shortlist_size,
+        )
+        candidate_map_t2[t2_view.uid] = shortlist
+        for candidate in shortlist:
+            candidate_map_t1.setdefault(candidate.t1_view.uid, []).append(candidate)
+
+        decision = router.route(t2_view=t2_view, candidates=shortlist)
+        if decision.decision == "match" and decision.matched_t1_uid:
+            chosen = next(
+                (
+                    candidate
+                    for candidate in shortlist
+                    if candidate.t1_view.uid == decision.matched_t1_uid
+                ),
+                None,
+            )
+            if chosen is not None:
+                provisional_matches.append((t2_view, chosen, decision))
+                continue
+        if decision.decision == "ambiguous":
+            ambiguous_pairs.append(
+                {
+                    "decision": "ambiguous",
+                    "matched_t1_uid": None,
+                    "confidence": round(decision.confidence, 6),
+                    "reason_codes": list(decision.reason_codes),
+                    "t2_uid": t2_view.uid,
+                    "candidate_t1_uids": [candidate.t1_view.uid for candidate in shortlist],
+                }
+            )
+        else:
+            explicit_no_match_t2.add(t2_view.uid)
+
+    accepted_matches, collision_ambiguous = _resolve_collisions(provisional_matches)
+    ambiguous_pairs.extend(collision_ambiguous)
+
+    matched_t1_uids = {candidate.t1_view.uid for _, candidate, _ in accepted_matches}
+    matched_t2_uids = {t2_view.uid for t2_view, _, _ in accepted_matches}
+
+    ambiguous_t2_uids = {
+        str(item.get("t2_uid", "")).strip()
+        for item in ambiguous_pairs
+        if str(item.get("t2_uid", "")).strip()
+    }
+    ambiguous_t1_uids: set[str] = set()
+    for item in ambiguous_pairs:
+        for candidate_uid in item.get("candidate_t1_uids", []) or []:
+            candidate_uid = str(candidate_uid).strip()
+            if candidate_uid:
+                ambiguous_t1_uids.add(candidate_uid)
+
+    pairs = [_pair_dict(candidate, decision) for _, candidate, decision in accepted_matches]
+
+    unmatched_t1: list[dict[str, Any]] = []
+    unmatched_t2: list[dict[str, Any]] = []
+    removed_tables: list[dict[str, Any]] = []
+    added_tables: list[dict[str, Any]] = []
+
+    for view in t1_views:
+        if view.uid in matched_t1_uids:
+            continue
+        if view.uid in ambiguous_t1_uids:
+            unmatched_t1.append(
+                _unmatched_previous_entry(
+                    view,
+                    ambiguous=True,
+                    reason="ambiguous_candidate",
+                )
+            )
+            continue
+        unmatched_t1.append(
+            _unmatched_previous_entry(
+                view,
+                ambiguous=False,
+                reason="removed_table",
+            )
+        )
+        removed_tables.append(_removed_table_entry(view))
+
+    for view in t2_views:
+        if view.uid in matched_t2_uids:
+            continue
+        if view.uid in ambiguous_t2_uids:
+            unmatched_t2.append(
+                _unmatched_current_entry(
+                    view,
+                    ambiguous=True,
+                    reason="ambiguous_candidate",
+                )
+            )
+            continue
+        reason = "no_match" if view.uid in explicit_no_match_t2 else "added_table"
+        unmatched_t2.append(
+            _unmatched_current_entry(
+                view,
+                ambiguous=False,
+                reason=reason,
+            )
+        )
+        added_tables.append(_added_table_entry(view))
+
+    unmatched_confirmed_t1 = [
+        item for item in unmatched_t1 if item.get("unmatched_status") == "confirmed"
+    ]
+    unmatched_ambiguous_t1 = [
+        item for item in unmatched_t1 if item.get("unmatched_status") == "ambiguous"
+    ]
+    unmatched_confirmed_t2 = [
+        item for item in unmatched_t2 if item.get("unmatched_status") == "confirmed"
+    ]
+    unmatched_ambiguous_t2 = [
+        item for item in unmatched_t2 if item.get("unmatched_status") == "ambiguous"
+    ]
+    comparable_t1 = len(t1_views)
+    comparable_t2 = len(t2_views)
+    pairing_coverage = round(
+        len(pairs) / max(min(comparable_t1, comparable_t2), 1),
+        6,
+    )
+
+    ineligible_t1 = [
+        {
+            "t1_table_id": item["table_id"],
+            "t1_uid": item["uid"],
+            "section": item["section"],
+            "page_t1": item["page"],
+            "title_t1": item["title"],
+            "reason": item["reason"],
+            "comparison_blockers": item["comparison_blockers"],
+        }
+        for item in ineligible_t1_raw
+    ]
+    ineligible_t2 = [
+        {
+            "t2_table_id": item["table_id"],
+            "t2_uid": item["uid"],
+            "section": item["section"],
+            "page_t2": item["page"],
+            "title_t2": item["title"],
+            "reason": item["reason"],
+            "comparison_blockers": item["comparison_blockers"],
+        }
+        for item in ineligible_t2_raw
+    ]
+
+    return {
+        "pairs": pairs,
+        "matched_pairs": list(pairs),
+        "probable_pairs": [],
+        "suspicious_pairs": [],
+        "ambiguous_pairs": ambiguous_pairs,
+        "ambiguous_tables": [
+            {
+                "side": "previous",
+                "uid": item.get("t1_uid"),
+                "table_id": item.get("t1_table_id"),
+                "title": item.get("title_t1"),
+                "page": item.get("page_t1"),
+                "section": item.get("section", ""),
+                "reason": item.get("reason", ""),
+            }
+            for item in unmatched_ambiguous_t1
+        ]
+        + [
+            {
+                "side": "current",
+                "uid": item.get("t2_uid"),
+                "table_id": item.get("t2_table_id"),
+                "title": item.get("title_t2"),
+                "page": item.get("page_t2"),
+                "section": item.get("section", ""),
+                "reason": item.get("reason", ""),
+            }
+            for item in unmatched_ambiguous_t2
+        ],
+        "added_tables": added_tables,
+        "removed_tables": removed_tables,
+        "added_tables_confirmed": list(added_tables),
+        "removed_tables_confirmed": list(removed_tables),
+        "unmatched_t1": unmatched_t1,
+        "unmatched_t2": unmatched_t2,
+        "unmatched_confirmed_t1": unmatched_confirmed_t1,
+        "unmatched_confirmed_t2": unmatched_confirmed_t2,
+        "unmatched_ambiguous_t1": unmatched_ambiguous_t1,
+        "unmatched_ambiguous_t2": unmatched_ambiguous_t2,
+        "ambiguous_unmatched_previous": list(unmatched_ambiguous_t1),
+        "ambiguous_unmatched_current": list(unmatched_ambiguous_t2),
+        "ineligible_t1": ineligible_t1,
+        "ineligible_t2": ineligible_t2,
+        "debug_unmatched_candidates": [
+            _candidate_debug_entry_t1(uid, candidates)
+            for uid, candidates in sorted(candidate_map_t1.items())
+            if candidates
+        ],
+        "debug_unmatched_candidates_t2": [
+            _candidate_debug_entry_t2(uid, candidates)
+            for uid, candidates in sorted(candidate_map_t2.items())
+            if candidates
+        ],
+        "rescued_matches_count": 0,
+        "split_merge_rescues_count": 0,
+        "vision_rescued_pairs": [],
+        "reasons": [pair.get("reason", "") for pair in pairs if pair.get("reason")],
+        "diagnostics": {
+            "router": router.__class__.__name__,
+            "shortlist_size": shortlist_size,
+        },
+        "matching_diagnostics": {
+            "pairs_count": len(pairs),
+            "ambiguous_pairs_count": len(ambiguous_pairs),
+            "unmatched_t1_count": len(unmatched_t1),
+            "unmatched_t2_count": len(unmatched_t2),
+            "ineligible_t1_count": len(ineligible_t1),
+            "ineligible_t2_count": len(ineligible_t2),
+            "tables_comparable_t1": comparable_t1,
+            "tables_comparable_t2": comparable_t2,
+            "pairing_coverage": pairing_coverage,
+        },
+        "tables_comparable_t1": comparable_t1,
+        "tables_comparable_t2": comparable_t2,
+        "pairing_coverage": pairing_coverage,
+    }

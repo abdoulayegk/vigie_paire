@@ -1,8 +1,8 @@
-"""Phase 2: Controlled Semantic Table Validation via GPT-4o.
+"""Controlled semantic table validation via GPT-4o.
 
-Validates structural table matches AFTER Hungarian and BEFORE indicator diff.
-GPT never replaces structural matching -- it acts only as a validator in
-gray-zone cases and only for allowed banks (RBC, BNS, TD).
+Validates structural table matches after deterministic pairing in gray-zone
+cases only. GPT never replaces structural matching; it acts as an optional
+validator or unmatched-table reviewer.
 """
 
 from __future__ import annotations
@@ -15,7 +15,6 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 _ALLOWED_BANKS = frozenset({"rbc", "bns", "td"})
-
 _GRAY_ZONE_OVERLAP_THRESHOLD = 0.40
 _DEFAULT_TOP_K = 3
 _MAX_ANCHORS = 40
@@ -40,14 +39,13 @@ def is_bank_allowed(
     bank_code: str,
     allowed_banks: list[str] | frozenset[str] | None = None,
 ) -> bool:
-    """Return True if the semantic judge is enabled for this bank.
-
-    If allowed_banks is provided (from config), use it. Otherwise use the default
-    _ALLOWED_BANKS (rbc, bns, td).
-    """
     code = (bank_code or "").strip().lower()
     if allowed_banks is not None:
-        codes = {b.strip().lower() for b in allowed_banks} if isinstance(allowed_banks, list) else allowed_banks
+        codes = (
+            {b.strip().lower() for b in allowed_banks}
+            if isinstance(allowed_banks, list)
+            else allowed_banks
+        )
         return code in codes
     return code in _ALLOWED_BANKS
 
@@ -57,7 +55,6 @@ def _needs_semantic_validation(
     indicator_overlap: float,
     suspicious_low_overlap: bool,
 ) -> bool:
-    """Determine whether a matched pair is in the gray zone and needs GPT validation."""
     if indicator_overlap < _GRAY_ZONE_OVERLAP_THRESHOLD:
         return True
     if pair.get("rescue_type"):
@@ -68,7 +65,6 @@ def _needs_semantic_validation(
 
 
 def _needs_semantic_validation_unmatched(change_type: str) -> bool:
-    """Check whether an unmatched table (added/removed) needs GPT validation."""
     return change_type in ("table_added", "table_removed")
 
 
@@ -78,7 +74,6 @@ def _table_summary(
     structural_score: float = 0.0,
     indicator_overlap: float = 0.0,
 ) -> dict[str, Any]:
-    """Build the structured summary sent to GPT for a single table."""
     indicators = list(getattr(table, "first_column_indicators", []) or [])
     return {
         "table_id": getattr(table, "table_id", ""),
@@ -99,12 +94,6 @@ def _extract_top_k_candidates(
     current_t2_uid: str | None,
     k: int = _DEFAULT_TOP_K,
 ) -> list[dict[str, Any]]:
-    """Extract Top-K T2 candidates for a given T1 from the matching debug output.
-
-    Searches debug_unmatched_candidates and probable_pairs for alternative candidates,
-    and always includes the current structural match (if any) in the result set.
-    Returns a list of dicts with t2_uid, t2_table, score, indicator_overlap.
-    """
     seen_uids: set[str] = set()
     candidates: list[dict[str, Any]] = []
 
@@ -119,34 +108,34 @@ def _extract_top_k_candidates(
             if uid in seen_uids or uid not in t2_by_uid:
                 continue
             seen_uids.add(uid)
-            candidates.append({
-                "t2_uid": uid,
-                "t2_table": t2_by_uid[uid],
-                "score": float(cand.get("score", 0.0) or 0.0),
-                "indicator_overlap": float(cand.get("indicator_overlap", 0.0) or 0.0),
-            })
+            candidates.append(
+                {
+                    "t2_uid": uid,
+                    "t2_table": t2_by_uid[uid],
+                    "score": float(cand.get("score", 0.0) or 0.0),
+                    "indicator_overlap": float(cand.get("indicator_overlap", 0.0) or 0.0),
+                }
+            )
 
     for pp in strict_result.get("probable_pairs", []):
         uid = str(pp.get("t2_uid", ""))
         if str(pp.get("t1_uid", "")) != t1_uid or uid in seen_uids or uid not in t2_by_uid:
             continue
         seen_uids.add(uid)
-        candidates.append({
-            "t2_uid": uid,
-            "t2_table": t2_by_uid[uid],
-            "score": float(pp.get("score", 0.0) or 0.0),
-            "indicator_overlap": float(pp.get("indicator_overlap", 0.0) or 0.0),
-        })
+        candidates.append(
+            {
+                "t2_uid": uid,
+                "t2_table": t2_by_uid[uid],
+                "score": float(pp.get("score", 0.0) or 0.0),
+                "indicator_overlap": float(pp.get("indicator_overlap", 0.0) or 0.0),
+            }
+        )
 
     candidates.sort(key=lambda c: c["score"], reverse=True)
     return candidates[:k]
 
 
-def _build_prompt(
-    reference: dict[str, Any],
-    candidates: list[dict[str, Any]],
-) -> str:
-    """Build the user prompt for GPT with reference table and candidates."""
+def _build_prompt(reference: dict[str, Any], candidates: list[dict[str, Any]]) -> str:
     payload = {
         "reference_table": reference,
         "candidates": candidates,
@@ -165,7 +154,6 @@ def _call_gpt(
     reference: dict[str, Any],
     candidates: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Call GPT-4o with the structured summary and parse its JSON response."""
     try:
         from openai import OpenAI
     except ImportError:
@@ -215,14 +203,6 @@ def _apply_guard_rails(
     structural_score: float,
     indicator_overlap: float,
 ) -> dict[str, Any]:
-    """Apply deterministic guard rails after GPT returns.
-
-    Returns a dict with:
-      - final_decision: "match" | "no_match" | "review" | "structural_kept"
-      - final_match_id: str | None
-      - guard_action: what guard rail was applied (or "none")
-      - original_gpt_decision: the raw GPT decision
-    """
     if "error" in gpt_result:
         return {
             "final_decision": "structural_fallback",
@@ -233,13 +213,12 @@ def _apply_guard_rails(
 
     decision = str(gpt_result.get("decision", "unsure"))
     best_id = gpt_result.get("best_match_id")
-    confidence = float(gpt_result.get("confidence", 0.0) or 0.0)
 
-    # Guard 1: best_match_id must be in Top-K
     if best_id is not None and str(best_id) not in top_k_uids:
         logger.warning(
             "GPT returned best_match_id=%s outside Top-K %s; rejecting",
-            best_id, top_k_uids,
+            best_id,
+            top_k_uids,
         )
         return {
             "final_decision": "structural_fallback",
@@ -248,7 +227,6 @@ def _apply_guard_rails(
             "original_gpt_decision": gpt_result,
         }
 
-    # Guard 4: unsure -> fallback to structural match
     if decision == "unsure":
         return {
             "final_decision": "structural_fallback",
@@ -257,7 +235,6 @@ def _apply_guard_rails(
             "original_gpt_decision": gpt_result,
         }
 
-    # Guard 2: match with very low overlap -> downgrade to review
     if decision == "match" and indicator_overlap < 0.20:
         logger.info(
             "GPT says match but indicator_overlap=%.3f < 0.20; downgrade to review",
@@ -270,15 +247,11 @@ def _apply_guard_rails(
             "original_gpt_decision": gpt_result,
         }
 
-    # Guard 3: no_match but strong structural signal -> keep structural, log override
-    if (
-        decision == "no_match"
-        and structural_score > 0.85
-        and indicator_overlap > 0.6
-    ):
+    if decision == "no_match" and structural_score > 0.85 and indicator_overlap > 0.6:
         logger.info(
             "GPT says no_match but structural=%.3f overlap=%.3f; keeping structural match",
-            structural_score, indicator_overlap,
+            structural_score,
+            indicator_overlap,
         )
         return {
             "final_decision": "structural_kept",
@@ -304,7 +277,6 @@ def _apply_guard_rails(
 
 
 def _extract_gpt_raw(result: dict[str, Any]) -> str:
-    """Safely extract the raw GPT response string from a judge result."""
     gpt = result.get("original_gpt_decision")
     if isinstance(gpt, dict):
         return str(gpt.get("raw", ""))
@@ -312,7 +284,6 @@ def _extract_gpt_raw(result: dict[str, Any]) -> str:
 
 
 def _write_semantic_judge_log(log_path: Any, record: dict[str, Any]) -> None:
-    """Append a structured audit record to the semantic judge JSONL log."""
     try:
         with open(log_path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
@@ -336,11 +307,7 @@ def run_semantic_judge_for_pair(
     log_path: Any,
     top_k: int = _DEFAULT_TOP_K,
 ) -> dict[str, Any]:
-    """Run the semantic judge for a single T1 table pair.
-
-    Returns a dict with the full judge result including guard-railed final decision
-    and logging metadata. The caller decides how to use the result.
-    """
+    del suspicious_low_overlap
     structural_score = float(pair.get("score", 0.0) or 0.0)
 
     ref_summary = _table_summary(
@@ -350,7 +317,7 @@ def run_semantic_judge_for_pair(
     )
 
     alt_candidates = _extract_top_k_candidates(
-        t1_uid, strict_result, t2_by_uid, t2_uid, k=top_k,
+        t1_uid, strict_result, t2_by_uid, t2_uid, k=top_k
     )
 
     all_candidates: list[dict[str, Any]] = []
@@ -391,7 +358,6 @@ def run_semantic_judge_for_pair(
         }
     else:
         gpt_result = _call_gpt(api_key, ref_summary, all_candidates)
-
         result = _apply_guard_rails(
             gpt_result,
             top_k_uids=top_k_uids,
@@ -402,15 +368,9 @@ def run_semantic_judge_for_pair(
     log_record = {
         "bank": bank_code,
         "t1_id": getattr(table_t1, "table_id", ""),
-        "top_k_candidates": [
-            c.get("table_id", "") for c in all_candidates
-        ],
-        "structural_scores": [
-            c.get("structural_score", 0.0) for c in all_candidates
-        ],
-        "overlap_values": [
-            c.get("indicator_overlap", 0.0) for c in all_candidates
-        ],
+        "top_k_candidates": [c.get("table_id", "") for c in all_candidates],
+        "structural_scores": [c.get("structural_score", 0.0) for c in all_candidates],
+        "overlap_values": [c.get("indicator_overlap", 0.0) for c in all_candidates],
         "gpt_raw_response": _extract_gpt_raw(result),
         "final_decision_after_guard": result.get("final_decision", ""),
         "guard_action": result.get("guard_action", ""),
@@ -422,7 +382,6 @@ def run_semantic_judge_for_pair(
 
 
 def _compute_overlap_for_candidate(t1: Any, t2: Any) -> float:
-    """Jaccard overlap between two tables' canonical indicator keys."""
     from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
     def _keys(t: Any) -> set[str]:
@@ -454,11 +413,7 @@ def run_semantic_judge_for_unmatched(
     log_path: Any,
     top_k: int = _DEFAULT_TOP_K,
 ) -> dict[str, Any]:
-    """Run the semantic judge for an unmatched (added/removed) table.
-
-    Searches the opposite-side tables for potential matches that the structural
-    pipeline missed.
-    """
+    del strict_result, t_by_uid
     ref_summary = _table_summary(unmatched_table)
 
     candidates_with_overlap: list[tuple[Any, float]] = []

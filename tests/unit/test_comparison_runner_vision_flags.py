@@ -9,7 +9,7 @@ from app.comparison_runner import (
     _extract_tables,
     _resolve_vision_primary_mode,
 )
-from vigilance.models.table_models import TableArtifact
+from vigilance.models.table_models import TableArtifact, VISION_CONTENT_SOURCE
 
 
 def test_resolve_vision_primary_explicit_overrides_env(monkeypatch) -> None:
@@ -87,3 +87,53 @@ def test_extraction_kpis_include_vision_primary_contract_fields() -> None:
     assert "Vision schema contract invalid" in str(
         kpis["vision_primary_disabled_reason"]
     )
+
+
+def test_table_to_artifact_requires_vision_raw_for_comparison() -> None:
+    from types import SimpleNamespace
+
+    from app.comparison_runner import _table_to_artifact
+
+    fake = SimpleNamespace(
+        rows=[["Docling label", "1"]],
+        headers=["Col1", "Col2"],
+        first_column_indicators=["docling label"],
+        first_column_indicators_raw=None,
+        section="gestion_capital",
+        page_number=3,
+        table_id="T1",
+        title="Table",
+        extraction_method="docling",
+        table_number=None,
+        bbox=None,
+        footnotes=[],
+    )
+
+    art = _table_to_artifact(fake, bank_code="bnc", quarter="t1", pdf_path="/tmp/fake.pdf")
+    assert art.first_column_indicators == []
+    assert art.first_column_indicators_raw == []
+    assert art.comparison_eligible is False
+    assert "non_vision_content_source" in art.comparison_blockers
+    assert "missing_vision_indicators" in art.comparison_blockers
+
+
+def test_table_artifact_explicit_indicator_aliases() -> None:
+    artifact = TableArtifact(
+        bank_code="bnc",
+        section="capital_management",
+        page_pdf=2,
+        table_id="T2",
+        title="Capital",
+        headers=[],
+        rows=[],
+        first_column_indicators=["ratio cet1"],
+        first_column_indicators_raw=["Ratio CET1"],
+        extraction_method="vision_full_gpt4o",
+        footnotes=[{"id": "1", "text": "Note"}],
+        content_source=VISION_CONTENT_SOURCE,
+    )
+
+    assert artifact.vision_raw_indicators == ["Ratio CET1"]
+    assert artifact.comparison_normalized_indicators == ["ratio cet1"]
+    assert artifact.canonical_footnotes == [{"id": "1", "text": "Note"}]
+    assert artifact.is_vision_sourced is True

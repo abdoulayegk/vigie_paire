@@ -6,7 +6,12 @@ import re
 from difflib import SequenceMatcher
 from typing import Any
 
-from vigilance.models.table_models import TableArtifact
+from vigilance.models.table_models import (
+    TableArtifact,
+    get_canonical_footnotes,
+    get_comparison_indicators,
+    get_vision_raw_indicators,
+)
 from vigilance.utils.footnotes_utils import normalize_footnotes_to_canonical
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.matching_normalizer import (
@@ -47,18 +52,7 @@ def _title_similarity(left: str | None, right: str | None) -> float:
 
 def _extract_indicators(table: TableArtifact) -> set[str]:
     values: set[str] = set()
-    for row in table.rows or []:
-        if not row:
-            continue
-        label = str(row[0] or "").strip()
-        if not label or is_date_only_line(label) or is_non_indicator_line(label):
-            continue
-        norm = normalize_indicator_for_comparison(label)
-        if norm:
-            values.add(norm)
-    if values:
-        return values
-    for label in table.first_column_indicators or []:
+    for label in get_comparison_indicators(table):
         text = str(label or "").strip()
         if not text or is_date_only_line(text) or is_non_indicator_line(text):
             continue
@@ -171,18 +165,22 @@ def _has_continuation_hint(table: TableArtifact) -> bool:
     text = str(table.title or "").strip()
     if text and _CONTINUATION_RE.search(text):
         return True
-    if table.rows:
-        first = str((table.rows[0][0] if table.rows[0] else "") or "").strip()
+    first_indicators = get_vision_raw_indicators(table)
+    if not first_indicators:
+        first_indicators = get_comparison_indicators(table)
+    if first_indicators:
+        first = str(first_indicators[0] or "").strip()
         if first and _CONTINUATION_RE.search(first):
             return True
     return False
 
 
 def _has_total_row(table: TableArtifact) -> bool:
-    for row in (table.rows or [])[-3:]:
-        if not row:
-            continue
-        label = str(row[0] or "").strip()
+    labels = get_vision_raw_indicators(table)
+    if not labels:
+        labels = get_comparison_indicators(table)
+    for raw_label in labels[-3:]:
+        label = str(raw_label or "").strip()
         if _TOTAL_ROW_RE.search(label):
             return True
     return False
@@ -262,7 +260,7 @@ def _merge_bbox(left: TableArtifact, right: TableArtifact) -> list[float] | None
 def _merge_footnotes(left: TableArtifact, right: TableArtifact) -> list[dict[str, str]] | None:
     """Merge footnotes from both fragments, dedupe by normalized (id, text), preserve order."""
     combined = normalize_footnotes_to_canonical(
-        list(left.footnotes or []) + list(right.footnotes or [])
+        get_canonical_footnotes(left) + get_canonical_footnotes(right)
     )
     if not combined:
         return None
@@ -287,10 +285,8 @@ def _merge_footnotes(left: TableArtifact, right: TableArtifact) -> list[dict[str
 def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
     merged_rows = list(left.rows or []) + list(right.rows or [])
     merged_indicators = _dedupe_preserve(
-        list(left.first_column_indicators or []) + list(right.first_column_indicators or [])
+        get_comparison_indicators(left) + get_comparison_indicators(right)
     )
-    if not merged_indicators:
-        merged_indicators = _dedupe_preserve([row[0] for row in merged_rows if row])
 
     left_headers = list(left.headers or [])
     right_headers = list(right.headers or [])
@@ -303,8 +299,8 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
     elif right.table_number:
         merged_number = right.table_number
 
-    left_raw = getattr(left, "first_column_indicators_raw", None) or []
-    right_raw = getattr(right, "first_column_indicators_raw", None) or []
+    left_raw = get_vision_raw_indicators(left)
+    right_raw = get_vision_raw_indicators(right)
     merged_raw: list[str] | None = None
     if left_raw or right_raw:
         merged_raw = _dedupe_preserve(list(left_raw) + list(right_raw))
@@ -332,6 +328,13 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
         fragmentation_detected=True,
         title_clean=title_clean,
         title_raw=title_raw,
+        content_source=left.content_source or right.content_source,
+        comparison_blockers=list(
+            dict.fromkeys(
+                list(getattr(left, "comparison_blockers", None) or [])
+                + list(getattr(right, "comparison_blockers", None) or [])
+            )
+        ),
     )
 
 

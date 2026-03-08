@@ -16,6 +16,7 @@ def _table(
     bbox: list[float] | None = None,
     footnotes: list[dict[str, str]] | None = None,
 ) -> TableArtifact:
+    raw_labels = [row[0] for row in rows if row and str(row[0]).strip()]
     return TableArtifact(
         bank_code="rbc",
         section=section,
@@ -24,13 +25,15 @@ def _table(
         title=title,
         headers=["Indicateur", "T2 2025"],
         rows=rows,
-        first_column_indicators=[row[0] for row in rows if row and str(row[0]).strip()],
-        extraction_method="docling",
+        first_column_indicators=raw_labels,
+        first_column_indicators_raw=raw_labels,
+        extraction_method="vision_full_gpt4o",
         table_number=None,
         bbox=bbox,
         quarter="t2-2025",
         pdf_path="dummy.pdf",
         footnotes=footnotes,
+        content_source="vision_gpt4o",
     )
 
 

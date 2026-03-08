@@ -29,9 +29,12 @@ def _table(indicators: list[str]) -> TableArtifact:
         headers=["Indicateur", "Montant"],
         rows=[],
         first_column_indicators=indicators,
-        extraction_method="docling",
+        first_column_indicators_raw=indicators,
+        extraction_method="vision_full_gpt4o",
         quarter="t1",
         pdf_path="dummy.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
 
 
@@ -46,9 +49,11 @@ def test_clean_to_raw_display_mapping_prefers_raw_text() -> None:
         rows=[],
         first_column_indicators=["fonds propre de categorie 1", "autre ligne"],
         first_column_indicators_raw=["fonds propre de categorie 1¹", "autre ligne"],
-        extraction_method="docling",
+        extraction_method="vision_full_gpt4o",
         quarter="t1",
         pdf_path="dummy.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
     lookup = _build_clean_to_raw_indicator_lookup(table)
     display = _clean_values_to_raw_display(["fonds propre de categorie 1"], lookup)
@@ -66,9 +71,11 @@ def test_clean_to_raw_display_strips_parenthesized_footnote_markers() -> None:
         rows=[],
         first_column_indicators=["titres vendu a decouvert"],
         first_column_indicators_raw=["Titres vendus à découvert(4)"],
-        extraction_method="docling",
+        extraction_method="vision_full_gpt4o",
         quarter="t1",
         pdf_path="dummy.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
     lookup = _build_clean_to_raw_indicator_lookup(table)
     display = _clean_values_to_raw_display(["titres vendu a decouvert"], lookup)

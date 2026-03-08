@@ -503,7 +503,7 @@ matching_thresholds:
   indicator_exist_llm_band_min: 0.85
   indicator_exist_llm_band_max: 0.95
   indicator_length_ratio_min: 0.75
-  indicator_group_strict: true
+  indicator_group_strict: false
   indicator_displacement_fuzzy_threshold: 0.90
   indicator_displacement_section_strict: true
   table_change_rate_review_threshold: 0.30

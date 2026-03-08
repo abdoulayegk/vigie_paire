@@ -9,8 +9,11 @@ from vigilance.utils.matching_normalizer import _classify_excluded_line
 
 
 def get_display_indicators(item: dict) -> list[str]:
-    """Return raw indicators when available, else clean; for UI display only.
-    Matching/diff still use first_column_indicators (clean) only."""
+    """Return Vision raw indicators when available, else normalized compare labels.
+
+    This helper is UI-only. Matching/diff still use the normalized comparison
+    labels stored in ``first_column_indicators``.
+    """
     raw = item.get("first_column_indicators_raw") or item.get("first_column_indicators_raw_list")
     if isinstance(raw, list) and any(str(x).strip() for x in raw):
         return [str(x) for x in raw if str(x).strip()]

@@ -1,4 +1,9 @@
-"""Persistance des extractions par banque/annee/trimestre pour decouplage extraction/comparaison."""
+"""Persist canonical ``TableArtifact`` extractions for replayable comparison.
+
+This storage layer persists the canonical in-memory table objects used by the
+comparison engine. It is distinct from the canonical Dash/UI payload written by
+``app.comparison_canonical``.
+"""
 
 from __future__ import annotations
 
@@ -8,11 +13,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from vigilance.models.table_models import TableArtifact
+from vigilance.models.table_models import TableArtifact, infer_content_source
 
 logger = logging.getLogger(__name__)
 
-STORAGE_SCHEMA_VERSION = 2
+STORAGE_SCHEMA_VERSION = 3
 
 
 def _normalize_storage_quarter(quarter: str) -> str:
@@ -34,14 +39,14 @@ def _extraction_dir(base_dir: Path, bank_code: str, year: int, quarter: str) -> 
 
 
 def _footnote_to_canonical(item: dict[str, Any]) -> dict[str, str]:
-    """Normalize a footnote item to canonical stored form: {"id": str, "text": str}."""
+    """Normalize a footnote item to stored canonical form: ``{"id": str, "text": str}``."""
     fid = (item.get("id") or item.get("marker") or "").strip()
     text = str(item.get("text") or "").strip()
     return {"id": fid, "text": text}
 
 
 def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
-    """Reconstruct TableArtifact from a dict (from to_dict / JSON load)."""
+    """Reconstruct the canonical comparison ``TableArtifact`` from stored JSON."""
     # Normalize keys and handle optional fields
     bank_code = str(d.get("bank_code", "") or "")
     section = str(d.get("section", "") or "")
@@ -77,6 +82,12 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     debug_metrics = d.get("debug_metrics")
     if debug_metrics is not None and not isinstance(debug_metrics, dict):
         debug_metrics = None
+    content_source = infer_content_source(
+        extraction_method,
+        d.get("content_source"),
+    )
+    comparison_eligible = bool(d.get("comparison_eligible", False))
+    comparison_blockers = list(d.get("comparison_blockers") or [])
 
     return TableArtifact(
         bank_code=bank_code,
@@ -101,6 +112,9 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
         footnotes=footnotes,
         fragmentation_detected=fragmentation_detected,
         debug_metrics=debug_metrics,
+        content_source=content_source,
+        comparison_eligible=comparison_eligible,
+        comparison_blockers=comparison_blockers,
     )
 
 

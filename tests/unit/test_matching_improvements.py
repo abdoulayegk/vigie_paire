@@ -24,6 +24,11 @@ def _art(
     table_number: str | None = None,
     page: int = 1,
 ) -> TableArtifact:
+    raw_labels = (
+        list(first_column_indicators)
+        if first_column_indicators is not None
+        else [row[0] for row in (rows or []) if row]
+    )
     return TableArtifact(
         bank_code="rbc",
         section=section,
@@ -32,21 +37,24 @@ def _art(
         title=title,
         headers=["Indicateur", "T2 2025"],
         rows=rows or [],
-        first_column_indicators=first_column_indicators or [],
-        extraction_method="docling",
+        first_column_indicators=raw_labels,
+        first_column_indicators_raw=raw_labels,
+        extraction_method="vision_full_gpt4o",
         table_number=table_number,
         quarter="t1-2025",
         pdf_path="test.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
 
 
-# ---------- 1.1 _indicator_set fallback to first_column_indicators ----------
+# ---------- 1.1 _indicator_set consumes canonical first_column_indicators ----------
 
 class TestIndicatorSetFallback:
     def test_uses_rows_when_available(self) -> None:
         t = _art(rows=[["CET1", "13"], ["Tier1", "15"]], first_column_indicators=["Other"])
         result = _indicator_set(t)
-        assert result == {"cet1", "tier1"}
+        assert result == {"other"}
 
     def test_falls_back_to_first_column_indicators_when_rows_empty(self) -> None:
         t = _art(rows=[], first_column_indicators=["CET1", "Tier 1", "Total Capital"])

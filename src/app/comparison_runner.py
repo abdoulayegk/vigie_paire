@@ -51,13 +51,20 @@ _SEMANTIC_JUDGE_LOG = LOGS_DIR / "semantic_judge_decisions.jsonl"
 _VALIDATION_LOG = LOGS_DIR / "validation.jsonl"
 from vigilance.compare import run_strict_intra_section_compare
 from vigilance.compare.table_fragment_merger import merge_table_fragments
-from vigilance.comparison.footnote_comparator import FootnoteComparator
 from vigilance.config import (
     get_matching_thresholds,
     get_quality_gate_config,
     get_validation_config,
 )
-from vigilance.models.table_models import TableArtifact
+from vigilance.compare.footnote_comparator import FootnoteComparator
+from vigilance.models.table_models import (
+    VISION_CONTENT_SOURCE,
+    TableArtifact,
+    get_canonical_footnotes,
+    get_comparison_indicators,
+    get_vision_raw_indicators,
+    infer_content_source,
+)
 from vigilance.utils.footnotes_utils import (
     footnotes_list_to_dict,
     normalize_footnotes_to_canonical,
@@ -144,8 +151,8 @@ def _compare_table_footnotes(t1: TableArtifact, t2: TableArtifact) -> dict[str, 
 
     Returns a dict with keys: added, removed, modified, counts.
     """
-    dict1 = footnotes_list_to_dict(t1.footnotes or [])
-    dict2 = footnotes_list_to_dict(t2.footnotes or [])
+    dict1 = footnotes_list_to_dict(get_canonical_footnotes(t1))
+    dict2 = footnotes_list_to_dict(get_canonical_footnotes(t2))
     if not dict1 and not dict2:
         return {
             "added": [],
@@ -228,34 +235,34 @@ def _table_to_artifact(
 ) -> TableArtifact:
     rows = [list(row) for row in (getattr(table, "rows", []) or [])]
     headers = [str(h) for h in (getattr(table, "headers", []) or []) if h is not None]
-    raw = getattr(table, "first_column_indicators_raw", None)
-    if raw is not None:
-        raw = [str(x).strip() for x in raw if str(x).strip()]
-    else:
-        indicators_fallback = [
-            str(item).strip()
-            for item in (getattr(table, "first_column_indicators", []) or [])
-            if str(item).strip()
-        ]
-        raw = indicators_fallback
-    if not raw:
-        for row in rows:
-            if row and str(row[0]).strip():
-                raw.append(str(row[0]).strip())
+    extraction_method = getattr(table, "extraction_method", None) or "docling"
+    content_source = infer_content_source(
+        extraction_method,
+        getattr(table, "content_source", None),
+    )
+    vision_raw_source = getattr(table, "first_column_indicators_raw", None)
+    vision_raw_indicators = (
+        [str(x).strip() for x in vision_raw_source if str(x).strip()]
+        if vision_raw_source is not None
+        else []
+    )
+    if content_source != VISION_CONTENT_SOURCE:
+        vision_raw_indicators = []
 
     first_column_groups: list[str] | None = None
     hierarchical_indicator_signature: list[str] | None = None
-    if is_rbc_bank(bank_code):
-        rbc_signals = build_rbc_first_column_signals(rows=rows, raw_indicators=raw)
-        if rbc_signals.indicators_raw:
-            raw = list(rbc_signals.indicators_raw)
+    if is_rbc_bank(bank_code) and vision_raw_indicators:
+        rbc_signals = build_rbc_first_column_signals(
+            rows=rows,
+            raw_indicators=vision_raw_indicators,
+        )
         first_column_groups = list(rbc_signals.groups_raw)
         hierarchical_indicator_signature = list(
             rbc_signals.hierarchical_indicator_signature
         )
 
     # Quality pass 1: line-split merge (deterministic)
-    raw, line_merge_count = merge_line_split_indicators(raw)
+    vision_raw_indicators, line_merge_count = merge_line_split_indicators(vision_raw_indicators)
     if line_merge_count > 0:
         logger.info(
             "indicators_line_merge: table=%s page=%s merges=%d",
@@ -265,7 +272,9 @@ def _table_to_artifact(
         )
 
     # Quality pass 2: dedupe (if duplicate_ratio >= 0.15)
-    raw, duplicate_ratio, dup_removed = dedupe_indicators(raw)
+    vision_raw_indicators, duplicate_ratio, dup_removed = dedupe_indicators(
+        vision_raw_indicators
+    )
     if dup_removed > 0:
         logger.info(
             "indicators_dedupe: table=%s page=%s removed=%d duplicate_ratio=%.3f",
@@ -277,21 +286,31 @@ def _table_to_artifact(
 
     # Parts A & B: post-normalize cleaned indicators (camelCase split + tag-space fix).
     fragmentation_from_post_norm = False
-    post_normed: list[str] = []
-    for ind in raw:
+    comparison_normalized_indicators: list[str] = []
+    for ind in vision_raw_indicators:
         fixed, camel_hit, tag_hit = post_normalize_indicator(
             normalize_indicator_for_comparison(ind)
         )
         if camel_hit or tag_hit:
             fragmentation_from_post_norm = True
-        post_normed.append(fixed)
-    indicators = post_normed
+        comparison_normalized_indicators.append(fixed)
 
     footnotes_raw = getattr(table, "footnotes", None)
-    if footnotes_raw:
-        footnotes_out = normalize_footnotes_to_canonical(footnotes_raw)
+    canonical_footnotes = None
+    comparison_blockers: list[str] = []
+    if content_source != VISION_CONTENT_SOURCE:
+        comparison_blockers.append("non_vision_content_source")
+    if vision_raw_source is None and content_source == VISION_CONTENT_SOURCE:
+        comparison_blockers.append("missing_vision_indicators")
+    elif not vision_raw_indicators and content_source == VISION_CONTENT_SOURCE:
+        comparison_blockers.append("missing_vision_indicators")
+
+    if footnotes_raw is None:
+        canonical_footnotes = None
+        if content_source == VISION_CONTENT_SOURCE:
+            comparison_blockers.append("footnotes_unavailable")
     else:
-        footnotes_out = None
+        canonical_footnotes = normalize_footnotes_to_canonical(footnotes_raw)
 
     # Part C: propagate fragmentation flag (merge or post-norm corrections)
     frag_from_extraction = bool(getattr(table, "fragmentation_detected", False))
@@ -322,9 +341,9 @@ def _table_to_artifact(
         title_clean=title_clean,
         title_raw=title_raw,
         rows=rows,
-        first_column_indicators=indicators,
-        first_column_indicators_raw=raw,
-        extraction_method=getattr(table, "extraction_method", None) or "docling",
+        first_column_indicators=comparison_normalized_indicators,
+        first_column_indicators_raw=vision_raw_indicators,
+        extraction_method=extraction_method,
         table_number=getattr(table, "table_number", None),
         bbox=getattr(table, "bbox", None),
         quarter=quarter,
@@ -332,9 +351,11 @@ def _table_to_artifact(
         first_column_groups=first_column_groups,
         hierarchical_indicator_signature=hierarchical_indicator_signature,
         title_reliability=title_reliability,
-        footnotes=footnotes_out,
+        footnotes=canonical_footnotes,
         fragmentation_detected=fragmentation_detected,
         debug_metrics=debug_metrics,
+        content_source=content_source,
+        comparison_blockers=comparison_blockers,
     )
 
 
@@ -440,7 +461,7 @@ def _compute_indicator_overlap(t1: TableArtifact, t2: TableArtifact) -> float:
 
     def _keys(t: TableArtifact) -> set[str]:
         result: set[str] = set()
-        for ind in t.first_column_indicators:
+        for ind in get_comparison_indicators(t):
             s = str(ind).strip()
             if not s:
                 continue
@@ -598,8 +619,8 @@ def _pre_diff_safety_check(
     Returns (suspicious_low_overlap, reason_string).
     Does NOT block matching -- only exposes the signal.
     """
-    n1 = len(t1.first_column_indicators)
-    n2 = len(t2.first_column_indicators)
+    n1 = len(get_comparison_indicators(t1))
+    n2 = len(get_comparison_indicators(t2))
     size_diff_ratio = abs(n1 - n2) / max(n1, n2, 1)
 
     if (
@@ -1179,9 +1200,7 @@ def _normalize_bbox_ltrb_norm(bbox: Any) -> list[float] | None:
 
 def _all_indicators_value_clean_ordered(table: TableArtifact) -> list[str]:
     """Return value_clean indicators in table order (same string space as added/removed)."""
-    raw = getattr(table, "first_column_indicators_raw", None) or []
-    if not raw:
-        raw = getattr(table, "first_column_indicators", None) or []
+    raw = get_vision_raw_indicators(table)
     result: list[str] = []
     for item in raw:
         s = str(item).strip()
@@ -1199,8 +1218,8 @@ def _all_indicators_value_clean_ordered(table: TableArtifact) -> list[str]:
 
 def _build_clean_to_raw_indicator_lookup(table: TableArtifact) -> dict[str, str]:
     """Build stable mapping from canonical clean key to raw display indicator text."""
-    clean_values = list(getattr(table, "first_column_indicators", None) or [])
-    raw_values = list(getattr(table, "first_column_indicators_raw", None) or [])
+    clean_values = get_comparison_indicators(table)
+    raw_values = get_vision_raw_indicators(table)
     if not raw_values:
         raw_values = clean_values
 
@@ -1809,12 +1828,8 @@ def _indicator_diff(
     t1: TableArtifact, t2: TableArtifact
 ) -> tuple[list[str], list[str], bool, dict[str, int]]:
     # Matching/diff use first_column_indicators (clean) only; UI display prefers raw.
-    left = [
-        str(item).strip() for item in t1.first_column_indicators if str(item).strip()
-    ]
-    right = [
-        str(item).strip() for item in t2.first_column_indicators if str(item).strip()
-    ]
+    left = get_comparison_indicators(t1)
+    right = get_comparison_indicators(t2)
 
     def _norm(values: list[str]) -> tuple[dict[str, str], dict[str, int]]:
         mapped: dict[str, str] = {}
@@ -2235,6 +2250,7 @@ def run_comparison_with_sections(
         tables_t2=tables_t2,
         bank_code=bank_code,
         embedding_service=embedding_service,
+        api_key=api_key,
     )
 
     t1_by_uid = {_section_uid(table): table for table in tables_t1}
@@ -2249,7 +2265,7 @@ def run_comparison_with_sections(
     sj_banks = val_cfg_early.get("semantic_judge_banks")
     if api_key:
         try:
-            from vigilance.comparison.semantic_judge import (
+            from vigilance.genai.semantic_judge import (
                 _needs_semantic_validation,
                 _needs_semantic_validation_unmatched,
                 is_bank_allowed,
@@ -2981,8 +2997,8 @@ def run_comparison_with_sections(
             indicator_validator_stats["use_vision"] = indicator_validator_use_vision
             added_count_before = len(added)
             removed_count_before = len(removed)
-            all_t1 = list(table_t1.first_column_indicators or [])
-            all_t2 = list(table_t2.first_column_indicators or [])
+            all_t1 = get_comparison_indicators(table_t1)
+            all_t2 = get_comparison_indicators(table_t2)
             pdf_t1 = table_t1.pdf_path or pdf_path_t1
             pdf_t2 = table_t2.pdf_path or pdf_path_t2
             try:
@@ -3478,9 +3494,50 @@ def run_comparison_with_sections(
             logger.warning("GenAI classification layer failed: %s", exc)
 
     ambiguous_tables = list(strict.get("ambiguous_tables", []) or [])
-    added_tables_confirmed = list(strict.get("added_tables_confirmed", []) or tables_added)
-    removed_tables_confirmed = list(strict.get("removed_tables_confirmed", []) or tables_removed)
+    added_tables_confirmed = list(
+        strict.get("added_tables_confirmed", []) or tables_added
+    )
+    removed_tables_confirmed = list(
+        strict.get("removed_tables_confirmed", []) or tables_removed
+    )
     vision_rescued_pairs = list(strict.get("vision_rescued_pairs", []) or [])
+    tables_comparable_t1 = int(
+        strict.get(
+            "tables_comparable_t1",
+            sum(1 for table in tables_t1 if getattr(table, "comparison_eligible", False)),
+        )
+        or 0
+    )
+    tables_comparable_t2 = int(
+        strict.get(
+            "tables_comparable_t2",
+            sum(1 for table in tables_t2 if getattr(table, "comparison_eligible", False)),
+        )
+        or 0
+    )
+    pairing_coverage = float(
+        strict.get(
+            "pairing_coverage",
+            len(comparisons) / max(min(tables_comparable_t1, tables_comparable_t2), 1),
+        )
+        or 0.0
+    )
+    indicator_change_pairs = sum(
+        1
+        for c in comparisons
+        if c.get("added_indicators")
+        or c.get("removed_indicators")
+        or c.get("renamed_indicators")
+    )
+    footnote_change_pairs = sum(
+        1
+        for c in comparisons
+        if any(
+            int((c.get("footnotes_counts", {}) or {}).get(key, 0) or 0) > 0
+            for key in ("added", "removed", "modified")
+        )
+    )
+    pairing_low_confidence = pairing_coverage < 0.75 or bool(ambiguous_tables)
 
     total_added = sum(len(c.get("added_indicators", [])) for c in comparisons)
     total_removed = sum(len(c.get("removed_indicators", [])) for c in comparisons)
@@ -3517,10 +3574,19 @@ def run_comparison_with_sections(
     previous_label = str(quarter_context["previous"]["label"])
     summary_text = (
         f"Comparaison {current_label} vs {previous_label}: "
-        f"{len(comparisons)} tableaux apparies, {total_added} ajouts d'indicateurs, "
-        f"{total_removed} suppressions, {len(added_tables_confirmed)} tableaux ajoutes confirmes dans le trimestre courant, "
-        f"{len(removed_tables_confirmed)} tableaux retires confirmes depuis le trimestre precedent."
+        f"{len(comparisons)} tableaux apparies sur {min(tables_comparable_t1, tables_comparable_t2)} comparables, "
+        f"{total_added} ajouts d'indicateurs, {total_removed} suppressions. "
     )
+    if pairing_low_confidence:
+        summary_text += (
+            f"{len(added_tables_confirmed)} tableaux non apparies cote courant et "
+            f"{len(removed_tables_confirmed)} cote precedent restent a confirmer."
+        )
+    else:
+        summary_text += (
+            f"{len(added_tables_confirmed)} tableaux ajoutes confirmes dans le trimestre courant, "
+            f"{len(removed_tables_confirmed)} tableaux retires confirmes depuis le trimestre precedent."
+        )
     if ambiguous_tables:
         summary_text += (
             f" {len(ambiguous_tables)} tableau(x) restent ambigus apres le rescue."
@@ -3550,17 +3616,26 @@ def run_comparison_with_sections(
         "summary": {
             "tables_t1": len(tables_t1),
             "tables_t2": len(tables_t2),
+            "tables_extracted_t1": len(tables_t1),
+            "tables_extracted_t2": len(tables_t2),
+            "tables_comparable_t1": tables_comparable_t1,
+            "tables_comparable_t2": tables_comparable_t2,
             "tables_matched": len(comparisons),
             "tables_added": len(added_tables_confirmed),
             "tables_removed": len(removed_tables_confirmed),
             "tables_added_confirmed": len(added_tables_confirmed),
             "tables_removed_confirmed": len(removed_tables_confirmed),
             "ambiguous_tables": len(ambiguous_tables),
+            "ambiguous_pairs": len(strict.get("ambiguous_pairs", []) or []),
             "vision_rescued_pairs": len(vision_rescued_pairs),
             "rescued_matches_count": int(strict.get("rescued_matches_count", 0) or 0),
             "split_merge_rescues_count": int(
                 strict.get("split_merge_rescues_count", 0) or 0
             ),
+            "pairing_coverage": round(pairing_coverage, 6),
+            "indicator_change_pairs": indicator_change_pairs,
+            "footnote_change_pairs": footnote_change_pairs,
+            "pairing_low_confidence": pairing_low_confidence,
             "total_added_indicators": total_added,
             "total_removed_indicators": total_removed,
             "total_renamed_indicators": total_renamed,
@@ -3685,12 +3760,17 @@ def run_comparison_with_sections(
                 },
                 "strict_matcher": {
                     "pairs": len(strict.get("pairs", [])),
+                    "matched_pairs": len(strict.get("matched_pairs", strict.get("pairs", []))),
                     "probable_pairs": len(strict.get("probable_pairs", [])),
                     "suspicious_pairs": len(strict.get("suspicious_pairs", [])),
+                    "ambiguous_pairs": len(strict.get("ambiguous_pairs", [])),
                     "rescued_matches_count": strict.get("rescued_matches_count", 0),
                     "split_merge_rescues_count": strict.get(
                         "split_merge_rescues_count", 0
                     ),
+                    "tables_comparable_t1": tables_comparable_t1,
+                    "tables_comparable_t2": tables_comparable_t2,
+                    "pairing_coverage": round(pairing_coverage, 6),
                     "unmatched_confirmed_t1": len(
                         strict.get("unmatched_confirmed_t1", [])
                     ),

@@ -61,10 +61,12 @@ def test_load_extraction_returns_stored_tables() -> None:
         "headers": ["Période", "T1 2025"],
         "rows": [["Ratio CET1", "13.1%"]],
         "first_column_indicators": ["ratio cet1"],
+        "first_column_indicators_raw": ["Ratio CET1"],
         "extraction_method": "vision_full_gpt4o",
         "footnotes": [{"marker": "1", "text": "Note provisoire"}],
         "debug_metrics": {"vision_status": "ok"},
         "quarter": "t1",
+        "content_source": "vision_gpt4o",
     }
 
     base_dir = _make_tables_json("bnc", 2025, "t1", [stored_table])
@@ -113,10 +115,12 @@ def test_save_then_load_roundtrip() -> None:
             headers=["Période"],
             rows=[["Ratio CET1", "13.1%"]],
             first_column_indicators=["ratio cet1"],
+            first_column_indicators_raw=["Ratio CET1"],
             extraction_method="vision_full_gpt4o",
             footnotes=[{"marker": "1", "text": "Note"}],
             debug_metrics={"vision_status": "ok"},
             quarter="t1",
+            content_source="vision_gpt4o",
         )
         save_extraction(
             bank_code="bnc",
@@ -159,6 +163,8 @@ def test_save_then_load_roundtrip_preserves_rbc_matching_fields() -> None:
             hierarchical_indicator_signature=["Prets > Prets de detail"],
             title_reliability="reliable",
             extraction_method="vision_full_gpt4o",
+            footnotes=[],
+            content_source="vision_gpt4o",
         )
         save_extraction(
             bank_code="rbc",
@@ -197,7 +203,10 @@ def test_save_writes_schema_version_in_tables_json_root() -> None:
             headers=[],
             rows=[],
             first_column_indicators=[],
+            first_column_indicators_raw=[],
             extraction_method="vision_full_gpt4o",
+            footnotes=[],
+            content_source="vision_gpt4o",
         )
         save_extraction(
             bank_code="bnc",
@@ -209,7 +218,7 @@ def test_save_writes_schema_version_in_tables_json_root() -> None:
         )
         tables_path = base_dir / "bnc" / "2025" / "t1" / "tables.json"
         raw = json.loads(tables_path.read_text(encoding="utf-8"))
-        assert raw.get("schema_version") == 2
+        assert raw.get("schema_version") == 3
         assert "tables" in raw
         assert len(raw["tables"]) == 1
     finally:
@@ -234,8 +243,10 @@ def test_save_normalizes_footnotes_to_id_text_in_file() -> None:
             headers=[],
             rows=[],
             first_column_indicators=[],
+            first_column_indicators_raw=[],
             extraction_method="vision_full_gpt4o",
             footnotes=[{"marker": "1", "text": "Note provisoire"}],
+            content_source="vision_gpt4o",
         )
         save_extraction(
             bank_code="bnc",

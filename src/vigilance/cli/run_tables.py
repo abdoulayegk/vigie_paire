@@ -9,11 +9,22 @@ from pathlib import Path
 from typing import Any
 
 from vigilance.config.loader import get_bank_cfg, load_config
-from vigilance.models.table_models import TableArtifact
+from vigilance.models.table_models import (
+    VISION_CONTENT_SOURCE,
+    TableArtifact,
+    infer_content_source,
+)
 from vigilance.utils.rbc_table_signals import (
     build_rbc_first_column_signals,
     classify_rbc_title_reliability,
     is_rbc_bank,
+)
+from vigilance.utils.footnotes_utils import normalize_footnotes_to_canonical
+from vigilance.utils.indicator_cleaner import (
+    dedupe_indicators,
+    merge_line_split_indicators,
+    normalize_indicator_for_comparison,
+    post_normalize_indicator,
 )
 from vigilance.report.export_json import write_tables_docling
 
@@ -109,38 +120,56 @@ def _load_section_ranges(path: str | Path) -> list[dict[str, Any]]:
 def _to_artifacts(raw_tables: list[Any], bank: str, quarter: str, pdf_path: str) -> list[TableArtifact]:
     artifacts: list[TableArtifact] = []
     for index, table in enumerate(raw_tables, start=1):
-        raw_indicators = list(getattr(table, "first_column_indicators", []) or [])
-        if raw_indicators:
-            indicators = [str(item).strip() for item in raw_indicators if str(item).strip()]
-        else:
-            indicators = []
-            for raw_row in list(getattr(table, "rows", []) or []):
-                if isinstance(raw_row, list) and raw_row:
-                    label = str(raw_row[0]).strip()
-                    if label:
-                        indicators.append(label)
-
-        raw = getattr(table, "first_column_indicators_raw", None)
-        if raw is not None:
-            raw = [str(x).strip() for x in raw if str(x).strip()]
-        else:
-            raw = None
-
+        extraction_method = getattr(table, "extraction_method", None) or "docling"
+        content_source = infer_content_source(
+            extraction_method,
+            getattr(table, "content_source", None),
+        )
+        raw_values = getattr(table, "first_column_indicators_raw", None)
+        vision_raw_indicators = (
+            [str(x).strip() for x in raw_values if str(x).strip()]
+            if raw_values is not None
+            else []
+        )
+        if content_source != VISION_CONTENT_SOURCE:
+            vision_raw_indicators = []
         rows = [list(row) for row in (getattr(table, "rows", []) or [])]
         first_column_groups: list[str] | None = None
         hierarchical_indicator_signature: list[str] | None = None
-        if is_rbc_bank(bank):
+        if is_rbc_bank(bank) and vision_raw_indicators:
             rbc_signals = build_rbc_first_column_signals(
                 rows=rows,
-                raw_indicators=raw or indicators,
+                raw_indicators=vision_raw_indicators,
             )
-            if rbc_signals.indicators_raw:
-                indicators = list(rbc_signals.indicators_clean)
-                raw = list(rbc_signals.indicators_raw)
             first_column_groups = list(rbc_signals.groups_raw)
             hierarchical_indicator_signature = list(
                 rbc_signals.hierarchical_indicator_signature
             )
+
+        vision_raw_indicators, _, _ = dedupe_indicators(
+            merge_line_split_indicators(vision_raw_indicators)[0]
+        )
+        comparison_normalized_indicators: list[str] = []
+        for item in vision_raw_indicators:
+            normalized, _, _ = post_normalize_indicator(
+                normalize_indicator_for_comparison(item)
+            )
+            if normalized:
+                comparison_normalized_indicators.append(normalized)
+
+        comparison_blockers: list[str] = []
+        if content_source != VISION_CONTENT_SOURCE:
+            comparison_blockers.append("non_vision_content_source")
+        if not vision_raw_indicators:
+            comparison_blockers.append("missing_vision_indicators")
+
+        footnotes_raw = getattr(table, "footnotes", None)
+        if footnotes_raw is None:
+            canonical_footnotes = None
+            if content_source == VISION_CONTENT_SOURCE:
+                comparison_blockers.append("footnotes_unavailable")
+        else:
+            canonical_footnotes = normalize_footnotes_to_canonical(footnotes_raw)
 
         section = _canonicalize_section(getattr(table, "section", None)) or "unknown_section"
         artifacts.append(
@@ -152,19 +181,22 @@ def _to_artifacts(raw_tables: list[Any], bank: str, quarter: str, pdf_path: str)
                 title=getattr(table, "title", None),
                 headers=list(getattr(table, "headers", []) or []),
                 rows=rows,
-                first_column_indicators=indicators,
-                first_column_indicators_raw=raw,
+                first_column_indicators=comparison_normalized_indicators,
+                first_column_indicators_raw=vision_raw_indicators,
                 first_column_groups=first_column_groups,
                 hierarchical_indicator_signature=hierarchical_indicator_signature,
                 table_number=getattr(table, "table_number", None),
                 bbox=getattr(table, "bbox", None),
-                extraction_method=getattr(table, "extraction_method", None) or "docling",
+                extraction_method=extraction_method,
                 quarter=quarter,
                 pdf_path=pdf_path,
                 title_reliability=classify_rbc_title_reliability(
                     getattr(table, "title_clean", None) or getattr(table, "title", None),
                     bank_code=bank,
                 ),
+                footnotes=canonical_footnotes,
+                content_source=content_source,
+                comparison_blockers=comparison_blockers,
             )
         )
     return artifacts

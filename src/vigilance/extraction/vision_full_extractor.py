@@ -565,14 +565,25 @@ def _build_prompt(bank_code: str, vision_cfg: dict[str, Any]) -> str:
 
 
 def _strip_markdown_fences(text: str) -> str:
-    """Remove markdown code fences from GPT response."""
+    """Remove markdown code fences from GPT response and find JSON boundaries."""
     stripped = text.strip()
+
+    # Étape 1 : Retirer les balises markdown si présentes
     if stripped.startswith("```"):
         first_nl = stripped.find("\n")
         if first_nl != -1:
             stripped = stripped[first_nl + 1 :]
         if stripped.endswith("```"):
             stripped = stripped[:-3].rstrip()
+
+    # Étape 2 : Chercher l'objet JSON (accolades)
+    # L'API Vision / JSON mode retourne toujours un objet (dictionnaire) dans ce contexte
+    first_brace = stripped.find("{")
+    last_brace = stripped.rfind("}")
+
+    if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+        return stripped[first_brace : last_brace + 1]
+
     return stripped
 
 
@@ -594,7 +605,9 @@ def _parse_vision_result(raw: str | dict[str, Any]) -> VisionFullResult | None:
         else:
             validated = VisionFullResponseSchema.model_validate_json(raw)
     except Exception as e:
-        logger.debug("Vision response validation failed: %s", e)
+        logger.warning(
+            "Vision response validation failed (Pydantic schema error): %s", e
+        )
         return None
 
     # Build ordered footnotes list — preserves visual order from Pydantic validation.

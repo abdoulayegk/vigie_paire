@@ -42,7 +42,6 @@ packages = [
     "vigilance",
     "vigilance.cli",
     "vigilance.compare",
-    "vigilance.comparison",
     "vigilance.config",
     "vigilance.embedding",
     "vigilance.genai",

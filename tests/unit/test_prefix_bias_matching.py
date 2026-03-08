@@ -26,9 +26,12 @@ def _table(
         headers=["Indicateur", "Valeur"],
         rows=materialized_rows,
         first_column_indicators=rows,
-        extraction_method="docling",
+        first_column_indicators_raw=rows,
+        extraction_method="vision_full_gpt4o",
         quarter="t2-2025",
         pdf_path="dummy.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
 
 

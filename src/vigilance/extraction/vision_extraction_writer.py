@@ -8,6 +8,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from ..models.table_models import (
+    get_canonical_footnotes,
+    get_comparison_indicators,
+    get_vision_raw_indicators,
+)
 from ..utils.footnotes_utils import (
     count_stringified_dict_suspects,
     footnotes_list_to_dict,
@@ -28,8 +33,8 @@ def _table_entry_indicators(
         or ""
     )
     page = int(getattr(table, "page_pdf", 0) or getattr(table, "page_number", 0) or 0)
-    indicators = list(getattr(table, "first_column_indicators", []) or [])
-    indicators_raw = list(getattr(table, "first_column_indicators_raw", None) or indicators)
+    indicators = get_comparison_indicators(table)
+    indicators_raw = get_vision_raw_indicators(table) or indicators
     unit_context = getattr(table, "unit_context", None) or ""
 
     sections: list[dict[str, Any]] = []
@@ -61,10 +66,11 @@ def _table_entry_footnotes(
         or ""
     )
     page = int(getattr(table, "page_pdf", 0) or getattr(table, "page_number", 0) or 0)
-    footnotes_raw = getattr(table, "footnotes", None) or []
+    footnotes_source = getattr(table, "footnotes", None) or []
+    footnotes_raw = get_canonical_footnotes(table)
     fn_dict = footnotes_list_to_dict(footnotes_raw)
     footnote_markers = list(fn_dict.keys())
-    repr_suspects = count_stringified_dict_suspects(footnotes_raw)
+    repr_suspects = count_stringified_dict_suspects(footnotes_source)
 
     return {
         "table_id": table_id,
@@ -101,6 +107,8 @@ def write_indicators_json(
         "bank_code": bank_code,
         "run_timestamp": datetime.now().isoformat(timespec="seconds"),
         "run_id": run_id,
+        "artifact_role": "audit_only",
+        "authoritative_source": "table_artifacts_for_comparison",
         "tables": entries,
     }
 
@@ -145,6 +153,8 @@ def write_footnotes_json(
         "bank_code": bank_code,
         "run_timestamp": datetime.now().isoformat(timespec="seconds"),
         "run_id": run_id,
+        "artifact_role": "audit_only",
+        "authoritative_source": "table_artifacts_for_comparison",
         "meta": {
             "tables_total": tables_total,
             "tables_with_footnotes": tables_with_footnotes,

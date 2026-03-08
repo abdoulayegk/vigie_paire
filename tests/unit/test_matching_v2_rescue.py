@@ -21,6 +21,7 @@ def _table(
     table_number: str | None = None,
     bank_code: str = "rbc",
 ) -> TableArtifact:
+    raw_labels = [row[0] for row in rows if row and str(row[0]).strip()]
     return TableArtifact(
         bank_code=bank_code,
         section=section,
@@ -29,11 +30,14 @@ def _table(
         title=title,
         headers=headers or ["Indicateur", "T2 2025"],
         rows=rows,
-        first_column_indicators=[row[0] for row in rows if row and str(row[0]).strip()],
-        extraction_method="docling",
+        first_column_indicators=raw_labels,
+        first_column_indicators_raw=raw_labels,
+        extraction_method="vision_full_gpt4o",
         quarter="t1-2025",
         pdf_path="dummy.pdf",
         table_number=table_number,
+        footnotes=[],
+        content_source="vision_gpt4o",
     )
 
 

@@ -5,9 +5,9 @@ Façade `src/vigilance/` avec moteurs désormais rangés sous `src/vigilance/`.
 ## Structure (résumé)
 
 - `src/vigilance/extraction/`: moteur extraction PDF
-- `src/vigilance/comparison/`: moteur comparaison historique
-- `src/vigilance/compare/`: comparator strict intra-section (PR2)
-- `extraction/` et `comparison/`: shims de compatibilité imports legacy
+- `src/vigilance/compare/`: moteur officiel de pairing et comparaison tableaux
+- `src/vigilance/genai/`: aides GenAI optionnelles (semantic judge, validateurs)
+- `extraction/`: shims de compatibilité imports legacy
 - `tests/unit/`
 
 ## Comparateur officiel
@@ -20,8 +20,6 @@ Façade `src/vigilance/` avec moteurs désormais rangés sous `src/vigilance/`.
   - `unmatched_t1`
   - `unmatched_t2`
   - `reasons`
-- Compatibilité legacy:
-  - `vigilance.comparison.indicator_comparator.run_strict_intra_section_compare` (wrapper)
 
 ## Règle de matching (stricte)
 

@@ -60,7 +60,10 @@ def test_run_tables_keeps_section_context(tmp_path: Path, monkeypatch) -> None:
                     title=f"Table {i}",
                     headers=["Indicator", "Value"],
                     rows=[["A", "1"]],
-                    extraction_method="docling",
+                    first_column_indicators_raw=["A"],
+                    extraction_method="vision_full_gpt4o",
+                    footnotes=[],
+                    content_source="vision_gpt4o",
                 )
             )
         return out
@@ -93,7 +96,9 @@ def test_run_tables_keeps_section_context(tmp_path: Path, monkeypatch) -> None:
     assert len(payload["tables"]) == 2
     assert all("section" in table for table in payload["tables"])
     assert all("first_column_indicators" in table for table in payload["tables"])
-    assert all(table["first_column_indicators"] == ["A"] for table in payload["tables"])
+    assert all(table["first_column_indicators"] == ["a"] for table in payload["tables"])
+    assert all(table["first_column_indicators_raw"] == ["A"] for table in payload["tables"])
+    assert all(table["comparison_eligible"] is True for table in payload["tables"])
     assert {table["section"] for table in payload["tables"]} == {
         "capital_management",
         "risk_management",

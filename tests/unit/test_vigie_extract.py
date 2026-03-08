@@ -164,6 +164,9 @@ class _FakeTable:
     headers: list[str] = field(default_factory=lambda: ["", "T2 2025", "T1 2025"])
     rows: list[list[str]] = field(default_factory=list)
     first_column_indicators: list[str] = field(
+        default_factory=lambda: ["ratio cet1", "ratio tier 1", "ratio total"]
+    )
+    first_column_indicators_raw: list[str] = field(
         default_factory=lambda: ["Ratio CET1", "Ratio Tier 1 (1)", "Ratio total"]
     )
     footnotes: list[str] = field(
@@ -171,6 +174,9 @@ class _FakeTable:
     )
     section: str = "capital_management"
     bbox: list[float] | None = field(default_factory=lambda: [0.1, 0.2, 0.9, 0.8])
+    content_source: str = "vision_gpt4o"
+    comparison_eligible: bool = True
+    comparison_blockers: list[str] = field(default_factory=list)
 
 
 def test_build_vigie_extract_structure() -> None:
@@ -218,6 +224,8 @@ def test_build_vigie_extract_structure() -> None:
         assert tbl["table_number"] == "28"
         assert len(tbl["first_column"]) == 3
         assert tbl["first_column"][1]["note_refs"] == ["1"]
+        assert tbl["content_source"] == "vision_gpt4o"
+        assert tbl["comparison_eligible"] is True
         assert len(tbl["footnotes"]) == 1
         assert tbl["footnotes"][0]["marker"] == "1"
         assert tbl["features"]["n_indicators"] == 3
@@ -299,9 +307,12 @@ def test_load_roundtrip() -> None:
         assert art.rows == []
         assert len(art.first_column_indicators) == 3
         assert "Ratio CET1" in art.first_column_indicators
+        assert art.first_column_indicators_raw == ["Ratio CET1", "Ratio Tier 1", "Ratio total"]
         assert art.bbox == [0.1, 0.2, 0.9, 0.8]
         assert art.quarter == "t2-2025"
         assert art.extraction_method == "docling"
+        assert art.content_source == "vision_gpt4o"
+        assert art.comparison_eligible is True
     finally:
         Path(pdf_path).unlink(missing_ok=True)
 

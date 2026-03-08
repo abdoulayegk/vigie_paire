@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, TypedDict
 
-from vigilance.models.table_models import TableArtifact
+from vigilance.models.table_models import VISION_CONTENT_SOURCE, TableArtifact
 
 SCHEMA_VERSION = "vigie_extract_v1"
 
@@ -76,6 +76,9 @@ class TablePayload(TypedDict, total=False):
     features: TableFeatures
     quality_flags: list[str]
     bbox: list[float] | None
+    content_source: str
+    comparison_eligible: bool
+    comparison_blockers: list[str]
 
 
 class SectionPayload(TypedDict):
@@ -392,8 +395,9 @@ def build_vigie_extract(
 
         section_tables: list[TablePayload] = []
         for t_idx, t in enumerate(tables_by_section.get(canonical, [])):
-            indicators = list(getattr(t, "first_column_indicators", []) or [])
-            first_col = parse_first_column(indicators)
+            indicators_raw = list(getattr(t, "first_column_indicators_raw", None) or [])
+            indicators_clean = list(getattr(t, "first_column_indicators", []) or [])
+            first_col = parse_first_column(indicators_raw)
             footnotes = parse_footnotes(list(getattr(t, "footnotes", []) or []))
             features = compute_features(first_col)
 
@@ -422,7 +426,19 @@ def build_vigie_extract(
                 features=features,
                 quality_flags=[],
                 bbox=getattr(t, "bbox", None),
+                content_source=str(getattr(t, "content_source", "") or ""),
+                comparison_eligible=bool(
+                    getattr(t, "comparison_eligible", False)
+                ),
+                comparison_blockers=list(
+                    getattr(t, "comparison_blockers", None) or []
+                ),
             )
+            if not first_col and indicators_clean:
+                table_payload["quality_flags"] = [
+                    *list(table_payload.get("quality_flags", []) or []),
+                    "missing_first_column_raw",
+                ]
             section_tables.append(table_payload)
 
         sections[slug] = SectionPayload(
@@ -522,6 +538,24 @@ def load_artifacts_from_vigie_extract(
                     bbox=table.get("bbox"),
                     quarter=quarter,
                     pdf_path=pdf_path,
+                    first_column_indicators_raw=indicators,
+                    footnotes=[
+                        {
+                            "id": str(item.get("marker", "") or ""),
+                            "text": str(item.get("text", "") or ""),
+                        }
+                        for item in table.get("footnotes", [])
+                        if str(item.get("text", "") or "").strip()
+                    ],
+                    content_source=str(
+                        table.get("content_source") or VISION_CONTENT_SOURCE
+                    ),
+                    comparison_eligible=bool(
+                        table.get("comparison_eligible", bool(indicators))
+                    ),
+                    comparison_blockers=list(
+                        table.get("comparison_blockers") or []
+                    ),
                 )
             )
 
