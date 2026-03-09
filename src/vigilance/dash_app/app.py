@@ -12,13 +12,11 @@ import base64
 import json
 import logging
 import sys
-from functools import lru_cache
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
-@lru_cache(maxsize=256)
 def _cached_render_or_crop(
     pdf_path: str, page: int, scale: float, bbox_key: str, display_mode: str = "crop"
 ) -> bytes:
@@ -1494,6 +1492,8 @@ def render_results(comparison, indicator, show_results):
         status_counts = kpi.get("status_counts", {}) or {}
         tables_t1 = kpi.get("tables_t1", 0)
         tables_t2 = kpi.get("tables_t2", 0)
+        tables_comparable_t1 = int(kpi.get("tables_comparable_t1", 0) or 0)
+        tables_comparable_t2 = int(kpi.get("tables_comparable_t2", 0) or 0)
         tables_matched = kpi.get("tables_matched", 0)
         ambiguous_tables = kpi.get("ambiguous_tables", 0)
         vision_rescued_pairs = kpi.get("vision_rescued_pairs", 0)
@@ -1562,6 +1562,16 @@ def render_results(comparison, indicator, show_results):
             parts.append(f"{notes_total} note(s) de bas de tableau modifiees.")
         else:
             parts.append("Aucune note de bas de tableau modifiee.")
+        if (
+            tables_t1
+            and tables_t2
+            and tables_comparable_t1 == 0
+            and tables_comparable_t2 == 0
+        ):
+            parts.append(
+                " Aucun tableau comparable: l'extraction Vision de ce run n'a "
+                "renvoye aucun indicateur exploitable."
+            )
         if vision_rescued_pairs:
             parts.append(f" {vision_rescued_pairs} tableau(x) recuperes par Vision.")
 
@@ -1797,6 +1807,10 @@ def render_results(comparison, indicator, show_results):
             f"{tables_comparable_t2} ({current_label})"
             f" | Couverture pairing: {pairing_coverage * 100:.0f}%"
         )
+        if tables_comparable_t1 == 0 and tables_comparable_t2 == 0:
+            pairing_context += (
+                " | Extraction vide: Vision n'a produit aucun indicateur comparable."
+            )
         if pairing_low_confidence:
             pairing_context += " | Pairing faible: les tableaux non apparies restent a confirmer."
         kpis.append(

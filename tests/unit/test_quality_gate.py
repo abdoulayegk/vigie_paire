@@ -161,8 +161,6 @@ def test_quality_gate_detects_line_split_suspicion() -> None:
     report = evaluate_quality(indicators, footnotes)
     table = report["tables"][0]
     assert int(table["suspicious_line_splits"]) >= 2
-
-
 def test_quality_gate_exempts_date_header_titles_by_default() -> None:
     indicators = {
         "tables": [

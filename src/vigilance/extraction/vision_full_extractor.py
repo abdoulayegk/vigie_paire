@@ -70,7 +70,7 @@ Inclure :
 - sous-lignes indentées (conserver les espaces d'indentation pour représenter la hiérarchie)
 - sous-totaux
 - totaux
-- lignes contenant des références de notes comme (1), (2), *, †
+- lignes contenant des références de notes comme (1), (2),(1)(2), *, †
 
 Exclure :
 
@@ -258,6 +258,11 @@ Corrige uniquement la structure pour produire un JSON valide.
 
 Règles :
 
+- retourner UN SEUL objet JSON racine, sans wrapper du type "Reponse actuelle", "payload", "data", etc.
+- l'objet racine doit utiliser exactement ces champs:
+  table_title, headers, indicators, rows, footnotes_content, footnote_markers,
+  has_hierarchy, extraction_confidence, notes, confidence, appears_truncated,
+  estimated_content_height
 - ne pas modifier le contenu des champs
 - ne pas ajouter d'information
 - ne pas supprimer de données sauf si nécessaire pour rendre le JSON valide
@@ -597,6 +602,62 @@ def _parse_json_response(raw: str) -> dict[str, Any] | None:
         return None
 
 
+_VISION_RESPONSE_KEYS = frozenset(
+    {
+        "table_title",
+        "headers",
+        "indicators",
+        "rows",
+        "footnotes_content",
+        "footnote_markers",
+        "has_hierarchy",
+        "extraction_confidence",
+        "notes",
+        "confidence",
+        "appears_truncated",
+        "estimated_content_height",
+    }
+)
+_VISION_RESPONSE_REQUIRED_KEYS = frozenset({"indicators", "confidence"})
+
+
+def _extract_embedded_schema_candidate(raw: dict[str, Any]) -> dict[str, Any] | None:
+    """Return the most likely nested payload matching the expected Vision schema."""
+    if not isinstance(raw, dict):
+        return None
+    raw_keys = set(raw.keys())
+    if _VISION_RESPONSE_REQUIRED_KEYS.issubset(raw_keys):
+        return raw
+
+    best_candidate: dict[str, Any] | None = None
+    best_score = 0
+    queue: list[dict[str, Any]] = [raw]
+    seen_ids: set[int] = set()
+
+    while queue:
+        candidate = queue.pop(0)
+        obj_id = id(candidate)
+        if obj_id in seen_ids:
+            continue
+        seen_ids.add(obj_id)
+
+        keys = set(candidate.keys())
+        score = len(keys & _VISION_RESPONSE_KEYS)
+        if _VISION_RESPONSE_REQUIRED_KEYS.issubset(keys):
+            return candidate
+        if score > best_score:
+            best_candidate = candidate
+            best_score = score
+
+        for value in candidate.values():
+            if isinstance(value, dict):
+                queue.append(value)
+
+    if best_candidate is not None and best_score >= 2:
+        return best_candidate
+    return None
+
+
 def _parse_vision_result(raw: str | dict[str, Any]) -> VisionFullResult | None:
     """Parse and validate JSON into VisionFullResult via Pydantic. Returns None on validation error."""
     try:
@@ -605,10 +666,31 @@ def _parse_vision_result(raw: str | dict[str, Any]) -> VisionFullResult | None:
         else:
             validated = VisionFullResponseSchema.model_validate_json(raw)
     except Exception as e:
-        logger.warning(
-            "Vision response validation failed (Pydantic schema error): %s", e
-        )
-        return None
+        if isinstance(raw, dict):
+            candidate = _extract_embedded_schema_candidate(raw)
+            if candidate is not None and candidate is not raw:
+                try:
+                    validated = VisionFullResponseSchema.model_validate(candidate)
+                    logger.info(
+                        "Vision response recovered from nested wrapper keys: %s",
+                        list(raw.keys())[:3],
+                    )
+                except Exception:
+                    logger.warning(
+                        "Vision response validation failed (Pydantic schema error): %s",
+                        e,
+                    )
+                    return None
+            else:
+                logger.warning(
+                    "Vision response validation failed (Pydantic schema error): %s", e
+                )
+                return None
+        else:
+            logger.warning(
+                "Vision response validation failed (Pydantic schema error): %s", e
+            )
+            return None
 
     # Build ordered footnotes list — preserves visual order from Pydantic validation.
     # The _coerce_footnotes_content validator already normalized dict->list.
@@ -649,7 +731,7 @@ class VisionFullExtractor:
         api_key: str | None = None,
         model: str = "gpt-4o",
         max_retries_json: int = 2,
-        use_cache: bool = True,
+        use_cache: bool = False,
     ):
         self._api_key = api_key or get_openai_api_key()
         self._model = model
@@ -897,8 +979,8 @@ class VisionFullExtractor:
                     {
                         "type": "text",
                         "text": _PROMPT_JSON_FIX
-                        + "\n\nReponse actuelle:\n"
-                        + (raw_content[:2000] or ""),
+                        + "\n\nJSON invalide a corriger ci-dessous. Ne l'encapsule pas sous une nouvelle cle.\n"
+                        + (_strip_markdown_fences(raw_content)[:2000] or ""),
                     },
                     {
                         "type": "image_url",

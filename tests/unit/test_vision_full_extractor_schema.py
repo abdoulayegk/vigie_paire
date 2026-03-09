@@ -59,6 +59,30 @@ def test_parse_vision_result_valid_full_payload() -> None:
     assert parsed.footnotes_content[0]["text"] == "Texte"
 
 
+def test_parse_vision_result_recovers_wrapped_payload() -> None:
+    raw = {
+        "Reponse actuelle": {
+            "table_title": "Tableau 1",
+            "headers": ["Colonne 1"],
+            "indicators": ["Ratio CET1"],
+            "rows": [["Ratio CET1", "13,1 %"]],
+            "footnotes_content": [{"id": "1", "text": "Note"}],
+            "footnote_markers": ["1"],
+            "has_hierarchy": False,
+            "extraction_confidence": "high",
+            "notes": "",
+            "confidence": 0.93,
+            "appears_truncated": False,
+            "estimated_content_height": 78,
+        }
+    }
+    parsed = _parse_vision_result(raw)
+    assert parsed is not None
+    assert parsed.table_title == "Tableau 1"
+    assert parsed.indicators == ["Ratio CET1"]
+    assert parsed.confidence == 0.93
+
+
 def test_parse_vision_result_rejects_missing_required() -> None:
     raw = {
         "indicators": ["A"],

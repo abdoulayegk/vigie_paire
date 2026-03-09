@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import inspect
 import json
 import logging
 from dataclasses import dataclass, field
@@ -286,6 +287,7 @@ async def validate_pair_same_concept_async(
         section_t2=section_t2,
     )
 
+    client = None
     try:
         from openai import AsyncOpenAI
 
@@ -306,6 +308,16 @@ async def validate_pair_same_concept_async(
             confidence=0.0,
             reason_code=f"api_error:{type(e).__name__}",
         )
+    finally:
+        if client is not None:
+            close_fn = getattr(client, "close", None)
+            if callable(close_fn):
+                try:
+                    close_result = close_fn()
+                    if inspect.isawaitable(close_result):
+                        await close_result
+                except Exception as close_exc:
+                    logger.debug("Vision pair validator client close error: %s", close_exc)
 
 
 # ---------------------------------------------------------------------------

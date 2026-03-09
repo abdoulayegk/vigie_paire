@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from types import SimpleNamespace
 
 from app.comparison_runner import (
     _compute_extraction_kpis,
@@ -54,6 +55,83 @@ def test_extract_tables_forwards_flags_without_env_mutation(monkeypatch) -> None
     )
 
     assert seen["use_vision_primary"] is False
+
+
+def test_extract_tables_reuses_stored_when_fresh_extraction_is_empty(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    import app.comparison_runner as cr
+    import app.extraction_storage as storage_mod
+    import vigilance.extraction.docling_processor as dp
+
+    stored_table = TableArtifact(
+        bank_code="bnc",
+        section="capital_management",
+        page_pdf=1,
+        table_id="stored_ok",
+        title="Stored",
+        headers=["Indicateur", "Montant"],
+        rows=[["Ratio CET1", "13.1"]],
+        first_column_indicators=["ratio cet1"],
+        first_column_indicators_raw=["Ratio CET1"],
+        extraction_method="vision_full_gpt4o",
+        footnotes=[],
+        quarter="t1",
+        pdf_path="/tmp/stored.pdf",
+        content_source=VISION_CONTENT_SOURCE,
+    )
+    fresh_failed = TableArtifact(
+        bank_code="bnc",
+        section="capital_management",
+        page_pdf=1,
+        table_id="fresh_failed",
+        title="Fresh",
+        headers=[],
+        rows=[],
+        first_column_indicators=[],
+        first_column_indicators_raw=[],
+        extraction_method="vision_failed",
+        footnotes=[],
+        quarter="t1",
+        pdf_path="/tmp/fresh.pdf",
+        content_source=VISION_CONTENT_SOURCE,
+    )
+
+    monkeypatch.setattr(
+        dp,
+        "extract_tables_docling_by_sections",
+        lambda **_kwargs: [SimpleNamespace()],
+    )
+    monkeypatch.setattr(cr, "_table_to_artifact", lambda *_a, **_k: fresh_failed)
+    monkeypatch.setattr(
+        storage_mod,
+        "load_extraction",
+        lambda *_a, **_k: ([stored_table], {"schema_version": 3}),
+    )
+
+    save_called = {"count": 0}
+
+    def _fake_save_extraction(**_kwargs):
+        save_called["count"] += 1
+        raise AssertionError("save_extraction should not run when stored extraction is reused")
+
+    monkeypatch.setattr(storage_mod, "save_extraction", _fake_save_extraction)
+
+    result = _extract_tables(
+        pdf_path="/tmp/fake.pdf",
+        bank_code="bnc",
+        quarter="t1",
+        year=2025,
+        section_ranges=[{"section": "s", "start": 1, "end": 1}],
+        api_key=None,
+        use_vision_primary=True,
+        use_stored_extraction_if_available=False,
+        extraction_base_dir=str(tmp_path),
+    )
+
+    assert [t.table_id for t in result] == ["stored_ok"]
+    assert save_called["count"] == 0
 
 
 def test_extraction_kpis_include_vision_primary_contract_fields() -> None:

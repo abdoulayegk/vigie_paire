@@ -38,6 +38,30 @@ def _table(indicators: list[str]) -> TableArtifact:
     )
 
 
+def _table_with_rows(
+    indicators: list[str],
+    rows: list[list[str]],
+    *,
+    raw: list[str] | None = None,
+) -> TableArtifact:
+    return TableArtifact(
+        bank_code="bmo",
+        section="capital_management",
+        page_pdf=1,
+        table_id="tableau_rows",
+        title="Montant",
+        headers=["Indicateur", "Montant"],
+        rows=rows,
+        first_column_indicators=indicators,
+        first_column_indicators_raw=raw or indicators,
+        extraction_method="vision_full_gpt4o",
+        quarter="t1",
+        pdf_path="dummy.pdf",
+        footnotes=[],
+        content_source="vision_gpt4o",
+    )
+
+
 def test_clean_to_raw_display_mapping_prefers_raw_text() -> None:
     table = TableArtifact(
         bank_code="bmo",
@@ -129,6 +153,71 @@ def test_indicator_diff_excludes_totals_and_pure_numbers() -> None:
     assert removed == []
     assert excluded.get("total", 0) >= 1
     assert excluded.get("number", 0) >= 1
+
+
+def test_indicator_diff_excludes_structural_empty_row_headers() -> None:
+    t1 = _table_with_rows(
+        ["Actions ordinaires", "Série 33"],
+        rows=[
+            ["Actions ordinaires", "100"],
+            ["Série 33", "10"],
+        ],
+    )
+    t2 = _table_with_rows(
+        ["Actions ordinaires", "Actions privilégiées de catégorie B", "Série 33"],
+        rows=[
+            ["Actions ordinaires", "100"],
+            ["Actions privilégiées de catégorie B", ""],
+            ["Série 33", "10"],
+        ],
+    )
+
+    added, removed, _, excluded = _indicator_diff(t1, t2)
+    assert added == []
+    assert removed == []
+    assert excluded.get("structural", 0) >= 1
+
+
+def test_indicator_diff_filters_neighbor_aligned_singleton_extraction_miss() -> None:
+    t1 = _table(
+        [
+            "Options sur actions",
+            "Droits non acquis",
+        ]
+    )
+    t2 = _table(
+        [
+            "Options sur actions",
+            "Droits acquis",
+            "Droits non acquis",
+        ]
+    )
+
+    added, removed, _, excluded = _indicator_diff(t1, t2)
+    assert added == []
+    assert removed == []
+    assert excluded.get("neighbor_aligned", 0) >= 1
+
+
+def test_indicator_diff_keeps_added_block_without_two_shared_neighbors() -> None:
+    t1 = _table(
+        [
+            "Série M – tranche 1",
+            "Options sur actions",
+        ]
+    )
+    t2 = _table(
+        [
+            "Série M – première tranche",
+            "Série N – deuxième tranche",
+            "Série N – première tranche",
+            "Options sur actions",
+        ]
+    )
+
+    added, removed, _, _ = _indicator_diff(t1, t2)
+    assert added == ["Série N – deuxième tranche", "Série N – première tranche"]
+    assert removed == []
 
 
 def test_indicator_diff_fusion_split() -> None:

@@ -14,11 +14,6 @@ from vigilance.models.table_models import (
     TableArtifact,
     infer_content_source,
 )
-from vigilance.utils.rbc_table_signals import (
-    build_rbc_first_column_signals,
-    classify_rbc_title_reliability,
-    is_rbc_bank,
-)
 from vigilance.utils.footnotes_utils import normalize_footnotes_to_canonical
 from vigilance.utils.indicator_cleaner import (
     dedupe_indicators,
@@ -27,6 +22,11 @@ from vigilance.utils.indicator_cleaner import (
     post_normalize_indicator,
 )
 from vigilance.report.export_json import write_tables_docling
+from vigilance.utils.rbc_table_signals import (
+    build_rbc_first_column_signals,
+    classify_rbc_title_reliability,
+    is_rbc_bank,
+)
 
 DEFAULT_CONFIG = "configs/bank_profiles.yaml"
 DEFAULT_OUT_ROOT = "outputs/runs"
@@ -45,20 +45,28 @@ def _canonicalize_section(raw: str | None) -> str | None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Extract tables on selected page ranges.")
+    parser = argparse.ArgumentParser(
+        description="Extract tables on selected page ranges."
+    )
     parser.add_argument("--bank", required=True, help="Bank code (e.g. rbc)")
     parser.add_argument("--pdf", required=True, help="Input PDF path")
     parser.add_argument("--quarter", required=True, help="Quarter label (e.g. t1-2025)")
     parser.add_argument("--config", default=DEFAULT_CONFIG, help="YAML config path")
-    parser.add_argument("--ranges_json", required=True, help="Path to section_ranges.json")
-    parser.add_argument("--out_root", default=DEFAULT_OUT_ROOT, help="Output root directory")
+    parser.add_argument(
+        "--ranges_json", required=True, help="Path to section_ranges.json"
+    )
+    parser.add_argument(
+        "--out_root", default=DEFAULT_OUT_ROOT, help="Output root directory"
+    )
     parser.add_argument(
         "--vigie_extract",
         action="store_true",
         default=False,
         help="Also produce a single vigie_extract_v1 JSON per PDF",
     )
-    parser.add_argument("--language", default="fr", help="Language code for vigie_extract (default: fr)")
+    parser.add_argument(
+        "--language", default="fr", help="Language code for vigie_extract (default: fr)"
+    )
     return parser
 
 
@@ -103,7 +111,9 @@ def _load_section_ranges(path: str | Path) -> list[dict[str, Any]]:
         for section_name, item in data["sections"].items():
             if not isinstance(item, dict):
                 continue
-            section = _canonicalize_section(str(item.get("section", section_name)).strip())
+            section = _canonicalize_section(
+                str(item.get("section", section_name)).strip()
+            )
             start = int(item.get("start_page", 0) or 0)
             end = int(item.get("end_page", start) or start)
             if section and start > 0 and end >= start:
@@ -117,7 +127,9 @@ def _load_section_ranges(path: str | Path) -> list[dict[str, Any]]:
     return section_ranges
 
 
-def _to_artifacts(raw_tables: list[Any], bank: str, quarter: str, pdf_path: str) -> list[TableArtifact]:
+def _to_artifacts(
+    raw_tables: list[Any], bank: str, quarter: str, pdf_path: str
+) -> list[TableArtifact]:
     artifacts: list[TableArtifact] = []
     for index, table in enumerate(raw_tables, start=1):
         extraction_method = getattr(table, "extraction_method", None) or "docling"
@@ -171,7 +183,9 @@ def _to_artifacts(raw_tables: list[Any], bank: str, quarter: str, pdf_path: str)
         else:
             canonical_footnotes = normalize_footnotes_to_canonical(footnotes_raw)
 
-        section = _canonicalize_section(getattr(table, "section", None)) or "unknown_section"
+        section = (
+            _canonicalize_section(getattr(table, "section", None)) or "unknown_section"
+        )
         artifacts.append(
             TableArtifact(
                 bank_code=bank,
@@ -191,7 +205,8 @@ def _to_artifacts(raw_tables: list[Any], bank: str, quarter: str, pdf_path: str)
                 quarter=quarter,
                 pdf_path=pdf_path,
                 title_reliability=classify_rbc_title_reliability(
-                    getattr(table, "title_clean", None) or getattr(table, "title", None),
+                    getattr(table, "title_clean", None)
+                    or getattr(table, "title", None),
                     bank_code=bank,
                 ),
                 footnotes=canonical_footnotes,
@@ -209,7 +224,9 @@ def main(argv: list[str] | None = None) -> None:
     section_ranges = _load_section_ranges(args.ranges_json)
 
     try:
-        from vigilance.extraction.docling_processor import extract_tables_docling_by_sections
+        from vigilance.extraction.docling_processor import (
+            extract_tables_docling_by_sections,
+        )
     except Exception as exc:
         raise NotImplementedError(
             "Docling extraction backend from extraction/ is not importable in this environment."
@@ -223,13 +240,18 @@ def main(argv: list[str] | None = None) -> None:
         year=year,
         section_ranges=section_ranges,
     )
-    artifacts = _to_artifacts(raw_tables, bank=args.bank, quarter=args.quarter, pdf_path=args.pdf)
+    artifacts = _to_artifacts(
+        raw_tables, bank=args.bank, quarter=args.quarter, pdf_path=args.pdf
+    )
     out_dir = Path(args.out_root) / args.quarter / args.bank
     out_path = write_tables_docling(out_dir=out_dir, tables=artifacts)
     print(out_path)
 
     if args.vigie_extract:
-        from vigilance.report.vigie_extract_schema import build_vigie_extract, write_vigie_extract
+        from vigilance.report.vigie_extract_schema import (
+            build_vigie_extract,
+            write_vigie_extract,
+        )
 
         payload = build_vigie_extract(
             pdf_path=args.pdf,

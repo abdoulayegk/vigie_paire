@@ -50,13 +50,13 @@ from app.ui_config import INDICATOR_COMPARISON_DIR, LOGS_DIR
 _SEMANTIC_JUDGE_LOG = LOGS_DIR / "semantic_judge_decisions.jsonl"
 _VALIDATION_LOG = LOGS_DIR / "validation.jsonl"
 from vigilance.compare import run_strict_intra_section_compare
+from vigilance.compare.footnote_comparator import FootnoteComparator
 from vigilance.compare.table_fragment_merger import merge_table_fragments
 from vigilance.config import (
     get_matching_thresholds,
     get_quality_gate_config,
     get_validation_config,
 )
-from vigilance.compare.footnote_comparator import FootnoteComparator
 from vigilance.models.table_models import (
     VISION_CONTENT_SOURCE,
     TableArtifact,
@@ -262,7 +262,9 @@ def _table_to_artifact(
         )
 
     # Quality pass 1: line-split merge (deterministic)
-    vision_raw_indicators, line_merge_count = merge_line_split_indicators(vision_raw_indicators)
+    vision_raw_indicators, line_merge_count = merge_line_split_indicators(
+        vision_raw_indicators
+    )
     if line_merge_count > 0:
         logger.info(
             "indicators_line_merge: table=%s page=%s merges=%d",
@@ -284,7 +286,6 @@ def _table_to_artifact(
             duplicate_ratio,
         )
 
-    # Parts A & B: post-normalize cleaned indicators (camelCase split + tag-space fix).
     fragmentation_from_post_norm = False
     comparison_normalized_indicators: list[str] = []
     for ind in vision_raw_indicators:
@@ -323,12 +324,11 @@ def _table_to_artifact(
     title_raw = getattr(table, "title_raw", None) or getattr(table, "title", None)
     title_clean = getattr(table, "title_clean", None)
     title_display = title_clean or getattr(table, "title", None)
-    title_reliability = (
-        getattr(table, "title_reliability", None)
-        or classify_rbc_title_reliability(
-            title_display or title_raw,
-            bank_code=bank_code,
-        )
+    title_reliability = getattr(
+        table, "title_reliability", None
+    ) or classify_rbc_title_reliability(
+        title_display or title_raw,
+        bank_code=bank_code,
     )
 
     return TableArtifact(
@@ -379,6 +379,35 @@ def _extract_tables(
 
     base_dir = _Path(extraction_base_dir or "outputs/extractions")
 
+    def _extraction_snapshot(tables: list[TableArtifact]) -> dict[str, int]:
+        comparable = sum(
+            1 for t in tables if bool(getattr(t, "comparison_eligible", False))
+        )
+        tables_with_raw = sum(1 for t in tables if get_vision_raw_indicators(t))
+        raw_indicators = sum(len(get_vision_raw_indicators(t)) for t in tables)
+        return {
+            "tables": len(tables),
+            "comparable": comparable,
+            "tables_with_raw": tables_with_raw,
+            "raw_indicators": raw_indicators,
+        }
+
+    def _prefer_stored_over_fresh(
+        fresh_tables: list[TableArtifact],
+        stored_tables: list[TableArtifact],
+    ) -> bool:
+        fresh = _extraction_snapshot(fresh_tables)
+        stored = _extraction_snapshot(stored_tables)
+        if fresh["tables"] == 0:
+            return bool(stored["tables"] > 0)
+        if fresh["tables_with_raw"] == 0 and stored["tables_with_raw"] > 0:
+            return True
+        if fresh["comparable"] == 0 and stored["comparable"] > 0:
+            return True
+        if fresh["raw_indicators"] == 0 and stored["raw_indicators"] > 0:
+            return True
+        return False
+
     # Step 4: Load stored extraction if available (avoids re-running Vision)
     if use_stored_extraction_if_available:
         try:
@@ -423,7 +452,26 @@ def _extract_tables(
 
     # Step 4: Save extraction systematically after every run
     try:
-        from app.extraction_storage import save_extraction
+        from app.extraction_storage import load_extraction, save_extraction
+
+        stored = load_extraction(bank_code, year, quarter, base_dir)
+        if stored is not None:
+            stored_tables, _stored_meta = stored
+            if _prefer_stored_over_fresh(artifacts, stored_tables):
+                logger.warning(
+                    "Fresh extraction degraded for %s/%s/%s; reusing stored extraction "
+                    "(fresh comparable=%d raw_tables=%d raw_indicators=%d, stored comparable=%d raw_tables=%d raw_indicators=%d)",
+                    bank_code,
+                    year,
+                    quarter,
+                    _extraction_snapshot(artifacts)["comparable"],
+                    _extraction_snapshot(artifacts)["tables_with_raw"],
+                    _extraction_snapshot(artifacts)["raw_indicators"],
+                    _extraction_snapshot(stored_tables)["comparable"],
+                    _extraction_snapshot(stored_tables)["tables_with_raw"],
+                    _extraction_snapshot(stored_tables)["raw_indicators"],
+                )
+                return stored_tables
 
         save_extraction(
             bank_code=bank_code,
@@ -724,7 +772,11 @@ def _table_rescue_title_text(table: TableArtifact) -> str:
 
 
 def _table_rescue_headers_text(table: TableArtifact) -> str:
-    headers = [str(h).strip() for h in (getattr(table, "headers", None) or []) if str(h).strip()]
+    headers = [
+        str(h).strip()
+        for h in (getattr(table, "headers", None) or [])
+        if str(h).strip()
+    ]
     return normalize_indicator_for_comparison(" | ".join(headers[:6]))
 
 
@@ -760,7 +812,9 @@ def _indicator_jaccard_from_tables(
     return len(seq_a & seq_b) / max(len(seq_a | seq_b), 1)
 
 
-def _table_rescue_row_count_ratio(table_a: TableArtifact, table_b: TableArtifact) -> float:
+def _table_rescue_row_count_ratio(
+    table_a: TableArtifact, table_b: TableArtifact
+) -> float:
     rows_a = len(getattr(table_a, "rows", None) or [])
     rows_b = len(getattr(table_b, "rows", None) or [])
     if rows_a <= 0 or rows_b <= 0:
@@ -768,7 +822,9 @@ def _table_rescue_row_count_ratio(table_a: TableArtifact, table_b: TableArtifact
     return max(rows_a, rows_b) / max(min(rows_a, rows_b), 1)
 
 
-def _table_rescue_page_proximity(table_a: TableArtifact, table_b: TableArtifact) -> float:
+def _table_rescue_page_proximity(
+    table_a: TableArtifact, table_b: TableArtifact
+) -> float:
     page_a = _safe_int(getattr(table_a, "page_pdf", 0), 0)
     page_b = _safe_int(getattr(table_b, "page_pdf", 0), 0)
     if page_a <= 0 or page_b <= 0:
@@ -844,7 +900,9 @@ def _rerank_vision_candidate(
         "tail_overlap": round(tail_overlap, 6),
         "distinctive_overlap_score": round(max(distinctive, fingerprint_ratio), 6),
         "row_count_ratio": round(
-            _safe_float((candidate_payload or {}).get("row_count_ratio", row_ratio), row_ratio),
+            _safe_float(
+                (candidate_payload or {}).get("row_count_ratio", row_ratio), row_ratio
+            ),
             6,
         ),
         "title_similarity": round(title_ratio, 6),
@@ -898,14 +956,10 @@ def _collect_vision_rescue_candidates(
     }
 
     section_t2_unpaired = {
-        str(uid): table
-        for uid, table in t2_by_uid.items()
-        if str(uid) not in paired_t2
+        str(uid): table for uid, table in t2_by_uid.items() if str(uid) not in paired_t2
     }
     section_t1_unpaired = {
-        str(uid): table
-        for uid, table in t1_by_uid.items()
-        if str(uid) not in paired_t1
+        str(uid): table for uid, table in t1_by_uid.items() if str(uid) not in paired_t1
     }
 
     source_specs: list[dict[str, Any]] = []
@@ -999,7 +1053,7 @@ def _collect_vision_rescue_candidates(
                     }
                 )
             all_candidates.sort(key=lambda item: item["score"], reverse=True)
-            for candidate in all_candidates[: max_candidates_per_table]:
+            for candidate in all_candidates[:max_candidates_per_table]:
                 pair_key = (candidate["t1_uid"], candidate["t2_uid"])
                 if pair_key in seen_pairs:
                     continue
@@ -1044,7 +1098,7 @@ def _collect_vision_rescue_candidates(
                     }
                 )
             all_candidates.sort(key=lambda item: item["score"], reverse=True)
-            for candidate in all_candidates[: max_candidates_per_table]:
+            for candidate in all_candidates[:max_candidates_per_table]:
                 pair_key = (candidate["t1_uid"], candidate["t2_uid"])
                 if pair_key in seen_pairs:
                     continue
@@ -1299,6 +1353,88 @@ def _strip_footnote_markers_from_indicator(text: str) -> str:
         if value == prev:
             break
     return value
+
+
+def _structural_header_keys_from_rows(table: TableArtifact) -> set[str]:
+    """Return empty-valued row labels that behave like structural group headers."""
+    result: set[str] = set()
+    for row in getattr(table, "rows", None) or []:
+        if not isinstance(row, (list, tuple)) or not row:
+            continue
+        label = str(row[0]).strip()
+        if not label or _classify_excluded_line(label):
+            continue
+        other_cells = [str(cell).strip() for cell in row[1:]]
+        if any(cell for cell in other_cells):
+            continue
+        cleaned = _strip_footnote_markers_from_indicator(label)
+        key = _canonical_indicator_key(cleaned)
+        if key:
+            result.add(key)
+    return result
+
+
+def _ordered_indicator_keys(
+    values: list[str],
+    *,
+    excluded_keys: set[str] | None = None,
+) -> list[str]:
+    """Return canonical indicator keys in source order, deduplicated."""
+    result: list[str] = []
+    seen: set[str] = set()
+    excluded = excluded_keys or set()
+    for value in values:
+        kind = _classify_excluded_line(value)
+        if kind:
+            continue
+        cleaned = _strip_footnote_markers_from_indicator(value)
+        key = _canonical_indicator_key(cleaned)
+        if not key or key in seen or key in excluded:
+            continue
+        seen.add(key)
+        result.append(key)
+    return result
+
+
+def _filter_neighbor_aligned_candidates(
+    candidate_keys: set[str],
+    *,
+    source_order: list[str],
+    target_order: list[str],
+) -> set[str]:
+    """Drop singleton additions/removals bounded by shared neighbors on the other side."""
+    if not candidate_keys:
+        return set()
+    target_pos = {key: idx for idx, key in enumerate(target_order)}
+    filtered: set[str] = set()
+    for idx, key in enumerate(source_order):
+        if key not in candidate_keys:
+            continue
+        block_start = idx
+        while block_start > 0 and source_order[block_start - 1] in candidate_keys:
+            block_start -= 1
+        block_end = idx
+        while block_end + 1 < len(source_order) and source_order[block_end + 1] in candidate_keys:
+            block_end += 1
+        if block_end > block_start:
+            continue
+        prev_key = next(
+            (source_order[j] for j in range(idx - 1, -1, -1) if source_order[j] not in candidate_keys),
+            None,
+        )
+        next_key = next(
+            (source_order[j] for j in range(idx + 1, len(source_order)) if source_order[j] not in candidate_keys),
+            None,
+        )
+        if (
+            prev_key
+            and next_key
+            and prev_key in target_pos
+            and next_key in target_pos
+            and target_pos[prev_key] < target_pos[next_key]
+        ):
+            filtered.add(key)
+    return filtered
 
 
 _INDICATOR_STOPWORDS = frozenset(
@@ -1830,8 +1966,16 @@ def _indicator_diff(
     # Matching/diff use first_column_indicators (clean) only; UI display prefers raw.
     left = get_comparison_indicators(t1)
     right = get_comparison_indicators(t2)
+    left_all_keys = set(_ordered_indicator_keys(left))
+    right_all_keys = set(_ordered_indicator_keys(right))
+    left_structural_keys = _structural_header_keys_from_rows(t1) - right_all_keys
+    right_structural_keys = _structural_header_keys_from_rows(t2) - left_all_keys
 
-    def _norm(values: list[str]) -> tuple[dict[str, str], dict[str, int]]:
+    def _norm(
+        values: list[str],
+        *,
+        structural_keys: set[str],
+    ) -> tuple[dict[str, str], dict[str, int]]:
         mapped: dict[str, str] = {}
         excluded: dict[str, int] = {}
         for value in values:
@@ -1841,18 +1985,43 @@ def _indicator_diff(
                 continue
             value_clean = _strip_footnote_markers_from_indicator(value)
             key = _canonical_indicator_key(value_clean)
+            if key in structural_keys:
+                excluded["structural"] = excluded.get("structural", 0) + 1
+                continue
             if key and key not in mapped:
                 mapped[key] = value_clean
         return mapped, excluded
 
-    left_map, left_excluded = _norm(left)
-    right_map, right_excluded = _norm(right)
+    left_map, left_excluded = _norm(left, structural_keys=left_structural_keys)
+    right_map, right_excluded = _norm(right, structural_keys=right_structural_keys)
     excluded_counts: dict[str, int] = {}
     for k in set(left_excluded) | set(right_excluded):
         excluded_counts[k] = left_excluded.get(k, 0) + right_excluded.get(k, 0)
 
-    added = [right_map[key] for key in right_map.keys() - left_map.keys()]
-    removed = [left_map[key] for key in left_map.keys() - right_map.keys()]
+    added_keys = set(right_map.keys() - left_map.keys())
+    removed_keys = set(left_map.keys() - right_map.keys())
+
+    left_order = _ordered_indicator_keys(left, excluded_keys=left_structural_keys)
+    right_order = _ordered_indicator_keys(right, excluded_keys=right_structural_keys)
+    filtered_added = _filter_neighbor_aligned_candidates(
+        added_keys,
+        source_order=right_order,
+        target_order=left_order,
+    )
+    filtered_removed = _filter_neighbor_aligned_candidates(
+        removed_keys,
+        source_order=left_order,
+        target_order=right_order,
+    )
+    if filtered_added:
+        excluded_counts["neighbor_aligned"] = excluded_counts.get("neighbor_aligned", 0) + len(filtered_added)
+        added_keys -= filtered_added
+    if filtered_removed:
+        excluded_counts["neighbor_aligned"] = excluded_counts.get("neighbor_aligned", 0) + len(filtered_removed)
+        removed_keys -= filtered_removed
+
+    added = [right_map[key] for key in added_keys]
+    removed = [left_map[key] for key in removed_keys]
     added.sort()
     removed.sort()
     added, removed, had_fusion_split = _detect_fusion_split(added, removed)
@@ -2513,14 +2682,18 @@ def run_comparison_with_sections(
                 validate_pair_full,
             )
 
-            candidate_pairs, source_tables_considered = _collect_vision_rescue_candidates(
-                strict=strict,
-                t1_by_uid=t1_by_uid,
-                t2_by_uid=t2_by_uid,
-                max_candidates_per_table=max(
-                    1, vision_unmatched_rescue_max_candidates_per_table
-                ),
-                max_tables_per_run=max(0, vision_unmatched_rescue_max_tables_per_run),
+            candidate_pairs, source_tables_considered = (
+                _collect_vision_rescue_candidates(
+                    strict=strict,
+                    t1_by_uid=t1_by_uid,
+                    t2_by_uid=t2_by_uid,
+                    max_candidates_per_table=max(
+                        1, vision_unmatched_rescue_max_candidates_per_table
+                    ),
+                    max_tables_per_run=max(
+                        0, vision_unmatched_rescue_max_tables_per_run
+                    ),
+                )
             )
             if candidate_pairs:
                 pairs_budget = max(0, vision_unmatched_rescue_max_pairs)
@@ -2674,7 +2847,9 @@ def run_comparison_with_sections(
     strict.setdefault("vision_unmatched_rescue_candidates", [])
     strict.setdefault("vision_unmatched_rescue_results", [])
     strict.setdefault("vision_rejected_pairs", [])
-    strict.setdefault("added_tables_confirmed", list(strict.get("added_tables", []) or []))
+    strict.setdefault(
+        "added_tables_confirmed", list(strict.get("added_tables", []) or [])
+    )
     strict.setdefault(
         "removed_tables_confirmed", list(strict.get("removed_tables", []) or [])
     )
@@ -3504,14 +3679,18 @@ def run_comparison_with_sections(
     tables_comparable_t1 = int(
         strict.get(
             "tables_comparable_t1",
-            sum(1 for table in tables_t1 if getattr(table, "comparison_eligible", False)),
+            sum(
+                1 for table in tables_t1 if getattr(table, "comparison_eligible", False)
+            ),
         )
         or 0
     )
     tables_comparable_t2 = int(
         strict.get(
             "tables_comparable_t2",
-            sum(1 for table in tables_t2 if getattr(table, "comparison_eligible", False)),
+            sum(
+                1 for table in tables_t2 if getattr(table, "comparison_eligible", False)
+            ),
         )
         or 0
     )
@@ -3557,9 +3736,7 @@ def run_comparison_with_sections(
         "stable": sum(1 for c in comparisons if c.get("table_status") == "stable"),
         "modifie": sum(1 for c in comparisons if c.get("table_status") == "modifie"),
         "renommage_probable": 0,
-        "incertain": sum(
-            1 for c in comparisons if c.get("table_status") == "incertain"
-        )
+        "incertain": sum(1 for c in comparisons if c.get("table_status") == "incertain")
         + len(ambiguous_tables),
         "needs_review": 0,
         "structure_change": sum(
@@ -3760,7 +3937,9 @@ def run_comparison_with_sections(
                 },
                 "strict_matcher": {
                     "pairs": len(strict.get("pairs", [])),
-                    "matched_pairs": len(strict.get("matched_pairs", strict.get("pairs", []))),
+                    "matched_pairs": len(
+                        strict.get("matched_pairs", strict.get("pairs", []))
+                    ),
                     "probable_pairs": len(strict.get("probable_pairs", [])),
                     "suspicious_pairs": len(strict.get("suspicious_pairs", [])),
                     "ambiguous_pairs": len(strict.get("ambiguous_pairs", [])),

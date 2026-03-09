@@ -133,8 +133,6 @@ _REDUNDANT_PAREN_EXPANSION_RE = re.compile(
 _REDUNDANT_SEPARATOR_EXPANSION_RE = re.compile(
     r"^\s*(?P<prefix>[^:;–—-]+?)\s*[:;–—-]\s*(?P<suffix>.+?)\s*$"
 )
-
-
 def _normalized_phrase_key(text: str) -> str:
     """Lightweight phrase key for structural prefix checks."""
     if not text:
@@ -502,16 +500,7 @@ def merge_line_split_indicators(
     *,
     max_combined_length: int = _LINE_MERGE_MAX_COMBINED_LENGTH,
 ) -> tuple[list[str], int]:
-    """
-    Merge indicator lines when the next line is likely a split continuation.
-
-    Rules (deterministic):
-    - Next line begins with lowercase OR begins with superscript/punctuation only.
-    - Previous line does not end with strong punctuation (. ! ? ; :).
-    - Combined length <= max_combined_length.
-
-    Returns (merged_list, merge_count).
-    """
+    """Merge indicator lines when the next line is likely a split continuation."""
     cfg = IndicatorLineMergeConfig(
         max_next_tokens=6,
         max_combined_length=max_combined_length,
@@ -739,6 +728,17 @@ def normalize_indicator_for_comparison(text: str) -> str:
     if logger.isEnabledFor(logging.DEBUG) and raw_for_log != text:
         logger.debug("indicator raw -> cleaned: %r -> %r", raw_for_log[:60], text[:60])
 
+    # Normalize rate formatting noise such as "4,800 %" vs "4,80 %".
+    text = re.sub(
+        r"\b(\d{1,3})[.,](\d{1,4})(?=\s*%)",
+        lambda m: (
+            m.group(1)
+            if not m.group(2).rstrip("0")
+            else f"{m.group(1)},{m.group(2).rstrip('0')}"
+        ),
+        text,
+    )
+
     # Strip leading unit-of-measure prefix so "En millions de dollars - X" and "X" share the same key
     for _re in (_UNIT_HEADER_RE, _UNIT_MILLIERS_ACTIONS_RE):
         m = _re.match(text)
@@ -754,6 +754,13 @@ def normalize_indicator_for_comparison(text: str) -> str:
     # Supprimer les accents (NFD + ASCII)
     text = unicodedata.normalize("NFD", text)
     text = text.encode("ascii", "ignore").decode("utf-8")
+
+    # Canonicalize common wording drift found in debt tranche labels.
+    text = re.sub(r"\b(?:avec|aux)\s+termes?\b", " terme ", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bpremier(?:e)?\s+tranche\b", "tranche 1", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bdeuxiem(?:e)?\s+tranche\b", "tranche 2", text, flags=re.IGNORECASE)
+    text = re.sub(r"\btroisiem(?:e)?\s+tranche\b", "tranche 3", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bquatriem(?:e)?\s+tranche\b", "tranche 4", text, flags=re.IGNORECASE)
 
     # References de notes: (1), (2), [1], [2], etc.
     text = re.sub(r"\s*[\(\[]\d+[\)\]]\s*", " ", text)

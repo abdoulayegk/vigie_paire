@@ -877,7 +877,7 @@ class DoclingProcessor:
                     api_key = self.openai_api_key or get_openai_api_key()
                     if api_key:
                         vision_extractor = VisionFullExtractor(
-                            api_key=api_key, use_cache=True
+                            api_key=api_key, use_cache=False
                         )
                     else:
                         logger.warning(

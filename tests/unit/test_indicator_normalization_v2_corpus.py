@@ -14,6 +14,12 @@ from vigilance.utils.indicator_normalizer import (
     [
         ("Agence de notation¹", "Agence de notation"),
         ("Titres vendus à découvert(4)", "Titres vendus à découvert"),
+        ("Série K – tranche 1", "Série K – première tranche"),
+        ("Série J – tranche 2", "Série J – deuxième tranche"),
+        (
+            "Billets subordonnés à 4,800 % avec termes des fonds propres de catégorie 1 supplémentaires",
+            "Billets subordonnés à 4,80 % aux termes des fonds propres de catégorie 1 supplémentaires",
+        ),
         (
             "Options sur actions et attribution d'actions",
             "Options sur actions et attribution d’actions",

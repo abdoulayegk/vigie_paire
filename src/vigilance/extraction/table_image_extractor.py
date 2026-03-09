@@ -18,8 +18,6 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ..utils.indicator_line_merge import IndicatorLineMergeConfig, merge_indicator_lines
-
 logger = logging.getLogger(__name__)
 _PATTERN_LOADER_IMPORT_LOGGED = False
 
@@ -383,20 +381,6 @@ class TableImageExtractor:
                     image_width=table_img.width,
                     image_height=table_img.height,
                 )
-                indicators, merges_count = merge_indicator_lines(
-                    indicators,
-                    config=IndicatorLineMergeConfig(
-                        max_next_tokens=6, max_combined_length=120
-                    ),
-                )
-                if merges_count > 0:
-                    logger.info(
-                        "indicator_line_merge: table=%s page=%s merges_count=%d",
-                        f"vision_table_{table_idx}",
-                        page_num,
-                        merges_count,
-                    )
-                    row_bboxes = []
 
                 # Extraire les en-tetes de colonnes (premiere ligne de table.extract())
                 headers = self._extract_table_headers(table)
@@ -957,19 +941,6 @@ class TableImageExtractor:
                     for line in lines
                     if line.strip() and len(line.strip()) > 3
                 ]
-                indicators, merges_count = merge_indicator_lines(
-                    indicators,
-                    config=IndicatorLineMergeConfig(
-                        max_next_tokens=6, max_combined_length=120
-                    ),
-                )
-                if merges_count > 0:
-                    logger.info(
-                        "indicator_line_merge: table=%s page=%s merges_count=%d",
-                        "pymupdf_fallback_0",
-                        page_num,
-                        merges_count,
-                    )
             except:
                 pass
 
