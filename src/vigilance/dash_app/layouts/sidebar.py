@@ -5,6 +5,7 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from app.i18n import t
 from app.ui_config import AVAILABLE_BANKS
 
 
@@ -219,6 +220,18 @@ def build_sidebar() -> dbc.Col:
                                     }
                                 ],
                                 value=["classify"],
+                                switch=True,
+                                className="small mb-1",
+                            ),
+                            dbc.Checklist(
+                                id="option-force-reextract",
+                                options=[
+                                    {
+                                        "label": t("option_force_reextract"),
+                                        "value": "reextract",
+                                    }
+                                ],
+                                value=[],
                                 switch=True,
                                 className="small mb-1",
                             ),

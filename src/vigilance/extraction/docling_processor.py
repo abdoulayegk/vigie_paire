@@ -19,7 +19,7 @@ import os
 import re
 import sys
 
-# ThreadPoolExecutor removed: vision fallback batch no longer used (Steps 2+3 refactor)
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -71,12 +71,12 @@ def _env_bool(*names: str) -> bool | None:
     return None
 
 
-def _resolve_vision_primary_mode(bank_code: str, explicit: bool | None) -> bool:
-    """Resolution order: explicit arg > legacy env > bank config."""
+def _resolve_vision_extraction_enabled(bank_code: str, explicit: bool | None) -> bool:
+    """Resolution order: explicit arg > env > bank config."""
     if explicit is not None:
         return bool(explicit)
 
-    env_choice = _env_bool("VIGILANCE_VISION_PRIMARY")
+    env_choice = _env_bool("VIGILANCE_VISION_EXTRACTION_ENABLED")
     if env_choice is not None:
         return env_choice
 
@@ -117,6 +117,9 @@ except ImportError:
     CHUNK_SIZE_PAGES = 15
     DPI = 300
     DPI_FAST = 150
+
+# Nombre de workers pour parallelliser les appels Vision (1 = sequentiel)
+VISION_EXTRACTION_MAX_WORKERS = 4
 
 # Import du gestionnaire de cache
 try:
@@ -179,6 +182,9 @@ class ExtractedTable:
     context_after: str = ""  # 1-2 lignes en-dessous
     bbox: list[float] | None = None  # [l, t, r, b] normalisées 0–1 depuis Docling prov
     first_column_indicators_raw: list[str] | None = None  # Brut avant normalisation
+    first_column_indicators_spatial: list[dict[str, Any]] | None = (
+        None  # Liste d'objets avec texte brut et bbox: [{"text": str, "bbox": [l, t, r, b]}]
+    )
     first_column_groups: list[str] | None = None
     hierarchical_indicator_signature: list[str] | None = None
     title_reliability: str | None = None
@@ -370,7 +376,7 @@ class DoclingProcessor:
         page_ranges: list[tuple[int, int]] | None = None,
         section: str | None = None,
         labels_only: bool = False,
-        use_vision_primary: bool | None = None,
+        use_vision_extraction: bool | None = None,
     ) -> ExtractedDocument:
         """
         Extraire tout le contenu d'un document PDF.
@@ -391,13 +397,15 @@ class DoclingProcessor:
             page_ranges: Liste optionnelle de tuples (start_page, end_page) pour extraction ciblee
                          Si None, extrait tout le document
             section: Nom de la section pour le cache (optionnel)
-            use_vision_primary: Si True, Vision comme source contenu pour tous les tableaux.
+            use_vision_extraction: Si True, Vision (GPT-4o) comme source contenu pour tous les tableaux.
                 Si None, lu depuis config vision_extraction.enabled.
 
         Returns:
             ExtractedDocument avec tout le contenu extrait
         """
-        use_vision_primary = _resolve_vision_primary_mode(bank_code, use_vision_primary)
+        use_vision_extraction = _resolve_vision_extraction_enabled(
+            bank_code, use_vision_extraction
+        )
 
         pdf_path = Path(pdf_path)
         if not pdf_path.exists():
@@ -462,7 +470,7 @@ class DoclingProcessor:
                 year,
                 total_pages,
                 labels_only=labels_only,
-                use_vision_primary=use_vision_primary,
+                use_vision_extraction=use_vision_extraction,
             )
         elif self._converter is not None:
             result = self._extract_with_docling(
@@ -472,7 +480,7 @@ class DoclingProcessor:
                 year,
                 page_ranges,
                 labels_only=labels_only,
-                use_vision_primary=use_vision_primary,
+                use_vision_extraction=use_vision_extraction,
             )
         else:
             result = self._docling_unavailable_document(
@@ -552,7 +560,7 @@ class DoclingProcessor:
         total_pages: int,
         *,
         labels_only: bool = False,
-        use_vision_primary: bool = False,
+        use_vision_extraction: bool = False,
     ) -> ExtractedDocument:
         """
         Extraction par chunks pour gros documents.
@@ -592,7 +600,7 @@ class DoclingProcessor:
                     year,
                     page_ranges,
                     labels_only=labels_only,
-                    use_vision_primary=use_vision_primary,
+                    use_vision_extraction=use_vision_extraction,
                 )
             else:
                 chunk_result = self._docling_unavailable_document(
@@ -803,6 +811,181 @@ class DoclingProcessor:
         )
         return (range_start, range_end)
 
+    def _vision_extract_one_table(
+        self,
+        item: tuple[int, int, list[float] | None, str, str | None],
+        shared: dict[str, Any],
+    ) -> tuple[int, ExtractedTable, int]:
+        """Extrait un tableau via Vision (crop + API). Retourne (idx, ExtractedTable, page_num)."""
+        idx, page_num, table_bbox, table_id, reference_text = item
+        pdf_path = shared["pdf_path"]
+        bank_code = shared["bank_code"]
+        quarter = shared["quarter"]
+        year = shared["year"]
+        pdf_sha = shared["pdf_sha"]
+        vision_extraction_cfg = shared["vision_extraction_cfg"]
+        bottom_extension_footnotes = shared["bottom_extension_footnotes"]
+        vision_extractor = shared["vision_extractor"]
+        schema_failure_flag = shared["schema_failure_flag"]
+        vision_schema_error_cls = shared["vision_schema_error_cls"]
+        schema_failure_policy = shared["schema_failure_policy"]
+        labels_only = shared["labels_only"]
+
+        vision_status_str = "failed"
+        warnings_list: list[str] = []
+        title = ""
+        table_number: str | None = None
+        title_clean: str | None = None
+        title_raw: str | None = None
+        out_headers: list[str] = []
+        out_rows: list[list[str]] = []
+        indicators_raw_text: list[str] = []
+        indicators: list[str] = []
+        indicators_spatial_raw: list[Any] = []
+        footnotes: list[dict] = []
+        vision_confidence = 0.0
+        vision_extraction_attempted = False
+        vision_schema_contract_failed = False
+        vision_extraction_disabled_reason: str | None = None
+
+        if vision_extractor and table_bbox and len(table_bbox) == 4:
+            vision_extraction_attempted = True
+            try:
+                from ..utils.pdf_crop import crop_table_region_to_bytes
+
+                _TOP_EXTENSION = 0.03
+                if schema_failure_flag[0]:
+                    vision_extraction_attempted = False
+                    warnings_list = [
+                        "Vision disabled after schema contract failure"
+                    ]
+                    vision_extraction_disabled_reason = shared.get(
+                        "vision_extraction_disabled_reason"
+                    )
+                else:
+
+                    def _recrop(ext: float) -> bytes:
+                        return crop_table_region_to_bytes(
+                            str(pdf_path),
+                            page_num,
+                            table_bbox,
+                            bottom_extension=ext,
+                            top_extension=_TOP_EXTENSION,
+                            dpi=300,
+                        )
+
+                    crop_bytes = _recrop(bottom_extension_footnotes)
+                    if not crop_bytes:
+                        raise ValueError("crop returned empty bytes")
+
+                    vision_result = vision_extractor.extract_with_quality_pass(
+                        crop_bytes=crop_bytes,
+                        bank_code=bank_code,
+                        pdf_sha=pdf_sha,
+                        page_number=page_num,
+                        bbox_norm=table_bbox,
+                        vision_cfg=vision_extraction_cfg,
+                        initial_bottom_extension=bottom_extension_footnotes,
+                        get_recrop_fn=_recrop,
+                        reference_text=reference_text,
+                    )
+                    if vision_result is not None:
+                        title = vision_result.table_title or ""
+                        table_number, title_clean = self._extract_table_number(
+                            title or None
+                        )
+                        title_raw = title or None
+                        out_headers = (
+                            [] if labels_only else (vision_result.headers or [])
+                        )
+                        out_rows = [] if labels_only else (vision_result.rows or [])
+                        indicators_spatial_raw = list(
+                            vision_result.indicators or []
+                        )
+                        indicators_raw_text = [
+                            item.get("text", "")
+                            if isinstance(item, dict)
+                            else str(item)
+                            for item in indicators_spatial_raw
+                        ]
+                        indicators = [
+                            normalize_indicator_for_comparison(text)
+                            for text in indicators_raw_text
+                        ]
+                        footnotes = (
+                            [] if labels_only else vision_result.to_footnotes_list()
+                        )
+                        vision_confidence = vision_result.confidence
+                        vision_status_str = vision_result.vision_status or "ok"
+                        warnings_list = list(vision_result.warnings or [])
+                    else:
+                        vision_status_str = "failed"
+                        warnings_list = ["VisionFullExtractor returned None"]
+            except BaseException as e:
+                if type(e) is vision_schema_error_cls:
+                    reason = f"Vision schema contract invalid: {e}"
+                    if schema_failure_policy == "degrade_to_docling":
+                        schema_failure_flag[0] = True
+                        shared["vision_extraction_disabled_reason"] = reason
+                        vision_status_str = "failed"
+                        warnings_list = [reason[:300]]
+                        vision_schema_contract_failed = True
+                        vision_extraction_disabled_reason = reason
+                    else:
+                        raise RuntimeError(reason) from e
+                else:
+                    vision_status_str = "failed"
+                    warnings_list = [str(e)[:300]]
+        else:
+            if not vision_extractor:
+                warnings_list = [
+                    "no vision extractor (API key missing or init failed)"
+                ]
+            elif not table_bbox:
+                warnings_list = ["no bbox from Docling"]
+            else:
+                warnings_list = ["bbox invalid"]
+
+        debug_metrics: dict[str, Any] = {
+            "vision_status": vision_status_str,
+            "vision_extraction_attempted": vision_extraction_attempted,
+            "vision_extraction_applied": vision_status_str == "ok",
+            "vision_extraction_confidence": vision_confidence,
+            "vision_schema_contract_failed": vision_schema_contract_failed,
+            "warnings": warnings_list,
+        }
+        if vision_extraction_disabled_reason:
+            debug_metrics["vision_extraction_disabled_reason"] = (
+                vision_extraction_disabled_reason
+            )
+
+        extracted_table = ExtractedTable(
+            table_id=table_id,
+            page_number=page_num,
+            title=title or None,
+            headers=out_headers,
+            rows=out_rows,
+            first_column_indicators=indicators,
+            first_column_indicators_raw=indicators_raw_text,
+            first_column_indicators_spatial=indicators_spatial_raw if indicators_spatial_raw else None,
+            footnotes=footnotes,
+            bbox=table_bbox,
+            table_number=table_number,
+            title_clean=title_clean,
+            title_raw=title_raw,
+            title_reliability=classify_rbc_title_reliability(
+                title_clean or title or title_raw,
+                bank_code=bank_code,
+            ),
+            extraction_method=(
+                "vision_full_gpt4o"
+                if vision_status_str == "ok"
+                else "vision_failed"
+            ),
+            debug_metrics=debug_metrics,
+        )
+        return (idx, extracted_table, page_num)
+
     def _extract_with_docling(
         self,
         pdf_path: Path,
@@ -812,7 +995,7 @@ class DoclingProcessor:
         page_ranges: list[tuple[int, int]] | None = None,
         *,
         labels_only: bool = False,
-        use_vision_primary: bool = False,
+        use_vision_extraction: bool = False,
     ) -> ExtractedDocument:
         """Extraire en utilisant la bibliotheque Docling avec pipeline de prétraitement."""
         try:
@@ -834,18 +1017,17 @@ class DoclingProcessor:
                 except Exception:
                     return {}
 
-            # Vision primary: GPT-4o comme source contenu (indicateurs + footnotes) pour TOUS les tableaux
-            vision_primary = use_vision_primary
+            # Vision extraction: GPT-4o as content source (indicators + footnotes) for all tables
             vision_extraction_cfg: dict = {}
             bottom_extension_footnotes = 0.0
             # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
             schema_failure_policy = "fail_fast"
             vision_extractor = None
             pdf_sha = ""
-            vision_primary_disabled_reason: str | None = None
+            vision_extraction_disabled_reason: str | None = None
             vision_schema_contract_failed = False
             vision_schema_error_cls: type[Exception] = Exception
-            if vision_primary:
+            if use_vision_extraction:
                 try:
                     vision_extraction_cfg = _get_vision_extraction_config(bank_code)
                     bottom_extension_footnotes = float(
@@ -881,28 +1063,21 @@ class DoclingProcessor:
                         )
                     else:
                         logger.warning(
-                            "Vision primary: OPENAI_API_KEY absente, desactivation"
+                            "Vision extraction: OPENAI_API_KEY absente, desactivation"
                         )
-                        vision_primary = False
+                        use_vision_extraction = False
                     vision_schema_error_cls = VisionSchemaContractError
                 except Exception as e:
-                    logger.warning("Vision primary init failed: %s", e)
-                    vision_primary = False
+                    logger.warning("Vision extraction init failed: %s", e)
+                    use_vision_extraction = False
 
             # ---------------------------------------------------------------------------
             # Steps 2+3: Docling = structure only. Vision = single content source.
             # ---------------------------------------------------------------------------
-            # Docling provides: page_num, table_bbox, table_id — nothing else.
-            # Vision provides: title, headers, rows, indicators, footnotes.
-            # On Vision failure: content fields are empty; no Docling backfill (Rule 5).
-            # ---------------------------------------------------------------------------
-            all_tables = []
-            tables_by_page: dict[int, int] = {}
-
+            # Construire la liste des tableaux a traiter (dans les plages de pages).
+            vision_items: list[tuple[int, int, list[float] | None, str, str | None]] = []
             for idx, table in enumerate(doc.tables):
                 page_num = table.prov[0].page_no if table.prov else 0
-
-                # --- Docling structure only: bbox extraction ---
                 table_bbox: list[float] | None = None
                 try:
                     if (
@@ -924,196 +1099,79 @@ class DoclingProcessor:
                             table_bbox = list(raw_bbox.as_tuple())
                 except Exception:
                     table_bbox = None
-
-                # Ne traiter que les tableaux dont la page est dans les plages selectionnees (SectionLocator / UI).
                 if not self._is_page_in_ranges(page_num, effective_page_ranges):
                     continue
-
-                tables_by_page[page_num] = tables_by_page.get(page_num, 0) + 1
-
                 table_id = f"tableau_{idx}"
+                reference_text: str | None = None
+                try:
+                    if hasattr(table, "text") and table.text:
+                        _ref_raw = str(table.text).strip()
+                        if len(_ref_raw) > 20:
+                            reference_text = _ref_raw[:4000]
+                except Exception:
+                    pass
+                vision_items.append((idx, page_num, table_bbox, table_id, reference_text))
 
-                # --- Vision extraction: single content source ---
-                # All content fields come from Vision. No Docling content extraction.
-                vision_status_str = "failed"
-                warnings_list: list[str] = []
-                title: str = ""
-                table_number: str | None = None
-                title_clean: str | None = None
-                title_raw: str | None = None
-                out_headers: list[str] = []
-                out_rows: list[list[str]] = []
-                indicators_raw: list[str] = []
-                indicators: list[str] = []
-                footnotes: list[dict] = []
-                vision_confidence = 0.0
-                vision_primary_attempted = False
-
-                if vision_extractor and table_bbox and len(table_bbox) == 4:
-                    vision_primary_attempted = True
-                    try:
-                        from ..utils.pdf_crop import (
-                            render_page_with_bbox_highlight_to_bytes,
-                        )
-
-                        def _recrop(ext: float) -> bytes:
-                            return render_page_with_bbox_highlight_to_bytes(
-                                str(pdf_path),
-                                page_num,
-                                table_bbox,
-                                bottom_extension=ext,
-                                dpi=300,
-                            )
-
-                        crop_bytes = _recrop(bottom_extension_footnotes)
-                        if not crop_bytes:
-                            raise ValueError("crop returned empty bytes")
-
-                        vision_result = vision_extractor.extract_with_quality_pass(
-                            crop_bytes=crop_bytes,
-                            bank_code=bank_code,
-                            pdf_sha=pdf_sha,
-                            page_number=page_num,
-                            bbox_norm=table_bbox,
-                            vision_cfg=vision_extraction_cfg,
-                            initial_bottom_extension=bottom_extension_footnotes,
-                            get_recrop_fn=_recrop,
-                        )
-                        if vision_result is not None:
-                            title = vision_result.table_title or ""
-                            table_number, title_clean = self._extract_table_number(
-                                title or None
-                            )
-                            title_raw = title or None
-                            out_headers = (
-                                [] if labels_only else (vision_result.headers or [])
-                            )
-                            out_rows = [] if labels_only else (vision_result.rows or [])
-                            indicators_raw = list(vision_result.indicators or [])
-                            indicators = [
-                                normalize_indicator_for_comparison(x)
-                                for x in indicators_raw
-                            ]
-                            # footnotes: ordered list, visual order — no sort (Rule 3)
-                            footnotes = (
-                                [] if labels_only else vision_result.to_footnotes_list()
-                            )
-                            vision_confidence = vision_result.confidence
-                            vision_status_str = vision_result.vision_status or "ok"
-                            warnings_list = list(vision_result.warnings or [])
-                        else:
-                            vision_status_str = "failed"
-                            warnings_list = ["VisionFullExtractor returned None"]
-                            logger.warning(
-                                "Vision returned None for table %s page %s",
-                                table_id,
-                                page_num,
-                            )
-                    except vision_schema_error_cls as e:
-                        vision_schema_contract_failed = True
-                        reason = f"Vision schema contract invalid: {e}"
-                        vision_status_str = "failed"
-                        warnings_list = [reason[:300]]
-                        if schema_failure_policy == "degrade_to_docling":
-                            vision_primary_disabled_reason = reason
-                            vision_extractor = None  # disable for remaining tables
-                            logger.error(
-                                "Vision desactive pour le reste du run (schema contract): %s",
-                                e,
-                            )
-                        else:
-                            raise RuntimeError(reason) from e
-                    except Exception as e:
-                        vision_status_str = "failed"
-                        warnings_list = [str(e)[:300]]
-                        logger.warning(
-                            "Vision exception table %s page %s: %s",
-                            table_id,
-                            page_num,
-                            e,
-                        )
-                else:
-                    vision_status_str = "failed"
-                    if not vision_extractor:
-                        warnings_list = [
-                            "no vision extractor (API key missing or init failed)"
-                        ]
-                    elif not table_bbox:
-                        warnings_list = ["no bbox from Docling"]
-                    else:
-                        warnings_list = ["bbox invalid"]
-                    logger.debug(
-                        "Vision skipped for table %s page %s: %s",
-                        table_id,
-                        page_num,
-                        warnings_list[0] if warnings_list else "unknown",
-                    )
-
-                debug_metrics = {
-                    "vision_status": vision_status_str,
-                    "vision_primary_attempted": vision_primary_attempted,
-                    "vision_primary_applied": vision_status_str == "ok",
-                    "vision_primary_confidence": vision_confidence,
-                    "vision_schema_contract_failed": vision_schema_contract_failed,
-                    "warnings": warnings_list,
+            all_tables = []
+            tables_by_page: dict[int, int] = {}
+            if vision_items:
+                schema_failure_flag: list[bool] = [False]
+                shared: dict[str, Any] = {
+                    "pdf_path": pdf_path,
+                    "bank_code": bank_code,
+                    "quarter": quarter,
+                    "year": year,
+                    "pdf_sha": pdf_sha,
+                    "vision_extraction_cfg": vision_extraction_cfg,
+                    "bottom_extension_footnotes": bottom_extension_footnotes,
+                    "vision_extractor": vision_extractor,
+                    "schema_failure_flag": schema_failure_flag,
+                    "vision_schema_error_cls": vision_schema_error_cls,
+                    "schema_failure_policy": schema_failure_policy,
+                    "labels_only": labels_only,
                 }
-                if vision_primary_disabled_reason:
-                    debug_metrics["vision_primary_disabled_reason"] = (
-                        vision_primary_disabled_reason
-                    )
-
-                # debug crop dump (kept for observability)
-                if (
-                    os.environ.get("ENABLE_TABLE_CROP_DUMP") == "1"
-                    and table_bbox
-                    and len(table_bbox) == 4
-                ):
-                    try:
-                        from ..utils.pdf_crop import crop_table_image
-
-                        crop_dir = (
-                            Path("outputs/debug_crops")
-                            / f"{bank_code}_{quarter}_{year}"
-                        )
-                        crop_path = crop_dir / f"{table_id}_p{page_num}.png"
-                        crop_table_image(
-                            str(pdf_path),
-                            page_num,
-                            table_bbox,
-                            str(crop_path),
-                            dpi=300,
-                            bottom_extension=bottom_extension_footnotes,
-                        )
-                    except Exception:
-                        pass
-
-                extracted_table = ExtractedTable(
-                    table_id=table_id,
-                    page_number=page_num,
-                    title=title or None,
-                    headers=out_headers,
-                    rows=out_rows,
-                    first_column_indicators=indicators,
-                    first_column_indicators_raw=indicators_raw,
-                    footnotes=footnotes,
-                    bbox=table_bbox,
-                    table_number=table_number,
-                    title_clean=title_clean,
-                    title_raw=title_raw,
-                    title_reliability=classify_rbc_title_reliability(
-                        title_clean or title or title_raw,
-                        bank_code=bank_code,
-                    ),
-                    extraction_method=(
-                        "vision_full_gpt4o"
-                        if vision_status_str == "ok"
-                        else "vision_failed"
-                    ),
-                    debug_metrics=debug_metrics,
+                max_workers = min(
+                    VISION_EXTRACTION_MAX_WORKERS,
+                    len(vision_items),
                 )
-                all_tables.append(extracted_table)
+                if schema_failure_policy == "fail_fast":
+                    max_workers = 1
+                if max_workers <= 1:
+                    for item in vision_items:
+                        _idx, extracted_table, pnum = self._vision_extract_one_table(
+                            item, shared
+                        )
+                        all_tables.append(extracted_table)
+                        tables_by_page[pnum] = tables_by_page.get(pnum, 0) + 1
+                else:
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        futures = [
+                            executor.submit(
+                                self._vision_extract_one_table,
+                                item,
+                                shared,
+                            )
+                            for item in vision_items
+                        ]
+                        results: list[tuple[int, ExtractedTable, int]] = []
+                        for fut in futures:
+                            try:
+                                results.append(fut.result())
+                            except Exception as exc:
+                                if type(exc) is vision_schema_error_cls:
+                                    raise
+                                raise
+                        results.sort(key=lambda x: x[0])
+                        for _idx, extracted_table, pnum in results:
+                            all_tables.append(extracted_table)
+                            tables_by_page[pnum] = tables_by_page.get(pnum, 0) + 1
+                    if max_workers > 1:
+                        logger.info(
+                            "Vision extraction parallele: %d tableaux, %d workers",
+                            len(vision_items),
+                            max_workers,
+                        )
 
-            # Log par page pour analyse de completude
             if tables_by_page:
                 counts_str = ", ".join(
                     f"p{k}:{v}" for k, v in sorted(tables_by_page.items())
@@ -1226,7 +1284,9 @@ class DoclingProcessor:
         for table in tables:
             score = self._title_quality_score(table.title)
             needs_assist = score < weak_title_threshold
-            if bank_is_rbc and is_unreliable_rbc_title(table.title, bank_code=bank_code):
+            if bank_is_rbc and is_unreliable_rbc_title(
+                table.title, bank_code=bank_code
+            ):
                 needs_assist = True
             if needs_assist:
                 pages_needing_assist.setdefault(table.page_number, []).append(table)
@@ -1786,7 +1846,7 @@ def extract_pdf(
     use_ocr: bool = False,
     enhance_images: bool = True,
     page_ranges: list[tuple[int, int]] | None = None,
-    use_vision_primary: bool | None = None,
+    use_vision_extraction: bool | None = None,
 ) -> ExtractedDocument:
     """Extraire tout le contenu d'un PDF (Docling structure + Vision par tableau)."""
     processor = DoclingProcessor(
@@ -1799,7 +1859,7 @@ def extract_pdf(
         quarter,
         year,
         page_ranges=page_ranges,
-        use_vision_primary=use_vision_primary,
+        use_vision_extraction=use_vision_extraction,
     )
 
 
@@ -1810,7 +1870,7 @@ def extract_pdf_targeted(
     year: int,
     page_ranges: list[tuple[int, int]],
     use_ocr: bool = False,
-    use_vision_primary: bool | None = None,
+    use_vision_extraction: bool | None = None,
 ) -> ExtractedDocument:
     """Extraire des pages specifiques d'un PDF."""
     return extract_pdf(
@@ -1820,7 +1880,7 @@ def extract_pdf_targeted(
         year,
         use_ocr=use_ocr,
         page_ranges=page_ranges,
-        use_vision_primary=use_vision_primary,
+        use_vision_extraction=use_vision_extraction,
     )
 
 
@@ -1875,7 +1935,7 @@ def extract_tables_docling_by_sections(
     quarter: str,
     year: int,
     section_ranges: list[dict[str, Any]] | None = None,
-    use_vision_primary: bool | None = None,
+    use_vision_extraction: bool | None = None,
 ) -> list[ExtractedTable]:
     """Extract tables on selected section ranges and tag them with section names."""
     normalized_ranges: list[tuple[str, int, int]] = []
@@ -1898,7 +1958,7 @@ def extract_tables_docling_by_sections(
         quarter=quarter,
         year=year,
         page_ranges=page_ranges or None,
-        use_vision_primary=use_vision_primary,
+        use_vision_extraction=use_vision_extraction,
     )
 
     if not normalized_ranges:
@@ -1929,7 +1989,7 @@ def extract_tables_docling_priority(
     quarter: str,
     year: int,
     page_ranges: list[tuple[int, int]] | None = None,
-    use_vision_primary: bool | None = None,
+    use_vision_extraction: bool | None = None,
 ) -> list[ExtractedTable]:
     """Extraire uniquement les tableaux (Docling structure + Vision par tableau)."""
     doc = extract_pdf(
@@ -1938,7 +1998,7 @@ def extract_tables_docling_priority(
         quarter,
         year,
         page_ranges=page_ranges,
-        use_vision_primary=use_vision_primary,
+        use_vision_extraction=use_vision_extraction,
     )
     return doc.all_tables
 
@@ -1949,7 +2009,7 @@ def extract_tables_with_context(
     quarter: str,
     year: int,
     page_ranges: list[tuple[int, int]] | None = None,
-    use_vision_primary: bool | None = None,
+    use_vision_extraction: bool | None = None,
 ) -> list[ExtractedTable]:
     """Extraire les tableaux avec contexte enrichi."""
     return extract_tables_docling_priority(
@@ -1958,5 +2018,5 @@ def extract_tables_with_context(
         quarter,
         year,
         page_ranges=page_ranges,
-        use_vision_primary=use_vision_primary,
+        use_vision_extraction=use_vision_extraction,
     )

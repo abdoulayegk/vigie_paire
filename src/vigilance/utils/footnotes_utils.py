@@ -81,7 +81,7 @@ def normalize_footnotes_to_canonical(
     Handles:
     - None or empty -> []
     - list[str] (Docling legacy) -> [{"id": "1", "text": s}, ...] preserving order
-    - list[dict] (Vision primary) -> preserve id/marker and text; no repr strings
+    - list[dict] (Vision extraction) -> preserve id/marker and text; no repr strings
     - mixed types -> normalize each item safely
     """
     result: list[FootnoteItem] = []

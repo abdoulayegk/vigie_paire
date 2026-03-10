@@ -60,6 +60,8 @@ def normalize_review_queue(
             table_id_t1=raw.get("table_id_t1", ""),
             table_id_t2=raw.get("table_id_t2", ""),
             table_title=raw.get("table_name", "") or raw.get("table_title_raw", ""),
+            page_t1=raw.get("page_t1"),
+            page_t2=raw.get("page_t2"),
         )
 
         # Step 2: Get or create group
@@ -149,6 +151,37 @@ def normalize_review_queue(
                 if not _change_exists(table_item.changes, change_item):
                     table_item.changes.append(change_item)
                     change_counter += 1
+
+    # Table-level precedence:
+    # if a table has table_added/table_removed, review is table-only.
+    # Drop indicator/footnote changes to avoid duplicate/contradictory review units.
+    table_level_types = {
+        ChangeType.TABLE_ADDED.value,
+        ChangeType.TABLE_REMOVED.value,
+        "table_added",
+        "table_removed",
+    }
+    for table_key, table_item in groups.items():
+        table_level_changes = [
+            c for c in table_item.changes if c.change_type in table_level_types
+        ]
+        if not table_level_changes:
+            continue
+        selected_change = table_level_changes[0]
+        dropped_count = max(0, len(table_item.changes) - 1)
+        if len(table_level_changes) > 1:
+            logger.warning(
+                "[normalize_review_queue] multiple table-level changes for %s; keeping first=%s",
+                table_key,
+                selected_change.change_type,
+            )
+        if dropped_count > 0:
+            logger.info(
+                "[normalize_review_queue] table-level precedence %s dropped=%d",
+                table_key,
+                dropped_count,
+            )
+        table_item.changes = [selected_change]
 
     # Step 4: Filter out tables with 0 changes
     result = [t for t in groups.values() if len(t.changes) > 0]

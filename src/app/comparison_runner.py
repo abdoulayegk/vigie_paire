@@ -78,6 +78,7 @@ from vigilance.utils.indicator_cleaner import (
 from vigilance.utils.indicator_normalizer import (
     get_canonical_text,
     get_token_sorted_text,
+    strip_footnote_markers_from_indicator,
 )
 from vigilance.utils.matching_normalizer import _classify_excluded_line
 from vigilance.utils.rbc_table_signals import (
@@ -87,6 +88,7 @@ from vigilance.utils.rbc_table_signals import (
 )
 
 _MATCH_DECISIONS_LOG = LOGS_DIR / "match_decisions.jsonl"
+_INDICATOR_DIFF_DEBUG_LOG = LOGS_DIR / "indicator_diff_debug.jsonl"
 
 
 def _env_bool(name: str) -> bool | None:
@@ -101,17 +103,17 @@ def _env_bool(name: str) -> bool | None:
     return None
 
 
-def _resolve_vision_primary_mode(
+def _resolve_vision_extraction_enabled(
     bank_code: str,
     explicit: bool | None,
     *,
     allow_env_legacy: bool = True,
 ) -> bool:
-    """Resolution order: explicit > legacy env > bank config."""
+    """Resolution order: explicit > env > bank config."""
     if explicit is not None:
         return bool(explicit)
     if allow_env_legacy:
-        env_choice = _env_bool("VIGILANCE_VISION_PRIMARY")
+        env_choice = _env_bool("VIGILANCE_VISION_EXTRACTION_ENABLED")
         if env_choice is not None:
             return env_choice
     try:
@@ -298,18 +300,11 @@ def _table_to_artifact(
 
     footnotes_raw = getattr(table, "footnotes", None)
     canonical_footnotes = None
-    comparison_blockers: list[str] = []
-    if content_source != VISION_CONTENT_SOURCE:
-        comparison_blockers.append("non_vision_content_source")
-    if vision_raw_source is None and content_source == VISION_CONTENT_SOURCE:
-        comparison_blockers.append("missing_vision_indicators")
-    elif not vision_raw_indicators and content_source == VISION_CONTENT_SOURCE:
-        comparison_blockers.append("missing_vision_indicators")
+    # comparison_blockers are recomputed by TableArtifact.__post_init__
+    # from content_source, first_column_indicators_raw, and footnotes.
 
     if footnotes_raw is None:
         canonical_footnotes = None
-        if content_source == VISION_CONTENT_SOURCE:
-            comparison_blockers.append("footnotes_unavailable")
     else:
         canonical_footnotes = normalize_footnotes_to_canonical(footnotes_raw)
 
@@ -355,7 +350,6 @@ def _table_to_artifact(
         fragmentation_detected=fragmentation_detected,
         debug_metrics=debug_metrics,
         content_source=content_source,
-        comparison_blockers=comparison_blockers,
     )
 
 
@@ -367,7 +361,7 @@ def _extract_tables(
     year: int,
     section_ranges: list[dict[str, Any]],
     api_key: str | None,
-    use_vision_primary: bool | None = None,
+    use_vision_extraction: bool | None = None,
     use_stored_extraction_if_available: bool = True,
     extraction_base_dir: str | None = None,
 ) -> list[TableArtifact]:
@@ -427,9 +421,9 @@ def _extract_tables(
         except Exception as e:
             logger.debug("Could not load stored extraction: %s", e)
 
-    use_vision_primary = _resolve_vision_primary_mode(
+    use_vision_extraction = _resolve_vision_extraction_enabled(
         bank_code,
-        use_vision_primary,
+        use_vision_extraction,
         allow_env_legacy=True,
     )
     del api_key
@@ -440,7 +434,7 @@ def _extract_tables(
         quarter=quarter,
         year=year,
         section_ranges=section_ranges,
-        use_vision_primary=use_vision_primary,
+        use_vision_extraction=use_vision_extraction,
     )
 
     artifacts = [
@@ -480,7 +474,7 @@ def _extract_tables(
             tables=artifacts,
             meta={
                 "pdf_path": pdf_path,
-                "use_vision_primary": use_vision_primary,
+                "use_vision_extraction": use_vision_extraction,
                 "extraction_method": "vision_full_gpt4o",
                 "section_ranges": section_ranges,
                 "schema_version": 2,
@@ -595,22 +589,26 @@ def _compute_extraction_kpis(
     vision_applied = sum(
         1 for t in all_tables if (t.debug_metrics or {}).get("vision_fallback_applied")
     )
-    vision_primary_attempted = sum(
-        1 for t in all_tables if (t.debug_metrics or {}).get("vision_primary_attempted")
+    vision_extraction_attempted = sum(
+        1
+        for t in all_tables
+        if (t.debug_metrics or {}).get("vision_extraction_attempted")
     )
-    vision_primary_applied = sum(
-        1 for t in all_tables if (t.debug_metrics or {}).get("vision_primary_applied")
+    vision_extraction_applied = sum(
+        1
+        for t in all_tables
+        if (t.debug_metrics or {}).get("vision_extraction_applied")
     )
     vision_schema_contract_fail_count = sum(
         1
         for t in all_tables
         if (t.debug_metrics or {}).get("vision_schema_contract_failed")
     )
-    vision_primary_disabled_reason = ""
+    vision_extraction_disabled_reason = ""
     for t in all_tables:
-        reason = (t.debug_metrics or {}).get("vision_primary_disabled_reason")
+        reason = (t.debug_metrics or {}).get("vision_extraction_disabled_reason")
         if isinstance(reason, str) and reason.strip():
-            vision_primary_disabled_reason = reason.strip()
+            vision_extraction_disabled_reason = reason.strip()
             break
 
     disagree_count = 0
@@ -648,10 +646,10 @@ def _compute_extraction_kpis(
         "tables_total": len(all_tables),
         "vision_attempted_count": vision_attempted,
         "vision_applied_count": vision_applied,
-        "vision_primary_attempted_count": vision_primary_attempted,
-        "vision_primary_applied_count": vision_primary_applied,
+        "vision_extraction_attempted_count": vision_extraction_attempted,
+        "vision_extraction_applied_count": vision_extraction_applied,
         "vision_schema_contract_fail_count": vision_schema_contract_fail_count,
-        "vision_primary_disabled_reason": vision_primary_disabled_reason or None,
+        "vision_extraction_disabled_reason": vision_extraction_disabled_reason or None,
         "disagreement_count": disagree_count,
         "incertain_count": sum(
             1 for c in comparisons if c.get("table_status") == "incertain"
@@ -1262,7 +1260,7 @@ def _all_indicators_value_clean_ordered(table: TableArtifact) -> list[str]:
             continue
         if _classify_excluded_line(s):
             continue
-        cleaned = _strip_footnote_markers_from_indicator(s)
+        cleaned = strip_footnote_markers_from_indicator(s)
         key = _canonical_indicator_key(cleaned)
         if not key:
             continue
@@ -1272,39 +1270,55 @@ def _all_indicators_value_clean_ordered(table: TableArtifact) -> list[str]:
 
 def _build_clean_to_raw_indicator_lookup(table: TableArtifact) -> dict[str, str]:
     """Build stable mapping from canonical clean key to raw display indicator text."""
-    clean_values = get_comparison_indicators(table)
+    clean_values = list(getattr(table, "first_column_indicators", None) or [])
     raw_values = get_vision_raw_indicators(table)
     if not raw_values:
         raw_values = clean_values
 
     def _display_text(raw_text: str, fallback: str) -> str:
-        cleaned = _strip_footnote_markers_from_indicator(str(raw_text).strip())
+        cleaned = strip_footnote_markers_from_indicator(str(raw_text).strip())
         cleaned = re.sub(r"\s+", " ", cleaned).strip()
         if cleaned:
             return cleaned
         return str(fallback).strip()
+
+    raw_lookup: dict[str, str] = {}
+    for raw_item in raw_values:
+        raw_text = str(raw_item).strip()
+        if not raw_text:
+            continue
+        value_clean = strip_footnote_markers_from_indicator(raw_text)
+        key = _canonical_indicator_key(value_clean)
+        if key and key not in raw_lookup:
+            raw_lookup[key] = _display_text(raw_text, value_clean)
+
+    # When arrays drift in length, positional zip is unsafe; prefer raw-derived mapping.
+    if len(clean_values) != len(raw_values):
+        return raw_lookup
 
     lookup: dict[str, str] = {}
     for idx, clean_item in enumerate(clean_values):
         clean_text = str(clean_item).strip()
         if not clean_text:
             continue
-        value_clean = _strip_footnote_markers_from_indicator(clean_text)
+        value_clean = strip_footnote_markers_from_indicator(clean_text)
         key = _canonical_indicator_key(value_clean)
         if not key or key in lookup:
             continue
         raw_text = str(raw_values[idx]).strip() if idx < len(raw_values) else clean_text
-        lookup[key] = _display_text(raw_text, clean_text)
-
-    # Defensive fallback when clean/raw arrays drift.
-    for raw_item in raw_values:
-        raw_text = str(raw_item).strip()
-        if not raw_text:
+        raw_key = _canonical_indicator_key(
+            strip_footnote_markers_from_indicator(raw_text)
+        )
+        if raw_key == key:
+            lookup[key] = _display_text(raw_text, clean_text)
             continue
-        value_clean = _strip_footnote_markers_from_indicator(raw_text)
-        key = _canonical_indicator_key(value_clean)
-        if key and key not in lookup:
-            lookup[key] = _display_text(raw_text, value_clean)
+        if key in raw_lookup:
+            lookup[key] = raw_lookup[key]
+            continue
+        lookup[key] = _display_text(clean_text, clean_text)
+
+    for key, value in raw_lookup.items():
+        lookup.setdefault(key, value)
     return lookup
 
 
@@ -1317,42 +1331,10 @@ def _clean_values_to_raw_display(
         clean_text = str(value).strip()
         if not clean_text:
             continue
-        value_clean = _strip_footnote_markers_from_indicator(clean_text)
+        value_clean = strip_footnote_markers_from_indicator(clean_text)
         key = _canonical_indicator_key(value_clean)
         result.append(str(lookup.get(key) or clean_text))
     return result
-
-
-# Trailing footnote/reference patterns (do not remove semantic numbers: Tier 1, CET1, Bâle III, Pillar 3, IFRS 9)
-_INDICATOR_TRAILING_SUPER = re.compile(r"[¹²³⁴⁵⁶⁷⁸⁹⁰]+\s*$")
-_INDICATOR_TRAILING_STARS = re.compile(r"\s*[*\u2020\u2021\u00A7]+\s*$")  # * ** † ‡ §
-_INDICATOR_TRAILING_PAREN_NUM = re.compile(r"\s*[\(\[]\d+[\)\]]\s*$")
-_INDICATOR_TRAILING_NOTE_NUM = re.compile(r"\s+Note\s+\d+\s*\.?\s*$", re.IGNORECASE)
-_INDICATOR_TRAILING_COMMA_NUMS = re.compile(r"\s*,\s*\d+(?:\s*,\s*\d+)*\s*$")
-_INDICATOR_TRAILING_SPACE_NUMS_COMMA = re.compile(r"\s+\d+(?:\s*,\s*\d+)+\s*$")
-_INDICATOR_TRAILING_NOTE_CLUSTER = re.compile(
-    r"(?:\s*,?\s*(?:[\(\[]\d+[\)\]]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+|[*\u2020\u2021\u00A7]+))+[\s,;:.]*$"
-)
-
-
-def _strip_footnote_markers_from_indicator(text: str) -> str:
-    """Remove trailing footnote markers and refs from indicator label. Preserves semantic numbers (Tier 1, CET1, etc.)."""
-    if not text:
-        return ""
-    value = (text or "").strip()
-    while True:
-        prev = value
-        value = _INDICATOR_TRAILING_NOTE_CLUSTER.sub("", value)
-        value = _INDICATOR_TRAILING_SUPER.sub("", value)
-        value = _INDICATOR_TRAILING_STARS.sub("", value)
-        value = _INDICATOR_TRAILING_PAREN_NUM.sub("", value)
-        value = _INDICATOR_TRAILING_NOTE_NUM.sub("", value)
-        value = _INDICATOR_TRAILING_COMMA_NUMS.sub("", value)
-        value = _INDICATOR_TRAILING_SPACE_NUMS_COMMA.sub("", value)
-        value = re.sub(r"\s+", " ", value).strip()
-        if value == prev:
-            break
-    return value
 
 
 def _structural_header_keys_from_rows(table: TableArtifact) -> set[str]:
@@ -1367,11 +1349,158 @@ def _structural_header_keys_from_rows(table: TableArtifact) -> set[str]:
         other_cells = [str(cell).strip() for cell in row[1:]]
         if any(cell for cell in other_cells):
             continue
-        cleaned = _strip_footnote_markers_from_indicator(label)
+        cleaned = strip_footnote_markers_from_indicator(label)
         key = _canonical_indicator_key(cleaned)
         if key:
             result.add(key)
     return result
+
+
+_DONT_STRUCTURAL_RE = re.compile(r"\bdont\b\s*:?\s*$", re.IGNORECASE)
+_ROLLFORWARD_HEADER_CHILD_PREFIXES = (
+    "solde debut",
+    "nouvelle emission d instrument admissible a titre de fonds propre",
+    "rachat de fonds propre",
+    "autre y compri",
+    "solde a la fin",
+)
+
+
+def _normalize_value_cells_for_structure(row: list[Any] | tuple[Any, ...]) -> list[str]:
+    values: list[str] = []
+    for cell in list(row)[1:]:
+        text = re.sub(r"\s+", " ", str(cell or "").strip())
+        if text:
+            values.append(text)
+    return values
+
+
+def _structural_rollforward_header_keys_from_rows(table: TableArtifact) -> set[str]:
+    """Return subgroup headers that introduce a rollforward block.
+
+    These labels are section/group headers even when OCR leaks a numeric value into the
+    same row (for example "Autres elements de fonds propres de categorie 1").
+    """
+    rows = [
+        row
+        for row in (getattr(table, "rows", None) or [])
+        if isinstance(row, (list, tuple)) and row
+    ]
+    result: set[str] = set()
+    for idx in range(len(rows) - 2):
+        current = list(rows[idx])
+        label = str(current[0] if current else "").strip()
+        if not label or _classify_excluded_line(label):
+            continue
+        current_key = _canonical_indicator_key(
+            strip_footnote_markers_from_indicator(label)
+        )
+        if not current_key or current_key.startswith("solde "):
+            continue
+
+        next_keys: list[str] = []
+        for lookahead in rows[idx + 1 : idx + 6]:
+            next_label = str(list(lookahead)[0] if lookahead else "").strip()
+            if not next_label or _classify_excluded_line(next_label):
+                continue
+            next_key = _canonical_indicator_key(
+                strip_footnote_markers_from_indicator(next_label)
+            )
+            if next_key:
+                next_keys.append(next_key)
+        if not next_keys or not next_keys[0].startswith("solde debut"):
+            continue
+        child_signal_count = sum(
+            1
+            for next_key in next_keys[:4]
+            if any(
+                next_key.startswith(prefix)
+                for prefix in _ROLLFORWARD_HEADER_CHILD_PREFIXES
+            )
+        )
+        if child_signal_count >= 3:
+            result.add(current_key)
+    return result
+
+
+def _structural_duplicate_value_keys_from_rows(table: TableArtifact) -> set[str]:
+    """Return ``dont:`` rows that duplicate the following child row values."""
+    rows = [
+        row
+        for row in (getattr(table, "rows", None) or [])
+        if isinstance(row, (list, tuple)) and row
+    ]
+    result: set[str] = set()
+    for idx in range(len(rows) - 1):
+        current = list(rows[idx])
+        nxt = list(rows[idx + 1])
+        label = str(current[0] if current else "").strip()
+        next_label = str(nxt[0] if nxt else "").strip()
+        if not label or not next_label:
+            continue
+        if _classify_excluded_line(label) or _classify_excluded_line(next_label):
+            continue
+        if not _DONT_STRUCTURAL_RE.search(label):
+            continue
+        current_values = _normalize_value_cells_for_structure(current)
+        next_values = _normalize_value_cells_for_structure(nxt)
+        if len(current_values) < 2 or current_values != next_values:
+            continue
+        key = _canonical_indicator_key(strip_footnote_markers_from_indicator(label))
+        if key:
+            result.add(key)
+    return result
+
+
+_PAGE_REF_HEADER_RE = re.compile(r"\bpages?\b", re.IGNORECASE)
+_LEADING_ORDINAL_RE = re.compile(r"^\s*\d{1,3}\s+\S")
+_PAGE_REF_ALLOWED_RE = re.compile(r"^(?:notes?\s+)?[\d,\s\-àaet]+$", re.IGNORECASE)
+
+
+def _looks_like_page_reference_cell(text: str) -> bool:
+    value = re.sub(r"\s+", " ", str(text or "").strip().lower())
+    if not value:
+        return False
+    value = re.sub(r"\(\d+\)\s*$", "", value).strip()
+    if not value or len(value) > 80:
+        return False
+    alpha_tokens = re.findall(r"[a-zà-ÿ]+", value, flags=re.IGNORECASE)
+    if any(token not in {"note", "notes", "et", "a", "à"} for token in alpha_tokens):
+        return False
+    return bool(_PAGE_REF_ALLOWED_RE.fullmatch(value))
+
+
+def _is_page_reference_table(table: TableArtifact) -> bool:
+    headers = [str(h or "").strip() for h in (getattr(table, "headers", None) or [])]
+    if not any(_PAGE_REF_HEADER_RE.search(header) for header in headers):
+        return False
+
+    rows = [
+        list(row)
+        for row in (getattr(table, "rows", None) or [])
+        if isinstance(row, (list, tuple)) and row
+    ]
+    if len(rows) < 10:
+        return False
+
+    ordinal_rows = 0
+    populated_value_cells = 0
+    page_ref_cells = 0
+    for row in rows:
+        label = str(row[0] if row else "").strip()
+        if label and _LEADING_ORDINAL_RE.match(label):
+            ordinal_rows += 1
+        for cell in row[1:]:
+            cell_text = str(cell or "").strip()
+            if not cell_text:
+                continue
+            populated_value_cells += 1
+            if _looks_like_page_reference_cell(cell_text):
+                page_ref_cells += 1
+
+    if ordinal_rows < 8 or populated_value_cells == 0:
+        return False
+    return (page_ref_cells / populated_value_cells) >= 0.6
 
 
 def _ordered_indicator_keys(
@@ -1387,7 +1516,7 @@ def _ordered_indicator_keys(
         kind = _classify_excluded_line(value)
         if kind:
             continue
-        cleaned = _strip_footnote_markers_from_indicator(value)
+        cleaned = strip_footnote_markers_from_indicator(value)
         key = _canonical_indicator_key(cleaned)
         if not key or key in seen or key in excluded:
             continue
@@ -1396,13 +1525,36 @@ def _ordered_indicator_keys(
     return result
 
 
+def _is_likely_extraction_split(
+    added_key: str,
+    prev_key: str,
+    next_key: str,
+) -> bool:
+    """True if added_key looks like a fragment of prev_key or next_key (extraction split).
+
+    When the added key has two or more tokens that appear in neither neighbor, treat it
+    as a genuine new line (e.g. "option de remplacement relative a l acquisition de cwb")
+    and do not filter it as neighbor-aligned noise.
+    """
+    atokens = set(added_key.split())
+    ptokens = set(prev_key.split())
+    ntokens = set(next_key.split())
+    tokens_in_neither = atokens - ptokens - ntokens
+    return len(tokens_in_neither) < 2
+
+
 def _filter_neighbor_aligned_candidates(
     candidate_keys: set[str],
     *,
     source_order: list[str],
     target_order: list[str],
 ) -> set[str]:
-    """Drop singleton additions/removals bounded by shared neighbors on the other side."""
+    """Drop singleton additions/removals bounded by shared neighbors on the other side.
+
+    Only filters when the candidate looks like an extraction split (tokens mostly
+    in prev/next). Semantically distinct additions (e.g. CWB-specific sub-lines)
+    are kept as ADDED.
+    """
     if not candidate_keys:
         return set()
     target_pos = {key: idx for idx, key in enumerate(target_order)}
@@ -1414,16 +1566,27 @@ def _filter_neighbor_aligned_candidates(
         while block_start > 0 and source_order[block_start - 1] in candidate_keys:
             block_start -= 1
         block_end = idx
-        while block_end + 1 < len(source_order) and source_order[block_end + 1] in candidate_keys:
+        while (
+            block_end + 1 < len(source_order)
+            and source_order[block_end + 1] in candidate_keys
+        ):
             block_end += 1
         if block_end > block_start:
             continue
         prev_key = next(
-            (source_order[j] for j in range(idx - 1, -1, -1) if source_order[j] not in candidate_keys),
+            (
+                source_order[j]
+                for j in range(idx - 1, -1, -1)
+                if source_order[j] not in candidate_keys
+            ),
             None,
         )
         next_key = next(
-            (source_order[j] for j in range(idx + 1, len(source_order)) if source_order[j] not in candidate_keys),
+            (
+                source_order[j]
+                for j in range(idx + 1, len(source_order))
+                if source_order[j] not in candidate_keys
+            ),
             None,
         )
         if (
@@ -1432,6 +1595,7 @@ def _filter_neighbor_aligned_candidates(
             and prev_key in target_pos
             and next_key in target_pos
             and target_pos[prev_key] < target_pos[next_key]
+            and _is_likely_extraction_split(key, prev_key, next_key)
         ):
             filtered.add(key)
     return filtered
@@ -1509,6 +1673,53 @@ _INDICATOR_MIN_TOKENS = 6
 _INDICATOR_MIN_ALPHA_RATIO = 0.40
 
 
+# Tokens that often appear in unit/qualifier suffixes; subset-only diff with these is reformulation, not parent/child
+_PARENT_CHILD_UNIT_QUALIFIER_TOKENS = frozenset(
+    {
+        "en",
+        "de",
+        "des",
+        "du",
+        "million",
+        "millions",
+        "milliard",
+        "milliers",
+        "dollars",
+        "canadiens",
+        "cad",
+        "usd",
+        # Structural prefixes: "Total des X" vs "X" is a reformulation, not parent/child
+        "total",
+        "sous",
+        "net",
+        "brut",
+        "montant",
+    }
+)
+
+
+def _is_parent_child_pair(removed_label: str, added_label: str, norm_fn: Any) -> bool:
+    """True if one label is strict token-subset of the other (parent-child, not a rename)."""
+    a = norm_fn(removed_label)
+    b = norm_fn(added_label)
+    if not a or not b:
+        return False
+    ta, tb = set(a.split()), set(b.split())
+    if len(ta) <= 1 or len(tb) <= 1:
+        return False
+    if ta < tb:
+        extra = tb - ta
+        if extra <= _PARENT_CHILD_UNIT_QUALIFIER_TOKENS:
+            return False
+        return True
+    if tb < ta:
+        extra = ta - tb
+        if extra <= _PARENT_CHILD_UNIT_QUALIFIER_TOKENS:
+            return False
+        return True
+    return False
+
+
 def _hungarian_pair_added_removed(
     removed_items: list[str],
     added_items: list[str],
@@ -1557,7 +1768,7 @@ def _hungarian_pair_added_removed(
     min_score_pct = int(min_score * 100)
 
     def _norm_for_sort(s: str) -> str:
-        return _canonical_indicator_key(_strip_footnote_markers_from_indicator(s))
+        return _canonical_indicator_key(strip_footnote_markers_from_indicator(s))
 
     removed = sorted(removed_items, key=_norm_for_sort)
     added = sorted(added_items, key=_norm_for_sort)
@@ -1635,7 +1846,7 @@ def _hungarian_pair_added_removed(
     embed_weight = float(th.get("embedding_weight_indicator", 0.35)) if use_emb else 0.0
 
     def _norm_for_embed(s: str) -> str:
-        c = _canonical_indicator_key(_strip_footnote_markers_from_indicator(s))
+        c = _canonical_indicator_key(strip_footnote_markers_from_indicator(s))
         return c if c else (s or " ").strip()[:200]
 
     embed_matrix_canon = None
@@ -1735,7 +1946,9 @@ def _hungarian_pair_added_removed(
             if i >= n_rem or j >= n_add:
                 continue
             sc = float(scores[i, j])
-            if sc >= min_score_pct:
+            if sc >= min_score_pct and not _is_parent_child_pair(
+                removed[i], added[j], _norm_for_sort
+            ):
                 renamed_pairs.append((removed[i], added[j]))
                 renamed_indices.append((i, j))
                 accepted_scores.append(sc)
@@ -1841,7 +2054,9 @@ def _hungarian_pair_added_removed(
                 if sc >= min_score_pct and sc > best_score:
                     best_score = sc
                     best_j = j
-            if best_j >= 0:
+            if best_j >= 0 and not _is_parent_child_pair(
+                r, added[best_j], _norm_for_sort
+            ):
                 renamed_pairs.append((r, added[best_j]))
                 _, _, lex_f = _lex_similarity_both_forms(added[best_j], r)
                 accepted_scores.append(lex_f)
@@ -1961,15 +2176,30 @@ def _detect_fusion_split(
 
 
 def _indicator_diff(
-    t1: TableArtifact, t2: TableArtifact
-) -> tuple[list[str], list[str], bool, dict[str, int]]:
+    t1: TableArtifact,
+    t2: TableArtifact,
+    *,
+    neighbor_aligned_filter_enabled: bool = True,
+    return_debug: bool = False,
+) -> tuple[list[str], list[str], bool, dict[str, int], dict[str, Any] | None]:
+    if _is_page_reference_table(t1) and _is_page_reference_table(t2):
+        return [], [], False, {"page_reference_table": 1}, None
+
     # Matching/diff use first_column_indicators (clean) only; UI display prefers raw.
     left = get_comparison_indicators(t1)
     right = get_comparison_indicators(t2)
     left_all_keys = set(_ordered_indicator_keys(left))
     right_all_keys = set(_ordered_indicator_keys(right))
-    left_structural_keys = _structural_header_keys_from_rows(t1) - right_all_keys
-    right_structural_keys = _structural_header_keys_from_rows(t2) - left_all_keys
+    left_structural_keys = (
+        _structural_header_keys_from_rows(t1)
+        | _structural_rollforward_header_keys_from_rows(t1)
+        | _structural_duplicate_value_keys_from_rows(t1)
+    ) - right_all_keys
+    right_structural_keys = (
+        _structural_header_keys_from_rows(t2)
+        | _structural_rollforward_header_keys_from_rows(t2)
+        | _structural_duplicate_value_keys_from_rows(t2)
+    ) - left_all_keys
 
     def _norm(
         values: list[str],
@@ -1983,7 +2213,7 @@ def _indicator_diff(
             if kind:
                 excluded[kind] = excluded.get(kind, 0) + 1
                 continue
-            value_clean = _strip_footnote_markers_from_indicator(value)
+            value_clean = strip_footnote_markers_from_indicator(value)
             key = _canonical_indicator_key(value_clean)
             if key in structural_keys:
                 excluded["structural"] = excluded.get("structural", 0) + 1
@@ -2001,33 +2231,225 @@ def _indicator_diff(
     added_keys = set(right_map.keys() - left_map.keys())
     removed_keys = set(left_map.keys() - right_map.keys())
 
-    left_order = _ordered_indicator_keys(left, excluded_keys=left_structural_keys)
-    right_order = _ordered_indicator_keys(right, excluded_keys=right_structural_keys)
-    filtered_added = _filter_neighbor_aligned_candidates(
-        added_keys,
-        source_order=right_order,
-        target_order=left_order,
-    )
-    filtered_removed = _filter_neighbor_aligned_candidates(
-        removed_keys,
-        source_order=left_order,
-        target_order=right_order,
-    )
-    if filtered_added:
-        excluded_counts["neighbor_aligned"] = excluded_counts.get("neighbor_aligned", 0) + len(filtered_added)
-        added_keys -= filtered_added
-    if filtered_removed:
-        excluded_counts["neighbor_aligned"] = excluded_counts.get("neighbor_aligned", 0) + len(filtered_removed)
-        removed_keys -= filtered_removed
+    # --- NOUVELLE PHASE : RÉSOLUTION NEAR-STABLE ---
+    # On recherche les clés qui ont raté le match exact d'un cheveu
+    resolved_removed = set()
+    resolved_added = set()
+
+    for r_key in list(removed_keys):
+        best_match = None
+        best_score = 0.0
+
+        for a_key in list(added_keys - resolved_added):
+            if rapidfuzz_fuzz is not None:
+                score = rapidfuzz_fuzz.ratio(r_key, a_key) / 100.0
+            else:
+                # Fallback to jaccard if rapidfuzz not available
+                lt = set(r_key.split())
+                rt = set(a_key.split())
+                score = len(lt & rt) / len(lt | rt) if (lt | rt) else 0.0
+
+            if score > best_score:
+                best_score = score
+                best_match = a_key
+
+        if best_score >= 0.95 and best_match:
+            resolved_removed.add(r_key)
+            resolved_added.add(best_match)
+
+    added_keys -= resolved_added
+    removed_keys -= resolved_removed
+
+    if len(resolved_added) > 0:
+        excluded_counts["near_stable"] = len(resolved_added)
 
     added = [right_map[key] for key in added_keys]
     removed = [left_map[key] for key in removed_keys]
     added.sort()
     removed.sort()
     added, removed, had_fusion_split = _detect_fusion_split(added, removed)
+    left_order = _ordered_indicator_keys(left, excluded_keys=left_structural_keys)
+    right_order = _ordered_indicator_keys(right, excluded_keys=right_structural_keys)
+    remaining_added_keys = {
+        key
+        for value in added
+        if (
+            key := _canonical_indicator_key(
+                strip_footnote_markers_from_indicator(value)
+            )
+        )
+    }
+    remaining_removed_keys = {
+        key
+        for value in removed
+        if (
+            key := _canonical_indicator_key(
+                strip_footnote_markers_from_indicator(value)
+            )
+        )
+    }
+    filtered_added: set[str] = set()
+    filtered_removed: set[str] = set()
+    if neighbor_aligned_filter_enabled:
+        filtered_added = _filter_neighbor_aligned_candidates(
+            remaining_added_keys,
+            source_order=right_order,
+            target_order=left_order,
+        )
+        filtered_removed = _filter_neighbor_aligned_candidates(
+            remaining_removed_keys,
+            source_order=left_order,
+            target_order=right_order,
+        )
+    if filtered_added:
+        excluded_counts["neighbor_aligned"] = excluded_counts.get(
+            "neighbor_aligned", 0
+        ) + len(filtered_added)
+        added = [
+            value
+            for value in added
+            if _canonical_indicator_key(strip_footnote_markers_from_indicator(value))
+            not in filtered_added
+        ]
+    if filtered_removed:
+        excluded_counts["neighbor_aligned"] = excluded_counts.get(
+            "neighbor_aligned", 0
+        ) + len(filtered_removed)
+        removed = [
+            value
+            for value in removed
+            if _canonical_indicator_key(strip_footnote_markers_from_indicator(value))
+            not in filtered_removed
+        ]
     added.sort()
     removed.sort()
-    return added, removed, had_fusion_split, excluded_counts
+    diff_debug_info: dict[str, Any] | None = None
+    if return_debug:
+        diff_debug_info = {
+            "left_map": left_map,
+            "right_map": right_map,
+        }
+    return added, removed, had_fusion_split, excluded_counts, diff_debug_info
+
+
+def _build_indicator_diff_debug(
+    table_t1: TableArtifact,
+    table_t2: TableArtifact,
+    left_map: dict[str, str],
+    right_map: dict[str, str],
+    added: list[str],
+    removed: list[str],
+    renamed_pairs: list[tuple[str, str]],
+    t1_clean_to_raw: dict[str, str],
+    t2_clean_to_raw: dict[str, str],
+    indicator_debug: dict[str, Any] | None,
+    th: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Build per-indicator decision log for debugging false positives.
+
+    Each entry has: side (t1|t2), raw, clean, canonical_key, status (stable|added|removed|renamed),
+    matched_to (for stable/renamed), score (if renamed), reason, threshold_used.
+    """
+    decisions: list[dict[str, Any]] = []
+    rename_pair_scores: dict[tuple[str, str], float] = {}
+    if indicator_debug:
+        rpd = indicator_debug.get("rename_pair_debug") or []
+        for (r, a), dbg in zip(
+            renamed_pairs,
+            rpd[: len(renamed_pairs)],
+        ):
+            try:
+                score = float(dbg.get("final_score", 0.0))
+                if score > 1.0:
+                    score = score / 100.0
+                rename_pair_scores[(r, a)] = max(0.0, min(1.0, score))
+            except (TypeError, ValueError):
+                pass
+
+    min_score = float(
+        th.get(
+            "indicator_rename_min_score",
+            _INDICATOR_DEFAULTS["indicator_rename_min_score"],
+        )
+    )
+
+    # T1 indicators
+    for key, value_clean in left_map.items():
+        raw = t1_clean_to_raw.get(key) or value_clean
+        if key in right_map:
+            status = "stable"
+            matched_to = right_map[key]
+            reason = "exact_canonical_match"
+            score = 100.0
+        else:
+            pair = next(((r, a) for (r, a) in renamed_pairs if r == value_clean), None)
+            if pair:
+                status = "renamed"
+                _, matched_to = pair
+                score = rename_pair_scores.get(pair)
+                reason = "fuzzy_rename"
+                if score is not None and score < min_score:
+                    reason = f"fuzzy_rename_below_threshold_{min_score}"
+            else:
+                status = "removed"
+                matched_to = None
+                score = None
+                reason = "no_match_after_rename_pairing"
+        decisions.append(
+            {
+                "side": "t1",
+                "raw": raw[:200] if raw else "",
+                "clean": value_clean[:200] if value_clean else "",
+                "canonical_key": key[:200] if key else "",
+                "status": status,
+                "matched_to": (matched_to[:200] if matched_to else None)
+                if matched_to
+                else None,
+                "score": round(score, 4) if score is not None else None,
+                "reason": reason,
+                "threshold_used": min_score if status == "renamed" else None,
+            }
+        )
+
+    # T2 indicators
+    for key, value_clean in right_map.items():
+        raw = t2_clean_to_raw.get(key) or value_clean
+        if key in left_map:
+            status = "stable"
+            matched_to = left_map[key]
+            reason = "exact_canonical_match"
+            score = 100.0
+        else:
+            pair = next(((r, a) for (r, a) in renamed_pairs if a == value_clean), None)
+            if pair:
+                status = "renamed"
+                matched_to, _ = pair
+                score = rename_pair_scores.get(pair)
+                reason = "fuzzy_rename"
+                if score is not None and score < min_score:
+                    reason = f"fuzzy_rename_below_threshold_{min_score}"
+            else:
+                status = "added"
+                matched_to = None
+                score = None
+                reason = "no_match_after_rename_pairing"
+        decisions.append(
+            {
+                "side": "t2",
+                "raw": raw[:200] if raw else "",
+                "clean": value_clean[:200] if value_clean else "",
+                "canonical_key": key[:200] if key else "",
+                "status": status,
+                "matched_to": (matched_to[:200] if matched_to else None)
+                if matched_to
+                else None,
+                "score": round(score, 4) if score is not None else None,
+                "reason": reason,
+                "threshold_used": min_score if status == "renamed" else None,
+            }
+        )
+
+    return decisions
 
 
 def _fuzzy_pair_added_removed(
@@ -2061,11 +2483,18 @@ def _fuzzy_pair_added_removed(
 
     candidates.sort(key=lambda x: x[2], reverse=True)
 
+    def _norm(s: str) -> str:
+        return _canonical_indicator_key(strip_footnote_markers_from_indicator(s))
+
     used_added: set[str] = set()
     used_removed: set[str] = set()
     renamed_pairs: list[tuple[str, str]] = []
     for a, r, _ in candidates:
-        if a not in used_added and r not in used_removed:
+        if (
+            a not in used_added
+            and r not in used_removed
+            and not _is_parent_child_pair(r, a, _norm)
+        ):
             renamed_pairs.append((r, a))
             used_added.add(a)
             used_removed.add(r)
@@ -2199,25 +2628,28 @@ def run_comparison_with_sections(
     use_genai: bool = False,
     api_key: str | None = None,
     generate_visual_proofs: bool = False,
-    use_vision_primary: bool | None = None,
-    use_vision_primary_override: bool | None = None,
+    use_vision_extraction: bool | None = None,
+    use_vision_extraction_override: bool | None = None,
     include_footnotes: bool = False,
     include_genai_classification: bool = False,
+    use_stored_extraction_if_available: bool = True,
 ) -> dict[str, Any]:
     """Execute end-to-end comparison used by the Dash Analyze callback.
 
     Args:
-        use_vision_primary: If True/False, overrides config vision_extraction.enabled
+        use_vision_extraction: If True/False, overrides config vision_extraction.enabled
             for this run. If None, config is used.
+        use_stored_extraction_if_available: If True, load extraction from disk when
+            available (faster). If False, always re-run extraction (e.g. after changing PDFs).
     """
     del use_genai, generate_visual_proofs  # kept for backward-compatible signature
-    if use_vision_primary is not None and use_vision_primary_override is not None:
-        if bool(use_vision_primary) != bool(use_vision_primary_override):
+    if use_vision_extraction is not None and use_vision_extraction_override is not None:
+        if bool(use_vision_extraction) != bool(use_vision_extraction_override):
             raise ValueError(
-                "Conflicting values for use_vision_primary and use_vision_primary_override."
+                "Conflicting values for use_vision_extraction and use_vision_extraction_override."
             )
-    if use_vision_primary is None and use_vision_primary_override is not None:
-        use_vision_primary = use_vision_primary_override
+    if use_vision_extraction is None and use_vision_extraction_override is not None:
+        use_vision_extraction = use_vision_extraction_override
 
     pdf_path_previous = pdf_path_previous or pdf_path_t1
     pdf_path_current = pdf_path_current or pdf_path_t2
@@ -2271,8 +2703,8 @@ def run_comparison_with_sections(
                 year=previous_year_val,
                 section_ranges=ranges_t1,
                 api_key=api_key,
-                use_vision_primary=use_vision_primary,
-                use_stored_extraction_if_available=False,
+                use_vision_extraction=use_vision_extraction,
+                use_stored_extraction_if_available=use_stored_extraction_if_available,
             )
             fut_t2 = executor.submit(
                 _extract_tables,
@@ -2282,8 +2714,8 @@ def run_comparison_with_sections(
                 year=current_year_val,
                 section_ranges=ranges_t2,
                 api_key=api_key,
-                use_vision_primary=use_vision_primary,
-                use_stored_extraction_if_available=False,
+                use_vision_extraction=use_vision_extraction,
+                use_stored_extraction_if_available=use_stored_extraction_if_available,
             )
             tables_t1 = fut_t1.result()
             tables_t2 = fut_t2.result()
@@ -3014,12 +3446,24 @@ def run_comparison_with_sections(
         if vision_rejected:
             continue
 
-        added, removed, had_fusion_split, excluded_counts = _indicator_diff(
-            table_t1, table_t2
+        indicator_diff_debug_enabled = (
+            cfg.get("indicator_diff_debug", False)
+            or os.environ.get("INDICATOR_DIFF_DEBUG", "").strip().lower() in _ENV_TRUE
+        )
+        added, removed, had_fusion_split, excluded_counts, diff_debug_info = (
+            _indicator_diff(
+                table_t1,
+                table_t2,
+                neighbor_aligned_filter_enabled=cfg.get(
+                    "neighbor_aligned_filter_enabled", True
+                ),
+                return_debug=indicator_diff_debug_enabled,
+            )
         )
         t1_clean_to_raw = _build_clean_to_raw_indicator_lookup(table_t1)
         t2_clean_to_raw = _build_clean_to_raw_indicator_lookup(table_t2)
         use_hungarian = cfg.get("indicator_hungarian_enabled", True)
+        indicator_debug: dict[str, Any] | None = None
         if use_hungarian:
             added, removed, renamed_pairs, indicator_debug = (
                 _hungarian_pair_added_removed(
@@ -3304,7 +3748,7 @@ def run_comparison_with_sections(
                 "from": str(
                     t1_clean_to_raw.get(
                         _canonical_indicator_key(
-                            _strip_footnote_markers_from_indicator(removed_clean)
+                            strip_footnote_markers_from_indicator(removed_clean)
                         )
                     )
                     or removed_clean
@@ -3312,7 +3756,7 @@ def run_comparison_with_sections(
                 "to": str(
                     t2_clean_to_raw.get(
                         _canonical_indicator_key(
-                            _strip_footnote_markers_from_indicator(added_clean)
+                            strip_footnote_markers_from_indicator(added_clean)
                         )
                     )
                     or added_clean
@@ -3353,6 +3797,66 @@ def run_comparison_with_sections(
         )
 
         uncertain_diff = table_status == "incertain"
+
+        indicator_decisions: list[dict[str, Any]] = []
+        if indicator_diff_debug_enabled and diff_debug_info is not None:
+            indicator_decisions = _build_indicator_diff_debug(
+                table_t1,
+                table_t2,
+                diff_debug_info["left_map"],
+                diff_debug_info["right_map"],
+                added,
+                removed,
+                renamed_pairs,
+                t1_clean_to_raw,
+                t2_clean_to_raw,
+                indicator_debug,
+                cfg,
+            )
+            if logger.isEnabledFor(logging.DEBUG) and indicator_decisions:
+                logger.debug(
+                    "indicator_diff_debug table_t1=%s table_t2=%s decisions_count=%d",
+                    table_t1.table_id,
+                    table_t2.table_id,
+                    len(indicator_decisions),
+                )
+            if (
+                indicator_decisions
+                and os.environ.get("INDICATOR_DIFF_DEBUG_LOG") == "1"
+            ):
+                try:
+                    _INDICATOR_DIFF_DEBUG_LOG.parent.mkdir(parents=True, exist_ok=True)
+                    run_id = extraction_run_id or datetime.now().strftime(
+                        "%Y%m%d_%H%M%S"
+                    )
+                    with open(
+                        _INDICATOR_DIFF_DEBUG_LOG,
+                        "a",
+                        encoding="utf-8",
+                    ) as f:
+                        f.write(
+                            json.dumps(
+                                {
+                                    "run_id": run_id,
+                                    "table_id_t1": table_t1.table_id,
+                                    "table_id_t2": table_t2.table_id,
+                                    "section": table_t1.section or table_t2.section,
+                                    "indicator_decisions": indicator_decisions,
+                                    "threshold_rename_min": float(
+                                        cfg.get(
+                                            "indicator_rename_min_score",
+                                            _INDICATOR_DEFAULTS[
+                                                "indicator_rename_min_score"
+                                            ],
+                                        )
+                                    ),
+                                },
+                                ensure_ascii=False,
+                            )
+                            + "\n"
+                        )
+                except OSError as e:
+                    logger.debug("Could not write indicator_diff_debug log: %s", e)
 
         # Part E: effective_label_overlap from pair if available
         effective_label_overlap = float(
@@ -3400,7 +3904,7 @@ def run_comparison_with_sections(
                 "all_indicators_t2": _all_indicators_value_clean_ordered(table_t2),
                 "bbox_t1": _normalize_bbox_ltrb_norm(getattr(table_t1, "bbox", None)),
                 "bbox_t2": _normalize_bbox_ltrb_norm(getattr(table_t2, "bbox", None)),
-                "indicator_decisions": [],
+                "indicator_decisions": indicator_decisions,
                 "review_reasons": [],
                 "uncertain_diff": uncertain_diff,
                 "structure_change_detected": structure_change_detected,
@@ -3595,6 +4099,13 @@ def run_comparison_with_sections(
         tables_removed.append(entry_r)
 
     # -- POST-MATCHING GenAI classification (does NOT alter matching results) --
+    _GENAI_ANALYSIS_FALLBACK: dict[str, Any] = {
+        "relevance": "NON_CLASSIFIE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.0,
+        "justification": "Classification non disponible (erreur ou limite API).",
+    }
+
     if include_genai_classification and api_key:
         try:
             from vigilance.genai import GenAIChangeClassifier
@@ -3615,7 +4126,14 @@ def run_comparison_with_sections(
             if to_classify:
                 batch_results = classifier.classify_batch([c for _, c in to_classify])
                 for (idx, _comp), analysis in zip(to_classify, batch_results):
-                    comparisons[idx]["genai_analysis"] = analysis
+                    comparisons[idx]["genai_analysis"] = (
+                        analysis
+                        if isinstance(analysis, dict) and analysis.get("relevance")
+                        else _GENAI_ANALYSIS_FALLBACK
+                    )
+                for idx, _ in to_classify:
+                    if not comparisons[idx].get("genai_analysis", {}).get("relevance"):
+                        comparisons[idx]["genai_analysis"] = _GENAI_ANALYSIS_FALLBACK
 
             # Classify added/removed tables (synthetic payloads for same classifier)
             def _synthetic_comp_added(t: dict[str, Any]) -> dict[str, Any]:
@@ -3650,12 +4168,26 @@ def run_comparison_with_sections(
                 added_payloads = [_synthetic_comp_added(t) for t in tables_added]
                 added_analyses = classifier.classify_batch(added_payloads)
                 for t, analysis in zip(tables_added, added_analyses):
-                    t["genai_analysis"] = analysis
+                    t["genai_analysis"] = (
+                        analysis
+                        if isinstance(analysis, dict) and analysis.get("relevance")
+                        else _GENAI_ANALYSIS_FALLBACK
+                    )
+                for t in tables_added:
+                    if not t.get("genai_analysis", {}).get("relevance"):
+                        t["genai_analysis"] = _GENAI_ANALYSIS_FALLBACK
             if tables_removed:
                 removed_payloads = [_synthetic_comp_removed(t) for t in tables_removed]
                 removed_analyses = classifier.classify_batch(removed_payloads)
                 for t, analysis in zip(tables_removed, removed_analyses):
-                    t["genai_analysis"] = analysis
+                    t["genai_analysis"] = (
+                        analysis
+                        if isinstance(analysis, dict) and analysis.get("relevance")
+                        else _GENAI_ANALYSIS_FALLBACK
+                    )
+                for t in tables_removed:
+                    if not t.get("genai_analysis", {}).get("relevance"):
+                        t["genai_analysis"] = _GENAI_ANALYSIS_FALLBACK
 
             logger.info(
                 "GenAI classification: %d calls, %d errors, %.1fs total, "
@@ -3667,6 +4199,28 @@ def run_comparison_with_sections(
             )
         except Exception as exc:
             logger.warning("GenAI classification layer failed: %s", exc)
+
+            def _has_changes_fallback(c: dict[str, Any]) -> bool:
+                return bool(
+                    c.get("added_indicators")
+                    or c.get("removed_indicators")
+                    or c.get("renamed_indicators")
+                    or c.get("footnotes_counts", {}).get("added", 0)
+                    or c.get("footnotes_counts", {}).get("removed", 0)
+                    or c.get("footnotes_counts", {}).get("modified", 0)
+                )
+
+            for i, c in enumerate(comparisons):
+                if _has_changes_fallback(c) and not c.get("genai_analysis", {}).get(
+                    "relevance"
+                ):
+                    comparisons[i]["genai_analysis"] = _GENAI_ANALYSIS_FALLBACK
+            for t in tables_added:
+                if not t.get("genai_analysis", {}).get("relevance"):
+                    t["genai_analysis"] = _GENAI_ANALYSIS_FALLBACK
+            for t in tables_removed:
+                if not t.get("genai_analysis", {}).get("relevance"):
+                    t["genai_analysis"] = _GENAI_ANALYSIS_FALLBACK
 
     ambiguous_tables = list(strict.get("ambiguous_tables", []) or [])
     added_tables_confirmed = list(

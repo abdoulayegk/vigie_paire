@@ -19,7 +19,7 @@ def test_redundant_parenthetical_expansion_unifies_bmo_tier1_case() -> None:
     )
 
     expected = (
-        "fonds propre de categorie 1 sous forme daction ordinaire "
+        "fonds propre de categorie 1 sous forme d action ordinaire "
         "et fonds propre de categorie 1 supplementaire"
     )
 

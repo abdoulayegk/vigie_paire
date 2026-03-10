@@ -7,11 +7,16 @@ import unicodedata
 
 _TEMPORAL_PATTERNS_BASE = [
     re.compile(r"\b(?:as at|au|au\s+\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\b", re.IGNORECASE),
-    re.compile(r"\b(?:for the quarter ended|quarter ended|trimestre termine le)\b", re.IGNORECASE),
+    re.compile(
+        r"\b(?:for the quarter ended|quarter ended|trimestre termine le)\b",
+        re.IGNORECASE,
+    ),
     re.compile(r"\b(?:trimestre|quarter)\s*(?:[1-4]|i{1,3}|iv)\b", re.IGNORECASE),
     re.compile(r"\b(?:t|q)\s*[1-4]\b", re.IGNORECASE),
     re.compile(r"\b(?:s|h)\s*[12]\b", re.IGNORECASE),
-    re.compile(r"\b(?:1er|premier|deuxieme|troisieme|quatrieme)\s+trimestre\b", re.IGNORECASE),
+    re.compile(
+        r"\b(?:1er|premier|deuxieme|troisieme|quatrieme)\s+trimestre\b", re.IGNORECASE
+    ),
 ]
 
 _TEMPORAL_PATTERNS_AGGRESSIVE = [
@@ -31,7 +36,12 @@ def _strip_accents(text: str) -> str:
 
 
 def normalize_for_matching(text: str, target: str = "generic") -> str:
-    """Normalize text into a stable comparison-friendly representation."""
+    """Normalize text into a stable comparison-friendly representation.
+
+    Used by normalize_indicator_variants in indicator_cleaner. The canonical key
+    for indicator diff is normalize_indicator_for_comparison (elision, impôt/impôts,
+    guillemets are applied there before/after this step).
+    """
     normalized = _strip_accents(text).lower()
 
     # Keep short date tokens for headers/titles, but still remove punctuation noise.
@@ -46,7 +56,9 @@ def normalize_label(text: str) -> str:
     return normalize_for_matching(text, target="indicator")
 
 
-def strip_temporal_expressions(text: str, target: str = "title", aggressive: bool = True) -> str:
+def strip_temporal_expressions(
+    text: str, target: str = "title", aggressive: bool = True
+) -> str:
     """Remove date/quarter fragments to keep semantic table title content."""
     value = _strip_accents(text or "")
     if not value:
@@ -70,7 +82,9 @@ _DATE_ONLY_PATTERNS = [
     re.compile(r"^pour\s+la\s+periode(?:\s+.*)?$", re.IGNORECASE),
     re.compile(r"^pour\s+l[' ]exercice(?:\s+.*)?$", re.IGNORECASE),
     # Dates precises : "Au 31 octobre", "Au 30 avril 2025", "Au30avril2025 (...)"
-    re.compile(r"^au\s*\d{1,2}\s*[a-z\u00e0-\u00ff]+(\s*\d{4})?\s*(\(.*\))?\s*$", re.IGNORECASE),
+    re.compile(
+        r"^au\s*\d{1,2}\s*[a-z\u00e0-\u00ff]+(\s*\d{4})?\s*(\(.*\))?\s*$", re.IGNORECASE
+    ),
     # Dates sans prefixe : "31 octobre", "30 avril 2025"
     re.compile(r"^\d{1,2}\s+[a-z\u00e0-\u00ff]+(\s+\d{4})?$", re.IGNORECASE),
     # Dates numeriques seules : "31/01/2025", "2025-01-31"
@@ -79,7 +93,9 @@ _DATE_ONLY_PATTERNS = [
     # Fin de trimestre : "Trimestre termine le ...", "Trimestre clos le ..."
     re.compile(r"^trimestre\s+termin[eé](?:\s+le)?(?:\s+.*)?$", re.IGNORECASE),
     re.compile(r"^trimestre\s+clos\s+le(?:\s+.*)?$", re.IGNORECASE),
-    re.compile(r"^pour\s+le\s+trimestre\s+termin[eé](?:\s+le)?(?:\s+.*)?$", re.IGNORECASE),
+    re.compile(
+        r"^pour\s+le\s+trimestre\s+termin[eé](?:\s+le)?(?:\s+.*)?$", re.IGNORECASE
+    ),
     re.compile(r"^pour\s+le\s+trimestre\s+clos(?:\s+le)?(?:\s+.*)?$", re.IGNORECASE),
     # Annees seules : "2024", "2025"
     re.compile(r"^20\d{2}$"),
@@ -135,7 +151,7 @@ def _is_unit_header_line(text: str) -> bool:
     m = _UNIT_HEADER_RE.match(text)
     if not m:
         return False
-    rest = text[m.end():].strip()
+    rest = text[m.end() :].strip()
     if not rest:
         return True
     rest_clean = re.sub(r"[\d\)\*\s]+$", "", rest).strip()
@@ -151,12 +167,62 @@ _TOTAL_PREFIX_RE = re.compile(
     r"^\s*total\s+(?:du|des|des\s+elements?\s+hors\s+bilan|du\s+passif)\b",
     re.IGNORECASE,
 )
+# Regulatory indicators that start with "Total des/du" but must NOT be excluded.
+# These are real indicators in Basel III / TLAC reports, not balance-sheet subtotals.
+_REGULATORY_TOTAL_ALLOWLIST_RE = re.compile(
+    r"^\s*total\s+(?:"
+    r"des\s+fonds\s+propres"
+    r"|des\s+actifs\s+ponder"
+    r"|du\s+capital"
+    r"|de\s+la\s+capacite"
+    r"|tlac"
+    r"|des\s+expositions?"
+    r"|des\s+provisions?"
+    r"|des\s+prets?"
+    r"|des\s+depots?"
+    r"|des\s+revenus?"
+    r"|des\s+charges?"
+    r"|des\s+passifs?"
+    r")\b",
+    re.IGNORECASE,
+)
 _TOTAL_PASSIF_CAPITAUX_RE = re.compile(
     r"^\s*total\s+du\s+passif\s+et\s+des\s+capitaux?\s+propres\s*$",
     re.IGNORECASE,
 )
 _TOTAL_ELEMENTS_HORS_BILAN_RE = re.compile(
     r"^\s*total\s+des\s+elements?\s+hors\s+bilan\s*$", re.IGNORECASE
+)
+
+# ---------------------------------------------------------------------------
+# Section header detection: labels ending with ':' after footnote stripping
+# e.g. "Levier(4):", "Ratio de fonds propres (en pourcentage)(4):"
+# These are section headers, not data indicators.
+# ---------------------------------------------------------------------------
+_FOOTNOTE_TRAILING_RE = re.compile(
+    r"\s*(?:[\(\[]\d+[\)\]]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+|[*\u2020\u2021\u00A7]+"
+    r"|,\s*\d+(?:\s*,\s*\d+)*)*\s*$"
+)
+# Legitimate indicators that end with ':' but have sub-lines (not section headers)
+_SECTION_HEADER_ALLOWLIST_RE = re.compile(
+    r"^\s*(?:"
+    r"titres?"
+    r"|depots?\s+(?:stables?|non\s+stables?|operationnels?|de\s+particuliers?)"
+    r"|financement\s+(?:non\s+garanti|garanti|de\s+gros)"
+    r"|prets?\s+class"
+    r"|titres?\s+liquides?"
+    r"|sorties?\s+de\s+tresorerie"
+    r"|entrees?\s+de\s+tresorerie"
+    r"|engagements?\s+hors\s+bilan"
+    r"|actifs?"
+    r"|passifs?\s+et\s+(?:capitaux|interdependants?)"
+    r"|passifs?\s+(?:et\s+)?autres"
+    r"|ventilation"
+    r"|autres\s+passifs?"
+    r"|depots?"
+    r"|fonds\s+propres"
+    r")",
+    re.IGNORECASE,
 )
 _UNIT_ONLY_RE = re.compile(
     r"^\s*(?:en\s+millions?\s+de\s+dollars?|sorties|ca|\$\s*ca|%)\s*$",
@@ -260,8 +326,41 @@ def is_date_only_line(text: str) -> bool:
     return False
 
 
+def _is_section_header_line(text: str) -> bool:
+    """True when label is a section header ending with ':' (after stripping footnotes).
+
+    Detects patterns like 'Levier(4):', 'Ratio de fonds propres (en pourcentage)(4):'
+    which are structural group headers, not data indicators.
+    Returns False for legitimate indicators with sub-lines (e.g. 'Titres :', 'Dépôts stables :').
+    """
+    if not text or not text.strip():
+        return False
+    stripped = _strip_accents(text.strip())
+    # Strip trailing footnote markers to find the real ending
+    core = _FOOTNOTE_TRAILING_RE.sub("", stripped).rstrip()
+    if not core.endswith(":"):
+        return False
+    # Remove the trailing ':' and check the remaining label
+    label = core.rstrip(":").strip()
+    if not label:
+        return False
+    # Short labels (≤ 8 words) ending with ':' are likely section headers
+    # unless they match the allowlist of legitimate indicators with sub-lines
+    # or contain "dont"/"including"/"of which" (breakdown indicators, not headers)
+    if len(label.split()) <= 8 and not _SECTION_HEADER_ALLOWLIST_RE.match(label):
+        label_lower = label.lower()
+        if (
+            "dont" in label_lower
+            or "including" in label_lower
+            or "of which" in label_lower
+        ):
+            return False
+        return True
+    return False
+
+
 def _classify_excluded_line(text: str) -> str | None:
-    """Return exclusion type: 'total', 'unit', 'date', 'number', 'footnote', or None if not excluded."""
+    """Return exclusion type: 'total', 'unit', 'date', 'number', 'footnote', 'section_header', or None if not excluded."""
     if not text or not (text or "").strip():
         return None
     stripped = _strip_accents((text or "").strip())
@@ -274,7 +373,10 @@ def _classify_excluded_line(text: str) -> str | None:
     if _TOTAL_ELEMENTS_HORS_BILAN_RE.match(stripped):
         return "total"
     if _TOTAL_PREFIX_RE.match(stripped) and len(stripped.split()) <= 6:
-        return "total"
+        if not _REGULATORY_TOTAL_ALLOWLIST_RE.match(stripped):
+            return "total"
+    if _is_section_header_line(text):
+        return "section_header"
     if _UNIT_ONLY_RE.match(stripped):
         return "unit"
     if _UNIT_TRUNCATED_RE.match(stripped):
@@ -370,14 +472,18 @@ def header_schema_similarity(
     return max(0.0, min(1.0, (0.6 * pos_score) + (0.4 * set_score)))
 
 
-def is_generic_title(title: str, generic_titles: set[str] | frozenset[str] | None = None) -> bool:
+def is_generic_title(
+    title: str, generic_titles: set[str] | frozenset[str] | None = None
+) -> bool:
     """Return True when title is too generic to be a strong identifier."""
     value = normalize_for_matching(title, target="title")
     if not value:
         return True
 
     if generic_titles:
-        normalized_set = {normalize_for_matching(item, target="title") for item in generic_titles}
+        normalized_set = {
+            normalize_for_matching(item, target="title") for item in generic_titles
+        }
         if value in normalized_set:
             return True
 

@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -94,10 +95,9 @@ from app.comparison_runner import run_comparison_with_sections
 from app.dash_app.components.pdf_preview import pdf_images_from_base64
 from app.dash_app.components.review_detail import (
     build_proofs_section,
-    build_review_detail,
     section_display_label,
 )
-from app.dash_app.components.review_queue import build_review_queue
+from app.review_models_v2 import ChangeType
 from app.dash_app.layouts import (
     build_page_results,
     build_page_upload,
@@ -145,11 +145,16 @@ from app.ui_io import (
     load_comparison_result,
     save_pdfs_to_temp,
 )
+from vigilance.dash_app.components.review_detail_v2 import build_review_detail_v2
+from vigilance.dash_app.components.review_queue_v2 import build_review_queue_v2
 from vigilance.extraction.table_annotator import annotate_table_with_changes
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
 # Theme Bootstrap
 APP_THEME = dbc.themes.FLATLY
+REVIEW_QUEUE_V2_ACTIVE = (
+    os.getenv("REVIEW_QUEUE_V2_ACTIVE", "1").strip().lower() in {"1", "true", "yes", "on"}
+)
 
 app = Dash(
     __name__,
@@ -176,6 +181,7 @@ stores = [
     dcc.Store(id="store-indicator-meta", data=None),
     dcc.Store(id="store-review-items", data=None),
     dcc.Store(id="store-review-queue", data=None),  # V2: deduplicated grouped queue
+    dcc.Store(id="store-review-selection", data={"review_id": None, "change_id": None}),
     dcc.Store(id="store-review-current-idx", data=0),
     dcc.Store(id="store-review-current-indicator-idx", data=0),
     dcc.Store(
@@ -791,6 +797,7 @@ def compile_adjusted_sections(starts, ends, ids_start, ids_end, detection):
     State("bank-code", "value"),
     State("option-footnotes", "value"),
     State("option-genai-classification", "value"),
+    State("option-force-reextract", "value"),
     State("store-validation-start-ms", "data"),
     prevent_initial_call=True,
     running=[
@@ -811,6 +818,7 @@ def on_analyze(
     bank_code,
     footnotes_opt,
     genai_classification_opt,
+    force_reextract_opt,
     validation_start_ms,
 ):
     """Valider et lancer l'analyse."""
@@ -841,12 +849,15 @@ def on_analyze(
         from vigilance.config import get_vision_extraction_config
 
         cfg = get_vision_extraction_config(bank_code=bank_code) or {}
-        use_vision_primary = bool(cfg.get("enabled", False))
+        use_vision_extraction = bool(cfg.get("enabled", False))
     except Exception:
-        use_vision_primary = False
+        use_vision_extraction = False
     include_footnotes = bool(footnotes_opt and "footnotes" in footnotes_opt)
     include_genai_classification = bool(
         genai_classification_opt and "classify" in genai_classification_opt and api_key
+    )
+    use_stored_extraction = not bool(
+        force_reextract_opt and "reextract" in (force_reextract_opt or [])
     )
 
     try:
@@ -862,9 +873,10 @@ def on_analyze(
             previous_year=int(quarter_context["previous"]["year"]),
             use_genai=use_genai,
             api_key=api_key,
-            use_vision_primary=use_vision_primary,
+            use_vision_extraction=use_vision_extraction,
             include_footnotes=include_footnotes,
             include_genai_classification=include_genai_classification,
+            use_stored_extraction_if_available=use_stored_extraction,
         )
     except Exception as e:
         err_text = str(e)
@@ -950,29 +962,27 @@ def on_analyze(
     Output("progress-approved", "value"),
     Output("progress-rejected", "value"),
     Output("progress-pending", "value"),
-    Input("store-review-items", "data"),
+    Input("store-review-queue", "data"),
+    Input("store-review-selection", "data"),
     Input("store-indicator-result", "data"),
-    Input("store-review-current-idx", "data"),
     Input("store-show-results-page", "data"),
     Input("store-review-filters", "data"),
-    Input("btn-approve", "n_clicks"),
-    Input("btn-reject", "n_clicks"),
     prevent_initial_call=True,
 )
 def update_review_queue(
-    review_items_data,
+    review_queue_data,
+    selection,
     indicator_result,
-    current_idx,
     show_results,
     filters,
-    _btn_approve,
-    _btn_reject,
 ):
     """Update the left-side review queue and top KPIs."""
     if not show_results:
         raise PreventUpdate
-    # review_items_data=None: init_review_items pas encore execute (course)
-    if review_items_data is None:
+    if not REVIEW_QUEUE_V2_ACTIVE:
+        raise PreventUpdate
+
+    if review_queue_data is None:
         return (
             html.Div(
                 [
@@ -989,7 +999,7 @@ def update_review_queue(
             0,
             0,
         )
-    if len(review_items_data) == 0:
+    if len(review_queue_data) == 0:
         quality_gate = {}
         if isinstance(indicator_result, dict):
             meta = indicator_result.get("meta", {}) or {}
@@ -1021,19 +1031,19 @@ def update_review_queue(
             0,
         )
 
-    items = review_items_data
-    total = len(items)
-    approved = sum(1 for i in items if i.get("review_status") == REVIEW_STATUS_APPROVED)
-    rejected = sum(1 for i in items if i.get("review_status") == REVIEW_STATUS_REJECTED)
-    pending = (
-        total - approved - rejected
-    )  # Tout le reste = en attente (y compris statut manquant/invalide)
+    queue = review_queue_data or []
+    resolved_selection, _, _ = _resolve_selection(queue, selection, filters)
+    current_review_id = resolved_selection.get("review_id")
 
+    total = len(queue)
+    approved = sum(1 for t in queue if _table_decision_bucket(t) == "approved")
+    rejected = sum(1 for t in queue if _table_decision_bucket(t) == "rejected")
+    pending = max(0, total - approved - rejected)
     pct_approved = (approved / total) * 100 if total else 0
     pct_rejected = (rejected / total) * 100 if total else 0
     pct_pending = (pending / total) * 100 if total else 0
 
-    queue_component = build_review_queue(items, current_idx, filters)
+    queue_component = build_review_queue_v2(queue, current_review_id, filters)
 
     return (
         queue_component,
@@ -1048,8 +1058,43 @@ def update_review_queue(
 
 
 @callback(
+    Output("store-review-selection", "data", allow_duplicate=True),
+    Output("store-review-current-idx", "data", allow_duplicate=True),
+    Output("store-current-change-idx", "data", allow_duplicate=True),
+    Output("store-nav-debug", "data", allow_duplicate=True),
+    Input("store-review-queue", "data"),
+    Input("store-review-filters", "data"),
+    State("store-review-selection", "data"),
+    prevent_initial_call=True,
+)
+def sync_review_selection(queue, filters, selection):
+    """Keep selection stable on queue refresh/filter changes, with safe fallback."""
+    if not REVIEW_QUEUE_V2_ACTIVE:
+        raise PreventUpdate
+    if queue is None:
+        raise PreventUpdate
+    resolved_selection, table_idx, change_idx = _resolve_selection(
+        queue or [], selection, filters
+    )
+    if resolved_selection == (selection or {}):
+        raise PreventUpdate
+    selection_miss = str((selection or {}).get("review_id") or "") not in {
+        _review_id(t) for t in (queue or [])
+    }
+    dbg = {
+        "writer": "sync_review_selection",
+        "trigger": "queue_or_filter_refresh",
+        "from": (selection or {}).get("review_id"),
+        "to": resolved_selection.get("review_id"),
+        "total": len(queue or []),
+        "selection_miss": selection_miss,
+    }
+    return resolved_selection, table_idx, change_idx, dbg
+
+
+@callback(
     Output("store-review-filters", "data"),
-    Input({"type": "filter-section", "value": ALL}, "n_clicks"),
+    Input({"type": "filter-section-v2", "value": ALL}, "n_clicks"),
     State("store-review-filters", "data"),
     prevent_initial_call=True,
 )
@@ -1065,16 +1110,20 @@ def on_filter_section(n_clicks, current_filters):
 
 
 @callback(
+    Output("store-review-selection", "data", allow_duplicate=True),
     Output("store-review-current-idx", "data", allow_duplicate=True),
-    Output("store-review-current-indicator-idx", "data", allow_duplicate=True),
+    Output("store-current-change-idx", "data", allow_duplicate=True),
     Output("store-nav-debug", "data", allow_duplicate=True),
-    Input({"type": "review-item", "index": ALL}, "n_clicks"),
-    State("store-review-current-idx", "data"),
-    State("store-review-items", "data"),
+    Input({"type": "queue-table-item-v2", "review_id": ALL}, "n_clicks"),
+    State("store-review-queue", "data"),
+    State("store-review-selection", "data"),
+    State("store-review-filters", "data"),
     prevent_initial_call=True,
 )
-def on_queue_item_click(n_clicks, current_idx, items):
-    """Handle click on a review item in the queue. Resets indicator_idx to 0."""
+def on_queue_item_click(n_clicks, queue, current_selection, filters):
+    """Handle click on a table item in the V2 queue."""
+    if REVIEW_QUEUE_V2_ACTIVE:
+        raise PreventUpdate
     if not ctx.triggered:
         raise PreventUpdate
 
@@ -1082,59 +1131,67 @@ def on_queue_item_click(n_clicks, current_idx, items):
     if not button_id or not isinstance(button_id, dict):
         raise PreventUpdate
 
-    clicked_index = button_id.get("index")
-    if clicked_index is None:
+    clicked_review_id = str(button_id.get("review_id") or "")
+    if not clicked_review_id:
         raise PreventUpdate
 
-    try:
-        clicked_index = int(clicked_index)
-    except (TypeError, ValueError):
+    if not queue:
         raise PreventUpdate
-
-    total = len(items) if items and isinstance(items, list) else 0
-    if items and isinstance(items, list):
-        clicked_index = max(0, min(clicked_index, total - 1))
+    total = len(queue)
+    resolved_selection, table_idx, change_idx = _resolve_selection(
+        queue,
+        {"review_id": clicked_review_id, "change_id": None},
+        filters,
+    )
 
     dbg = {
         "writer": "on_queue_item_click",
         "trigger": str(button_id),
-        "from": current_idx,
-        "to": clicked_index,
+        "from": (current_selection or {}).get("review_id"),
+        "to": resolved_selection.get("review_id"),
         "total": total,
     }
     logger.info(
-        "[on_queue_item_click] trig=%s current_idx=%r total=%s -> new_idx=%s",
+        "[on_queue_item_click] trig=%s current_review_id=%r total=%s -> review_id=%s",
         button_id,
-        current_idx,
+        (current_selection or {}).get("review_id"),
         total,
-        clicked_index,
+        resolved_selection.get("review_id"),
     )
-    return clicked_index, 0, dbg
+    return resolved_selection, table_idx, change_idx, dbg
 
 
 @callback(
     Output("review-proof-container", "children"),
-    Input("store-review-items", "data"),
-    Input("store-review-current-idx", "data"),
+    Input("store-review-queue", "data"),
+    Input("store-review-selection", "data"),
     Input("store-pdf-paths", "data"),
     Input("store-show-results-page", "data"),
     Input("store-proof-display-mode", "data"),
     prevent_initial_call=True,
 )
 def update_review_proofs(
-    review_items_data, current_idx, paths, show_results, proof_display_mode
+    review_queue_data, selection, paths, show_results, proof_display_mode
 ):
     """Update proof images section only (table-scoped; stable across indicator navigation)."""
     if not show_results:
         raise PreventUpdate
-    if not review_items_data:
+    if not REVIEW_QUEUE_V2_ACTIVE:
+        raise PreventUpdate
+    if not review_queue_data:
         return html.Div(
             "Veuillez lancer une analyse pour voir les details.",
             className="text-center text-muted mt-5",
         )
 
-    idx = max(0, min(int(current_idx or 0), len(review_items_data) - 1))
-    item = review_items_data[idx]
+    resolved_selection, _, _ = _resolve_selection(review_queue_data, selection)
+    _, table = _get_table_by_review_id(
+        review_queue_data, resolved_selection.get("review_id")
+    )
+    if table is None:
+        return html.Div()
+
+    item = _table_to_proof_item(table, resolved_selection)
     mode = (proof_display_mode or "crop").strip().lower()
     if mode not in ("crop", "full", "footnote"):
         mode = "crop"
@@ -1152,39 +1209,38 @@ def update_review_proofs(
 
 @callback(
     Output("review-meta-container", "children"),
-    Input("store-review-items", "data"),
-    Input("store-review-current-idx", "data"),
-    Input("store-review-current-indicator-idx", "data"),
+    Input("store-review-queue", "data"),
+    Input("store-review-selection", "data"),
     Input("store-show-results-page", "data"),
     prevent_initial_call=True,
 )
-def update_review_meta(review_items_data, current_idx, indicator_idx, show_results):
-    """Update metadata + indicator decisions section (indicator-scoped)."""
+def update_review_meta(review_queue_data, selection, show_results):
+    """Update V2 metadata + per-change validation section."""
     if not show_results:
         raise PreventUpdate
-    if not review_items_data:
+    if not REVIEW_QUEUE_V2_ACTIVE:
+        raise PreventUpdate
+    if not review_queue_data:
         return html.Div(
             "Veuillez lancer une analyse pour voir les details.",
             className="text-center text-muted mt-5",
         )
 
-    idx = max(0, min(int(current_idx or 0), len(review_items_data) - 1))
-    item = review_items_data[idx]
-    ind_idx = int(indicator_idx or 0)
-    indicators = item.get("indicators", [])
-    if indicators:
-        ind_idx = max(0, min(ind_idx, len(indicators) - 1))
-    else:
-        ind_idx = 0
+    resolved_selection, _, change_idx = _resolve_selection(review_queue_data, selection)
+    _, table = _get_table_by_review_id(
+        review_queue_data, resolved_selection.get("review_id")
+    )
+    if table is None:
+        return html.Div(
+            "Aucun tableau sélectionné.",
+            className="text-center text-muted mt-5",
+        )
 
-    return build_review_detail(
-        item=item,
-        img_t1_b64=None,
-        img_t2_b64=None,
-        current_idx=idx,
-        total_items=len(review_items_data),
-        proof_display_mode="crop",
-        indicator_idx=ind_idx,
+    return build_review_detail_v2(
+        table=table,
+        current_change_idx=change_idx,
+        proof_image_t1_b64="",
+        proof_image_t2_b64="",
         show_proofs=False,
     )
 
@@ -1994,6 +2050,318 @@ def _format_duration(seconds: int | None) -> str:
     return f"{mm:02d}:{ss:02d}"
 
 
+def _review_id(table: dict) -> str:
+    return str(table.get("review_id") or table.get("table_key") or "")
+
+
+def _table_matches_filters(table: dict, filters: dict | None) -> bool:
+    active_section = (filters or {}).get("section", "all")
+    active_status = (filters or {}).get("status", "all")
+    if active_section and active_section != "all":
+        if table.get("section") != active_section:
+            return False
+    if active_status and active_status != "all":
+        if table.get("table_status") != active_status:
+            return False
+    return True
+
+
+def _visible_review_ids(queue: list[dict], filters: dict | None) -> list[str]:
+    return [
+        _review_id(table)
+        for table in queue
+        if _review_id(table) and _table_matches_filters(table, filters)
+    ]
+
+
+def _get_table_by_review_id(queue: list[dict], review_id: str | None) -> tuple[int, dict | None]:
+    if not queue:
+        return -1, None
+    rid = str(review_id or "")
+    if rid:
+        for idx, table in enumerate(queue):
+            if _review_id(table) == rid:
+                return idx, table
+    return -1, None
+
+
+def _resolve_change_id(table: dict, preferred_change_id: str | None = None) -> str | None:
+    changes = table.get("changes", []) or []
+    preferred = str(preferred_change_id or "")
+    if preferred and any(str(c.get("change_id", "")) == preferred for c in changes):
+        return preferred
+    for change in changes:
+        status = str(change.get("validation_status", "pending"))
+        if change.get("is_required", True) and status == "pending":
+            return str(change.get("change_id", "")) or None
+    if changes:
+        return str(changes[0].get("change_id", "")) or None
+    return None
+
+
+def _resolve_selection(
+    queue: list[dict],
+    selection: dict | None,
+    filters: dict | None = None,
+) -> tuple[dict, int, int]:
+    if not queue:
+        return {"review_id": None, "change_id": None}, 0, 0
+
+    visible_ids = _visible_review_ids(queue, filters) or [
+        _review_id(t) for t in queue if _review_id(t)
+    ]
+    preferred_review_id = str((selection or {}).get("review_id") or "")
+    if preferred_review_id not in visible_ids:
+        preferred_review_id = visible_ids[0] if visible_ids else _review_id(queue[0])
+
+    table_idx, table = _get_table_by_review_id(queue, preferred_review_id)
+    if table is None:
+        table_idx = 0
+        table = queue[0]
+        preferred_review_id = _review_id(table)
+
+    resolved_change_id = _resolve_change_id(
+        table, preferred_change_id=(selection or {}).get("change_id")
+    )
+    changes = table.get("changes", []) or []
+    change_idx = 0
+    if resolved_change_id:
+        for idx, change in enumerate(changes):
+            if str(change.get("change_id", "")) == resolved_change_id:
+                change_idx = idx
+                break
+    return (
+        {"review_id": preferred_review_id, "change_id": resolved_change_id},
+        table_idx,
+        change_idx,
+    )
+
+
+def _legacy_change_type_from_v2(change_type: str) -> str:
+    ctype = str(change_type or "")
+    if ctype in (ChangeType.TABLE_ADDED.value, "table_added"):
+        return CHANGE_TYPE_TABLE_ADDED
+    if ctype in (ChangeType.TABLE_REMOVED.value, "table_removed"):
+        return CHANGE_TYPE_TABLE_REMOVED
+    if ctype in (ChangeType.INDICATOR_ADDED.value, "indicator_added"):
+        return CHANGE_TYPE_ADDED
+    if ctype in (ChangeType.INDICATOR_REMOVED.value, "indicator_removed"):
+        return CHANGE_TYPE_REMOVED
+    if ctype in (ChangeType.INDICATOR_RENAMED.value, "indicator_renamed"):
+        return CHANGE_TYPE_RENAMED
+    if "footnote" in ctype:
+        return CHANGE_TYPE_MODIFIED
+    return CHANGE_TYPE_MODIFIED
+
+
+def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
+    changes = table.get("changes", []) or []
+    selected_change_id = str((selection or {}).get("change_id") or "")
+    selected_change = None
+    for change in changes:
+        if str(change.get("change_id", "")) == selected_change_id:
+            selected_change = change
+            break
+    if selected_change is None and changes:
+        selected_change = changes[0]
+    selected_change_type = (
+        selected_change.get("change_type", "")
+        if isinstance(selected_change, dict)
+        else ""
+    )
+    primary_type = _legacy_change_type_from_v2(selected_change_type)
+    added_indicators: list[str] = []
+    removed_indicators: list[str] = []
+    for change in changes:
+        ctype = str(change.get("change_type", ""))
+        payload = change.get("payload", {}) or {}
+        indicator_name = str(payload.get("indicator_name", "")).strip()
+        if ctype in (ChangeType.INDICATOR_ADDED.value, "indicator_added") and indicator_name:
+            added_indicators.append(indicator_name)
+        if ctype in (ChangeType.INDICATOR_REMOVED.value, "indicator_removed") and indicator_name:
+            removed_indicators.append(indicator_name)
+
+    return {
+        "change_type": primary_type,
+        "table_name": table.get("table_name", ""),
+        "table_title_raw": table.get("table_title", "") or table.get("table_name", ""),
+        "table_number": table.get("table_number", ""),
+        "section": table.get("section", ""),
+        "page_t1": table.get("page_t1"),
+        "page_t2": table.get("page_t2"),
+        "bbox_t1": table.get("bbox_t1"),
+        "bbox_t2": table.get("bbox_t2"),
+        "source_ref_t1": table.get("source_pdf_t1", ""),
+        "source_ref_t2": table.get("source_pdf_t2", ""),
+        "confidence": float(table.get("confidence", 0.0) or 0.0),
+        "genai_analysis": table.get("genai_analysis") or {},
+        "added_indicators": added_indicators,
+        "removed_indicators": removed_indicators,
+    }
+
+
+def _table_decision_bucket(table: dict) -> str:
+    changes = table.get("changes", []) or []
+    if not changes:
+        return "pending"
+    required = [c for c in changes if c.get("is_required", True)]
+    if not required:
+        required = changes
+    statuses = [str(c.get("validation_status", "pending")) for c in required]
+    if all(s in ("approved", "skipped") for s in statuses):
+        return "approved"
+    if all(s == "rejected" for s in statuses):
+        return "rejected"
+    return "pending"
+
+
+def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
+    """Convert canonical V2 queue to legacy ReviewItem list for exports."""
+    items: list[ReviewItem] = []
+    for idx, table in enumerate(queue or [], start=1):
+        review_id = _review_id(table) or f"tbl_{idx:04d}"
+        section = str(table.get("section", ""))
+        table_name = str(table.get("table_name") or table.get("table_title") or "")
+        table_number = str(table.get("table_number") or "")
+        table_id_t1 = str(table.get("table_id_t1") or "")
+        table_id_t2 = str(table.get("table_id_t2") or "")
+        page_t1 = table.get("page_t1")
+        page_t2 = table.get("page_t2")
+        changes = table.get("changes", []) or []
+
+        def _legacy_status(status: str) -> str:
+            s = str(status or "pending")
+            if s == "approved" or s == "skipped":
+                return REVIEW_STATUS_APPROVED
+            if s == "rejected":
+                return REVIEW_STATUS_REJECTED
+            return REVIEW_STATUS_PENDING
+
+        has_table_added = any(
+            str(c.get("change_type", "")) in (ChangeType.TABLE_ADDED.value, "table_added")
+            for c in changes
+        )
+        has_table_removed = any(
+            str(c.get("change_type", "")) in (ChangeType.TABLE_REMOVED.value, "table_removed")
+            for c in changes
+        )
+        table_bucket = _table_decision_bucket(table)
+        review_status = (
+            REVIEW_STATUS_APPROVED
+            if table_bucket == "approved"
+            else REVIEW_STATUS_REJECTED
+            if table_bucket == "rejected"
+            else REVIEW_STATUS_PENDING
+        )
+
+        indicators: list[dict[str, str]] = []
+        item_type = "indicator"
+        event_type = "matched_pair"
+        if has_table_added or has_table_removed:
+            change_type = (
+                CHANGE_TYPE_TABLE_ADDED if has_table_added else CHANGE_TYPE_TABLE_REMOVED
+            )
+            event_type = (
+                EVENT_TYPE_TABLE_ADDED if has_table_added else EVENT_TYPE_TABLE_REMOVED
+            )
+            summary_indicator = (
+                "Tableau entier ajouté" if has_table_added else "Tableau entier retiré"
+            )
+        else:
+            n_added = n_removed = n_renamed = 0
+            for change in changes:
+                ctype = str(change.get("change_type", ""))
+                payload = change.get("payload", {}) or {}
+                c_status = _legacy_status(change.get("validation_status", "pending"))
+                if ctype in (ChangeType.INDICATOR_ADDED.value, "indicator_added"):
+                    n_added += 1
+                    indicators.append(
+                        {
+                            "name": str(payload.get("indicator_name", "")),
+                            "type": CHANGE_TYPE_ADDED,
+                            "review_status": c_status,
+                        }
+                    )
+                elif ctype in (ChangeType.INDICATOR_REMOVED.value, "indicator_removed"):
+                    n_removed += 1
+                    indicators.append(
+                        {
+                            "name": str(payload.get("indicator_name", "")),
+                            "type": CHANGE_TYPE_REMOVED,
+                            "review_status": c_status,
+                        }
+                    )
+                elif ctype in (ChangeType.INDICATOR_RENAMED.value, "indicator_renamed"):
+                    n_renamed += 1
+                    from_val = str(payload.get("from", ""))
+                    to_val = str(payload.get("to", ""))
+                    indicators.append(
+                        {
+                            "name": f"{from_val} -> {to_val}".strip(" ->"),
+                            "type": CHANGE_TYPE_RENAMED,
+                            "from": from_val,
+                            "to": to_val,
+                            "review_status": c_status,
+                        }
+                    )
+                elif "footnote" in ctype:
+                    item_type = "footnote"
+                    event_type = EVENT_TYPE_FOOTNOTE_ONLY
+                    indicators.append(
+                        {
+                            "name": str(payload.get("indicator_name", "")) or str(
+                                payload.get("new_text", "")
+                            ),
+                            "type": CHANGE_TYPE_MODIFIED,
+                            "review_status": c_status,
+                        }
+                    )
+            if n_removed >= n_added and n_removed >= n_renamed:
+                change_type = CHANGE_TYPE_REMOVED
+            elif n_added >= n_renamed:
+                change_type = CHANGE_TYPE_ADDED
+            else:
+                change_type = CHANGE_TYPE_RENAMED
+            summary_parts = []
+            if n_added:
+                summary_parts.append(f"{n_added} ajouté(s)")
+            if n_removed:
+                summary_parts.append(f"{n_removed} retiré(s)")
+            if n_renamed:
+                summary_parts.append(f"{n_renamed} renommé(s)")
+            summary_indicator = ", ".join(summary_parts)
+
+        items.append(
+            ReviewItem(
+                change_id=review_id,
+                change_type=change_type,
+                indicator=summary_indicator,
+                section=section,
+                table_name=table_name,
+                table_number=table_number,
+                table_id_t1=table_id_t1,
+                table_id_t2=table_id_t2,
+                page_t1=page_t1,
+                page_t2=page_t2,
+                source_ref_t1=str(table.get("source_pdf_t1", "")),
+                source_ref_t2=str(table.get("source_pdf_t2", "")),
+                review_status=review_status,
+                confidence=float(table.get("confidence", 0.0) or 0.0),
+                table_title_raw=str(table.get("table_title") or table_name),
+                table_status=str(table.get("table_status", "")),
+                indicators=indicators,
+                match_method=str(table.get("match_method", "")),
+                bbox_t1=table.get("bbox_t1"),
+                bbox_t2=table.get("bbox_t2"),
+                genai_analysis=table.get("genai_analysis") or {},
+                match_metadata=table.get("match_metadata") or {},
+                item_type=item_type,
+                event_type=event_type,
+            )
+        )
+    return items
+
+
 @callback(
     Output("kpi-tables-matched", "children"),
     Output("kpi-added-indicators", "children"),
@@ -2161,6 +2529,7 @@ def render_sections_tab(indicator_result, show_results):
 @callback(
     Output("store-review-items", "data"),
     Output("store-review-queue", "data"),  # V2: deduplicated grouped queue
+    Output("store-review-selection", "data"),
     Output("store-review-current-idx", "data"),
     Output("store-current-change-idx", "data"),  # V2: reset change index
     Output("store-nav-debug", "data", allow_duplicate=True),
@@ -2198,7 +2567,7 @@ def init_review_items(indicator_result, paths):
             "total": 0,
             "reason": "; ".join(str(x) for x in fail_reasons[:3]),
         }
-        return [], [], 0, 0, dbg
+        return [], [], {"review_id": None, "change_id": None}, 0, 0, dbg
 
     path_t1 = paths.get("pdf_previous", "") or paths.get("pdf_t1", "")
     path_t2 = paths.get("pdf_current", "") or paths.get("pdf_t2", "")
@@ -2227,16 +2596,34 @@ def init_review_items(indicator_result, paths):
 
     total = len(serialized)
     total_v2 = len(serialized_v2)
+    dedup_merged = max(0, total - total_v2)
+    resolved_selection, sel_table_idx, sel_change_idx = _resolve_selection(
+        serialized_v2, {"review_id": None, "change_id": None}
+    )
     dbg = {
         "writer": "init_review_items",
         "trigger": "init",
         "from": None,
-        "to": 0,
+        "to": sel_table_idx,
         "total": total,
         "total_v2": total_v2,
+        "dedup_merged": dedup_merged,
     }
-    logger.info("[init_review_items] total=%s tables_v2=%s -> idx=0", total, total_v2)
-    return serialized, serialized_v2, 0, 0, dbg
+    logger.info(
+        "[init_review_items] v1_count=%s v2_count=%s dedup_merged=%s review_queue_v2_active=%s",
+        total,
+        total_v2,
+        dedup_merged,
+        REVIEW_QUEUE_V2_ACTIVE,
+    )
+    return (
+        serialized,
+        serialized_v2,
+        resolved_selection,
+        sel_table_idx,
+        sel_change_idx,
+        dbg,
+    )
 
 
 def _build_comparison_statement(item: ReviewItem) -> str:
@@ -2922,17 +3309,20 @@ def render_export_tab(review_items_data, indicator_result, show_results):
     Output("download-review-csv", "data"),
     Input("btn-download-review-csv", "n_clicks"),
     State("store-review-items", "data"),
+    State("store-review-queue", "data"),
     State("store-indicator-result", "data"),
     State("store-pdf-paths", "data"),
     prevent_initial_call=True,
 )
-def on_download_csv(n_clicks, review_items_data, indicator_result, paths):
+def on_download_csv(n_clicks, review_items_data, review_queue_data, indicator_result, paths):
     """Telecharger le CSV de validation (Excel FR, UTF-8 BOM, separateur ;)."""
     if not n_clicks:
         raise PreventUpdate
     ir = indicator_result or {}
     items = []
-    if review_items_data:
+    if review_queue_data:
+        items = _review_items_from_v2_queue(review_queue_data)
+    elif review_items_data:
         try:
             items = [ReviewItem.from_dict(d) for d in review_items_data]
         except Exception:
@@ -2971,17 +3361,21 @@ def on_download_csv(n_clicks, review_items_data, indicator_result, paths):
     Output("download-review-json", "data"),
     Input("btn-download-review-json", "n_clicks"),
     State("store-review-items", "data"),
+    State("store-review-queue", "data"),
     State("store-indicator-result", "data"),
     prevent_initial_call=True,
 )
-def on_download_json(n_clicks, review_items_data, indicator_result):
+def on_download_json(n_clicks, review_items_data, review_queue_data, indicator_result):
     """Telecharger le JSON de revue."""
-    if not n_clicks or not review_items_data:
+    if not n_clicks or (not review_items_data and not review_queue_data):
         raise PreventUpdate
     from datetime import datetime
 
     ir = indicator_result or {}
-    items = [ReviewItem.from_dict(d) for d in review_items_data]
+    if review_queue_data:
+        items = _review_items_from_v2_queue(review_queue_data)
+    else:
+        items = [ReviewItem.from_dict(d) for d in review_items_data]
     bank = str(ir.get("bank_code", "bank"))
     q_from = quarter_label_from_payload(ir, "previous")
     q_to = quarter_label_from_payload(ir, "current")
@@ -3007,17 +3401,20 @@ def on_download_json(n_clicks, review_items_data, indicator_result):
     Output("download-review-excel", "data"),
     Input("btn-download-review-excel", "n_clicks"),
     State("store-review-items", "data"),
+    State("store-review-queue", "data"),
     State("store-indicator-result", "data"),
     State("store-pdf-paths", "data"),
     prevent_initial_call=True,
 )
-def on_download_excel(n_clicks, review_items_data, indicator_result, paths):
+def on_download_excel(n_clicks, review_items_data, review_queue_data, indicator_result, paths):
     """Telecharger le fichier Excel de validation (.xlsx)."""
     if not n_clicks:
         raise PreventUpdate
     ir = indicator_result or {}
     items = []
-    if review_items_data:
+    if review_queue_data:
+        items = _review_items_from_v2_queue(review_queue_data)
+    elif review_items_data:
         try:
             items = [ReviewItem.from_dict(d) for d in review_items_data]
         except Exception:
@@ -3079,6 +3476,7 @@ def on_download_indicator_json_brut(n_clicks, indicator_result):
     Output("store-sections-validated", "data", allow_duplicate=True),
     Output("store-review-items", "data", allow_duplicate=True),
     Output("store-review-queue", "data", allow_duplicate=True),  # V2
+    Output("store-review-selection", "data", allow_duplicate=True),
     Output("store-review-current-idx", "data", allow_duplicate=True),
     Output("store-current-change-idx", "data", allow_duplicate=True),  # V2
     Output("main-content", "children", allow_duplicate=True),
@@ -3106,6 +3504,7 @@ def on_reset(n_clicks):
             False,
             None,
             None,  # store-review-queue
+            {"review_id": None, "change_id": None},
             0,
             0,  # store-current-change-idx
             build_page_upload(),
@@ -3212,18 +3611,19 @@ def on_load_comparison(n_clicks, filename):
 
 @callback(
     Output("store-review-queue", "data", allow_duplicate=True),
+    Output("store-review-selection", "data", allow_duplicate=True),
     Output("store-current-change-idx", "data", allow_duplicate=True),
     Output("store-review-current-idx", "data", allow_duplicate=True),
     Input("btn-approve-change-v2", "n_clicks"),
     Input("btn-reject-change-v2", "n_clicks"),
     Input("btn-skip-change-v2", "n_clicks"),
     State("store-review-queue", "data"),
-    State("store-review-current-idx", "data"),
-    State("store-current-change-idx", "data"),
+    State("store-review-selection", "data"),
+    State("store-review-filters", "data"),
     State("validation-notes-v2", "value"),
     prevent_initial_call=True,
 )
-def on_validate_change_v2(approve, reject, skip, queue, table_idx, change_idx, notes):
+def on_validate_change_v2(approve, reject, skip, queue, selection, filters, notes):
     """Apply validation to current change in V2 queue, auto-advance.
 
     Auto-advance rules:
@@ -3244,21 +3644,25 @@ def on_validate_change_v2(approve, reject, skip, queue, table_idx, change_idx, n
     if not decision:
         raise PreventUpdate
 
-    table_idx = int(table_idx or 0)
-    change_idx = int(change_idx or 0)
-
-    if table_idx >= len(queue):
+    resolved_selection, table_idx, change_idx = _resolve_selection(
+        queue, selection, filters
+    )
+    if table_idx < 0:
         raise PreventUpdate
 
-    # Deep copy
     new_queue = json.loads(json.dumps(queue))
     table = new_queue[table_idx]
     changes = table.get("changes", [])
-
-    if change_idx >= len(changes):
+    selected_change_id = str(resolved_selection.get("change_id") or "")
+    if selected_change_id:
+        for idx, change in enumerate(changes):
+            if str(change.get("change_id", "")) == selected_change_id:
+                change_idx = idx
+                break
+    if change_idx >= len(changes) or change_idx < 0:
         raise PreventUpdate
 
-    # Apply validation
+    # Apply validation on selected change
     changes[change_idx]["validation_status"] = decision
     changes[change_idx]["validation_decision"] = decision
     changes[change_idx]["validation_notes"] = notes or ""
@@ -3301,53 +3705,81 @@ def on_validate_change_v2(approve, reject, skip, queue, table_idx, change_idx, n
     }
     table["summary"] = summary
 
-    # Auto-advance logic
-    new_change_idx = change_idx
-    new_table_idx = table_idx
-
+    # Auto-advance logic based on filtered visible queue
+    next_selection = dict(resolved_selection)
     if change_idx + 1 < len(changes):
-        # Next change in same table
-        new_change_idx = change_idx + 1
-    elif table_idx + 1 < len(new_queue):
-        # Next table, reset change index
-        new_table_idx = table_idx + 1
-        new_change_idx = 0
-    # else: stay at last position
+        next_selection["change_id"] = str(changes[change_idx + 1].get("change_id", ""))
+    else:
+        visible_ids = _visible_review_ids(new_queue, filters) or [
+            _review_id(t) for t in new_queue if _review_id(t)
+        ]
+        current_review_id = str(resolved_selection.get("review_id") or "")
+        if current_review_id in visible_ids:
+            pos = visible_ids.index(current_review_id)
+            if pos + 1 < len(visible_ids):
+                next_review_id = visible_ids[pos + 1]
+                _, next_table = _get_table_by_review_id(new_queue, next_review_id)
+                if next_table is not None:
+                    next_selection = {
+                        "review_id": next_review_id,
+                        "change_id": _resolve_change_id(next_table, None),
+                    }
+            else:
+                next_selection["change_id"] = _resolve_change_id(table, None)
+        else:
+            next_selection["change_id"] = _resolve_change_id(table, None)
+
+    next_selection, new_table_idx, new_change_idx = _resolve_selection(
+        new_queue, next_selection, filters
+    )
 
     logger.info(
-        "[on_validate_change_v2] table=%d change=%d decision=%s -> table=%d change=%d",
+        "[on_validate_change_v2] review_id=%s change=%s decision=%s -> review_id=%s change=%s",
+        resolved_selection.get("review_id"),
+        resolved_selection.get("change_id"),
+        decision,
+        next_selection.get("review_id"),
+        next_selection.get("change_id"),
+    )
+    logger.debug(
+        "[on_validate_change_v2] table_idx=%d change_idx=%d -> table_idx=%d change_idx=%d",
         table_idx,
         change_idx,
-        decision,
         new_table_idx,
         new_change_idx,
     )
 
-    return new_queue, new_change_idx, new_table_idx
+    return new_queue, next_selection, new_change_idx, new_table_idx
 
 
 @callback(
+    Output("store-review-selection", "data", allow_duplicate=True),
     Output("store-current-change-idx", "data", allow_duplicate=True),
     Input("btn-prev-change-v2", "n_clicks"),
     Input("btn-next-change-v2", "n_clicks"),
     State("store-review-queue", "data"),
-    State("store-review-current-idx", "data"),
-    State("store-current-change-idx", "data"),
+    State("store-review-selection", "data"),
+    State("store-review-filters", "data"),
     prevent_initial_call=True,
 )
-def on_navigate_change_v2(prev, next_c, queue, table_idx, change_idx):
+def on_navigate_change_v2(prev, next_c, queue, selection, filters):
     """Navigate prev/next within current table's changes (V2)."""
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
 
-    table_idx = int(table_idx or 0)
-    change_idx = int(change_idx or 0)
-
-    if table_idx >= len(queue):
+    resolved_selection, table_idx, change_idx = _resolve_selection(queue, selection, filters)
+    if table_idx < 0:
         raise PreventUpdate
 
     table = queue[table_idx]
-    n_changes = len(table.get("changes", []))
+    changes = table.get("changes", [])
+    n_changes = len(changes)
+    selected_change_id = str(resolved_selection.get("change_id") or "")
+    if selected_change_id:
+        for idx, change in enumerate(changes):
+            if str(change.get("change_id", "")) == selected_change_id:
+                change_idx = idx
+                break
 
     if ctx.triggered_id == "btn-prev-change-v2":
         new_idx = max(0, change_idx - 1)
@@ -3356,58 +3788,122 @@ def on_navigate_change_v2(prev, next_c, queue, table_idx, change_idx):
     else:
         raise PreventUpdate
 
-    return new_idx
+    new_change_id = (
+        str(changes[new_idx].get("change_id", ""))
+        if 0 <= new_idx < len(changes)
+        else None
+    )
+    new_selection = {
+        "review_id": resolved_selection.get("review_id"),
+        "change_id": new_change_id,
+    }
+    new_selection, _, new_change_idx = _resolve_selection(queue, new_selection, filters)
+    return new_selection, new_change_idx
 
 
 @callback(
+    Output("store-review-selection", "data", allow_duplicate=True),
+    Output("store-current-change-idx", "data", allow_duplicate=True),
+    Input({"type": "change-row-v2", "change_id": ALL}, "n_clicks"),
+    State("store-review-queue", "data"),
+    State("store-review-selection", "data"),
+    State("store-review-filters", "data"),
+    prevent_initial_call=True,
+)
+def on_change_row_click(n_clicks, queue, selection, filters):
+    """Select a specific change row by stable change_id."""
+    if not ctx.triggered_id or not queue:
+        raise PreventUpdate
+    trig = ctx.triggered_id
+    if not isinstance(trig, dict) or trig.get("type") != "change-row-v2":
+        raise PreventUpdate
+    change_id = str(trig.get("change_id") or "")
+    if not change_id:
+        raise PreventUpdate
+
+    resolved_selection, table_idx, _ = _resolve_selection(queue, selection, filters)
+    if table_idx < 0:
+        raise PreventUpdate
+    table = queue[table_idx]
+    if not any(str(c.get("change_id", "")) == change_id for c in (table.get("changes", []) or [])):
+        raise PreventUpdate
+    new_selection = {
+        "review_id": resolved_selection.get("review_id"),
+        "change_id": change_id,
+    }
+    new_selection, _, new_change_idx = _resolve_selection(queue, new_selection, filters)
+    return new_selection, new_change_idx
+
+
+@callback(
+    Output("store-review-selection", "data", allow_duplicate=True),
     Output("store-review-current-idx", "data", allow_duplicate=True),
     Output("store-current-change-idx", "data", allow_duplicate=True),
     Input("btn-prev-table-v2", "n_clicks"),
     Input("btn-next-table-v2", "n_clicks"),
-    Input({"type": "queue-table-item-v2", "index": ALL}, "n_clicks"),
+    Input({"type": "queue-table-item-v2", "review_id": ALL}, "n_clicks"),
     State("store-review-queue", "data"),
-    State("store-review-current-idx", "data"),
+    State("store-review-selection", "data"),
+    State("store-review-filters", "data"),
     prevent_initial_call=True,
 )
-def on_navigate_table_v2(prev, next_t, clicks, queue, table_idx):
-    """Navigate between tables (V2)."""
+def on_navigate_table_v2(prev, next_t, clicks, queue, selection, filters):
+    """Navigate between tables (V2) using stable review IDs."""
     if not queue:
         raise PreventUpdate
 
-    table_idx = int(table_idx or 0)
-    n_tables = len(queue)
+    resolved_selection, table_idx, _ = _resolve_selection(queue, selection, filters)
+    visible_ids = _visible_review_ids(queue, filters) or [
+        _review_id(t) for t in queue if _review_id(t)
+    ]
+    if not visible_ids:
+        raise PreventUpdate
 
+    current_review_id = str(resolved_selection.get("review_id") or "")
+    if current_review_id not in visible_ids:
+        current_review_id = visible_ids[0]
+    pos = visible_ids.index(current_review_id)
+
+    target_review_id = current_review_id
     if ctx.triggered_id == "btn-prev-table-v2":
-        new_idx = max(0, table_idx - 1)
+        target_review_id = visible_ids[max(0, pos - 1)]
     elif ctx.triggered_id == "btn-next-table-v2":
-        new_idx = min(n_tables - 1, table_idx + 1)
+        target_review_id = visible_ids[min(len(visible_ids) - 1, pos + 1)]
     elif (
         isinstance(ctx.triggered_id, dict)
         and ctx.triggered_id.get("type") == "queue-table-item-v2"
     ):
-        new_idx = ctx.triggered_id.get("index", table_idx)
+        clicked_review_id = str(ctx.triggered_id.get("review_id") or "")
+        if clicked_review_id:
+            target_review_id = clicked_review_id
     else:
         raise PreventUpdate
 
-    # Reset change_idx when switching tables
-    return new_idx, 0
+    _, target_table = _get_table_by_review_id(queue, target_review_id)
+    new_selection = {
+        "review_id": target_review_id,
+        "change_id": _resolve_change_id(target_table or {}, None),
+    }
+    new_selection, new_table_idx, new_change_idx = _resolve_selection(
+        queue, new_selection, filters
+    )
+    return new_selection, new_table_idx, new_change_idx
 
 
 @callback(
     Output("btn-next-table-v2", "disabled"),
     Input("store-review-queue", "data"),
-    Input("store-review-current-idx", "data"),
+    Input("store-review-selection", "data"),
 )
-def block_next_table_until_complete_v2(queue, table_idx):
+def block_next_table_until_complete_v2(queue, selection):
     """Disable 'Next Table' if current table has required pending changes."""
     if not queue:
         return False
 
-    table_idx = int(table_idx or 0)
-    if table_idx >= len(queue):
+    _, table = _get_table_by_review_id(queue, (selection or {}).get("review_id"))
+    if table is None:
         return False
 
-    table = queue[table_idx]
     changes = table.get("changes", [])
 
     # Block if any required change is still pending

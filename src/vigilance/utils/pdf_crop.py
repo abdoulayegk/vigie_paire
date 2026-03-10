@@ -94,6 +94,7 @@ def crop_table_region_to_bytes(
     bbox_norm: list[float],
     scale: float = 1.5,
     bottom_extension: float = 0.0,
+    top_extension: float = 0.0,
     dpi: int | None = None,
 ) -> bytes:
     """
@@ -105,6 +106,7 @@ def crop_table_region_to_bytes(
         bbox_norm: Normalized bounding box [l, t, r, b] in 0..1.
         scale: Render scale when dpi is not set (default 1.5, same as proof previews).
         bottom_extension: Extra height below bbox (e.g. for footnotes), in normalized 0..1.
+        top_extension: Extra height above bbox (e.g. for title or missed rows), in normalized 0..1.
         dpi: If set, render at this resolution (72 * zoom); overrides scale. Use 300 for Vision/OCR.
 
     Returns:
@@ -135,9 +137,10 @@ def crop_table_region_to_bytes(
             page = doc[page_idx]
             rect = page.rect
             l_norm, t_norm, r_norm, b_norm = bbox_norm
+            t_norm_effective = max(0.0, t_norm - top_extension)
             b_norm_effective = min(1.0, b_norm + bottom_extension)
             x0 = rect.x0 + l_norm * rect.width
-            y0 = rect.y0 + t_norm * rect.height
+            y0 = rect.y0 + t_norm_effective * rect.height
             x1 = rect.x0 + r_norm * rect.width
             y1 = rect.y0 + b_norm_effective * rect.height
             clip = fitz.Rect(x0, y0, x1, y1)

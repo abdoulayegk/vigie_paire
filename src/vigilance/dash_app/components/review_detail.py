@@ -462,7 +462,10 @@ def build_proofs_section(
 
 
 def _build_genai_analysis_section(item: dict) -> html.Div:
-    """Build the GenAI analysis block for display in the detail panel."""
+    """Build the GenAI analysis block for display in the detail panel.
+    Always shows the section: with data when genai_analysis has relevance,
+    or a placeholder when classification was not run or failed.
+    """
     _REL_DISPLAY = {
         "REGLEMENTAIRE": "Reglementaire",
         "NON_SIGNIFICATIF": "Non significatif",
@@ -481,7 +484,20 @@ def _build_genai_analysis_section(item: dict) -> html.Div:
     _RISK_COLORS = {"ELEVE": "danger", "MODERE": "warning", "FAIBLE": "success"}
     ga = item.get("genai_analysis") or {}
     if not ga.get("relevance"):
-        return html.Div()
+        placeholder = (
+            "Classification non executee. Activez l'option "
+            "'Classifier les changements avec GenAI' dans les options et relancez l'analyse."
+        )
+        return html.Div(
+            [
+                html.H6("Analyse GenAI", className="text-muted small mb-2"),
+                html.Div(
+                    html.Small(placeholder, className="text-muted fst-italic"),
+                    className="p-2 bg-light rounded",
+                ),
+            ],
+            className="mb-3 p-2 border rounded",
+        )
     rel = ga.get("relevance", "")
     risk = ga.get("risk_level", "")
     conf = ga.get("confidence", 0.0)

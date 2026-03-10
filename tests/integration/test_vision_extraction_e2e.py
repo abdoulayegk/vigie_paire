@@ -1,6 +1,6 @@
 """E2E integration test for Vision extraction pipeline.
 
-Verifies extract_tables_docling_by_sections with use_vision_primary=True
+Verifies extract_tables_docling_by_sections with use_vision_extraction=True
 produces tables that write_footnotes_json outputs correctly (real text in
 footnotes_content, no dict repr).
 """
@@ -45,9 +45,9 @@ def test_vision_pipeline_produces_footnotes_with_real_text(tmp_path: Path) -> No
         year: int,
         *,
         page_ranges: object = None,
-        use_vision_primary: bool | None = None,
+        use_vision_extraction: bool | None = None,
     ) -> ExtractedDocument:
-        assert use_vision_primary is True
+        assert use_vision_extraction is True
         return ExtractedDocument(
             file_path=path,
             bank_code=bank_code,
@@ -67,7 +67,7 @@ def test_vision_pipeline_produces_footnotes_with_real_text(tmp_path: Path) -> No
             quarter="t1",
             year=2025,
             section_ranges=[{"section": "test_section", "start": 1, "end": 1}],
-            use_vision_primary=True,
+            use_vision_extraction=True,
         )
 
     assert tables
@@ -97,7 +97,7 @@ def test_vision_pipeline_produces_footnotes_with_real_text(tmp_path: Path) -> No
 
 
 def test_docling_only_flags_stay_strict_when_disabled(tmp_path: Path) -> None:
-    """Docling-only run must not implicitly activate Vision primary/fallback flags."""
+    """Docling-only run must not implicitly activate Vision extraction flags."""
     pdf_path = tmp_path / "dummy.pdf"
     pdf_path.write_bytes(b"")
 
@@ -119,9 +119,9 @@ def test_docling_only_flags_stay_strict_when_disabled(tmp_path: Path) -> None:
         year: int,
         *,
         page_ranges: object = None,
-        use_vision_primary: bool | None = None,
+        use_vision_extraction: bool | None = None,
     ) -> ExtractedDocument:
-        assert use_vision_primary is False
+        assert use_vision_extraction is False
         return ExtractedDocument(
             file_path=path,
             bank_code=bank_code,
@@ -141,7 +141,7 @@ def test_docling_only_flags_stay_strict_when_disabled(tmp_path: Path) -> None:
             quarter="t1",
             year=2025,
             section_ranges=[{"section": "test_section", "start": 1, "end": 1}],
-            use_vision_primary=False,
+            use_vision_extraction=False,
         )
 
     assert tables

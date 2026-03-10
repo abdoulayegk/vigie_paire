@@ -17,6 +17,10 @@ _INDICATOR_TRAILING_SPACE_NUMS_COMMA = re.compile(r"\s+\d+(?:\s*,\s*\d+)+\s*$")
 _INDICATOR_TRAILING_NOTE_CLUSTER = re.compile(
     r"(?:\s*,?\s*(?:[\(\[]\d+[\)\]]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+|[*\u2020\u2021\u00A7]+))+[\s,;:.]*$"
 )
+# Letter footnote markers: (a), (b), [a], a), b) at end of label
+_INDICATOR_TRAILING_PAREN_LETTER = re.compile(
+    r"\s*(?:\([a-zA-Z]\)|\[[a-zA-Z]\]|[a-zA-Z]\))\s*$"
+)
 
 _STOPWORDS = frozenset(
     {"de", "du", "des", "la", "le", "les", "et", "ou", "and", "the", "of", "to", "en", "au", "aux", "a", "an"}
@@ -26,8 +30,11 @@ _UNIT_TOKENS = frozenset(
 )
 
 
-def _strip_footnote_markers(text: str) -> str:
-    """Remove trailing footnote markers; preserves semantic numbers (Tier 1, CET1, etc.)."""
+def strip_footnote_markers_from_indicator(text: str) -> str:
+    """Remove trailing footnote markers; preserves semantic numbers (Tier 1, CET1, etc.).
+
+    Single shared implementation used by comparison_runner and get_canonical_text.
+    """
     if not text:
         return ""
     value = (text or "").strip()
@@ -37,6 +44,7 @@ def _strip_footnote_markers(text: str) -> str:
         value = _INDICATOR_TRAILING_SUPER.sub("", value)
         value = _INDICATOR_TRAILING_STARS.sub("", value)
         value = _INDICATOR_TRAILING_PAREN_NUM.sub("", value)
+        value = _INDICATOR_TRAILING_PAREN_LETTER.sub("", value)
         value = _INDICATOR_TRAILING_NOTE_NUM.sub("", value)
         value = _INDICATOR_TRAILING_COMMA_NUMS.sub("", value)
         value = _INDICATOR_TRAILING_SPACE_NUMS_COMMA.sub("", value)
@@ -53,7 +61,7 @@ def get_canonical_text(text: str) -> str:
     """
     if not text or not (text or "").strip():
         return ""
-    stripped = _strip_footnote_markers(text)
+    stripped = strip_footnote_markers_from_indicator(text)
     return normalize_indicator_for_comparison(stripped)
 
 

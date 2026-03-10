@@ -16,14 +16,22 @@ from vigilance.extraction.vision_full_extractor import (
 
 def test_parse_vision_result_valid_with_defaults() -> None:
     raw = {
-        "indicators": [" Ratio CET1 ", "", "Total"],
+        "reasoning_scratchpad": "Test analysis",
+        "indicators": [
+            {"text": " Ratio CET1 ", "bbox": [0.1, 0.2, 0.4, 0.25]},
+            {"text": "", "bbox": None},
+            {"text": "Total", "bbox": [0.1, 0.3, 0.4, 0.34]},
+        ],
         "footnotes_content": {"1": " Note A ", "2": "Note B"},
         "footnote_markers": ["1", " 2 "],
         "confidence": 0.91,
     }
     parsed = _parse_vision_result(raw)
     assert parsed is not None
-    assert parsed.indicators == ["Ratio CET1", "Total"]
+    assert len(parsed.indicators) == 2
+    assert parsed.indicators[0]["text"] == "Ratio CET1"
+    assert parsed.indicators[0]["bbox"] == [0.1, 0.2, 0.4, 0.25]
+    assert parsed.indicators[1]["text"] == "Total"
     # footnotes_content is now an ordered list of dicts with 'marker' key
     assert parsed.footnotes_content == [
         {"marker": "1", "text": "Note A"},
@@ -42,7 +50,8 @@ def test_parse_vision_result_valid_with_defaults() -> None:
 
 def test_parse_vision_result_valid_full_payload() -> None:
     raw = {
-        "indicators": ["A"],
+        "reasoning_scratchpad": "Analysis",
+        "indicators": [{"text": "A", "bbox": None}],
         "footnotes_content": {"(1)": "Texte"},
         "footnote_markers": ["(1)"],
         "confidence": 0.8,
@@ -62,9 +71,10 @@ def test_parse_vision_result_valid_full_payload() -> None:
 def test_parse_vision_result_recovers_wrapped_payload() -> None:
     raw = {
         "Reponse actuelle": {
+            "reasoning_scratchpad": "Wrapped analysis",
             "table_title": "Tableau 1",
             "headers": ["Colonne 1"],
-            "indicators": ["Ratio CET1"],
+            "indicators": [{"text": "Ratio CET1", "bbox": [0.1, 0.2, 0.4, 0.25]}],
             "rows": [["Ratio CET1", "13,1 %"]],
             "footnotes_content": [{"id": "1", "text": "Note"}],
             "footnote_markers": ["1"],
@@ -79,13 +89,14 @@ def test_parse_vision_result_recovers_wrapped_payload() -> None:
     parsed = _parse_vision_result(raw)
     assert parsed is not None
     assert parsed.table_title == "Tableau 1"
-    assert parsed.indicators == ["Ratio CET1"]
+    assert parsed.indicators[0]["text"] == "Ratio CET1"
     assert parsed.confidence == 0.93
 
 
 def test_parse_vision_result_rejects_missing_required() -> None:
     raw = {
-        "indicators": ["A"],
+        "reasoning_scratchpad": "test",
+        "indicators": [{"text": "A", "bbox": None}],
         "footnotes_content": {},
         # missing footnote_markers + confidence
     }
@@ -94,6 +105,7 @@ def test_parse_vision_result_rejects_missing_required() -> None:
 
 def test_parse_vision_result_rejects_wrong_types() -> None:
     raw = {
+        "reasoning_scratchpad": "test",
         "indicators": "not-a-list",
         "footnotes_content": [],
         "footnote_markers": {},
@@ -104,7 +116,8 @@ def test_parse_vision_result_rejects_wrong_types() -> None:
 
 def test_parse_vision_result_rejects_height_out_of_range() -> None:
     raw = {
-        "indicators": ["A"],
+        "reasoning_scratchpad": "test",
+        "indicators": [{"text": "A", "bbox": None}],
         "footnotes_content": {},
         "footnote_markers": [],
         "confidence": 0.5,
@@ -123,7 +136,7 @@ def test_openai_json_schema_contains_strict_contract() -> None:
     required = set(s["required"])
     properties = set(s["properties"].keys())
     assert required == properties
-    # Original required fields
+    assert "reasoning_scratchpad" in required
     assert "appears_truncated" in required
     assert "estimated_content_height" in required
     # New content fields

@@ -24,6 +24,7 @@ from typing import Any, Protocol
 
 from vigilance.config import get_matching_thresholds
 from vigilance.models.table_models import TableArtifact, get_comparison_indicators
+from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.matching_normalizer import (
     header_schema_similarity,
     is_generic_title,
@@ -180,7 +181,16 @@ def _normalized_table_number(table: TableArtifact) -> str:
 
 
 def _indicator_keys(table: TableArtifact) -> list[str]:
-    return _dedupe_preserve_order(get_comparison_indicators(table))
+    """Return canonical indicator keys for pairing overlap (footnote markers normalized away)."""
+    raw = get_comparison_indicators(table)
+    keys: list[str] = []
+    seen: set[str] = set()
+    for s in raw:
+        k = normalize_indicator_for_comparison(str(s or "").strip())
+        if k and k not in seen:
+            seen.add(k)
+            keys.append(k)
+    return keys
 
 
 def _is_known_section(value: str | None) -> bool:

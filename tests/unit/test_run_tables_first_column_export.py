@@ -34,7 +34,7 @@ def test_run_tables_exports_first_column_indicators_region_table(tmp_path: Path,
         quarter: str,
         year: int,
         section_ranges: list[dict],
-        use_vision_primary: object = None,
+        use_vision_extraction: object = None,
     ) -> list[SimpleNamespace]:
         return [
             SimpleNamespace(

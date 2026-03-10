@@ -122,6 +122,66 @@ def _get_change_description(change: dict) -> str:
     return payload.get("description", "Changement")
 
 
+def _is_table_only_view(table: dict) -> bool:
+    """True when review should be at table level (added/removed table)."""
+    for change in table.get("changes", []) or []:
+        ctype = change.get("change_type", "")
+        if ctype in (
+            ChangeType.TABLE_ADDED.value,
+            ChangeType.TABLE_REMOVED.value,
+            "table_added",
+            "table_removed",
+        ):
+            return True
+    return False
+
+
+def _build_genai_section(table: dict) -> html.Div:
+    """Render concise GenAI explanation block for analyst review."""
+    ga = table.get("genai_analysis") or {}
+    relevance = str(ga.get("relevance", "") or "")
+    risk = str(ga.get("risk_level", "") or "")
+    confidence = ga.get("confidence", None)
+    justification = str(ga.get("justification", "") or "").strip()
+
+    if not any([relevance, risk, justification]):
+        return html.Div(
+            [
+                html.H6("Explication GenAI", className="mb-2"),
+                html.P("Aucune explication GenAI disponible.", className="text-muted mb-0"),
+            ],
+            className="mb-4",
+        )
+
+    chips = []
+    if relevance:
+        chips.append(dbc.Badge(relevance, color="primary", className="me-2"))
+    if risk:
+        chips.append(dbc.Badge(f"Risque {risk}", color="warning", className="me-2"))
+    if confidence is not None:
+        try:
+            conf_pct = max(0.0, min(1.0, float(confidence))) * 100
+            chips.append(
+                dbc.Badge(
+                    f"Confiance {conf_pct:.0f}%",
+                    color="light",
+                    text_color="dark",
+                    className="me-2",
+                )
+            )
+        except (TypeError, ValueError):
+            pass
+
+    return html.Div(
+        [
+            html.H6("Explication GenAI", className="mb-2"),
+            html.Div(chips, className="mb-2"),
+            html.P(justification or "Explication non fournie.", className="mb-0"),
+        ],
+        className="mb-4",
+    )
+
+
 def build_change_list_v2(
     changes: list[dict],
     current_change_idx: int,
@@ -148,6 +208,7 @@ def build_change_list_v2(
         status = change.get("validation_status", "pending")
         change_type = change.get("change_type", "")
         is_required = change.get("is_required", True)
+        change_id = str(change.get("change_id", "") or f"idx_{idx}")
 
         # Status icon
         if status == "approved":
@@ -207,7 +268,7 @@ def build_change_list_v2(
                 if change.get("validation_notes")
                 else None,
             ],
-            id={"type": "change-row-v2", "index": idx},
+            id={"type": "change-row-v2", "change_id": change_id},
             className=f"p-2 {current_class}",
             style={"cursor": "pointer"},
             action=True,
@@ -360,6 +421,7 @@ def build_review_detail_v2(
     current_change_idx: int,
     proof_image_t1_b64: str = "",
     proof_image_t2_b64: str = "",
+    show_proofs: bool = True,
 ) -> html.Div:
     """Build the complete review detail panel V2.
 
@@ -459,6 +521,8 @@ def build_review_detail_v2(
         className="mb-3",
     )
 
+    table_only_view = _is_table_only_view(table)
+
     # Proof images
     proof_section = html.Div(
         [
@@ -524,23 +588,35 @@ def build_review_detail_v2(
             ),
         ],
         className="mb-4",
-    )
+    ) if show_proofs else html.Div()
+
+    genai_section = _build_genai_section(table)
 
     # Changes list
     changes = table.get("changes", [])
-    changes_section = html.Div(
-        [
-            html.H6(
-                [
-                    html.I(className="bi bi-list-check me-2"),
-                    f"Changements ({len(changes)})",
-                ],
-                className="mb-2",
-            ),
-            build_change_list_v2(changes, current_change_idx),
-        ],
-        className="mb-4",
-    )
+    if table_only_view:
+        changes_section = dbc.Alert(
+            [
+                html.I(className="bi bi-table me-2"),
+                "Validation au niveau tableau: aucun détail indicateur à afficher.",
+            ],
+            color="info",
+            className="mb-4",
+        )
+    else:
+        changes_section = html.Div(
+            [
+                html.H6(
+                    [
+                        html.I(className="bi bi-list-check me-2"),
+                        f"Changements ({len(changes)})",
+                    ],
+                    className="mb-2",
+                ),
+                build_change_list_v2(changes, current_change_idx),
+            ],
+            className="mb-4",
+        )
 
     # Validation panel
     validation_section = html.Div(
@@ -600,6 +676,7 @@ def build_review_detail_v2(
             summary_badges,
             html.Hr(),
             proof_section,
+            genai_section,
             changes_section,
             validation_section,
             table_nav,

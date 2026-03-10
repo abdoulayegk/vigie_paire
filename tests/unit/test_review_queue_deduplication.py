@@ -69,6 +69,28 @@ class TestComputeTableKey:
         assert key.startswith("bnc::liquidity::title:")
         assert len(key.split("::")[-1]) > 10  # Hash should be present
 
+    def test_key_fallback_includes_page_signature(self):
+        """Fallback key should differ for same title/section on different pages."""
+        key_p10 = compute_table_key(
+            bank_code="bnc",
+            section="Liquidity",
+            table_id_t1="",
+            table_id_t2="",
+            table_title="Liquidity Coverage Ratio",
+            page_t1=10,
+            page_t2=11,
+        )
+        key_p30 = compute_table_key(
+            bank_code="bnc",
+            section="Liquidity",
+            table_id_t1="",
+            table_id_t2="",
+            table_title="Liquidity Coverage Ratio",
+            page_t1=30,
+            page_t2=31,
+        )
+        assert key_p10 != key_p30
+
     def test_key_normalizes_section(self):
         """Section should be normalized (lowercase, stripped)."""
         key1 = compute_table_key("rbc", "  Credit Risk  ", "t1", "t2", "Table")
@@ -216,6 +238,24 @@ class TestReviewTableItem:
         table.update_status()
         assert table.table_status == "completed"
 
+    def test_to_dict_has_review_id_and_view_mode(self):
+        """Serialized table should expose stable review_id and resolved view_mode."""
+        table = ReviewTableItem(
+            table_key="rbc::risk::t1|t2",
+            section="Risk",
+            table_name="Table A",
+            table_number="1",
+            table_id_t1="t1",
+            table_id_t2="t2",
+            page_t1=1,
+            page_t2=2,
+            changes=[ChangeItem("c1", "table_added", {"description": "whole table"})],
+        )
+        d = table.to_dict()
+        assert d["review_id"] == "rbc::risk::t1|t2"
+        assert d["table_title"] == "Table A"
+        assert d["view_mode"] == "table_only"
+
 
 class TestNormalizeReviewQueue:
     """Tests for normalize_review_queue function."""
@@ -349,6 +389,34 @@ class TestNormalizeReviewQueue:
 
         assert len(result) == 1
         assert len(result[0].changes) == 1  # Only one change, not two
+
+    def test_table_level_precedence_drops_indicator_changes(self):
+        """When table_added/table_removed exists, table review is table-only."""
+        raw_items = [
+            {
+                "section": "Credit Risk",
+                "table_name": "Table A",
+                "table_id_t1": "",
+                "table_id_t2": "t2",
+                "item_type": "indicator",
+                "indicators": [{"name": "Ind1", "name_clean": "ind1", "type": "added"}],
+            },
+            {
+                "section": "Credit Risk",
+                "table_name": "Table A",
+                "table_id_t1": "",
+                "table_id_t2": "t2",
+                "change_type": "table_added",
+                "item_type": "indicator",
+                "indicators": [],
+                "indicator": "table entière",
+            },
+        ]
+
+        result = normalize_review_queue(raw_items, "rbc", "Q3", "Q4")
+        assert len(result) == 1
+        assert len(result[0].changes) == 1
+        assert result[0].changes[0].change_type == "table_added"
 
     def test_sorts_by_section_page_name(self):
         """Result should be sorted by section, page, then name."""

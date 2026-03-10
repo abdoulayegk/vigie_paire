@@ -77,6 +77,7 @@ UI_LABELS: dict[str, str] = {
     "no_table_removed_t2": "Aucun tableau dans le trimestre courant",
     "decision_analyst": "Decision de l'Analyste",
     "comment_optional": "Commentaire (Optionnel)",
+    "option_force_reextract": "Forcer la ré-extraction (ignorer le cache)",
 }
 
 # -----------------------------------------------------------------------------

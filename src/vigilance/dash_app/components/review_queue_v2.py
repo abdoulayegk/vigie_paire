@@ -76,14 +76,14 @@ def _queue_page_summary_v2(table: dict) -> str:
 
 def build_review_queue_v2(
     tables: list[dict],
-    current_idx: int,
+    current_review_id: str | None,
     active_filters: dict | None = None,
 ) -> html.Div:
     """Build the left-side review queue panel V2 with grouped tables.
 
     Args:
         tables: List of ReviewTableItem dicts (from store-review-queue)
-        current_idx: Currently selected table index
+        current_review_id: Currently selected review_id
         active_filters: Optional filters (section, status)
 
     Returns:
@@ -173,9 +173,10 @@ def build_review_queue_v2(
             icon = html.I(className="bi bi-circle text-warning me-2")
 
         # Active class
+        review_id = str(table.get("review_id") or table.get("table_key") or "")
         active_class = (
             "bg-light border-start border-4 border-primary"
-            if full_idx == current_idx
+            if review_id and review_id == str(current_review_id or "")
             else "border-bottom"
         )
 
@@ -293,7 +294,7 @@ def build_review_queue_v2(
                 )
             ],
             action=True,
-            id={"type": "queue-table-item-v2", "index": full_idx},
+            id={"type": "queue-table-item-v2", "review_id": review_id},
             className=f"p-2 {active_class}",
             style={"cursor": "pointer"},
         )

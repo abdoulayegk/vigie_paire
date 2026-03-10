@@ -8,15 +8,15 @@ from types import SimpleNamespace
 from app.comparison_runner import (
     _compute_extraction_kpis,
     _extract_tables,
-    _resolve_vision_primary_mode,
+    _resolve_vision_extraction_enabled,
 )
 from vigilance.models.table_models import TableArtifact, VISION_CONTENT_SOURCE
 
 
-def test_resolve_vision_primary_explicit_overrides_env(monkeypatch) -> None:
-    monkeypatch.setenv("VIGILANCE_VISION_PRIMARY", "1")
-    assert _resolve_vision_primary_mode("bnc", False, allow_env_legacy=True) is False
-    assert _resolve_vision_primary_mode("bnc", True, allow_env_legacy=True) is True
+def test_resolve_vision_extraction_explicit_overrides_env(monkeypatch) -> None:
+    monkeypatch.setenv("VIGILANCE_VISION_EXTRACTION_ENABLED", "1")
+    assert _resolve_vision_extraction_enabled("bnc", False, allow_env_legacy=True) is False
+    assert _resolve_vision_extraction_enabled("bnc", True, allow_env_legacy=True) is True
 
 
 def test_extract_tables_forwards_flags_without_env_mutation(monkeypatch) -> None:
@@ -31,14 +31,14 @@ def test_extract_tables_forwards_flags_without_env_mutation(monkeypatch) -> None
         quarter: str,
         year: int,
         section_ranges: list[dict[str, object]],
-        use_vision_primary: bool | None = None,
+        use_vision_extraction: bool | None = None,
     ) -> list[object]:
         seen["pdf_path"] = pdf_path
         seen["bank_code"] = bank_code
         seen["quarter"] = quarter
         seen["year"] = year
         seen["section_ranges"] = section_ranges
-        seen["use_vision_primary"] = use_vision_primary
+        seen["use_vision_extraction"] = use_vision_extraction
         return []
 
     monkeypatch.setattr(dp, "extract_tables_docling_by_sections", fake_extract_tables_docling_by_sections)
@@ -50,11 +50,11 @@ def test_extract_tables_forwards_flags_without_env_mutation(monkeypatch) -> None
         year=2025,
         section_ranges=[{"section": "s", "start": 1, "end": 1}],
         api_key=None,
-        use_vision_primary=False,
+        use_vision_extraction=False,
         use_stored_extraction_if_available=False,
     )
 
-    assert seen["use_vision_primary"] is False
+    assert seen["use_vision_extraction"] is False
 
 
 def test_extract_tables_reuses_stored_when_fresh_extraction_is_empty(
@@ -125,7 +125,7 @@ def test_extract_tables_reuses_stored_when_fresh_extraction_is_empty(
         year=2025,
         section_ranges=[{"section": "s", "start": 1, "end": 1}],
         api_key=None,
-        use_vision_primary=True,
+        use_vision_extraction=True,
         use_stored_extraction_if_available=False,
         extraction_base_dir=str(tmp_path),
     )
@@ -134,7 +134,7 @@ def test_extract_tables_reuses_stored_when_fresh_extraction_is_empty(
     assert save_called["count"] == 0
 
 
-def test_extraction_kpis_include_vision_primary_contract_fields() -> None:
+def test_extraction_kpis_include_vision_extraction_contract_fields() -> None:
     table = TableArtifact(
         bank_code="bnc",
         section="capital_management",
@@ -146,10 +146,10 @@ def test_extraction_kpis_include_vision_primary_contract_fields() -> None:
         first_column_indicators=[],
         extraction_method="docling",
         debug_metrics={
-            "vision_primary_attempted": True,
-            "vision_primary_applied": False,
+            "vision_extraction_attempted": True,
+            "vision_extraction_applied": False,
             "vision_schema_contract_failed": True,
-            "vision_primary_disabled_reason": "Vision schema contract invalid: Missing 'appears_truncated'",
+            "vision_extraction_disabled_reason": "Vision schema contract invalid: Missing 'appears_truncated'",
         },
     )
     kpis = _compute_extraction_kpis(
@@ -159,11 +159,11 @@ def test_extraction_kpis_include_vision_primary_contract_fields() -> None:
         tables_added=[],
         tables_removed=[],
     )
-    assert kpis["vision_primary_attempted_count"] == 1
-    assert kpis["vision_primary_applied_count"] == 0
+    assert kpis["vision_extraction_attempted_count"] == 1
+    assert kpis["vision_extraction_applied_count"] == 0
     assert kpis["vision_schema_contract_fail_count"] == 1
     assert "Vision schema contract invalid" in str(
-        kpis["vision_primary_disabled_reason"]
+        kpis["vision_extraction_disabled_reason"]
     )
 
 

@@ -14,6 +14,7 @@ from vigilance.models.table_models import (
     TableArtifact,
     infer_content_source,
 )
+from vigilance.report.export_json import write_tables_docling
 from vigilance.utils.footnotes_utils import normalize_footnotes_to_canonical
 from vigilance.utils.indicator_cleaner import (
     dedupe_indicators,
@@ -21,7 +22,6 @@ from vigilance.utils.indicator_cleaner import (
     normalize_indicator_for_comparison,
     post_normalize_indicator,
 )
-from vigilance.report.export_json import write_tables_docling
 from vigilance.utils.rbc_table_signals import (
     build_rbc_first_column_signals,
     classify_rbc_title_reliability,
@@ -169,17 +169,10 @@ def _to_artifacts(
             if normalized:
                 comparison_normalized_indicators.append(normalized)
 
-        comparison_blockers: list[str] = []
-        if content_source != VISION_CONTENT_SOURCE:
-            comparison_blockers.append("non_vision_content_source")
-        if not vision_raw_indicators:
-            comparison_blockers.append("missing_vision_indicators")
-
+        # comparison_blockers are recomputed by TableArtifact.__post_init__
         footnotes_raw = getattr(table, "footnotes", None)
         if footnotes_raw is None:
             canonical_footnotes = None
-            if content_source == VISION_CONTENT_SOURCE:
-                comparison_blockers.append("footnotes_unavailable")
         else:
             canonical_footnotes = normalize_footnotes_to_canonical(footnotes_raw)
 
@@ -211,7 +204,6 @@ def _to_artifacts(
                 ),
                 footnotes=canonical_footnotes,
                 content_source=content_source,
-                comparison_blockers=comparison_blockers,
             )
         )
     return artifacts

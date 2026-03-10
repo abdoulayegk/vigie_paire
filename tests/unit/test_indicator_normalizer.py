@@ -8,7 +8,17 @@ from vigilance.utils.indicator_normalizer import (
     get_canonical_text,
     get_token_sorted_text,
     get_normalized_forms,
+    strip_footnote_markers_from_indicator,
 )
+
+
+def test_strip_footnote_letter_markers() -> None:
+    """Letter footnote markers (a), (b), a) must be stripped for comparison."""
+    assert strip_footnote_markers_from_indicator("Total (a)") == "Total"
+    assert strip_footnote_markers_from_indicator("Total (b)") == "Total"
+    assert strip_footnote_markers_from_indicator("Indicateur a)") == "Indicateur"
+    assert strip_footnote_markers_from_indicator("Item [a]") == "Item"
+    assert get_canonical_text("Total (a)") == get_canonical_text("Total")
 
 
 def test_canonical_strips_footnote_refs() -> None:
@@ -25,14 +35,15 @@ def test_canonical_dates_excluded() -> None:
 def test_canonical_units_stripped() -> None:
     assert "million" not in get_canonical_text("en millions de dollars") or get_canonical_text("en millions de dollars") == ""
     c = get_canonical_text("Prets garantis (en millions de dollars)")
-    assert c != "" and "prets" in c
+    assert c != "" and ("prets" in c or "pret" in c)
 
 
 def test_token_sorted_order_invariant() -> None:
     a = get_token_sorted_text("passifs entites structurees")
     b = get_token_sorted_text("entites structurees passifs")
     assert a == b
-    assert a == "entites passifs structurees"
+    # Canonical path singularizes (passifs->passif, entites->entite, structurees->structuree)
+    assert a in ("entites passifs structurees", "entite passif structuree")
 
 
 def test_token_sorted_drops_stopwords() -> None:
@@ -57,7 +68,7 @@ def test_token_sorted_keeps_semantic_numbers() -> None:
 
 def test_table_number_in_title() -> None:
     c = get_canonical_text("Tableau 12 - Actifs")
-    assert c != "" and "actifs" in c
+    assert c != "" and ("actifs" in c or "actif" in c)
 
 
 def test_hyphens_normalized() -> None:

@@ -74,8 +74,10 @@ def _build_processor_with_fake_doc(monkeypatch, pages: list[int]) -> DoclingProc
         _FailingVisionExtractor,
     )
     monkeypatch.setattr(
-        "vigilance.utils.pdf_crop.render_page_with_bbox_highlight_to_bytes",
-        lambda pdf_path, page_number, table_bbox, bottom_extension=0.0, dpi=300: b"fake",
+        "vigilance.utils.pdf_crop.crop_table_region_to_bytes",
+        lambda pdf_path, page_number, table_bbox, bottom_extension=0.0, top_extension=0.0, dpi=300: (
+            b"fake"
+        ),
     )
     monkeypatch.setattr(
         "vigilance.extraction.docling_processor.logger",
@@ -109,12 +111,14 @@ def test_schema_policy_fail_fast_stops_run(monkeypatch, tmp_path: Path) -> None:
             year=2026,
             page_ranges=[(1, 3)],
             labels_only=False,
-            use_vision_primary=True,
+            use_vision_extraction=True,
         )
     assert _FailingVisionExtractor.calls == 1
 
 
-def test_schema_policy_degrade_to_docling_disables_vision(monkeypatch, tmp_path: Path) -> None:
+def test_schema_policy_degrade_to_docling_disables_vision(
+    monkeypatch, tmp_path: Path
+) -> None:
     _FailingVisionExtractor.calls = 0
     processor = _build_processor_with_fake_doc(monkeypatch, pages=[1, 2])
 
@@ -133,7 +137,7 @@ def test_schema_policy_degrade_to_docling_disables_vision(monkeypatch, tmp_path:
         year=2026,
         page_ranges=[(1, 3)],
         labels_only=False,
-        use_vision_primary=True,
+        use_vision_extraction=True,
     )
 
     assert _FailingVisionExtractor.calls == 1
@@ -142,9 +146,9 @@ def test_schema_policy_degrade_to_docling_disables_vision(monkeypatch, tmp_path:
     second_dm = extracted.all_tables[1].debug_metrics or {}
     assert first_dm.get("vision_schema_contract_failed") is True
     assert "Vision schema contract invalid" in str(
-        first_dm.get("vision_primary_disabled_reason", "")
+        first_dm.get("vision_extraction_disabled_reason", "")
     )
-    assert second_dm.get("vision_primary_attempted") is False
+    assert second_dm.get("vision_extraction_attempted") is False
     assert "Vision schema contract invalid" in str(
-        second_dm.get("vision_primary_disabled_reason", "")
+        second_dm.get("vision_extraction_disabled_reason", "")
     )

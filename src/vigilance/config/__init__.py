@@ -71,6 +71,7 @@ def get_matching_thresholds(
         "indicator_gate_min_len_ratio": 0.55,
         "indicator_gate_min_token_overlap": 1,
         "indicator_similarity_weights": {"ratio": 0.4, "token_set": 0.6},
+        "neighbor_aligned_filter_enabled": True,
     }
     for k, v in _indicator_defaults.items():
         if k not in base:

@@ -7,7 +7,6 @@ Rule 5: Vision failures result in empty content, not Docling content bleed-throu
 from __future__ import annotations
 
 from vigilance.extraction.vision_full_extractor import (
-    VisionFullResult,
     _parse_vision_result,
 )
 
@@ -15,7 +14,8 @@ from vigilance.extraction.vision_full_extractor import (
 def test_parse_returns_empty_table_title_when_not_provided() -> None:
     """When Vision doesn't include a title, table_title must be empty string."""
     raw = {
-        "indicators": ["Ratio CET1"],
+        "reasoning_scratchpad": "test",
+        "indicators": [{"text": "Ratio CET1", "bbox": None}],
         "footnotes_content": [],
         "footnote_markers": [],
         "confidence": 0.80,
@@ -28,7 +28,8 @@ def test_parse_returns_empty_table_title_when_not_provided() -> None:
 def test_parse_returns_empty_headers_when_missing() -> None:
     """When Vision doesn't include headers, headers must be empty list."""
     raw = {
-        "indicators": ["Indicateur A"],
+        "reasoning_scratchpad": "test",
+        "indicators": [{"text": "Indicateur A", "bbox": None}],
         "footnotes_content": [],
         "footnote_markers": [],
         "confidence": 0.80,
@@ -41,7 +42,8 @@ def test_parse_returns_empty_headers_when_missing() -> None:
 def test_parse_returns_empty_rows_when_missing() -> None:
     """When Vision doesn't include rows, rows must be empty list."""
     raw = {
-        "indicators": ["Indicateur A"],
+        "reasoning_scratchpad": "test",
+        "indicators": [{"text": "Indicateur A", "bbox": None}],
         "footnotes_content": [],
         "footnote_markers": [],
         "confidence": 0.80,
@@ -66,7 +68,8 @@ def test_vision_failed_result_has_no_docling_content() -> None:
 def test_vision_status_ok_when_parse_succeeds() -> None:
     """vision_status must be 'ok' on successful parse."""
     raw = {
-        "indicators": ["Total"],
+        "reasoning_scratchpad": "test",
+        "indicators": [{"text": "Total", "bbox": None}],
         "footnotes_content": [],
         "footnote_markers": [],
         "confidence": 0.95,

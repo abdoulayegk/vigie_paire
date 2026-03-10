@@ -65,6 +65,8 @@ def compute_table_key(
     table_id_t1: str,
     table_id_t2: str,
     table_title: str,
+    page_t1: int | None = None,
+    page_t2: int | None = None,
 ) -> str:
     """Compute a deterministic unique key for a table or matched pair.
 
@@ -89,14 +91,15 @@ def compute_table_key(
         pair_id = f"{table_id_t1 or ''}|{table_id_t2 or ''}"
     else:
         # Fallback to title hash for tables without IDs
-        normalized_title = (table_title or "").lower().strip()[:100]
+        normalized_title = " ".join((table_title or "").lower().strip().split())[:120]
         if normalized_title:
-            pair_id = (
-                f"title:{hashlib.sha256(normalized_title.encode()).hexdigest()[:16]}"
-            )
+            page_sig = f"{page_t1 if page_t1 is not None else ''}|{page_t2 if page_t2 is not None else ''}"
+            fallback_sig = f"{normalized_section}|{normalized_title}|{page_sig}"
+            pair_id = f"title:{hashlib.sha256(fallback_sig.encode()).hexdigest()[:16]}"
         else:
             # Last resort: generate unique key (will not dedupe)
-            pair_id = f"unknown:{hashlib.sha256(f'{section}{table_title}'.encode()).hexdigest()[:16]}"
+            unknown_sig = f"{normalized_section}|{page_t1}|{page_t2}|{table_title}"
+            pair_id = f"unknown:{hashlib.sha256(unknown_sig.encode()).hexdigest()[:16]}"
 
     return f"{bank_code.lower()}::{normalized_section}::{pair_id}"
 
@@ -257,8 +260,23 @@ class ReviewTableItem:
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary for dcc.Store."""
+        changes_dict = [c.to_dict() for c in self.changes]
+        change_types = {c.get("change_type", "") for c in changes_dict}
+        view_mode = (
+            "table_only"
+            if (
+                ChangeType.TABLE_ADDED.value in change_types
+                or ChangeType.TABLE_REMOVED.value in change_types
+                or "table_added" in change_types
+                or "table_removed" in change_types
+            )
+            else "change_list"
+        )
         return {
+            "review_id": self.table_key,
             "table_key": self.table_key,
+            "table_title": self.table_name,
+            "view_mode": view_mode,
             "section": self.section,
             "table_name": self.table_name,
             "table_number": self.table_number,
@@ -273,7 +291,7 @@ class ReviewTableItem:
             "bbox_t2": list(self.bbox_t2) if self.bbox_t2 else None,
             "source_pdf_t1": self.source_pdf_t1,
             "source_pdf_t2": self.source_pdf_t2,
-            "changes": [c.to_dict() for c in self.changes],
+            "changes": changes_dict,
             "table_status": self.table_status,
             "confidence": self.confidence,
             "match_method": self.match_method,

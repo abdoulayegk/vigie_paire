@@ -28,7 +28,9 @@ NON_VISION_FATAL_BLOCKERS = frozenset(
 )
 
 
-def infer_content_source(extraction_method: str | None, explicit: str | None = None) -> str:
+def infer_content_source(
+    extraction_method: str | None, explicit: str | None = None
+) -> str:
     value = str(explicit or "").strip()
     if value:
         return value
@@ -115,7 +117,9 @@ class TableArtifact:
     rows: list[list[str]]
     first_column_indicators: list[str]
     extraction_method: str
-    title_clean: str | None = None  # Cleaned title (no amounts); use for display/pairing when set
+    title_clean: str | None = (
+        None  # Cleaned title (no amounts); use for display/pairing when set
+    )
     title_raw: str | None = None  # Original title for traceability
     table_number: str | None = None
     bbox: dict[str, Any] | list[float] | None = None
@@ -137,20 +141,13 @@ class TableArtifact:
             self.extraction_method,
             self.content_source,
         )
-        inferred = derive_comparison_blockers(
+        # Always recompute blockers from current state — never accumulate
+        # stale blockers passed in from storage reload or fragment merge.
+        self.comparison_blockers = derive_comparison_blockers(
             content_source=self.content_source,
             first_column_indicators_raw=self.first_column_indicators_raw,
             footnotes=self.footnotes,
         )
-        combined: list[str] = []
-        seen: set[str] = set()
-        for item in [*self.comparison_blockers, *inferred]:
-            value = str(item or "").strip()
-            if not value or value in seen:
-                continue
-            seen.add(value)
-            combined.append(value)
-        self.comparison_blockers = combined
         self.comparison_eligible = is_comparison_eligible(
             self.comparison_blockers,
             content_source=self.content_source,
@@ -162,12 +159,20 @@ class TableArtifact:
     @property
     def vision_raw_indicators(self) -> list[str]:
         """Return GPT-4o Vision raw first-column labels."""
-        return [str(item) for item in (self.first_column_indicators_raw or []) if str(item).strip()]
+        return [
+            str(item)
+            for item in (self.first_column_indicators_raw or [])
+            if str(item).strip()
+        ]
 
     @property
     def comparison_normalized_indicators(self) -> list[str]:
         """Return normalized first-column labels used by the comparator."""
-        return [str(item) for item in (self.first_column_indicators or []) if str(item).strip()]
+        return [
+            str(item)
+            for item in (self.first_column_indicators or [])
+            if str(item).strip()
+        ]
 
     @property
     def canonical_footnotes(self) -> FootnoteList:

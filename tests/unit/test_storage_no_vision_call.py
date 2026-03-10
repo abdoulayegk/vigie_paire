@@ -99,6 +99,32 @@ def test_load_extraction_returns_none_when_missing() -> None:
         shutil.rmtree(base_dir, ignore_errors=True)
 
 
+def test_table_artifact_from_dict_normalizes_indicators() -> None:
+    """Raw indicators with footnote markers are normalized on load (matches fresh Vision path)."""
+    from app.extraction_storage import table_artifact_from_dict
+    from vigilance.models.table_models import get_comparison_indicators
+
+    d = {
+        "bank_code": "bnc",
+        "section": "capital",
+        "page_pdf": 1,
+        "table_id": "t1",
+        "title": "Fonds propres",
+        "headers": ["Indicateur", "Valeur"],
+        "rows": [["Total des fonds propres *", "100"], ["CET1 ratio (1)", "13"]],
+        "first_column_indicators": ["Total des fonds propres *", "CET1 ratio (1)"],
+        "first_column_indicators_raw": ["Total des fonds propres *", "CET1 ratio (1)"],
+        "extraction_method": "docling",
+        "footnotes": [],
+    }
+    artifact = table_artifact_from_dict(d)
+    indicators = get_comparison_indicators(artifact)
+    assert "total des fonds propre" in indicators
+    assert "cet1 ratio" in indicators
+    assert "*" not in str(indicators)
+    assert "(1)" not in str(indicators)
+
+
 def test_save_then_load_roundtrip() -> None:
     """save_extraction then load_extraction must return identical data."""
     from app.extraction_storage import load_extraction, save_extraction

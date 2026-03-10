@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from vigilance.models.table_models import TableArtifact, infer_content_source
+from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,12 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     rows = list(d.get("rows") or [])
     for i, row in enumerate(rows):
         rows[i] = list(row) if isinstance(row, (list, tuple)) else [str(row)]
-    first_column_indicators = list(d.get("first_column_indicators") or [])
+    raw_indicators = list(d.get("first_column_indicators") or [])
+    first_column_indicators = [
+        n
+        for ind in raw_indicators
+        if (n := normalize_indicator_for_comparison(str(ind or "").strip()))
+    ]
     extraction_method = str(d.get("extraction_method") or "docling")
     title_clean = d.get("title_clean")
     title_raw = d.get("title_raw")
@@ -86,8 +92,9 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
         extraction_method,
         d.get("content_source"),
     )
-    comparison_eligible = bool(d.get("comparison_eligible", False))
-    comparison_blockers = list(d.get("comparison_blockers") or [])
+    # comparison_eligible and comparison_blockers are recomputed by
+    # TableArtifact.__post_init__ from current state — do not pass
+    # stale values from stored JSON.
 
     return TableArtifact(
         bank_code=bank_code,
@@ -113,8 +120,6 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
         fragmentation_detected=fragmentation_detected,
         debug_metrics=debug_metrics,
         content_source=content_source,
-        comparison_eligible=comparison_eligible,
-        comparison_blockers=comparison_blockers,
     )
 
 
@@ -195,7 +200,9 @@ def load_extraction(
         return None
     try:
         payload = json.loads(tables_path.read_text(encoding="utf-8"))
-        _ = payload.get("schema_version")  # optional: for future version checks / logging
+        _ = payload.get(
+            "schema_version"
+        )  # optional: for future version checks / logging
         tables_data = payload.get("tables", [])
         if not isinstance(tables_data, list):
             return None

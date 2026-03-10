@@ -33,6 +33,29 @@ def _table(
     )
 
 
+def test_public_pairing_footnote_only_variants_full_overlap() -> None:
+    """Footnote markers (*, (1), etc.) must not reduce indicator overlap for pairing."""
+    t1 = _table(
+        table_id="t1",
+        title=None,
+        table_number=None,
+        indicators=["Total *", "CET1 (1)", "Tier 2 (2)"],
+    )
+    t2 = _table(
+        table_id="t2",
+        title=None,
+        table_number=None,
+        indicators=["Total", "CET1", "Tier 2"],
+        page=2,
+    )
+
+    result = run_strict_intra_section_compare([t1], [t2])
+
+    assert len(result["pairs"]) == 1
+    assert result["pairs"][0]["t1_table_id"] == "t1"
+    assert result["pairs"][0]["t2_table_id"] == "t2"
+
+
 def test_public_pairing_matches_without_title_or_number_when_indicators_are_distinctive() -> None:
     t1 = _table(
         table_id="t1",

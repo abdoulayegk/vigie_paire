@@ -48,7 +48,7 @@ def test_run_tables_keeps_section_context(tmp_path: Path, monkeypatch) -> None:
         quarter: str,
         year: int,
         section_ranges: list[dict],
-        use_vision_primary: object = None,
+        use_vision_extraction: object = None,
     ) -> list[SimpleNamespace]:
         out: list[SimpleNamespace] = []
         for i, sr in enumerate(section_ranges, start=1):

@@ -82,7 +82,12 @@ def _parse_bbox(value: Any) -> tuple[float, float, float, float] | None:
         return None
     if isinstance(value, (list, tuple)) and len(value) >= 4:
         try:
-            x0, y0, x1, y1 = (float(value[0]), float(value[1]), float(value[2]), float(value[3]))
+            x0, y0, x1, y1 = (
+                float(value[0]),
+                float(value[1]),
+                float(value[2]),
+                float(value[3]),
+            )
         except (TypeError, ValueError):
             return None
         if x1 <= x0 or y1 <= y0:
@@ -206,7 +211,9 @@ def _candidate_merge_score(left: TableArtifact, right: TableArtifact) -> float:
     bbox_score = _bbox_vertical_score(left, right)
     title_score = _title_similarity(left.title, right.title)
     indicator_non_overlap = _indicator_non_overlap_score(left, right)
-    continuation_score = 1.0 if (_has_continuation_hint(left) or _has_continuation_hint(right)) else 0.0
+    continuation_score = (
+        1.0 if (_has_continuation_hint(left) or _has_continuation_hint(right)) else 0.0
+    )
 
     score = (
         (0.35 * header_score)
@@ -257,7 +264,9 @@ def _merge_bbox(left: TableArtifact, right: TableArtifact) -> list[float] | None
     return [x0, y0, x1, y1]
 
 
-def _merge_footnotes(left: TableArtifact, right: TableArtifact) -> list[dict[str, str]] | None:
+def _merge_footnotes(
+    left: TableArtifact, right: TableArtifact
+) -> list[dict[str, str]] | None:
     """Merge footnotes from both fragments, dedupe by normalized (id, text), preserve order."""
     combined = normalize_footnotes_to_canonical(
         get_canonical_footnotes(left) + get_canonical_footnotes(right)
@@ -290,9 +299,15 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
 
     left_headers = list(left.headers or [])
     right_headers = list(right.headers or [])
-    merged_headers = right_headers if len(right_headers) > len(left_headers) else left_headers
+    merged_headers = (
+        right_headers if len(right_headers) > len(left_headers) else left_headers
+    )
     merged_number: str | None = None
-    if left.table_number and right.table_number and left.table_number == right.table_number:
+    if (
+        left.table_number
+        and right.table_number
+        and left.table_number == right.table_number
+    ):
         merged_number = left.table_number
     elif left.table_number:
         merged_number = left.table_number
@@ -305,7 +320,9 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
     if left_raw or right_raw:
         merged_raw = _dedupe_preserve(list(left_raw) + list(right_raw))
 
-    title_clean = getattr(left, "title_clean", None) or getattr(right, "title_clean", None)
+    title_clean = getattr(left, "title_clean", None) or getattr(
+        right, "title_clean", None
+    )
     title_raw = getattr(left, "title_raw", None) or getattr(right, "title_raw", None)
     title_display = title_clean or (left.title or right.title)
 
@@ -329,12 +346,7 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
         title_clean=title_clean,
         title_raw=title_raw,
         content_source=left.content_source or right.content_source,
-        comparison_blockers=list(
-            dict.fromkeys(
-                list(getattr(left, "comparison_blockers", None) or [])
-                + list(getattr(right, "comparison_blockers", None) or [])
-            )
-        ),
+        # comparison_blockers recomputed by TableArtifact.__post_init__
     )
 
 
@@ -349,7 +361,11 @@ def merge_table_fragments(
 
     ordered = sorted(
         tables,
-        key=lambda t: (_canonical_section(t.section), int(t.page_pdf or 0), str(t.table_id)),
+        key=lambda t: (
+            _canonical_section(t.section),
+            int(t.page_pdf or 0),
+            str(t.table_id),
+        ),
     )
     merged: list[TableArtifact] = []
     events: list[dict[str, Any]] = []

@@ -273,7 +273,7 @@ class GenAIChangeClassifier:
                     {"role": "user", "content": user_msg},
                 ],
                 temperature=0.1,
-                max_tokens=400,
+                max_tokens=1024,
                 response_format={"type": "json_object"},
             )
             elapsed = time.monotonic() - t0

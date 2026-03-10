@@ -133,6 +133,8 @@ _REDUNDANT_PAREN_EXPANSION_RE = re.compile(
 _REDUNDANT_SEPARATOR_EXPANSION_RE = re.compile(
     r"^\s*(?P<prefix>[^:;–—-]+?)\s*[:;–—-]\s*(?P<suffix>.+?)\s*$"
 )
+
+
 def _normalized_phrase_key(text: str) -> str:
     """Lightweight phrase key for structural prefix checks."""
     if not text:
@@ -670,10 +672,18 @@ def normalize_indicator_for_comparison(text: str) -> str:
     """
     if not text:
         return ""
-
+    # Strip leading row/line numbers (e.g. "29 Actifs..." → "Actifs...")
+    # that some Basel III / NSFR / LCR tables prefix to each indicator.
+    text = re.sub(r"^\d{1,3}\s+(?=[A-ZÀ-Ÿa-zà-ÿ])", "", text)
     # Normalize apostrophe variants early so "d'actions" and "d’actions"
     # follow the same canonical path.
     text = re.sub(r"[’`´ʼʻ＇]", "'", text)
+
+    # Collapse elision+space so "d' impôt" and "d'impôts" yield the same key.
+    text = re.sub(r"\b([dljscnmt])'\s+", r"\1'", text, flags=re.IGNORECASE)
+
+    # Normalize typographic quotes to space so they do not create key differences.
+    text = re.sub(r'[""\u201c\u201d\u2018\u2019]', " ", text)
 
     # Normalize Unicode and collapse all whitespace (including U+00A0) to space
     text = unicodedata.normalize("NFD", text)
@@ -748,6 +758,9 @@ def normalize_indicator_for_comparison(text: str) -> str:
                 text = rest
             break
 
+    # Canonicalize d'impôt/d'impôts to d'impot before variants (so normalize_label sees d'impot).
+    text = re.sub(r"d'imp[o\u00f4]t(s)?", "d'impot", text, flags=re.IGNORECASE)
+
     # Variantes frequentes (tirets, separateurs, CET-1, Tier-1)
     text = normalize_indicator_variants(text)
 
@@ -755,12 +768,25 @@ def normalize_indicator_for_comparison(text: str) -> str:
     text = unicodedata.normalize("NFD", text)
     text = text.encode("ascii", "ignore").decode("utf-8")
 
+    # Canonicalize d'impot/d'impots so plural does not create false add/remove.
+    # Apostrophe may already be space from normalize_indicator_variants, so cover both.
+    text = re.sub(r"\bd'impots\b", "d'impot", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bd\s+impots\b", "d impot", text, flags=re.IGNORECASE)
+
     # Canonicalize common wording drift found in debt tranche labels.
     text = re.sub(r"\b(?:avec|aux)\s+termes?\b", " terme ", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bpremier(?:e)?\s+tranche\b", "tranche 1", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bdeuxiem(?:e)?\s+tranche\b", "tranche 2", text, flags=re.IGNORECASE)
-    text = re.sub(r"\btroisiem(?:e)?\s+tranche\b", "tranche 3", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bquatriem(?:e)?\s+tranche\b", "tranche 4", text, flags=re.IGNORECASE)
+    text = re.sub(
+        r"\bpremier(?:e)?\s+tranche\b", "tranche 1", text, flags=re.IGNORECASE
+    )
+    text = re.sub(
+        r"\bdeuxiem(?:e)?\s+tranche\b", "tranche 2", text, flags=re.IGNORECASE
+    )
+    text = re.sub(
+        r"\btroisiem(?:e)?\s+tranche\b", "tranche 3", text, flags=re.IGNORECASE
+    )
+    text = re.sub(
+        r"\bquatriem(?:e)?\s+tranche\b", "tranche 4", text, flags=re.IGNORECASE
+    )
 
     # References de notes: (1), (2), [1], [2], etc.
     text = re.sub(r"\s*[\(\[]\d+[\)\]]\s*", " ", text)
@@ -788,10 +814,30 @@ def normalize_indicator_for_comparison(text: str) -> str:
     # Variantes linguistiques: "des taux" <-> "de taux" -> meme cle
     text = re.sub(r"\bdes\s+taux\b", "de taux", text, flags=re.IGNORECASE)
 
+    # Narrow normalization for the pension-asset regulatory line where OCR/layout
+    # alternates between "actif net des regimes..." and "actif des regimes...".
+    text = re.sub(
+        r"\bactif net des regimes? de retraite a prestations? definies?\b",
+        "actif des regimes de retraite a prestations definies",
+        text,
+        flags=re.IGNORECASE,
+    )
+
     # Espaces et minuscules
     text = re.sub(r"\s+", " ", text).strip().lower()
 
     # Singularize: "actions" -> "action", "actifs" -> "actif" (neutralizes plural/singular noise)
     text = singularize_words(text)
+
+    # Strip generic "total des/du/de/d'" prefix so "total des fonds propre reglementaire"
+    # and "fonds propre reglementaire" produce the same canonical key.
+    # Only strip when at least 2 words remain to avoid collapsing meaningful content.
+    _total_prefix_match = re.match(
+        r"^total\s+(?:des?\s+|du\s+|d[' ]\s*)", text, flags=re.IGNORECASE
+    )
+    if _total_prefix_match:
+        rest = text[_total_prefix_match.end() :].strip()
+        if len(rest.split()) >= 2:
+            text = rest
 
     return text
