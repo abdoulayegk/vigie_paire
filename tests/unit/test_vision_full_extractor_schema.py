@@ -200,6 +200,67 @@ def test_extract_raises_schema_contract_error_once_and_circuit_breaks(
         extractor.extract(crop_bytes=b"abc", bank_code="bnc")
     assert fake_completions.calls == 1
 
-    with pytest.raises(VisionSchemaContractError):
-        extractor.extract(crop_bytes=b"abc", bank_code="bnc")
+
+def test_extract_returns_result_after_successful_api_response(monkeypatch) -> None:
+    class _FakeResponse:
+        def __init__(self, content: str) -> None:
+            self.choices = [
+                type(
+                    "Choice",
+                    (),
+                    {
+                        "message": type("Message", (), {"content": content})(),
+                        "finish_reason": "stop",
+                    },
+                )()
+            ]
+
+    class _FakeCompletions:
+        def __init__(self, content: str) -> None:
+            self.calls = 0
+            self._content = content
+
+        def create(self, **kwargs):  # type: ignore[no-untyped-def]
+            del kwargs
+            self.calls += 1
+            return _FakeResponse(self._content)
+
+    payload = {
+        "reasoning_scratchpad": "Analyse",
+        "table_title": "Tableau 1",
+        "headers": ["Indicateur", "Valeur"],
+        "indicators": [{"text": "Ratio CET1", "bbox": None}],
+        "rows": [["Ratio CET1", "13,1 %"]],
+        "footnotes_content": [{"id": "1", "text": "Note 1"}],
+        "footnote_markers": ["1"],
+        "has_hierarchy": False,
+        "extraction_confidence": "high",
+        "notes": "",
+        "confidence": 0.93,
+        "appears_truncated": False,
+        "estimated_content_height": 81,
+    }
+    fake_completions = _FakeCompletions(__import__("json").dumps(payload))
+    fake_client = type(
+        "FakeClient",
+        (),
+        {
+            "chat": type(
+                "FakeChat",
+                (),
+                {"completions": fake_completions},
+            )()
+        },
+    )()
+
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False)
+    extractor._client = fake_client
+    monkeypatch.setattr(extractor, "_ensure_client", lambda: None)
+
+    result = extractor.extract(crop_bytes=b"abc", bank_code="bnc")
+
+    assert result is not None
+    assert result.table_title == "Tableau 1"
+    assert result.indicators == [{"text": "Ratio CET1", "bbox": None}]
+    assert result.rows == [["Ratio CET1", "13,1 %"]]
     assert fake_completions.calls == 1

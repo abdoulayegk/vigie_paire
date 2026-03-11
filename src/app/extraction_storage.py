@@ -200,13 +200,35 @@ def load_extraction(
         return None
     try:
         payload = json.loads(tables_path.read_text(encoding="utf-8"))
-        _ = payload.get(
-            "schema_version"
-        )  # optional: for future version checks / logging
+        stored_version = payload.get("schema_version")
+        if stored_version is not None:
+            try:
+                v = int(stored_version)
+                if v < STORAGE_SCHEMA_VERSION:
+                    logger.debug(
+                        "load_extraction stale schema_version bank=%s year=%s quarter=%s stored=%s current=%s",
+                        bank_code,
+                        year,
+                        quarter_norm,
+                        v,
+                        STORAGE_SCHEMA_VERSION,
+                    )
+                    return None
+            except (TypeError, ValueError):
+                pass
         tables_data = payload.get("tables", [])
         if not isinstance(tables_data, list):
             return None
         tables = [table_artifact_from_dict(t) for t in tables_data]
+        # Treat empty stored extraction as "no valid cache" so caller runs fresh extraction
+        if not tables:
+            logger.debug(
+                "load_extraction empty tables bank=%s year=%s quarter=%s",
+                bank_code,
+                year,
+                quarter_norm,
+            )
+            return None
         meta: dict[str, Any] = {}
         if meta_path.exists():
             meta = json.loads(meta_path.read_text(encoding="utf-8"))

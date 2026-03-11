@@ -58,10 +58,17 @@ from vigilance.config import (
     get_validation_config,
 )
 from vigilance.models.table_models import (
+    EXTRACTION_STATUS_BLOCKED,
+    EXTRACTION_STATUS_CERTIFIED,
+    EXTRACTION_STATUS_REVIEW_REQUIRED,
     VISION_CONTENT_SOURCE,
     TableArtifact,
+    derive_extraction_blockers,
     get_canonical_footnotes,
     get_comparison_indicators,
+    get_extraction_confidence,
+    get_extraction_quality_flags,
+    get_extraction_status,
     get_vision_raw_indicators,
     infer_content_source,
 )
@@ -410,14 +417,30 @@ def _extract_tables(
             stored = load_extraction(bank_code, year, quarter, base_dir)
             if stored is not None:
                 stored_tables, stored_meta = stored
-                logger.info(
-                    "Loaded stored extraction: %s/%s/%s (%d tables)",
-                    bank_code,
-                    year,
-                    quarter,
-                    len(stored_tables),
-                )
-                return stored_tables
+                # Do not use empty stored extraction: treat as "no valid cache" and run fresh
+                if not stored_tables:
+                    logger.info(
+                        "extraction_stored_ignored_empty bank=%s year=%s quarter=%s",
+                        bank_code,
+                        year,
+                        quarter,
+                    )
+                else:
+                    logger.info(
+                        "Loaded stored extraction: %s/%s/%s (%d tables)",
+                        bank_code,
+                        year,
+                        quarter,
+                        len(stored_tables),
+                    )
+                    logger.info(
+                        "extraction_quarter_tables count=%d bank=%s year=%s quarter=%s source=stored",
+                        len(stored_tables),
+                        bank_code,
+                        year,
+                        quarter,
+                    )
+                    return stored_tables
         except Exception as e:
             logger.debug("Could not load stored extraction: %s", e)
 
@@ -444,7 +467,7 @@ def _extract_tables(
         for table in raw_tables
     ]
 
-    # Step 4: Save extraction systematically after every run
+    # Step 4: Save extraction systematically after every run (do not persist empty)
     try:
         from app.extraction_storage import load_extraction, save_extraction
 
@@ -467,23 +490,38 @@ def _extract_tables(
                 )
                 return stored_tables
 
-        save_extraction(
-            bank_code=bank_code,
-            year=year,
-            quarter=quarter,
-            tables=artifacts,
-            meta={
-                "pdf_path": pdf_path,
-                "use_vision_extraction": use_vision_extraction,
-                "extraction_method": "vision_full_gpt4o",
-                "section_ranges": section_ranges,
-                "schema_version": 2,
-            },
-            base_dir=base_dir,
-        )
+        if not artifacts:
+            logger.warning(
+                "extraction_save_skipped_empty bank=%s year=%s quarter=%s tables_count=0",
+                bank_code,
+                year,
+                quarter,
+            )
+        else:
+            save_extraction(
+                bank_code=bank_code,
+                year=year,
+                quarter=quarter,
+                tables=artifacts,
+                meta={
+                    "pdf_path": pdf_path,
+                    "use_vision_extraction": use_vision_extraction,
+                    "extraction_method": "vision_full_gpt4o",
+                    "section_ranges": section_ranges,
+                    "schema_version": 2,
+                },
+                base_dir=base_dir,
+            )
     except Exception as e:
         logger.warning("Could not save extraction: %s", e)
 
+    logger.info(
+        "extraction_quarter_tables count=%d bank=%s year=%s quarter=%s source=fresh",
+        len(artifacts),
+        bank_code,
+        year,
+        quarter,
+    )
     return artifacts
 
 
@@ -519,25 +557,24 @@ def _compute_indicator_overlap(t1: TableArtifact, t2: TableArtifact) -> float:
 
 
 def _extract_quality_flags(table: TableArtifact) -> list[str]:
-    """Build quality flag strings from debug_metrics for comparison output."""
-    dm = table.debug_metrics or {}
+    """Build quality flag strings from canonical table_models for comparison output."""
+    flags_map = get_extraction_quality_flags(table)
     flags: list[str] = []
-    if dm.get("quality_suspect_for_vision"):
-        flags.append("quality_suspect")
-    if dm.get("vision_fallback_applied"):
-        flags.append("vision_applied")
-    elif dm.get("vision_fallback_attempted"):
-        flags.append("vision_attempted_not_applied")
-    arb = dm.get("vision_arbitration")
-    if isinstance(arb, dict):
-        decision = arb.get("decision", "")
-        if "rejected" in decision:
-            flags.append(f"vision_{decision}")
-        agreement = arb.get("agreement_signals", {}).get("agreement", "")
-        if agreement == "strong_disagree":
-            flags.append("extraction_strong_disagree")
+    if flags_map.get("crop_rejected"):
+        flags.append("crop_rejected")
+    if flags_map.get("recrop_failed_incomplete"):
+        flags.append("recrop_failed_incomplete")
+    if flags_map.get("recrop_used"):
+        flags.append("recrop_used")
+    if flags_map.get("recrop_attempted"):
+        flags.append("recrop_attempted")
+    if not flags_map.get("vision_extraction_applied", True):
+        flags.append("vision_extraction_not_applied")
+    if flags_map.get("appears_truncated"):
+        flags.append("appears_truncated")
     if table.fragmentation_detected:
         flags.append("fragmentation")
+    dm = table.debug_metrics or {}
     dup = dm.get("duplicate_ratio", 0)
     if isinstance(dup, (int, float)) and dup > 0.20:
         flags.append(f"high_duplicate_ratio({dup:.2f})")
@@ -548,24 +585,13 @@ def _extract_quality_flags(table: TableArtifact) -> list[str]:
 
 
 def _extraction_confidence(table: TableArtifact) -> str:
-    """Return extraction confidence level: high, medium, low, or unknown."""
-    dm = table.debug_metrics or {}
-    arb = dm.get("vision_arbitration")
-    if isinstance(arb, dict):
-        decision = arb.get("decision", "")
-        agreement = arb.get("agreement_signals", {}).get("agreement", "")
-        if decision.startswith("accepted") and agreement == "agree":
-            return "high"
-        if decision.startswith("accepted"):
-            return "medium"
-        if "rejected" in decision and dm.get("quality_suspect_for_vision"):
-            return "low"
-    quality = dm.get("table_quality_score")
-    if isinstance(quality, (int, float)):
-        if quality >= 0.75:
-            return "high"
-        if quality >= 0.50:
-            return "medium"
+    """Return extraction confidence level from canonical table_models: high, medium, low, or unknown."""
+    conf = get_extraction_confidence(table)
+    if conf >= 0.75:
+        return "high"
+    if conf >= 0.5:
+        return "medium"
+    if conf > 0.0:
         return "low"
     return "unknown"
 
@@ -577,7 +603,7 @@ def _compute_extraction_kpis(
     tables_added: list[dict[str, Any]],
     tables_removed: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Compute aggregate extraction reliability KPIs for the comparison output."""
+    """Compute aggregate extraction reliability KPIs and certification summary for the comparison output."""
     all_tables = list(tables_t1) + list(tables_t2)
     total = len(all_tables) or 1
 
@@ -637,6 +663,24 @@ def _compute_extraction_kpis(
         else 0.0
     )
 
+    tables_certified = sum(1 for t in all_tables if get_extraction_status(t) == EXTRACTION_STATUS_CERTIFIED)
+    tables_review_required = sum(
+        1 for t in all_tables if get_extraction_status(t) == EXTRACTION_STATUS_REVIEW_REQUIRED
+    )
+    tables_blocked = sum(1 for t in all_tables if get_extraction_status(t) == EXTRACTION_STATUS_BLOCKED)
+    tables_crop_rejected = sum(
+        1 for t in all_tables if (get_extraction_quality_flags(t).get("crop_rejected"))
+    )
+    tables_low_confidence = sum(
+        1 for t in all_tables if get_extraction_confidence(t) < 0.5
+    )
+    tables_vision_not_applied = sum(
+        1 for t in all_tables if not get_extraction_quality_flags(t).get("vision_extraction_applied", True)
+    )
+    tables_budget_exhausted = sum(
+        1 for t in all_tables if (t.debug_metrics or {}).get("vision_budget_exhausted")
+    )
+
     return {
         "vision_attempt_rate": round(vision_attempted / total, 3),
         "vision_applied_rate": round(vision_applied / total, 3),
@@ -654,6 +698,13 @@ def _compute_extraction_kpis(
         "incertain_count": sum(
             1 for c in comparisons if c.get("table_status") == "incertain"
         ),
+        "tables_certified": tables_certified,
+        "tables_review_required": tables_review_required,
+        "tables_blocked": tables_blocked,
+        "tables_crop_rejected": tables_crop_rejected,
+        "tables_low_confidence": tables_low_confidence,
+        "tables_vision_not_applied": tables_vision_not_applied,
+        "tables_budget_exhausted": tables_budget_exhausted,
     }
 
 
@@ -2748,6 +2799,13 @@ def run_comparison_with_sections(
 
     raw_tables_t1_count = len(tables_t1)
     raw_tables_t2_count = len(tables_t2)
+    logger.info(
+        "comparison_input_tables raw_t1=%d raw_t2=%d bank=%s year=%s",
+        raw_tables_t1_count,
+        raw_tables_t2_count,
+        bank_code,
+        year,
+    )
     fragment_merges_t1: list[dict[str, Any]] = []
     fragment_merges_t2: list[dict[str, Any]] = []
     if bool(cfg.get("matching_v2_enabled", True)):
@@ -2762,6 +2820,13 @@ def run_comparison_with_sections(
         tables_t2, fragment_merges_t2 = merge_table_fragments(
             tables_t2,
             merge_score_min=merge_score_min,
+        )
+        logger.info(
+            "comparison_input_tables tables_t1=%d tables_t2=%d bank=%s year=%s (after_fragment_merge)",
+            len(tables_t1),
+            len(tables_t2),
+            bank_code,
+            year,
         )
 
     extraction_run_id: str | None = None
@@ -2832,6 +2897,24 @@ def run_comparison_with_sections(
                 "fail_reasons": [f"quality_gate_execution_error({exc})"],
             }
         logger.warning("Extraction writer/quality gate skipped: %s", exc)
+
+    # Merge extraction certification into run-level quality gate (quality-first: fail on blocked tables).
+    try:
+        from vigilance.quality.quality_gate import evaluate_extraction_quality
+
+        extraction_report = evaluate_extraction_quality(
+            list(tables_t1) + list(tables_t2),
+            config=get_quality_gate_config(bank_code=bank_code) if qg_enabled else None,
+        )
+        quality_gate_status["extraction_certification"] = extraction_report.get("summary", {})
+        if extraction_report.get("status") == "FAIL":
+            quality_gate_status["status"] = "FAIL"
+            quality_gate_status["eligible_for_review"] = False
+            quality_gate_status["fail_reasons"] = list(
+                quality_gate_status.get("fail_reasons", [])
+            ) + list(extraction_report.get("fail_reasons", []))
+    except Exception as exc:
+        logger.warning("Extraction certification evaluation skipped: %s", exc)
 
     embedding_service = None
     if cfg.get("use_embeddings") and api_key:
@@ -3187,15 +3270,44 @@ def run_comparison_with_sections(
                         vd.decision == "match"
                         and vd.confidence >= vision_unmatched_rescue_confidence_min
                     ):
-                        scored_candidates.append(
-                            AssignmentEntry(
-                                t1_uid=t1_uid_r,
-                                t2_uid=t2_uid_a,
-                                confidence=float(vd.confidence),
-                                decision=vd,
-                                source="vision_unmatched_rescue",
-                            )
+                        from vigilance.models.table_models import (
+                            get_extraction_quality_flags,
                         )
+
+                        flags1 = get_extraction_quality_flags(t1_tbl)
+                        flags2 = get_extraction_quality_flags(t2_tbl)
+                        low_q1 = (
+                            flags1.get("crop_rejected")
+                            or flags1.get("recrop_failed_incomplete")
+                            or not flags1.get("vision_extraction_applied", True)
+                        )
+                        low_q2 = (
+                            flags2.get("crop_rejected")
+                            or flags2.get("recrop_failed_incomplete")
+                            or not flags2.get("vision_extraction_applied", True)
+                        )
+                        allow_rescue = True
+                        if low_q1 or low_q2:
+                            table_num_match = (
+                                str(getattr(t1_tbl, "table_number", "") or "").strip()
+                                == str(getattr(t2_tbl, "table_number", "") or "").strip()
+                                and (getattr(t1_tbl, "table_number", None) or "").strip()
+                            )
+                            section_match = (
+                                str(getattr(t1_tbl, "section", "") or "").strip()
+                                == str(getattr(t2_tbl, "section", "") or "").strip()
+                            )
+                            allow_rescue = table_num_match and section_match
+                        if allow_rescue:
+                            scored_candidates.append(
+                                AssignmentEntry(
+                                    t1_uid=t1_uid_r,
+                                    t2_uid=t2_uid_a,
+                                    confidence=float(vd.confidence),
+                                    decision=vd,
+                                    source="vision_unmatched_rescue",
+                                )
+                            )
                     elif vd.decision == "no_match":
                         rejected_pairs.append(result_entry)
                     else:
@@ -4334,6 +4446,13 @@ def run_comparison_with_sections(
         added_tables_confirmed,
         removed_tables_confirmed,
     )
+    logger.info(
+        "comparison_result_summary tables_t1=%d tables_t2=%d tables_matched=%d bank=%s",
+        len(tables_t1),
+        len(tables_t2),
+        len(comparisons),
+        bank_code,
+    )
 
     result: dict[str, Any] = {
         "schema_version": "comparison_canonical_v1",
@@ -4576,6 +4695,14 @@ def run_comparison_with_sections(
             },
             "extraction_kpis": extraction_quality_kpis,
             "extraction_quality": extraction_quality_kpis,
+            "extraction_quality_summary": {
+                "tables_certified": extraction_quality_kpis.get("tables_certified", 0),
+                "tables_review_required": extraction_quality_kpis.get("tables_review_required", 0),
+                "tables_blocked": extraction_quality_kpis.get("tables_blocked", 0),
+                "tables_crop_rejected": extraction_quality_kpis.get("tables_crop_rejected", 0),
+                "tables_low_confidence": extraction_quality_kpis.get("tables_low_confidence", 0),
+                "tables_budget_exhausted": extraction_quality_kpis.get("tables_budget_exhausted", 0),
+            },
             "quality_gate": quality_gate_status,
             "extraction_artifacts": {
                 "run_id": extraction_run_id,

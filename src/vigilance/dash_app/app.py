@@ -119,6 +119,7 @@ from app.review_export import (
 )
 from app.review_models import (
     CHANGE_TYPE_ADDED,
+    CHANGE_TYPE_MODIFIED,
     CHANGE_TYPE_REMOVED,
     CHANGE_TYPE_RENAMED,
     CHANGE_TYPE_TABLE_ADDED,

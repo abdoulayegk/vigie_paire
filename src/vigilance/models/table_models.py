@@ -27,6 +27,18 @@ NON_VISION_FATAL_BLOCKERS = frozenset(
     }
 )
 
+# Extraction certification: thresholds for status derivation.
+# Tables with confidence below this are considered low_extraction_confidence (blocker).
+EXTRACTION_CONFIDENCE_CERTIFIED_MIN = 0.5
+# Confidence above this with no blockers and no warnings => certified.
+EXTRACTION_CONFIDENCE_REVIEW_MIN = 0.7
+# Legacy alias for config compatibility.
+EXTRACTION_CONFIDENCE_REVIEW_FLOOR = 0.35
+
+EXTRACTION_STATUS_CERTIFIED = "certified"
+EXTRACTION_STATUS_REVIEW_REQUIRED = "review_required"
+EXTRACTION_STATUS_BLOCKED = "blocked"
+
 
 def infer_content_source(
     extraction_method: str | None, explicit: str | None = None
@@ -102,6 +114,137 @@ def get_canonical_footnotes(table: Any) -> FootnoteList:
     from vigilance.utils.footnotes_utils import normalize_footnotes_to_canonical
 
     return normalize_footnotes_to_canonical(list(values))
+
+
+def get_extraction_confidence(table: Any) -> float:
+    """
+    Return extraction confidence from a table's debug_metrics (0.0--1.0).
+    Prefer vision_extraction_confidence when present; otherwise 0.0.
+    """
+    if table is None:
+        return 0.0
+    dm = getattr(table, "debug_metrics", None) or {}
+    if not isinstance(dm, dict):
+        return 0.0
+    v = dm.get("vision_extraction_confidence")
+    if v is None:
+        return 0.0
+    try:
+        return max(0.0, min(1.0, float(v)))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def get_extraction_quality_flags(table: Any) -> dict[str, bool]:
+    """
+    Return a normalized set of quality flags from a table's debug_metrics.
+    Matcher and review pipeline should use this instead of inspecting debug_metrics ad hoc.
+    """
+    if table is None:
+        return {}
+    dm = getattr(table, "debug_metrics", None) or {}
+    if not isinstance(dm, dict):
+        return {}
+    return {
+        "appears_truncated": bool(dm.get("appears_truncated", False)),
+        "recrop_attempted": bool(dm.get("recrop_attempted", False)),
+        "recrop_used": bool(dm.get("recrop_used", False)),
+        "recrop_failed_incomplete": bool(dm.get("recrop_failed_incomplete", False)),
+        "vision_extraction_applied": bool(dm.get("vision_extraction_applied", False)),
+        "crop_rejected": bool(dm.get("crop_reject_reason")),
+    }
+
+
+def get_extraction_quality_profile(table: Any) -> dict[str, Any]:
+    """
+    Return a normalized quality profile for a table (confidence + flags + bbox_sanity etc.).
+    Use for matcher and observability; avoids ad hoc debug_metrics access.
+    """
+    if table is None:
+        return {}
+    dm = getattr(table, "debug_metrics", None) or {}
+    if not isinstance(dm, dict):
+        return {}
+    profile: dict[str, Any] = {
+        "confidence": get_extraction_confidence(table),
+        "flags": get_extraction_quality_flags(table),
+        "bbox_sanity_profile": dm.get("bbox_sanity_profile"),
+        "page_title_assist_used": dm.get("page_title_assist_used"),
+        "page_title_assist_match_method": dm.get("page_title_assist_match_method"),
+        "warnings": list(dm.get("warnings") or []),
+    }
+    return profile
+
+
+def derive_extraction_blockers(
+    table: Any,
+    *,
+    confidence_certified_min: float = EXTRACTION_CONFIDENCE_CERTIFIED_MIN,
+) -> list[str]:
+    """
+    Return the list of extraction blocker codes for this table.
+    Blockers prevent auto-comparison; presence of any => status blocked.
+    """
+    if table is None:
+        return ["non_vision_content_source"]
+    blockers: list[str] = []
+    content_source = getattr(table, "content_source", None)
+    if content_source != VISION_CONTENT_SOURCE:
+        content_source = infer_content_source(
+            getattr(table, "extraction_method", None), None
+        )
+    if content_source != VISION_CONTENT_SOURCE:
+        blockers.append("non_vision_content_source")
+    raw_indicators = get_vision_raw_indicators(table)
+    if not raw_indicators:
+        blockers.append("missing_vision_indicators")
+    flags = get_extraction_quality_flags(table)
+    if flags.get("crop_rejected"):
+        blockers.append("crop_rejected")
+    if flags.get("recrop_failed_incomplete"):
+        blockers.append("recrop_failed_incomplete")
+    if not flags.get("vision_extraction_applied", True):
+        blockers.append("vision_extraction_not_applied")
+    confidence = get_extraction_confidence(table)
+    if confidence < confidence_certified_min:
+        blockers.append("low_extraction_confidence")
+    return blockers
+
+
+def get_extraction_status(
+    table: Any,
+    *,
+    confidence_certified_min: float = EXTRACTION_CONFIDENCE_CERTIFIED_MIN,
+    confidence_review_min: float = EXTRACTION_CONFIDENCE_REVIEW_MIN,
+) -> str:
+    """
+    Return extraction status: certified, review_required, or blocked.
+    Only certified tables are eligible for automatic matching.
+    """
+    blockers = derive_extraction_blockers(
+        table, confidence_certified_min=confidence_certified_min
+    )
+    if blockers:
+        return EXTRACTION_STATUS_BLOCKED
+    confidence = get_extraction_confidence(table)
+    flags = get_extraction_quality_flags(table)
+    if confidence < confidence_review_min:
+        return EXTRACTION_STATUS_REVIEW_REQUIRED
+    if flags.get("appears_truncated") or flags.get("recrop_used"):
+        return EXTRACTION_STATUS_REVIEW_REQUIRED
+    return EXTRACTION_STATUS_CERTIFIED
+
+
+def is_auto_compare_eligible(
+    table: Any,
+    *,
+    confidence_certified_min: float = EXTRACTION_CONFIDENCE_CERTIFIED_MIN,
+) -> bool:
+    """
+    Return True iff the table is certified for automatic comparison.
+    Uncertified tables must not enter the matcher.
+    """
+    return get_extraction_status(table, confidence_certified_min=confidence_certified_min) == EXTRACTION_STATUS_CERTIFIED
 
 
 @dataclass(slots=True)

@@ -99,6 +99,24 @@ def test_load_extraction_returns_none_when_missing() -> None:
         shutil.rmtree(base_dir, ignore_errors=True)
 
 
+def test_load_extraction_returns_none_when_tables_empty() -> None:
+    """load_extraction must return None when tables.json exists but tables list is empty.
+
+    Empty stored extraction is treated as no valid cache so the caller runs fresh
+    extraction (avoids Q1=0 when a previous run persisted 0 tables for t1).
+    """
+    from app.extraction_storage import load_extraction
+
+    base_dir = _make_tables_json("bnc", 2025, "t1", [])
+    try:
+        result = load_extraction("bnc", 2025, "t1", base_dir)
+        assert result is None
+    finally:
+        import shutil
+
+        shutil.rmtree(base_dir, ignore_errors=True)
+
+
 def test_table_artifact_from_dict_normalizes_indicators() -> None:
     """Raw indicators with footnote markers are normalized on load (matches fresh Vision path)."""
     from app.extraction_storage import table_artifact_from_dict

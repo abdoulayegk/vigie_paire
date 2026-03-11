@@ -1068,6 +1068,10 @@ _GUARD_RAIL_REASONS = frozenset(
         "low_coverage",
         "size_mismatch",
         "subset_superset_candidate",
+        "prefix_only_match",
+        "too_few_matched_indicators",
+        "subset_superset",
+        "same_number_weak_structure",
     }
 )
 
@@ -1957,9 +1961,10 @@ def match_decision(
     ) -> MatchDecision:
         final_match = is_match
         final_reason = reason
-        # Anti-false-match: reject if label overlap is too low (no title/number override).
-        # Skip when both tables have no indicators (empty sets => overlap undefined).
         max_indicators = max(len(set_a), len(set_b))
+        overlap_count = len(set_a & set_b)
+
+        # Anti-false-match: reject if label overlap is too low (no title/number override).
         if (
             final_match
             and max_indicators > 0
@@ -1976,13 +1981,6 @@ def match_decision(
         if (
             final_match
             and max_indicators > 0
-            and coverage_min < float(th.get("hard_reject_coverage_min", 0.35))
-        ):
-            final_match = False
-            final_reason = "low_coverage"
-        if (
-            final_match
-            and max_indicators > 0
             and row_count_ratio
             > float(th.get("hard_reject_row_count_ratio", 2.20))
         ):
@@ -1995,6 +1993,48 @@ def match_decision(
         ):
             final_match = False
             final_reason = "subset_superset_candidate"
+        if (
+            final_match
+            and max_indicators > 0
+            and coverage_min < float(th.get("hard_reject_coverage_min", 0.35))
+        ):
+            final_match = False
+            final_reason = "low_coverage"
+        if (
+            final_match
+            and max_indicators > 0
+            and coverage_gap > float(th.get("subset_superset_coverage_gap_max", 0.30))
+        ):
+            final_match = False
+            final_reason = "subset_superset"
+        if (
+            final_match
+            and table_number_match
+            and max_indicators > 0
+            and coverage_min < float(th.get("same_number_weak_structure_coverage_max", 0.50))
+            and tail_overlap < float(th.get("same_number_weak_structure_tail_max", 0.35))
+        ):
+            final_match = False
+            final_reason = "same_number_weak_structure"
+        prefix_only_top_min = float(th.get("prefix_only_top_min", 0.70))
+        prefix_only_tail_max = float(th.get("prefix_only_tail_max", 0.30))
+        if (
+            final_match
+            and max_indicators > 0
+            and top_overlap >= prefix_only_top_min
+            and tail_overlap < prefix_only_tail_max
+        ):
+            final_match = False
+            final_reason = "prefix_only_match"
+        min_matched_indicators = int(th.get("min_matched_indicators", 0))
+        if (
+            min_matched_indicators > 0
+            and final_match
+            and max_indicators > 0
+            and overlap_count < min_matched_indicators
+        ):
+            final_match = False
+            final_reason = "too_few_matched_indicators"
         decision_level = "match" if final_match else "no_match"
 
         if section_state == "unknown_present":

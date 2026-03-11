@@ -8,11 +8,31 @@ vision_extraction:
   schema_failure_policy: fail_fast
   save_indicators_footnotes_json: true
   vision_pair_validation: false
+  # Bbox sanity gate: reject crops before Vision (too small, near-full-page, etc.)
+  bbox_min_width: 0.02
+  bbox_min_height: 0.02
+  bbox_min_area: 0.0005
+  bbox_max_area: 0.95
+  bbox_near_full_page_threshold: 0.90
+  horizontal_padding: 0.02
+  top_extension_title: 0.03
+  adaptive_bottom_extension_enabled: false
+  adaptive_bottom_extension_increment: 0.06
+  vision_cache_enabled: true
+  vision_extraction_max_workers: 4
+  # Optional: cap Vision API calls per run; when hit, affected tables are review_required/blocked (quality-first).
+  # max_vision_calls_per_run: 200
+  api_retry_max: 3
+  api_retry_backoff_ms: 1000
+  api_timeout_sec: 120
   page_level_title_assist:
     enabled: true
     min_confidence: 0.7
     max_candidates: 10
     weak_title_threshold: 3
+    allow_positional_fallback: false
+    max_pages_per_run: 50
+    cache_enabled: true
 
 quality_gate:
   enabled: true
@@ -22,6 +42,10 @@ quality_gate:
   line_split_max_per_table: 2
   missing_marker_majority_threshold: 0.5
   title_numeric_density_threshold: 0.45
+  # Extraction certification (quality-first): fail run when blocked/review_required exceed limits.
+  max_tables_blocked: 0
+  max_tables_review_required: 10
+  fail_on_budget_exhausted: true
 
 # Validation post-matching: filtres GenAI/Vision pour reduire faux positifs.
 # Voir docs/comparison-validation.md pour le schema et valeurs recommandees.

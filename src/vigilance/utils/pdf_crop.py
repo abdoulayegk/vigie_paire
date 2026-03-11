@@ -88,6 +88,85 @@ def _validate_bbox(bbox_norm: list[float]) -> bool:
     return True
 
 
+def bbox_sanity_profile(bbox_norm: list[float]) -> dict:
+    """
+    Compute a sanity profile for a normalized bbox [l, t, r, b].
+    Used to gate Vision: reject too small, near-full-page, or extreme aspect ratio.
+    """
+    if not _validate_bbox(bbox_norm):
+        return {
+            "width_norm": 0.0,
+            "height_norm": 0.0,
+            "area_norm": 0.0,
+            "is_near_full_page": False,
+            "aspect_ratio": 0.0,
+            "reject_reason": "invalid_bbox",
+        }
+    l_norm, t_norm, r_norm, b_norm = bbox_norm
+    w = r_norm - l_norm
+    h = b_norm - t_norm
+    area = w * h
+    aspect = w / h if h > 0 else 0.0
+    # Near-full-page if area or any dimension is above threshold
+    near_full = (
+        area >= 0.90
+        or w >= 0.95
+        or h >= 0.95
+    )
+    profile: dict = {
+        "width_norm": round(w, 6),
+        "height_norm": round(h, 6),
+        "area_norm": round(area, 6),
+        "is_near_full_page": near_full,
+        "aspect_ratio": round(aspect, 4),
+    }
+    return profile
+
+
+def is_bbox_sane(bbox_norm: list[float], cfg: dict | None = None) -> tuple[bool, str | None, dict]:
+    """
+    Return (sane, reject_reason, profile). If sane is False, reject_reason is set.
+    cfg may contain: bbox_min_width, bbox_min_height, bbox_min_area, bbox_max_area,
+    bbox_near_full_page_threshold (all optional; defaults used if missing).
+    """
+    profile = bbox_sanity_profile(bbox_norm)
+    if profile.get("reject_reason") == "invalid_bbox":
+        return False, "invalid_bbox", profile
+
+    cfg = cfg or {}
+    min_w = float(cfg.get("bbox_min_width", 0.02))
+    min_h = float(cfg.get("bbox_min_height", 0.02))
+    min_area = float(cfg.get("bbox_min_area", 0.0005))
+    max_area = float(cfg.get("bbox_max_area", 0.95))
+    near_full_threshold = float(cfg.get("bbox_near_full_page_threshold", 0.90))
+
+    w = profile["width_norm"]
+    h = profile["height_norm"]
+    area = profile["area_norm"]
+
+    if w < min_w:
+        profile["reject_reason"] = "bbox_too_narrow"
+        return False, "bbox_too_narrow", profile
+    if h < min_h:
+        profile["reject_reason"] = "bbox_too_short"
+        return False, "bbox_too_short", profile
+    if area < min_area:
+        profile["reject_reason"] = "bbox_area_too_small"
+        return False, "bbox_area_too_small", profile
+    if area > max_area:
+        profile["reject_reason"] = "bbox_area_too_large"
+        return False, "bbox_area_too_large", profile
+    if area >= near_full_threshold or w >= near_full_threshold or h >= near_full_threshold:
+        profile["reject_reason"] = "bbox_near_full_page"
+        return False, "bbox_near_full_page", profile
+    # Extreme aspect ratio inconsistent with tables (e.g. 20:1 or 1:20)
+    if w / h > 20.0 or h / w > 20.0:
+        profile["reject_reason"] = "extreme_aspect_ratio"
+        return False, "extreme_aspect_ratio", profile
+
+    return True, None, profile
+
+
 def crop_table_region_to_bytes(
     pdf_path: str,
     page_number: int,
@@ -95,6 +174,7 @@ def crop_table_region_to_bytes(
     scale: float = 1.5,
     bottom_extension: float = 0.0,
     top_extension: float = 0.0,
+    horizontal_padding: float = 0.0,
     dpi: int | None = None,
 ) -> bytes:
     """
@@ -107,41 +187,40 @@ def crop_table_region_to_bytes(
         scale: Render scale when dpi is not set (default 1.5, same as proof previews).
         bottom_extension: Extra height below bbox (e.g. for footnotes), in normalized 0..1.
         top_extension: Extra height above bbox (e.g. for title or missed rows), in normalized 0..1.
+        horizontal_padding: Symmetric horizontal padding (normalized 0..1), clamped to page.
         dpi: If set, render at this resolution (72 * zoom); overrides scale. Use 300 for Vision/OCR.
 
     Returns:
-        PNG bytes of the cropped region, or full page bytes if bbox invalid or crop fails.
+        PNG bytes of the cropped region. Returns b"" on invalid bbox, page out of range,
+        import failure, or any crop exception (no full-page fallback).
     """
-    from vigilance.extraction.pdf_preview import render_pdf_page
-
     zoom = (dpi / 72.0) if dpi is not None else scale
 
     if not _validate_bbox(bbox_norm):
-        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
-        return full if full else b""
+        return b""
 
     try:
         import fitz  # type: ignore[import-untyped]
     except ImportError:
         logger.debug("PyMuPDF (fitz) not available for crop_table_region_to_bytes")
-        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
-        return full if full else b""
+        return b""
 
     try:
         doc = fitz.open(pdf_path)
         try:
             page_idx = page_number - 1
             if page_idx < 0 or page_idx >= len(doc):
-                full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
-                return full if full else b""
+                return b""
             page = doc[page_idx]
             rect = page.rect
             l_norm, t_norm, r_norm, b_norm = bbox_norm
             t_norm_effective = max(0.0, t_norm - top_extension)
             b_norm_effective = min(1.0, b_norm + bottom_extension)
-            x0 = rect.x0 + l_norm * rect.width
+            l_norm_effective = max(0.0, l_norm - horizontal_padding)
+            r_norm_effective = min(1.0, r_norm + horizontal_padding)
+            x0 = rect.x0 + l_norm_effective * rect.width
             y0 = rect.y0 + t_norm_effective * rect.height
-            x1 = rect.x0 + r_norm * rect.width
+            x1 = rect.x0 + r_norm_effective * rect.width
             y1 = rect.y0 + b_norm_effective * rect.height
             clip = fitz.Rect(x0, y0, x1, y1)
             mat = fitz.Matrix(zoom, zoom)
@@ -150,8 +229,7 @@ def crop_table_region_to_bytes(
         finally:
             doc.close()
     except Exception:
-        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
-        return full if full else b""
+        return b""
 
 
 def render_page_with_bbox_highlight_to_bytes(

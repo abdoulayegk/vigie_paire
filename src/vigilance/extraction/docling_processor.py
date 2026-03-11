@@ -825,6 +825,10 @@ class DoclingProcessor:
         pdf_sha = shared["pdf_sha"]
         vision_extraction_cfg = shared["vision_extraction_cfg"]
         bottom_extension_footnotes = shared["bottom_extension_footnotes"]
+        top_extension_title = shared["top_extension_title"]
+        horizontal_padding = shared["horizontal_padding"]
+        adaptive_bottom_enabled = shared["adaptive_bottom_extension_enabled"]
+        adaptive_bottom_increment = shared["adaptive_bottom_extension_increment"]
         vision_extractor = shared["vision_extractor"]
         schema_failure_flag = shared["schema_failure_flag"]
         vision_schema_error_cls = shared["vision_schema_error_cls"]
@@ -847,13 +851,15 @@ class DoclingProcessor:
         vision_extraction_attempted = False
         vision_schema_contract_failed = False
         vision_extraction_disabled_reason: str | None = None
+        crop_reject_reason: str | None = None
+        bbox_sanity_profile: dict[str, Any] | None = None
+        vision_result: Any = None
 
         if vision_extractor and table_bbox and len(table_bbox) == 4:
             vision_extraction_attempted = True
             try:
                 from ..utils.pdf_crop import crop_table_region_to_bytes
 
-                _TOP_EXTENSION = 0.03
                 if schema_failure_flag[0]:
                     vision_extraction_attempted = False
                     warnings_list = [
@@ -863,64 +869,94 @@ class DoclingProcessor:
                         "vision_extraction_disabled_reason"
                     )
                 else:
+                    from ..utils.pdf_crop import is_bbox_sane
 
-                    def _recrop(ext: float) -> bytes:
-                        return crop_table_region_to_bytes(
-                            str(pdf_path),
-                            page_num,
-                            table_bbox,
-                            bottom_extension=ext,
-                            top_extension=_TOP_EXTENSION,
-                            dpi=300,
-                        )
-
-                    crop_bytes = _recrop(bottom_extension_footnotes)
-                    if not crop_bytes:
-                        raise ValueError("crop returned empty bytes")
-
-                    vision_result = vision_extractor.extract_with_quality_pass(
-                        crop_bytes=crop_bytes,
-                        bank_code=bank_code,
-                        pdf_sha=pdf_sha,
-                        page_number=page_num,
-                        bbox_norm=table_bbox,
-                        vision_cfg=vision_extraction_cfg,
-                        initial_bottom_extension=bottom_extension_footnotes,
-                        get_recrop_fn=_recrop,
-                        reference_text=reference_text,
+                    sane, crop_reject_reason, bbox_sanity_profile = is_bbox_sane(
+                        table_bbox, vision_extraction_cfg
                     )
-                    if vision_result is not None:
-                        title = vision_result.table_title or ""
-                        table_number, title_clean = self._extract_table_number(
-                            title or None
-                        )
-                        title_raw = title or None
-                        out_headers = (
-                            [] if labels_only else (vision_result.headers or [])
-                        )
-                        out_rows = [] if labels_only else (vision_result.rows or [])
-                        indicators_spatial_raw = list(
-                            vision_result.indicators or []
-                        )
-                        indicators_raw_text = [
-                            item.get("text", "")
-                            if isinstance(item, dict)
-                            else str(item)
-                            for item in indicators_spatial_raw
-                        ]
-                        indicators = [
-                            normalize_indicator_for_comparison(text)
-                            for text in indicators_raw_text
-                        ]
-                        footnotes = (
-                            [] if labels_only else vision_result.to_footnotes_list()
-                        )
-                        vision_confidence = vision_result.confidence
-                        vision_status_str = vision_result.vision_status or "ok"
-                        warnings_list = list(vision_result.warnings or [])
-                    else:
+                    if not sane:
+                        vision_extraction_attempted = True
                         vision_status_str = "failed"
-                        warnings_list = ["VisionFullExtractor returned None"]
+                        warnings_list = [
+                            f"bbox sanity gate: {crop_reject_reason or 'rejected'}; Vision skipped"
+                        ]
+                    else:
+
+                        # Adaptive bottom: larger extension when table bbox is far from page bottom (footnotes likely)
+                        initial_bottom_ext = bottom_extension_footnotes
+                        if (
+                            adaptive_bottom_enabled
+                            and table_bbox
+                            and len(table_bbox) >= 4
+                            and table_bbox[3] < 0.85
+                        ):
+                            initial_bottom_ext = min(
+                                1.0 - table_bbox[3],
+                                bottom_extension_footnotes + adaptive_bottom_increment,
+                            )
+
+                        def _recrop(ext: float) -> bytes:
+                            return crop_table_region_to_bytes(
+                                str(pdf_path),
+                                page_num,
+                                table_bbox,
+                                bottom_extension=ext,
+                                top_extension=top_extension_title,
+                                horizontal_padding=horizontal_padding,
+                                dpi=300,
+                            )
+
+                        crop_bytes = _recrop(initial_bottom_ext)
+                        if not crop_bytes:
+                            vision_extraction_attempted = True
+                            vision_status_str = "failed"
+                            warnings_list = [
+                                "crop rejected or empty; Vision skipped (invalid bbox, page, or crop failure)"
+                            ]
+                        else:
+                            vision_result = vision_extractor.extract_with_quality_pass(
+                                crop_bytes=crop_bytes,
+                                bank_code=bank_code,
+                                pdf_sha=pdf_sha,
+                                page_number=page_num,
+                                bbox_norm=table_bbox,
+                                vision_cfg=vision_extraction_cfg,
+                                initial_bottom_extension=initial_bottom_ext,
+                                get_recrop_fn=_recrop,
+                                reference_text=reference_text,
+                            )
+                            if vision_result is not None:
+                                title = vision_result.table_title or ""
+                                table_number, title_clean = self._extract_table_number(
+                                    title or None
+                                )
+                                title_raw = title or None
+                                out_headers = (
+                                    [] if labels_only else (vision_result.headers or [])
+                                )
+                                out_rows = [] if labels_only else (vision_result.rows or [])
+                                indicators_spatial_raw = list(
+                                    vision_result.indicators or []
+                                )
+                                indicators_raw_text = [
+                                    item.get("text", "")
+                                    if isinstance(item, dict)
+                                    else str(item)
+                                    for item in indicators_spatial_raw
+                                ]
+                                indicators = [
+                                    normalize_indicator_for_comparison(text)
+                                    for text in indicators_raw_text
+                                ]
+                                footnotes = (
+                                    [] if labels_only else vision_result.to_footnotes_list()
+                                )
+                                vision_confidence = vision_result.confidence
+                                vision_status_str = vision_result.vision_status or "ok"
+                                warnings_list = list(vision_result.warnings or [])
+                            else:
+                                vision_status_str = "failed"
+                                warnings_list = ["VisionFullExtractor returned None"]
             except BaseException as e:
                 if type(e) is vision_schema_error_cls:
                     reason = f"Vision schema contract invalid: {e}"
@@ -958,6 +994,22 @@ class DoclingProcessor:
             debug_metrics["vision_extraction_disabled_reason"] = (
                 vision_extraction_disabled_reason
             )
+        if crop_reject_reason:
+            debug_metrics["crop_reject_reason"] = crop_reject_reason
+        if bbox_sanity_profile is not None:
+            debug_metrics["bbox_sanity_profile"] = bbox_sanity_profile
+        # Recrop and completeness (from vision result when available)
+        if vision_result is not None:
+            if hasattr(vision_result, "appears_truncated"):
+                debug_metrics["appears_truncated"] = vision_result.appears_truncated
+            if hasattr(vision_result, "recrop_attempted"):
+                debug_metrics["recrop_attempted"] = vision_result.recrop_attempted
+            if hasattr(vision_result, "recrop_used"):
+                debug_metrics["recrop_used"] = vision_result.recrop_used
+            if hasattr(vision_result, "recrop_failed_incomplete"):
+                debug_metrics["recrop_failed_incomplete"] = (
+                    vision_result.recrop_failed_incomplete
+                )
 
         extracted_table = ExtractedTable(
             table_id=table_id,
@@ -1020,6 +1072,10 @@ class DoclingProcessor:
             # Vision extraction: GPT-4o as content source (indicators + footnotes) for all tables
             vision_extraction_cfg: dict = {}
             bottom_extension_footnotes = 0.0
+            top_extension_title = 0.03
+            horizontal_padding = 0.02
+            adaptive_bottom_extension_enabled = False
+            adaptive_bottom_extension_increment = 0.06
             # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
             schema_failure_policy = "fail_fast"
             vision_extractor = None
@@ -1032,6 +1088,22 @@ class DoclingProcessor:
                     vision_extraction_cfg = _get_vision_extraction_config(bank_code)
                     bottom_extension_footnotes = float(
                         vision_extraction_cfg.get("bottom_extension_footnotes", 0.12)
+                    )
+                    top_extension_title = float(
+                        vision_extraction_cfg.get("top_extension_title", 0.03)
+                    )
+                    horizontal_padding = float(
+                        vision_extraction_cfg.get("horizontal_padding", 0.02)
+                    )
+                    adaptive_bottom_extension_enabled = bool(
+                        vision_extraction_cfg.get(
+                            "adaptive_bottom_extension_enabled", False
+                        )
+                    )
+                    adaptive_bottom_extension_increment = float(
+                        vision_extraction_cfg.get(
+                            "adaptive_bottom_extension_increment", 0.06
+                        )
                     )
                     # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
                     schema_failure_policy = (
@@ -1057,9 +1129,12 @@ class DoclingProcessor:
 
                     pdf_sha = compute_pdf_sha256(str(pdf_path))
                     api_key = self.openai_api_key or get_openai_api_key()
+                    vision_cache_enabled = bool(
+                        vision_extraction_cfg.get("vision_cache_enabled", True)
+                    )
                     if api_key:
                         vision_extractor = VisionFullExtractor(
-                            api_key=api_key, use_cache=False
+                            api_key=api_key, use_cache=vision_cache_enabled
                         )
                     else:
                         logger.warning(
@@ -1112,6 +1187,69 @@ class DoclingProcessor:
                     pass
                 vision_items.append((idx, page_num, table_bbox, table_id, reference_text))
 
+            def _bbox_area(b: list[float]) -> float:
+                if not b or len(b) < 4:
+                    return 0.0
+                w = max(0.0, float(b[2]) - float(b[0]))
+                h = max(0.0, float(b[3]) - float(b[1]))
+                return w * h
+
+            def _bbox_overlap_ratio(a: list[float], b: list[float]) -> float:
+                if len(a) < 4 or len(b) < 4:
+                    return 0.0
+                x0 = max(a[0], b[0])
+                y0 = max(a[1], b[1])
+                x1 = min(a[2], b[2])
+                y1 = min(a[3], b[3])
+                if x1 <= x0 or y1 <= y0:
+                    return 0.0
+                inter = (x1 - x0) * (y1 - y0)
+                area_a = _bbox_area(a)
+                area_b = _bbox_area(b)
+                if area_a <= 0 or area_b <= 0:
+                    return 0.0
+                return inter / min(area_a, area_b)
+
+            def _detect_overlapping_bboxes(
+                items: list[tuple[int, int, list[float] | None, str, str | None]],
+            ) -> list[tuple[int, int, int, float]]:
+                by_page: dict[int, list[tuple[int, list[float]]]] = {}
+                for idx, page_num, bbox, table_id, _ in items:
+                    if bbox and len(bbox) >= 4:
+                        by_page.setdefault(page_num, []).append((idx, bbox))
+                overlaps: list[tuple[int, int, int, float]] = []
+                for page_num, boxes in by_page.items():
+                    if len(boxes) < 2:
+                        continue
+                    for i in range(len(boxes)):
+                        for j in range(i + 1, len(boxes)):
+                            idx_a, bbox_a = boxes[i]
+                            idx_b, bbox_b = boxes[j]
+                            ratio = _bbox_overlap_ratio(bbox_a, bbox_b)
+                            if ratio > 0.01:
+                                overlaps.append((page_num, idx_a, idx_b, ratio))
+                return overlaps
+
+            overlap_pairs = _detect_overlapping_bboxes(vision_items)
+            if overlap_pairs:
+                for page_num, idx_a, idx_b, ratio in overlap_pairs:
+                    logger.warning(
+                        "vision_extraction bbox_overlap page=%s idx=%s/%s ratio=%.3f",
+                        page_num,
+                        idx_a,
+                        idx_b,
+                        ratio,
+                    )
+
+            tables_per_page: dict[int, int] = {}
+            for _idx, page_num, _bbox, _tid, _ref in vision_items:
+                tables_per_page[page_num] = tables_per_page.get(page_num, 0) + 1
+            if tables_per_page:
+                logger.info(
+                    "vision_extraction tables_detected_per_page %s",
+                    dict(sorted(tables_per_page.items())),
+                )
+
             all_tables = []
             tables_by_page: dict[int, int] = {}
             if vision_items:
@@ -1124,14 +1262,21 @@ class DoclingProcessor:
                     "pdf_sha": pdf_sha,
                     "vision_extraction_cfg": vision_extraction_cfg,
                     "bottom_extension_footnotes": bottom_extension_footnotes,
+                    "top_extension_title": top_extension_title,
+                    "horizontal_padding": horizontal_padding,
+                    "adaptive_bottom_extension_enabled": adaptive_bottom_extension_enabled,
+                    "adaptive_bottom_extension_increment": adaptive_bottom_extension_increment,
                     "vision_extractor": vision_extractor,
                     "schema_failure_flag": schema_failure_flag,
                     "vision_schema_error_cls": vision_schema_error_cls,
                     "schema_failure_policy": schema_failure_policy,
                     "labels_only": labels_only,
                 }
+                vision_max_workers = int(
+                    vision_extraction_cfg.get("vision_extraction_max_workers", 4)
+                )
                 max_workers = min(
-                    VISION_EXTRACTION_MAX_WORKERS,
+                    max(1, vision_max_workers),
                     len(vision_items),
                 )
                 if schema_failure_policy == "fail_fast":
@@ -1177,6 +1322,36 @@ class DoclingProcessor:
                     f"p{k}:{v}" for k, v in sorted(tables_by_page.items())
                 )
                 logger.info("Docling tableaux par page: %s", counts_str)
+
+            rejected_bbox_sanity = sum(
+                1
+                for t in all_tables
+                if getattr(t, "debug_metrics", None) and isinstance(t.debug_metrics, dict)
+                and t.debug_metrics.get("crop_reject_reason")
+            )
+            if rejected_bbox_sanity:
+                logger.info(
+                    "vision_extraction tables_rejected_bbox_sanity count=%s",
+                    rejected_bbox_sanity,
+                )
+            recrop_attempted = sum(
+                1
+                for t in all_tables
+                if getattr(t, "debug_metrics", None) and isinstance(t.debug_metrics, dict)
+                and t.debug_metrics.get("recrop_attempted")
+            )
+            recrop_used = sum(
+                1
+                for t in all_tables
+                if getattr(t, "debug_metrics", None) and isinstance(t.debug_metrics, dict)
+                and t.debug_metrics.get("recrop_used")
+            )
+            if recrop_attempted or recrop_used:
+                logger.info(
+                    "vision_extraction recrop attempted=%s used=%s",
+                    recrop_attempted,
+                    recrop_used,
+                )
 
             # Extraire le contenu textuel pour les sections
             text_content = doc.export_to_markdown()
@@ -1276,6 +1451,10 @@ class DoclingProcessor:
         min_confidence = float(assist_cfg.get("min_confidence", 0.7))
         max_candidates = int(assist_cfg.get("max_candidates", 10))
         weak_title_threshold = int(assist_cfg.get("weak_title_threshold", 3))
+        allow_positional_fallback = bool(
+            assist_cfg.get("allow_positional_fallback", False)
+        )
+        max_pages_per_run = int(assist_cfg.get("max_pages_per_run", 50))
 
         bank_is_rbc = is_rbc_bank(bank_code)
 
@@ -1294,21 +1473,44 @@ class DoclingProcessor:
         if not pages_needing_assist:
             return tables
 
+        logger.info(
+            "page_level_title_assist starting pages_count=%s",
+            len(pages_needing_assist),
+        )
+
+        # Limit pages to process (budget)
+        page_nums_sorted = sorted(pages_needing_assist.keys())[:max_pages_per_run]
+        if len(page_nums_sorted) < len(pages_needing_assist):
+            logger.debug(
+                "Page-level title assist: limiting to %s pages (budget %s)",
+                max_pages_per_run,
+                len(pages_needing_assist),
+            )
+
         try:
             api_key = self.openai_api_key or get_openai_api_key()
             if not api_key:
                 logger.debug("Page-level title assist: no API key, skipping")
                 return tables
+            api_retry_max = int(
+                vision_extraction_cfg.get("api_retry_max", 3)
+            )
+            api_retry_backoff_ms = float(
+                vision_extraction_cfg.get("api_retry_backoff_ms", 1000)
+            )
             assistant = PageTitleAssistant(
                 api_key=api_key,
                 min_confidence=min_confidence,
                 max_candidates=max_candidates,
+                api_retry_max=api_retry_max,
+                api_retry_backoff_ms=api_retry_backoff_ms,
             )
         except Exception as e:
             logger.debug("Page-level title assist init failed: %s", e)
             return tables
 
-        for page_num, page_tables in pages_needing_assist.items():
+        for page_num in page_nums_sorted:
+            page_tables = pages_needing_assist[page_num]
             try:
                 from .pdf_preview import render_pdf_page
 
@@ -1323,7 +1525,10 @@ class DoclingProcessor:
                     continue
 
                 self._apply_page_title_candidates(
-                    page_tables, result, weak_title_threshold
+                    page_tables,
+                    result,
+                    weak_title_threshold,
+                    allow_positional_fallback,
                 )
             except Exception as e:
                 logger.debug(
@@ -1337,8 +1542,13 @@ class DoclingProcessor:
         page_tables: list[ExtractedTable],
         result: PageTitleResult,
         weak_title_threshold: int,
+        allow_positional_fallback: bool = False,
     ) -> None:
-        """Map page-level title candidates to tables and apply when appropriate."""
+        """Map page-level title candidates to tables and apply when appropriate.
+
+        Only applies title when matched by exact table_number or bbox proximity,
+        unless allow_positional_fallback is True (not recommended for multi-table pages).
+        """
         used_candidates: set[int] = set()
         bank_code = self.bank_code_for_patterns
 
@@ -1356,6 +1566,7 @@ class DoclingProcessor:
 
             candidate: dict[str, Any] | None = None
             candidate_idx: int | None = None
+            match_method: str = ""
 
             # 1) Match by table_number
             table_num = str(table.table_number or "").strip()
@@ -1366,6 +1577,7 @@ class DoclingProcessor:
                     if str(c.get("table_number", "")).strip() == table_num:
                         candidate = c
                         candidate_idx = idx
+                        match_method = "table_number"
                         break
 
             # 2) Match by bbox proximity (title above table)
@@ -1375,17 +1587,19 @@ class DoclingProcessor:
                     for idx, c in enumerate(result.candidates):
                         if c is candidate and idx not in used_candidates:
                             candidate_idx = idx
+                            match_method = "bbox_proximity"
                             break
                     else:
                         candidate = None
                         candidate_idx = None
 
-            # 3) Positional fallback (first unused candidate)
-            if candidate is None:
+            # 3) Positional fallback (first unused candidate) only when allowed
+            if candidate is None and allow_positional_fallback:
                 for idx, c in enumerate(result.candidates):
                     if idx not in used_candidates:
                         candidate = c
                         candidate_idx = idx
+                        match_method = "fallback"
                         break
 
             if candidate is None or candidate_idx is None:
@@ -1427,6 +1641,11 @@ class DoclingProcessor:
             table.title_resolution_method = (
                 f"page_level_assist (conf={candidate.get('confidence', 0):.2f})"
             )
+
+            if not table.debug_metrics:
+                table.debug_metrics = {}
+            table.debug_metrics["page_title_assist_used"] = True
+            table.debug_metrics["page_title_assist_match_method"] = match_method
 
             logger.info(
                 "Page-level title assist: table %s p%s -> '%s' (conf=%.2f)",
@@ -1980,6 +2199,15 @@ def extract_tables_docling_by_sections(
     except Exception:
         pass
 
+    logger.info(
+        "extraction_docling_tables pdf=%s bank=%s quarter=%s year=%s tables_count=%d page_ranges=%s",
+        str(pdf_path),
+        bank_code,
+        quarter,
+        year,
+        len(tables),
+        page_ranges,
+    )
     return tables
 
 

@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import time
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -114,7 +115,7 @@ Pour chaque indicateur retourner également :
 
 ---
 
-Extraire toutes les notes situées en dessous du cadre rouge (et jusqu'au bas de la page).
+Extraire toutes les notes situées en bas de l'image recadrée du tableau (jusqu'au bas de l'image).
 
 Formats possibles des marqueurs :
 
@@ -195,7 +196,7 @@ L'objet JSON doit rigoureusement suivre cette structure:
 REGLES DE VALIDATION
 
 - reasoning_scratchpad : Obligatoire en premier. Décris ton analyse de la structure.
-- table_title : inclure le numéro ("Tableau XX") ET le titre s'ils sont présents au-dessus du cadre rouge. Chaine vide si aucun titre visible (NE JAMAIS inventer).
+- table_title : inclure le numéro ("Tableau XX") ET le titre s'ils sont présents en haut de l'image. Chaine vide si aucun titre visible (NE JAMAIS inventer).
 - headers : liste vide si aucun en-tete visible
 - indicators doit respecter l'ordre visuel du tableau
 - rows : liste vide si aucune donnee visible
@@ -544,6 +545,12 @@ def _classify_openai_error(exc: Exception) -> str:
         and ("not supported" in msg or "unsupported" in msg)
     ):
         return "structured_output_unsupported"
+    if "rate" in msg and "limit" in msg:
+        return "rate_limit"
+    if "timeout" in msg or "timed out" in msg:
+        return "timeout"
+    if "connection" in msg or "connect" in msg or "network" in msg:
+        return "connection"
     return "other"
 
 
@@ -571,6 +578,10 @@ class VisionFullResult:
     # Status and warnings
     vision_status: str = "ok"  # "ok" | "partial" | "failed"
     warnings: list[str] = field(default_factory=list)
+    # Recrop quality pass (for debug_metrics)
+    recrop_attempted: bool = False
+    recrop_used: bool = False
+    recrop_failed_incomplete: bool = False
 
     def to_footnotes_list(self) -> list[dict[str, str]]:
         """Return footnotes as ordered list (visual order). No sorting by marker."""
@@ -648,6 +659,16 @@ def _parse_json_response(raw: str) -> dict[str, Any] | None:
         return data if isinstance(data, dict) else None
     except (json.JSONDecodeError, TypeError, ValueError):
         return None
+
+
+def _preview_response_text(raw: str, limit: int = 500) -> str:
+    """Return a compact response preview suitable for logs."""
+    text = (raw or "").strip()
+    if len(text) <= limit:
+        return text
+    head = text[: limit // 2]
+    tail = text[-(limit // 2) :]
+    return f"{head} ... {tail}"
 
 
 _VISION_RESPONSE_KEYS = frozenset(
@@ -966,6 +987,7 @@ class VisionFullExtractor:
         ]
 
         raw_content = ""
+        finish_reason = ""
         use_structured = True
         openai_schema: dict[str, Any] | None = None
         if use_structured:
@@ -985,43 +1007,93 @@ class VisionFullExtractor:
                         self._schema_contract_error_logged = True
                     raise
 
-        for attempt in range(self._max_retries_json + 1):
-            try:
-                # Always use Structured Outputs (strict JSON schema).
-                # Fallback to json_object only if model doesn't support it.
-                response_format: dict[str, Any] = (
-                    (openai_schema or {"type": "json_object"})
-                    if use_structured
-                    else {"type": "json_object"}
+        api_retry_max = int(vision_cfg.get("api_retry_max", 3))
+        api_retry_backoff_ms = float(vision_cfg.get("api_retry_backoff_ms", 1000))
+        api_success = False
+
+        for transport_attempt in range(api_retry_max + 1):
+            if transport_attempt > 0:
+                backoff_sec = (api_retry_backoff_ms / 1000.0) * (
+                    2 ** (transport_attempt - 1)
                 )
-                response = client.chat.completions.create(
-                    model=self._model,
-                    messages=[{"role": "user", "content": content}],
-                    response_format=response_format,
-                    temperature=0,
-                    max_completion_tokens=16384,
+                logger.info(
+                    "Vision full: transport retry %s/%s after %.1fs backoff",
+                    transport_attempt,
+                    api_retry_max,
+                    backoff_sec,
                 )
-                raw_content = response.choices[0].message.content or ""
-            except Exception as e:
-                err_kind = _classify_openai_error(e)
-                if err_kind == "schema_contract_invalid":
-                    self._disabled_reason = f"Vision schema contract invalid: {e}"
-                    if not self._schema_contract_error_logged:
-                        logger.error("%s", self._disabled_reason)
-                        self._schema_contract_error_logged = True
-                    raise VisionSchemaContractError(self._disabled_reason) from e
-                if use_structured and err_kind == "structured_output_unsupported":
-                    logger.debug(
-                        "Structured Outputs unsupported, falling back to json_object: %s",
-                        e,
+                time.sleep(backoff_sec)
+
+            for attempt in range(self._max_retries_json + 1):
+                try:
+                    response_format: dict[str, Any] = (
+                        (openai_schema or {"type": "json_object"})
+                        if use_structured
+                        else {"type": "json_object"}
                     )
-                    use_structured = False
-                    continue
-                logger.warning("Vision full extraction API error: %s", e)
-                return None
+                    response = client.chat.completions.create(
+                        model=self._model,
+                        messages=[{"role": "user", "content": content}],
+                        response_format=response_format,
+                        temperature=0,
+                        max_completion_tokens=16384,
+                    )
+                    raw_content = response.choices[0].message.content or ""
+                    finish_reason = str(
+                        getattr(response.choices[0], "finish_reason", "") or ""
+                    )
+                    api_success = True
+                    break
+                except Exception as e:
+                    err_kind = _classify_openai_error(e)
+                    if err_kind == "schema_contract_invalid":
+                        self._disabled_reason = f"Vision schema contract invalid: {e}"
+                        if not self._schema_contract_error_logged:
+                            logger.error("%s", self._disabled_reason)
+                            self._schema_contract_error_logged = True
+                        raise VisionSchemaContractError(self._disabled_reason) from e
+                    if use_structured and err_kind == "structured_output_unsupported":
+                        logger.debug(
+                            "Structured Outputs unsupported, falling back to json_object: %s",
+                            e,
+                        )
+                        use_structured = False
+                        continue
+                    if err_kind in ("rate_limit", "timeout", "connection"):
+                        if transport_attempt < api_retry_max:
+                            break  # exit inner loop to retry at transport level
+                        logger.warning(
+                            "Vision full extraction API error (retries exhausted): %s",
+                            e,
+                        )
+                        return None
+                    logger.warning("Vision full extraction API error: %s", e)
+                    return None
+
+            if api_success:
+                break
+        else:
+            logger.warning("Vision full extraction: no successful API response")
+            return None
+
+        for attempt in range(self._max_retries_json + 1):
+            if finish_reason == "length":
+                logger.warning(
+                    "Vision full: response truncated on attempt %d (finish_reason=length, raw_len=%d)",
+                    attempt + 1,
+                    len(raw_content),
+                )
 
             data = _parse_json_response(raw_content)
-            if data is not None:
+            if data is None:
+                logger.info(
+                    "Vision full: JSON parse failed on attempt %d (finish_reason=%s, raw_len=%d, preview=%r)",
+                    attempt + 1,
+                    finish_reason or "unknown",
+                    len(raw_content),
+                    _preview_response_text(raw_content),
+                )
+            else:
                 result = _parse_vision_result(data)
                 if result is not None:
                     if self._use_cache and cache_key:
@@ -1045,10 +1117,38 @@ class VisionFullExtractor:
                             },
                         )
                     return result
+                logger.info(
+                    "Vision full: schema validation failed on attempt %d (finish_reason=%s, raw_len=%d, keys=%s)",
+                    attempt + 1,
+                    finish_reason or "unknown",
+                    len(raw_content),
+                    sorted(data.keys()),
+                )
 
-            logger.info(
-                "Vision full: JSON parse/validation failed on attempt %d", attempt + 1
-            )
+            if attempt >= self._max_retries_json:
+                break
+
+            use_structured = False
+            content = [
+                {
+                    "type": "text",
+                    "text": (
+                        "Le contenu precedent n'etait pas exploitable. "
+                        "Retourne UNIQUEMENT un objet JSON valide conforme au schema demande, "
+                        "sans markdown, sans commentaire, sans texte avant ou apres.\n\n"
+                        f"{prompt}\n\n"
+                        "Reponse precedente a corriger:\n"
+                        f"{raw_content[:2000]}"
+                    ),
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/png;base64,{image_b64}",
+                        "detail": "high",
+                    },
+                },
+            ]
 
         logger.warning("Vision full extraction: invalid JSON after retries")
         return None
@@ -1082,6 +1182,12 @@ class VisionFullExtractor:
         else:
             expected_set = set()
 
+        def _indicator_count(r: VisionFullResult) -> int:
+            return len(r.indicators) if r.indicators else 0
+
+        def _row_count(r: VisionFullResult) -> int:
+            return len(r.rows) if r.rows else 0
+
         def _needs_recrop(result: VisionFullResult | None) -> bool:
             if result is None:
                 return True
@@ -1095,6 +1201,25 @@ class VisionFullExtractor:
                 found = {str(m).strip() for m in result.footnote_markers}
                 if not (found & expected_set) and len(found) < len(expected_set):
                     return True
+            # Completeness: indicators present but rows nearly empty
+            n_ind = _indicator_count(result)
+            n_row = _row_count(result)
+            if n_ind >= 5 and n_row < max(1, int(0.3 * n_ind)):
+                return True
+            # Suspicious indicator/row mismatch (many indicators, few rows, non-empty)
+            if n_ind >= 8 and 0 < n_row < n_ind // 2:
+                return True
+            # Missing title when crop is near page top (bbox_norm top < 0.15)
+            if (
+                bbox_norm
+                and len(bbox_norm) >= 2
+                and bbox_norm[1] < 0.15
+                and not (result.table_title or "").strip()
+            ):
+                return True
+            # Suspiciously small output: many indicators but very few data rows
+            if n_ind >= 10 and n_row <= 1:
+                return True
             return False
 
         first = self.extract(
@@ -1117,6 +1242,26 @@ class VisionFullExtractor:
         recrop_ext = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
         recrop_bytes = get_recrop_fn(recrop_ext)
         if not recrop_bytes:
+            # Recrop failed; if first pass was incomplete, mark it
+            first_incomplete = _needs_recrop(first)
+            if first_incomplete and first is not None:
+                return VisionFullResult(
+                    table_title=first.table_title,
+                    headers=first.headers,
+                    indicators=first.indicators,
+                    rows=first.rows,
+                    footnotes_content=first.footnotes_content,
+                    footnote_markers=first.footnote_markers,
+                    confidence=first.confidence,
+                    extraction_method=first.extraction_method,
+                    appears_truncated=first.appears_truncated,
+                    estimated_content_height=first.estimated_content_height,
+                    vision_status=first.vision_status,
+                    warnings=first.warnings,
+                    recrop_attempted=True,
+                    recrop_used=False,
+                    recrop_failed_incomplete=True,
+                )
             return first
 
         second = self.extract(
@@ -1131,17 +1276,85 @@ class VisionFullExtractor:
         )
 
         if second is None:
-            return first
+            out = first
+            if first is not None:
+                out = VisionFullResult(
+                    table_title=first.table_title,
+                    headers=first.headers,
+                    indicators=first.indicators,
+                    rows=first.rows,
+                    footnotes_content=first.footnotes_content,
+                    footnote_markers=first.footnote_markers,
+                    confidence=first.confidence,
+                    extraction_method=first.extraction_method,
+                    appears_truncated=first.appears_truncated,
+                    estimated_content_height=first.estimated_content_height,
+                    vision_status=first.vision_status,
+                    warnings=first.warnings,
+                    recrop_attempted=True,
+                    recrop_used=False,
+                    recrop_failed_incomplete=_needs_recrop(first),
+                )
+            return out
         if first is None:
-            return second
+            return VisionFullResult(
+                table_title=second.table_title,
+                headers=second.headers,
+                indicators=second.indicators,
+                rows=second.rows,
+                footnotes_content=second.footnotes_content,
+                footnote_markers=second.footnote_markers,
+                confidence=second.confidence,
+                extraction_method=second.extraction_method,
+                appears_truncated=second.appears_truncated,
+                estimated_content_height=second.estimated_content_height,
+                vision_status=second.vision_status,
+                warnings=second.warnings,
+                recrop_attempted=True,
+                recrop_used=True,
+                recrop_failed_incomplete=False,
+            )
+
+        def _completeness(r: VisionFullResult) -> float:
+            c = 0.0
+            n_ind = _indicator_count(r)
+            n_row = _row_count(r)
+            if n_ind > 0 and n_row > 0:
+                ratio = n_row / n_ind
+                c += 0.2 * min(1.0, ratio)  # row/indicator balance
+            if (r.table_title or "").strip():
+                c += 0.15
+            if not r.appears_truncated:
+                c += 0.15
+            if r.indicators:
+                c += 0.1 * min(1.0, len(r.indicators) / 20.0)
+            return c
 
         def _score(r: VisionFullResult) -> float:
             s = r.confidence
+            s += _completeness(r)
             if r.indicators:
-                s += 0.1 * min(1.0, len(r.indicators) / 20.0)
+                s += 0.05 * min(1.0, len(r.indicators) / 20.0)
             if expected_set and r.footnote_markers:
                 found = {str(m).strip() for m in r.footnote_markers}
                 s += 0.1 * (len(found & expected_set) / max(1, len(expected_set)))
             return s
 
-        return second if _score(second) >= _score(first) else first
+        chosen = second if _score(second) >= _score(first) else first
+        return VisionFullResult(
+            table_title=chosen.table_title,
+            headers=chosen.headers,
+            indicators=chosen.indicators,
+            rows=chosen.rows,
+            footnotes_content=chosen.footnotes_content,
+            footnote_markers=chosen.footnote_markers,
+            confidence=chosen.confidence,
+            extraction_method=chosen.extraction_method,
+            appears_truncated=chosen.appears_truncated,
+            estimated_content_height=chosen.estimated_content_height,
+            vision_status=chosen.vision_status,
+            warnings=chosen.warnings,
+            recrop_attempted=True,
+            recrop_used=(chosen is second),
+            recrop_failed_incomplete=False,
+        )

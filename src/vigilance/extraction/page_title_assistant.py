@@ -312,6 +312,8 @@ class PageTitleAssistant:
         model: str = "gpt-4o",
         min_confidence: float = 0.7,
         max_candidates: int = 10,
+        api_retry_max: int = 3,
+        api_retry_backoff_ms: float = 1000,
     ):
         from ..utils.genai import get_openai_api_key
 
@@ -319,6 +321,8 @@ class PageTitleAssistant:
         self._model = model
         self._min_confidence = min_confidence
         self._max_candidates = max_candidates
+        self._api_retry_max = max(0, api_retry_max)
+        self._api_retry_backoff_ms = max(0.0, api_retry_backoff_ms)
         self._client: Any = None
 
     def _ensure_client(self) -> None:
@@ -367,19 +371,52 @@ class PageTitleAssistant:
             },
         ]
 
-        try:
-            response = client.chat.completions.create(
-                model=self._model,
-                messages=[{"role": "user", "content": content}],
-                response_format={"type": "json_object"},
-                temperature=0,
-                max_completion_tokens=2048,
-            )
-            raw_content = response.choices[0].message.content or ""
-        except Exception as e:
-            logger.warning(
-                "Page title extraction API error (page %s): %s", page_number, e
-            )
+        import time
+
+        raw_content = ""
+        last_error: Exception | None = None
+        for attempt in range(self._api_retry_max + 1):
+            if attempt > 0:
+                backoff_sec = (self._api_retry_backoff_ms / 1000.0) * (
+                    2 ** (attempt - 1)
+                )
+                logger.info(
+                    "Page title extraction: retry %s/%s after %.1fs (page %s)",
+                    attempt,
+                    self._api_retry_max,
+                    backoff_sec,
+                    page_number,
+                )
+                time.sleep(backoff_sec)
+            try:
+                response = client.chat.completions.create(
+                    model=self._model,
+                    messages=[{"role": "user", "content": content}],
+                    response_format={"type": "json_object"},
+                    temperature=0,
+                    max_completion_tokens=2048,
+                )
+                raw_content = response.choices[0].message.content or ""
+                last_error = None
+                break
+            except Exception as e:
+                last_error = e
+                msg = str(e).lower()
+                retryable = (
+                    "rate" in msg and "limit" in msg
+                    or "timeout" in msg
+                    or "timed out" in msg
+                    or "connection" in msg
+                    or "connect" in msg
+                )
+                if not retryable or attempt >= self._api_retry_max:
+                    logger.warning(
+                        "Page title extraction API error (page %s): %s",
+                        page_number,
+                        e,
+                    )
+                    return None
+        if last_error is not None:
             return None
 
         result = _parse_page_title_response(raw_content)

@@ -1,4 +1,4 @@
-"""Strict Quality Gate for extraction outputs (indicators + footnotes)."""
+"""Strict Quality Gate for extraction outputs (indicators + footnotes) and extraction certification."""
 
 from __future__ import annotations
 
@@ -11,6 +11,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from vigilance.models.table_models import (
+    EXTRACTION_STATUS_BLOCKED,
+    EXTRACTION_STATUS_CERTIFIED,
+    EXTRACTION_STATUS_REVIEW_REQUIRED,
+    derive_extraction_blockers,
+    get_extraction_confidence,
+    get_extraction_quality_flags,
+    get_extraction_status,
+)
 from vigilance.utils.indicator_cleaner import (
     clean_table_title_contamination,
     is_table_title_contaminated,
@@ -27,6 +36,13 @@ _DEFAULT_CONFIG: dict[str, Any] = {
     "line_split_max_per_table": 2,
     "missing_marker_majority_threshold": 0.5,
     "title_numeric_density_threshold": 0.45,
+}
+
+# Extraction certification: strict quality-first defaults (fail on any blocked table).
+_DEFAULT_EXTRACTION_CONFIG: dict[str, Any] = {
+    "max_tables_blocked": 0,
+    "max_tables_review_required": 10,
+    "fail_on_budget_exhausted": True,
 }
 
 _NUMERIC_TOKEN_RE = re.compile(r"^\d[\d,.\u00a0]*$")
@@ -63,6 +79,79 @@ def _merge_config(config: dict[str, Any] | None) -> dict[str, Any]:
     if isinstance(config, dict):
         merged.update(config)
     return merged
+
+
+def evaluate_extraction_quality(
+    tables: list[Any],
+    *,
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """
+    Evaluate extraction certification across tables. Returns status, fail_reasons, and summary.
+    Used by the run-level quality gate; strict defaults (any blocked => FAIL).
+    """
+    cfg = dict(_DEFAULT_EXTRACTION_CONFIG)
+    if isinstance(config, dict):
+        cfg.update(config)
+    max_blocked = int(cfg.get("max_tables_blocked", 0))
+    max_review_required = int(cfg.get("max_tables_review_required", 10))
+    fail_on_budget = bool(cfg.get("fail_on_budget_exhausted", True))
+
+    tables_blocked = 0
+    tables_review_required = 0
+    tables_certified = 0
+    tables_crop_rejected = 0
+    tables_low_confidence = 0
+    tables_budget_exhausted = 0
+
+    for table in tables or []:
+        status = get_extraction_status(table)
+        if status == EXTRACTION_STATUS_BLOCKED:
+            tables_blocked += 1
+        elif status == EXTRACTION_STATUS_REVIEW_REQUIRED:
+            tables_review_required += 1
+        else:
+            tables_certified += 1
+        flags = get_extraction_quality_flags(table)
+        if flags.get("crop_rejected"):
+            tables_crop_rejected += 1
+        if get_extraction_confidence(table) < 0.5:
+            tables_low_confidence += 1
+        dm = getattr(table, "debug_metrics", None)
+        if isinstance(dm, dict) and dm.get("vision_budget_exhausted"):
+            tables_budget_exhausted += 1
+
+    fail_reasons: list[str] = []
+    if tables_blocked > max_blocked:
+        fail_reasons.append(
+            f"extraction_blocked_tables={tables_blocked}>max({max_blocked})"
+        )
+    if tables_review_required > max_review_required:
+        fail_reasons.append(
+            f"extraction_review_required_tables={tables_review_required}>max({max_review_required})"
+        )
+    if fail_on_budget and tables_budget_exhausted > 0:
+        fail_reasons.append(
+            f"extraction_budget_exhausted_tables={tables_budget_exhausted}"
+        )
+
+    status = "FAIL" if fail_reasons else "PASS"
+    eligible_for_review = status == "PASS"
+
+    return {
+        "status": status,
+        "eligible_for_review": eligible_for_review,
+        "fail_reasons": fail_reasons,
+        "summary": {
+            "tables_total": len(tables or []),
+            "tables_certified": tables_certified,
+            "tables_review_required": tables_review_required,
+            "tables_blocked": tables_blocked,
+            "tables_crop_rejected": tables_crop_rejected,
+            "tables_low_confidence": tables_low_confidence,
+            "tables_budget_exhausted": tables_budget_exhausted,
+        },
+    }
 
 
 def _safe_read_json(path: Path) -> dict[str, Any]:

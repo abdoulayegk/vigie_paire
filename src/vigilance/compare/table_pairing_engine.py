@@ -23,7 +23,17 @@ from difflib import SequenceMatcher
 from typing import Any, Protocol
 
 from vigilance.config import get_matching_thresholds
-from vigilance.models.table_models import TableArtifact, get_comparison_indicators
+from vigilance.models.table_models import (
+    TableArtifact,
+    derive_extraction_blockers,
+    get_comparison_indicators,
+    get_extraction_confidence,
+    get_extraction_quality_flags,
+    get_extraction_quality_profile,
+    get_extraction_status,
+    get_vision_raw_indicators,
+    is_auto_compare_eligible,
+)
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.matching_normalizer import (
     header_schema_similarity,
@@ -273,9 +283,10 @@ def _build_section_indicator_frequency(
     tables_t1: list[TableArtifact],
     tables_t2: list[TableArtifact],
 ) -> dict[str, dict[str, int]]:
+    """Build indicator frequency from certified tables only (same population as views)."""
     counts: dict[str, dict[str, int]] = {}
     for table in [*tables_t1, *tables_t2]:
-        if not bool(getattr(table, "comparison_eligible", False)):
+        if not is_auto_compare_eligible(table):
             continue
         section = _section_value(table)
         section_counts = counts.setdefault(section, {})
@@ -307,6 +318,43 @@ def _distinctive_indicator_keys(
     return [key for key in keys if not _is_generic_indicator_key(key)][:6]
 
 
+def _quality_profile(table: TableArtifact) -> dict[str, Any]:
+    """Normalized quality profile for pairing (avoid ad hoc debug_metrics)."""
+    return get_extraction_quality_profile(table)
+
+
+def _raw_indicator_stability(t1_view: TableView, t2_view: TableView) -> float:
+    """
+    Compare raw first-column indicators overlap vs normalized overlap.
+    Returns a value in [0, 1]; low when normalization makes noisy extractions look similar.
+    """
+    raw_left = [
+        normalize_for_matching(s, target="indicator")
+        for s in get_vision_raw_indicators(t1_view.table)
+        if normalize_for_matching(s, target="indicator")
+    ]
+    raw_right = [
+        normalize_for_matching(s, target="indicator")
+        for s in get_vision_raw_indicators(t2_view.table)
+        if normalize_for_matching(s, target="indicator")
+    ]
+    raw_overlap = _jaccard(raw_left, raw_right)
+    norm_overlap = _jaccard(t1_view.indicator_keys, t2_view.indicator_keys)
+    if norm_overlap <= 0.2:
+        return 1.0
+    if norm_overlap <= 0:
+        return 1.0
+    return min(1.0, raw_overlap / max(norm_overlap, 0.01))
+
+
+def _independent_anchor_count(score: "CandidateScore") -> int:
+    """
+    Return the precomputed anchor count from the candidate score.
+    Used to require at least 2 anchors when extraction quality is low.
+    """
+    return score.anchor_count
+
+
 @dataclass(slots=True)
 class TableView:
     table: TableArtifact
@@ -318,6 +366,7 @@ class TableView:
     indicator_keys: list[str]
     indicator_distinctive_keys: list[str]
     table_size: int
+    quality_profile: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_table(
@@ -341,7 +390,18 @@ class TableView:
                 section_table_count=section_table_count,
             ),
             table_size=_row_count(table),
+            quality_profile=_quality_profile(table),
         )
+
+
+def _title_reliability_numeric(table: TableArtifact) -> float:
+    """Map title_reliability string to a score in [0, 1] for pairing."""
+    r = getattr(table, "title_reliability", None) or ""
+    if str(r).strip().lower() == "reliable":
+        return 1.0
+    if str(r).strip().lower() == "weak":
+        return 0.5
+    return 0.3
 
 
 @dataclass(slots=True)
@@ -361,6 +421,12 @@ class CandidateScore:
     table_number_match: bool
     table_number_conflict: bool
     explanation: list[str] = field(default_factory=list)
+    quality_penalty: float = 0.0
+    raw_indicator_stability: float = 1.0
+    anchor_count: int = 0
+    confidence_cap_reason: str | None = None
+    title_reliability_score: float = 0.0
+    quality_suspect: bool = False
 
     def as_feature_dict(self) -> dict[str, Any]:
         return {
@@ -432,7 +498,67 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
         + 0.04 * order_proximity_bonus
         + table_number_bonus
     )
+    raw_stability = _raw_indicator_stability(t1_view, t2_view)
+    title_reliability_score = min(
+        _title_reliability_numeric(t1_view.table),
+        _title_reliability_numeric(t2_view.table),
+    )
+    flags1 = get_extraction_quality_flags(t1_view.table)
+    flags2 = get_extraction_quality_flags(t2_view.table)
+    low_quality_left = (
+        flags1.get("crop_rejected")
+        or flags1.get("recrop_failed_incomplete")
+        or not flags1.get("vision_extraction_applied", True)
+    )
+    low_quality_right = (
+        flags2.get("crop_rejected")
+        or flags2.get("recrop_failed_incomplete")
+        or not flags2.get("vision_extraction_applied", True)
+    )
+    conf_left = get_extraction_confidence(t1_view.table)
+    conf_right = get_extraction_confidence(t2_view.table)
+    low_conf = conf_left < 0.5 or conf_right < 0.5
+    quality_suspect = low_quality_left or low_quality_right or low_conf
+    if quality_suspect:
+        if low_quality_left or low_quality_right:
+            quality_suspect = True
+    instability_penalty = 0.0
+    if indicator_global_overlap >= 0.5 and raw_stability < 0.6:
+        instability_penalty = 0.15 * (1.0 - raw_stability)
+    title_contribution = 0.11 * title_similarity
+    if title_reliability_score < 0.6:
+        title_contribution *= 0.3
+    header_contribution = 0.12 * header_compatibility
+    if quality_suspect:
+        header_contribution *= 0.7
+    total = (
+        0.36 * indicator_distinctive_overlap
+        + 0.23 * indicator_containment
+        + header_contribution
+        + title_contribution
+        + 0.08 * section_compatibility
+        + 0.06 * size_compatibility
+        + 0.04 * order_proximity_bonus
+        + table_number_bonus
+        - instability_penalty
+    )
+    quality_penalty = 0.0
+    if quality_suspect:
+        quality_penalty = 0.08
+    total = total - quality_penalty
     total = max(0.0, min(1.0, total))
+
+    anchor_count = 0
+    if same_number:
+        anchor_count += 1
+    if indicator_distinctive_overlap >= 0.40:
+        anchor_count += 1
+    if indicator_containment >= 0.52:
+        anchor_count += 1
+    if title_reliability_score >= 0.7 and title_similarity >= 0.72:
+        anchor_count += 1
+    if header_compatibility >= 0.72:
+        anchor_count += 1
 
     return CandidateScore(
         t1_view=t1_view,
@@ -450,6 +576,12 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
         table_number_match=same_number,
         table_number_conflict=table_number_conflict,
         explanation=explanation,
+        quality_penalty=quality_penalty,
+        raw_indicator_stability=raw_stability,
+        anchor_count=anchor_count,
+        confidence_cap_reason=None,
+        title_reliability_score=title_reliability_score,
+        quality_suspect=quality_suspect,
     )
 
 
@@ -459,10 +591,28 @@ def _eligible_table_views(
     section_frequencies: dict[str, dict[str, int]],
     section_counts: dict[str, int],
 ) -> tuple[list[TableView], list[dict[str, Any]]]:
+    """Build views only for tables certified for auto-comparison. Uncertified tables are excluded with explicit reasons."""
     views: list[TableView] = []
     ineligible: list[dict[str, Any]] = []
     for table in tables:
         uid = _table_uid(table)
+        if not is_auto_compare_eligible(table):
+            extraction_blockers = derive_extraction_blockers(table)
+            extraction_status = get_extraction_status(table)
+            ineligible.append(
+                {
+                    "table_id": table.table_id,
+                    "uid": uid,
+                    "section": table.section,
+                    "page": table.page_pdf,
+                    "title": table.title or "",
+                    "comparison_blockers": list(getattr(table, "comparison_blockers", []) or []),
+                    "extraction_blockers": extraction_blockers,
+                    "extraction_status": extraction_status,
+                    "reason": "extraction_not_certified",
+                }
+            )
+            continue
         if not bool(getattr(table, "comparison_eligible", False)):
             blockers = list(getattr(table, "comparison_blockers", []) or [])
             ineligible.append(
@@ -551,6 +701,8 @@ class PairingDecision:
     confidence: float
     reason_codes: list[str]
     requires_review: bool
+    pairing_quality_flags: list[str] = field(default_factory=list)
+    pairing_confidence_cap: str | None = None
 
 
 class PairingRouter(Protocol):
@@ -584,6 +736,9 @@ class ConservativePairingRouter:
         second = candidates[1] if len(candidates) > 1 else None
         reasons = list(top.explanation)
 
+        low_quality = top.quality_suspect
+        anchors = top.anchor_count
+
         if (
             top.indicator_global_overlap >= 0.60
             and top.indicator_distinctive_overlap < 0.25
@@ -597,9 +752,27 @@ class ConservativePairingRouter:
                 requires_review=True,
             )
 
+        if top.raw_indicator_stability < 0.6 and top.indicator_global_overlap >= 0.5:
+            reasons.append("raw_normalized_instability")
+            return PairingDecision(
+                decision="ambiguous",
+                matched_t1_uid=None,
+                confidence=min(0.75, top.total_score),
+                reason_codes=reasons,
+                requires_review=True,
+            )
+
         if second is not None and second.total_score >= 0.55:
             if abs(top.total_score - second.total_score) < 0.06:
                 reasons.append("close_competing_candidates")
+                if low_quality:
+                    return PairingDecision(
+                        decision="ambiguous",
+                        matched_t1_uid=None,
+                        confidence=min(0.75, top.total_score),
+                        reason_codes=reasons,
+                        requires_review=True,
+                    )
                 return PairingDecision(
                     decision="ambiguous",
                     matched_t1_uid=None,
@@ -618,23 +791,53 @@ class ConservativePairingRouter:
                 requires_review=True,
             )
 
+        if low_quality and anchors < 2 and (
+            top.title_similarity >= 0.72 or top.header_compatibility >= 0.72
+        ):
+            reasons.append("low_quality_title_or_header_only")
+            return PairingDecision(
+                decision="ambiguous",
+                matched_t1_uid=None,
+                confidence=min(0.70, top.total_score),
+                reason_codes=reasons,
+                requires_review=True,
+            )
+
         if (
             top.total_score >= 0.66
             and top.indicator_containment >= 0.52
             and (
                 top.indicator_distinctive_overlap >= 0.40
-                or top.title_similarity >= 0.72
+                or (top.title_reliability_score >= 0.7 and top.title_similarity >= 0.72)
                 or top.header_compatibility >= 0.72
                 or top.table_number_match
             )
         ):
+            if low_quality and anchors < 2:
+                reasons.append("low_quality_insufficient_anchors")
+                return PairingDecision(
+                    decision="ambiguous",
+                    matched_t1_uid=None,
+                    confidence=min(0.75, top.total_score),
+                    reason_codes=reasons,
+                    requires_review=True,
+                )
             reasons.append("deterministic_router_match")
+            confidence = top.total_score
+            quality_flags: list[str] = []
+            cap_reason: str | None = None
+            if low_quality:
+                confidence = min(0.82, confidence)
+                quality_flags.append("low_quality_match")
+                cap_reason = "extraction_quality_cap"
             return PairingDecision(
                 decision="match",
                 matched_t1_uid=top.t1_view.uid,
-                confidence=top.total_score,
+                confidence=confidence,
                 reason_codes=reasons,
                 requires_review=False,
+                pairing_quality_flags=quality_flags,
+                pairing_confidence_cap=cap_reason,
             )
 
         if top.total_score >= 0.56 and top.indicator_containment >= 0.45:
@@ -810,6 +1013,10 @@ def _pair_dict(candidate: CandidateScore, decision: PairingDecision) -> dict[str
             "pairing_confidence": round(decision.confidence, 6),
         }
     )
+    if getattr(decision, "pairing_quality_flags", None):
+        payload["pairing_quality_flags"] = list(decision.pairing_quality_flags)
+    if getattr(decision, "pairing_confidence_cap", None):
+        payload["pairing_confidence_cap"] = decision.pairing_confidence_cap
     return payload
 
 
@@ -970,7 +1177,7 @@ def run_strict_intra_section_compare(
     section_frequencies = _build_section_indicator_frequency(tables_t1, tables_t2)
     section_counts: dict[str, int] = {}
     for table in [*tables_t1, *tables_t2]:
-        if not bool(getattr(table, "comparison_eligible", False)):
+        if not is_auto_compare_eligible(table):
             continue
         section = _section_value(table)
         section_counts[section] = section_counts.get(section, 0) + 1
@@ -1125,30 +1332,24 @@ def run_strict_intra_section_compare(
         6,
     )
 
-    ineligible_t1 = [
-        {
-            "t1_table_id": item["table_id"],
-            "t1_uid": item["uid"],
+    def _ineligible_entry(item: dict[str, Any], prefix: str) -> dict[str, Any]:
+        out: dict[str, Any] = {
+            f"{prefix}_table_id": item["table_id"],
+            f"{prefix}_uid": item["uid"],
             "section": item["section"],
-            "page_t1": item["page"],
-            "title_t1": item["title"],
+            f"page_{prefix}": item["page"],
+            f"title_{prefix}": item["title"],
             "reason": item["reason"],
-            "comparison_blockers": item["comparison_blockers"],
+            "comparison_blockers": item.get("comparison_blockers", []),
         }
-        for item in ineligible_t1_raw
-    ]
-    ineligible_t2 = [
-        {
-            "t2_table_id": item["table_id"],
-            "t2_uid": item["uid"],
-            "section": item["section"],
-            "page_t2": item["page"],
-            "title_t2": item["title"],
-            "reason": item["reason"],
-            "comparison_blockers": item["comparison_blockers"],
-        }
-        for item in ineligible_t2_raw
-    ]
+        if "extraction_blockers" in item:
+            out["extraction_blockers"] = item["extraction_blockers"]
+        if "extraction_status" in item:
+            out["extraction_status"] = item["extraction_status"]
+        return out
+
+    ineligible_t1 = [_ineligible_entry(item, "t1") for item in ineligible_t1_raw]
+    ineligible_t2 = [_ineligible_entry(item, "t2") for item in ineligible_t2_raw]
 
     return {
         "pairs": pairs,
