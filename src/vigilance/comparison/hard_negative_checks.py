@@ -50,9 +50,15 @@ def check_hard_negative(
     header_overlap: float = 0.0,
     headers_t1: Optional[list[str]] = None,
     headers_t2: Optional[list[str]] = None,
+    robust_indicator_score: Optional[float] = None,
+    override_indicator_min: float = 0.30,
 ) -> HardNegativeResult:
     """
     Applique les regles Hard Negative.
+
+    Override (table_number + header + optional indicator support): when
+    robust_indicator_score is provided, override also requires
+    robust_indicator_score >= override_indicator_min.
 
     Args:
         table_type_t1: Type du tableau 1 (requirements | observed_results | unknown)
@@ -61,17 +67,26 @@ def check_hard_negative(
         header_overlap: Jaccard/overlap des headers (0-1)
         headers_t1: En-tetes du tableau 1
         headers_t2: En-tetes du tableau 2
+        robust_indicator_score: Optional robust indicator score for override check
+        override_indicator_min: Min robust indicator score to allow override (when provided)
 
     Returns:
         HardNegativeResult avec triggered, reason, can_override
     """
+    def _override_ok() -> bool:
+        if not table_number_match or header_overlap < 0.85:
+            return False
+        if robust_indicator_score is not None:
+            return robust_indicator_score >= override_indicator_min
+        return True
+
     if table_type_t1 not in ("requirements", "observed_results", "unknown"):
         table_type_t1 = "unknown"
     if table_type_t2 not in ("requirements", "observed_results", "unknown"):
         table_type_t2 = "unknown"
 
     if table_type_t1 != "unknown" and table_type_t2 != "unknown" and table_type_t1 != table_type_t2:
-        if table_number_match and header_overlap >= 0.85:
+        if _override_ok():
             return HardNegativeResult(
                 triggered=False,
                 reason="table_type mismatch overridden by table_number_match and header_overlap>=0.85",
@@ -95,7 +110,7 @@ def check_hard_negative(
     value_match = any(p.search(headers_1_joined) for p in VALUE_HEADER_PATTERNS)
 
     if regulatory_count >= 2 and value_match:
-        if table_number_match and header_overlap >= 0.85:
+        if _override_ok():
             return HardNegativeResult(
                 triggered=False,
                 reason="header fingerprint mismatch overridden by table_number and header_overlap",

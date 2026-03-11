@@ -19,7 +19,7 @@ import os
 import re
 import sys
 
-# ThreadPoolExecutor removed: vision fallback batch no longer used (Steps 2+3 refactor)
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -86,41 +86,71 @@ def _resolve_vision_primary_mode(bank_code: str, explicit: bool | None) -> bool:
     return False
 
 
-# Import de la gestion memoire
-try:
-    from ..utils.memory import (
-        ChunkedProcessor,
-        check_memory_threshold,
-        cleanup_memory,
-        get_memory_usage_mb,
-        with_memory_check,
+def _vision_extract_one(
+    idx: int,
+    pdf_path: str,
+    page_num: int,
+    table_bbox: list[float],
+    bank_code: str,
+    pdf_sha: str,
+    vision_cfg: dict[str, Any],
+    bottom_extension: float,
+    api_key: str,
+) -> tuple[int, Any]:
+    """
+    Run Vision extraction for one table. Uses its own VisionFullExtractor (no shared mutable state).
+    Returns (idx, VisionFullResult | None). Used by bounded parallel extraction.
+    """
+    from ..utils.pdf_crop import render_page_with_bbox_highlight_to_bytes
+    from .vision_full_extractor import VisionFullExtractor
+
+    extractor = VisionFullExtractor(api_key=api_key, use_cache=True)
+
+    def _recrop(ext: float) -> bytes:
+        return render_page_with_bbox_highlight_to_bytes(
+            pdf_path,
+            page_num,
+            table_bbox,
+            bottom_extension=ext,
+            dpi=300,
+            render_cache=None,
+        )
+
+    crop_bytes = _recrop(bottom_extension)
+    if not crop_bytes:
+        return (idx, None)
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=crop_bytes,
+        bank_code=bank_code,
+        pdf_sha=pdf_sha,
+        page_number=page_num,
+        bbox_norm=table_bbox,
+        vision_cfg=vision_cfg,
+        initial_bottom_extension=bottom_extension,
+        get_recrop_fn=_recrop,
     )
+    return (idx, result)
 
-    MEMORY_UTILS_AVAILABLE = True
-except ImportError:
-    MEMORY_UTILS_AVAILABLE = False
-    logger.debug("Utilitaires memoire non disponibles")
 
-# Import des constantes
-try:
-    from ..config.constants import EXTRACTION, MEMORY
+# Gestion memoire et cache: modules optionnels non presents, fallbacks explicites
+MEMORY_UTILS_AVAILABLE = False
+logger.debug("Utilitaires memoire non disponibles")
 
-    CHUNK_SIZE_PAGES = EXTRACTION.CHUNK_SIZE_PAGES
-    DPI = EXTRACTION.DPI
-    DPI_FAST = EXTRACTION.DPI_FAST
-except ImportError:
-    CHUNK_SIZE_PAGES = 15
-    DPI = 300
-    DPI_FAST = 150
+# Stubs pour chemins morts (module memory absent), evite NameError si code appele
+ChunkedProcessor = None
+def check_memory_threshold() -> bool:
+    return False
+def cleanup_memory(force: bool = False) -> None:
+    ...
+def get_memory_usage_mb() -> float:
+    return 0.0
 
-# Import du gestionnaire de cache
-try:
-    from ..utils.pdf_cache import PDFCacheManager
+CHUNK_SIZE_PAGES = 15
+DPI = 300
+DPI_FAST = 150
 
-    CACHE_AVAILABLE = True
-except ImportError:
-    CACHE_AVAILABLE = False
-    logger.debug("PDFCacheManager non disponible")
+CACHE_AVAILABLE = False
+logger.debug("PDFCacheManager non disponible")
 
 # Patterns pour détecter les titres de sections principales
 # Focus: Gestion du capital et Gestion des risques
@@ -179,6 +209,15 @@ class ExtractedTable:
     )  # row_count, merge_count, etc.
     extraction_method: str | None = None  # docling | vision_fallback_gpt4o
     fragmentation_detected: bool = False
+    # Page-local structure for same-page multi-table matching
+    page_local_rank: int | None = None  # 0-based rank on page by bbox top
+    page_table_count: int | None = None
+    page_zone: str | None = None  # "top" | "middle" | "bottom"
+    y_top: float | None = None
+    y_bottom: float | None = None
+    y_center: float | None = None
+    neighbor_above_distance: float | None = None
+    neighbor_below_distance: float | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -281,9 +320,9 @@ class DoclingProcessor:
 
         # Initialiser le cache
         self.use_cache = use_cache and CACHE_AVAILABLE
-        self._cache: PDFCacheManager | None = None
+        self._cache: Any = None
         if self.use_cache:
-            self._cache = PDFCacheManager(cache_dir) if cache_dir else PDFCacheManager()
+            pass
             logger.info("Cache PDF active")
 
     def _initialize_docling(self):
@@ -653,6 +692,14 @@ class DoclingProcessor:
                     bbox=t.get("bbox"),
                     debug_metrics=t.get("debug_metrics", {}),
                     extraction_method=t.get("extraction_method"),
+                    page_local_rank=t.get("page_local_rank"),
+                    page_table_count=t.get("page_table_count"),
+                    page_zone=t.get("page_zone"),
+                    y_top=t.get("y_top"),
+                    y_bottom=t.get("y_bottom"),
+                    y_center=t.get("y_center"),
+                    neighbor_above_distance=t.get("neighbor_above_distance"),
+                    neighbor_below_distance=t.get("neighbor_below_distance"),
                 )
             )
 
@@ -687,6 +734,14 @@ class DoclingProcessor:
                         bbox=t.get("bbox"),
                         debug_metrics=t.get("debug_metrics", {}),
                         extraction_method=t.get("extraction_method"),
+                        page_local_rank=t.get("page_local_rank"),
+                        page_table_count=t.get("page_table_count"),
+                        page_zone=t.get("page_zone"),
+                        y_top=t.get("y_top"),
+                        y_bottom=t.get("y_bottom"),
+                        y_center=t.get("y_center"),
+                        neighbor_above_distance=t.get("neighbor_above_distance"),
+                        neighbor_below_distance=t.get("neighbor_below_distance"),
                     )
                 )
 
@@ -820,6 +875,8 @@ class DoclingProcessor:
             vision_primary = use_vision_primary
             vision_extraction_cfg: dict = {}
             bottom_extension_footnotes = 0.0
+            use_table_crop = False
+            top_extension_title = 0.08
             # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
             schema_failure_policy = "fail_fast"
             vision_extractor = None
@@ -832,6 +889,14 @@ class DoclingProcessor:
                     vision_extraction_cfg = _get_vision_extraction_config(bank_code)
                     bottom_extension_footnotes = float(
                         vision_extraction_cfg.get("bottom_extension_footnotes", 0.12)
+                    )
+                    use_table_crop = bool(
+                        vision_extraction_cfg.get("use_table_crop", False)
+                        or os.environ.get("VISION_USE_TABLE_CROP", "").strip().lower()
+                        in ("1", "true", "yes")
+                    )
+                    top_extension_title = float(
+                        vision_extraction_cfg.get("top_extension_title", 0.08)
                     )
                     # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
                     schema_failure_policy = (
@@ -880,6 +945,126 @@ class DoclingProcessor:
             # ---------------------------------------------------------------------------
             all_tables = []
             tables_by_page: dict[int, int] = {}
+            render_cache: dict[tuple[Any, ...], bytes] = {}
+            vision_results_by_idx: dict[int, Any] = {}
+
+            # Pre-pass: build neighbor-aware bottom stop per table for bounded footnote crop
+            bottom_stop_by_idx: dict[int, float] = {}
+            in_range_items: list[tuple[int, int, list[float]]] = []
+            for idx, table in enumerate(doc.tables):
+                page_num = table.prov[0].page_no if table.prov else 0
+                if not self._is_page_in_ranges(page_num, effective_page_ranges):
+                    continue
+                table_bbox = None
+                try:
+                    if (
+                        table.prov
+                        and hasattr(table.prov[0], "bbox")
+                        and table.prov[0].bbox is not None
+                    ):
+                        raw_bbox = table.prov[0].bbox
+                        page_obj = (
+                            doc.pages.get(page_num) if hasattr(doc, "pages") else None
+                        )
+                        if page_obj and hasattr(page_obj, "size") and page_obj.size:
+                            norm = raw_bbox.to_top_left_origin(
+                                page_height=page_obj.size.height
+                            )
+                            norm = norm.normalized(page_obj.size)
+                            table_bbox = [norm.l, norm.t, norm.r, norm.b]
+                        elif hasattr(raw_bbox, "as_tuple"):
+                            table_bbox = list(raw_bbox.as_tuple())
+                except Exception:
+                    pass
+                if table_bbox and len(table_bbox) == 4:
+                    in_range_items.append((idx, page_num, table_bbox))
+            by_page_for_bounds: dict[int, list[tuple[int, list[float]]]] = {}
+            for idx, page_num, bbox in in_range_items:
+                by_page_for_bounds.setdefault(page_num, []).append((idx, bbox))
+            for page_num, items in by_page_for_bounds.items():
+                sorted_items = sorted(items, key=lambda x: x[1][1])
+                for i, (idx, bbox) in enumerate(sorted_items):
+                    if i + 1 < len(sorted_items):
+                        next_top = sorted_items[i + 1][1][1]
+                        bottom_stop_by_idx[idx] = max(
+                            float(bbox[3]),
+                            next_top - 0.02,
+                        )
+                    else:
+                        bottom_stop_by_idx[idx] = 1.0
+
+            max_vision_workers = 1
+            try:
+                max_vision_workers = max(
+                    1,
+                    min(4, int(os.environ.get("VISION_EXTRACTION_MAX_WORKERS", "1") or 1)),
+                )
+            except (TypeError, ValueError):
+                max_vision_workers = 1
+            if use_table_crop:
+                max_vision_workers = 1
+
+            if max_vision_workers > 1 and vision_extractor and api_key:
+                parallel_jobs: list[tuple[int, int, list[float], str]] = []
+                for idx, table in enumerate(doc.tables):
+                    page_num = table.prov[0].page_no if table.prov else 0
+                    table_bbox = None
+                    try:
+                        if (
+                            table.prov
+                            and hasattr(table.prov[0], "bbox")
+                            and table.prov[0].bbox is not None
+                        ):
+                            raw_bbox = table.prov[0].bbox
+                            page_obj = (
+                                doc.pages.get(page_num)
+                                if hasattr(doc, "pages")
+                                else None
+                            )
+                            if page_obj and hasattr(page_obj, "size") and page_obj.size:
+                                norm = raw_bbox.to_top_left_origin(
+                                    page_height=page_obj.size.height
+                                )
+                                norm = norm.normalized(page_obj.size)
+                                table_bbox = [norm.l, norm.t, norm.r, norm.b]
+                            elif hasattr(raw_bbox, "as_tuple"):
+                                table_bbox = list(raw_bbox.as_tuple())
+                    except Exception:
+                        pass
+                    if not self._is_page_in_ranges(page_num, effective_page_ranges):
+                        continue
+                    if vision_extractor and table_bbox and len(table_bbox) == 4:
+                        table_id = f"tableau_{idx}"
+                        parallel_jobs.append(
+                            (idx, page_num, table_bbox, table_id)
+                        )
+                if parallel_jobs:
+                    with ThreadPoolExecutor(max_workers=max_vision_workers) as executor:
+                        futures = {
+                            executor.submit(
+                                _vision_extract_one,
+                                idx,
+                                str(pdf_path),
+                                page_num,
+                                table_bbox,
+                                bank_code,
+                                pdf_sha,
+                                vision_extraction_cfg,
+                                bottom_extension_footnotes,
+                                api_key,
+                            ): idx
+                            for idx, page_num, table_bbox, table_id in parallel_jobs
+                        }
+                        for future in as_completed(futures):
+                            try:
+                                idx, result = future.result()
+                                vision_results_by_idx[idx] = result
+                            except Exception as e:
+                                logger.warning(
+                                    "Vision parallel worker failed for idx %s: %s",
+                                    futures.get(future, -1),
+                                    e,
+                                )
 
             for idx, table in enumerate(doc.tables):
                 page_num = table.prov[0].page_no if table.prov else 0
@@ -933,35 +1118,88 @@ class DoclingProcessor:
 
                 if vision_extractor and table_bbox and len(table_bbox) == 4:
                     vision_primary_attempted = True
-                    try:
-                        from ..utils.pdf_crop import (
-                            render_page_with_bbox_highlight_to_bytes,
-                        )
-
-                        def _recrop(ext: float) -> bytes:
-                            return render_page_with_bbox_highlight_to_bytes(
-                                str(pdf_path),
-                                page_num,
-                                table_bbox,
-                                bottom_extension=ext,
-                                dpi=300,
+                    vision_result = None
+                    if max_vision_workers > 1 and idx in vision_results_by_idx:
+                        vision_result = vision_results_by_idx[idx]
+                    else:
+                        try:
+                            from ..utils.pdf_crop import (
+                                crop_table_region_to_bytes,
+                                render_page_with_bbox_highlight_to_bytes,
                             )
 
-                        crop_bytes = _recrop(bottom_extension_footnotes)
-                        if not crop_bytes:
-                            raise ValueError("crop returned empty bytes")
+                            if use_table_crop:
+                                vision_cfg_with_crop = dict(vision_extraction_cfg)
+                                vision_cfg_with_crop["use_table_crop"] = True
+                                bottom_stop = bottom_stop_by_idx.get(idx)
+                                vision_cfg_with_crop["is_bounded_crop"] = (
+                                    bottom_stop is not None
+                                )
 
-                        vision_result = vision_extractor.extract_with_quality_pass(
-                            crop_bytes=crop_bytes,
-                            bank_code=bank_code,
-                            pdf_sha=pdf_sha,
-                            page_number=page_num,
-                            bbox_norm=table_bbox,
-                            vision_cfg=vision_extraction_cfg,
-                            initial_bottom_extension=bottom_extension_footnotes,
-                            get_recrop_fn=_recrop,
-                        )
-                        if vision_result is not None:
+                                def _recrop(ext: float) -> bytes:
+                                    return crop_table_region_to_bytes(
+                                        str(pdf_path),
+                                        page_num,
+                                        table_bbox,
+                                        bottom_extension=ext,
+                                        top_extension=top_extension_title,
+                                        dpi=300,
+                                        render_cache=render_cache,
+                                        bottom_stop_norm=bottom_stop,
+                                    )
+
+                                crop_bytes = _recrop(bottom_extension_footnotes)
+                            else:
+                                vision_cfg_with_crop = vision_extraction_cfg
+
+                                def _recrop(ext: float) -> bytes:
+                                    return render_page_with_bbox_highlight_to_bytes(
+                                        str(pdf_path),
+                                        page_num,
+                                        table_bbox,
+                                        bottom_extension=ext,
+                                        dpi=300,
+                                        render_cache=render_cache,
+                                    )
+
+                                crop_bytes = _recrop(bottom_extension_footnotes)
+                            if not crop_bytes:
+                                raise ValueError("crop returned empty bytes")
+
+                            vision_result = vision_extractor.extract_with_quality_pass(
+                                crop_bytes=crop_bytes,
+                                bank_code=bank_code,
+                                pdf_sha=pdf_sha,
+                                page_number=page_num,
+                                bbox_norm=table_bbox,
+                                vision_cfg=vision_cfg_with_crop,
+                                initial_bottom_extension=bottom_extension_footnotes,
+                                get_recrop_fn=_recrop,
+                            )
+                        except vision_schema_error_cls as e:
+                            vision_schema_contract_failed = True
+                            reason = f"Vision schema contract invalid: {e}"
+                            vision_status_str = "failed"
+                            warnings_list = [reason[:300]]
+                            if schema_failure_policy == "degrade_to_docling":
+                                vision_primary_disabled_reason = reason
+                                vision_extractor = None
+                                logger.error(
+                                    "Vision desactive pour le reste du run (schema contract): %s",
+                                    e,
+                                )
+                            else:
+                                raise RuntimeError(reason) from e
+                        except Exception as e:
+                            vision_status_str = "failed"
+                            warnings_list = [str(e)[:300]]
+                            logger.warning(
+                                "Vision exception table %s page %s: %s",
+                                table_id,
+                                page_num,
+                                e,
+                            )
+                    if vision_result is not None:
                             title = vision_result.table_title or ""
                             table_number, title_clean = self._extract_table_number(
                                 title or None
@@ -983,36 +1221,13 @@ class DoclingProcessor:
                             vision_confidence = vision_result.confidence
                             vision_status_str = vision_result.vision_status or "ok"
                             warnings_list = list(vision_result.warnings or [])
-                        else:
-                            vision_status_str = "failed"
-                            warnings_list = ["VisionFullExtractor returned None"]
-                            logger.warning(
-                                "Vision returned None for table %s page %s",
-                                table_id,
-                                page_num,
-                            )
-                    except vision_schema_error_cls as e:
-                        vision_schema_contract_failed = True
-                        reason = f"Vision schema contract invalid: {e}"
+                    else:
                         vision_status_str = "failed"
-                        warnings_list = [reason[:300]]
-                        if schema_failure_policy == "degrade_to_docling":
-                            vision_primary_disabled_reason = reason
-                            vision_extractor = None  # disable for remaining tables
-                            logger.error(
-                                "Vision desactive pour le reste du run (schema contract): %s",
-                                e,
-                            )
-                        else:
-                            raise RuntimeError(reason) from e
-                    except Exception as e:
-                        vision_status_str = "failed"
-                        warnings_list = [str(e)[:300]]
+                        warnings_list = ["VisionFullExtractor returned None"]
                         logger.warning(
-                            "Vision exception table %s page %s: %s",
+                            "Vision returned None for table %s page %s",
                             table_id,
                             page_num,
-                            e,
                         )
                 else:
                     vision_status_str = "failed"
@@ -1038,6 +1253,9 @@ class DoclingProcessor:
                     "vision_primary_confidence": vision_confidence,
                     "vision_schema_contract_failed": vision_schema_contract_failed,
                     "warnings": warnings_list,
+                    "extraction_mode": (
+                        "bounded_crop" if use_table_crop else "whole_page_redbox"
+                    ),
                 }
                 if vision_primary_disabled_reason:
                     debug_metrics["vision_primary_disabled_reason"] = (
@@ -1097,6 +1315,9 @@ class DoclingProcessor:
                     f"p{k}:{v}" for k, v in sorted(tables_by_page.items())
                 )
                 logger.info("Docling tableaux par page: %s", counts_str)
+
+            # Enrichir page_local_rank, page_zone, geometry, neighbor distances (avant sections)
+            all_tables = self._enrich_page_local_structure(all_tables)
 
             # Extraire le contenu textuel pour les sections
             text_content = doc.export_to_markdown()
@@ -1253,6 +1474,8 @@ class DoclingProcessor:
     ) -> None:
         """Map page-level title candidates to tables and apply when appropriate."""
         used_candidates: set[int] = set()
+        multi_table_page = len(page_tables) >= 2
+        max_vertical_distance = 0.08 if multi_table_page else 0.15
 
         for table in page_tables:
             current_score = self._title_quality_score(table.title)
@@ -1275,7 +1498,9 @@ class DoclingProcessor:
 
             # 2) Match by bbox proximity (title above table)
             if candidate is None and table.bbox:
-                candidate = result.get_candidate_by_bbox_proximity(table.bbox)
+                candidate = result.get_candidate_by_bbox_proximity(
+                    table.bbox, max_vertical_distance=max_vertical_distance
+                )
                 if candidate is not None:
                     for idx, c in enumerate(result.candidates):
                         if c is candidate and idx not in used_candidates:
@@ -1285,8 +1510,8 @@ class DoclingProcessor:
                         candidate = None
                         candidate_idx = None
 
-            # 3) Positional fallback (first unused candidate)
-            if candidate is None:
+            # 3) Positional fallback (first unused candidate) only when single table on page
+            if candidate is None and not multi_table_page:
                 for idx, c in enumerate(result.candidates):
                     if idx not in used_candidates:
                         candidate = c
@@ -1451,10 +1676,12 @@ class DoclingProcessor:
         for line in text_content.split("\n"):
             # Détecter les marqueurs de page
             if line.startswith("--- Page ") or line.startswith("## Page "):
-                try:
-                    current_page = int(re.search(r"Page\s+(\d+)", line).group(1))
-                except:
-                    pass
+                match = re.search(r"Page\s+(\d+)", line)
+                if match:
+                    try:
+                        current_page = int(match.group(1))
+                    except ValueError:
+                        pass
                 continue
 
             for pattern in patterns:
@@ -1597,6 +1824,87 @@ class DoclingProcessor:
 
         return tables
 
+    @staticmethod
+    def _enrich_page_local_structure(
+        tables: list[ExtractedTable],
+    ) -> list[ExtractedTable]:
+        """
+        Enrichit chaque tableau avec page_local_rank, page_table_count, page_zone,
+        y_top/y_bottom/y_center et distances aux voisins (meme page).
+        """
+        if not tables:
+            return tables
+
+        by_page: dict[int, list[ExtractedTable]] = {}
+        for t in tables:
+            p = int(t.page_number or 0)
+            if p <= 0:
+                continue
+            by_page.setdefault(p, []).append(t)
+
+        for page_num, page_tables in by_page.items():
+            # Ordre vertical: tri par bbox top (y_min)
+            def _y_top(tbl: ExtractedTable) -> float:
+                b = tbl.bbox
+                if b and len(b) >= 4:
+                    try:
+                        return float(b[1])
+                    except (TypeError, ValueError):
+                        pass
+                return 0.0
+
+            sorted_tables = sorted(page_tables, key=_y_top)
+            n = len(sorted_tables)
+
+            for rank, table in enumerate(sorted_tables):
+                table.page_local_rank = rank
+                table.page_table_count = n
+
+                b = table.bbox
+                if b and len(b) >= 4:
+                    try:
+                        y_min, y_max = float(b[1]), float(b[3])
+                        table.y_top = y_min
+                        table.y_bottom = y_max
+                        table.y_center = (y_min + y_max) / 2.0
+                        if table.y_center < 0.33:
+                            table.page_zone = "top"
+                        elif table.y_center > 0.66:
+                            table.page_zone = "bottom"
+                        else:
+                            table.page_zone = "middle"
+
+                        # Distance au tableau au-dessus (gap normalise)
+                        if rank == 0:
+                            table.neighbor_above_distance = 1.0
+                        else:
+                            prev = sorted_tables[rank - 1]
+                            prev_bottom = prev.y_bottom
+                            if prev_bottom is not None:
+                                table.neighbor_above_distance = max(
+                                    0.0, y_min - prev_bottom
+                                )
+                            else:
+                                table.neighbor_above_distance = 1.0
+
+                        # Distance au tableau en-dessous
+                        if rank >= n - 1:
+                            table.neighbor_below_distance = 1.0
+                        else:
+                            nxt = sorted_tables[rank + 1]
+                            nxt_top = nxt.y_top
+                            if nxt_top is not None:
+                                table.neighbor_below_distance = max(
+                                    0.0, nxt_top - y_max
+                                )
+                            else:
+                                table.neighbor_below_distance = 1.0
+                    except (TypeError, ValueError):
+                        table.neighbor_above_distance = 1.0
+                        table.neighbor_below_distance = 1.0
+
+        return tables
+
     def _enrich_tables_with_context(
         self, tables: list[ExtractedTable], pdf_path: Path
     ) -> list[ExtractedTable]:
@@ -1705,9 +2013,6 @@ class DoclingProcessor:
 
         # Pour chaque tableau, trouver la section précédente la plus proche
         for table in tables:
-            # Chercher dans le texte autour du titre du tableau
-            table_title = table.title or ""
-
             # Trouver la section la plus proche avant ce tableau (basé sur page)
             best_section = None
             for section in sections:

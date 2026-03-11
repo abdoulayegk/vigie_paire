@@ -33,6 +33,17 @@ class TableArtifact:
     footnotes: FootnoteList | None = None
     fragmentation_detected: bool = False
     debug_metrics: dict[str, Any] | None = None
+    # Page-local structure for same-page multi-table matching
+    page_local_rank: int | None = None  # 0-based rank on page by bbox top
+    page_table_count: int | None = None  # number of tables on same page
+    page_zone: str | None = None  # "top" | "middle" | "bottom"
+    y_top: float | None = None
+    y_bottom: float | None = None
+    y_center: float | None = None
+    context_before: str = ""
+    context_after: str = ""
+    neighbor_above_distance: float | None = None  # normalized gap to table above
+    neighbor_below_distance: float | None = None  # normalized gap to table below
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

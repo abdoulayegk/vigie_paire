@@ -7,13 +7,16 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from vigilance.comparison.hard_negative_checks import check_hard_negative
+from vigilance.comparison.indicator_match_helpers import compute_robust_indicator_score_from_signals
 from vigilance.comparison.match_signals import count_strong_signals
 from vigilance.utils.matching_normalizer import is_generic_title
 
 try:
     from vigilance.config import get_matching_thresholds
 except ImportError:
-    get_matching_thresholds = lambda: {}
+
+    def get_matching_thresholds() -> dict:
+        return {}
 
 
 def _get_threshold(key: str, default: float) -> float:
@@ -24,16 +27,57 @@ def _get_threshold(key: str, default: float) -> float:
         return default
 
 
+def _robust_indicator_score(signals: dict[str, Any]) -> float:
+    """Canonical robust indicator score from signals dict."""
+    return compute_robust_indicator_score_from_signals(signals)
+
+
+def _corroborated_table_number(signals: dict[str, Any]) -> float:
+    """
+    Table number contribution (0, partial, or 1) based on robust indicator support only.
+    Full value only when robust_indicator_score >= full_threshold; else partial or near-zero.
+    """
+    if not signals.get("table_number_match"):
+        return 0.0
+    robust = _robust_indicator_score(signals)
+    full_min = _get_threshold("indicator_robust_full_match_min", 0.40)
+    partial_min = _get_threshold("indicator_robust_partial_match_min", 0.20)
+    if robust >= full_min:
+        return 1.0
+    if robust >= partial_min:
+        return 0.5
+    return 0.15
+
+
+def should_reject_prefix_only_structure(signals: dict[str, Any]) -> bool:
+    """
+    Reject when prefix_ratio high, lcs_ratio low, size_ratio poor (prefix-only pattern).
+    """
+    prefix_min = _get_threshold("indicator_prefix_reject_min", 0.70)
+    lcs_max = _get_threshold("indicator_lcs_reject_max", 0.25)
+    size_max = _get_threshold("indicator_size_ratio_reject_max", 0.40)
+    prefix_ratio = float(signals.get("indicator_prefix_ratio", 0) or 0)
+    lcs_ratio = float(signals.get("indicator_lcs_ratio", 0) or 0)
+    size_ratio = float(signals.get("indicator_size_ratio", 1.0) or 1.0)
+    return (
+        prefix_ratio >= prefix_min
+        and lcs_ratio <= lcs_max
+        and size_ratio <= size_max
+    )
+
+
 def compute_composite_score(signals: dict[str, Any]) -> float:
     """
     Score composite pour classer les candidats.
 
-    Priorite: table_number > header_overlap > indicator_overlap > title_similarity
-    > section_match > page_distance (inverse).
+    Uses corroborated table number and robust indicator score when new signals present.
     """
-    tn = 1.0 if signals.get("table_number_match") else 0.0
+    tn = _corroborated_table_number(signals)
     ho = signals.get("header_overlap", 0)
-    io = signals.get("indicator_overlap", 0)
+    if "indicator_lcs_ratio" in signals:
+        io = _robust_indicator_score(signals)
+    else:
+        io = signals.get("indicator_overlap", 0)
     ts = signals.get("title_similarity", 0)
     sm = 1.0 if signals.get("section_match") else 0.0
     pd = signals.get("page_distance", 99)
@@ -79,8 +123,10 @@ def compute_decision(
         Dict avec decision, composite_score, strong_signals_count,
         hard_negative_triggered, reason
     """
+    robust_ind = _robust_indicator_score(signals)
     composite_score = compute_composite_score(signals)
     strong_count = count_strong_signals(signals, has_headers)
+    override_ind_min = _get_threshold("hard_negative_override_indicator_min", 0.30)
     hn = check_hard_negative(
         table_type_t1=table_type_t1,
         table_type_t2=table_type_t2,
@@ -88,6 +134,8 @@ def compute_decision(
         header_overlap=signals.get("header_overlap", 0),
         headers_t1=headers_t1,
         headers_t2=headers_t2,
+        robust_indicator_score=robust_ind,
+        override_indicator_min=override_ind_min,
     )
 
     section_match = signals.get("section_match", False)
@@ -96,8 +144,6 @@ def compute_decision(
     generic_2 = is_generic_title(title_t2 or "", generic_titles)
     title_generic = generic_1 or generic_2
 
-    min_signals = _get_threshold("section_mismatch_min_signals", 2)
-    min_signals_generic = _get_threshold("section_mismatch_min_signals_generic", 3)
     table_match_score = _get_threshold("table_match_score", 0.45)
     probable_band = _get_threshold("probable_band_width", 0.08)
     unknown_match_min_containment = _get_threshold("unknown_match_min_containment", 0.65)
@@ -116,13 +162,23 @@ def compute_decision(
             "reason": "cross_section_forbidden",
         }
 
+    if should_reject_prefix_only_structure(signals):
+        return {
+            "decision": "NO_MATCH",
+            "composite_score": round(composite_score, 4),
+            "strong_signals_count": strong_count,
+            "hard_negative_triggered": hn.triggered,
+            "reason": "indicator_structure_mismatch",
+        }
+
     if hn.triggered and not hn.can_override:
         decision = "NO_MATCH"
         reason_parts.append(f"hard_negative: {hn.reason}")
     elif section_match or section_state == "unknown_present":
         if composite_score >= table_match_score and not hn.triggered:
             if title_generic:
-                if signals.get("table_number_match") or signals.get("header_overlap", 0) >= 0.85:
+                corroborated_tn = _corroborated_table_number(signals)
+                if corroborated_tn >= 0.5:
                     decision = "MATCH"
                     reason_parts.append("section_match, generic_title override ok")
                 elif composite_score >= table_match_score + 0.10:
@@ -139,7 +195,9 @@ def compute_decision(
             reason_parts.append("section_match, score in probable band")
 
     if section_state == "unknown_present":
-        containment_like = float(signals.get("indicator_overlap", 0.0) or 0.0)
+        containment_like = (
+            robust_ind if "indicator_lcs_ratio" in signals else float(signals.get("indicator_overlap", 0.0) or 0.0)
+        )
         if decision == "MATCH" and (
             composite_score < unknown_match_min_score
             or containment_like < unknown_match_min_containment

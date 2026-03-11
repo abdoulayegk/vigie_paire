@@ -88,6 +88,12 @@ _DEFAULTS: dict[str, float] = {
     "split_diagnostic_max_candidates": 5.0,
     "use_post_hungarian_threshold": False,
     "hungarian_min_score": 0.62,
+    "multi_table_page_rank_max_delta": 1,
+    "multi_table_y_center_max_delta": 0.25,
+    "multi_table_zone_mismatch_penalty": 0.40,
+    "multi_table_cross_order_reject": 1.0,
+    "multi_table_same_page_indicator_weight_scale": 0.7,
+    "multi_table_min_title_or_context_for_override": 0.90,
 }
 
 
@@ -475,11 +481,110 @@ def _position_proximity(table_a: TableArtifact, table_b: TableArtifact) -> float
     return max(0.0, 1.0 - (min(diff, 12) / 12.0))
 
 
+def _page_exact_or_near_score(table_a: TableArtifact, table_b: TableArtifact) -> float:
+    """1.0 if same page, decay by page distance otherwise."""
+    return _position_proximity(table_a, table_b)
+
+
+def _page_local_rank_similarity(
+    table_a: TableArtifact, table_b: TableArtifact
+) -> float:
+    """1.0 if same rank on page, 0.0 if max delta exceeded, linear decay otherwise."""
+    ra = getattr(table_a, "page_local_rank", None)
+    rb = getattr(table_b, "page_local_rank", None)
+    if ra is None or rb is None:
+        return 0.5
+    delta = abs(ra - rb)
+    max_delta = 2
+    if delta <= 0:
+        return 1.0
+    return max(0.0, 1.0 - (delta / (max_delta + 1)))
+
+
+def _page_zone_similarity(table_a: TableArtifact, table_b: TableArtifact) -> float:
+    """1.0 if same zone (top/middle/bottom), 0.0 if opposite (top vs bottom), 0.5 if one unknown."""
+    za = getattr(table_a, "page_zone", None) or ""
+    zb = getattr(table_b, "page_zone", None) or ""
+    if not za or not zb:
+        return 0.5
+    if za == zb:
+        return 1.0
+    if (za == "top" and zb == "bottom") or (za == "bottom" and zb == "top"):
+        return 0.0
+    return 0.6
+
+
+def _y_center_similarity(table_a: TableArtifact, table_b: TableArtifact) -> float:
+    """1.0 minus normalized vertical distance; 0.5 if either y_center missing."""
+    ya = getattr(table_a, "y_center", None)
+    yb = getattr(table_b, "y_center", None)
+    if ya is None or yb is None:
+        return 0.5
+    try:
+        dist = abs(float(ya) - float(yb))
+        return max(0.0, 1.0 - min(dist * 2.0, 1.0))
+    except (TypeError, ValueError):
+        return 0.5
+
+
+def _multi_table_same_page_penalty(
+    table_a: TableArtifact, table_b: TableArtifact
+) -> float:
+    """
+    Penalty 0.0..1.0 when both tables are on multi-table pages and rank/zone disagree.
+    Returns 0.0 if no penalty, positive value to subtract from score or use as block.
+    """
+    count_a = getattr(table_a, "page_table_count", None) or 0
+    count_b = getattr(table_b, "page_table_count", None) or 0
+    if count_a < 2 or count_b < 2:
+        return 0.0
+    if int(table_a.page_pdf or 0) != int(table_b.page_pdf or 0):
+        return 0.0
+    rank_a = getattr(table_a, "page_local_rank", None)
+    rank_b = getattr(table_b, "page_local_rank", None)
+    zone_a = getattr(table_a, "page_zone", None) or ""
+    zone_b = getattr(table_b, "page_zone", None) or ""
+    penalty = 0.0
+    if rank_a is not None and rank_b is not None and abs(rank_a - rank_b) > 1:
+        penalty += 0.5
+    if zone_a and zone_b and zone_a != zone_b:
+        if (zone_a == "top" and zone_b == "bottom") or (
+            zone_a == "bottom" and zone_b == "top"
+        ):
+            penalty += 0.5
+    return min(1.0, penalty)
+
+
+def _geometry_position_score(
+    table_a: TableArtifact, table_b: TableArtifact
+) -> float:
+    """
+    Composite position/geometry score: page proximity plus page-local rank/zone
+    when both tables have the metadata. Falls back to _position_proximity only when missing.
+    """
+    page_prox = _position_proximity(table_a, table_b)
+    rank_sim = _page_local_rank_similarity(table_a, table_b)
+    zone_sim = _page_zone_similarity(table_a, table_b)
+    y_sim = _y_center_similarity(table_a, table_b)
+    has_meta_a = getattr(table_a, "page_local_rank", None) is not None
+    has_meta_b = getattr(table_b, "page_local_rank", None) is not None
+    if has_meta_a and has_meta_b and page_prox > 0.5:
+        return (0.4 * page_prox) + (0.25 * rank_sim) + (0.25 * zone_sim) + (0.1 * y_sim)
+    return page_prox
+
+
 def _context_heading(table: TableArtifact) -> str:
+    parts: list[str] = []
+    ctx_before = getattr(table, "context_before", None) or ""
+    ctx_after = getattr(table, "context_after", None) or ""
+    if ctx_before and str(ctx_before).strip():
+        parts.append(str(ctx_before).strip())
     headers = [str(h).strip() for h in (table.headers or []) if str(h).strip()]
     if headers:
-        return " | ".join(headers[:3])
-    return ""
+        parts.append(" | ".join(headers[:3]))
+    if ctx_after and str(ctx_after).strip():
+        parts.append(str(ctx_after).strip())
+    return " | ".join(parts) if parts else ""
 
 
 def _context_heading_similarity(
@@ -688,6 +793,7 @@ _GUARD_RAIL_REASONS = frozenset(
         "table_number_conflict",
         "low_label_overlap_reject",
         "size_mismatch_reject",
+        "same_page_role_mismatch",
     }
 )
 
@@ -785,37 +891,76 @@ def match_decision(
             )
             # Guard rail: hash alone must not force match when titles diverge semantically.
             if title_sim >= hash_title_min and body_similarity >= hash_body_min:
-                tn_match = bool(
-                    label_t1 and label_t2 and label_t1.full == label_t2.full
+                # Same-page role guard: do not hash_exact match Top to Bottom when both multi-table.
+                rank_max_delta = int(th.get("multi_table_page_rank_max_delta", 1))
+                min_title_override = float(
+                    th.get("multi_table_min_title_or_context_for_override", 0.90)
                 )
-                tl_base = bool(label_t1 and label_t2 and label_t1.base == label_t2.base)
-                return MatchDecision(
-                    is_match=True,
-                    reason="indicator_set_hash_exact",
-                    score=1.0,
-                    section_match=True,
-                    table_number_match=tn_match,
-                    table_label_base_match=tl_base,
-                    table_label_suffix_diff=tl_base and not tn_match,
-                    indicator_overlap=1.0,
-                    title_similarity=title_sim,
-                    structure_similarity=_structure_similarity(table_t1, table_t2),
-                    context_heading_similarity=_context_heading_similarity(
-                        table_t1, table_t2
-                    ),
-                    position_proximity=_position_proximity(table_t1, table_t2),
-                    t1_uid=t1_uid,
-                    t2_uid=t2_uid,
-                    t1_table_id=table_t1.table_id,
-                    t2_table_id=table_t2.table_id,
-                    indicator_containment=1.0,
-                    header_schema_similarity=header_schema_similarity(
-                        table_t1.headers or [], table_t2.headers or []
-                    ),
-                    section_state=section_state,
-                    decision_level="match",
-                    soft_indicator_overlap=1.0,
-                )
+                page_t1 = int(table_t1.page_pdf or 0)
+                page_t2 = int(table_t2.page_pdf or 0)
+                count_t1 = getattr(table_t1, "page_table_count", None) or 0
+                count_t2 = getattr(table_t2, "page_table_count", None) or 0
+                same_page_role_block = False
+                if (
+                    section_state == "same_known"
+                    and count_t1 >= 2
+                    and count_t2 >= 2
+                    and page_t1 == page_t2
+                    and page_t1 > 0
+                ):
+                    rank_a = getattr(table_t1, "page_local_rank", None)
+                    rank_b = getattr(table_t2, "page_local_rank", None)
+                    zone_a = getattr(table_t1, "page_zone", None) or ""
+                    zone_b = getattr(table_t2, "page_zone", None) or ""
+                    rank_differs = (
+                        rank_a is not None
+                        and rank_b is not None
+                        and abs(rank_a - rank_b) > rank_max_delta
+                    )
+                    zone_opposite = (zone_a == "top" and zone_b == "bottom") or (
+                        zone_a == "bottom" and zone_b == "top"
+                    )
+                    if (rank_differs or zone_opposite) and title_sim < min_title_override:
+                        same_page_role_block = True
+                        logger.debug(
+                            "Skip hash_exact for %s <-> %s: same_page_role_mismatch (zone/rank)",
+                            t1_uid,
+                            t2_uid,
+                        )
+                if not same_page_role_block:
+                    tn_match = bool(
+                        label_t1 and label_t2 and label_t1.full == label_t2.full
+                    )
+                    tl_base = bool(
+                        label_t1 and label_t2 and label_t1.base == label_t2.base
+                    )
+                    return MatchDecision(
+                        is_match=True,
+                        reason="indicator_set_hash_exact",
+                        score=1.0,
+                        section_match=True,
+                        table_number_match=tn_match,
+                        table_label_base_match=tl_base,
+                        table_label_suffix_diff=tl_base and not tn_match,
+                        indicator_overlap=1.0,
+                        title_similarity=title_sim,
+                        structure_similarity=_structure_similarity(table_t1, table_t2),
+                        context_heading_similarity=_context_heading_similarity(
+                            table_t1, table_t2
+                        ),
+                        position_proximity=_position_proximity(table_t1, table_t2),
+                        t1_uid=t1_uid,
+                        t2_uid=t2_uid,
+                        t1_table_id=table_t1.table_id,
+                        t2_table_id=table_t2.table_id,
+                        indicator_containment=1.0,
+                        header_schema_similarity=header_schema_similarity(
+                            table_t1.headers or [], table_t2.headers or []
+                        ),
+                        section_state=section_state,
+                        decision_level="match",
+                        soft_indicator_overlap=1.0,
+                    )
             logger.debug(
                 "Skip hash_exact for %s <-> %s: title_sim=%.3f body_sim=%.3f (min %.3f/%.3f)",
                 t1_uid,
@@ -845,7 +990,7 @@ def match_decision(
         table_t2.headers or [],
     )
     context_heading_similarity = _context_heading_similarity(table_t1, table_t2)
-    position_proximity = _position_proximity(table_t1, table_t2)
+    position_proximity = _geometry_position_score(table_t1, table_t2)
 
     embed_sim = 0.0
     embed_sim_canon = 0.0
@@ -919,6 +1064,25 @@ def match_decision(
         if w_embed > 0:
             composite_score = (1.0 - w_embed) * composite_score + w_embed * embed_sim
     else:
+        score_th = th
+        multi_table_same_page = (
+            (getattr(table_t1, "page_table_count", None) or 0) >= 2
+            and (getattr(table_t2, "page_table_count", None) or 0) >= 2
+            and int(table_t1.page_pdf or 0) == int(table_t2.page_pdf or 0)
+            and int(table_t1.page_pdf or 0) > 0
+        )
+        if multi_table_same_page:
+            scale = float(th.get("multi_table_same_page_indicator_weight_scale", 0.7))
+            score_th = dict(th)
+            w_ind = float(
+                score_th.get("weight_label_overlap", score_th.get("weight_indicator", 0.18))
+            )
+            w_pos = float(score_th.get("weight_position", 0.03))
+            w_ctx = float(score_th.get("weight_context", 0.00))
+            score_th["weight_label_overlap"] = w_ind * scale
+            extra = w_ind * (1.0 - scale)
+            score_th["weight_position"] = w_pos + extra * 0.5
+            score_th["weight_context"] = w_ctx + extra * 0.5
         composite_score = _composite_score(
             table_label_score=table_label_score,
             indicator_containment=indicator_containment,
@@ -929,10 +1093,13 @@ def match_decision(
             context_heading_similarity=context_heading_similarity,
             position_proximity=position_proximity,
             embed_similarity=embed_sim,
-            thresholds=th,
+            thresholds=score_th,
         )
     if section_state == "unknown_present":
         composite_score *= max(0.0, 1.0 - unknown_section_penalty)
+
+    multi_table_penalty = _multi_table_same_page_penalty(table_t1, table_t2)
+    composite_score = max(0.0, composite_score - multi_table_penalty)
 
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug(
@@ -1053,7 +1220,12 @@ def match_decision(
             if (
                 not final_match
                 and not force_no_probable
-                and reason not in {"cross_section_forbidden", "table_number_conflict"}
+                and reason
+            not in {
+                "cross_section_forbidden",
+                "table_number_conflict",
+                "same_page_role_mismatch",
+            }
                 and score >= probable_score_v2
                 and indicator_containment >= 0.45
             ):
@@ -1100,6 +1272,41 @@ def match_decision(
             score=0.0,
             force_no_probable=True,
         )
+
+    rank_max_delta = int(th.get("multi_table_page_rank_max_delta", 1))
+    min_title_override = float(
+        th.get("multi_table_min_title_or_context_for_override", 0.90)
+    )
+    page_t1 = int(table_t1.page_pdf or 0)
+    page_t2 = int(table_t2.page_pdf or 0)
+    count_t1 = getattr(table_t1, "page_table_count", None) or 0
+    count_t2 = getattr(table_t2, "page_table_count", None) or 0
+    if (
+        section_match
+        and count_t1 >= 2
+        and count_t2 >= 2
+        and page_t1 == page_t2
+        and page_t1 > 0
+    ):
+        rank_a = getattr(table_t1, "page_local_rank", None)
+        rank_b = getattr(table_t2, "page_local_rank", None)
+        zone_a = getattr(table_t1, "page_zone", None) or ""
+        zone_b = getattr(table_t2, "page_zone", None) or ""
+        rank_differs = (
+            rank_a is not None
+            and rank_b is not None
+            and abs(rank_a - rank_b) > rank_max_delta
+        )
+        zone_opposite = (zone_a == "top" and zone_b == "bottom") or (
+            zone_a == "bottom" and zone_b == "top"
+        )
+        if (rank_differs or zone_opposite) and title_similarity < min_title_override:
+            return _build_decision(
+                is_match=False,
+                reason="same_page_role_mismatch",
+                score=composite_score,
+                force_no_probable=True,
+            )
 
     title_override_sim = th.get("title_override_min_similarity", 0.85)
     title_override_struct = th.get("title_override_min_structure", 0.50)
@@ -1314,6 +1521,70 @@ def match_decision(
     )
 
 
+def _reject_crossed_same_page_assignments(
+    assignments: list[tuple[int, int, MatchDecision]],
+    t1_list: list[TableArtifact],
+    t2_list: list[TableArtifact],
+    th: dict[str, float],
+) -> tuple[list[tuple[int, int, MatchDecision]], set[int], set[int]]:
+    """Remove assignments that invert page-local order on same-page multi-table.
+    Returns (filtered_assignments, assigned_t1, assigned_t2)."""
+    if not assignments:
+        return [], set(), set()
+    assigned_t1 = {i for i, _, _ in assignments}
+    assigned_t2 = {j for _, j, _ in assignments}
+    by_page: dict[tuple[int, int], list[tuple[int, int, MatchDecision]]] = {}
+    for i, j, d in assignments:
+        t1, t2 = t1_list[i], t2_list[j]
+        c1 = getattr(t1, "page_table_count", None) or 0
+        c2 = getattr(t2, "page_table_count", None) or 0
+        p1, p2 = int(t1.page_pdf or 0), int(t2.page_pdf or 0)
+        if c1 >= 2 and c2 >= 2 and p1 > 0 and p2 > 0 and p1 == p2:
+            key = (p1, p2)
+            by_page.setdefault(key, []).append((i, j, d))
+    to_remove: set[tuple[int, int]] = set()
+    for group in by_page.values():
+        if len(group) < 2:
+            continue
+        for idx1, (i1, j1, d1) in enumerate(group):
+            r1_t1 = getattr(t1_list[i1], "page_local_rank", None)
+            r1_t2 = getattr(t2_list[j1], "page_local_rank", None)
+            if r1_t1 is None or r1_t2 is None:
+                continue
+            for (i2, j2, d2) in group[idx1 + 1 :]:
+                r2_t1 = getattr(t1_list[i2], "page_local_rank", None)
+                r2_t2 = getattr(t2_list[j2], "page_local_rank", None)
+                if r2_t1 is None or r2_t2 is None:
+                    continue
+                diff1 = (r1_t1 - r1_t2)
+                diff2 = (r2_t1 - r2_t2)
+                if diff1 * diff2 < 0:
+                    min_title_override = float(
+                        th.get("multi_table_min_title_or_context_for_override", 0.90)
+                    )
+                    margin_threshold = float(th.get("margin_threshold", 0.08))
+                    if d1.score >= d2.score:
+                        if d1.title_similarity >= min_title_override and (
+                            d1.score - d2.score
+                        ) > margin_threshold:
+                            to_remove.add((i2, j2))
+                        else:
+                            to_remove.add((i1, j1))
+                            to_remove.add((i2, j2))
+                    else:
+                        if d2.title_similarity >= min_title_override and (
+                            d2.score - d1.score
+                        ) > margin_threshold:
+                            to_remove.add((i1, j1))
+                        else:
+                            to_remove.add((i1, j1))
+                            to_remove.add((i2, j2))
+    filtered = [(i, j, d) for i, j, d in assignments if (i, j) not in to_remove]
+    assigned_t1 = {i for i, _, _ in filtered}
+    assigned_t2 = {j for _, j, _ in filtered}
+    return filtered, assigned_t1, assigned_t2
+
+
 def _match_section_hungarian(
     t1_list: list[TableArtifact],
     t2_list: list[TableArtifact],
@@ -1383,6 +1654,10 @@ def _match_section_hungarian(
                 assigned_t2.discard(j)
                 uncertain_t2_indices.add(j)
                 uncertain_t2_indices.add(int(row_scores[1][1]))
+
+    assignments, assigned_t1, assigned_t2 = _reject_crossed_same_page_assignments(
+        assignments, t1_list, t2_list, th
+    )
 
     for i, j, d in assignments:
         if d.score < borderline_score:
@@ -1527,6 +1802,10 @@ def _match_section_hungarian_post_threshold(
         )
         post_filtered.append((i, j, new_decision))
 
+    post_filtered, assigned_t1, assigned_t2 = _reject_crossed_same_page_assignments(
+        post_filtered, t1_list, t2_list, th
+    )
+
     for i, j, d in post_filtered:
         if d.score < borderline_score:
             logger.warning(
@@ -1562,7 +1841,14 @@ def _match_tables_greedy(
     used_t2_uids: set[str] = set()
     uncertain_t2_uids: set[str] = set()
 
-    for table_t1 in tables_t1:
+    def _greedy_sort_key(t: TableArtifact) -> tuple[str | None, int, int]:
+        section = getattr(t, "section", None)
+        page = int(t.page_pdf or 0)
+        rank = getattr(t, "page_local_rank", None)
+        return (section, page, rank if rank is not None else 999)
+
+    sorted_t1 = sorted(tables_t1, key=_greedy_sort_key)
+    for table_t1 in sorted_t1:
         candidates = [
             table_t2
             for table_t2 in tables_t2

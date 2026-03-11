@@ -3,6 +3,7 @@ version: "1.0"
 vision_extraction:
   enabled: true
   bottom_extension_footnotes: 0.12
+  use_table_crop: true
   run_on_all_tables: true
   fallback_to_docling_on_error: true
   schema_failure_policy: fail_fast
@@ -648,6 +649,13 @@ matching_thresholds:
   section_mismatch_min_signals: 2
   section_mismatch_min_signals_generic: 3
   probable_band_width: 0.08
+  # Robust indicator matching (prefix-only and table-number corroboration)
+  indicator_robust_full_match_min: 0.40
+  indicator_robust_partial_match_min: 0.20
+  indicator_prefix_reject_min: 0.70
+  indicator_lcs_reject_max: 0.25
+  indicator_size_ratio_reject_max: 0.40
+  hard_negative_override_indicator_min: 0.30
   title_override_min_similarity: 0.85
   title_override_min_structure: 0.50
   title_override_min_overlap: 0.55
@@ -675,6 +683,13 @@ matching_thresholds:
   min_label_overlap_reject: 0.55
   soft_overlap_weight: 0.5
   generic_title_min_containment: 0.70
+  # Same-page multi-table: geometry/role override indicator overlap
+  multi_table_page_rank_max_delta: 1
+  multi_table_y_center_max_delta: 0.25
+  multi_table_zone_mismatch_penalty: 0.40
+  multi_table_cross_order_reject: 1.0
+  multi_table_same_page_indicator_weight_scale: 0.7
+  multi_table_min_title_or_context_for_override: 0.90
   generic_title_min_score: 0.75
   use_plan_score_formula: true
   weight_s_labels: 0.70
