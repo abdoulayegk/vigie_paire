@@ -189,6 +189,27 @@ class TestPageTitleResult:
         )
         assert result.get_candidate_by_bbox_proximity([]) is None
 
+    def test_bbox_proximity_multi_table_strict_max_vertical_distance(self):
+        """On multi-table pages we use max_vertical_distance=0.08; candidate at 0.10 is not used."""
+        result = self._make_result(
+            [
+                {
+                    "table_number": "1",
+                    "title_semantic": "Far title",
+                    "bbox_title": [0.05, 0.08, 0.90, 0.12],
+                    "confidence": 0.9,
+                },
+            ]
+        )
+        table_top = 0.22
+        table_bbox = [0.05, table_top, 0.95, 0.60]
+        distance = table_top - 0.12
+        assert 0.08 < distance <= 0.15
+        c_loose = result.get_candidate_by_bbox_proximity(table_bbox, max_vertical_distance=0.15)
+        c_strict = result.get_candidate_by_bbox_proximity(table_bbox, max_vertical_distance=0.08)
+        assert c_loose is not None
+        assert c_strict is None
+
 
 # ---------------------------------------------------------------------------
 # 3. Parse response
@@ -334,3 +355,63 @@ class TestFallbackPolicy:
         proc._apply_page_title_candidates([table], result, weak_title_threshold=3)
         assert table.title == "Actifs pondérés en fonction des risques"
         assert "page_level_assist" in table.title_resolution_method
+
+
+# ---------------------------------------------------------------------------
+# 5. min_confidence and max_candidates filtering
+# ---------------------------------------------------------------------------
+
+
+class TestPageTitleFiltering:
+    """extract_page_titles filters by min_confidence and caps by max_candidates."""
+
+    def test_min_confidence_filters_low_candidates(self):
+        """Candidates below min_confidence are excluded."""
+        from unittest.mock import MagicMock
+
+        from vigilance.extraction.page_title_assistant import PageTitleAssistant
+
+        raw = {
+            "page_table_titles": [
+                {"table_number": "1", "title_full": "T1", "title_semantic": "T1", "confidence": 0.5},
+                {"table_number": "2", "title_full": "T2", "title_semantic": "T2", "confidence": 0.8},
+                {"table_number": "3", "title_full": "T3", "title_semantic": "T3", "confidence": 0.65},
+            ]
+        }
+        assistant = PageTitleAssistant(api_key="test", min_confidence=0.7, max_candidates=10)
+        assistant._client = MagicMock()
+        assistant._client.chat.completions.create = lambda **kwargs: MagicMock(
+            choices=[MagicMock(message=MagicMock(content=__import__("json").dumps(raw)))]
+        )
+        result = assistant.extract_page_titles(
+            page_image_bytes=b"fake_png",
+            page_number=1,
+        )
+        assert result is not None
+        assert len(result.candidates) == 1
+        assert result.candidates[0]["table_number"] == "2"
+        assert result.candidates[0]["confidence"] == 0.8
+
+    def test_max_candidates_caps_result(self):
+        """At most max_candidates are returned."""
+        from unittest.mock import MagicMock
+
+        from vigilance.extraction.page_title_assistant import PageTitleAssistant
+
+        raw = {
+            "page_table_titles": [
+                {"table_number": str(i), "title_full": f"T{i}", "title_semantic": f"T{i}", "confidence": 0.9}
+                for i in range(5)
+            ]
+        }
+        assistant = PageTitleAssistant(api_key="test", min_confidence=0.5, max_candidates=2)
+        assistant._client = MagicMock()
+        assistant._client.chat.completions.create = lambda **kwargs: MagicMock(
+            choices=[MagicMock(message=MagicMock(content=__import__("json").dumps(raw)))]
+        )
+        result = assistant.extract_page_titles(
+            page_image_bytes=b"fake_png",
+            page_number=1,
+        )
+        assert result is not None
+        assert len(result.candidates) == 2

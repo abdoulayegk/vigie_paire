@@ -75,6 +75,58 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     if debug_metrics is not None and not isinstance(debug_metrics, dict):
         debug_metrics = None
 
+    page_local_rank = d.get("page_local_rank")
+    if page_local_rank is not None and not isinstance(page_local_rank, int):
+        try:
+            page_local_rank = int(page_local_rank)
+        except (TypeError, ValueError):
+            page_local_rank = None
+    page_table_count = d.get("page_table_count")
+    if page_table_count is not None and not isinstance(page_table_count, int):
+        try:
+            page_table_count = int(page_table_count)
+        except (TypeError, ValueError):
+            page_table_count = None
+    page_zone = d.get("page_zone")
+    if page_zone is not None and not isinstance(page_zone, str):
+        page_zone = None
+    y_top = d.get("y_top")
+    if y_top is not None and not isinstance(y_top, (int, float)):
+        try:
+            y_top = float(y_top)
+        except (TypeError, ValueError):
+            y_top = None
+    y_bottom = d.get("y_bottom")
+    if y_bottom is not None and not isinstance(y_bottom, (int, float)):
+        try:
+            y_bottom = float(y_bottom)
+        except (TypeError, ValueError):
+            y_bottom = None
+    y_center = d.get("y_center")
+    if y_center is not None and not isinstance(y_center, (int, float)):
+        try:
+            y_center = float(y_center)
+        except (TypeError, ValueError):
+            y_center = None
+    context_before = str(d.get("context_before") or "")
+    context_after = str(d.get("context_after") or "")
+    neighbor_above_distance = d.get("neighbor_above_distance")
+    if neighbor_above_distance is not None and not isinstance(
+        neighbor_above_distance, (int, float)
+    ):
+        try:
+            neighbor_above_distance = float(neighbor_above_distance)
+        except (TypeError, ValueError):
+            neighbor_above_distance = None
+    neighbor_below_distance = d.get("neighbor_below_distance")
+    if neighbor_below_distance is not None and not isinstance(
+        neighbor_below_distance, (int, float)
+    ):
+        try:
+            neighbor_below_distance = float(neighbor_below_distance)
+        except (TypeError, ValueError):
+            neighbor_below_distance = None
+
     return TableArtifact(
         bank_code=bank_code,
         section=section,
@@ -95,6 +147,16 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
         footnotes=footnotes,
         fragmentation_detected=fragmentation_detected,
         debug_metrics=debug_metrics,
+        page_local_rank=page_local_rank,
+        page_table_count=page_table_count,
+        page_zone=page_zone,
+        y_top=y_top,
+        y_bottom=y_bottom,
+        y_center=y_center,
+        context_before=context_before,
+        context_after=context_after,
+        neighbor_above_distance=neighbor_above_distance,
+        neighbor_below_distance=neighbor_below_distance,
     )
 
 
@@ -187,6 +249,38 @@ def load_extraction(
     except (json.JSONDecodeError, TypeError, KeyError) as e:
         logger.debug("Load extraction failed %s: %s", target_dir, e)
         return None
+
+
+def stored_extraction_matches(
+    stored_meta: dict[str, Any],
+    pdf_path: str,
+    section_ranges: list[dict[str, Any]],
+    use_vision_primary: bool,
+    pdf_sha: str | None = None,
+) -> bool:
+    """
+    Return True if stored extraction meta matches the current run (same PDF, sections, mode).
+
+    Used to avoid reusing stored extractions when the source or config has changed.
+    """
+    if not stored_meta:
+        return False
+    if str(stored_meta.get("pdf_path") or "") != str(pdf_path or ""):
+        return False
+    if stored_meta.get("use_vision_primary") != use_vision_primary:
+        return False
+    stored_ranges = stored_meta.get("section_ranges")
+    if stored_ranges is not None and section_ranges is not None:
+        try:
+            if json.dumps(stored_ranges, sort_keys=True) != json.dumps(
+                section_ranges, sort_keys=True
+            ):
+                return False
+        except (TypeError, ValueError):
+            return False
+    if pdf_sha and str(stored_meta.get("pdf_sha") or "") != str(pdf_sha):
+        return False
+    return True
 
 
 def load_stored_extractions(

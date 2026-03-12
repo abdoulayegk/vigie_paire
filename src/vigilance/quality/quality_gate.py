@@ -668,18 +668,37 @@ def run_quality_gate(
     bank_code: str,
     run_id: str,
     config: dict[str, Any] | None = None,
+    indicators_payload: dict[str, Any] | None = None,
+    footnotes_payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Run quality checks and write quality_report.json/.md + quality_gate_status.json."""
+    """Run quality checks and write quality_report.json/.md + quality_gate_status.json.
+
+    If indicators_payload and footnotes_payload are provided, they are used for
+    evaluation and written to the given paths (no disk read). Otherwise paths are read.
+    """
     cfg = _merge_config(config)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     now = datetime.now().isoformat(timespec="seconds")
     try:
-        indicators_payload = _safe_read_json(indicators_path)
-        footnotes_payload = _safe_read_json(footnotes_path)
+        if indicators_payload is not None and footnotes_payload is not None:
+            ind_payload = indicators_payload
+            fn_payload = footnotes_payload
+        else:
+            ind_payload = _safe_read_json(indicators_path)
+            fn_payload = _safe_read_json(footnotes_path)
         report = evaluate_quality(
-            indicators_payload, footnotes_payload, config=cfg
+            ind_payload, fn_payload, config=cfg
         )
+        if indicators_payload is not None and footnotes_payload is not None:
+            indicators_path.write_text(
+                json.dumps(ind_payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            footnotes_path.write_text(
+                json.dumps(fn_payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
     except Exception as exc:
         logger.exception("Quality gate failed to analyze extraction outputs")
         report = {

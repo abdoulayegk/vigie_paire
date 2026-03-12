@@ -269,6 +269,21 @@ Aucun markdown.
 Aucun commentaire.
 """
 
+# Intro for crop-mode image (no red frame); shared body follows.
+_PROMPT_INTRO_CROP = """
+Tu es un expert en extraction de données financières à partir de rapports bancaires canadiens.
+
+TÂCHE
+On te fournit l'image d'une RÉGION CROPPÉE d'un rapport financier : la zone contient le tableau (au centre), éventuellement le titre au-dessus et les notes de bas de page en dessous. Il n'y a pas de cadre rouge ; les limites du tableau sont celles de l'image.
+
+Ta mission :
+1. Extrais les données (indicateurs, en-têtes, lignes de données) du tableau visible au centre de l'image.
+2. Le TITRE du tableau se trouve en haut de l'image ; inclus-le s'il est présent (ex. "Tableau XX" et nom du tableau).
+3. Les notes de bas de page (footnotes) se trouvent en bas de l'image ; extrais-les et rattache-les au tableau.
+4. Évalue la qualité de l'extraction (has_hierarchy, extraction_confidence, notes) selon la lisibilité et la structure du tableau.
+"""
+_PROMPT_BASE_CROP = _PROMPT_INTRO_CROP + _PROMPT_BASE[_PROMPT_BASE.index("\n---") :]
+
 
 class VisionFootnoteItem(BaseModel):
     """Strict item schema for one footnote entry."""
@@ -549,8 +564,26 @@ class VisionFullResult:
         return list(self.footnotes_content)
 
 
+_FOOTNOTE_PAGE_PHRASE = "et jusqu'en bas de la page si nécessaire"
+_FOOTNOTE_PAGE_PHRASE_2 = "et jusqu'au bas de la page"
+_FOOTNOTE_BOUNDED_PHRASE = "jusqu'à la limite basse de l'image fournie (ne pas dépasser)"
+
+
 def _build_prompt(bank_code: str, vision_cfg: dict[str, Any]) -> str:
-    """Build prompt with bank-specific footnote marker hints."""
+    """Build prompt with bank-specific footnote marker hints.
+    When vision_cfg.use_table_crop is True, uses the crop-mode prompt (no red frame).
+    When vision_cfg.is_bounded_crop is True, footnote instructions refer to image limit
+    instead of page bottom to avoid model reading beyond the crop.
+    """
+    base = (
+        _PROMPT_BASE_CROP
+        if vision_cfg.get("use_table_crop")
+        else _PROMPT_BASE
+    )
+    if vision_cfg.get("is_bounded_crop"):
+        base = base.replace(
+            _FOOTNOTE_PAGE_PHRASE, _FOOTNOTE_BOUNDED_PHRASE
+        ).replace(_FOOTNOTE_PAGE_PHRASE_2, _FOOTNOTE_BOUNDED_PHRASE)
     marker_type = str(vision_cfg.get("footnote_marker_type", "")).strip().lower()
     expected = vision_cfg.get("expected_markers")
     hints = []
@@ -561,7 +594,7 @@ def _build_prompt(bank_code: str, vision_cfg: dict[str, Any]) -> str:
     if expected and isinstance(expected, list):
         hints.append(f"Marqueurs possibles: {expected[:5]}")
     suffix = "\n".join(hints) if hints else ""
-    return _PROMPT_BASE + (f"\n{suffix}\n" if suffix else "") + _PROMPT_JSON_STRICT
+    return base + (f"\n{suffix}\n" if suffix else "") + _PROMPT_JSON_STRICT
 
 
 def _strip_markdown_fences(text: str) -> str:

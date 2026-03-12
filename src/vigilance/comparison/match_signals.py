@@ -1,10 +1,14 @@
 """
 Calcul des signaux pour le matching de tableaux (reduction faux positifs).
 
-Signaux: table_number_match, title_similarity, header_overlap, indicator_overlap,
-section_match, page_distance.
+Signaux retournes: table_number_match, title_similarity, header_overlap,
+indicator_overlap (Jaccard, conserve pour compatibilite), plus les signaux
+structurels quand disponibles: indicator_jaccard, indicator_containment_min,
+indicator_lcs_ratio, indicator_size_ratio, indicator_prefix_ratio.
+
 Signaux forts: table_number_match, title_similarity>=0.90, header_overlap>=0.85,
-indicator_overlap>=0.75.
+et pour les indicateurs: robust indicator score>=0.75 lorsque les signaux
+structurels sont presents, sinon indicator_overlap>=0.75 (repli).
 """
 
 from __future__ import annotations
@@ -14,6 +18,10 @@ from typing import Any, Optional
 
 from difflib import SequenceMatcher
 
+from vigilance.comparison.indicator_match_helpers import (
+    compute_indicator_signals,
+    compute_robust_indicator_score_from_signals,
+)
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.matching_normalizer import normalize_for_matching
 
@@ -119,6 +127,24 @@ def compute_match_signals(
                 out.add(n)
         return out
 
+    def _norm_indicators_ordered(items: list) -> list[str]:
+        out: list[str] = []
+        seen: set[str] = set()
+        for item in items:
+            if isinstance(item, str):
+                text = item
+            elif hasattr(item, "text"):
+                text = getattr(item, "text", "") or ""
+            elif isinstance(item, dict):
+                text = item.get("text", "") or ""
+            else:
+                continue
+            n = normalize_indicator_for_comparison(text)
+            if n and n not in seen:
+                seen.add(n)
+                out.append(n)
+        return out
+
     ind1 = _norm_indicators(indicators1 if isinstance(indicators1, list) else [])
     ind2 = _norm_indicators(indicators2 if isinstance(indicators2, list) else [])
     if hasattr(t1, "indicator_norm_set") and t1.indicator_norm_set:
@@ -126,6 +152,14 @@ def compute_match_signals(
     if hasattr(t2, "indicator_norm_set") and t2.indicator_norm_set:
         ind2 = t2.indicator_norm_set
     indicator_overlap = _jaccard(ind1, ind2)
+
+    ordered_ind1 = _norm_indicators_ordered(indicators1 if isinstance(indicators1, list) else [])
+    ordered_ind2 = _norm_indicators_ordered(indicators2 if isinstance(indicators2, list) else [])
+    if hasattr(t1, "indicator_norm_set") and t1.indicator_norm_set:
+        ordered_ind1 = list(t1.indicator_norm_set)
+    if hasattr(t2, "indicator_norm_set") and t2.indicator_norm_set:
+        ordered_ind2 = list(t2.indicator_norm_set)
+    ind_signals = compute_indicator_signals(ordered_ind1, ordered_ind2)
 
     section1_norm = normalize_for_matching(section1, target="section")
     section2_norm = normalize_for_matching(section2, target="section")
@@ -146,7 +180,7 @@ def compute_match_signals(
     )
     page_distance = abs(page1 - page2)
 
-    return {
+    result: dict[str, Any] = {
         "table_number_match": table_number_match,
         "title_similarity": title_similarity,
         "header_overlap": header_overlap,
@@ -155,14 +189,17 @@ def compute_match_signals(
         "section_state": section_state,
         "page_distance": page_distance,
     }
+    result.update(ind_signals)
+    return result
 
 
 def count_strong_signals(signals: dict[str, Any], has_headers: bool = True) -> int:
     """
     Compte le nombre de signaux forts.
 
-    Signaux forts: table_number_match, title_similarity>=0.90, header_overlap>=0.85,
-    indicator_overlap>=0.75. page_distance n'est pas un signal fort.
+    Quand les signaux structurels sont presents (indicator_lcs_ratio etc.), le
+    critere indicateur est le robust indicator score >= 0.75. Sinon on utilise
+    indicator_overlap >= 0.75 pour compatibilite avec les anciens appels.
     """
     count = 0
     if signals.get("table_number_match"):
@@ -171,6 +208,10 @@ def count_strong_signals(signals: dict[str, Any], has_headers: bool = True) -> i
         count += 1
     if has_headers and signals.get("header_overlap", 0) >= 0.85:
         count += 1
-    if signals.get("indicator_overlap", 0) >= 0.75:
+    if "indicator_lcs_ratio" in signals:
+        robust = compute_robust_indicator_score_from_signals(signals)
+        if robust >= 0.75:
+            count += 1
+    elif signals.get("indicator_overlap", 0) >= 0.75:
         count += 1
     return count

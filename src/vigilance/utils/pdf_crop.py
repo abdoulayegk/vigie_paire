@@ -4,8 +4,30 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def _crop_cache_key(
+    kind: str,
+    pdf_path: str,
+    page_number: int,
+    bbox_norm: list[float],
+    zoom: float,
+    bottom_extension: float,
+    top_extension: float = 0.0,
+) -> tuple[Any, ...]:
+    """Stable cache key for crop/render memoization within a run."""
+    return (
+        kind,
+        pdf_path,
+        page_number,
+        tuple(bbox_norm),
+        zoom,
+        bottom_extension,
+        top_extension,
+    )
 
 
 def crop_table_image(
@@ -94,7 +116,10 @@ def crop_table_region_to_bytes(
     bbox_norm: list[float],
     scale: float = 1.5,
     bottom_extension: float = 0.0,
+    top_extension: float = 0.0,
     dpi: int | None = None,
+    render_cache: dict[tuple[Any, ...], bytes] | None = None,
+    bottom_stop_norm: float | None = None,
 ) -> bytes:
     """
     Crop a table region from a PDF page and return PNG bytes.
@@ -105,7 +130,11 @@ def crop_table_region_to_bytes(
         bbox_norm: Normalized bounding box [l, t, r, b] in 0..1.
         scale: Render scale when dpi is not set (default 1.5, same as proof previews).
         bottom_extension: Extra height below bbox (e.g. for footnotes), in normalized 0..1.
+        top_extension: Extra height above bbox (e.g. for title), in normalized 0..1.
         dpi: If set, render at this resolution (72 * zoom); overrides scale. Use 300 for Vision/OCR.
+        render_cache: Optional dict to memoize results within a run (keyed by path/page/bbox/zoom/ext).
+        bottom_stop_norm: If set, cap bottom of crop at this y (0..1). Use to avoid including
+            the next table on same page when extracting footnotes.
 
     Returns:
         PNG bytes of the cropped region, or full page bytes if bbox invalid or crop fails.
@@ -113,6 +142,21 @@ def crop_table_region_to_bytes(
     from vigilance.extraction.pdf_preview import render_pdf_page
 
     zoom = (dpi / 72.0) if dpi is not None else scale
+
+    if render_cache is not None and _validate_bbox(bbox_norm):
+        key = _crop_cache_key(
+            "crop",
+            pdf_path,
+            page_number,
+            bbox_norm,
+            zoom,
+            bottom_extension,
+            top_extension,
+        )
+        if bottom_stop_norm is not None:
+            key = (*key, bottom_stop_norm)
+        if key in render_cache:
+            return render_cache[key]
 
     if not _validate_bbox(bbox_norm):
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
@@ -135,15 +179,32 @@ def crop_table_region_to_bytes(
             page = doc[page_idx]
             rect = page.rect
             l_norm, t_norm, r_norm, b_norm = bbox_norm
+            t_norm_effective = max(0.0, t_norm - top_extension)
             b_norm_effective = min(1.0, b_norm + bottom_extension)
+            if bottom_stop_norm is not None:
+                b_norm_effective = min(b_norm_effective, bottom_stop_norm)
             x0 = rect.x0 + l_norm * rect.width
-            y0 = rect.y0 + t_norm * rect.height
+            y0 = rect.y0 + t_norm_effective * rect.height
             x1 = rect.x0 + r_norm * rect.width
             y1 = rect.y0 + b_norm_effective * rect.height
             clip = fitz.Rect(x0, y0, x1, y1)
             mat = fitz.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, clip=clip, alpha=False)
-            return pix.tobytes("png")
+            out = pix.tobytes("png")
+            if render_cache is not None:
+                key = _crop_cache_key(
+                    "crop",
+                    pdf_path,
+                    page_number,
+                    bbox_norm,
+                    zoom,
+                    bottom_extension,
+                    top_extension,
+                )
+                if bottom_stop_norm is not None:
+                    key = (*key, bottom_stop_norm)
+                render_cache[key] = out
+            return out
         finally:
             doc.close()
     except Exception:
@@ -158,6 +219,7 @@ def render_page_with_bbox_highlight_to_bytes(
     scale: float = 1.5,
     bottom_extension: float = 0.0,
     dpi: int | None = None,
+    render_cache: dict[tuple[Any, ...], bytes] | None = None,
 ) -> bytes:
     """
     Render a full PDF page to PNG with a red bounding box around the table.
@@ -169,6 +231,7 @@ def render_page_with_bbox_highlight_to_bytes(
         scale: Render scale when dpi is not set.
         bottom_extension: Extra height included in the red box (e.g. for footnotes), in normalized 0..1.
         dpi: If set, render at this resolution (72 * zoom); overrides scale. Use 300 for Vision/OCR.
+        render_cache: Optional dict to memoize results within a run (keyed by path/page/bbox/zoom/ext).
 
     Returns:
         PNG bytes of the full page with a red highlight box, or normal full page if bbox invalid.
@@ -176,6 +239,13 @@ def render_page_with_bbox_highlight_to_bytes(
     from vigilance.extraction.pdf_preview import render_pdf_page
 
     zoom = (dpi / 72.0) if dpi is not None else scale
+
+    if render_cache is not None and _validate_bbox(bbox_norm):
+        key = _crop_cache_key(
+            "bbox", pdf_path, page_number, bbox_norm, zoom, bottom_extension
+        )
+        if key in render_cache:
+            return render_cache[key]
 
     if not _validate_bbox(bbox_norm):
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
@@ -212,7 +282,13 @@ def render_page_with_bbox_highlight_to_bytes(
 
             mat = fitz.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, alpha=False)
-            return pix.tobytes("png")
+            out = pix.tobytes("png")
+            if render_cache is not None:
+                key = _crop_cache_key(
+                    "bbox", pdf_path, page_number, bbox_norm, zoom, bottom_extension
+                )
+                render_cache[key] = out
+            return out
         finally:
             doc.close()
     except Exception:

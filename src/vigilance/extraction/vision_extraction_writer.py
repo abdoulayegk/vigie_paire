@@ -39,7 +39,7 @@ def _table_entry_indicators(
             "indicators": [str(x).strip() for x in indicators_raw if str(x).strip()],
         })
 
-    return {
+    out: dict[str, Any] = {
         "table_id": table_id,
         "title": str(title),
         "date_reference": str(unit_context),
@@ -47,6 +47,13 @@ def _table_entry_indicators(
         "source": source,
         "sections": sections,
     }
+    if getattr(table, "bbox", None) is not None:
+        out["bbox"] = table.bbox
+    if getattr(table, "page_local_rank", None) is not None:
+        out["page_local_rank"] = table.page_local_rank
+    if getattr(table, "page_zone", None) is not None:
+        out["page_zone"] = table.page_zone
+    return out
 
 
 def _table_entry_footnotes(
@@ -66,7 +73,7 @@ def _table_entry_footnotes(
     footnote_markers = list(fn_dict.keys())
     repr_suspects = count_stringified_dict_suspects(footnotes_raw)
 
-    return {
+    out = {
         "table_id": table_id,
         "title": str(title),
         "page": page,
@@ -75,6 +82,33 @@ def _table_entry_footnotes(
         "footnote_markers": footnote_markers,
         "footnotes_content": fn_dict,
         "_repr_suspect_count": int(repr_suspects),
+    }
+    if getattr(table, "bbox", None) is not None:
+        out["bbox"] = table.bbox
+    if getattr(table, "page_local_rank", None) is not None:
+        out["page_local_rank"] = table.page_local_rank
+    if getattr(table, "page_zone", None) is not None:
+        out["page_zone"] = table.page_zone
+    return out
+
+
+def build_indicators_payload(
+    tables_t1: list[Any],
+    tables_t2: list[Any],
+    bank_code: str,
+    run_id: str,
+) -> dict[str, Any]:
+    """Build indicators audit payload in memory (same structure as indicators.json)."""
+    entries: list[dict[str, Any]] = []
+    for t in tables_t1:
+        entries.append(_table_entry_indicators(t, "t1"))
+    for t in tables_t2:
+        entries.append(_table_entry_indicators(t, "t2"))
+    return {
+        "bank_code": bank_code,
+        "run_timestamp": datetime.now().isoformat(timespec="seconds"),
+        "run_id": run_id,
+        "tables": entries,
     }
 
 
@@ -91,19 +125,7 @@ def write_indicators_json(
     Each entry: table_id, title, date_reference, page, source (t1/t2), sections.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
-    entries: list[dict[str, Any]] = []
-    for t in tables_t1:
-        entries.append(_table_entry_indicators(t, "t1"))
-    for t in tables_t2:
-        entries.append(_table_entry_indicators(t, "t2"))
-
-    payload: dict[str, Any] = {
-        "bank_code": bank_code,
-        "run_timestamp": datetime.now().isoformat(timespec="seconds"),
-        "run_id": run_id,
-        "tables": entries,
-    }
-
+    payload = build_indicators_payload(tables_t1, tables_t2, bank_code, run_id)
     out_path = out_dir / "indicators.json"
     out_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2),
@@ -113,20 +135,13 @@ def write_indicators_json(
     return out_path
 
 
-def write_footnotes_json(
+def build_footnotes_payload(
     tables_t1: list[Any],
     tables_t2: list[Any],
-    out_dir: Path,
     bank_code: str,
     run_id: str,
-) -> Path:
-    """
-    Write footnotes.json for audit.
-
-    Each entry: table_id, title, page, source (t1/t2), has_footnotes,
-    footnote_markers, footnotes_content.
-    """
-    out_dir.mkdir(parents=True, exist_ok=True)
+) -> dict[str, Any]:
+    """Build footnotes audit payload in memory (same structure as footnotes.json)."""
     entries: list[dict[str, Any]] = []
     for t in tables_t1:
         entries.append(_table_entry_footnotes(t, "t1"))
@@ -161,7 +176,24 @@ def write_footnotes_json(
                 "count": repr_suspect_count,
             }
         ]
+    return payload
 
+
+def write_footnotes_json(
+    tables_t1: list[Any],
+    tables_t2: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    run_id: str,
+) -> Path:
+    """
+    Write footnotes.json for audit.
+
+    Each entry: table_id, title, page, source (t1/t2), has_footnotes,
+    footnote_markers, footnotes_content.
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    payload = build_footnotes_payload(tables_t1, tables_t2, bank_code, run_id)
     out_path = out_dir / "footnotes.json"
     out_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2),
