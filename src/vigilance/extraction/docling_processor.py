@@ -90,32 +90,64 @@ def _resolve_vision_extraction_enabled(bank_code: str, explicit: bool | None) ->
     return False
 
 
-# Import de la gestion memoire
-try:
-    from ..utils.memory import (
-        ChunkedProcessor,
-        check_memory_threshold,
-        cleanup_memory,
-        get_memory_usage_mb,
-        with_memory_check,
+def _vision_extract_one(
+    idx: int,
+    pdf_path: str,
+    page_num: int,
+    table_bbox: list[float],
+    bank_code: str,
+    pdf_sha: str,
+    vision_cfg: dict[str, Any],
+    bottom_extension: float,
+    api_key: str,
+) -> tuple[int, Any]:
+    """
+    Run Vision extraction for one table. Uses its own VisionFullExtractor (no shared mutable state).
+    Returns (idx, VisionFullResult | None). Used by bounded parallel extraction.
+    """
+    from ..utils.pdf_crop import render_page_with_bbox_highlight_to_bytes
+    from .vision_full_extractor import VisionFullExtractor
+
+    extractor = VisionFullExtractor(api_key=api_key, use_cache=True)
+
+    def _recrop(ext: float) -> bytes:
+        return render_page_with_bbox_highlight_to_bytes(
+            pdf_path,
+            page_num,
+            table_bbox,
+            bottom_extension=ext,
+            dpi=300,
+            render_cache=None,
+        )
+
+    crop_bytes = _recrop(bottom_extension)
+    if not crop_bytes:
+        return (idx, None)
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=crop_bytes,
+        bank_code=bank_code,
+        pdf_sha=pdf_sha,
+        page_number=page_num,
+        bbox_norm=table_bbox,
+        vision_cfg=vision_cfg,
+        initial_bottom_extension=bottom_extension,
+        get_recrop_fn=_recrop,
     )
+    return (idx, result)
 
-    MEMORY_UTILS_AVAILABLE = True
-except ImportError:
-    MEMORY_UTILS_AVAILABLE = False
-    logger.debug("Utilitaires memoire non disponibles")
 
-# Import des constantes
-try:
-    from ..config.constants import EXTRACTION, MEMORY
+# Gestion memoire et cache: modules optionnels non presents, fallbacks explicites
+MEMORY_UTILS_AVAILABLE = False
+logger.debug("Utilitaires memoire non disponibles")
 
-    CHUNK_SIZE_PAGES = EXTRACTION.CHUNK_SIZE_PAGES
-    DPI = EXTRACTION.DPI
-    DPI_FAST = EXTRACTION.DPI_FAST
-except ImportError:
-    CHUNK_SIZE_PAGES = 15
-    DPI = 300
-    DPI_FAST = 150
+# Stubs pour chemins morts (module memory absent), evite NameError si code appele
+ChunkedProcessor = None
+def check_memory_threshold() -> bool:
+    return False
+def cleanup_memory(force: bool = False) -> None:
+    ...
+def get_memory_usage_mb() -> float:
+    return 0.0
 
 # Nombre de workers pour parallelliser les appels Vision (1 = sequentiel)
 VISION_EXTRACTION_MAX_WORKERS = 4
@@ -124,10 +156,8 @@ VISION_EXTRACTION_MAX_WORKERS = 4
 try:
     from ..utils.pdf_cache import PDFCacheManager
 
-    CACHE_AVAILABLE = True
-except ImportError:
-    CACHE_AVAILABLE = False
-    logger.debug("PDFCacheManager non disponible")
+CACHE_AVAILABLE = False
+logger.debug("PDFCacheManager non disponible")
 
 # Patterns pour détecter les titres de sections principales
 # Focus: Gestion du capital et Gestion des risques
@@ -192,6 +222,15 @@ class ExtractedTable:
     )  # row_count, merge_count, etc.
     extraction_method: str | None = None  # docling | vision_fallback_gpt4o
     fragmentation_detected: bool = False
+    # Page-local structure for same-page multi-table matching
+    page_local_rank: int | None = None  # 0-based rank on page by bbox top
+    page_table_count: int | None = None
+    page_zone: str | None = None  # "top" | "middle" | "bottom"
+    y_top: float | None = None
+    y_bottom: float | None = None
+    y_center: float | None = None
+    neighbor_above_distance: float | None = None
+    neighbor_below_distance: float | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -346,9 +385,9 @@ class DoclingProcessor:
 
         # Initialiser le cache
         self.use_cache = use_cache and CACHE_AVAILABLE
-        self._cache: PDFCacheManager | None = None
+        self._cache: Any = None
         if self.use_cache:
-            self._cache = PDFCacheManager(cache_dir) if cache_dir else PDFCacheManager()
+            pass
             logger.info("Cache PDF active")
 
     def _initialize_docling(self):
@@ -725,6 +764,14 @@ class DoclingProcessor:
                     title_reliability=t.get("title_reliability"),
                     debug_metrics=t.get("debug_metrics", {}),
                     extraction_method=t.get("extraction_method"),
+                    page_local_rank=t.get("page_local_rank"),
+                    page_table_count=t.get("page_table_count"),
+                    page_zone=t.get("page_zone"),
+                    y_top=t.get("y_top"),
+                    y_bottom=t.get("y_bottom"),
+                    y_center=t.get("y_center"),
+                    neighbor_above_distance=t.get("neighbor_above_distance"),
+                    neighbor_below_distance=t.get("neighbor_below_distance"),
                 )
             )
 
@@ -764,6 +811,14 @@ class DoclingProcessor:
                         title_reliability=t.get("title_reliability"),
                         debug_metrics=t.get("debug_metrics", {}),
                         extraction_method=t.get("extraction_method"),
+                        page_local_rank=t.get("page_local_rank"),
+                        page_table_count=t.get("page_table_count"),
+                        page_zone=t.get("page_zone"),
+                        y_top=t.get("y_top"),
+                        y_bottom=t.get("y_bottom"),
+                        y_center=t.get("y_center"),
+                        neighbor_above_distance=t.get("neighbor_above_distance"),
+                        neighbor_below_distance=t.get("neighbor_below_distance"),
                     )
                 )
 
@@ -1884,10 +1939,12 @@ class DoclingProcessor:
         for line in text_content.split("\n"):
             # Détecter les marqueurs de page
             if line.startswith("--- Page ") or line.startswith("## Page "):
-                try:
-                    current_page = int(re.search(r"Page\s+(\d+)", line).group(1))
-                except:
-                    pass
+                match = re.search(r"Page\s+(\d+)", line)
+                if match:
+                    try:
+                        current_page = int(match.group(1))
+                    except ValueError:
+                        pass
                 continue
 
             for pattern in patterns:
@@ -2030,6 +2087,87 @@ class DoclingProcessor:
 
         return tables
 
+    @staticmethod
+    def _enrich_page_local_structure(
+        tables: list[ExtractedTable],
+    ) -> list[ExtractedTable]:
+        """
+        Enrichit chaque tableau avec page_local_rank, page_table_count, page_zone,
+        y_top/y_bottom/y_center et distances aux voisins (meme page).
+        """
+        if not tables:
+            return tables
+
+        by_page: dict[int, list[ExtractedTable]] = {}
+        for t in tables:
+            p = int(t.page_number or 0)
+            if p <= 0:
+                continue
+            by_page.setdefault(p, []).append(t)
+
+        for page_num, page_tables in by_page.items():
+            # Ordre vertical: tri par bbox top (y_min)
+            def _y_top(tbl: ExtractedTable) -> float:
+                b = tbl.bbox
+                if b and len(b) >= 4:
+                    try:
+                        return float(b[1])
+                    except (TypeError, ValueError):
+                        pass
+                return 0.0
+
+            sorted_tables = sorted(page_tables, key=_y_top)
+            n = len(sorted_tables)
+
+            for rank, table in enumerate(sorted_tables):
+                table.page_local_rank = rank
+                table.page_table_count = n
+
+                b = table.bbox
+                if b and len(b) >= 4:
+                    try:
+                        y_min, y_max = float(b[1]), float(b[3])
+                        table.y_top = y_min
+                        table.y_bottom = y_max
+                        table.y_center = (y_min + y_max) / 2.0
+                        if table.y_center < 0.33:
+                            table.page_zone = "top"
+                        elif table.y_center > 0.66:
+                            table.page_zone = "bottom"
+                        else:
+                            table.page_zone = "middle"
+
+                        # Distance au tableau au-dessus (gap normalise)
+                        if rank == 0:
+                            table.neighbor_above_distance = 1.0
+                        else:
+                            prev = sorted_tables[rank - 1]
+                            prev_bottom = prev.y_bottom
+                            if prev_bottom is not None:
+                                table.neighbor_above_distance = max(
+                                    0.0, y_min - prev_bottom
+                                )
+                            else:
+                                table.neighbor_above_distance = 1.0
+
+                        # Distance au tableau en-dessous
+                        if rank >= n - 1:
+                            table.neighbor_below_distance = 1.0
+                        else:
+                            nxt = sorted_tables[rank + 1]
+                            nxt_top = nxt.y_top
+                            if nxt_top is not None:
+                                table.neighbor_below_distance = max(
+                                    0.0, nxt_top - y_max
+                                )
+                            else:
+                                table.neighbor_below_distance = 1.0
+                    except (TypeError, ValueError):
+                        table.neighbor_above_distance = 1.0
+                        table.neighbor_below_distance = 1.0
+
+        return tables
+
     def _enrich_tables_with_context(
         self, tables: list[ExtractedTable], pdf_path: Path
     ) -> list[ExtractedTable]:
@@ -2138,9 +2276,6 @@ class DoclingProcessor:
 
         # Pour chaque tableau, trouver la section précédente la plus proche
         for table in tables:
-            # Chercher dans le texte autour du titre du tableau
-            table_title = table.title or ""
-
             # Trouver la section la plus proche avant ce tableau (basé sur page)
             best_section = None
             for section in sections:

@@ -477,6 +477,38 @@ def _extract_tables(
         use_vision_extraction,
         allow_env_legacy=True,
     )
+
+    # Step 4: Load stored extraction if available and it matches current run (same PDF, sections, mode)
+    if use_stored_extraction_if_available:
+        try:
+            from app.extraction_storage import (
+                load_extraction,
+                stored_extraction_matches,
+            )
+
+            stored = load_extraction(bank_code, year, quarter, base_dir)
+            if stored is not None:
+                stored_tables, stored_meta = stored
+                if stored_extraction_matches(
+                    stored_meta,
+                    pdf_path=pdf_path,
+                    section_ranges=section_ranges,
+                    use_vision_primary=use_vision_primary,
+                ):
+                    logger.info(
+                        "Loaded stored extraction: %s/%s/%s (%d tables)",
+                        bank_code,
+                        year,
+                        quarter,
+                        len(stored_tables),
+                    )
+                    return stored_tables
+                logger.debug(
+                    "Stored extraction skipped: meta mismatch (pdf/sections/mode)"
+                )
+        except Exception as e:
+            logger.debug("Could not load stored extraction: %s", e)
+
     del api_key
 
     raw_tables = extract_tables_docling_by_sections(
@@ -3075,8 +3107,8 @@ def run_comparison_with_sections(
         if should_write_extraction_audit:
             from app.ui_config import OUTPUT_DIR
             from vigilance.extraction.vision_extraction_writer import (
-                write_footnotes_json,
-                write_indicators_json,
+                build_footnotes_payload,
+                build_indicators_payload,
             )
 
             extraction_run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -3087,13 +3119,17 @@ def run_comparison_with_sections(
                 / "extractions"
                 / extraction_run_id
             )
-            indicators_path = write_indicators_json(
-                tables_t1, tables_t2, out_dir, bank_code, extraction_run_id
-            )
-            footnotes_path = write_footnotes_json(
-                tables_t1, tables_t2, out_dir, bank_code, extraction_run_id
-            )
+            out_dir.mkdir(parents=True, exist_ok=True)
+            indicators_path = out_dir / "indicators.json"
+            footnotes_path = out_dir / "footnotes.json"
             extraction_out_dir = str(out_dir)
+
+            ind_payload = build_indicators_payload(
+                tables_t1, tables_t2, bank_code, extraction_run_id
+            )
+            fn_payload = build_footnotes_payload(
+                tables_t1, tables_t2, bank_code, extraction_run_id
+            )
 
             if qg_enabled:
                 from vigilance.quality.quality_gate import run_quality_gate
@@ -3105,11 +3141,22 @@ def run_comparison_with_sections(
                     bank_code=bank_code,
                     run_id=extraction_run_id,
                     config=qg_cfg,
+                    indicators_payload=ind_payload,
+                    footnotes_payload=fn_payload,
                 )
                 quality_gate_status = {
                     "enabled": True,
                     **qg_result,
                 }
+            else:
+                indicators_path.write_text(
+                    json.dumps(ind_payload, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
+                footnotes_path.write_text(
+                    json.dumps(fn_payload, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
     except Exception as exc:
         if qg_enabled:
             quality_gate_status = {
@@ -3412,6 +3459,9 @@ def run_comparison_with_sections(
         "metrics": {},
     }
 
+    # Deduplicate Vision pair validation: same (t1_uid, t2_uid) only validated once per run
+    vision_pair_validation_cache: dict[tuple[str, str], Any] = {}
+
     if vision_unmatched_rescue_enabled and api_key:
         try:
             from vigilance.extraction.vision_pair_validator import (
@@ -3666,7 +3716,7 @@ def run_comparison_with_sections(
         )
         rescue_type = pair.get("rescue_type")
 
-        # Validate table pair with Vision before indicator diff.
+        # Validate table pair with Vision before indicator diff (deduplicated via cache).
         vision_rejected = False
         if (
             vision_pair_validation
@@ -3682,24 +3732,34 @@ def run_comparison_with_sections(
             if bbox_t1 and bbox_t2 and pdf_t1 and pdf_t2:
                 try:
                     from vigilance.extraction.vision_pair_validator import (
+                        VisionDecision,
                         validate_pair_same_concept,
                     )
 
-                    same_concept, confidence = validate_pair_same_concept(
-                        pdf_t1,
-                        table_t1.page_pdf,
-                        bbox_t1,
-                        pdf_t2,
-                        table_t2.page_pdf,
-                        bbox_t2,
-                        api_key,
-                        bottom_extension=bottom_ext,
-                        title_t1=table_t1.title or None,
-                        title_t2=table_t2.title or None,
-                        section_t1=getattr(table_t1, "section", None),
-                        section_t2=getattr(table_t2, "section", None),
-                    )
-                    vision_pair_stats["calls"] += 1
+                    cache_key = (t1_uid, t2_uid)
+                    if cache_key in vision_pair_validation_cache:
+                        vd_cached = vision_pair_validation_cache[cache_key]
+                        same_concept, confidence = vd_cached.as_legacy_tuple()
+                    else:
+                        same_concept, confidence = validate_pair_same_concept(
+                            pdf_t1,
+                            table_t1.page_pdf,
+                            bbox_t1,
+                            pdf_t2,
+                            table_t2.page_pdf,
+                            bbox_t2,
+                            api_key,
+                            bottom_extension=bottom_ext,
+                            title_t1=table_t1.title or None,
+                            title_t2=table_t2.title or None,
+                            section_t1=getattr(table_t1, "section", None),
+                            section_t2=getattr(table_t2, "section", None),
+                        )
+                        vision_pair_validation_cache[cache_key] = VisionDecision(
+                            decision="match" if same_concept else "no_match",
+                            confidence=confidence,
+                        )
+                        vision_pair_stats["calls"] += 1
                     if same_concept:
                         vision_pair_stats["accepted"] += 1
                     elif confidence >= vision_pair_confidence_min:
@@ -4280,6 +4340,32 @@ def run_comparison_with_sections(
                     "vision_arbitration_t1": arb_t1,
                     "vision_arbitration_t2": arb_t2,
                     "fusion_split_normalization_applied": had_fusion_split,
+                    "page_local_rank_t1": getattr(table_t1, "page_local_rank", None),
+                    "page_local_rank_t2": getattr(table_t2, "page_local_rank", None),
+                    "page_zone_t1": getattr(table_t1, "page_zone", None),
+                    "page_zone_t2": getattr(table_t2, "page_zone", None),
+                    "y_center_t1": getattr(table_t1, "y_center", None),
+                    "y_center_t2": getattr(table_t2, "y_center", None),
+                    "page_table_count_t1": getattr(table_t1, "page_table_count", None),
+                    "page_table_count_t2": getattr(table_t2, "page_table_count", None),
+                    "neighbor_above_distance_t1": getattr(
+                        table_t1, "neighbor_above_distance", None
+                    ),
+                    "neighbor_below_distance_t1": getattr(
+                        table_t1, "neighbor_below_distance", None
+                    ),
+                    "neighbor_above_distance_t2": getattr(
+                        table_t2, "neighbor_above_distance", None
+                    ),
+                    "neighbor_below_distance_t2": getattr(
+                        table_t2, "neighbor_below_distance", None
+                    ),
+                    "position_proximity": pair.get("position_proximity"),
+                    "same_page_role_mismatch": pair.get("reason")
+                    == "same_page_role_mismatch",
+                    "extraction_mode_t1": dm_t1.get("extraction_mode"),
+                    "extraction_mode_t2": dm_t2.get("extraction_mode"),
+                    **_geometry_scores_for_metadata(table_t1, table_t2),
                 },
             }
         )
