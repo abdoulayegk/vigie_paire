@@ -55,6 +55,14 @@ _TABLE_NUMBER_RE = re.compile(
 )
 _TABLE_NUMBER_SHORT_RE = re.compile(r"\bT\s*([0-9]+[A-Za-z]?)\b")
 
+# Page-local structure scoring (same-page / near-page multi-table matching)
+PAGE_LOCAL_ORDER_MATCH_SAME_PAGE = 0.20
+PAGE_LOCAL_ORDER_CONFLICT_SAME_PAGE = -0.15
+PAGE_LOCAL_ORDER_MATCH_NEAR_PAGE = 0.12
+PAGE_LOCAL_ORDER_CONFLICT_NEAR_PAGE = -0.08
+PAGE_LOCAL_ROLE_MATCH_BONUS = 0.06
+BBOX_Y_SIMILARITY_WEIGHT = 0.05
+
 _GENERIC_INDICATOR_KEYS = frozenset(
     {
         "total",
@@ -261,6 +269,69 @@ def _page_bonus(left: TableArtifact, right: TableArtifact) -> float:
     return 0.0
 
 
+def _bbox_y_center(table: TableArtifact) -> float | None:
+    """Normalized vertical center of table bbox in [0, 1]. None if no valid bbox."""
+    bbox = getattr(table, "bbox", None)
+    if bbox is None:
+        return None
+    if isinstance(bbox, (list, tuple)) and len(bbox) >= 4:
+        top = float(bbox[1])
+        bottom = float(bbox[3])
+        return (top + bottom) / 2.0
+    if isinstance(bbox, dict):
+        if "t" in bbox and "b" in bbox:
+            return (float(bbox["t"]) + float(bbox["b"])) / 2.0
+        if "y0" in bbox and "y1" in bbox:
+            return (float(bbox["y0"]) + float(bbox["y1"])) / 2.0
+        if "y" in bbox and "height" in bbox:
+            return float(bbox["y"]) + float(bbox["height"]) / 2.0
+    return None
+
+
+def _page_local_order_bonus(left: TableArtifact, right: TableArtifact) -> float:
+    """Bonus/penalty for same/different table index on (same or near) page."""
+    idx_left = getattr(left, "table_index_on_page", None)
+    idx_right = getattr(right, "table_index_on_page", None)
+    if idx_left is None or idx_right is None:
+        return 0.0
+    page_left = _safe_int(getattr(left, "page_pdf", 0))
+    page_right = _safe_int(getattr(right, "page_pdf", 0))
+    delta_page = abs(page_left - page_right)
+    if delta_page == 0:
+        if idx_left == idx_right:
+            return PAGE_LOCAL_ORDER_MATCH_SAME_PAGE
+        return PAGE_LOCAL_ORDER_CONFLICT_SAME_PAGE
+    if delta_page == 1:
+        if idx_left == idx_right:
+            return PAGE_LOCAL_ORDER_MATCH_NEAR_PAGE
+        return PAGE_LOCAL_ORDER_CONFLICT_NEAR_PAGE
+    return 0.0
+
+
+def _bbox_y_similarity(left: TableArtifact, right: TableArtifact) -> float:
+    """Similarity of vertical position when both on same or near page. [0, 1]."""
+    page_left = _safe_int(getattr(left, "page_pdf", 0))
+    page_right = _safe_int(getattr(right, "page_pdf", 0))
+    if abs(page_left - page_right) > 1:
+        return 0.0
+    y_left = _bbox_y_center(left)
+    y_right = _bbox_y_center(right)
+    if y_left is None or y_right is None:
+        return 0.0
+    return 1.0 - min(1.0, abs(y_left - y_right))
+
+
+def _page_local_role_bonus(left: TableArtifact, right: TableArtifact) -> float:
+    """Bonus when page_local_role matches (first/first, last/last, etc.)."""
+    role_left = getattr(left, "page_local_role", None) or ""
+    role_right = getattr(right, "page_local_role", None) or ""
+    if not role_left or not role_right:
+        return 0.0
+    if role_left == role_right:
+        return PAGE_LOCAL_ROLE_MATCH_BONUS
+    return 0.0
+
+
 def _title_similarity(left: TableArtifact, right: TableArtifact) -> float:
     title_left = _normalized_title(left)
     title_right = _normalized_title(right)
@@ -427,6 +498,9 @@ class CandidateScore:
     confidence_cap_reason: str | None = None
     title_reliability_score: float = 0.0
     quality_suspect: bool = False
+    page_local_order_bonus: float = 0.0
+    page_local_role_bonus: float = 0.0
+    bbox_y_similarity: float = 0.0
 
     def as_feature_dict(self) -> dict[str, Any]:
         return {
@@ -446,6 +520,9 @@ class CandidateScore:
             "size_compatibility": round(self.size_compatibility, 6),
             "table_number_match": self.table_number_match,
             "table_number_conflict": self.table_number_conflict,
+            "page_local_order_bonus": round(self.page_local_order_bonus, 6),
+            "page_local_role_bonus": round(self.page_local_role_bonus, 6),
+            "bbox_y_similarity": round(self.bbox_y_similarity, 6),
             "reasons": list(self.explanation),
         }
 
@@ -462,6 +539,9 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
     title_similarity = _title_similarity(t1_view.table, t2_view.table)
     size_compatibility = _size_compatibility(t1_view.table, t2_view.table)
     order_proximity_bonus = _page_bonus(t1_view.table, t2_view.table)
+    page_local_order_bonus = _page_local_order_bonus(t1_view.table, t2_view.table)
+    page_local_role_bonus = _page_local_role_bonus(t1_view.table, t2_view.table)
+    bbox_y_sim = _bbox_y_similarity(t1_view.table, t2_view.table)
 
     same_number = bool(
         t1_view.normalized_table_number
@@ -540,6 +620,9 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
         + 0.06 * size_compatibility
         + 0.04 * order_proximity_bonus
         + table_number_bonus
+        + page_local_order_bonus
+        + page_local_role_bonus
+        + BBOX_Y_SIMILARITY_WEIGHT * bbox_y_sim
         - instability_penalty
     )
     quality_penalty = 0.0
@@ -582,6 +665,9 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
         confidence_cap_reason=None,
         title_reliability_score=title_reliability_score,
         quality_suspect=quality_suspect,
+        page_local_order_bonus=page_local_order_bonus,
+        page_local_role_bonus=page_local_role_bonus,
+        bbox_y_similarity=bbox_y_sim,
     )
 
 
@@ -674,9 +760,14 @@ def _shortlist_candidates(
         selected.append(candidate)
 
     _add(candidates[0])
+    by_page_local_order = max(candidates, key=lambda item: item.page_local_order_bonus)
+    by_role = max(candidates, key=lambda item: item.page_local_role_bonus)
     by_distinct = max(candidates, key=lambda item: item.indicator_distinctive_overlap)
     by_global = max(candidates, key=lambda item: item.indicator_global_overlap)
     by_title = max(candidates, key=lambda item: item.title_similarity)
+    _add(by_page_local_order)
+    if by_role.page_local_role_bonus > 0:
+        _add(by_role)
     if any(candidate.table_number_match for candidate in candidates):
         by_number = max(
             candidates,

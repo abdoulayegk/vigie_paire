@@ -161,8 +161,8 @@ def test_recrop_failed_incomplete_sets_debug_flag() -> None:
     assert r.recrop_used is False
 
 
-def test_partial_lean_result_does_not_force_recrop(monkeypatch) -> None:
-    """A lean fallback with missing rows must not trigger recrop solely because rows are omitted."""
+def test_high_confidence_full_result_does_not_force_recrop(monkeypatch) -> None:
+    """A full result with high confidence and indicators present must not trigger recrop."""
     from vigilance.extraction.vision_full_extractor import (
         VisionFullExtractor,
         VisionFullResult,
@@ -172,16 +172,12 @@ def test_partial_lean_result_does_not_force_recrop(monkeypatch) -> None:
         table_title="Tableau 1",
         headers=["Indicateur", "Valeur"],
         indicators=[{"text": f"Ind{i}", "bbox": None} for i in range(20)],
-        rows=[],
+        rows=[[f"Ind{i}", "100"] for i in range(20)],
         footnotes_content=[],
         footnote_markers=[],
         confidence=0.92,
-        vision_status="partial",
-        warnings=[
-            "vision_truncated",
-            "vision_lean_mode",
-            "vision_rows_missing_from_fallback",
-        ],
+        vision_status="ok",
+        warnings=[],
     )
 
     extractor = VisionFullExtractor(api_key="test-key", use_cache=False)

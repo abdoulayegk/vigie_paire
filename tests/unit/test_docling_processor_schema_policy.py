@@ -36,6 +36,9 @@ class _FailingVisionExtractor:
     def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
         del args, kwargs
 
+    def validate_schema(self) -> None:
+        raise VisionSchemaContractError("Vision schema contract invalid")
+
     def extract_with_quality_pass(self, **kwargs):  # type: ignore[no-untyped-def]
         del kwargs
         _FailingVisionExtractor.calls += 1
@@ -49,6 +52,9 @@ class _PartialVisionExtractor:
 
     def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
         del args, kwargs
+
+    def validate_schema(self) -> None:
+        pass
 
     def extract_with_quality_pass(self, **kwargs):  # type: ignore[no-untyped-def]
         del kwargs
@@ -142,7 +148,7 @@ def test_schema_policy_fail_fast_stops_run(monkeypatch, tmp_path: Path) -> None:
             labels_only=False,
             use_vision_extraction=True,
         )
-    assert _FailingVisionExtractor.calls == 1
+    assert _FailingVisionExtractor.calls == 0
 
 
 def test_schema_policy_degrade_to_docling_disables_vision(
@@ -169,7 +175,7 @@ def test_schema_policy_degrade_to_docling_disables_vision(
         use_vision_extraction=True,
     )
 
-    assert _FailingVisionExtractor.calls == 1
+    assert _FailingVisionExtractor.calls == 0
     assert len(extracted.all_tables) == 2
     first_dm = extracted.all_tables[0].debug_metrics or {}
     second_dm = extracted.all_tables[1].debug_metrics or {}

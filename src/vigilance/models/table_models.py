@@ -300,6 +300,10 @@ class TableArtifact:
     title_raw: str | None = None  # Original title for traceability
     table_number: str | None = None
     bbox: dict[str, Any] | list[float] | None = None
+    table_index_on_page: int | None = None
+    tables_on_page: int | None = None
+    bbox_top: float | None = None
+    page_local_role: str | None = None
     quarter: str | None = None
     pdf_path: str | None = None
     first_column_indicators_raw: list[str] | None = None

@@ -19,6 +19,7 @@ from vigilance.utils.indicator_cleaner import (
     normalize_indicator_for_comparison,
     post_normalize_indicator,
 )
+from vigilance.utils.table_page_structure import derive_page_local_structure
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +136,20 @@ def _normalize_legacy_debug_metrics(dm: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
+def _backfill_page_local_structure(tables: list[TableArtifact]) -> None:
+    """Recompute and set page-local structure on each table (for backward compatibility)."""
+    structure = derive_page_local_structure(tables)
+    for t in tables:
+        key = (t.table_id, t.page_pdf)
+        if key not in structure:
+            continue
+        info = structure[key]
+        t.table_index_on_page = info.get("table_index_on_page")
+        t.tables_on_page = info.get("tables_on_page")
+        t.bbox_top = info.get("bbox_top")
+        t.page_local_role = info.get("page_local_role")
+
+
 def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     """Reconstruct the canonical comparison ``TableArtifact`` from stored JSON."""
     # Normalize keys and handle optional fields
@@ -218,6 +233,21 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
         debug_metrics = None
     if debug_metrics:
         debug_metrics = _normalize_legacy_debug_metrics(debug_metrics)
+    table_index_on_page = d.get("table_index_on_page")
+    if table_index_on_page is not None and not isinstance(table_index_on_page, int):
+        table_index_on_page = None
+    tables_on_page = d.get("tables_on_page")
+    if tables_on_page is not None and not isinstance(tables_on_page, int):
+        tables_on_page = None
+    bbox_top = d.get("bbox_top")
+    if bbox_top is not None:
+        try:
+            bbox_top = float(bbox_top)
+        except (TypeError, ValueError):
+            bbox_top = None
+    page_local_role = d.get("page_local_role")
+    if page_local_role is not None and not isinstance(page_local_role, str):
+        page_local_role = None
     # comparison_eligible and comparison_blockers are recomputed by
     # TableArtifact.__post_init__ from current state — do not pass
     # stale values from stored JSON.
@@ -236,6 +266,10 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
         title_raw=title_raw,
         table_number=table_number,
         bbox=bbox,
+        table_index_on_page=table_index_on_page,
+        tables_on_page=tables_on_page,
+        bbox_top=bbox_top,
+        page_local_role=page_local_role,
         quarter=quarter,
         pdf_path=pdf_path,
         first_column_indicators_raw=first_column_indicators_raw,
@@ -389,6 +423,7 @@ def load_extraction(
                     quarter_norm,
                 )
                 return None
+            _backfill_page_local_structure(tables)
             return (tables, meta)
         except (json.JSONDecodeError, TypeError, KeyError) as e:
             logger.debug("Load extraction snapshot failed %s: %s", target_dir, e)
@@ -425,6 +460,7 @@ def load_extraction(
                 quarter_norm,
             )
             return None
+        _backfill_page_local_structure(tables)
         meta: dict[str, Any] = {}
         if meta_path.exists():
             meta = json.loads(meta_path.read_text(encoding="utf-8"))

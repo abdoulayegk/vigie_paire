@@ -226,12 +226,19 @@ class PageTitleResult:
         return None
 
     def get_candidate_by_bbox_proximity(
-        self, table_bbox: list[float], max_vertical_distance: float = 0.15
+        self,
+        table_bbox: list[float],
+        max_vertical_distance: float = 0.15,
+        other_table_bboxes: list[list[float]] | None = None,
     ) -> dict[str, Any] | None:
         """Find the closest candidate title that is above the table bbox.
 
         Uses vertical proximity: the title bbox bottom (y_max) should be near
         the table bbox top (y_min), and the title should be ABOVE the table.
+
+        When other_table_bboxes is provided (multi-table page), a title candidate
+        is rejected if another table's bbox lies vertically between the title
+        and this table (avoids assigning a section/top table title to a lower table).
         """
         if not table_bbox or len(table_bbox) < 4:
             return None
@@ -248,6 +255,19 @@ class PageTitleResult:
             # Title must be above the table
             if title_bottom > table_top + 0.02:
                 continue
+            # On multi-table pages: reject if any other table sits between title and this table
+            if other_table_bboxes:
+                blocked = False
+                for other in other_table_bboxes:
+                    if not other or len(other) < 4:
+                        continue
+                    other_top = other[1]
+                    other_bottom = other[3]
+                    if title_bottom < other_top and other_bottom < table_top:
+                        blocked = True
+                        break
+                if blocked:
+                    continue
             distance = abs(table_top - title_bottom)
             if distance < best_distance and distance <= max_vertical_distance:
                 best_distance = distance

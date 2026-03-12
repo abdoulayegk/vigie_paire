@@ -141,23 +141,6 @@ def test_openai_json_schema_contains_strict_contract() -> None:
     assert "rows" in required
 
 
-def test_openai_json_schema_contains_lean_contract_without_rows() -> None:
-    schema = _build_openai_json_schema("lean")
-    assert schema["type"] == "json_schema"
-    block = schema["json_schema"]
-    assert block["strict"] is True
-    s = block["schema"]
-    required = set(s["required"])
-    properties = set(s["properties"].keys())
-    assert required == properties
-    assert "rows" not in required
-    assert "has_hierarchy" not in required
-    assert "extraction_confidence" not in required
-    assert "notes" not in required
-    assert "indicators" in required
-    assert "confidence" in required
-
-
 def test_openai_schema_validator_rejects_missing_required_key() -> None:
     schema = _build_openai_json_schema()
     required = list(schema["json_schema"]["schema"]["required"])
@@ -278,7 +261,8 @@ def test_extract_returns_result_after_successful_api_response(monkeypatch) -> No
     assert fake_completions.calls == 1
 
 
-def test_extract_retries_with_lean_mode_after_truncation(monkeypatch) -> None:
+def test_extract_returns_none_on_truncation_when_best_effort_fails(monkeypatch) -> None:
+    """When finish_reason=length and truncated JSON has no indicators/confidence, extract() returns None (single call)."""
     class _FakeResponse:
         def __init__(self, content: str, finish_reason: str) -> None:
             self.choices = [
@@ -298,23 +282,61 @@ def test_extract_retries_with_lean_mode_after_truncation(monkeypatch) -> None:
 
         def create(self, **kwargs):  # type: ignore[no-untyped-def]
             self.calls.append(kwargs)
-            if len(self.calls) == 1:
-                return _FakeResponse('{"table_title": "Tronque"', "length")
-            return _FakeResponse(
-                __import__("json").dumps(
+            return _FakeResponse('{"table_title": "Tronque"', "length")
+
+    fake_completions = _FakeCompletions()
+    fake_client = type(
+        "FakeClient",
+        (),
+        {
+            "chat": type(
+                "FakeChat",
+                (),
+                {"completions": fake_completions},
+            )()
+        },
+    )()
+
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False)
+    extractor._client = fake_client
+    monkeypatch.setattr(extractor, "_ensure_client", lambda: None)
+
+    result = extractor.extract(crop_bytes=b"abc", bank_code="bnc")
+
+    assert result is None
+    assert len(fake_completions.calls) == 1
+    assert fake_completions.calls[0]["max_completion_tokens"] == 16384
+
+
+def test_extract_returns_partial_on_truncation_when_best_effort_succeeds(monkeypatch) -> None:
+    """When finish_reason=length but JSON has indicators+confidence, return partial result (single call)."""
+    class _FakeResponse:
+        def __init__(self, content: str, finish_reason: str) -> None:
+            self.choices = [
+                type(
+                    "Choice",
+                    (),
                     {
-                        "table_title": "Tableau volumineux",
-                        "headers": ["Indicateur", "Valeur"],
-                        "indicators": ["L1", "L2", "L3"],
-                        "footnotes_content": [{"id": "1", "text": "Note"}],
-                        "footnote_markers": ["1"],
-                        "confidence": 0.92,
-                        "appears_truncated": False,
-                        "estimated_content_height": 90,
-                    }
-                ),
-                "stop",
-            )
+                        "message": type("Message", (), {"content": content})(),
+                        "finish_reason": finish_reason,
+                    },
+                )()
+            ]
+
+    # Valid JSON with indicators and confidence so best-effort parse succeeds
+    truncated_json = __import__("json").dumps({
+        "table_title": "Tableau 1",
+        "indicators": ["L1", "L2"],
+        "confidence": 0.88,
+    })
+
+    class _FakeCompletions:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        def create(self, **kwargs):  # type: ignore[no-untyped-def]
+            self.calls.append(kwargs)
+            return _FakeResponse(truncated_json, "length")
 
     fake_completions = _FakeCompletions()
     fake_client = type(
@@ -336,16 +358,84 @@ def test_extract_retries_with_lean_mode_after_truncation(monkeypatch) -> None:
     result = extractor.extract(crop_bytes=b"abc", bank_code="bnc")
 
     assert result is not None
-    assert len(fake_completions.calls) == 2
-    assert fake_completions.calls[0]["max_completion_tokens"] == 16384
-    assert fake_completions.calls[1]["max_completion_tokens"] == 8192
-    second_call = cast(dict[str, Any], fake_completions.calls[1])
-    second_prompt = second_call["messages"][0]["content"][0]["text"]
-    assert "MODE LEAN" in second_prompt
-    response_format = cast(dict[str, Any], second_call["response_format"])
-    assert "rows" not in response_format["json_schema"]["schema"]["properties"]
     assert result.vision_status == "partial"
     assert "vision_truncated" in result.warnings
-    assert "vision_lean_mode" in result.warnings
-    assert "vision_rows_missing_from_fallback" in result.warnings
+    assert result.appears_truncated is True
+    assert len(result.indicators) == 2
+    assert result.indicators[0]["text"] == "L1"
+    assert result.confidence == 0.88
     assert result.rows == []
+    assert len(fake_completions.calls) == 1
+    assert fake_completions.calls[0]["max_completion_tokens"] == 16384
+
+
+def test_extract_retries_on_invalid_json_then_succeeds(monkeypatch) -> None:
+    """First call returns invalid JSON, second (retry with json_object + repair) returns valid full; result OK."""
+    class _FakeResponse:
+        def __init__(self, content: str, finish_reason: str) -> None:
+            self.choices = [
+                type(
+                    "Choice",
+                    (),
+                    {
+                        "message": type("Message", (), {"content": content})(),
+                        "finish_reason": finish_reason,
+                    },
+                )()
+            ]
+
+    valid_payload = {
+        "table_title": "Tableau 1",
+        "headers": ["Indicateur", "Valeur"],
+        "indicators": ["L1", "L2"],
+        "rows": [["L1", "100"], ["L2", "200"]],
+        "footnotes_content": [{"id": "1", "text": "Note"}],
+        "footnote_markers": ["1"],
+        "has_hierarchy": False,
+        "extraction_confidence": "high",
+        "notes": "",
+        "confidence": 0.92,
+        "appears_truncated": False,
+        "estimated_content_height": None,
+    }
+
+    class _FakeCompletions:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        def create(self, **kwargs):  # type: ignore[no-untyped-def]
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:
+                return _FakeResponse("not valid json {", "stop")
+            return _FakeResponse(
+                __import__("json").dumps(valid_payload),
+                "stop",
+            )
+
+    fake_completions = _FakeCompletions()
+    fake_client = type(
+        "FakeClient",
+        (),
+        {
+            "chat": type(
+                "FakeChat",
+                (),
+                {"completions": fake_completions},
+            )()
+        },
+    )()
+
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False, max_retries_json=1)
+    extractor._client = fake_client
+    monkeypatch.setattr(extractor, "_ensure_client", lambda: None)
+
+    result = extractor.extract(crop_bytes=b"abc", bank_code="bnc")
+
+    assert result is not None
+    assert len(fake_completions.calls) == 2
+    assert fake_completions.calls[0]["max_completion_tokens"] == 16384
+    assert fake_completions.calls[1]["max_completion_tokens"] == 16384
+    assert result.table_title == "Tableau 1"
+    assert result.rows == [["L1", "100"], ["L2", "200"]]
+    assert result.vision_status == "partial"
+    assert "vision_structured_output_fallback" in result.warnings

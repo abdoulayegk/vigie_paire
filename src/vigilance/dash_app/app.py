@@ -223,20 +223,6 @@ def _comparison_export_base_name(payload: dict | None, suffix: str) -> str:
     return f"{bank}_{current_slug}_vs_{previous_slug}_{year_val}_{suffix}"
 
 
-def _format_quality_gate_fail_message(quality_gate: dict, max_reasons: int = 3) -> str:
-    """Build concise fail message from blocker_breakdown or fail_reasons."""
-    if not isinstance(quality_gate, dict):
-        return "qualite insuffisante"
-    breakdown = quality_gate.get("blocker_breakdown") or {}
-    if isinstance(breakdown, dict) and breakdown:
-        parts = [f"{k}={v}" for k, v in sorted(breakdown.items(), key=lambda x: -x[1])[:max_reasons]]
-        if parts:
-            return "; ".join(parts)
-    fail_reasons = quality_gate.get("fail_reasons", []) or []
-    if not isinstance(fail_reasons, list):
-        fail_reasons = [str(fail_reasons)]
-    return "; ".join(str(x) for x in fail_reasons[:max_reasons]) or "qualite insuffisante"
-
 # Layout
 app.layout = html.Div(
     [
@@ -872,9 +858,11 @@ def on_analyze(
     include_genai_classification = bool(
         genai_classification_opt and "classify" in genai_classification_opt and api_key
     )
-    use_stored_extraction = not bool(
-        force_reextract_opt and "reextract" in (force_reextract_opt or [])
-    )
+    # Stored extraction disabled by default; re-enable by uncommenting and removing the line below.
+    use_stored_extraction = False
+    # use_stored_extraction = not bool(
+    #     force_reextract_opt and "reextract" in (force_reextract_opt or [])
+    # )
 
     try:
         result = run_comparison_with_sections(
@@ -918,23 +906,9 @@ def on_analyze(
     indicator_meta = (
         indicator_result.get("meta", {}) if isinstance(indicator_result, dict) else {}
     )
-    quality_gate = (
-        indicator_meta.get("quality_gate", {})
-        if isinstance(indicator_meta, dict)
-        else {}
+    analyze_notification = dbc.Alert(
+        "Analyse terminée. Indicateurs comparés.", color="success"
     )
-    qg_status = str(quality_gate.get("status", "") or "").upper()
-
-    if qg_status == "FAIL":
-        fail_msg = _format_quality_gate_fail_message(quality_gate, max_reasons=5)
-        analyze_notification = dbc.Alert(
-            f"Analyse terminee mais non eligible pour revue analyste (Quality Gate FAIL): {fail_msg}",
-            color="danger",
-        )
-    else:
-        analyze_notification = dbc.Alert(
-            "Analyse terminée. Indicateurs comparés.", color="success"
-        )
 
     # Calculate validation duration
     import time
@@ -1010,20 +984,7 @@ def update_review_queue(
             0,
         )
     if len(review_queue_data) == 0:
-        quality_gate = {}
-        if isinstance(indicator_result, dict):
-            meta = indicator_result.get("meta", {}) or {}
-            if isinstance(meta, dict):
-                quality_gate = meta.get("quality_gate", {}) or {}
-        qg_status = str(quality_gate.get("status", "") or "").upper()
-        blocked_msg = "Run bloque par Quality Gate (FAIL): " + _format_quality_gate_fail_message(
-            quality_gate, max_reasons=5
-        )
-        empty_msg = (
-            blocked_msg
-            if qg_status == "FAIL"
-            else t("no_changes_review", "Aucun changement a revoir.")
-        )
+        empty_msg = t("no_changes_review", "Aucun changement a revoir.")
         return (
             html.Div(
                 empty_msg,
@@ -2548,28 +2509,10 @@ def init_review_items(indicator_result, paths):
     """Construire les ReviewItems depuis indicator_result pour la revue.
 
     Also builds the V2 deduplicated review queue.
+    Quality gate is not used for blocking; review items are always built from comparison results.
     """
     if not indicator_result or not paths:
         raise PreventUpdate
-
-    meta = (
-        indicator_result.get("meta", {}) if isinstance(indicator_result, dict) else {}
-    )
-    quality_gate = meta.get("quality_gate", {}) if isinstance(meta, dict) else {}
-    qg_status = str(quality_gate.get("status", "") or "").upper()
-    eligible = bool(quality_gate.get("eligible_for_review", True))
-    if qg_status == "FAIL" or not eligible:
-        reason_str = _format_quality_gate_fail_message(quality_gate, max_reasons=5)
-        logger.warning("[init_review_items] blocked by quality gate: %s", reason_str)
-        dbg = {
-            "writer": "init_review_items_quality_gate_blocked",
-            "trigger": "init",
-            "from": None,
-            "to": 0,
-            "total": 0,
-            "reason": reason_str,
-        }
-        return [], [], {"review_id": None, "change_id": None}, 0, 0, dbg
 
     path_t1 = paths.get("pdf_previous", "") or paths.get("pdf_t1", "")
     path_t2 = paths.get("pdf_current", "") or paths.get("pdf_t2", "")

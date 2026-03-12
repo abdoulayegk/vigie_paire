@@ -240,7 +240,15 @@ def _infer_year(*paths: str) -> int:
 
 
 def _table_to_artifact(
-    table: Any, *, bank_code: str, quarter: str, pdf_path: str
+    table: Any,
+    *,
+    bank_code: str,
+    quarter: str,
+    pdf_path: str,
+    table_index_on_page: int | None = None,
+    tables_on_page: int | None = None,
+    bbox_top: float | None = None,
+    page_local_role: str | None = None,
 ) -> TableArtifact:
     rows = [list(row) for row in (getattr(table, "rows", []) or [])]
     headers = [str(h) for h in (getattr(table, "headers", []) or []) if h is not None]
@@ -348,6 +356,10 @@ def _table_to_artifact(
         extraction_method=extraction_method,
         table_number=getattr(table, "table_number", None),
         bbox=getattr(table, "bbox", None),
+        table_index_on_page=table_index_on_page,
+        tables_on_page=tables_on_page,
+        bbox_top=bbox_top,
+        page_local_role=page_local_role,
         quarter=quarter,
         pdf_path=pdf_path,
         first_column_groups=first_column_groups,
@@ -369,7 +381,7 @@ def _extract_tables(
     section_ranges: list[dict[str, Any]],
     api_key: str | None,
     use_vision_extraction: bool | None = None,
-    use_stored_extraction_if_available: bool = True,
+    use_stored_extraction_if_available: bool = False,
     extraction_base_dir: str | None = None,
 ) -> list[TableArtifact]:
     from pathlib import Path as _Path
@@ -476,9 +488,23 @@ def _extract_tables(
         use_vision_extraction=use_vision_extraction,
     )
 
+    from vigilance.utils.table_page_structure import derive_page_local_structure
+
+    page_structure = derive_page_local_structure(raw_tables)
+
+    def _page_for_raw(t: Any) -> int:
+        return int(getattr(t, "page_number", 0) or getattr(t, "page_pdf", 0) or 0)
+
     artifacts = [
         _table_to_artifact(
-            table, bank_code=bank_code, quarter=quarter, pdf_path=pdf_path
+            table,
+            bank_code=bank_code,
+            quarter=quarter,
+            pdf_path=pdf_path,
+            table_index_on_page=page_structure.get((getattr(table, "table_id", ""), _page_for_raw(table)), {}).get("table_index_on_page"),
+            tables_on_page=page_structure.get((getattr(table, "table_id", ""), _page_for_raw(table)), {}).get("tables_on_page"),
+            bbox_top=page_structure.get((getattr(table, "table_id", ""), _page_for_raw(table)), {}).get("bbox_top"),
+            page_local_role=page_structure.get((getattr(table, "table_id", ""), _page_for_raw(table)), {}).get("page_local_role"),
         )
         for table in raw_tables
     ]
@@ -2879,7 +2905,7 @@ def run_comparison_with_sections(
     use_vision_extraction_override: bool | None = None,
     include_footnotes: bool = False,
     include_genai_classification: bool = False,
-    use_stored_extraction_if_available: bool = True,
+    use_stored_extraction_if_available: bool = False,
 ) -> dict[str, Any]:
     """Execute end-to-end comparison used by the Dash Analyze callback.
 
@@ -2887,7 +2913,7 @@ def run_comparison_with_sections(
         use_vision_extraction: If True/False, overrides config vision_extraction.enabled
             for this run. If None, config is used.
         use_stored_extraction_if_available: If True, load extraction from disk when
-            available (faster). If False, always re-run extraction (e.g. after changing PDFs).
+            available (faster). If False, always re-run extraction (default for now).
     """
     del use_genai, generate_visual_proofs  # kept for backward-compatible signature
     if use_vision_extraction is not None and use_vision_extraction_override is not None:
@@ -3089,7 +3115,7 @@ def run_comparison_with_sections(
             quality_gate_status = {
                 "enabled": True,
                 "status": "FAIL",
-                "eligible_for_review": False,
+                "eligible_for_review": True,
                 "fail_reasons": [f"quality_gate_execution_error({exc})"],
             }
         logger.warning("Extraction writer/quality gate skipped: %s", exc)
@@ -3107,10 +3133,10 @@ def run_comparison_with_sections(
         quality_gate_status["blocked_table_evidence"] = extraction_report.get("blocked_table_evidence") or []
         if qg_enabled and extraction_report.get("status") == "FAIL":
             quality_gate_status["status"] = "FAIL"
-            quality_gate_status["eligible_for_review"] = False
             quality_gate_status["fail_reasons"] = list(
                 quality_gate_status.get("fail_reasons", [])
             ) + list(extraction_report.get("fail_reasons", []))
+        # eligible_for_review is never set to False: quality gate is diagnostic only, does not block review queue or exports.
     except Exception as exc:
         logger.warning("Extraction certification evaluation skipped: %s", exc)
 
@@ -4912,9 +4938,8 @@ def run_comparison_with_sections(
 
     result["summary"]["tables_changed_t1"] = compute_changed_tables_t1(result)
     result["summary"]["tables_changed_t2"] = compute_changed_tables_t2(result)
-    eligible_for_review = bool(quality_gate_status.get("eligible_for_review", True))
-    result["summary"]["eligible_for_review"] = eligible_for_review
-    result["eligible_for_review"] = eligible_for_review
+    result["summary"]["eligible_for_review"] = True
+    result["eligible_for_review"] = True
 
     # -- GenAI executive summary enrichment (feature-flagged via bank_profiles.yaml) --
     if api_key:

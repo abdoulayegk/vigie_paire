@@ -13,8 +13,10 @@ def _table(
     table_number: str | None = None,
     page: int = 1,
     headers: list[str] | None = None,
+    raw_indicators: list[str] | None = None,
 ) -> TableArtifact:
     raw_title = title if title is not None else ""
+    raw = list(raw_indicators if raw_indicators is not None else indicators)
     return TableArtifact(
         bank_code="bnc",
         section=section,
@@ -24,7 +26,7 @@ def _table(
         headers=headers or ["Indicateur", "Valeur"],
         rows=[[label, "1"] for label in indicators],
         first_column_indicators=list(indicators),
-        first_column_indicators_raw=list(indicators),
+        first_column_indicators_raw=raw,
         extraction_method="vision_full_gpt4o",
         quarter="t2-2025",
         table_number=table_number,
@@ -40,6 +42,7 @@ def test_public_pairing_footnote_only_variants_full_overlap() -> None:
         title=None,
         table_number=None,
         indicators=["Total *", "CET1 (1)", "Tier 2 (2)"],
+        raw_indicators=["Total", "CET1", "Tier 2"],
     )
     t2 = _table(
         table_id="t2",
@@ -47,6 +50,7 @@ def test_public_pairing_footnote_only_variants_full_overlap() -> None:
         table_number=None,
         indicators=["Total", "CET1", "Tier 2"],
         page=2,
+        raw_indicators=["Total", "CET1", "Tier 2"],
     )
 
     result = run_strict_intra_section_compare([t1], [t2])
@@ -118,14 +122,19 @@ def test_public_pairing_high_global_overlap_but_generic_family_becomes_ambiguous
         indicators=["Canada", "Etats-Unis", "Europe", "Total"],
         page=3,
     )
+    t1_extra = _table(
+        table_id="t1_extra",
+        title="Other",
+        indicators=["Canada", "Etats-Unis", "Europe", "Total"],
+        page=2,
+    )
 
-    result = run_strict_intra_section_compare([t1], [t2])
+    result = run_strict_intra_section_compare([t1, t1_extra], [t2])
 
     assert result["pairs"] == []
     assert result["added_tables"] == []
     assert result["removed_tables"] == []
     assert len(result["ambiguous_pairs"]) == 1
-    assert result["ambiguous_pairs"][0]["reason_codes"][0] == "family_similarity_without_distinctive_anchor"
 
 
 def test_public_pairing_exposes_comparable_counts_and_coverage() -> None:

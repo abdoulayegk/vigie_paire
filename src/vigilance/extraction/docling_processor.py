@@ -861,6 +861,7 @@ class DoclingProcessor:
 
                 if schema_failure_flag[0]:
                     vision_extraction_attempted = False
+                    vision_schema_contract_failed = True
                     warnings_list = ["Vision disabled after schema contract failure"]
                     vision_extraction_disabled_reason = shared.get(
                         "vision_extraction_disabled_reason"
@@ -1299,6 +1300,15 @@ class DoclingProcessor:
                     "schema_failure_policy": schema_failure_policy,
                     "labels_only": labels_only,
                 }
+                if vision_extractor:
+                    try:
+                        vision_extractor.validate_schema()
+                    except vision_schema_error_cls as e:
+                        reason = str(e) or "Vision schema contract invalid"
+                        if schema_failure_policy == "fail_fast":
+                            raise
+                        schema_failure_flag[0] = True
+                        shared["vision_extraction_disabled_reason"] = reason
                 vision_max_workers = int(
                     vision_extraction_cfg.get("vision_extraction_max_workers", 4)
                 )
@@ -1306,8 +1316,6 @@ class DoclingProcessor:
                     max(1, vision_max_workers),
                     len(vision_items),
                 )
-                if schema_failure_policy == "fail_fast":
-                    max_workers = 1
                 if max_workers <= 1:
                     for item in vision_items:
                         _idx, extracted_table, pnum = self._vision_extract_one_table(
@@ -1610,7 +1618,14 @@ class DoclingProcessor:
 
             # 2) Match by bbox proximity (title above table)
             if candidate is None and table.bbox:
-                candidate = result.get_candidate_by_bbox_proximity(table.bbox)
+                other_bboxes = [
+                    t.bbox for t in page_tables
+                    if t is not table and getattr(t, "bbox", None) and len(getattr(t, "bbox", [])) >= 4
+                ]
+                candidate = result.get_candidate_by_bbox_proximity(
+                    table.bbox,
+                    other_table_bboxes=other_bboxes if len(page_tables) > 1 else None,
+                )
                 if candidate is not None:
                     for idx, c in enumerate(result.candidates):
                         if c is candidate and idx not in used_candidates:
@@ -1674,6 +1689,8 @@ class DoclingProcessor:
                 table.debug_metrics = {}
             table.debug_metrics["page_title_assist_used"] = True
             table.debug_metrics["page_title_assist_match_method"] = match_method
+            if match_method == "bbox_proximity" and len(page_tables) > 1:
+                table.debug_metrics["page_title_assist_multi_table_guard"] = True
 
             logger.info(
                 "Page-level title assist: table %s p%s -> '%s' (conf=%.2f)",
