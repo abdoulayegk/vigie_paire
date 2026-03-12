@@ -29,6 +29,10 @@ vision_extraction:
   # 128k is model context (input+output); current Vision models allow at most 16k completion tokens.
   vision_max_completion_tokens: 16384
   vision_reference_text_max_chars: 6000
+  # DPI for table crop rendering (higher = sharper but larger images). Default: 300.
+  vision_crop_dpi: 300
+  # Enable/disable image preprocessing (contrast, sharpening). Default: true.
+  vision_preprocess: true
   page_level_title_assist:
     enabled: false
     min_confidence: 0.7

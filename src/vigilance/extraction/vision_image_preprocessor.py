@@ -28,7 +28,7 @@ def _is_enabled() -> bool:
     return val.strip().lower() in ("1", "true", "yes")
 
 
-def preprocess_for_vision(image_bytes: bytes) -> bytes:
+def preprocess_for_vision(image_bytes: bytes, *, enabled: bool | None = None) -> bytes:
     """Apply contrast/sharpness preprocessing to a PNG image for Vision.
 
     Pipeline (Pillow-only, no OpenCV dependency):
@@ -37,10 +37,18 @@ def preprocess_for_vision(image_bytes: bytes) -> bytes:
     3. Unsharp mask for text sharpness
     4. Background normalization (near-white pixels -> pure white)
 
+    Args:
+        enabled: Explicit override. ``None`` (default) falls back to the
+                 ``VISION_PREPROCESS`` env var. Pass ``True``/``False`` for
+                 thread-safe control from config without mutating env.
+
     Returns the original bytes unchanged when preprocessing is disabled or
     if any step fails (never raises).
     """
-    if not _is_enabled():
+    if enabled is not None:
+        if not enabled:
+            return image_bytes
+    elif not _is_enabled():
         return image_bytes
 
     try:

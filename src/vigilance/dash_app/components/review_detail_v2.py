@@ -136,6 +136,47 @@ def _is_table_only_view(table: dict) -> bool:
     return False
 
 
+def _build_fallback_genai_message(table: dict) -> str:
+    """Build analyst-friendly fallback when GenAI classification is unavailable."""
+    change_types = {
+        str(change.get("change_type", "")) for change in (table.get("changes", []) or [])
+    }
+    match_meta = table.get("match_metadata") or {}
+    semantic_judge = (
+        match_meta.get("semantic_judge") if isinstance(match_meta, dict) else None
+    )
+    semantic_hint = ""
+    if isinstance(semantic_judge, dict):
+        final_decision = str(semantic_judge.get("final_decision", "") or "").strip()
+        guard_action = str(semantic_judge.get("guard_action", "") or "").strip()
+        if final_decision and guard_action:
+            semantic_hint = (
+                f" Controle semantique: {final_decision} ({guard_action})."
+            )
+
+    if change_types.intersection({ChangeType.TABLE_REMOVED.value, "table_removed"}):
+        return (
+            "Explication automatique: ce tableau est present au trimestre precedent "
+            "et absent au trimestre courant. Verifier si le contenu a ete renomme, "
+            "fusionne ou deplace dans une autre section."
+            f"{semantic_hint}"
+        )
+
+    if change_types.intersection({ChangeType.TABLE_ADDED.value, "table_added"}):
+        return (
+            "Explication automatique: ce tableau est absent au trimestre precedent "
+            "et present au trimestre courant. Verifier s'il s'agit d'une nouvelle "
+            "divulgation ou d'une table decomposee depuis un ancien tableau."
+            f"{semantic_hint}"
+        )
+
+    return (
+        "Classification GenAI non disponible pour cet element. Activez "
+        "'Classifier les changements avec GenAI' puis relancez l'analyse pour "
+        "obtenir une justification detaillee."
+    )
+
+
 def _build_genai_section(table: dict) -> html.Div:
     """Render concise GenAI explanation block for analyst review."""
     ga = table.get("genai_analysis") or {}
@@ -145,10 +186,11 @@ def _build_genai_section(table: dict) -> html.Div:
     justification = str(ga.get("justification", "") or "").strip()
 
     if not any([relevance, risk, justification]):
+        fallback_msg = _build_fallback_genai_message(table)
         return html.Div(
             [
                 html.H6("Explication GenAI", className="mb-2"),
-                html.P("Aucune explication GenAI disponible.", className="text-muted mb-0"),
+                html.P(fallback_msg, className="text-muted mb-0"),
             ],
             className="mb-4",
         )

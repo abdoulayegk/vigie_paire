@@ -48,7 +48,7 @@ Ta mission :
    - INTERDICTION formelle d'inventer des lignes ou des données non visibles.
 2. Si le TITRE du tableau est visible en haut de l'image (numéro "Tableau XX" et/ou nom), inclus-le.
 3. Si des notes de bas de page sont visibles en bas de l'image, lis-les et rattache-les au tableau.
-
+La précision est critique : un seul libellé incorrect ou manquant provoque des faux positifs dans le pipeline de comparaison en aval.
 ---
 
 1. INDICATEURS (première colonne du tableau)
@@ -610,8 +610,19 @@ def _build_prompt(
         logger.debug(
             "Vision: no reference text provided or too short; extraction without dictionary."
         )
+        reference_section = (
+            "\n\nCONSIGNE (pas de dictionnaire OCR disponible) : "
+            "Transcris EXACTEMENT ce que tu vois dans l'image. "
+            "Ne corrige PAS l'orthographe, la casse, la ponctuation ni les espaces des libelles. "
+            "Conserve les accents, les tirets et les caracteres speciaux tels quels.\n"
+        )
 
-    return _PROMPT_BASE + (f"\n{suffix}\n" if suffix else "") + reference_section + _PROMPT_JSON_STRICT
+    return (
+        _PROMPT_BASE
+        + (f"\n{suffix}\n" if suffix else "")
+        + reference_section
+        + _PROMPT_JSON_STRICT
+    )
 
 
 def _build_content(prompt: str, image_b64: str) -> list[Any]:
@@ -810,7 +821,12 @@ def _parse_vision_result(
 
 
 def _try_parse_truncated_result(raw_content: str) -> VisionFullResult | None:
-    """Best-effort parse of truncated JSON: extract at least indicators and confidence."""
+    """Best-effort parse of truncated JSON: salvage as much as possible.
+
+    Minimum viable: indicators + confidence.  Beyond that, we try each
+    field independently so a cut mid-rows still keeps the rows written
+    before the truncation point (and likewise for footnotes_content).
+    """
     data = _parse_json_response(raw_content)
     if not data or not isinstance(data, dict):
         return None
@@ -831,12 +847,60 @@ def _try_parse_truncated_result(raw_content: str) -> VisionFullResult | None:
         for item in indicators_raw
         if str(item).strip()
     ]
+
+    # --- rows (best-effort: keep fully-written rows) ---
+    rows: list[list[str]] = []
+    try:
+        rows_raw = data.get("rows")
+        if isinstance(rows_raw, list):
+            for row in rows_raw:
+                if isinstance(row, list) and all(
+                    isinstance(c, (str, int, float)) for c in row
+                ):
+                    rows.append([str(c) for c in row])
+    except Exception:
+        rows = []
+
+    # --- footnotes_content (best-effort: keep fully-written items) ---
+    footnotes_content: list[dict[str, str]] = []
+    try:
+        fn_raw = data.get("footnotes_content")
+        if isinstance(fn_raw, list):
+            for item in fn_raw:
+                if not isinstance(item, dict):
+                    continue
+                marker = str(
+                    item.get("id") or item.get("marker") or item.get("ref") or ""
+                ).strip()
+                text = str(item.get("text") or item.get("value") or "").strip()
+                if marker and text:
+                    footnotes_content.append({"marker": marker, "text": text})
+        elif isinstance(fn_raw, dict):
+            for k, v in fn_raw.items():
+                marker = str(k).strip()
+                text = str(v).strip()
+                if marker and text:
+                    footnotes_content.append({"marker": marker, "text": text})
+    except Exception:
+        footnotes_content = []
+
+    salvaged_parts: list[str] = []
+    if rows:
+        salvaged_parts.append(f"rows={len(rows)}")
+    if footnotes_content:
+        salvaged_parts.append(f"footnotes={len(footnotes_content)}")
+    if salvaged_parts:
+        logger.info(
+            "Truncation recovery salvaged partial data: %s",
+            ", ".join(salvaged_parts),
+        )
+
     return VisionFullResult(
         table_title=str(data.get("table_title") or "").strip(),
         headers=[str(x).strip() for x in data.get("headers") or []],
         indicators=indicators_ordered,
-        rows=[],
-        footnotes_content=[],
+        rows=rows,
+        footnotes_content=footnotes_content,
         footnote_markers=[str(x).strip() for x in data.get("footnote_markers") or []],
         confidence=conf,
         extraction_method=_EXTRACTION_METHOD,
@@ -873,9 +937,7 @@ class VisionFullExtractor:
         self._schema_contract_checked: set[str] = set()
         self._schema_contract_error_logged = False
 
-    def _ensure_schema_validated(
-        self, schema: dict[str, Any] | None = None
-    ) -> None:
+    def _ensure_schema_validated(self, schema: dict[str, Any] | None = None) -> None:
         """Validate schema once and mark as checked. Raises VisionSchemaContractError if invalid."""
         if "full" in self._schema_contract_checked:
             return
@@ -1045,7 +1107,15 @@ class VisionFullExtractor:
         try:
             from .vision_image_preprocessor import preprocess_for_vision
 
-            processed = preprocess_for_vision(crop_bytes)
+            preprocess_flag = vision_cfg.get("vision_preprocess")
+            preprocess_enabled: bool | None = None
+            if preprocess_flag is not None:
+                preprocess_enabled = str(preprocess_flag).strip().lower() in (
+                    "1",
+                    "true",
+                    "yes",
+                )
+            processed = preprocess_for_vision(crop_bytes, enabled=preprocess_enabled)
             image_b64 = base64.standard_b64encode(processed).decode("ascii")
         except Exception as e:
             logger.debug("Vision preprocessing failed, using raw: %s", e)
@@ -1097,7 +1167,9 @@ class VisionFullExtractor:
                     time.sleep(backoff_sec)
                 try:
                     response_format: dict[str, Any] = (
-                        openai_schema_full if local_use_structured else {"type": "json_object"}
+                        openai_schema_full
+                        if local_use_structured
+                        else {"type": "json_object"}
                     )
                     response = client.chat.completions.create(
                         model=self._model,
@@ -1124,7 +1196,10 @@ class VisionFullExtractor:
                             logger.error("%s", self._disabled_reason)
                             self._schema_contract_error_logged = True
                         raise VisionSchemaContractError(self._disabled_reason) from e
-                    if err_kind == "max_tokens_too_large" and effective_max > _MAX_COMPLETION_TOKENS_SAFE_FALLBACK:
+                    if (
+                        err_kind == "max_tokens_too_large"
+                        and effective_max > _MAX_COMPLETION_TOKENS_SAFE_FALLBACK
+                    ):
                         logger.warning(
                             "Vision %s: model limits max_completion_tokens to %s; retrying with %s",
                             label,

@@ -10,6 +10,10 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# Bump this when prompt, schema, or parsing logic changes so stale cache
+# entries are automatically bypassed without manual cleanup.
+_VISION_CACHE_VERSION = "v2"
+
 DEFAULT_CACHE_DIR = "outputs/vision_cache"
 DEFAULT_CROP_DIR = "outputs/debug_crops/vision_fallback"
 
@@ -40,11 +44,12 @@ def make_cache_key(pdf_sha: str, page_number: int, bbox_norm: list[float]) -> st
     """
     Create a cache key from PDF hash, page number, and normalized bbox.
     Bbox values are rounded to 4 decimal places for stability.
+    Includes _VISION_CACHE_VERSION so prompt/schema changes invalidate stale entries.
     """
     if not bbox_norm or len(bbox_norm) != 4:
         return ""
     rounded = [round(float(v), 4) for v in bbox_norm[:4]]
-    return f"{pdf_sha}_{page_number}_{rounded[0]}_{rounded[1]}_{rounded[2]}_{rounded[3]}"
+    return f"{_VISION_CACHE_VERSION}_{pdf_sha}_{page_number}_{rounded[0]}_{rounded[1]}_{rounded[2]}_{rounded[3]}"
 
 
 def cache_get(cache_dir: str, key: str) -> dict | None:

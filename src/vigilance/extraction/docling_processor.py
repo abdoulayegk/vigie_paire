@@ -244,6 +244,58 @@ class ExtractedDocument:
         return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)
 
 
+def _compute_vision_quality_summary(tables: list[Any]) -> dict[str, Any]:
+    """Aggregate per-table debug_metrics into a single quality summary dict."""
+    total = len(tables)
+    attempted = 0
+    ok = 0
+    partial = 0
+    failed = 0
+    truncated = 0
+    low_confidence = 0
+    no_reference_text = 0
+    recrop_used_count = 0
+    bbox_rejected = 0
+
+    for t in tables:
+        dm = getattr(t, "debug_metrics", None)
+        if not isinstance(dm, dict):
+            continue
+        if dm.get("vision_extraction_attempted"):
+            attempted += 1
+        status = dm.get("vision_status", "")
+        if status == "ok":
+            ok += 1
+        elif status == "partial":
+            partial += 1
+        elif status == "failed":
+            failed += 1
+        if dm.get("appears_truncated"):
+            truncated += 1
+        conf = dm.get("vision_extraction_confidence", 1.0)
+        if isinstance(conf, (int, float)) and conf < 0.85 and status in ("ok", "partial"):
+            low_confidence += 1
+        if dm.get("crop_reject_reason"):
+            bbox_rejected += 1
+        if dm.get("recrop_used"):
+            recrop_used_count += 1
+        if not dm.get("has_reference_text") and dm.get("vision_extraction_attempted"):
+            no_reference_text += 1
+
+    return {
+        "total_tables": total,
+        "attempted": attempted,
+        "ok": ok,
+        "partial": partial,
+        "failed": failed,
+        "truncated": truncated,
+        "low_confidence": low_confidence,
+        "no_reference_text": no_reference_text,
+        "recrop_used": recrop_used_count,
+        "bbox_rejected": bbox_rejected,
+    }
+
+
 class DoclingProcessor:
     """
     Processeur PDF principal utilisant IBM Docling pour l'extraction structuree.
@@ -833,6 +885,8 @@ class DoclingProcessor:
         vision_schema_error_cls = shared["vision_schema_error_cls"]
         schema_failure_policy = shared["schema_failure_policy"]
         labels_only = shared["labels_only"]
+        vision_crop_dpi: int = shared.get("vision_crop_dpi", 300)
+        vision_preprocess: bool | None = shared.get("vision_preprocess")
 
         vision_status_str = "failed"
         warnings_list: list[str] = []
@@ -900,7 +954,7 @@ class DoclingProcessor:
                                 bottom_extension=ext,
                                 top_extension=top_extension_title,
                                 horizontal_padding=horizontal_padding,
-                                dpi=300,
+                                dpi=vision_crop_dpi,
                             )
 
                         crop_bytes = _recrop(initial_bottom_ext)
@@ -987,6 +1041,7 @@ class DoclingProcessor:
             "vision_extraction_applied": vision_status_str in ("ok", "partial"),
             "vision_extraction_confidence": vision_confidence,
             "vision_schema_contract_failed": vision_schema_contract_failed,
+            "has_reference_text": bool(reference_text and len(reference_text.strip()) > 20),
             "warnings": warnings_list,
         }
         if warnings_list:
@@ -1204,7 +1259,7 @@ class DoclingProcessor:
                         if len(_ref_raw) > 20:
                             ref_max_chars = int(
                                 vision_extraction_cfg.get(
-                                    "vision_reference_text_max_chars", 4000
+                                    "vision_reference_text_max_chars", 6000
                                 )
                             )
                             if ref_max_chars > 0:
@@ -1299,6 +1354,8 @@ class DoclingProcessor:
                     "vision_schema_error_cls": vision_schema_error_cls,
                     "schema_failure_policy": schema_failure_policy,
                     "labels_only": labels_only,
+                    "vision_crop_dpi": int(vision_extraction_cfg.get("vision_crop_dpi", 300)),
+                    "vision_preprocess": vision_extraction_cfg.get("vision_preprocess", True),
                 }
                 if vision_extractor:
                     try:
@@ -1390,6 +1447,11 @@ class DoclingProcessor:
                     recrop_attempted,
                     recrop_used,
                 )
+
+            # --- Vision extraction quality summary (one log line per run) ---
+            if all_tables:
+                _qsum = _compute_vision_quality_summary(all_tables)
+                logger.info("vision_extraction_quality_summary %s", _qsum)
 
             # Extraire le contenu textuel pour les sections
             text_content = doc.export_to_markdown()

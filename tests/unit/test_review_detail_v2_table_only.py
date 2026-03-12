@@ -68,3 +68,29 @@ def test_change_list_view_shows_changes_heading() -> None:
     view = build_review_detail_v2(table=table, current_change_idx=0, show_proofs=False)
     text = _flatten_text(view)
     assert "Changements (1)" in text
+
+
+def test_table_removed_without_genai_shows_fallback_explanation() -> None:
+    table = {
+        "table_name": "Table supprimée",
+        "section": "capital_management",
+        "page_t1": 33,
+        "page_t2": None,
+        "table_status": "pending",
+        "summary": {"total_changes": 1, "validated": 0, "pending": 1},
+        "changes": [
+            {
+                "change_id": "chg_1",
+                "change_type": "table_removed",
+                "payload": {"description": "Tableau entier"},
+                "validation_status": "pending",
+                "is_required": True,
+            }
+        ],
+        "genai_analysis": {},
+    }
+    view = build_review_detail_v2(table=table, current_change_idx=0, show_proofs=False)
+    text = _flatten_text(view)
+    assert "Aucune explication GenAI disponible." not in text
+    assert "Explication automatique" in text
+    assert "absent au trimestre courant" in text
