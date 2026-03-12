@@ -326,6 +326,17 @@ def is_date_only_line(text: str) -> bool:
     return False
 
 
+# Known section headers (no colon): normalized form for _classify_excluded_line.
+_SECTION_HEADER_ALLOWLIST_NORMALIZED = frozenset({
+    "general",
+    "liquidite",
+    "risque de credit",
+    "autres risques",
+    "risque de marche",
+    "risque operationnel",
+})
+
+
 def _is_section_header_line(text: str) -> bool:
     """True when label is a section header ending with ':' (after stripping footnotes).
 
@@ -403,6 +414,9 @@ def _classify_excluded_line(text: str) -> str | None:
         return "date"
     if _AU_DATE_TRAILING_NOISE_RE.match(stripped):
         return "date"
+    normalized_label = re.sub(r"\s+", " ", stripped).strip().lower()
+    if normalized_label in _SECTION_HEADER_ALLOWLIST_NORMALIZED:
+        return "section_header"
     return None
 
 

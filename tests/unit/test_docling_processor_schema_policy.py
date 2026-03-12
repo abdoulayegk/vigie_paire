@@ -8,7 +8,10 @@ from types import SimpleNamespace
 import pytest
 
 from vigilance.extraction.docling_processor import DoclingProcessor
-from vigilance.extraction.vision_full_extractor import VisionSchemaContractError
+from vigilance.extraction.vision_full_extractor import (
+    VisionFullResult,
+    VisionSchemaContractError,
+)
 
 
 class _FakeBBox:
@@ -38,6 +41,32 @@ class _FailingVisionExtractor:
         _FailingVisionExtractor.calls += 1
         raise VisionSchemaContractError(
             "Invalid schema for response_format 'vision_full_extraction': Missing 'appears_truncated'."
+        )
+
+
+class _PartialVisionExtractor:
+    calls = 0
+
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
+        del args, kwargs
+
+    def extract_with_quality_pass(self, **kwargs):  # type: ignore[no-untyped-def]
+        del kwargs
+        _PartialVisionExtractor.calls += 1
+        return VisionFullResult(
+            table_title="Tableau 1",
+            headers=["Indicateur", "Valeur"],
+            indicators=[{"text": "Ratio CET1", "bbox": None}],
+            rows=[],
+            footnotes_content=[{"marker": "1", "text": "Note"}],
+            footnote_markers=["1"],
+            confidence=0.91,
+            vision_status="partial",
+            warnings=[
+                "vision_truncated",
+                "vision_lean_mode",
+                "vision_rows_missing_from_fallback",
+            ],
         )
 
 
@@ -75,7 +104,7 @@ def _build_processor_with_fake_doc(monkeypatch, pages: list[int]) -> DoclingProc
     )
     monkeypatch.setattr(
         "vigilance.utils.pdf_crop.crop_table_region_to_bytes",
-        lambda pdf_path, page_number, table_bbox, bottom_extension=0.0, top_extension=0.0, dpi=300: (
+        lambda pdf_path, page_number, table_bbox, bottom_extension=0.0, top_extension=0.0, horizontal_padding=0.0, dpi=300: (
             b"fake"
         ),
     )
@@ -152,3 +181,43 @@ def test_schema_policy_degrade_to_docling_disables_vision(
     assert "Vision schema contract invalid" in str(
         second_dm.get("vision_extraction_disabled_reason", "")
     )
+
+
+def test_partial_vision_result_is_still_applied(monkeypatch, tmp_path: Path) -> None:
+    _PartialVisionExtractor.calls = 0
+    processor = _build_processor_with_fake_doc(monkeypatch, pages=[1])
+
+    monkeypatch.setattr(
+        "vigilance.config.get_vision_extraction_config",
+        lambda bank_code=None: {
+            "bottom_extension_footnotes": 0.12,
+            "schema_failure_policy": "fail_fast",
+        },
+    )
+    monkeypatch.setattr(
+        "vigilance.extraction.vision_full_extractor.VisionFullExtractor",
+        _PartialVisionExtractor,
+    )
+
+    extracted = processor._extract_with_docling(
+        pdf_path=tmp_path / "dummy.pdf",
+        bank_code="bnc",
+        quarter="t1",
+        year=2026,
+        page_ranges=[(1, 1)],
+        labels_only=False,
+        use_vision_extraction=True,
+    )
+
+    assert _PartialVisionExtractor.calls == 1
+    assert len(extracted.all_tables) == 1
+    table = extracted.all_tables[0]
+    dm = table.debug_metrics or {}
+    assert dm.get("vision_status") == "partial"
+    assert dm.get("vision_extraction_applied") is True
+    assert dm.get("vision_failure_causes") == [
+        "vision_truncated",
+        "vision_lean_mode",
+        "vision_rows_missing_from_fallback",
+    ]
+    assert table.extraction_method == "vision_full_gpt4o"

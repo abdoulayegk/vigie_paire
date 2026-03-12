@@ -14,7 +14,6 @@ from vigilance.extraction.vision_full_extractor import (
 def test_parse_returns_empty_table_title_when_not_provided() -> None:
     """When Vision doesn't include a title, table_title must be empty string."""
     raw = {
-        "reasoning_scratchpad": "test",
         "indicators": [{"text": "Ratio CET1", "bbox": None}],
         "footnotes_content": [],
         "footnote_markers": [],
@@ -28,7 +27,6 @@ def test_parse_returns_empty_table_title_when_not_provided() -> None:
 def test_parse_returns_empty_headers_when_missing() -> None:
     """When Vision doesn't include headers, headers must be empty list."""
     raw = {
-        "reasoning_scratchpad": "test",
         "indicators": [{"text": "Indicateur A", "bbox": None}],
         "footnotes_content": [],
         "footnote_markers": [],
@@ -42,7 +40,6 @@ def test_parse_returns_empty_headers_when_missing() -> None:
 def test_parse_returns_empty_rows_when_missing() -> None:
     """When Vision doesn't include rows, rows must be empty list."""
     raw = {
-        "reasoning_scratchpad": "test",
         "indicators": [{"text": "Indicateur A", "bbox": None}],
         "footnotes_content": [],
         "footnote_markers": [],
@@ -55,7 +52,7 @@ def test_parse_returns_empty_rows_when_missing() -> None:
 
 def test_vision_failed_result_has_no_docling_content() -> None:
     """A failed Vision result (None) must not be backfilled — caller must keep content empty."""
-    raw = {
+    raw: dict[str, object] = {
         # Missing required 'indicators' and 'confidence' fields — should fail validation
         "footnotes_content": [],
         "footnote_markers": [],
@@ -68,7 +65,6 @@ def test_vision_failed_result_has_no_docling_content() -> None:
 def test_vision_status_ok_when_parse_succeeds() -> None:
     """vision_status must be 'ok' on successful parse."""
     raw = {
-        "reasoning_scratchpad": "test",
         "indicators": [{"text": "Total", "bbox": None}],
         "footnotes_content": [],
         "footnote_markers": [],

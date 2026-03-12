@@ -18,7 +18,6 @@ import logging
 import os
 import re
 import sys
-
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -862,9 +861,7 @@ class DoclingProcessor:
 
                 if schema_failure_flag[0]:
                     vision_extraction_attempted = False
-                    warnings_list = [
-                        "Vision disabled after schema contract failure"
-                    ]
+                    warnings_list = ["Vision disabled after schema contract failure"]
                     vision_extraction_disabled_reason = shared.get(
                         "vision_extraction_disabled_reason"
                     )
@@ -881,7 +878,6 @@ class DoclingProcessor:
                             f"bbox sanity gate: {crop_reject_reason or 'rejected'}; Vision skipped"
                         ]
                     else:
-
                         # Adaptive bottom: larger extension when table bbox is far from page bottom (footnotes likely)
                         initial_bottom_ext = bottom_extension_footnotes
                         if (
@@ -934,7 +930,9 @@ class DoclingProcessor:
                                 out_headers = (
                                     [] if labels_only else (vision_result.headers or [])
                                 )
-                                out_rows = [] if labels_only else (vision_result.rows or [])
+                                out_rows = (
+                                    [] if labels_only else (vision_result.rows or [])
+                                )
                                 indicators_spatial_raw = list(
                                     vision_result.indicators or []
                                 )
@@ -949,7 +947,9 @@ class DoclingProcessor:
                                     for text in indicators_raw_text
                                 ]
                                 footnotes = (
-                                    [] if labels_only else vision_result.to_footnotes_list()
+                                    []
+                                    if labels_only
+                                    else vision_result.to_footnotes_list()
                                 )
                                 vision_confidence = vision_result.confidence
                                 vision_status_str = vision_result.vision_status or "ok"
@@ -974,9 +974,7 @@ class DoclingProcessor:
                     warnings_list = [str(e)[:300]]
         else:
             if not vision_extractor:
-                warnings_list = [
-                    "no vision extractor (API key missing or init failed)"
-                ]
+                warnings_list = ["no vision extractor (API key missing or init failed)"]
             elif not table_bbox:
                 warnings_list = ["no bbox from Docling"]
             else:
@@ -985,11 +983,28 @@ class DoclingProcessor:
         debug_metrics: dict[str, Any] = {
             "vision_status": vision_status_str,
             "vision_extraction_attempted": vision_extraction_attempted,
-            "vision_extraction_applied": vision_status_str == "ok",
+            "vision_extraction_applied": vision_status_str in ("ok", "partial"),
             "vision_extraction_confidence": vision_confidence,
             "vision_schema_contract_failed": vision_schema_contract_failed,
             "warnings": warnings_list,
         }
+        if warnings_list:
+            debug_metrics["vision_warning_codes"] = list(warnings_list)
+            known_failure_codes = {
+                "vision_truncated",
+                "vision_invalid_json",
+                "vision_schema_validation_failed",
+                "vision_retry_exhausted",
+                "vision_transport_error",
+                "vision_structured_output_fallback",
+                "vision_lean_mode",
+                "vision_rows_missing_from_fallback",
+            }
+            failure_causes = [
+                code for code in warnings_list if code in known_failure_codes
+            ]
+            if failure_causes:
+                debug_metrics["vision_failure_causes"] = failure_causes
         if vision_extraction_disabled_reason:
             debug_metrics["vision_extraction_disabled_reason"] = (
                 vision_extraction_disabled_reason
@@ -1019,7 +1034,9 @@ class DoclingProcessor:
             rows=out_rows,
             first_column_indicators=indicators,
             first_column_indicators_raw=indicators_raw_text,
-            first_column_indicators_spatial=indicators_spatial_raw if indicators_spatial_raw else None,
+            first_column_indicators_spatial=indicators_spatial_raw
+            if indicators_spatial_raw
+            else None,
             footnotes=footnotes,
             bbox=table_bbox,
             table_number=table_number,
@@ -1031,7 +1048,7 @@ class DoclingProcessor:
             ),
             extraction_method=(
                 "vision_full_gpt4o"
-                if vision_status_str == "ok"
+                if vision_status_str in ("ok", "partial")
                 else "vision_failed"
             ),
             debug_metrics=debug_metrics,
@@ -1150,7 +1167,9 @@ class DoclingProcessor:
             # Steps 2+3: Docling = structure only. Vision = single content source.
             # ---------------------------------------------------------------------------
             # Construire la liste des tableaux a traiter (dans les plages de pages).
-            vision_items: list[tuple[int, int, list[float] | None, str, str | None]] = []
+            vision_items: list[
+                tuple[int, int, list[float] | None, str, str | None]
+            ] = []
             for idx, table in enumerate(doc.tables):
                 page_num = table.prov[0].page_no if table.prov else 0
                 table_bbox: list[float] | None = None
@@ -1182,10 +1201,18 @@ class DoclingProcessor:
                     if hasattr(table, "text") and table.text:
                         _ref_raw = str(table.text).strip()
                         if len(_ref_raw) > 20:
-                            reference_text = _ref_raw[:4000]
+                            ref_max_chars = int(
+                                vision_extraction_cfg.get(
+                                    "vision_reference_text_max_chars", 4000
+                                )
+                            )
+                            if ref_max_chars > 0:
+                                reference_text = _ref_raw[:ref_max_chars]
                 except Exception:
                     pass
-                vision_items.append((idx, page_num, table_bbox, table_id, reference_text))
+                vision_items.append(
+                    (idx, page_num, table_bbox, table_id, reference_text)
+                )
 
             def _bbox_area(b: list[float]) -> float:
                 if not b or len(b) < 4:
@@ -1326,7 +1353,8 @@ class DoclingProcessor:
             rejected_bbox_sanity = sum(
                 1
                 for t in all_tables
-                if getattr(t, "debug_metrics", None) and isinstance(t.debug_metrics, dict)
+                if getattr(t, "debug_metrics", None)
+                and isinstance(t.debug_metrics, dict)
                 and t.debug_metrics.get("crop_reject_reason")
             )
             if rejected_bbox_sanity:
@@ -1337,13 +1365,15 @@ class DoclingProcessor:
             recrop_attempted = sum(
                 1
                 for t in all_tables
-                if getattr(t, "debug_metrics", None) and isinstance(t.debug_metrics, dict)
+                if getattr(t, "debug_metrics", None)
+                and isinstance(t.debug_metrics, dict)
                 and t.debug_metrics.get("recrop_attempted")
             )
             recrop_used = sum(
                 1
                 for t in all_tables
-                if getattr(t, "debug_metrics", None) and isinstance(t.debug_metrics, dict)
+                if getattr(t, "debug_metrics", None)
+                and isinstance(t.debug_metrics, dict)
                 and t.debug_metrics.get("recrop_used")
             )
             if recrop_attempted or recrop_used:
@@ -1492,9 +1522,7 @@ class DoclingProcessor:
             if not api_key:
                 logger.debug("Page-level title assist: no API key, skipping")
                 return tables
-            api_retry_max = int(
-                vision_extraction_cfg.get("api_retry_max", 3)
-            )
+            api_retry_max = int(vision_extraction_cfg.get("api_retry_max", 3))
             api_retry_backoff_ms = float(
                 vision_extraction_cfg.get("api_retry_backoff_ms", 1000)
             )

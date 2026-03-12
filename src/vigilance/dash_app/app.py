@@ -222,6 +222,21 @@ def _comparison_export_base_name(payload: dict | None, suffix: str) -> str:
     previous_slug = previous_label.replace(" ", "_").replace("-", "_")
     return f"{bank}_{current_slug}_vs_{previous_slug}_{year_val}_{suffix}"
 
+
+def _format_quality_gate_fail_message(quality_gate: dict, max_reasons: int = 3) -> str:
+    """Build concise fail message from blocker_breakdown or fail_reasons."""
+    if not isinstance(quality_gate, dict):
+        return "qualite insuffisante"
+    breakdown = quality_gate.get("blocker_breakdown") or {}
+    if isinstance(breakdown, dict) and breakdown:
+        parts = [f"{k}={v}" for k, v in sorted(breakdown.items(), key=lambda x: -x[1])[:max_reasons]]
+        if parts:
+            return "; ".join(parts)
+    fail_reasons = quality_gate.get("fail_reasons", []) or []
+    if not isinstance(fail_reasons, list):
+        fail_reasons = [str(fail_reasons)]
+    return "; ".join(str(x) for x in fail_reasons[:max_reasons]) or "qualite insuffisante"
+
 # Layout
 app.layout = html.Div(
     [
@@ -909,15 +924,9 @@ def on_analyze(
         else {}
     )
     qg_status = str(quality_gate.get("status", "") or "").upper()
-    qg_fail_reasons = quality_gate.get("fail_reasons", []) or []
-    if not isinstance(qg_fail_reasons, list):
-        qg_fail_reasons = [str(qg_fail_reasons)]
 
     if qg_status == "FAIL":
-        fail_msg = (
-            "; ".join(str(x) for x in qg_fail_reasons[:2])
-            or "regles de qualite non satisfaites"
-        )
+        fail_msg = _format_quality_gate_fail_message(quality_gate, max_reasons=5)
         analyze_notification = dbc.Alert(
             f"Analyse terminee mais non eligible pour revue analyste (Quality Gate FAIL): {fail_msg}",
             color="danger",
@@ -1007,11 +1016,8 @@ def update_review_queue(
             if isinstance(meta, dict):
                 quality_gate = meta.get("quality_gate", {}) or {}
         qg_status = str(quality_gate.get("status", "") or "").upper()
-        qg_fail_reasons = quality_gate.get("fail_reasons", []) or []
-        if not isinstance(qg_fail_reasons, list):
-            qg_fail_reasons = [str(qg_fail_reasons)]
-        blocked_msg = "Run bloque par Quality Gate (FAIL): " + (
-            "; ".join(str(x) for x in qg_fail_reasons[:2]) or "qualite insuffisante"
+        blocked_msg = "Run bloque par Quality Gate (FAIL): " + _format_quality_gate_fail_message(
+            quality_gate, max_reasons=5
         )
         empty_msg = (
             blocked_msg
@@ -2553,20 +2559,15 @@ def init_review_items(indicator_result, paths):
     qg_status = str(quality_gate.get("status", "") or "").upper()
     eligible = bool(quality_gate.get("eligible_for_review", True))
     if qg_status == "FAIL" or not eligible:
-        fail_reasons = quality_gate.get("fail_reasons", []) or []
-        if not isinstance(fail_reasons, list):
-            fail_reasons = [str(fail_reasons)]
-        logger.warning(
-            "[init_review_items] blocked by quality gate: %s",
-            "; ".join(str(x) for x in fail_reasons) if fail_reasons else "FAIL",
-        )
+        reason_str = _format_quality_gate_fail_message(quality_gate, max_reasons=5)
+        logger.warning("[init_review_items] blocked by quality gate: %s", reason_str)
         dbg = {
             "writer": "init_review_items_quality_gate_blocked",
             "trigger": "init",
             "from": None,
             "to": 0,
             "total": 0,
-            "reason": "; ".join(str(x) for x in fail_reasons[:3]),
+            "reason": reason_str,
         }
         return [], [], {"review_id": None, "change_id": None}, 0, 0, dbg
 

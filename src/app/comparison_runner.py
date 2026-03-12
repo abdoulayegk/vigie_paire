@@ -412,12 +412,15 @@ def _extract_tables(
     # Step 4: Load stored extraction if available (avoids re-running Vision)
     if use_stored_extraction_if_available:
         try:
-            from app.extraction_storage import load_extraction
+            from app.extraction_storage import (
+                build_extraction_manifest,
+                is_stored_manifest_compatible,
+                load_extraction,
+            )
 
             stored = load_extraction(bank_code, year, quarter, base_dir)
             if stored is not None:
                 stored_tables, stored_meta = stored
-                # Do not use empty stored extraction: treat as "no valid cache" and run fresh
                 if not stored_tables:
                     logger.info(
                         "extraction_stored_ignored_empty bank=%s year=%s quarter=%s",
@@ -426,21 +429,34 @@ def _extract_tables(
                         quarter,
                     )
                 else:
-                    logger.info(
-                        "Loaded stored extraction: %s/%s/%s (%d tables)",
-                        bank_code,
-                        year,
-                        quarter,
-                        len(stored_tables),
+                    expected_manifest = build_extraction_manifest(
+                        pdf_path=pdf_path,
+                        section_ranges=section_ranges,
+                        extraction_mode="vision_full_gpt4o",
                     )
-                    logger.info(
-                        "extraction_quarter_tables count=%d bank=%s year=%s quarter=%s source=stored",
-                        len(stored_tables),
-                        bank_code,
-                        year,
-                        quarter,
-                    )
-                    return stored_tables
+                    if not is_stored_manifest_compatible(stored_meta, expected_manifest):
+                        logger.info(
+                            "extraction_stored_rejected_stale_cache bank=%s year=%s quarter=%s",
+                            bank_code,
+                            year,
+                            quarter,
+                        )
+                    else:
+                        logger.info(
+                            "Loaded stored extraction: %s/%s/%s (%d tables)",
+                            bank_code,
+                            year,
+                            quarter,
+                            len(stored_tables),
+                        )
+                        logger.info(
+                            "extraction_quarter_tables count=%d bank=%s year=%s quarter=%s source=stored",
+                            len(stored_tables),
+                            bank_code,
+                            year,
+                            quarter,
+                        )
+                        return stored_tables
         except Exception as e:
             logger.debug("Could not load stored extraction: %s", e)
 
@@ -469,12 +485,24 @@ def _extract_tables(
 
     # Step 4: Save extraction systematically after every run (do not persist empty)
     try:
-        from app.extraction_storage import load_extraction, save_extraction
+        from app.extraction_storage import (
+            build_extraction_manifest,
+            is_stored_manifest_compatible,
+            load_extraction,
+            save_extraction,
+        )
 
         stored = load_extraction(bank_code, year, quarter, base_dir)
         if stored is not None:
-            stored_tables, _stored_meta = stored
-            if _prefer_stored_over_fresh(artifacts, stored_tables):
+            stored_tables, stored_meta = stored
+            expected_manifest = build_extraction_manifest(
+                pdf_path=pdf_path,
+                section_ranges=section_ranges,
+                extraction_mode="vision_full_gpt4o",
+            )
+            if is_stored_manifest_compatible(stored_meta, expected_manifest) and _prefer_stored_over_fresh(
+                artifacts, stored_tables
+            ):
                 logger.warning(
                     "Fresh extraction degraded for %s/%s/%s; reusing stored extraction "
                     "(fresh comparable=%d raw_tables=%d raw_indicators=%d, stored comparable=%d raw_tables=%d raw_indicators=%d)",
@@ -1554,6 +1582,116 @@ def _is_page_reference_table(table: TableArtifact) -> bool:
     return (page_ref_cells / populated_value_cells) >= 0.6
 
 
+def _lcs_pair_indices(
+    left_seq: list[str],
+    right_seq: list[str],
+    *,
+    band_window: int | None = None,
+) -> list[tuple[int, int]]:
+    """Return (i, j) pairs where left_seq[i] == right_seq[j] in an LCS.
+    If band_window is set, only fill a band |i - j| <= band_window (for large sequences)."""
+    if not left_seq or not right_seq:
+        return []
+    rows, cols = len(left_seq), len(right_seq)
+
+    if band_window is not None:
+        # Banded DP: only (i, j) with |i - j| <= band_window
+        band = band_window
+        # dp[i][j] with j in [max(0, i-band), min(cols, i+band+1)]
+        # Store as dp[i][j - (i - band)] for i in range(rows+1), j in range(max(0,i-band), min(cols+1, i+band+2))
+        # Simpler: use a dict (i, j) -> value
+        dp: dict[tuple[int, int], int] = {}
+        for i in range(rows + 1):
+            for j in range(max(0, i - band), min(cols + 1, i + band + 2)):
+                if i == 0 or j == 0:
+                    dp[i, j] = 0
+                elif left_seq[i - 1] == right_seq[j - 1]:
+                    dp[i, j] = dp.get((i - 1, j - 1), 0) + 1
+                else:
+                    dp[i, j] = max(
+                        dp.get((i - 1, j), 0),
+                        dp.get((i, j - 1), 0),
+                    )
+        # Backtrack to get pairs (only step to cells that were filled)
+        pairs: list[tuple[int, int]] = []
+        i, j = rows, cols
+        while i > 0 and j > 0 and (i, j) in dp:
+            if left_seq[i - 1] == right_seq[j - 1]:
+                pairs.append((i - 1, j - 1))
+                i -= 1
+                j -= 1
+            else:
+                v_prev_i = dp.get((i - 1, j), -1)
+                v_prev_j = dp.get((i, j - 1), -1)
+                if v_prev_i >= v_prev_j and (i - 1, j) in dp:
+                    i -= 1
+                elif (i, j - 1) in dp:
+                    j -= 1
+                else:
+                    break
+        pairs.reverse()
+        return pairs
+    else:
+        dp = [[0] * (cols + 1) for _ in range(rows + 1)]
+        for i in range(1, rows + 1):
+            for j in range(1, cols + 1):
+                if left_seq[i - 1] == right_seq[j - 1]:
+                    dp[i][j] = dp[i - 1][j - 1] + 1
+                else:
+                    dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+        pairs = []
+        i, j = rows, cols
+        while i > 0 and j > 0:
+            if left_seq[i - 1] == right_seq[j - 1]:
+                pairs.append((i - 1, j - 1))
+                i -= 1
+                j -= 1
+            elif dp[i - 1][j] >= dp[i][j - 1]:
+                i -= 1
+            else:
+                j -= 1
+        pairs.reverse()
+        return pairs
+
+
+def _order_aware_stable_pairs(
+    left_order: list[str],
+    right_order: list[str],
+    removed_keys: set[str],
+    added_keys: set[str],
+    *,
+    th: dict[str, Any],
+) -> set[tuple[str, str]]:
+    """Pairs (left_k, right_k) that are order-aligned and similar enough to treat as stable.
+    Uses LCS to get unmatched positions, then pairs by index with ratio threshold."""
+    if not removed_keys or not added_keys:
+        return set()
+    min_ratio = float(th.get("indicator_order_aware_min_ratio", 0.85))
+    band = int(th.get("indicator_order_aware_band_window", 50))
+    n, m = len(left_order), len(right_order)
+    use_band = n * m > 10000
+    pair_indices = _lcs_pair_indices(
+        left_order,
+        right_order,
+        band_window=band if use_band else None,
+    )
+    lcs_left = {i for i, _ in pair_indices}
+    lcs_right = {j for _, j in pair_indices}
+    left_unmatched_keys = [left_order[i] for i in range(len(left_order)) if i not in lcs_left]
+    right_unmatched_keys = [right_order[j] for j in range(len(right_order)) if j not in lcs_right]
+    left_candidates = [k for k in left_unmatched_keys if k in removed_keys]
+    right_candidates = [k for k in right_unmatched_keys if k in added_keys]
+    stable: set[tuple[str, str]] = set()
+    if rapidfuzz_fuzz is None:
+        return stable
+    for idx in range(min(len(left_candidates), len(right_candidates))):
+        lk, rk = left_candidates[idx], right_candidates[idx]
+        score = rapidfuzz_fuzz.ratio(lk, rk) / 100.0
+        if score >= min_ratio:
+            stable.add((lk, rk))
+    return stable
+
+
 def _ordered_indicator_keys(
     values: list[str],
     *,
@@ -1816,7 +1954,16 @@ def _hungarian_pair_added_removed(
             {"gated_out_pairs": 0, "accepted_renames": 0},
         )
 
-    min_score_pct = int(min_score * 100)
+    large_matrix_cap = int(th.get("indicator_hungarian_large_matrix_cap", 500))
+    large_matrix_min_score = float(
+        th.get("indicator_hungarian_large_matrix_min_score", 0.88)
+    )
+    matrix_size_for_cap = len(removed_items) * len(added_items)
+    is_large_matrix = matrix_size_for_cap > large_matrix_cap
+    effective_min_score = (
+        max(min_score, large_matrix_min_score) if is_large_matrix else min_score
+    )
+    min_score_pct = int(effective_min_score * 100)
 
     def _norm_for_sort(s: str) -> str:
         return _canonical_indicator_key(strip_footnote_markers_from_indicator(s))
@@ -1824,17 +1971,33 @@ def _hungarian_pair_added_removed(
     removed = sorted(removed_items, key=_norm_for_sort)
     added = sorted(added_items, key=_norm_for_sort)
 
+    gate_len_ratio = min_len_ratio
+    gate_token_overlap = min_token_overlap
+    if is_large_matrix:
+        gate_len_ratio = float(
+            th.get(
+                "indicator_hungarian_large_matrix_min_len_ratio",
+                min_len_ratio,
+            )
+        )
+        gate_token_overlap = int(
+            th.get(
+                "indicator_hungarian_large_matrix_min_token_overlap",
+                min_token_overlap,
+            )
+        )
+
     def _length_ratio_ok(a: str, r: str) -> bool:
         la, lr = len(_norm_for_sort(a)), len(_norm_for_sort(r))
         if max(la, lr) <= 0:
             return True
-        return (min(la, lr) / max(la, lr)) >= min_len_ratio
+        return (min(la, lr) / max(la, lr)) >= gate_len_ratio
 
     def _token_overlap_ok(a: str, r: str) -> bool:
         na, nr = _norm_for_sort(a), _norm_for_sort(r)
         ta = _indicator_strong_tokens(na)
         tr = _indicator_strong_tokens(nr)
-        if len(ta & tr) >= min_token_overlap:
+        if len(ta & tr) >= gate_token_overlap:
             return True
         acro_a = _indicator_acronyms(na)
         acro_r = _indicator_acronyms(nr)
@@ -2232,6 +2395,7 @@ def _indicator_diff(
     *,
     neighbor_aligned_filter_enabled: bool = True,
     return_debug: bool = False,
+    th: dict[str, Any] | None = None,
 ) -> tuple[list[str], list[str], bool, dict[str, int], dict[str, Any] | None]:
     if _is_page_reference_table(t1) and _is_page_reference_table(t2):
         return [], [], False, {"page_reference_table": 1}, None
@@ -2279,11 +2443,40 @@ def _indicator_diff(
     for k in set(left_excluded) | set(right_excluded):
         excluded_counts[k] = left_excluded.get(k, 0) + right_excluded.get(k, 0)
 
+    left_order = _ordered_indicator_keys(left, excluded_keys=left_structural_keys)
+    right_order = _ordered_indicator_keys(right, excluded_keys=right_structural_keys)
+
     added_keys = set(right_map.keys() - left_map.keys())
     removed_keys = set(left_map.keys() - right_map.keys())
 
+    th = th or {}
+    if th.get("indicator_order_aware_alignment_enabled", False):
+        order_stable = _order_aware_stable_pairs(
+            left_order,
+            right_order,
+            removed_keys,
+            added_keys,
+            th=th,
+        )
+        added_keys -= {r for _l, r in order_stable}
+        removed_keys -= {l for l, _r in order_stable}
+        if order_stable:
+            excluded_counts["order_aware_stable"] = len(order_stable)
+
     # --- NOUVELLE PHASE : RÉSOLUTION NEAR-STABLE ---
     # On recherche les clés qui ont raté le match exact d'un cheveu
+    total_keys = len(left_map) + len(right_map)
+    large_table_min = int(th.get("indicator_near_stable_large_table_min_indicators", 40))
+    if total_keys >= large_table_min:
+        near_stable_threshold = float(
+            th.get("indicator_near_stable_large_table_threshold", 0.92)
+        )
+    else:
+        near_stable_threshold = float(
+            th.get("indicator_near_stable_threshold", 0.95)
+        )
+    use_token_set = bool(th.get("indicator_near_stable_use_token_set", False))
+
     resolved_removed = set()
     resolved_added = set()
 
@@ -2293,7 +2486,12 @@ def _indicator_diff(
 
         for a_key in list(added_keys - resolved_added):
             if rapidfuzz_fuzz is not None:
-                score = rapidfuzz_fuzz.ratio(r_key, a_key) / 100.0
+                ratio_score = rapidfuzz_fuzz.ratio(r_key, a_key) / 100.0
+                if use_token_set:
+                    token_score = rapidfuzz_fuzz.token_set_ratio(r_key, a_key) / 100.0
+                    score = max(ratio_score, token_score)
+                else:
+                    score = ratio_score
             else:
                 # Fallback to jaccard if rapidfuzz not available
                 lt = set(r_key.split())
@@ -2304,7 +2502,7 @@ def _indicator_diff(
                 best_score = score
                 best_match = a_key
 
-        if best_score >= 0.95 and best_match:
+        if best_score >= near_stable_threshold and best_match:
             resolved_removed.add(r_key)
             resolved_added.add(best_match)
 
@@ -2319,8 +2517,6 @@ def _indicator_diff(
     added.sort()
     removed.sort()
     added, removed, had_fusion_split = _detect_fusion_split(added, removed)
-    left_order = _ordered_indicator_keys(left, excluded_keys=left_structural_keys)
-    right_order = _ordered_indicator_keys(right, excluded_keys=right_structural_keys)
     remaining_added_keys = {
         key
         for value in added
@@ -2898,7 +3094,7 @@ def run_comparison_with_sections(
             }
         logger.warning("Extraction writer/quality gate skipped: %s", exc)
 
-    # Merge extraction certification into run-level quality gate (quality-first: fail on blocked tables).
+    # Extraction certification: always compute for diagnostics; enforce (fail run) only when gate enabled.
     try:
         from vigilance.quality.quality_gate import evaluate_extraction_quality
 
@@ -2907,7 +3103,9 @@ def run_comparison_with_sections(
             config=get_quality_gate_config(bank_code=bank_code) if qg_enabled else None,
         )
         quality_gate_status["extraction_certification"] = extraction_report.get("summary", {})
-        if extraction_report.get("status") == "FAIL":
+        quality_gate_status["blocker_breakdown"] = extraction_report.get("blocker_breakdown") or {}
+        quality_gate_status["blocked_table_evidence"] = extraction_report.get("blocked_table_evidence") or []
+        if qg_enabled and extraction_report.get("status") == "FAIL":
             quality_gate_status["status"] = "FAIL"
             quality_gate_status["eligible_for_review"] = False
             quality_gate_status["fail_reasons"] = list(
@@ -3570,6 +3768,7 @@ def run_comparison_with_sections(
                     "neighbor_aligned_filter_enabled", True
                 ),
                 return_debug=indicator_diff_debug_enabled,
+                th=cfg,
             )
         )
         t1_clean_to_raw = _build_clean_to_raw_indicator_lookup(table_t1)

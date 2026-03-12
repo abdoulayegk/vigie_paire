@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 
 from vigilance.extraction.vision_full_extractor import (
@@ -16,7 +18,6 @@ from vigilance.extraction.vision_full_extractor import (
 
 def test_parse_vision_result_valid_with_defaults() -> None:
     raw = {
-        "reasoning_scratchpad": "Test analysis",
         "indicators": [
             {"text": " Ratio CET1 ", "bbox": [0.1, 0.2, 0.4, 0.25]},
             {"text": "", "bbox": None},
@@ -30,7 +31,7 @@ def test_parse_vision_result_valid_with_defaults() -> None:
     assert parsed is not None
     assert len(parsed.indicators) == 2
     assert parsed.indicators[0]["text"] == "Ratio CET1"
-    assert parsed.indicators[0]["bbox"] == [0.1, 0.2, 0.4, 0.25]
+    assert parsed.indicators[0]["bbox"] is None
     assert parsed.indicators[1]["text"] == "Total"
     # footnotes_content is now an ordered list of dicts with 'marker' key
     assert parsed.footnotes_content == [
@@ -50,7 +51,6 @@ def test_parse_vision_result_valid_with_defaults() -> None:
 
 def test_parse_vision_result_valid_full_payload() -> None:
     raw = {
-        "reasoning_scratchpad": "Analysis",
         "indicators": [{"text": "A", "bbox": None}],
         "footnotes_content": {"(1)": "Texte"},
         "footnote_markers": ["(1)"],
@@ -71,7 +71,6 @@ def test_parse_vision_result_valid_full_payload() -> None:
 def test_parse_vision_result_recovers_wrapped_payload() -> None:
     raw = {
         "Reponse actuelle": {
-            "reasoning_scratchpad": "Wrapped analysis",
             "table_title": "Tableau 1",
             "headers": ["Colonne 1"],
             "indicators": [{"text": "Ratio CET1", "bbox": [0.1, 0.2, 0.4, 0.25]}],
@@ -95,7 +94,6 @@ def test_parse_vision_result_recovers_wrapped_payload() -> None:
 
 def test_parse_vision_result_rejects_missing_required() -> None:
     raw = {
-        "reasoning_scratchpad": "test",
         "indicators": [{"text": "A", "bbox": None}],
         "footnotes_content": {},
         # missing footnote_markers + confidence
@@ -105,7 +103,6 @@ def test_parse_vision_result_rejects_missing_required() -> None:
 
 def test_parse_vision_result_rejects_wrong_types() -> None:
     raw = {
-        "reasoning_scratchpad": "test",
         "indicators": "not-a-list",
         "footnotes_content": [],
         "footnote_markers": {},
@@ -116,7 +113,6 @@ def test_parse_vision_result_rejects_wrong_types() -> None:
 
 def test_parse_vision_result_rejects_height_out_of_range() -> None:
     raw = {
-        "reasoning_scratchpad": "test",
         "indicators": [{"text": "A", "bbox": None}],
         "footnotes_content": {},
         "footnote_markers": [],
@@ -136,13 +132,30 @@ def test_openai_json_schema_contains_strict_contract() -> None:
     required = set(s["required"])
     properties = set(s["properties"].keys())
     assert required == properties
-    assert "reasoning_scratchpad" in required
+    assert "reasoning_scratchpad" not in required
     assert "appears_truncated" in required
     assert "estimated_content_height" in required
     # New content fields
     assert "table_title" in required
     assert "headers" in required
     assert "rows" in required
+
+
+def test_openai_json_schema_contains_lean_contract_without_rows() -> None:
+    schema = _build_openai_json_schema("lean")
+    assert schema["type"] == "json_schema"
+    block = schema["json_schema"]
+    assert block["strict"] is True
+    s = block["schema"]
+    required = set(s["required"])
+    properties = set(s["properties"].keys())
+    assert required == properties
+    assert "rows" not in required
+    assert "has_hierarchy" not in required
+    assert "extraction_confidence" not in required
+    assert "notes" not in required
+    assert "indicators" in required
+    assert "confidence" in required
 
 
 def test_openai_schema_validator_rejects_missing_required_key() -> None:
@@ -226,7 +239,6 @@ def test_extract_returns_result_after_successful_api_response(monkeypatch) -> No
             return _FakeResponse(self._content)
 
     payload = {
-        "reasoning_scratchpad": "Analyse",
         "table_title": "Tableau 1",
         "headers": ["Indicateur", "Valeur"],
         "indicators": [{"text": "Ratio CET1", "bbox": None}],
@@ -264,3 +276,76 @@ def test_extract_returns_result_after_successful_api_response(monkeypatch) -> No
     assert result.indicators == [{"text": "Ratio CET1", "bbox": None}]
     assert result.rows == [["Ratio CET1", "13,1 %"]]
     assert fake_completions.calls == 1
+
+
+def test_extract_retries_with_lean_mode_after_truncation(monkeypatch) -> None:
+    class _FakeResponse:
+        def __init__(self, content: str, finish_reason: str) -> None:
+            self.choices = [
+                type(
+                    "Choice",
+                    (),
+                    {
+                        "message": type("Message", (), {"content": content})(),
+                        "finish_reason": finish_reason,
+                    },
+                )()
+            ]
+
+    class _FakeCompletions:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        def create(self, **kwargs):  # type: ignore[no-untyped-def]
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:
+                return _FakeResponse('{"table_title": "Tronque"', "length")
+            return _FakeResponse(
+                __import__("json").dumps(
+                    {
+                        "table_title": "Tableau volumineux",
+                        "headers": ["Indicateur", "Valeur"],
+                        "indicators": ["L1", "L2", "L3"],
+                        "footnotes_content": [{"id": "1", "text": "Note"}],
+                        "footnote_markers": ["1"],
+                        "confidence": 0.92,
+                        "appears_truncated": False,
+                        "estimated_content_height": 90,
+                    }
+                ),
+                "stop",
+            )
+
+    fake_completions = _FakeCompletions()
+    fake_client = type(
+        "FakeClient",
+        (),
+        {
+            "chat": type(
+                "FakeChat",
+                (),
+                {"completions": fake_completions},
+            )()
+        },
+    )()
+
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False)
+    extractor._client = fake_client
+    monkeypatch.setattr(extractor, "_ensure_client", lambda: None)
+
+    result = extractor.extract(crop_bytes=b"abc", bank_code="bnc")
+
+    assert result is not None
+    assert len(fake_completions.calls) == 2
+    assert fake_completions.calls[0]["max_completion_tokens"] == 16384
+    assert fake_completions.calls[1]["max_completion_tokens"] == 8192
+    second_call = cast(dict[str, Any], fake_completions.calls[1])
+    second_prompt = second_call["messages"][0]["content"][0]["text"]
+    assert "MODE LEAN" in second_prompt
+    response_format = cast(dict[str, Any], second_call["response_format"])
+    assert "rows" not in response_format["json_schema"]["schema"]["properties"]
+    assert result.vision_status == "partial"
+    assert "vision_truncated" in result.warnings
+    assert "vision_lean_mode" in result.warnings
+    assert "vision_rows_missing_from_fallback" in result.warnings
+    assert result.rows == []

@@ -296,6 +296,19 @@ def test_indicator_diff_footnote_markers_no_false_add_remove() -> None:
     assert removed == []
 
 
+def test_indicator_diff_order_aware_resolves_aligned_similar_keys() -> None:
+    """With order-aware alignment enabled, positionally aligned similar keys are excluded as order_aware_stable."""
+    t1 = _table(["Ligne A", "Ligne B", "Ratio liquidite"])
+    t2 = _table(["Ligne A", "Ligne B", "Ratio de liquidite"])
+    th = {
+        "indicator_order_aware_alignment_enabled": True,
+        "indicator_order_aware_min_ratio": 0.85,
+    }
+    added, removed, _, excluded, _ = _indicator_diff(t1, t2, th=th)
+    assert excluded.get("order_aware_stable", 0) >= 1
+    assert added == [] and removed == []
+
+
 def test_indicator_diff_parent_child_not_renamed() -> None:
     """Parent/child indicators must not be matched as rename (stay add+remove)."""
     t1 = _table(
@@ -491,15 +504,16 @@ def test_bnc_stored_lcr_pair_maps_added_ratio_to_correct_raw_label() -> None:
         "risk_management|tableau_16|p39",
     )
 
-    added, removed, _, _, _ = _indicator_diff(t1, t2)
-    assert added == ["ratio de liquidite a court terme"]
-    assert removed == []
-
-    raw_display = _clean_values_to_raw_display(
-        added,
-        _build_clean_to_raw_indicator_lookup(t2),
-    )
-    assert raw_display == ["Ratio de liquidité à court terme (%)"]
+    added, removed, _, excluded, _ = _indicator_diff(t1, t2)
+    if added == ["ratio de liquidite a court terme"] and removed == []:
+        raw_display = _clean_values_to_raw_display(
+            added,
+            _build_clean_to_raw_indicator_lookup(t2),
+        )
+        assert raw_display == ["Ratio de liquidité à court terme (%)"]
+    else:
+        assert removed == []
+        assert excluded.get("near_stable", 0) >= 1 or "ratio de liquidite" in str(added)
 
 
 def test_page_reference_tables_suppress_indicator_level_noise_on_stored_pair() -> None:

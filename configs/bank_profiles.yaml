@@ -25,6 +25,9 @@ vision_extraction:
   api_retry_max: 3
   api_retry_backoff_ms: 1000
   api_timeout_sec: 120
+  vision_max_completion_tokens_full: 16384
+  vision_max_completion_tokens_lean: 8192
+  vision_reference_text_max_chars: 4000
   page_level_title_assist:
     enabled: true
     min_confidence: 0.7
@@ -661,6 +664,15 @@ matching_thresholds:
   indicator_exist_near_exact_threshold: 0.95
   indicator_exist_llm_band_min: 0.85
   indicator_exist_llm_band_max: 0.95
+  indicator_near_stable_threshold: 0.95
+  indicator_near_stable_large_table_threshold: 0.92
+  indicator_near_stable_large_table_min_indicators: 40
+  indicator_near_stable_use_token_set: false
+  indicator_order_aware_alignment_enabled: false
+  indicator_order_aware_min_ratio: 0.85
+  indicator_order_aware_band_window: 50
+  indicator_hungarian_large_matrix_cap: 500
+  indicator_hungarian_large_matrix_min_score: 0.88
   indicator_length_ratio_min: 0.75
   indicator_group_strict: false
   indicator_displacement_fuzzy_threshold: 0.90

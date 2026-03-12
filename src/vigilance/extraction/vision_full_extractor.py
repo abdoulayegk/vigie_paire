@@ -31,6 +31,9 @@ _EXTRACTION_METHOD = "vision_full_gpt4o"
 
 _CONFIDENCE_RETRY_THRESHOLD = 0.85
 _RECROP_EXTENSION_INCREMENT = 0.06
+_DEFAULT_MAX_COMPLETION_TOKENS_FULL = 16384
+_DEFAULT_MAX_COMPLETION_TOKENS_LEAN = 8192
+_DEFAULT_REFERENCE_TEXT_MAX_CHARS = 4000
 
 _PROMPT_BASE = """
 Tu es un expert en extraction de données financières à partir de rapports bancaires canadiens.
@@ -44,7 +47,6 @@ Ta mission :
    - INTERDICTION formelle d'inventer des lignes ou des données non visibles.
 2. Si le TITRE du tableau est visible en haut de l'image (numéro "Tableau XX" et/ou nom), inclus-le.
 3. Si des notes de bas de page sont visibles en bas de l'image, lis-les et rattache-les au tableau.
-4. Évalue la qualité de l'extraction (has_hierarchy, extraction_confidence, notes) selon la lisibilité et la structure du tableau.
 
 ---
 
@@ -103,12 +105,6 @@ EXCLUSION DES PARAGRAPHES NARRATIFS :
 - Les paragraphes descriptifs ou les notes intégrées au milieu du tableau ne sont PAS des indicateurs.
 - Un indicateur est typiquement un libellé court (1 à 10 mots) aligné dans la première colonne.
 
-Pour chaque indicateur retourner également :
-
-- bbox : position approximative dans l'image
-- format : [x_min, y_min, x_max, y_max]
-- coordonnées normalisées entre 0 et 1
-
 ---
 
 2. NOTES DE BAS DE TABLEAU (FOOTNOTES)
@@ -134,8 +130,6 @@ Pour chaque note retourner :
 
 - id : identifiant normalisé (ex : "1", "2", "*")
 - text : texte complet de la note
-- bbox : position approximative dans l'image
-- format : [x_min, y_min, x_max, y_max]
 
 Règles :
 
@@ -152,8 +146,6 @@ REGLES GENERALES
 - Transcrire uniquement ce qui est visible dans l'image
 - Ne jamais inventer d'information
 - Respecter l'ordre visuel
-- Les bbox doivent être approximatives mais cohérentes
-- Si une bbox est incertaine, retourner null
 
 Retourner également :
 
@@ -168,14 +160,9 @@ Aucun texte avant ou après.
 L'objet JSON doit rigoureusement suivre cette structure:
 
 {
-"reasoning_scratchpad": "Analyse rapide de la structure du tableau...",
 "table_title": "Tableau 1 - Titre complet ou chaine vide si absent",
 "headers": ["Colonne 1", "Colonne 2", "Colonne 3"],
-"indicators": [
-  {"text": "Libelle 1", "bbox": [0.10, 0.22, 0.40, 0.25]},
-  {"text": " Sous-libelle", "bbox": [0.10, 0.26, 0.40, 0.30]},
-  {"text": "Total", "bbox": [0.10, 0.31, 0.40, 0.34]}
-],
+"indicators": ["Libelle 1", " Sous-libelle", "Total"],
 "rows": [
   ["Libelle 1", "100", "200"],
   [" Sous-libelle", "50", "150"]
@@ -195,7 +182,6 @@ L'objet JSON doit rigoureusement suivre cette structure:
 
 REGLES DE VALIDATION
 
-- reasoning_scratchpad : Obligatoire en premier. Décris ton analyse de la structure.
 - table_title : inclure le numéro ("Tableau XX") ET le titre s'ils sont présents en haut de l'image. Chaine vide si aucun titre visible (NE JAMAIS inventer).
 - headers : liste vide si aucun en-tete visible
 - indicators doit respecter l'ordre visuel du tableau
@@ -207,9 +193,6 @@ REGLES DE VALIDATION
 
 DEFINITIONS
 
-reasoning_scratchpad
-Analyse explicite de la structure (Chain-of-Thought) avant d'extraire.
-
 table_title
 Titre complet et visible du tableau, incluant le numéro (ex: "Tableau 1") s'il est présent sur la même ligne ou la ligne juste au-dessus. "" si absent.
 
@@ -217,7 +200,7 @@ headers
 Liste des en-tetes de colonnes.
 
 indicators
-Liste des libellés extraits de la première colonne avec leur bbox.
+Liste des libellés extraits de la première colonne.
 
 rows
 Liste de listes de chaînes : toutes les lignes de données du tableau.
@@ -246,6 +229,41 @@ true si le tableau ou les footnotes semblent coupés.
 estimated_content_height
 Pourcentage estimé du contenu visible.
 Mettre null si impossible à estimer.
+"""
+
+_PROMPT_JSON_LEAN = """
+MODE LEAN
+
+Priorise la fiabilité du JSON et les champs nécessaires à la comparaison.
+Ne retourne PAS le champ `rows`.
+Ne retourne PAS de champs additionnels.
+
+L'objet JSON doit rigoureusement suivre cette structure:
+
+{
+"table_title": "Tableau 1 - Titre complet ou chaine vide si absent",
+"headers": ["Colonne 1", "Colonne 2", "Colonne 3"],
+"indicators": ["Libelle 1", " Sous-libelle", "Total"],
+"footnotes_content": [
+  {"id": "1", "text": "texte note 1"},
+  {"id": "2", "text": "texte note 2"}
+],
+"footnote_markers": ["1", "2"],
+"confidence": 0.95,
+"appears_truncated": false,
+"estimated_content_height": null
+}
+
+REGLES DE VALIDATION
+
+- table_title : inclure le numéro ("Tableau XX") ET le titre s'ils sont présents en haut de l'image. Chaine vide si aucun titre visible.
+- headers : liste vide si aucun en-tete visible
+- indicators : ordre visuel strict haut → bas
+- footnotes_content : ordre visuel strict haut → bas
+- footnote_markers : liste simple des marqueurs détectés
+- confidence : score numérique 0.0 - 1.0
+- appears_truncated : true si le contenu semble coupé
+- estimated_content_height : pourcentage estimé du contenu visible, ou null
 """
 
 
@@ -286,25 +304,11 @@ class VisionIndicatorItem(BaseModel):
         return s
 
 
-class VisionFullResponseSchema(BaseModel):
-    """Pydantic schema for Vision extraction API response. Used for validation and Structured Outputs.
-
-    Source of truth for ALL content fields:
-    - table_title, headers, rows: full table content
-    - indicators: first-column labels in visual order
-    - footnotes_content: ordered list (visual order, never sorted)
-    """
+class VisionResponseCommonSchema(BaseModel):
+    """Common schema for full and fallback Vision responses."""
 
     model_config = ConfigDict(extra="forbid")
 
-    reasoning_scratchpad: str = Field(
-        description=(
-            "Avant de remplir les champs ci-dessous, analyse la structure du tableau: "
-            "combien de colonnes, quelle est la première colonne (indicateurs), "
-            "y a-t-il des sous-catégories indentées, des notes de bas de page? "
-            "Décris brièvement ta compréhension du layout."
-        ),
-    )
     table_title: str = Field(
         default="",
         description="Titre complet et visible du tableau, incluant le numéro (ex: 'Tableau 1') s'il est au-dessus. Chaine vide si aucun titre visible.",
@@ -313,12 +317,8 @@ class VisionFullResponseSchema(BaseModel):
         default_factory=list,
         description="En-tetes de colonnes du tableau, dans l'ordre",
     )
-    indicators: list[VisionIndicatorItem] = Field(
-        description="Libelles de la premiere colonne avec bbox, ordre visuel haut vers bas",
-    )
-    rows: list[list[str]] = Field(
-        default_factory=list,
-        description="Lignes de donnees du tableau (liste de listes de chaines)",
+    indicators: list[str] = Field(
+        description="Libelles de la premiere colonne, ordre visuel haut vers bas",
     )
     footnotes_content: list[VisionFootnoteItem] = Field(
         description="Liste ORDONNEE de notes structurees [{id, text}] — ordre visuel strict",
@@ -327,19 +327,6 @@ class VisionFullResponseSchema(BaseModel):
     footnote_markers: list[str] = Field(
         description="Liste des marqueurs detectes (1, 2, 3 ou format parenthesique)",
         default_factory=list,
-    )
-    has_hierarchy: bool = Field(
-        description="True si le tableau contient des sous-catégories indentées ou une structure hiérarchique explicite.",
-        default=False,
-    )
-    extraction_confidence: str = Field(
-        description="Niveau de confiance qualitatif ('high', 'medium', 'low').",
-        default="medium",
-        pattern="^(high|medium|low)$",
-    )
-    notes: str = Field(
-        description="Observations pertinentes sur la qualité ou la structure (ex: 'flou', 'ratures', 'colonnes décalées').",
-        default="",
     )
     confidence: float = Field(
         description="Score numérique 0.0-1.0 de confiance globale.",
@@ -359,42 +346,28 @@ class VisionFullResponseSchema(BaseModel):
 
     @field_validator("indicators", mode="before")
     @classmethod
-    def _coerce_indicators(cls, v: Any) -> list[dict[str, Any]]:
-        """Accept both legacy list[str] and new list[dict] formats."""
+    def _coerce_indicators(cls, v: Any) -> list[str]:
+        """Accept both string and legacy object indicator formats."""
         if not isinstance(v, list):
             return []
-        result: list[dict[str, Any]] = []
+        result: list[str] = []
         for item in v:
             if isinstance(item, str):
                 text = item.strip()
                 if text:
-                    result.append({"text": text, "bbox": None})
+                    result.append(text)
             elif isinstance(item, dict):
                 text = str(item.get("text") or "").strip()
                 if text:
-                    item["text"] = text
-                    result.append(item)
+                    result.append(text)
             elif isinstance(item, VisionIndicatorItem):
-                result.append({"text": item.text, "bbox": item.bbox})
+                result.append(item.text)
         return result
 
     @field_validator("headers", mode="after")
     @classmethod
     def _normalize_headers(cls, v: list[str]) -> list[str]:
         return [str(x).strip() for x in v]
-
-    @field_validator("rows", mode="before")
-    @classmethod
-    def _coerce_rows(cls, v: Any) -> list[list[str]]:
-        if not isinstance(v, list):
-            return []
-        result: list[list[str]] = []
-        for row in v:
-            if isinstance(row, list):
-                result.append([str(cell) for cell in row])
-            elif isinstance(row, str):
-                result.append([row])
-        return result
 
     @field_validator("footnotes_content", mode="before")
     @classmethod
@@ -429,13 +402,59 @@ class VisionFullResponseSchema(BaseModel):
         return [str(x).strip() for x in v if str(x).strip()]
 
 
+class VisionFullResponseSchema(VisionResponseCommonSchema):
+    """Strict schema for normal Vision extraction output."""
+
+    rows: list[list[str]] = Field(
+        default_factory=list,
+        description="Lignes de donnees du tableau (liste de listes de chaines)",
+    )
+    has_hierarchy: bool = Field(
+        description="True si le tableau contient des sous-catégories indentées ou une structure hiérarchique explicite.",
+        default=False,
+    )
+    extraction_confidence: str = Field(
+        description="Niveau de confiance qualitatif ('high', 'medium', 'low').",
+        default="medium",
+        pattern="^(high|medium|low)$",
+    )
+    notes: str = Field(
+        description="Observations pertinentes sur la qualité ou la structure (ex: 'flou', 'ratures', 'colonnes décalées').",
+        default="",
+    )
+
+    @field_validator("rows", mode="before")
+    @classmethod
+    def _coerce_rows(cls, v: Any) -> list[list[str]]:
+        if not isinstance(v, list):
+            return []
+        result: list[list[str]] = []
+        for row in v:
+            if isinstance(row, list):
+                result.append([str(cell) for cell in row])
+            elif isinstance(row, str):
+                result.append([row])
+        return result
+
+
+class VisionLeanResponseSchema(VisionResponseCommonSchema):
+    """Strict schema for lean fallback extraction output."""
+
+
 class VisionSchemaContractError(RuntimeError):
     """Raised when OpenAI Structured Outputs schema contract is invalid."""
 
 
-def _build_openai_json_schema() -> dict[str, Any]:
+def _schema_model_for_mode(mode: str) -> type[BaseModel]:
+    if mode == "lean":
+        return VisionLeanResponseSchema
+    return VisionFullResponseSchema
+
+
+def _build_openai_json_schema(mode: str = "full") -> dict[str, Any]:
     """Build OpenAI json_schema format from Pydantic model for Structured Outputs."""
-    schema = VisionFullResponseSchema.model_json_schema()
+    schema_model = _schema_model_for_mode(mode)
+    schema = schema_model.model_json_schema()
     props = schema.get("properties", {})
     defs = schema.get("$defs", {})
     required = list(props.keys())
@@ -458,7 +477,7 @@ def _build_openai_json_schema() -> dict[str, Any]:
     return {
         "type": "json_schema",
         "json_schema": {
-            "name": "vision_full_extraction",
+            "name": f"vision_{mode}_extraction",
             "strict": True,
             "schema": strict_schema,
         },
@@ -593,6 +612,7 @@ def _build_prompt(
     bank_code: str,
     vision_cfg: dict[str, Any],
     reference_text: str | None = None,
+    mode: str = "full",
 ) -> str:
     """Build prompt with bank-specific footnote marker hints and optional OCR reference text."""
     marker_type = str(vision_cfg.get("footnote_marker_type", "")).strip().lower()
@@ -608,13 +628,23 @@ def _build_prompt(
 
     # Multimodal Grounding: inject OCR reference text as spelling dictionary
     reference_section = ""
-    if reference_text and len(reference_text.strip()) > 20:
-        truncated = reference_text.strip()[:4000]
+    reference_text_max_chars = int(
+        vision_cfg.get(
+            "vision_reference_text_max_chars", _DEFAULT_REFERENCE_TEXT_MAX_CHARS
+        )
+    )
+    if (
+        mode == "full"
+        and reference_text
+        and len(reference_text.strip()) > 20
+        and reference_text_max_chars > 0
+    ):
+        truncated = reference_text.strip()[:reference_text_max_chars]
         reference_section = (
             "\n\n=== DICTIONNAIRE DE RÉFÉRENCE (Texte OCR du tableau) ===\n"
             f"{truncated}\n"
             "=== FIN DICTIONNAIRE ===\n\n"
-            "CONSIGNE : Utilise l'image pour l'ordre visuel, la structure et les coordonnées (bbox). "
+            "CONSIGNE : Utilise l'image pour l'ordre visuel et la structure du tableau. "
             "Utilise le Dictionnaire de Référence ci-dessus pour VÉRIFIER L'ORTHOGRAPHE EXACTE "
             "des libellés d'indicateurs, en-têtes et notes de bas de page. "
             "En cas de conflit entre l'image et le dictionnaire, privilégie l'orthographe du dictionnaire.\n"
@@ -624,7 +654,31 @@ def _build_prompt(
         _PROMPT_BASE
         + (f"\n{suffix}\n" if suffix else "")
         + reference_section
-        + _PROMPT_JSON_STRICT
+        + (_PROMPT_JSON_LEAN if mode == "lean" else _PROMPT_JSON_STRICT)
+    )
+
+
+def _build_content(prompt: str, image_b64: str) -> list[Any]:
+    return [
+        {"type": "text", "text": prompt},
+        {
+            "type": "image_url",
+            "image_url": {
+                "url": f"data:image/png;base64,{image_b64}",
+                "detail": "high",
+            },
+        },
+    ]
+
+
+def _build_repair_prompt(base_prompt: str, raw_content: str) -> str:
+    return (
+        "Le contenu precedent n'etait pas exploitable. "
+        "Retourne UNIQUEMENT un objet JSON valide conforme au schema demande, "
+        "sans markdown, sans commentaire, sans texte avant ou apres.\n\n"
+        f"{base_prompt}\n\n"
+        "Reponse precedente a corriger:\n"
+        f"{raw_content[:2000]}"
     )
 
 
@@ -671,31 +725,53 @@ def _preview_response_text(raw: str, limit: int = 500) -> str:
     return f"{head} ... {tail}"
 
 
-_VISION_RESPONSE_KEYS = frozenset(
-    {
-        "table_title",
-        "headers",
-        "indicators",
-        "rows",
-        "footnotes_content",
-        "footnote_markers",
-        "has_hierarchy",
-        "extraction_confidence",
-        "notes",
-        "confidence",
-        "appears_truncated",
-        "estimated_content_height",
-    }
-)
-_VISION_RESPONSE_REQUIRED_KEYS = frozenset({"indicators", "confidence"})
+def _response_keys_for_mode(mode: str) -> tuple[frozenset[str], frozenset[str]]:
+    if mode == "lean":
+        return (
+            frozenset(
+                {
+                    "table_title",
+                    "headers",
+                    "indicators",
+                    "footnotes_content",
+                    "footnote_markers",
+                    "confidence",
+                    "appears_truncated",
+                    "estimated_content_height",
+                }
+            ),
+            frozenset({"indicators", "confidence"}),
+        )
+    return (
+        frozenset(
+            {
+                "table_title",
+                "headers",
+                "indicators",
+                "rows",
+                "footnotes_content",
+                "footnote_markers",
+                "has_hierarchy",
+                "extraction_confidence",
+                "notes",
+                "confidence",
+                "appears_truncated",
+                "estimated_content_height",
+            }
+        ),
+        frozenset({"indicators", "confidence"}),
+    )
 
 
-def _extract_embedded_schema_candidate(raw: dict[str, Any]) -> dict[str, Any] | None:
+def _extract_embedded_schema_candidate(
+    raw: dict[str, Any], *, schema_mode: str = "full"
+) -> dict[str, Any] | None:
     """Return the most likely nested payload matching the expected Vision schema."""
     if not isinstance(raw, dict):
         return None
+    response_keys, required_keys = _response_keys_for_mode(schema_mode)
     raw_keys = set(raw.keys())
-    if _VISION_RESPONSE_REQUIRED_KEYS.issubset(raw_keys):
+    if required_keys.issubset(raw_keys):
         return raw
 
     best_candidate: dict[str, Any] | None = None
@@ -711,8 +787,8 @@ def _extract_embedded_schema_candidate(raw: dict[str, Any]) -> dict[str, Any] | 
         seen_ids.add(obj_id)
 
         keys = set(candidate.keys())
-        score = len(keys & _VISION_RESPONSE_KEYS)
-        if _VISION_RESPONSE_REQUIRED_KEYS.issubset(keys):
+        score = len(keys & response_keys)
+        if required_keys.issubset(keys):
             return candidate
         if score > best_score:
             best_candidate = candidate
@@ -727,19 +803,22 @@ def _extract_embedded_schema_candidate(raw: dict[str, Any]) -> dict[str, Any] | 
     return None
 
 
-def _parse_vision_result(raw: str | dict[str, Any]) -> VisionFullResult | None:
+def _parse_vision_result(
+    raw: str | dict[str, Any], *, schema_mode: str = "full"
+) -> VisionFullResult | None:
     """Parse and validate JSON into VisionFullResult via Pydantic. Returns None on validation error."""
+    schema_model = _schema_model_for_mode(schema_mode)
     try:
         if isinstance(raw, dict):
-            validated = VisionFullResponseSchema.model_validate(raw)
+            validated = schema_model.model_validate(raw)
         else:
-            validated = VisionFullResponseSchema.model_validate_json(raw)
+            validated = schema_model.model_validate_json(raw)
     except Exception as e:
         if isinstance(raw, dict):
-            candidate = _extract_embedded_schema_candidate(raw)
+            candidate = _extract_embedded_schema_candidate(raw, schema_mode=schema_mode)
             if candidate is not None and candidate is not raw:
                 try:
-                    validated = VisionFullResponseSchema.model_validate(candidate)
+                    validated = schema_model.model_validate(candidate)
                     logger.info(
                         "Vision response recovered from nested wrapper keys: %s",
                         list(raw.keys())[:3],
@@ -772,18 +851,18 @@ def _parse_vision_result(raw: str | dict[str, Any]) -> VisionFullResult | None:
     # Build structured indicators list — preserves text + bbox from Pydantic validation.
     indicators_ordered: list[dict[str, Any]] = [
         {
-            "text": str(item.text).strip(),
-            "bbox": item.bbox,
+            "text": str(item).strip(),
+            "bbox": None,
         }
         for item in validated.indicators
-        if str(item.text).strip()
+        if str(item).strip()
     ]
 
     return VisionFullResult(
         table_title=validated.table_title or "",
         headers=validated.headers or [],
         indicators=indicators_ordered,
-        rows=validated.rows or [],
+        rows=list(getattr(validated, "rows", []) or []),
         footnotes_content=footnotes_ordered,
         footnote_markers=validated.footnote_markers,
         confidence=validated.confidence,
@@ -818,7 +897,7 @@ class VisionFullExtractor:
         self._use_cache = use_cache
         self._client: Any = None
         self._disabled_reason: str | None = None
-        self._schema_contract_checked = False
+        self._schema_contract_checked: set[str] = set()
         self._schema_contract_error_logged = False
 
     def _ensure_client(self) -> None:
@@ -975,75 +1054,95 @@ class VisionFullExtractor:
             image_b64 = base64.standard_b64encode(crop_bytes).decode("ascii")
 
         prompt = _build_prompt(bank_code, vision_cfg, reference_text=reference_text)
-        content: list[Any] = [
-            {"type": "text", "text": prompt},
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:image/png;base64,{image_b64}",
-                    "detail": "high",
-                },
-            },
-        ]
-
-        raw_content = ""
-        finish_reason = ""
-        use_structured = True
-        openai_schema: dict[str, Any] | None = None
-        if use_structured:
-            openai_schema = _build_openai_json_schema()
-            if not self._schema_contract_checked:
-                try:
-                    _validate_openai_strict_schema_contract(openai_schema)
-                    self._schema_contract_checked = True
-                except VisionSchemaContractError as exc:
-                    self._schema_contract_checked = True
-                    self._disabled_reason = str(exc)
-                    if not self._schema_contract_error_logged:
-                        logger.error(
-                            "Vision schema contract invalid (local validation): %s",
-                            exc,
-                        )
-                        self._schema_contract_error_logged = True
-                    raise
+        prompt_lean = _build_prompt(
+            bank_code,
+            vision_cfg,
+            reference_text=reference_text,
+            mode="lean",
+        )
+        max_completion_tokens_full = int(
+            vision_cfg.get(
+                "vision_max_completion_tokens_full",
+                _DEFAULT_MAX_COMPLETION_TOKENS_FULL,
+            )
+        )
+        max_completion_tokens_lean = int(
+            vision_cfg.get(
+                "vision_max_completion_tokens_lean",
+                _DEFAULT_MAX_COMPLETION_TOKENS_LEAN,
+            )
+        )
+        openai_schemas: dict[str, dict[str, Any]] = {
+            "full": _build_openai_json_schema("full"),
+            "lean": _build_openai_json_schema("lean"),
+        }
+        for schema_mode, schema in openai_schemas.items():
+            if schema_mode in self._schema_contract_checked:
+                continue
+            try:
+                _validate_openai_strict_schema_contract(schema)
+                self._schema_contract_checked.add(schema_mode)
+            except VisionSchemaContractError as exc:
+                self._schema_contract_checked.add(schema_mode)
+                self._disabled_reason = str(exc)
+                if not self._schema_contract_error_logged:
+                    logger.error(
+                        "Vision schema contract invalid (local validation, mode=%s): %s",
+                        schema_mode,
+                        exc,
+                    )
+                    self._schema_contract_error_logged = True
+                raise
 
         api_retry_max = int(vision_cfg.get("api_retry_max", 3))
         api_retry_backoff_ms = float(vision_cfg.get("api_retry_backoff_ms", 1000))
-        api_success = False
 
-        for transport_attempt in range(api_retry_max + 1):
-            if transport_attempt > 0:
-                backoff_sec = (api_retry_backoff_ms / 1000.0) * (
-                    2 ** (transport_attempt - 1)
-                )
-                logger.info(
-                    "Vision full: transport retry %s/%s after %.1fs backoff",
-                    transport_attempt,
-                    api_retry_max,
-                    backoff_sec,
-                )
-                time.sleep(backoff_sec)
-
-            for attempt in range(self._max_retries_json + 1):
+        def _issue_request(
+            prompt_text: str,
+            *,
+            structured: bool,
+            schema_mode: str,
+            max_completion_tokens: int,
+            label: str,
+        ) -> tuple[str, str, bool] | None:
+            local_use_structured = structured
+            transport_attempt = 0
+            while transport_attempt <= api_retry_max:
+                if transport_attempt > 0:
+                    backoff_sec = (api_retry_backoff_ms / 1000.0) * (
+                        2 ** (transport_attempt - 1)
+                    )
+                    logger.info(
+                        "Vision %s: transport retry %s/%s after %.1fs backoff",
+                        label,
+                        transport_attempt,
+                        api_retry_max,
+                        backoff_sec,
+                    )
+                    time.sleep(backoff_sec)
                 try:
                     response_format: dict[str, Any] = (
-                        (openai_schema or {"type": "json_object"})
-                        if use_structured
+                        (openai_schemas.get(schema_mode) or {"type": "json_object"})
+                        if local_use_structured
                         else {"type": "json_object"}
                     )
                     response = client.chat.completions.create(
                         model=self._model,
-                        messages=[{"role": "user", "content": content}],
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": _build_content(prompt_text, image_b64),
+                            }
+                        ],
                         response_format=response_format,
                         temperature=0,
-                        max_completion_tokens=16384,
+                        max_completion_tokens=max_completion_tokens,
                     )
-                    raw_content = response.choices[0].message.content or ""
-                    finish_reason = str(
-                        getattr(response.choices[0], "finish_reason", "") or ""
+                    return (
+                        response.choices[0].message.content or "",
+                        str(getattr(response.choices[0], "finish_reason", "") or ""),
+                        local_use_structured,
                     )
-                    api_success = True
-                    break
                 except Exception as e:
                     err_kind = _classify_openai_error(e)
                     if err_kind == "schema_contract_invalid":
@@ -1052,105 +1151,163 @@ class VisionFullExtractor:
                             logger.error("%s", self._disabled_reason)
                             self._schema_contract_error_logged = True
                         raise VisionSchemaContractError(self._disabled_reason) from e
-                    if use_structured and err_kind == "structured_output_unsupported":
+                    if (
+                        local_use_structured
+                        and err_kind == "structured_output_unsupported"
+                    ):
                         logger.debug(
-                            "Structured Outputs unsupported, falling back to json_object: %s",
+                            "Structured Outputs unsupported for %s, falling back to json_object: %s",
+                            label,
                             e,
                         )
-                        use_structured = False
+                        local_use_structured = False
                         continue
                     if err_kind in ("rate_limit", "timeout", "connection"):
-                        if transport_attempt < api_retry_max:
-                            break  # exit inner loop to retry at transport level
+                        transport_attempt += 1
+                        if transport_attempt <= api_retry_max:
+                            continue
                         logger.warning(
-                            "Vision full extraction API error (retries exhausted): %s",
+                            "Vision %s API error (retries exhausted): %s",
+                            label,
                             e,
                         )
                         return None
-                    logger.warning("Vision full extraction API error: %s", e)
+                    logger.warning("Vision %s API error: %s", label, e)
                     return None
-
-            if api_success:
-                break
-        else:
-            logger.warning("Vision full extraction: no successful API response")
+            logger.warning("Vision %s: no successful API response", label)
             return None
 
-        for attempt in range(self._max_retries_json + 1):
+        attempt_profiles: list[dict[str, Any]] = [
+            {
+                "label": "full",
+                "prompt": prompt,
+                "structured": True,
+                "schema_mode": "full",
+                "max_completion_tokens": max_completion_tokens_full,
+            }
+        ]
+        if self._max_retries_json >= 1:
+            attempt_profiles.append(
+                {
+                    "label": "lean",
+                    "prompt": prompt_lean,
+                    "structured": True,
+                    "schema_mode": "lean",
+                    "max_completion_tokens": max_completion_tokens_lean,
+                }
+            )
+        if self._max_retries_json >= 2:
+            attempt_profiles.append(
+                {
+                    "label": "lean-json",
+                    "prompt": prompt_lean,
+                    "structured": False,
+                    "schema_mode": "lean",
+                    "max_completion_tokens": max_completion_tokens_lean,
+                }
+            )
+
+        previous_raw_content = ""
+        failure_causes: list[str] = []
+
+        for attempt_index, profile in enumerate(attempt_profiles):
+            prompt_text = profile["prompt"]
+            if profile["label"] == "lean-json" and previous_raw_content:
+                prompt_text = _build_repair_prompt(prompt_text, previous_raw_content)
+
+            issued = _issue_request(
+                prompt_text,
+                structured=bool(profile["structured"]),
+                schema_mode=str(profile["schema_mode"]),
+                max_completion_tokens=int(profile["max_completion_tokens"]),
+                label=str(profile["label"]),
+            )
+            if issued is None:
+                return None
+
+            raw_content, finish_reason, used_structured = issued
+            previous_raw_content = raw_content
+
             if finish_reason == "length":
+                failure_causes.append("vision_truncated")
                 logger.warning(
-                    "Vision full: response truncated on attempt %d (finish_reason=length, raw_len=%d)",
-                    attempt + 1,
+                    "Vision %s: response truncated (raw_len=%d)",
+                    profile["label"],
                     len(raw_content),
                 )
+                if attempt_index + 1 < len(attempt_profiles):
+                    continue
+                break
 
             data = _parse_json_response(raw_content)
             if data is None:
+                failure_causes.append("vision_invalid_json")
                 logger.info(
-                    "Vision full: JSON parse failed on attempt %d (finish_reason=%s, raw_len=%d, preview=%r)",
-                    attempt + 1,
-                    finish_reason or "unknown",
+                    "Vision %s: JSON parse failed (raw_len=%d, preview=%r)",
+                    profile["label"],
                     len(raw_content),
                     _preview_response_text(raw_content),
                 )
-            else:
-                result = _parse_vision_result(data)
-                if result is not None:
-                    if self._use_cache and cache_key:
-                        cache_dir = get_vision_cache_dir()
-                        cache_put(
-                            cache_dir,
-                            cache_key,
-                            {
-                                "table_title": result.table_title,
-                                "headers": result.headers,
-                                "indicators": result.indicators,
-                                "rows": result.rows,
-                                # footnotes persisted as ordered list {marker, text}
-                                "footnotes_content": result.footnotes_content,
-                                "footnote_markers": result.footnote_markers,
-                                "confidence": result.confidence,
-                                "appears_truncated": result.appears_truncated,
-                                "estimated_content_height": result.estimated_content_height,
-                                "vision_status": result.vision_status,
-                                "warnings": result.warnings,
-                            },
-                        )
-                    return result
+                if attempt_index + 1 < len(attempt_profiles):
+                    continue
+                break
+
+            result = _parse_vision_result(data, schema_mode=str(profile["schema_mode"]))
+            if result is None:
+                failure_causes.append("vision_schema_validation_failed")
                 logger.info(
-                    "Vision full: schema validation failed on attempt %d (finish_reason=%s, raw_len=%d, keys=%s)",
-                    attempt + 1,
-                    finish_reason or "unknown",
+                    "Vision %s: schema validation failed (raw_len=%d, keys=%s)",
+                    profile["label"],
                     len(raw_content),
                     sorted(data.keys()),
                 )
-
-            if attempt >= self._max_retries_json:
+                if attempt_index + 1 < len(attempt_profiles):
+                    continue
                 break
 
-            use_structured = False
-            content = [
-                {
-                    "type": "text",
-                    "text": (
-                        "Le contenu precedent n'etait pas exploitable. "
-                        "Retourne UNIQUEMENT un objet JSON valide conforme au schema demande, "
-                        "sans markdown, sans commentaire, sans texte avant ou apres.\n\n"
-                        f"{prompt}\n\n"
-                        "Reponse precedente a corriger:\n"
-                        f"{raw_content[:2000]}"
-                    ),
-                },
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/png;base64,{image_b64}",
-                        "detail": "high",
-                    },
-                },
-            ]
+            if profile["label"] != "full":
+                result.rows = []
+                failure_causes.append("vision_rows_missing_from_fallback")
+            if used_structured is False and bool(profile["structured"]):
+                failure_causes.append("vision_structured_output_fallback")
+            if profile["label"] != "full" or failure_causes:
+                result.vision_status = "partial"
+                deduped = list(dict.fromkeys(failure_causes))
+                if profile["label"] != "full":
+                    deduped.append("vision_lean_mode")
+                result.warnings = list(dict.fromkeys(deduped))
 
-        logger.warning("Vision full extraction: invalid JSON after retries")
+            if (
+                self._use_cache
+                and cache_key
+                and str(profile["label"]) == "full"
+                and result.vision_status == "ok"
+            ):
+                cache_dir = get_vision_cache_dir()
+                cache_put(
+                    cache_dir,
+                    cache_key,
+                    {
+                        "table_title": result.table_title,
+                        "headers": result.headers,
+                        "indicators": result.indicators,
+                        "rows": result.rows,
+                        # footnotes persisted as ordered list {marker, text}
+                        "footnotes_content": result.footnotes_content,
+                        "footnote_markers": result.footnote_markers,
+                        "confidence": result.confidence,
+                        "appears_truncated": result.appears_truncated,
+                        "estimated_content_height": result.estimated_content_height,
+                        "vision_status": result.vision_status,
+                        "warnings": result.warnings,
+                    },
+                )
+            return result
+
+        logger.warning(
+            "Vision full extraction: invalid content after retries (%s)",
+            ", ".join(dict.fromkeys(failure_causes + ["vision_retry_exhausted"])),
+        )
         return None
 
     def extract_with_quality_pass(
@@ -1188,6 +1345,12 @@ class VisionFullExtractor:
         def _row_count(r: VisionFullResult) -> int:
             return len(r.rows) if r.rows else 0
 
+        def _rows_degraded(r: VisionFullResult) -> bool:
+            warnings = list(getattr(r, "warnings", []) or [])
+            return bool(
+                {"vision_rows_limited", "vision_rows_missing_from_fallback"} & set(warnings)
+            )
+
         def _needs_recrop(result: VisionFullResult | None) -> bool:
             if result is None:
                 return True
@@ -1201,6 +1364,9 @@ class VisionFullExtractor:
                 found = {str(m).strip() for m in result.footnote_markers}
                 if not (found & expected_set) and len(found) < len(expected_set):
                     return True
+            if _rows_degraded(result):
+                # Fallback rows are intentionally degraded and should not trigger recrop by themselves.
+                return False
             # Completeness: indicators present but rows nearly empty
             n_ind = _indicator_count(result)
             n_row = _row_count(result)

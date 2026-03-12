@@ -41,3 +41,24 @@ def test_empty_and_filtered_produce_empty() -> None:
         b = _canonical_indicator_label(raw)
         c = _canonical_indicator_key(raw)
         assert a == b == c, f"Divergence for {raw!r}: {a!r} vs {b!r} vs {c!r}"
+
+
+def test_lie_liee_canonicalize_to_same_key() -> None:
+    """lie/liee/lies/liees canonicalize to 'lie' so same-phrase variants share key."""
+    a = normalize_indicator_for_comparison("Exposition liee au credit")
+    b = normalize_indicator_for_comparison("Exposition lie au credit")
+    assert a == b, f"lie vs liee should match: {a!r} vs {b!r}"
+
+
+def test_relatif_relative_canonicalize_to_same_key() -> None:
+    """relatif/relative/relatifs/relatives canonicalize to 'relatif'."""
+    a = normalize_indicator_for_comparison("Valeur relative au marche")
+    b = normalize_indicator_for_comparison("Valeur relatif au marche")
+    assert a == b, f"relatif vs relative should match: {a!r} vs {b!r}"
+
+
+def test_residuel_residuels_canonicalize_to_same_key() -> None:
+    """residuel/residuels canonicalize to 'residuel'."""
+    a = normalize_indicator_for_comparison("Ecarts residuels")
+    b = normalize_indicator_for_comparison("Ecarts residuel")
+    assert a == b, f"residuel vs residuels should match: {a!r} vs {b!r}"

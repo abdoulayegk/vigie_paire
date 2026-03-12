@@ -119,7 +119,9 @@ def get_canonical_footnotes(table: Any) -> FootnoteList:
 def get_extraction_confidence(table: Any) -> float:
     """
     Return extraction confidence from a table's debug_metrics (0.0--1.0).
-    Prefer vision_extraction_confidence when present; otherwise 0.0.
+    Prefer vision_extraction_confidence; fall back to legacy vision_primary_confidence.
+    When metrics are missing but the table has Vision content and raw indicators,
+    assume certified-level confidence so stored extractions do not false-block.
     """
     if table is None:
         return 0.0
@@ -128,6 +130,15 @@ def get_extraction_confidence(table: Any) -> float:
         return 0.0
     v = dm.get("vision_extraction_confidence")
     if v is None:
+        v = dm.get("vision_primary_confidence")
+    if v is None:
+        content_source = getattr(table, "content_source", None)
+        if content_source != VISION_CONTENT_SOURCE:
+            content_source = infer_content_source(
+                getattr(table, "extraction_method", None), None
+            )
+        if content_source == VISION_CONTENT_SOURCE and get_vision_raw_indicators(table):
+            return max(EXTRACTION_CONFIDENCE_CERTIFIED_MIN, 0.7)
         return 0.0
     try:
         return max(0.0, min(1.0, float(v)))
@@ -138,20 +149,41 @@ def get_extraction_confidence(table: Any) -> float:
 def get_extraction_quality_flags(table: Any) -> dict[str, bool]:
     """
     Return a normalized set of quality flags from a table's debug_metrics.
-    Matcher and review pipeline should use this instead of inspecting debug_metrics ad hoc.
+    When metrics are missing but the table has Vision content and raw indicators,
+    assume applied=True so stored extractions do not false-block.
     """
     if table is None:
         return {}
     dm = getattr(table, "debug_metrics", None) or {}
     if not isinstance(dm, dict):
         return {}
+    warning_codes = {
+        str(code).strip()
+        for code in list(dm.get("vision_warning_codes") or dm.get("warnings") or [])
+        if str(code).strip()
+    }
+    vision_status = str(dm.get("vision_status") or "").strip().lower()
+    applied = dm.get("vision_extraction_applied")
+    if applied is None:
+        applied = dm.get("vision_primary_applied")
+    if applied is None or applied is False:
+        content_source = getattr(table, "content_source", None)
+        if content_source != VISION_CONTENT_SOURCE:
+            content_source = infer_content_source(
+                getattr(table, "extraction_method", None), None
+            )
+        if content_source == VISION_CONTENT_SOURCE and get_vision_raw_indicators(table):
+            applied = True
     return {
         "appears_truncated": bool(dm.get("appears_truncated", False)),
         "recrop_attempted": bool(dm.get("recrop_attempted", False)),
         "recrop_used": bool(dm.get("recrop_used", False)),
         "recrop_failed_incomplete": bool(dm.get("recrop_failed_incomplete", False)),
-        "vision_extraction_applied": bool(dm.get("vision_extraction_applied", False)),
+        "vision_extraction_applied": bool(applied if applied is not None else False),
         "crop_rejected": bool(dm.get("crop_reject_reason")),
+        "partial_result": vision_status == "partial",
+        "rows_missing_from_fallback": "vision_rows_missing_from_fallback"
+        in warning_codes,
     }
 
 
@@ -203,6 +235,8 @@ def derive_extraction_blockers(
         blockers.append("crop_rejected")
     if flags.get("recrop_failed_incomplete"):
         blockers.append("recrop_failed_incomplete")
+    if flags.get("partial_result"):
+        blockers.append("partial_vision_result")
     if not flags.get("vision_extraction_applied", True):
         blockers.append("vision_extraction_not_applied")
     confidence = get_extraction_confidence(table)

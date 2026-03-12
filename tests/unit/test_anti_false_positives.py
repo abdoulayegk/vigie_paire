@@ -110,8 +110,18 @@ class TestClassifyExcludedLineUnitPeriod:
     def test_paren_en_millions(self) -> None:
         assert _classify_excluded_line("(en millions de dollars canadiens)") == "unit"
 
-    def test_real_indicator_not_excluded(self) -> None:
-        assert _classify_excluded_line("Risque de credit") is None
+    def test_section_header_allowlist_risque_de_credit(self) -> None:
+        assert _classify_excluded_line("Risque de credit") == "section_header"
+
+    def test_section_header_allowlist_general_liquidite(self) -> None:
+        assert _classify_excluded_line("General") == "section_header"
+        assert _classify_excluded_line("Liquidite") == "section_header"
+        assert _classify_excluded_line("Autres risques") == "section_header"
+        assert _classify_excluded_line("Risque de marche") == "section_header"
+        assert _classify_excluded_line("Risque operationnel") == "section_header"
+
+    def test_real_indicator_depots_stables_not_excluded(self) -> None:
+        assert _classify_excluded_line("Depots stables") is None
 
     def test_depots_personnels_not_excluded(self) -> None:
         assert _classify_excluded_line("Depots personnels") is None

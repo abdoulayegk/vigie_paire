@@ -14,7 +14,6 @@ def test_footnotes_preserve_insertion_order_not_sorted() -> None:
     """Footnotes must preserve visual order (haut -> bas), not be sorted by marker key."""
     # Markers out of numerical order to verify they are NOT sorted
     raw = {
-        "reasoning_scratchpad": "test",
         "indicators": [{"text": "Ratio CET1", "bbox": None}],
         "footnotes_content": [
             {"id": "3", "text": "Troisième note"},
@@ -45,7 +44,6 @@ def test_footnotes_preserve_insertion_order_not_sorted() -> None:
 def test_footnotes_from_legacy_dict_preserve_insertion_order() -> None:
     """Legacy dict footnotes_content (migration shim) must also preserve insertion order."""
     raw = {
-        "reasoning_scratchpad": "test",
         "indicators": [{"text": "Indicateur A", "bbox": None}],
         "footnotes_content": {
             "(3)": "Troisième note",
@@ -68,7 +66,6 @@ def test_footnotes_from_legacy_dict_preserve_insertion_order() -> None:
 def test_to_footnotes_list_returns_copy() -> None:
     """to_footnotes_list() must return a copy (mutations don't affect the result)."""
     raw = {
-        "reasoning_scratchpad": "test",
         "indicators": [{"text": "X", "bbox": None}],
         "footnotes_content": [{"id": "1", "text": "Note"}],
         "footnote_markers": ["1"],
@@ -87,7 +84,6 @@ def test_to_footnotes_list_returns_copy() -> None:
 def test_vision_full_result_has_new_content_fields() -> None:
     """VisionFullResult must have table_title, headers, rows, vision_status, warnings."""
     raw = {
-        "reasoning_scratchpad": "Table analysis",
         "table_title": "Tableau 5 : Ratios de fonds propres",
         "headers": ["Période", "T1 2025", "T2 2025"],
         "indicators": [
@@ -106,6 +102,10 @@ def test_vision_full_result_has_new_content_fields() -> None:
     assert result is not None
     assert result.table_title == "Tableau 5 : Ratios de fonds propres"
     assert result.headers == ["Période", "T1 2025", "T2 2025"]
+    assert result.indicators == [
+        {"text": "Ratio CET1", "bbox": None},
+        {"text": "Ratio Tier 1", "bbox": None},
+    ]
     assert result.rows == [
         ["Ratio CET1", "13.1%", "13.3%"],
         ["Ratio Tier 1", "14.5%", "14.8%"],

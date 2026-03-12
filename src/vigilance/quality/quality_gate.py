@@ -85,10 +85,11 @@ def evaluate_extraction_quality(
     tables: list[Any],
     *,
     config: dict[str, Any] | None = None,
+    max_blocked_evidence: int = 50,
 ) -> dict[str, Any]:
     """
-    Evaluate extraction certification across tables. Returns status, fail_reasons, and summary.
-    Used by the run-level quality gate; strict defaults (any blocked => FAIL).
+    Evaluate extraction certification across tables. Returns status, fail_reasons, summary,
+    blocker_breakdown (counts per blocker reason), and blocked_table_evidence for diagnostics.
     """
     cfg = dict(_DEFAULT_EXTRACTION_CONFIG)
     if isinstance(config, dict):
@@ -103,11 +104,24 @@ def evaluate_extraction_quality(
     tables_crop_rejected = 0
     tables_low_confidence = 0
     tables_budget_exhausted = 0
+    blocker_breakdown: dict[str, int] = {}
+    blocked_evidence: list[dict[str, Any]] = []
 
     for table in tables or []:
         status = get_extraction_status(table)
+        blockers = derive_extraction_blockers(table)
+        for b in blockers:
+            blocker_breakdown[b] = blocker_breakdown.get(b, 0) + 1
         if status == EXTRACTION_STATUS_BLOCKED:
             tables_blocked += 1
+            if len(blocked_evidence) < max_blocked_evidence:
+                conf = get_extraction_confidence(table)
+                blocked_evidence.append({
+                    "section": getattr(table, "section", None),
+                    "page": getattr(table, "page_pdf", None),
+                    "blockers": blockers,
+                    "confidence": round(conf, 3),
+                })
         elif status == EXTRACTION_STATUS_REVIEW_REQUIRED:
             tables_review_required += 1
         else:
@@ -138,19 +152,23 @@ def evaluate_extraction_quality(
     status = "FAIL" if fail_reasons else "PASS"
     eligible_for_review = status == "PASS"
 
+    summary = {
+        "tables_total": len(tables or []),
+        "tables_certified": tables_certified,
+        "tables_review_required": tables_review_required,
+        "tables_blocked": tables_blocked,
+        "tables_crop_rejected": tables_crop_rejected,
+        "tables_low_confidence": tables_low_confidence,
+        "tables_budget_exhausted": tables_budget_exhausted,
+        "blocker_breakdown": blocker_breakdown,
+    }
     return {
         "status": status,
         "eligible_for_review": eligible_for_review,
         "fail_reasons": fail_reasons,
-        "summary": {
-            "tables_total": len(tables or []),
-            "tables_certified": tables_certified,
-            "tables_review_required": tables_review_required,
-            "tables_blocked": tables_blocked,
-            "tables_crop_rejected": tables_crop_rejected,
-            "tables_low_confidence": tables_low_confidence,
-            "tables_budget_exhausted": tables_budget_exhausted,
-        },
+        "summary": summary,
+        "blocker_breakdown": blocker_breakdown,
+        "blocked_table_evidence": blocked_evidence,
     }
 
 

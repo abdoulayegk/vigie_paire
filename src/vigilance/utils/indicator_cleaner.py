@@ -823,6 +823,23 @@ def normalize_indicator_for_comparison(text: str) -> str:
         flags=re.IGNORECASE,
     )
 
+    # Canonicalize lie/liee/lies/liees (after accent strip: lie, liee, etc.) so
+    # "exposition liee au credit" and "exposition lie au credit" share the same key.
+    text = re.sub(
+        r"\b(lie|liee|lies|liees)\b", "lie", text, flags=re.IGNORECASE
+    )
+    # Canonicalize relatif/relative/relatifs/relatives -> relatif
+    text = re.sub(
+        r"\b(relatif|relative|relatifs|relatives)\b",
+        "relatif",
+        text,
+        flags=re.IGNORECASE,
+    )
+    # Canonicalize residuel/residuels -> residuel
+    text = re.sub(
+        r"\bresiduels\b", "residuel", text, flags=re.IGNORECASE
+    )
+
     # Espaces et minuscules
     text = re.sub(r"\s+", " ", text).strip().lower()
 

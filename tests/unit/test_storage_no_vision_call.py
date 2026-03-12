@@ -137,10 +137,69 @@ def test_table_artifact_from_dict_normalizes_indicators() -> None:
     }
     artifact = table_artifact_from_dict(d)
     indicators = get_comparison_indicators(artifact)
-    assert "total des fonds propre" in indicators
+    assert "fonds propre" in indicators
     assert "cet1 ratio" in indicators
     assert "*" not in str(indicators)
     assert "(1)" not in str(indicators)
+
+
+def test_table_artifact_from_dict_uses_raw_pipeline_when_raw_present() -> None:
+    """When first_column_indicators_raw is present and non-empty, build indicators from raw (normalize + post_normalize)."""
+    from app.extraction_storage import table_artifact_from_dict
+    from vigilance.utils.indicator_cleaner import (
+        normalize_indicator_for_comparison,
+        post_normalize_indicator,
+    )
+
+    raw_list = ["Ratio CET1", "Tier 1", "Total des fonds propres (1)"]
+    expected = []
+    for ind in raw_list:
+        fixed, _, _ = post_normalize_indicator(normalize_indicator_for_comparison(ind))
+        if fixed and normalize_indicator_for_comparison(fixed):
+            expected.append(fixed)
+    d = {
+        "bank_code": "bmo",
+        "section": "capital",
+        "page_pdf": 1,
+        "table_id": "t1",
+        "title": "Capital",
+        "headers": ["Indicateur", "Valeur"],
+        "rows": [],
+        "first_column_indicators": ["ratio cet1", "tier 1", "total des fonds propre"],
+        "first_column_indicators_raw": raw_list,
+        "extraction_method": "vision_full_gpt4o",
+        "footnotes": [],
+    }
+    artifact = table_artifact_from_dict(d)
+    assert artifact.first_column_indicators == expected
+
+
+def test_table_artifact_from_dict_fallback_when_no_raw() -> None:
+    """When first_column_indicators_raw is missing or empty, build from stored first_column_indicators (backward compat)."""
+    from app.extraction_storage import table_artifact_from_dict
+    from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
+
+    stored_normalized = ["ratio cet1", "pret de detail"]
+    expected = [
+        n
+        for ind in stored_normalized
+        if (n := normalize_indicator_for_comparison(str(ind).strip()))
+    ]
+    d = {
+        "bank_code": "bmo",
+        "section": "capital",
+        "page_pdf": 1,
+        "table_id": "t1",
+        "title": "Capital",
+        "headers": ["Indicateur", "Valeur"],
+        "rows": [],
+        "first_column_indicators": stored_normalized,
+        "first_column_indicators_raw": None,
+        "extraction_method": "docling",
+        "footnotes": [],
+    }
+    artifact = table_artifact_from_dict(d)
+    assert artifact.first_column_indicators == expected
 
 
 def test_save_then_load_roundtrip() -> None:
@@ -372,3 +431,50 @@ def test_load_extraction_accepts_legacy_tables_json_without_schema_version() -> 
         import shutil
 
         shutil.rmtree(base, ignore_errors=True)
+
+
+def test_stored_manifest_compatible_accepts_legacy_meta() -> None:
+    """When stored meta has no extraction_manifest (legacy), compatibility check accepts it."""
+    from app.extraction_storage import is_stored_manifest_compatible
+
+    stored_meta = {"bank_code": "bns", "year": 2025, "quarter": "t1"}
+    expected = {"pdf_fingerprint": "abc", "section_ranges_fingerprint": "def"}
+    assert is_stored_manifest_compatible(stored_meta, expected) is True
+
+
+def test_stored_manifest_incompatible_when_version_older() -> None:
+    """When stored manifest has older artifact_contract_version, compatibility check rejects."""
+    from app.extraction_storage import is_stored_manifest_compatible
+
+    stored_meta = {
+        "extraction_manifest": {
+            "artifact_contract_version": 0,
+            "extraction_metrics_version": 1,
+            "quality_policy_version": 1,
+        }
+    }
+    expected = {
+        "artifact_contract_version": 1,
+        "extraction_metrics_version": 1,
+        "quality_policy_version": 1,
+    }
+    assert is_stored_manifest_compatible(stored_meta, expected) is False
+
+
+def test_stored_manifest_incompatible_when_pdf_fingerprint_differs() -> None:
+    """When stored manifest has different pdf_fingerprint, compatibility check rejects."""
+    from app.extraction_storage import is_stored_manifest_compatible
+
+    stored_meta = {
+        "extraction_manifest": {
+            "pdf_fingerprint": "aaa",
+            "section_ranges_fingerprint": "bbb",
+            "artifact_contract_version": 1,
+        }
+    }
+    expected = {
+        "pdf_fingerprint": "ccc",
+        "section_ranges_fingerprint": "bbb",
+        "artifact_contract_version": 1,
+    }
+    assert is_stored_manifest_compatible(stored_meta, expected) is False

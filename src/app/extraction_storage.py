@@ -7,6 +7,7 @@ comparison engine. It is distinct from the canonical Dash/UI payload written by
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from datetime import datetime, timezone
@@ -14,11 +15,87 @@ from pathlib import Path
 from typing import Any
 
 from vigilance.models.table_models import TableArtifact, infer_content_source
-from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
+from vigilance.utils.indicator_cleaner import (
+    normalize_indicator_for_comparison,
+    post_normalize_indicator,
+)
 
 logger = logging.getLogger(__name__)
 
 STORAGE_SCHEMA_VERSION = 3
+
+# Contract versions for cache compatibility. Bump to reject older stored artifacts.
+ARTIFACT_CONTRACT_VERSION = 1
+EXTRACTION_METRICS_VERSION = 1
+QUALITY_POLICY_VERSION = 1
+
+
+def build_extraction_manifest(
+    pdf_path: str,
+    section_ranges: list[dict[str, Any]],
+    extraction_mode: str = "vision_full_gpt4o",
+) -> dict[str, Any]:
+    """Build manifest for cache compatibility (provenance + contract versions)."""
+    try:
+        path_bytes = Path(pdf_path).resolve().as_posix().encode("utf-8")
+        pdf_fingerprint = hashlib.sha256(path_bytes).hexdigest()[:16]
+    except Exception:
+        pdf_fingerprint = ""
+    try:
+        ranges_bytes = json.dumps(section_ranges, sort_keys=True).encode("utf-8")
+        section_fingerprint = hashlib.sha256(ranges_bytes).hexdigest()[:16]
+    except Exception:
+        section_fingerprint = ""
+    return {
+        "pdf_path": pdf_path,
+        "pdf_fingerprint": pdf_fingerprint,
+        "section_ranges_fingerprint": section_fingerprint,
+        "extraction_mode": extraction_mode,
+        "artifact_contract_version": ARTIFACT_CONTRACT_VERSION,
+        "extraction_metrics_version": EXTRACTION_METRICS_VERSION,
+        "quality_policy_version": QUALITY_POLICY_VERSION,
+    }
+
+
+def is_stored_manifest_compatible(
+    stored_meta: dict[str, Any],
+    expected_manifest: dict[str, Any],
+) -> bool:
+    """
+    Return True if stored extraction is safe to reuse (provenance + contract).
+    If stored has no manifest (legacy cache), return True for backward compatibility.
+    """
+    stored_manifest = stored_meta.get("extraction_manifest") if stored_meta else None
+    if not stored_manifest or not isinstance(stored_manifest, dict):
+        return True
+    for key in ("artifact_contract_version", "extraction_metrics_version", "quality_policy_version"):
+        stored_v = stored_manifest.get(key)
+        expected_v = expected_manifest.get(key)
+        if expected_v is not None and stored_v is not None:
+            try:
+                if int(stored_v) < int(expected_v):
+                    logger.debug(
+                        "Stored extraction incompatible: %s stored=%s expected=%s",
+                        key,
+                        stored_v,
+                        expected_v,
+                    )
+                    return False
+            except (TypeError, ValueError):
+                return False
+    if expected_manifest.get("pdf_fingerprint") and stored_manifest.get("pdf_fingerprint"):
+        if stored_manifest.get("pdf_fingerprint") != expected_manifest.get("pdf_fingerprint"):
+            logger.debug(
+                "Stored extraction incompatible: pdf_fingerprint mismatch"
+            )
+            return False
+    if expected_manifest.get("section_ranges_fingerprint") and stored_manifest.get("section_ranges_fingerprint"):
+        if stored_manifest.get("section_ranges_fingerprint") != expected_manifest.get("section_ranges_fingerprint"):
+            logger.debug(
+                "Stored extraction incompatible: section_ranges_fingerprint mismatch"
+            )
+            return False
+    return True
 
 
 def _normalize_storage_quarter(quarter: str) -> str:
@@ -46,6 +123,18 @@ def _footnote_to_canonical(item: dict[str, Any]) -> dict[str, str]:
     return {"id": fid, "text": text}
 
 
+def _normalize_legacy_debug_metrics(dm: dict[str, Any]) -> dict[str, Any]:
+    """Copy legacy vision_primary_* keys into canonical vision_extraction_* when missing."""
+    out = dict(dm)
+    if out.get("vision_extraction_confidence") is None and out.get("vision_primary_confidence") is not None:
+        out["vision_extraction_confidence"] = out["vision_primary_confidence"]
+    if out.get("vision_extraction_applied") is None and out.get("vision_primary_applied") is not None:
+        out["vision_extraction_applied"] = out["vision_primary_applied"]
+    if out.get("vision_extraction_attempted") is None and out.get("vision_primary_attempted") is not None:
+        out["vision_extraction_attempted"] = out["vision_primary_attempted"]
+    return out
+
+
 def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     """Reconstruct the canonical comparison ``TableArtifact`` from stored JSON."""
     # Normalize keys and handle optional fields
@@ -58,13 +147,52 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     rows = list(d.get("rows") or [])
     for i, row in enumerate(rows):
         rows[i] = list(row) if isinstance(row, (list, tuple)) else [str(row)]
-    raw_indicators = list(d.get("first_column_indicators") or [])
-    first_column_indicators = [
-        n
-        for ind in raw_indicators
-        if (n := normalize_indicator_for_comparison(str(ind or "").strip()))
-    ]
     extraction_method = str(d.get("extraction_method") or "docling")
+    content_source = infer_content_source(
+        extraction_method,
+        d.get("content_source"),
+    )
+    first_column_indicators_raw_from_storage = d.get("first_column_indicators_raw")
+    raw_indicators_stored = list(d.get("first_column_indicators") or [])
+    use_raw_reconstruction = (
+        content_source == "vision_gpt4o"
+        and first_column_indicators_raw_from_storage
+        and isinstance(first_column_indicators_raw_from_storage, list)
+    )
+    if use_raw_reconstruction:
+        raw_list = [
+            str(ind or "").strip()
+            for ind in first_column_indicators_raw_from_storage
+            if str(ind or "").strip()
+        ]
+        if raw_list:
+            first_column_indicators = []
+            for ind in raw_list:
+                fixed, _, _ = post_normalize_indicator(
+                    normalize_indicator_for_comparison(ind)
+                )
+                if fixed and normalize_indicator_for_comparison(fixed):
+                    first_column_indicators.append(fixed)
+        else:
+            first_column_indicators = [
+                n
+                for ind in raw_indicators_stored
+                if (n := normalize_indicator_for_comparison(str(ind or "").strip()))
+            ]
+    elif first_column_indicators_raw_from_storage and isinstance(
+        first_column_indicators_raw_from_storage, list
+    ):
+        first_column_indicators = [
+            n
+            for ind in first_column_indicators_raw_from_storage
+            if (n := normalize_indicator_for_comparison(str(ind or "").strip()))
+        ]
+    else:
+        first_column_indicators = [
+            n
+            for ind in raw_indicators_stored
+            if (n := normalize_indicator_for_comparison(str(ind or "").strip()))
+        ]
     title_clean = d.get("title_clean")
     title_raw = d.get("title_raw")
     table_number = d.get("table_number")
@@ -88,10 +216,8 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     debug_metrics = d.get("debug_metrics")
     if debug_metrics is not None and not isinstance(debug_metrics, dict):
         debug_metrics = None
-    content_source = infer_content_source(
-        extraction_method,
-        d.get("content_source"),
-    )
+    if debug_metrics:
+        debug_metrics = _normalize_legacy_debug_metrics(debug_metrics)
     # comparison_eligible and comparison_blockers are recomputed by
     # TableArtifact.__post_init__ from current state — do not pass
     # stale values from stored JSON.
@@ -123,6 +249,11 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     )
 
 
+# Atomic snapshot file so manifest and payload cannot drift. Future layout may use
+# fingerprint-based paths (e.g. .../quarter/{pdf_fp}_{section_fp}/) with a "latest" pointer.
+EXTRACTION_SNAPSHOT_FILENAME = "extraction_snapshot.json"
+
+
 def save_extraction(
     bank_code: str,
     year: int,
@@ -134,14 +265,15 @@ def save_extraction(
     """
     Save extraction for one report.
 
-    Writes tables.json and meta.json in outputs/extractions/{bank_code}/{year}/{quarter}/.
+    Writes extraction_snapshot.json atomically (tables + meta in one file so they cannot drift),
+    then tables.json and meta.json for backward compatibility.
+    Layout: outputs/extractions/{bank_code}/{year}/{quarter}/.
     Returns the directory path.
     """
     quarter_norm = _normalize_storage_quarter(quarter)
     target_dir = _extraction_dir(base_dir, bank_code, year, quarter_norm)
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    tables_path = target_dir / "tables.json"
     tables_dicts = [t.to_dict() for t in tables]
     for d in tables_dicts:
         raw_footnotes = d.get("footnotes") or []
@@ -153,18 +285,45 @@ def save_extraction(
         "year": year,
         "quarter": quarter_norm,
     }
-    tables_path.write_text(
-        json.dumps(tables_payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
 
-    meta_path = target_dir / "meta.json"
     meta_payload = dict(meta or {})
     meta_payload.setdefault("schema_version", STORAGE_SCHEMA_VERSION)
     meta_payload.setdefault("bank_code", bank_code)
     meta_payload.setdefault("year", year)
     meta_payload.setdefault("quarter", quarter_norm)
     meta_payload.setdefault("extracted_at", datetime.now(timezone.utc).isoformat())
+    try:
+        manifest = build_extraction_manifest(
+            pdf_path=str(meta_payload.get("pdf_path") or ""),
+            section_ranges=list(meta_payload.get("section_ranges") or []),
+            extraction_mode=str(meta_payload.get("extraction_method") or "vision_full_gpt4o"),
+        )
+        meta_payload["extraction_manifest"] = manifest
+    except Exception:
+        pass
+
+    snapshot = {
+        "schema_version": STORAGE_SCHEMA_VERSION,
+        "bank_code": bank_code,
+        "year": year,
+        "quarter": quarter_norm,
+        "tables": tables_payload["tables"],
+        "meta": meta_payload,
+    }
+    snapshot_path = target_dir / EXTRACTION_SNAPSHOT_FILENAME
+    tmp_path = target_dir / (EXTRACTION_SNAPSHOT_FILENAME + ".tmp")
+    tmp_path.write_text(
+        json.dumps(snapshot, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    tmp_path.replace(snapshot_path)
+
+    tables_path = target_dir / "tables.json"
+    tables_path.write_text(
+        json.dumps(tables_payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    meta_path = target_dir / "meta.json"
     meta_path.write_text(
         json.dumps(meta_payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
@@ -189,12 +348,50 @@ def load_extraction(
     """
     Load extraction for one report.
 
-    Returns (tables, meta) or None if not found or invalid.
+    Prefers extraction_snapshot.json (atomic tables+meta) when present; otherwise
+    reads tables.json and meta.json. Returns (tables, meta) or None if not found or invalid.
     """
     quarter_norm = _normalize_storage_quarter(quarter)
     target_dir = _extraction_dir(base_dir, bank_code, year, quarter_norm)
+    snapshot_path = target_dir / EXTRACTION_SNAPSHOT_FILENAME
     tables_path = target_dir / "tables.json"
     meta_path = target_dir / "meta.json"
+
+    if snapshot_path.exists():
+        try:
+            snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+            tables_data = snapshot.get("tables", [])
+            meta = snapshot.get("meta") or {}
+            if not isinstance(tables_data, list):
+                return None
+            stored_version = snapshot.get("schema_version")
+            if stored_version is not None:
+                try:
+                    v = int(stored_version)
+                    if v < STORAGE_SCHEMA_VERSION:
+                        logger.debug(
+                            "load_extraction stale schema_version bank=%s year=%s quarter=%s stored=%s current=%s",
+                            bank_code,
+                            year,
+                            quarter_norm,
+                            v,
+                            STORAGE_SCHEMA_VERSION,
+                        )
+                        return None
+                except (TypeError, ValueError):
+                    pass
+            tables = [table_artifact_from_dict(t) for t in tables_data]
+            if not tables:
+                logger.debug(
+                    "load_extraction empty tables bank=%s year=%s quarter=%s",
+                    bank_code,
+                    year,
+                    quarter_norm,
+                )
+                return None
+            return (tables, meta)
+        except (json.JSONDecodeError, TypeError, KeyError) as e:
+            logger.debug("Load extraction snapshot failed %s: %s", target_dir, e)
 
     if not tables_path.exists():
         return None
@@ -220,7 +417,6 @@ def load_extraction(
         if not isinstance(tables_data, list):
             return None
         tables = [table_artifact_from_dict(t) for t in tables_data]
-        # Treat empty stored extraction as "no valid cache" so caller runs fresh extraction
         if not tables:
             logger.debug(
                 "load_extraction empty tables bank=%s year=%s quarter=%s",

@@ -5,9 +5,9 @@ from __future__ import annotations
 import pytest
 
 from vigilance.utils.pdf_crop import (
+    bbox_sanity_profile,
     crop_table_region_to_bytes,
     is_bbox_sane,
-    bbox_sanity_profile,
 )
 
 
@@ -84,7 +84,10 @@ def test_bbox_sanity_accepts_small_table_region() -> None:
 
 def test_prompt_no_longer_mentions_cadre_rouge() -> None:
     """Vision extraction prompt must not mention 'cadre rouge'."""
-    from vigilance.extraction.vision_full_extractor import _PROMPT_BASE, _PROMPT_JSON_STRICT
+    from vigilance.extraction.vision_full_extractor import (
+        _PROMPT_BASE,
+        _PROMPT_JSON_STRICT,
+    )
 
     combined = (_PROMPT_BASE or "") + (_PROMPT_JSON_STRICT or "")
     assert "cadre rouge" not in combined.lower()
@@ -102,7 +105,9 @@ def test_horizontal_padding_applied_and_clamped() -> None:
         bbox,
         horizontal_padding=0.5,
     )
-    assert out == b""  # file missing, but call succeeds; padding is applied in real path
+    assert (
+        out == b""
+    )  # file missing, but call succeeds; padding is applied in real path
 
 
 def test_bbox_sanity_profile_shape() -> None:
@@ -130,7 +135,9 @@ def test_recrop_triggered_on_incomplete_rows_vs_indicators() -> None:
         confidence=0.9,
     )
     assert len(many_indicators_few_rows.indicators) >= 5
-    assert len(many_indicators_few_rows.rows) < max(1, int(0.3 * len(many_indicators_few_rows.indicators)))
+    assert len(many_indicators_few_rows.rows) < max(
+        1, int(0.3 * len(many_indicators_few_rows.indicators))
+    )
     assert many_indicators_few_rows.appears_truncated is False
 
 
@@ -154,6 +161,56 @@ def test_recrop_failed_incomplete_sets_debug_flag() -> None:
     assert r.recrop_used is False
 
 
+def test_partial_lean_result_does_not_force_recrop(monkeypatch) -> None:
+    """A lean fallback with missing rows must not trigger recrop solely because rows are omitted."""
+    from vigilance.extraction.vision_full_extractor import (
+        VisionFullExtractor,
+        VisionFullResult,
+    )
+
+    result = VisionFullResult(
+        table_title="Tableau 1",
+        headers=["Indicateur", "Valeur"],
+        indicators=[{"text": f"Ind{i}", "bbox": None} for i in range(20)],
+        rows=[],
+        footnotes_content=[],
+        footnote_markers=[],
+        confidence=0.92,
+        vision_status="partial",
+        warnings=[
+            "vision_truncated",
+            "vision_lean_mode",
+            "vision_rows_missing_from_fallback",
+        ],
+    )
+
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False)
+    calls = {"extract": 0, "recrop": 0}
+
+    def _fake_extract(**kwargs):  # type: ignore[no-untyped-def]
+        del kwargs
+        calls["extract"] += 1
+        return result
+
+    def _fake_recrop(_ext: float) -> bytes:
+        calls["recrop"] += 1
+        return b"unexpected"
+
+    monkeypatch.setattr(extractor, "extract", _fake_extract)
+
+    out = extractor.extract_with_quality_pass(
+        crop_bytes=b"abc",
+        bank_code="bnc",
+        bbox_norm=[0.1, 0.2, 0.8, 0.9],
+        vision_cfg={},
+        get_recrop_fn=_fake_recrop,
+    )
+
+    assert out is result
+    assert calls["extract"] == 1
+    assert calls["recrop"] == 0
+
+
 def test_page_title_assist_does_not_assign_by_positional_fallback() -> None:
     """With allow_positional_fallback false, title is only applied via table_number or bbox_proximity."""
     assist_cfg = {"allow_positional_fallback": False}
@@ -163,6 +220,7 @@ def test_page_title_assist_does_not_assign_by_positional_fallback() -> None:
 
 def test_bbox_overlap_detection_logs_multi_table_warning() -> None:
     """Overlap detection logic: two overlapping bboxes on same page yield positive ratio."""
+
     def _area(b: list[float]) -> float:
         if len(b) < 4:
             return 0.0
@@ -194,7 +252,6 @@ def test_debug_metrics_roundtrip_preserves_quality_profile() -> None:
         get_extraction_quality_flags,
         get_extraction_quality_profile,
     )
-    from vigilance.models.table_models import TableArtifact
 
     class T:
         debug_metrics: dict = {
