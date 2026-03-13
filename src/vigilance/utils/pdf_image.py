@@ -35,11 +35,12 @@ def pdf_page_to_image(
         return None
     try:
         import fitz  # PyMuPDF
+        from vigilance.utils.pdf_open import open_pdf_safely
     except ImportError:
         return None
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = open_pdf_safely(pdf_path)
         page = doc.load_page(page_number - 1)
         mat = fitz.Matrix(dpi / 72, dpi / 72)
         pix = page.get_pixmap(matrix=mat)

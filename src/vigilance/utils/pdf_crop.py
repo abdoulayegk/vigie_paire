@@ -8,6 +8,11 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+try:
+    from vigilance.utils.pdf_open import open_pdf_safely
+except ImportError:
+    open_pdf_safely = None  # type: ignore[assignment, misc]
+
 
 def _crop_cache_key(
     kind: str,
@@ -61,7 +66,7 @@ def crop_table_image(
         return False
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = (open_pdf_safely(pdf_path) if open_pdf_safely else fitz.open(pdf_path))
         try:
             page_idx = page_number - 1
             if page_idx < 0 or page_idx >= len(doc):
@@ -248,7 +253,7 @@ def crop_table_region_to_bytes(
         return b""
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = (open_pdf_safely(pdf_path) if open_pdf_safely else fitz.open(pdf_path))
         try:
             page_idx = page_number - 1
             if page_idx < 0 or page_idx >= len(doc):
@@ -337,7 +342,7 @@ def render_page_with_bbox_highlight_to_bytes(
         return full if full else b""
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = (open_pdf_safely(pdf_path) if open_pdf_safely else fitz.open(pdf_path))
         try:
             page_idx = page_number - 1
             if page_idx < 0 or page_idx >= len(doc):
@@ -410,7 +415,7 @@ def crop_footnote_region_to_bytes(
         return full if full else b""
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = (open_pdf_safely(pdf_path) if open_pdf_safely else fitz.open(pdf_path))
         try:
             page_idx = page_number - 1
             if page_idx < 0 or page_idx >= len(doc):

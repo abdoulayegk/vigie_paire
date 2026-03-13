@@ -859,7 +859,8 @@ class TableImageExtractor:
         table_images = []
 
         try:
-            doc = fitz.open(pdf_path)
+            from vigilance.utils.pdf_open import open_pdf_safely
+            doc = open_pdf_safely(pdf_path)
             page = doc[page_num - 1]
 
             # PyMuPDF peut detecter les tableaux avec find_tables()
@@ -990,7 +991,8 @@ class PyMuPDFTableExtractor(TableImageExtractor):
             return None
 
         try:
-            doc = fitz.open(pdf_path)
+            from vigilance.utils.pdf_open import open_pdf_safely
+            doc = open_pdf_safely(pdf_path)
             page = doc[page_num - 1]
 
             # Matrice pour la resolution

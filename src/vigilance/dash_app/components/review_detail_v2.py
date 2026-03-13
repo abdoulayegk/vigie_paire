@@ -136,6 +136,38 @@ def _is_table_only_view(table: dict) -> bool:
     return False
 
 
+# Justification text set by comparison_runner when GenAI classification fails or returns no relevance.
+_GENAI_FALLBACK_JUSTIFICATION = "Classification non disponible (erreur ou limite API)."
+
+
+def _is_table_level_change(table: dict) -> bool:
+    """True if table has a table_removed or table_added change."""
+    change_types = {
+        str(c.get("change_type", "")) for c in (table.get("changes", []) or [])
+    }
+    return bool(
+        change_types.intersection(
+            {
+                ChangeType.TABLE_REMOVED.value,
+                "table_removed",
+                ChangeType.TABLE_ADDED.value,
+                "table_added",
+            }
+        )
+    )
+
+
+def _has_useful_genai_justification(ga: dict) -> bool:
+    """True if genai_analysis has a real justification (not the API fallback)."""
+    relevance = str(ga.get("relevance", "") or "")
+    justification = str(ga.get("justification", "") or "").strip()
+    if not relevance:
+        return False
+    if justification == _GENAI_FALLBACK_JUSTIFICATION:
+        return False
+    return bool(justification)
+
+
 def _build_fallback_genai_message(table: dict) -> str:
     """Build analyst-friendly fallback when GenAI classification is unavailable."""
     change_types = {
@@ -178,15 +210,57 @@ def _build_fallback_genai_message(table: dict) -> str:
 
 
 def _build_genai_section(table: dict) -> html.Div:
-    """Render concise GenAI explanation block for analyst review."""
+    """Render concise GenAI explanation block for analyst review.
+
+    For table_removed / table_added: always show the automatic explanation as the
+    main block so the analyst has a clear claim to validate; show GenAI analysis
+    below only when it adds a useful justification (not the API fallback).
+    """
     ga = table.get("genai_analysis") or {}
     relevance = str(ga.get("relevance", "") or "")
     risk = str(ga.get("risk_level", "") or "")
     confidence = ga.get("confidence", None)
     justification = str(ga.get("justification", "") or "").strip()
 
+    fallback_msg = _build_fallback_genai_message(table)
+    is_table_level = _is_table_level_change(table)
+    has_useful_ga = _has_useful_genai_justification(ga)
+
+    if is_table_level:
+        children = [
+            html.H6("Explication GenAI", className="mb-2"),
+            html.P(fallback_msg, className="text-muted mb-0"),
+        ]
+        if has_useful_ga:
+            chips = []
+            if relevance:
+                chips.append(
+                    dbc.Badge(relevance, color="primary", className="me-2")
+                )
+            if risk:
+                chips.append(
+                    dbc.Badge(f"Risque {risk}", color="warning", className="me-2")
+                )
+            if confidence is not None:
+                try:
+                    conf_pct = max(0.0, min(1.0, float(confidence))) * 100
+                    chips.append(
+                        dbc.Badge(
+                            f"Confiance {conf_pct:.0f}%",
+                            color="light",
+                            text_color="dark",
+                            className="me-2",
+                        )
+                    )
+                except (TypeError, ValueError):
+                    pass
+            children.append(html.Div(chips, className="mb-2 mt-2"))
+            children.append(
+                html.P(justification or "Explication non fournie.", className="mb-0")
+            )
+        return html.Div(children, className="mb-4")
+
     if not any([relevance, risk, justification]):
-        fallback_msg = _build_fallback_genai_message(table)
         return html.Div(
             [
                 html.H6("Explication GenAI", className="mb-2"),

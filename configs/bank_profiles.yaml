@@ -231,9 +231,12 @@ banks:
       weight_header_schema: 0.0
       min_label_overlap_reject: 0.48
       use_post_hungarian_threshold: true
-      # Rescue (nouveau pour RBC)
-      rescue_single_min_containment: 0.58
-      rescue_single_min_title_similarity: 0.45
+      pairing_shortlist_size: 10
+      pairing_hungarian_enabled: true
+      w_header_fingerprint: 0.10
+      w_indicator_ordering: 0.04
+      rescue_single_min_containment: 0.55
+      rescue_single_min_title_similarity: 0.40
 
   td:
     vision_extraction:
@@ -632,6 +635,9 @@ trend_detection:
     OTHER: 0.7
 
 matching_thresholds:
+  # Zero-trust table number: no bonus/penalty in pairing (reduce false positives across banks)
+  table_number_bonus_value: 0.0
+  table_number_penalty_value: 0.0
   use_hungarian_matching: true
   matching_v2_enabled: true
   use_post_hungarian_threshold: true

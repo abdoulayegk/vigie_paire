@@ -91,7 +91,8 @@ def _get_page_dimensions(pdf_path: str, page_number: int) -> tuple[float, float]
     try:
         import fitz  # type: ignore[import-untyped]
 
-        doc = fitz.open(pdf_path)
+        from vigilance.utils.pdf_open import open_pdf_safely
+        doc = open_pdf_safely(pdf_path)
         try:
             if page_number < 1 or page_number > len(doc):
                 return None

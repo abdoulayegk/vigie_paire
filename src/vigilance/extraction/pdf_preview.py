@@ -22,6 +22,11 @@ except ImportError:
     PYMUPDF_AVAILABLE = False
     logger.warning("PyMuPDF non disponible - preview PDF desactive")
 
+try:
+    from vigilance.utils.pdf_open import open_pdf_safely
+except ImportError:
+    open_pdf_safely = None  # type: ignore[assignment, misc]
+
 # Import conditionnel de PIL
 try:
     from PIL import Image
@@ -75,7 +80,7 @@ def render_pdf_page(
         return None
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = open_pdf_safely(pdf_path) if open_pdf_safely else fitz.open(str(pdf_path))
 
         # Conversion 1-indexed vers 0-indexed
         page_idx = page_number - 1
@@ -136,7 +141,7 @@ def render_pdf_pages(
     previews = []
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = open_pdf_safely(pdf_path) if open_pdf_safely else fitz.open(str(pdf_path))
         total_pages = len(doc)
 
         # Limiter les pages
@@ -208,7 +213,7 @@ def extract_text_from_pages(pdf_path: str | Path, start_page: int, end_page: int
             return ""
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = open_pdf_safely(pdf_path) if open_pdf_safely else fitz.open(str(pdf_path))
         text_parts = []
 
         for page_num in range(start_page - 1, min(end_page, len(doc))):
@@ -248,7 +253,7 @@ def get_pdf_info(pdf_path: str | Path) -> dict:
             return {"error": str(e), "available": False}
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = open_pdf_safely(pdf_path) if open_pdf_safely else fitz.open(str(pdf_path))
         info = {"total_pages": len(doc), "metadata": doc.metadata or {}, "available": True}
         doc.close()
         return info
@@ -317,7 +322,7 @@ def create_thumbnail(pdf_path: str | Path, page_number: int, width: int = 200) -
         return None
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = open_pdf_safely(pdf_path) if open_pdf_safely else fitz.open(str(pdf_path))
         page_idx = page_number - 1
 
         if page_idx < 0 or page_idx >= len(doc):

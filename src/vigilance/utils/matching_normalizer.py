@@ -486,6 +486,28 @@ def header_schema_similarity(
     return max(0.0, min(1.0, (0.6 * pos_score) + (0.4 * set_score)))
 
 
+def header_literal_fingerprint(
+    headers1: list[str] | tuple[str, ...] | None,
+    headers2: list[str] | tuple[str, ...] | None,
+) -> float:
+    """Jaccard on normalized literal column header texts.
+
+    Complements :func:`header_schema_similarity` (which maps to abstract types)
+    with an exact-text comparison that preserves discriminative column names.
+    Useful for disambiguating tables that share first-column indicators but have
+    different column layouts (e.g. VaR variants).
+    """
+    if not headers1 or not headers2:
+        return 0.0
+    norm1 = [normalize_for_matching(str(h), target="header") for h in headers1 if str(h or "").strip()]
+    norm2 = [normalize_for_matching(str(h), target="header") for h in headers2 if str(h or "").strip()]
+    s1 = {v for v in norm1 if v}
+    s2 = {v for v in norm2 if v}
+    if not s1 or not s2:
+        return 0.0
+    return len(s1 & s2) / len(s1 | s2)
+
+
 def is_generic_title(
     title: str, generic_titles: set[str] | frozenset[str] | None = None
 ) -> bool:

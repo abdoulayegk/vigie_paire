@@ -63,7 +63,6 @@ from vigilance.models.table_models import (
     EXTRACTION_STATUS_REVIEW_REQUIRED,
     VISION_CONTENT_SOURCE,
     TableArtifact,
-    derive_extraction_blockers,
     get_canonical_footnotes,
     get_comparison_indicators,
     get_extraction_confidence,
@@ -446,7 +445,9 @@ def _extract_tables(
                         section_ranges=section_ranges,
                         extraction_mode="vision_full_gpt4o",
                     )
-                    if not is_stored_manifest_compatible(stored_meta, expected_manifest):
+                    if not is_stored_manifest_compatible(
+                        stored_meta, expected_manifest
+                    ):
                         logger.info(
                             "extraction_stored_rejected_stale_cache bank=%s year=%s quarter=%s",
                             bank_code,
@@ -533,10 +534,18 @@ def _extract_tables(
             bank_code=bank_code,
             quarter=quarter,
             pdf_path=pdf_path,
-            table_index_on_page=page_structure.get((getattr(table, "table_id", ""), _page_for_raw(table)), {}).get("table_index_on_page"),
-            tables_on_page=page_structure.get((getattr(table, "table_id", ""), _page_for_raw(table)), {}).get("tables_on_page"),
-            bbox_top=page_structure.get((getattr(table, "table_id", ""), _page_for_raw(table)), {}).get("bbox_top"),
-            page_local_role=page_structure.get((getattr(table, "table_id", ""), _page_for_raw(table)), {}).get("page_local_role"),
+            table_index_on_page=page_structure.get(
+                (getattr(table, "table_id", ""), _page_for_raw(table)), {}
+            ).get("table_index_on_page"),
+            tables_on_page=page_structure.get(
+                (getattr(table, "table_id", ""), _page_for_raw(table)), {}
+            ).get("tables_on_page"),
+            bbox_top=page_structure.get(
+                (getattr(table, "table_id", ""), _page_for_raw(table)), {}
+            ).get("bbox_top"),
+            page_local_role=page_structure.get(
+                (getattr(table, "table_id", ""), _page_for_raw(table)), {}
+            ).get("page_local_role"),
         )
         for table in raw_tables
     ]
@@ -558,9 +567,9 @@ def _extract_tables(
                 section_ranges=section_ranges,
                 extraction_mode="vision_full_gpt4o",
             )
-            if is_stored_manifest_compatible(stored_meta, expected_manifest) and _prefer_stored_over_fresh(
-                artifacts, stored_tables
-            ):
+            if is_stored_manifest_compatible(
+                stored_meta, expected_manifest
+            ) and _prefer_stored_over_fresh(artifacts, stored_tables):
                 logger.warning(
                     "Fresh extraction degraded for %s/%s/%s; reusing stored extraction "
                     "(fresh comparable=%d raw_tables=%d raw_indicators=%d, stored comparable=%d raw_tables=%d raw_indicators=%d)",
@@ -749,11 +758,17 @@ def _compute_extraction_kpis(
         else 0.0
     )
 
-    tables_certified = sum(1 for t in all_tables if get_extraction_status(t) == EXTRACTION_STATUS_CERTIFIED)
-    tables_review_required = sum(
-        1 for t in all_tables if get_extraction_status(t) == EXTRACTION_STATUS_REVIEW_REQUIRED
+    tables_certified = sum(
+        1 for t in all_tables if get_extraction_status(t) == EXTRACTION_STATUS_CERTIFIED
     )
-    tables_blocked = sum(1 for t in all_tables if get_extraction_status(t) == EXTRACTION_STATUS_BLOCKED)
+    tables_review_required = sum(
+        1
+        for t in all_tables
+        if get_extraction_status(t) == EXTRACTION_STATUS_REVIEW_REQUIRED
+    )
+    tables_blocked = sum(
+        1 for t in all_tables if get_extraction_status(t) == EXTRACTION_STATUS_BLOCKED
+    )
     tables_crop_rejected = sum(
         1 for t in all_tables if (get_extraction_quality_flags(t).get("crop_rejected"))
     )
@@ -761,7 +776,9 @@ def _compute_extraction_kpis(
         1 for t in all_tables if get_extraction_confidence(t) < 0.5
     )
     tables_vision_not_applied = sum(
-        1 for t in all_tables if not get_extraction_quality_flags(t).get("vision_extraction_applied", True)
+        1
+        for t in all_tables
+        if not get_extraction_quality_flags(t).get("vision_extraction_applied", True)
     )
     tables_budget_exhausted = sum(
         1 for t in all_tables if (t.debug_metrics or {}).get("vision_budget_exhausted")
@@ -1340,6 +1357,31 @@ def _rebuild_strict_unmatched_state(
     ]
 
 
+def _geometry_scores_for_metadata(
+    table_t1: TableArtifact, table_t2: TableArtifact
+) -> dict[str, float]:
+    """Return geometry_score, rank_score, zone_score for match_metadata (observability)."""
+    try:
+        from vigilance.compare.indicator_comparator import (
+            _geometry_position_score,
+            _page_local_rank_similarity,
+            _page_zone_similarity,
+        )
+        return {
+            "geometry_score": round(
+                _geometry_position_score(table_t1, table_t2), 4
+            ),
+            "rank_score": round(
+                _page_local_rank_similarity(table_t1, table_t2), 4
+            ),
+            "zone_score": round(
+                _page_zone_similarity(table_t1, table_t2), 4
+            ),
+        }
+    except Exception:
+        return {}
+
+
 def _normalize_bbox_ltrb_norm(bbox: Any) -> list[float] | None:
     """Normalize bbox to [l, t, r, b] in 0..1. Returns None if invalid or outside [0,1]."""
     if bbox is None:
@@ -1735,8 +1777,12 @@ def _order_aware_stable_pairs(
     )
     lcs_left = {i for i, _ in pair_indices}
     lcs_right = {j for _, j in pair_indices}
-    left_unmatched_keys = [left_order[i] for i in range(len(left_order)) if i not in lcs_left]
-    right_unmatched_keys = [right_order[j] for j in range(len(right_order)) if j not in lcs_right]
+    left_unmatched_keys = [
+        left_order[i] for i in range(len(left_order)) if i not in lcs_left
+    ]
+    right_unmatched_keys = [
+        right_order[j] for j in range(len(right_order)) if j not in lcs_right
+    ]
     left_candidates = [k for k in left_unmatched_keys if k in removed_keys]
     right_candidates = [k for k in right_unmatched_keys if k in added_keys]
     stable: set[tuple[str, str]] = set()
@@ -2524,15 +2570,15 @@ def _indicator_diff(
     # --- NOUVELLE PHASE : RÉSOLUTION NEAR-STABLE ---
     # On recherche les clés qui ont raté le match exact d'un cheveu
     total_keys = len(left_map) + len(right_map)
-    large_table_min = int(th.get("indicator_near_stable_large_table_min_indicators", 40))
+    large_table_min = int(
+        th.get("indicator_near_stable_large_table_min_indicators", 40)
+    )
     if total_keys >= large_table_min:
         near_stable_threshold = float(
             th.get("indicator_near_stable_large_table_threshold", 0.92)
         )
     else:
-        near_stable_threshold = float(
-            th.get("indicator_near_stable_threshold", 0.95)
-        )
+        near_stable_threshold = float(th.get("indicator_near_stable_threshold", 0.95))
     use_token_set = bool(th.get("indicator_near_stable_use_token_set", False))
 
     resolved_removed = set()
@@ -3175,9 +3221,15 @@ def run_comparison_with_sections(
             list(tables_t1) + list(tables_t2),
             config=get_quality_gate_config(bank_code=bank_code) if qg_enabled else None,
         )
-        quality_gate_status["extraction_certification"] = extraction_report.get("summary", {})
-        quality_gate_status["blocker_breakdown"] = extraction_report.get("blocker_breakdown") or {}
-        quality_gate_status["blocked_table_evidence"] = extraction_report.get("blocked_table_evidence") or []
+        quality_gate_status["extraction_certification"] = extraction_report.get(
+            "summary", {}
+        )
+        quality_gate_status["blocker_breakdown"] = (
+            extraction_report.get("blocker_breakdown") or {}
+        )
+        quality_gate_status["blocked_table_evidence"] = (
+            extraction_report.get("blocked_table_evidence") or []
+        )
         if qg_enabled and extraction_report.get("status") == "FAIL":
             quality_gate_status["status"] = "FAIL"
             quality_gate_status["fail_reasons"] = list(
@@ -3564,8 +3616,12 @@ def run_comparison_with_sections(
                         if low_q1 or low_q2:
                             table_num_match = (
                                 str(getattr(t1_tbl, "table_number", "") or "").strip()
-                                == str(getattr(t2_tbl, "table_number", "") or "").strip()
-                                and (getattr(t1_tbl, "table_number", None) or "").strip()
+                                == str(
+                                    getattr(t2_tbl, "table_number", "") or ""
+                                ).strip()
+                                and (
+                                    getattr(t1_tbl, "table_number", None) or ""
+                                ).strip()
                             )
                             section_match = (
                                 str(getattr(t1_tbl, "section", "") or "").strip()
@@ -5008,11 +5064,19 @@ def run_comparison_with_sections(
             "extraction_quality": extraction_quality_kpis,
             "extraction_quality_summary": {
                 "tables_certified": extraction_quality_kpis.get("tables_certified", 0),
-                "tables_review_required": extraction_quality_kpis.get("tables_review_required", 0),
+                "tables_review_required": extraction_quality_kpis.get(
+                    "tables_review_required", 0
+                ),
                 "tables_blocked": extraction_quality_kpis.get("tables_blocked", 0),
-                "tables_crop_rejected": extraction_quality_kpis.get("tables_crop_rejected", 0),
-                "tables_low_confidence": extraction_quality_kpis.get("tables_low_confidence", 0),
-                "tables_budget_exhausted": extraction_quality_kpis.get("tables_budget_exhausted", 0),
+                "tables_crop_rejected": extraction_quality_kpis.get(
+                    "tables_crop_rejected", 0
+                ),
+                "tables_low_confidence": extraction_quality_kpis.get(
+                    "tables_low_confidence", 0
+                ),
+                "tables_budget_exhausted": extraction_quality_kpis.get(
+                    "tables_budget_exhausted", 0
+                ),
             },
             "quality_gate": quality_gate_status,
             "extraction_artifacts": {

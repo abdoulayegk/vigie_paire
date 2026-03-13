@@ -33,6 +33,7 @@ from ..utils.indicator_cleaner import (
 from ..utils.matching_normalizer import (
     strip_temporal_expressions,
 )
+from ..utils.pdf_open import open_pdf_safely
 from ..utils.rbc_table_signals import (
     classify_rbc_title_reliability,
     is_rbc_bank,
@@ -140,24 +141,30 @@ def _vision_extract_one(
 MEMORY_UTILS_AVAILABLE = False
 logger.debug("Utilitaires memoire non disponibles")
 
+CHUNK_SIZE_PAGES = 15
+
 # Stubs pour chemins morts (module memory absent), evite NameError si code appele
 ChunkedProcessor = None
+
+
 def check_memory_threshold() -> bool:
     return False
-def cleanup_memory(force: bool = False) -> None:
-    ...
+
+
+def cleanup_memory(force: bool = False) -> None: ...
 def get_memory_usage_mb() -> float:
     return 0.0
+
 
 # Nombre de workers pour parallelliser les appels Vision (1 = sequentiel)
 VISION_EXTRACTION_MAX_WORKERS = 4
 
 # Import du gestionnaire de cache
 try:
-    from ..utils.pdf_cache import PDFCacheManager
-
-CACHE_AVAILABLE = False
-logger.debug("PDFCacheManager non disponible")
+    pass
+except Exception:
+    CACHE_AVAILABLE = False
+    logger.debug("PDFCacheManager non disponible")
 
 # Patterns pour détecter les titres de sections principales
 # Focus: Gestion du capital et Gestion des risques
@@ -312,7 +319,11 @@ def _compute_vision_quality_summary(tables: list[Any]) -> dict[str, Any]:
         if dm.get("appears_truncated"):
             truncated += 1
         conf = dm.get("vision_extraction_confidence", 1.0)
-        if isinstance(conf, (int, float)) and conf < 0.85 and status in ("ok", "partial"):
+        if (
+            isinstance(conf, (int, float))
+            and conf < 0.85
+            and status in ("ok", "partial")
+        ):
             low_confidence += 1
         if dm.get("crop_reject_reason"):
             bbox_rejected += 1
@@ -604,7 +615,7 @@ class DoclingProcessor:
     def _get_page_count(self, pdf_path: Path) -> int:
         """Obtenir le nombre total de pages d'un PDF."""
         try:
-            doc = fitz.open(str(pdf_path))
+            doc = open_pdf_safely(pdf_path)
             count = len(doc)
             doc.close()
             return count
@@ -1096,7 +1107,9 @@ class DoclingProcessor:
             "vision_extraction_applied": vision_status_str in ("ok", "partial"),
             "vision_extraction_confidence": vision_confidence,
             "vision_schema_contract_failed": vision_schema_contract_failed,
-            "has_reference_text": bool(reference_text and len(reference_text.strip()) > 20),
+            "has_reference_text": bool(
+                reference_text and len(reference_text.strip()) > 20
+            ),
             "warnings": warnings_list,
         }
         if warnings_list:
@@ -1409,8 +1422,12 @@ class DoclingProcessor:
                     "vision_schema_error_cls": vision_schema_error_cls,
                     "schema_failure_policy": schema_failure_policy,
                     "labels_only": labels_only,
-                    "vision_crop_dpi": int(vision_extraction_cfg.get("vision_crop_dpi", 300)),
-                    "vision_preprocess": vision_extraction_cfg.get("vision_preprocess", True),
+                    "vision_crop_dpi": int(
+                        vision_extraction_cfg.get("vision_crop_dpi", 300)
+                    ),
+                    "vision_preprocess": vision_extraction_cfg.get(
+                        "vision_preprocess", True
+                    ),
                 }
                 if vision_extractor:
                     try:
@@ -1736,8 +1753,11 @@ class DoclingProcessor:
             # 2) Match by bbox proximity (title above table)
             if candidate is None and table.bbox:
                 other_bboxes = [
-                    t.bbox for t in page_tables
-                    if t is not table and getattr(t, "bbox", None) and len(getattr(t, "bbox", [])) >= 4
+                    t.bbox
+                    for t in page_tables
+                    if t is not table
+                    and getattr(t, "bbox", None)
+                    and len(getattr(t, "bbox", [])) >= 4
                 ]
                 candidate = result.get_candidate_by_bbox_proximity(
                     table.bbox,

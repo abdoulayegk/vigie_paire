@@ -18,9 +18,12 @@ import json
 import logging
 import math
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from difflib import SequenceMatcher
 from typing import Any, Protocol
+
+import numpy as np
+from scipy.optimize import linear_sum_assignment
 
 from vigilance.config import get_matching_thresholds
 from vigilance.models.table_models import (
@@ -36,6 +39,7 @@ from vigilance.models.table_models import (
 )
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigilance.utils.matching_normalizer import (
+    header_literal_fingerprint,
     header_schema_similarity,
     is_generic_title,
     normalize_for_matching,
@@ -84,6 +88,122 @@ _GENERIC_INDICATOR_KEYS = frozenset(
         "administrations publiques",
     }
 )
+
+
+MAX_SHORTLIST_SIZE = 15
+
+_CONFIG_KEY_MAP = {
+    "weight_label_overlap": "w_distinctive_overlap",
+    "weight_containment": "w_containment",
+    "weight_title": "w_title",
+    "weight_structure": "w_size",
+    "weight_position": "w_order_proximity",
+    "weight_header_schema": "w_header_compatibility",
+    "w_distinctive_overlap": "w_distinctive_overlap",
+    "w_containment": "w_containment",
+    "w_header_compatibility": "w_header_compatibility",
+    "w_header_fingerprint": "w_header_fingerprint",
+    "w_title": "w_title",
+    "w_section": "w_section",
+    "w_size": "w_size",
+    "w_order_proximity": "w_order_proximity",
+    "w_indicator_ordering": "w_indicator_ordering",
+    "table_number_bonus_value": "table_number_bonus",
+    "table_number_penalty_value": "table_number_penalty",
+}
+
+
+@dataclass(frozen=True)
+class ScoringProfile:
+    """Configurable scoring weights for candidate pair scoring.
+
+    Built from ``get_matching_thresholds()`` with per-bank overrides.
+    Supports adaptive per-pair adjustment via :func:`_adapt_weights`.
+    """
+
+    w_distinctive_overlap: float = 0.36
+    w_containment: float = 0.23
+    w_header_compatibility: float = 0.12
+    w_header_fingerprint: float = 0.08
+    w_title: float = 0.11
+    w_section: float = 0.08
+    w_size: float = 0.06
+    w_order_proximity: float = 0.04
+    w_indicator_ordering: float = 0.04
+    table_number_bonus: float = 0.15
+    table_number_penalty: float = -0.05
+    adaptive_mode: str = "default"
+
+    @classmethod
+    def from_thresholds(cls, thresholds: dict[str, Any]) -> "ScoringProfile":
+        kwargs: dict[str, Any] = {}
+        for config_key, field_name in _CONFIG_KEY_MAP.items():
+            if config_key in thresholds:
+                try:
+                    kwargs[field_name] = float(thresholds[config_key])
+                except (TypeError, ValueError):
+                    pass
+        return cls(**kwargs)
+
+
+def _adapt_weights(
+    profile: ScoringProfile,
+    *,
+    title_reliability: float,
+    title_sim: float,
+    n_indicators: int,
+    has_table_number: bool,
+) -> ScoringProfile:
+    """Adapt scoring weights based on signal availability for this specific pair.
+    Table number is not used as a positive signal (zero-trust policy).
+    """
+    del has_table_number  # not used for adaptation
+    if n_indicators <= 4:
+        return replace(
+            profile,
+            w_distinctive_overlap=0.10,
+            w_containment=0.10,
+            w_title=0.30,
+            w_header_compatibility=0.10,
+            w_header_fingerprint=0.15,
+            w_size=0.08,
+            w_section=0.06,
+            w_order_proximity=0.06,
+            w_indicator_ordering=0.0,
+            adaptive_mode="few_indicators",
+        )
+
+    if title_reliability >= 0.7 and title_sim >= 0.85:
+        return replace(
+            profile,
+            w_title=0.22,
+            w_distinctive_overlap=0.28,
+            w_containment=0.20,
+            adaptive_mode="strong_title",
+        )
+
+    return profile
+
+
+def _indicator_order_similarity(keys1: list[str], keys2: list[str]) -> float:
+    """Normalized concordance ratio on shared indicator positions.
+
+    Returns 1.0 when shared indicators appear in the same relative order in both
+    tables (strong evidence of same table), 0.0 when fewer than 3 indicators
+    overlap (insufficient signal).
+    """
+    s2 = {k: i for i, k in enumerate(keys2)}
+    common = [(i, s2[k]) for i, k in enumerate(keys1) if k in s2]
+    if len(common) < 3:
+        return 0.0
+    concordant = 0
+    total_pairs = 0
+    for a in range(len(common)):
+        for b in range(a + 1, len(common)):
+            total_pairs += 1
+            if (common[a][0] - common[b][0]) * (common[a][1] - common[b][1]) > 0:
+                concordant += 1
+    return concordant / total_pairs if total_pairs > 0 else 0.0
 
 
 def _is_generic_indicator_key(value: str) -> bool:
@@ -259,7 +379,10 @@ def _containment(left: list[str], right: list[str]) -> float:
 
 
 def _page_bonus(left: TableArtifact, right: TableArtifact) -> float:
-    delta = abs(_safe_int(getattr(left, "page_pdf", 0)) - _safe_int(getattr(right, "page_pdf", 0)))
+    delta = abs(
+        _safe_int(getattr(left, "page_pdf", 0))
+        - _safe_int(getattr(right, "page_pdf", 0))
+    )
     if delta <= 1:
         return 1.0
     if delta <= 3:
@@ -381,8 +504,7 @@ def _distinctive_indicator_keys(
     distinctive = [
         key
         for key in keys
-        if not _is_generic_indicator_key(key)
-        and counts.get(key, 0) < common_threshold
+        if not _is_generic_indicator_key(key) and counts.get(key, 0) < common_threshold
     ]
     if distinctive:
         return distinctive
@@ -501,6 +623,9 @@ class CandidateScore:
     page_local_order_bonus: float = 0.0
     page_local_role_bonus: float = 0.0
     bbox_y_similarity: float = 0.0
+    header_fingerprint: float = 0.0
+    indicator_ordering: float = 0.0
+    adaptive_mode: str = "default"
 
     def as_feature_dict(self) -> dict[str, Any]:
         return {
@@ -514,21 +639,34 @@ class CandidateScore:
             "indicator_global_overlap": round(self.indicator_global_overlap, 6),
             "indicator_containment": round(self.indicator_containment, 6),
             "header_compatibility": round(self.header_compatibility, 6),
+            "header_fingerprint": round(self.header_fingerprint, 6),
             "title_similarity": round(self.title_similarity, 6),
             "table_number_bonus": round(self.table_number_bonus, 6),
             "order_proximity_bonus": round(self.order_proximity_bonus, 6),
             "size_compatibility": round(self.size_compatibility, 6),
+            "indicator_ordering": round(self.indicator_ordering, 6),
             "table_number_match": self.table_number_match,
             "table_number_conflict": self.table_number_conflict,
             "page_local_order_bonus": round(self.page_local_order_bonus, 6),
             "page_local_role_bonus": round(self.page_local_role_bonus, 6),
             "bbox_y_similarity": round(self.bbox_y_similarity, 6),
+            "adaptive_mode": self.adaptive_mode,
             "reasons": list(self.explanation),
         }
 
 
-def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
-    section_compatibility = 1.0 if _same_or_unknown_section(t1_view.table, t2_view.table) else 0.0
+def _candidate_score(
+    t1_view: TableView,
+    t2_view: TableView,
+    profile: ScoringProfile | None = None,
+    adapt: bool = True,
+) -> CandidateScore:
+    if profile is None:
+        profile = ScoringProfile()
+
+    section_compatibility = (
+        1.0 if _same_or_unknown_section(t1_view.table, t2_view.table) else 0.0
+    )
     indicator_distinctive_overlap = _jaccard(
         t1_view.indicator_distinctive_keys,
         t2_view.indicator_distinctive_keys,
@@ -536,12 +674,19 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
     indicator_global_overlap = _jaccard(t1_view.indicator_keys, t2_view.indicator_keys)
     indicator_containment = _containment(t1_view.indicator_keys, t2_view.indicator_keys)
     header_compatibility = _headers_similarity(t1_view.table, t2_view.table)
+    hdr_fingerprint = header_literal_fingerprint(
+        t1_view.normalized_headers,
+        t2_view.normalized_headers,
+    )
     title_similarity = _title_similarity(t1_view.table, t2_view.table)
     size_compatibility = _size_compatibility(t1_view.table, t2_view.table)
     order_proximity_bonus = _page_bonus(t1_view.table, t2_view.table)
     page_local_order_bonus = _page_local_order_bonus(t1_view.table, t2_view.table)
     page_local_role_bonus = _page_local_role_bonus(t1_view.table, t2_view.table)
     bbox_y_sim = _bbox_y_similarity(t1_view.table, t2_view.table)
+    ind_ordering = _indicator_order_similarity(
+        t1_view.indicator_keys, t2_view.indicator_keys
+    )
 
     same_number = bool(
         t1_view.normalized_table_number
@@ -552,7 +697,27 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
         and t2_view.normalized_table_number
         and t1_view.normalized_table_number != t2_view.normalized_table_number
     )
-    table_number_bonus = 0.15 if same_number else -0.05 if table_number_conflict else 0.0
+
+    raw_stability = _raw_indicator_stability(t1_view, t2_view)
+    title_reliability_score = min(
+        _title_reliability_numeric(t1_view.table),
+        _title_reliability_numeric(t2_view.table),
+    )
+
+    n_indicators = min(len(t1_view.indicator_keys), len(t2_view.indicator_keys))
+    if adapt:
+        adapted = _adapt_weights(
+            profile,
+            title_reliability=title_reliability_score,
+            title_sim=title_similarity,
+            n_indicators=n_indicators,
+            has_table_number=same_number,
+        )
+    else:
+        adapted = profile
+
+    # Zero-trust table number: no bonus/penalty in score (metadata only)
+    tn_bonus = 0.0
 
     explanation: list[str] = []
     if same_number:
@@ -567,22 +732,11 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
         explanation.append("title_similarity_strong")
     if header_compatibility >= 0.70:
         explanation.append("headers_compatible")
+    if hdr_fingerprint >= 0.70:
+        explanation.append("header_fingerprint_strong")
+    if adapted.adaptive_mode != "default":
+        explanation.append(f"adaptive_{adapted.adaptive_mode}")
 
-    total = (
-        0.36 * indicator_distinctive_overlap
-        + 0.23 * indicator_containment
-        + 0.12 * header_compatibility
-        + 0.11 * title_similarity
-        + 0.08 * section_compatibility
-        + 0.06 * size_compatibility
-        + 0.04 * order_proximity_bonus
-        + table_number_bonus
-    )
-    raw_stability = _raw_indicator_stability(t1_view, t2_view)
-    title_reliability_score = min(
-        _title_reliability_numeric(t1_view.table),
-        _title_reliability_numeric(t2_view.table),
-    )
     flags1 = get_extraction_quality_flags(t1_view.table)
     flags2 = get_extraction_quality_flags(t2_view.table)
     low_quality_left = (
@@ -599,41 +753,39 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
     conf_right = get_extraction_confidence(t2_view.table)
     low_conf = conf_left < 0.5 or conf_right < 0.5
     quality_suspect = low_quality_left or low_quality_right or low_conf
-    if quality_suspect:
-        if low_quality_left or low_quality_right:
-            quality_suspect = True
+
     instability_penalty = 0.0
     if indicator_global_overlap >= 0.5 and raw_stability < 0.6:
         instability_penalty = 0.15 * (1.0 - raw_stability)
-    title_contribution = 0.11 * title_similarity
+
+    title_contribution = adapted.w_title * title_similarity
     if title_reliability_score < 0.6:
         title_contribution *= 0.3
-    header_contribution = 0.12 * header_compatibility
+    header_contribution = adapted.w_header_compatibility * header_compatibility
     if quality_suspect:
         header_contribution *= 0.7
+
     total = (
-        0.36 * indicator_distinctive_overlap
-        + 0.23 * indicator_containment
+        adapted.w_distinctive_overlap * indicator_distinctive_overlap
+        + adapted.w_containment * indicator_containment
         + header_contribution
+        + adapted.w_header_fingerprint * hdr_fingerprint
         + title_contribution
-        + 0.08 * section_compatibility
-        + 0.06 * size_compatibility
-        + 0.04 * order_proximity_bonus
-        + table_number_bonus
+        + adapted.w_section * section_compatibility
+        + adapted.w_size * size_compatibility
+        + adapted.w_order_proximity * order_proximity_bonus
+        + adapted.w_indicator_ordering * ind_ordering
+        + tn_bonus
         + page_local_order_bonus
         + page_local_role_bonus
         + BBOX_Y_SIMILARITY_WEIGHT * bbox_y_sim
         - instability_penalty
     )
-    quality_penalty = 0.0
-    if quality_suspect:
-        quality_penalty = 0.08
-    total = total - quality_penalty
-    total = max(0.0, min(1.0, total))
+    quality_penalty = 0.08 if quality_suspect else 0.0
+    total = max(0.0, min(1.0, total - quality_penalty))
 
     anchor_count = 0
-    if same_number:
-        anchor_count += 1
+    # Table number not used as anchor (zero-trust policy)
     if indicator_distinctive_overlap >= 0.40:
         anchor_count += 1
     if indicator_containment >= 0.52:
@@ -641,6 +793,8 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
     if title_reliability_score >= 0.7 and title_similarity >= 0.72:
         anchor_count += 1
     if header_compatibility >= 0.72:
+        anchor_count += 1
+    if hdr_fingerprint >= 0.70:
         anchor_count += 1
 
     return CandidateScore(
@@ -653,7 +807,7 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
         indicator_containment=indicator_containment,
         header_compatibility=header_compatibility,
         title_similarity=title_similarity,
-        table_number_bonus=table_number_bonus,
+        table_number_bonus=tn_bonus,
         order_proximity_bonus=order_proximity_bonus,
         size_compatibility=size_compatibility,
         table_number_match=same_number,
@@ -668,6 +822,9 @@ def _candidate_score(t1_view: TableView, t2_view: TableView) -> CandidateScore:
         page_local_order_bonus=page_local_order_bonus,
         page_local_role_bonus=page_local_role_bonus,
         bbox_y_similarity=bbox_y_sim,
+        header_fingerprint=hdr_fingerprint,
+        indicator_ordering=ind_ordering,
+        adaptive_mode=adapted.adaptive_mode,
     )
 
 
@@ -692,7 +849,9 @@ def _eligible_table_views(
                     "section": table.section,
                     "page": table.page_pdf,
                     "title": table.title or "",
-                    "comparison_blockers": list(getattr(table, "comparison_blockers", []) or []),
+                    "comparison_blockers": list(
+                        getattr(table, "comparison_blockers", []) or []
+                    ),
                     "extraction_blockers": extraction_blockers,
                     "extraction_status": extraction_status,
                     "reason": "extraction_not_certified",
@@ -737,12 +896,14 @@ def _shortlist_candidates(
     t1_views: list[TableView],
     *,
     shortlist_size: int,
+    profile: ScoringProfile | None = None,
+    adapt: bool = True,
 ) -> list[CandidateScore]:
     candidates: list[CandidateScore] = []
     for t1_view in t1_views:
         if not _hard_filter_candidate(t1_view, t2_view):
             continue
-        score = _candidate_score(t1_view, t2_view)
+        score = _candidate_score(t1_view, t2_view, profile=profile, adapt=adapt)
         if score.total_score < 0.12 and score.indicator_global_overlap < 0.15:
             continue
         candidates.append(score)
@@ -768,12 +929,7 @@ def _shortlist_candidates(
     _add(by_page_local_order)
     if by_role.page_local_role_bonus > 0:
         _add(by_role)
-    if any(candidate.table_number_match for candidate in candidates):
-        by_number = max(
-            candidates,
-            key=lambda item: (1 if item.table_number_match else 0, item.total_score),
-        )
-        _add(by_number)
+    # Table number not used for shortlist injection (zero-trust policy)
     _add(by_distinct)
     _add(by_global)
     if by_title.title_similarity > 0:
@@ -834,14 +990,20 @@ class ConservativePairingRouter:
             top.indicator_global_overlap >= 0.60
             and top.indicator_distinctive_overlap < 0.25
         ):
-            reasons = ["family_similarity_without_distinctive_anchor", *reasons]
-            return PairingDecision(
-                decision="ambiguous",
-                matched_t1_uid=None,
-                confidence=min(0.75, top.total_score),
-                reason_codes=reasons,
-                requires_review=True,
+            runner_up_fp = second.header_fingerprint if second else 0.0
+            has_strong_disambiguator = (
+                top.title_similarity >= 0.80
+                or (top.header_fingerprint >= 0.75 and top.header_fingerprint - runner_up_fp >= 0.15)
             )
+            if not has_strong_disambiguator:
+                reasons = ["family_similarity_without_distinctive_anchor", *reasons]
+                return PairingDecision(
+                    decision="ambiguous",
+                    matched_t1_uid=None,
+                    confidence=min(0.75, top.total_score),
+                    reason_codes=reasons,
+                    requires_review=True,
+                )
 
         if top.raw_indicator_stability < 0.6 and top.indicator_global_overlap >= 0.5:
             reasons.append("raw_normalized_instability")
@@ -882,8 +1044,10 @@ class ConservativePairingRouter:
                 requires_review=True,
             )
 
-        if low_quality and anchors < 2 and (
-            top.title_similarity >= 0.72 or top.header_compatibility >= 0.72
+        if (
+            low_quality
+            and anchors < 2
+            and (top.title_similarity >= 0.72 or top.header_compatibility >= 0.72)
         ):
             reasons.append("low_quality_title_or_header_only")
             return PairingDecision(
@@ -901,7 +1065,7 @@ class ConservativePairingRouter:
                 top.indicator_distinctive_overlap >= 0.40
                 or (top.title_reliability_score >= 0.7 and top.title_similarity >= 0.72)
                 or top.header_compatibility >= 0.72
-                or top.table_number_match
+                or top.header_fingerprint >= 0.72
             )
         ):
             if low_quality and anchors < 2:
@@ -983,7 +1147,9 @@ class BatchLLMPairingRouter:
         self.model = model
         self.timeout = timeout
 
-    def _build_prompt(self, *, t2_view: TableView, candidates: list[CandidateScore]) -> str:
+    def _build_prompt(
+        self, *, t2_view: TableView, candidates: list[CandidateScore]
+    ) -> str:
         payload = {
             "instruction": (
                 "Choisis le candidat qui represente le meme tableau conceptuel/reglementaire. "
@@ -1020,8 +1186,12 @@ class BatchLLMPairingRouter:
         try:
             from openai import OpenAI
         except ImportError:
-            logger.warning("openai package missing; falling back to deterministic router")
-            return ConservativePairingRouter().route(t2_view=t2_view, candidates=candidates)
+            logger.warning(
+                "openai package missing; falling back to deterministic router"
+            )
+            return ConservativePairingRouter().route(
+                t2_view=t2_view, candidates=candidates
+            )
 
         client = OpenAI(api_key=self.api_key, timeout=self.timeout)
         response = client.chat.completions.create(
@@ -1037,15 +1207,24 @@ class BatchLLMPairingRouter:
                         "confidence et reason_codes."
                     ),
                 },
-                {"role": "user", "content": self._build_prompt(t2_view=t2_view, candidates=candidates)},
+                {
+                    "role": "user",
+                    "content": self._build_prompt(
+                        t2_view=t2_view, candidates=candidates
+                    ),
+                },
             ],
         )
         content = response.choices[0].message.content if response.choices else ""
         try:
             payload = json.loads(content or "{}")
         except json.JSONDecodeError:
-            logger.warning("LLM router returned invalid JSON; using deterministic fallback")
-            return ConservativePairingRouter().route(t2_view=t2_view, candidates=candidates)
+            logger.warning(
+                "LLM router returned invalid JSON; using deterministic fallback"
+            )
+            return ConservativePairingRouter().route(
+                t2_view=t2_view, candidates=candidates
+            )
 
         decision = str(payload.get("decision", "") or "").strip()
         matched_t1_uid = str(payload.get("matched_t1_uid", "") or "").strip() or None
@@ -1056,9 +1235,13 @@ class BatchLLMPairingRouter:
             if str(item).strip()
         ]
         if decision not in {"match", "no_match", "ambiguous"}:
-            return ConservativePairingRouter().route(t2_view=t2_view, candidates=candidates)
+            return ConservativePairingRouter().route(
+                t2_view=t2_view, candidates=candidates
+            )
         if decision == "match" and not matched_t1_uid:
-            return ConservativePairingRouter().route(t2_view=t2_view, candidates=candidates)
+            return ConservativePairingRouter().route(
+                t2_view=t2_view, candidates=candidates
+            )
         return PairingDecision(
             decision=decision,
             matched_t1_uid=matched_t1_uid,
@@ -1077,7 +1260,10 @@ def _build_router(
     enabled = bool(cfg.get("batch_llm_pairing_enabled", False))
     if enabled and api_key:
         model = str(cfg.get("batch_llm_pairing_model", DEFAULT_ROUTER_MODEL))
-        timeout = _safe_float(cfg.get("batch_llm_pairing_timeout", DEFAULT_ROUTER_TIMEOUT), DEFAULT_ROUTER_TIMEOUT)
+        timeout = _safe_float(
+            cfg.get("batch_llm_pairing_timeout", DEFAULT_ROUTER_TIMEOUT),
+            DEFAULT_ROUTER_TIMEOUT,
+        )
         return BatchLLMPairingRouter(api_key=api_key, model=model, timeout=timeout)
     return ConservativePairingRouter()
 
@@ -1097,7 +1283,9 @@ def _pair_dict(candidate: CandidateScore, decision: PairingDecision) -> dict[str
             "title_t1": t1.title or "",
             "title_t2": t2.title or "",
             "section": t1.section or t2.section or "",
-            "reason": decision.reason_codes[0] if decision.reason_codes else "matched_pair",
+            "reason": decision.reason_codes[0]
+            if decision.reason_codes
+            else "matched_pair",
             "reason_codes": list(decision.reason_codes),
             "decision_level": "match",
             "router_decision": decision.decision,
@@ -1164,7 +1352,9 @@ def _added_table_entry(view: TableView) -> dict[str, Any]:
         "reason": "added_table",
         "source_reason": "pairing_unmatched",
         "first_column_indicators": list(view.indicator_keys),
-        "first_column_indicators_raw": list(getattr(table, "first_column_indicators_raw", None) or []),
+        "first_column_indicators_raw": list(
+            getattr(table, "first_column_indicators_raw", None) or []
+        ),
     }
 
 
@@ -1183,11 +1373,15 @@ def _removed_table_entry(view: TableView) -> dict[str, Any]:
         "reason": "removed_table",
         "source_reason": "pairing_unmatched",
         "first_column_indicators": list(view.indicator_keys),
-        "first_column_indicators_raw": list(getattr(table, "first_column_indicators_raw", None) or []),
+        "first_column_indicators_raw": list(
+            getattr(table, "first_column_indicators_raw", None) or []
+        ),
     }
 
 
-def _candidate_debug_entry_t2(t2_uid: str, candidates: list[CandidateScore]) -> dict[str, Any]:
+def _candidate_debug_entry_t2(
+    t2_uid: str, candidates: list[CandidateScore]
+) -> dict[str, Any]:
     return {
         "t2_uid": t2_uid,
         "candidates": [candidate.as_feature_dict() for candidate in candidates],
@@ -1208,8 +1402,12 @@ def _candidate_debug_entry_t1(
 
 def _resolve_collisions(
     provisional_matches: list[tuple[TableView, CandidateScore, PairingDecision]],
-) -> tuple[list[tuple[TableView, CandidateScore, PairingDecision]], list[dict[str, Any]]]:
-    matches_by_t1: dict[str, list[tuple[TableView, CandidateScore, PairingDecision]]] = {}
+) -> tuple[
+    list[tuple[TableView, CandidateScore, PairingDecision]], list[dict[str, Any]]
+]:
+    matches_by_t1: dict[
+        str, list[tuple[TableView, CandidateScore, PairingDecision]]
+    ] = {}
     for entry in provisional_matches:
         _, candidate, _ = entry
         matches_by_t1.setdefault(candidate.t1_view.uid, []).append(entry)
@@ -1221,7 +1419,9 @@ def _resolve_collisions(
         if len(entries) == 1:
             accepted.append(entries[0])
             continue
-        entries_sorted = sorted(entries, key=lambda item: item[2].confidence, reverse=True)
+        entries_sorted = sorted(
+            entries, key=lambda item: item[2].confidence, reverse=True
+        )
         top = entries_sorted[0]
         runner_up = entries_sorted[1]
         if top[2].confidence - runner_up[2].confidence >= 0.05:
@@ -1253,6 +1453,206 @@ def _resolve_collisions(
     return accepted, ambiguous
 
 
+_HUNGARIAN_MIN_SCORE = 0.56
+_HUNGARIAN_AMBIGUITY_MARGIN = 0.06
+
+
+def _hungarian_assignment(
+    t2_views: list[TableView],
+    t1_views: list[TableView],
+    candidate_map_t2: dict[str, list[CandidateScore]],
+    *,
+    min_score: float = _HUNGARIAN_MIN_SCORE,
+    ambiguity_margin: float = _HUNGARIAN_AMBIGUITY_MARGIN,
+) -> tuple[
+    list[tuple[TableView, CandidateScore, PairingDecision]],
+    list[dict[str, Any]],
+    set[str],
+]:
+    """Globally optimal 1-to-1 assignment using the Hungarian algorithm.
+
+    Returns (accepted_matches, ambiguous_entries, explicit_no_match_t2_uids).
+    """
+    if not t2_views or not t1_views:
+        return [], [], set()
+
+    t2_idx = {v.uid: i for i, v in enumerate(t2_views)}
+    t1_idx = {v.uid: i for i, v in enumerate(t1_views)}
+    n_t2, n_t1 = len(t2_views), len(t1_views)
+
+    score_matrix = np.full((n_t2, n_t1), -1e9, dtype=np.float64)
+    best_candidate: dict[tuple[int, int], CandidateScore] = {}
+
+    for t2_uid, candidates in candidate_map_t2.items():
+        i = t2_idx.get(t2_uid)
+        if i is None:
+            continue
+        for cand in candidates:
+            j = t1_idx.get(cand.t1_view.uid)
+            if j is None:
+                continue
+            if cand.total_score > score_matrix[i, j]:
+                score_matrix[i, j] = cand.total_score
+                best_candidate[(i, j)] = cand
+
+    row_ind, col_ind = linear_sum_assignment(score_matrix, maximize=True)
+
+    accepted: list[tuple[TableView, CandidateScore, PairingDecision]] = []
+    ambiguous: list[dict[str, Any]] = []
+    no_match_t2: set[str] = set()
+    matched_t2: set[int] = set()
+    matched_t1: set[int] = set()
+
+    assignments = sorted(
+        zip(row_ind, col_ind),
+        key=lambda pair: score_matrix[pair[0], pair[1]],
+        reverse=True,
+    )
+
+    for i, j in assignments:
+        s = score_matrix[i, j]
+        if s < min_score:
+            continue
+        cand = best_candidate.get((i, j))
+        if cand is None:
+            continue
+
+        if cand.table_number_match and cand.indicator_containment < 0.35:
+            ambiguous.append(
+                {
+                    "decision": "ambiguous",
+                    "matched_t1_uid": None,
+                    "confidence": round(s, 6),
+                    "reason_codes": ["table_number_only_insufficient_content"],
+                    "t2_uid": t2_views[i].uid,
+                    "candidate_t1_uids": [t1_views[j].uid],
+                }
+            )
+            continue
+
+        if cand.indicator_containment < 0.15 and cand.indicator_global_overlap < 0.10:
+            no_match_t2.add(t2_views[i].uid)
+            continue
+
+        row_scores = sorted(
+            [score_matrix[i, k] for k in range(n_t1) if score_matrix[i, k] > -1e8],
+            reverse=True,
+        )
+        row_margin = (row_scores[0] - row_scores[1]) if len(row_scores) > 1 else 1.0
+
+        if row_margin < ambiguity_margin:
+            if s >= 0.85:
+                pass
+            else:
+                runner_up_fp = 0.0
+                runner_up_title = 0.0
+                for k in range(n_t1):
+                    if k == j:
+                        continue
+                    rival = best_candidate.get((i, k))
+                    if rival is not None:
+                        runner_up_fp = max(runner_up_fp, rival.header_fingerprint)
+                        runner_up_title = max(runner_up_title, rival.title_similarity)
+
+                fp_edge = cand.header_fingerprint - runner_up_fp
+                title_edge = cand.title_similarity - runner_up_title
+                has_strong_disambiguator = (
+                    (cand.title_similarity >= 0.80 and title_edge >= 0.15)
+                    or (cand.header_fingerprint >= 0.60 and fp_edge >= 0.20)
+                    or (
+                        title_edge >= 0.10
+                        and fp_edge >= 0.10
+                        and cand.indicator_distinctive_overlap >= 0.20
+                    )
+                    or cand.title_similarity >= 0.95
+                    or cand.indicator_containment >= 0.75
+                )
+                if not has_strong_disambiguator:
+                    ambiguous.append(
+                        {
+                            "decision": "ambiguous",
+                            "matched_t1_uid": None,
+                            "confidence": round(s, 6),
+                            "reason_codes": ["hungarian_margin_ambiguous"],
+                            "t2_uid": t2_views[i].uid,
+                            "candidate_t1_uids": [
+                                t1_views[k].uid
+                                for k in range(n_t1)
+                                if score_matrix[i, k] > min_score
+                            ],
+                        }
+                    )
+                    continue
+
+        decision = PairingDecision(
+            decision="match",
+            matched_t1_uid=cand.t1_view.uid,
+            confidence=s,
+            reason_codes=list(cand.explanation) + ["hungarian_assignment"],
+            requires_review=False,
+        )
+        accepted.append((t2_views[i], cand, decision))
+        matched_t2.add(i)
+        matched_t1.add(j)
+
+    for i, view in enumerate(t2_views):
+        if i not in matched_t2 and view.uid not in {a["t2_uid"] for a in ambiguous}:
+            no_match_t2.add(view.uid)
+
+    return accepted, ambiguous, no_match_t2
+
+
+def _rescue_unmatched(
+    *,
+    unmatched_t1_views: list[TableView],
+    unmatched_t2_views: list[TableView],
+    profile: ScoringProfile | None = None,
+    min_containment: float = 0.55,
+    min_title_sim: float = 0.40,
+    min_total_score: float = 0.56,
+) -> list[tuple[TableView, CandidateScore, PairingDecision]]:
+    """Single-rescue pass: attempt 1-to-1 matching of remaining unmatched tables."""
+    if not unmatched_t1_views or not unmatched_t2_views:
+        return []
+
+    rescued: list[tuple[TableView, CandidateScore, PairingDecision]] = []
+    used_t1: set[str] = set()
+    used_t2: set[str] = set()
+
+    rescue_candidates: list[tuple[float, TableView, TableView, CandidateScore]] = []
+    for t2_view in unmatched_t2_views:
+        for t1_view in unmatched_t1_views:
+            if not _same_or_unknown_section(t1_view.table, t2_view.table):
+                left_section = _section_value(t1_view.table)
+                right_section = _section_value(t2_view.table)
+                if _is_known_section(left_section) and _is_known_section(right_section):
+                    continue
+            score = _candidate_score(t1_view, t2_view, profile=profile)
+            if (
+                score.indicator_containment >= min_containment
+                and score.title_similarity >= min_title_sim
+                and score.total_score >= min_total_score
+            ):
+                rescue_candidates.append((score.total_score, t2_view, t1_view, score))
+
+    rescue_candidates.sort(key=lambda item: item[0], reverse=True)
+    for _, t2_view, t1_view, score in rescue_candidates:
+        if t1_view.uid in used_t1 or t2_view.uid in used_t2:
+            continue
+        decision = PairingDecision(
+            decision="match",
+            matched_t1_uid=t1_view.uid,
+            confidence=score.total_score,
+            reason_codes=list(score.explanation) + ["rescue_single"],
+            requires_review=False,
+        )
+        rescued.append((t2_view, score, decision))
+        used_t1.add(t1_view.uid)
+        used_t2.add(t2_view.uid)
+
+    return rescued
+
+
 def run_strict_intra_section_compare(
     tables_t1: list[TableArtifact],
     tables_t2: list[TableArtifact],
@@ -1264,6 +1664,9 @@ def run_strict_intra_section_compare(
 ) -> dict[str, Any]:
     """Official conservative pairing facade used by the active pipeline."""
     del overlap_threshold, embedding_service
+
+    thresholds = get_matching_thresholds(bank_code=bank_code)
+    profile = ScoringProfile.from_thresholds(thresholds)
 
     section_frequencies = _build_section_indicator_frequency(tables_t1, tables_t2)
     section_counts: dict[str, int] = {}
@@ -1286,17 +1689,31 @@ def run_strict_intra_section_compare(
 
     router = _build_router(api_key=api_key, bank_code=bank_code)
     shortlist_size = _safe_int(
-        get_matching_thresholds(bank_code=bank_code).get(
-            "pairing_shortlist_size", DEFAULT_SHORTLIST_SIZE
-        ),
+        thresholds.get("pairing_shortlist_size", DEFAULT_SHORTLIST_SIZE),
         DEFAULT_SHORTLIST_SIZE,
     )
-    shortlist_size = max(1, min(shortlist_size, 5))
+    shortlist_size = max(1, min(shortlist_size, MAX_SHORTLIST_SIZE))
+
+    use_hungarian = bool(thresholds.get("pairing_hungarian_enabled", False))
+    hungarian_min = _safe_float(
+        thresholds.get("pairing_hungarian_min_score", _HUNGARIAN_MIN_SCORE),
+        _HUNGARIAN_MIN_SCORE,
+    )
+    hungarian_margin = _safe_float(
+        thresholds.get("pairing_hungarian_margin", _HUNGARIAN_AMBIGUITY_MARGIN),
+        _HUNGARIAN_AMBIGUITY_MARGIN,
+    )
+
+    rescue_min_containment = _safe_float(
+        thresholds.get("rescue_single_min_containment", 0.55), 0.55
+    )
+    rescue_min_title = _safe_float(
+        thresholds.get("rescue_single_min_title_similarity", 0.40), 0.40
+    )
 
     candidate_map_t2: dict[str, list[CandidateScore]] = {}
     candidate_map_t1: dict[str, list[CandidateScore]] = {}
     ambiguous_pairs: list[dict[str, Any]] = []
-    provisional_matches: list[tuple[TableView, CandidateScore, PairingDecision]] = []
     explicit_no_match_t2: set[str] = set()
 
     for t2_view in t2_views:
@@ -1304,43 +1721,86 @@ def run_strict_intra_section_compare(
             t2_view,
             t1_views,
             shortlist_size=shortlist_size,
+            profile=profile,
+            adapt=use_hungarian,
         )
         candidate_map_t2[t2_view.uid] = shortlist
         for candidate in shortlist:
             candidate_map_t1.setdefault(candidate.t1_view.uid, []).append(candidate)
 
-        decision = router.route(t2_view=t2_view, candidates=shortlist)
-        if decision.decision == "match" and decision.matched_t1_uid:
-            chosen = next(
-                (
-                    candidate
-                    for candidate in shortlist
-                    if candidate.t1_view.uid == decision.matched_t1_uid
-                ),
-                None,
+    if use_hungarian and len(t2_views) > 0 and len(t1_views) > 0:
+        accepted_matches, hungarian_ambiguous, explicit_no_match_t2 = (
+            _hungarian_assignment(
+                t2_views,
+                t1_views,
+                candidate_map_t2,
+                min_score=hungarian_min,
+                ambiguity_margin=hungarian_margin,
             )
-            if chosen is not None:
-                provisional_matches.append((t2_view, chosen, decision))
-                continue
-        if decision.decision == "ambiguous":
-            ambiguous_pairs.append(
-                {
-                    "decision": "ambiguous",
-                    "matched_t1_uid": None,
-                    "confidence": round(decision.confidence, 6),
-                    "reason_codes": list(decision.reason_codes),
-                    "t2_uid": t2_view.uid,
-                    "candidate_t1_uids": [candidate.t1_view.uid for candidate in shortlist],
-                }
-            )
-        else:
-            explicit_no_match_t2.add(t2_view.uid)
-
-    accepted_matches, collision_ambiguous = _resolve_collisions(provisional_matches)
-    ambiguous_pairs.extend(collision_ambiguous)
+        )
+        ambiguous_pairs.extend(hungarian_ambiguous)
+    else:
+        provisional_matches: list[
+            tuple[TableView, CandidateScore, PairingDecision]
+        ] = []
+        for t2_view in t2_views:
+            shortlist = candidate_map_t2.get(t2_view.uid, [])
+            decision = router.route(t2_view=t2_view, candidates=shortlist)
+            if decision.decision == "match" and decision.matched_t1_uid:
+                chosen = next(
+                    (c for c in shortlist if c.t1_view.uid == decision.matched_t1_uid),
+                    None,
+                )
+                if chosen is not None:
+                    provisional_matches.append((t2_view, chosen, decision))
+                    continue
+            if decision.decision == "ambiguous":
+                ambiguous_pairs.append(
+                    {
+                        "decision": "ambiguous",
+                        "matched_t1_uid": None,
+                        "confidence": round(decision.confidence, 6),
+                        "reason_codes": list(decision.reason_codes),
+                        "t2_uid": t2_view.uid,
+                        "candidate_t1_uids": [c.t1_view.uid for c in shortlist],
+                    }
+                )
+            else:
+                explicit_no_match_t2.add(t2_view.uid)
+        accepted_matches, collision_ambiguous = _resolve_collisions(provisional_matches)
+        ambiguous_pairs.extend(collision_ambiguous)
 
     matched_t1_uids = {candidate.t1_view.uid for _, candidate, _ in accepted_matches}
     matched_t2_uids = {t2_view.uid for t2_view, _, _ in accepted_matches}
+
+    ambiguous_t2_uids_pre = {
+        str(item.get("t2_uid", "")).strip()
+        for item in ambiguous_pairs
+        if str(item.get("t2_uid", "")).strip()
+    }
+
+    remaining_t1 = [
+        v
+        for v in t1_views
+        if v.uid not in matched_t1_uids and v.uid not in ambiguous_t2_uids_pre
+    ]
+    remaining_t2 = [
+        v
+        for v in t2_views
+        if v.uid not in matched_t2_uids and v.uid not in ambiguous_t2_uids_pre
+    ]
+    rescued_matches = _rescue_unmatched(
+        unmatched_t1_views=remaining_t1,
+        unmatched_t2_views=remaining_t2,
+        profile=profile,
+        min_containment=rescue_min_containment,
+        min_title_sim=rescue_min_title,
+    )
+    rescued_count = len(rescued_matches)
+    for entry in rescued_matches:
+        accepted_matches.append(entry)
+        matched_t1_uids.add(entry[1].t1_view.uid)
+        matched_t2_uids.add(entry[0].uid)
 
     ambiguous_t2_uids = {
         str(item.get("t2_uid", "")).strip()
@@ -1354,7 +1814,9 @@ def run_strict_intra_section_compare(
             if candidate_uid:
                 ambiguous_t1_uids.add(candidate_uid)
 
-    pairs = [_pair_dict(candidate, decision) for _, candidate, decision in accepted_matches]
+    pairs = [
+        _pair_dict(candidate, decision) for _, candidate, decision in accepted_matches
+    ]
 
     unmatched_t1: list[dict[str, Any]] = []
     unmatched_t2: list[dict[str, Any]] = []
@@ -1496,13 +1958,15 @@ def run_strict_intra_section_compare(
             for uid, candidates in sorted(candidate_map_t2.items())
             if candidates
         ],
-        "rescued_matches_count": 0,
+        "rescued_matches_count": rescued_count,
         "split_merge_rescues_count": 0,
         "vision_rescued_pairs": [],
         "reasons": [pair.get("reason", "") for pair in pairs if pair.get("reason")],
         "diagnostics": {
             "router": router.__class__.__name__,
             "shortlist_size": shortlist_size,
+            "hungarian_enabled": use_hungarian,
+            "scoring_profile": profile.adaptive_mode,
         },
         "matching_diagnostics": {
             "pairs_count": len(pairs),

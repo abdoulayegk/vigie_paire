@@ -148,6 +148,13 @@ REGLES GENERALES
 - Ne jamais inventer d'information
 - Respecter l'ordre visuel
 
+Règles strictes :
+   - Respecte l'ordre visuel exact (haut → bas)
+   - Ne jamais trier les notes par identifiant
+   - Ne jamais fusionner deux notes en une
+   - Ne jamais inventer une note
+   - Si aucune note visible → footnotes_content: []
+
 Retourner également :
 
 - confidence : score global entre 0.0 et 1.0 basé sur la lisibilité
@@ -190,7 +197,10 @@ REGLES DE VALIDATION
 - footnotes_content doit respecter l'ordre visuel des notes (haut → bas)
 - ne jamais trier les notes par identifiant
 - si aucune note n'est visible :
-  footnotes_content = []
+- footnotes_content = []
+- N'inventer aucune footnote.
+- Ne jamais inventer de note.
+- N'oublie surtout les footenots s'ils existent.
 
 DEFINITIONS
 
