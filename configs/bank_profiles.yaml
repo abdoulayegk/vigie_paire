@@ -73,6 +73,10 @@ validation:
   indicator_validator_confidence_min: 0.8
   indicator_validator_batch_size: 8
   vision_unmatched_rescue_enabled: true
+  cross_section_rescue_enabled: true
+  cross_section_rescue_rerank_min: 0.30
+  cross_section_rescue_vision_confidence_min: 0.85
+  cross_section_rescue_max_candidates_per_table: 3
 
 banks:
   bnc:
@@ -374,6 +378,15 @@ banks:
       use_hungarian_matching: true
       margin_threshold: 0.15
       rescue_single_min_title_similarity: 0.60
+      overlap_threshold: 0.48
+      use_plan_score_formula: true
+      min_label_overlap_reject: 0.48
+      rescue_single_min_containment: 0.55
+      title_override_min_similarity: 0.72
+      title_override_body_similarity: 0.70
+      title_override_min_structure: 0.25
+      title_override_min_overlap: 0.40
+      title_override_max_size_ratio: 0.50
 
   bns:
     vision_extraction:

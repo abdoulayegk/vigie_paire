@@ -1024,6 +1024,8 @@ def _collect_vision_rescue_candidates(
     t2_by_uid: dict[str, TableArtifact],
     max_candidates_per_table: int,
     max_tables_per_run: int,
+    cross_section_rescue_enabled: bool = False,
+    cross_section_rerank_min: float = 0.30,
 ) -> tuple[list[dict[str, Any]], int]:
     row_candidates_map, col_candidates_map = _build_unmatched_candidate_maps(strict)
     pairs = strict.get("pairs", []) or []
@@ -1137,16 +1139,25 @@ def _collect_vision_rescue_candidates(
                         payload_by_uid[t2_uid] = dict(entry)
             all_candidates = []
             for t2_uid, target_table in section_t2_unpaired.items():
-                if str(getattr(target_table, "section", "") or "").strip() != section:
-                    continue
+                target_section = str(getattr(target_table, "section", "") or "").strip()
+                is_cross_section = target_section != section
+                if is_cross_section:
+                    if not (
+                        cross_section_rescue_enabled and source == "confirmed_unmatched"
+                    ):
+                        continue
                 candidate_payload = payload_by_uid.get(t2_uid)
                 reranked = _rerank_vision_candidate(
                     source_table=source_table,
                     target_table=target_table,
                     candidate_payload=candidate_payload,
                 )
-                if reranked["score"] < 0.18:
+                rerank_threshold = (
+                    cross_section_rerank_min if is_cross_section else 0.18
+                )
+                if reranked["score"] < rerank_threshold:
                     continue
+                reranked["is_cross_section"] = is_cross_section
                 all_candidates.append(
                     {
                         "t1_uid": source_uid,
@@ -1182,16 +1193,25 @@ def _collect_vision_rescue_candidates(
                         payload_by_uid[t1_uid] = dict(entry)
             all_candidates = []
             for t1_uid, target_table in section_t1_unpaired.items():
-                if str(getattr(target_table, "section", "") or "").strip() != section:
-                    continue
+                target_section = str(getattr(target_table, "section", "") or "").strip()
+                is_cross_section = target_section != section
+                if is_cross_section:
+                    if not (
+                        cross_section_rescue_enabled and source == "confirmed_unmatched"
+                    ):
+                        continue
                 candidate_payload = payload_by_uid.get(t1_uid)
                 reranked = _rerank_vision_candidate(
                     source_table=target_table,
                     target_table=source_table,
                     candidate_payload=candidate_payload,
                 )
-                if reranked["score"] < 0.18:
+                rerank_threshold = (
+                    cross_section_rerank_min if is_cross_section else 0.18
+                )
+                if reranked["score"] < rerank_threshold:
                     continue
+                reranked["is_cross_section"] = is_cross_section
                 all_candidates.append(
                     {
                         "t1_uid": t1_uid,
@@ -3398,6 +3418,15 @@ def run_comparison_with_sections(
     vision_unmatched_rescue_max_tables_per_run = int(
         val_cfg.get("vision_unmatched_rescue_max_tables_per_run", 20)
     )
+    cross_section_rescue_enabled = bool(
+        val_cfg.get("cross_section_rescue_enabled", False)
+    )
+    cross_section_rescue_rerank_min = float(
+        val_cfg.get("cross_section_rescue_rerank_min", 0.30)
+    )
+    cross_section_rescue_vision_confidence_min = float(
+        val_cfg.get("cross_section_rescue_vision_confidence_min", 0.85)
+    )
     vision_unmatched_rescue_summary: dict[str, Any] = {
         "enabled": bool(vision_unmatched_rescue_enabled),
         "candidate_pairs_tested": 0,
@@ -3432,6 +3461,8 @@ def run_comparison_with_sections(
                     max_tables_per_run=max(
                         0, vision_unmatched_rescue_max_tables_per_run
                     ),
+                    cross_section_rescue_enabled=cross_section_rescue_enabled,
+                    cross_section_rerank_min=cross_section_rescue_rerank_min,
                 )
             )
             if candidate_pairs:
@@ -3498,6 +3529,7 @@ def run_comparison_with_sections(
                             get_extraction_quality_flags,
                         )
 
+                        is_cross = candidate.get("is_cross_section", False)
                         flags1 = get_extraction_quality_flags(t1_tbl)
                         flags2 = get_extraction_quality_flags(t2_tbl)
                         low_q1 = (
@@ -3512,24 +3544,43 @@ def run_comparison_with_sections(
                         )
                         allow_rescue = True
                         if low_q1 or low_q2:
-                            table_num_match = (
-                                str(getattr(t1_tbl, "table_number", "") or "").strip()
-                                == str(getattr(t2_tbl, "table_number", "") or "").strip()
-                                and (getattr(t1_tbl, "table_number", None) or "").strip()
-                            )
-                            section_match = (
-                                str(getattr(t1_tbl, "section", "") or "").strip()
-                                == str(getattr(t2_tbl, "section", "") or "").strip()
-                            )
-                            allow_rescue = table_num_match and section_match
+                            if is_cross:
+                                allow_rescue = (
+                                    vd.confidence
+                                    >= cross_section_rescue_vision_confidence_min
+                                )
+                            else:
+                                table_num_match = (
+                                    str(
+                                        getattr(t1_tbl, "table_number", "") or ""
+                                    ).strip()
+                                    == str(
+                                        getattr(t2_tbl, "table_number", "") or ""
+                                    ).strip()
+                                    and (
+                                        getattr(t1_tbl, "table_number", None) or ""
+                                    ).strip()
+                                )
+                                section_match = (
+                                    str(getattr(t1_tbl, "section", "") or "").strip()
+                                    == str(
+                                        getattr(t2_tbl, "section", "") or ""
+                                    ).strip()
+                                )
+                                allow_rescue = table_num_match and section_match
                         if allow_rescue:
+                            rescue_source = (
+                                "cross_section_vision_rescue"
+                                if is_cross
+                                else "vision_unmatched_rescue"
+                            )
                             scored_candidates.append(
                                 AssignmentEntry(
                                     t1_uid=t1_uid_r,
                                     t2_uid=t2_uid_a,
                                     confidence=float(vd.confidence),
                                     decision=vd,
-                                    source="vision_unmatched_rescue",
+                                    source=rescue_source,
                                 )
                             )
                     elif vd.decision == "no_match":
@@ -3553,6 +3604,7 @@ def run_comparison_with_sections(
                 )
 
                 rescued_pairs: list[dict[str, Any]] = []
+                cross_section_rescued_pairs: list[dict[str, Any]] = []
                 rescued_t1_uids: set[str] = set()
                 rescued_t2_uids: set[str] = set()
 
@@ -3568,19 +3620,38 @@ def run_comparison_with_sections(
                     for ass in bijection.assigned_pairs:
                         rescued_t1_uids.add(ass.t1_uid)
                         rescued_t2_uids.add(ass.t2_uid)
-                        rescued_pairs.append(
-                            {
-                                "t1_uid": ass.t1_uid,
-                                "t2_uid": ass.t2_uid,
-                                "score": float(ass.confidence),
-                                "reason": "vision_unmatched_rescue",
-                                "rescue_type": "vision_unmatched_rescue",
-                                "decision_level": "rescue",
-                                "match_source": "vision_unmatched_rescue",
-                                "match_stage": "vision_rescue",
-                            }
-                        )
+                        is_cross = ass.source == "cross_section_vision_rescue"
+                        pair_entry = {
+                            "t1_uid": ass.t1_uid,
+                            "t2_uid": ass.t2_uid,
+                            "score": float(ass.confidence),
+                            "reason": (
+                                "cross_section_vision_rescue"
+                                if is_cross
+                                else "vision_unmatched_rescue"
+                            ),
+                            "rescue_type": (
+                                "cross_section_vision_rescue"
+                                if is_cross
+                                else "vision_unmatched_rescue"
+                            ),
+                            "decision_level": "rescue",
+                            "match_source": (
+                                "cross_section_vision_rescue"
+                                if is_cross
+                                else "vision_unmatched_rescue"
+                            ),
+                            "match_stage": (
+                                "cross_section_rescue"
+                                if is_cross
+                                else "vision_rescue"
+                            ),
+                        }
+                        rescued_pairs.append(pair_entry)
+                        if is_cross:
+                            cross_section_rescued_pairs.append(pair_entry)
 
+                strict["cross_section_rescued_pairs"] = cross_section_rescued_pairs
                 uncertain_t1_uids.difference_update(rescued_t1_uids)
                 uncertain_t2_uids.difference_update(rescued_t2_uids)
 
@@ -3612,6 +3683,7 @@ def run_comparison_with_sections(
             logger.warning("Vision unmatched rescue failed: %s", exc)
 
     strict.setdefault("vision_rescued_pairs", [])
+    strict.setdefault("cross_section_rescued_pairs", [])
     strict.setdefault("vision_unmatched_rescue_candidates", [])
     strict.setdefault("vision_unmatched_rescue_results", [])
     strict.setdefault("vision_rejected_pairs", [])
@@ -4567,6 +4639,9 @@ def run_comparison_with_sections(
         strict.get("removed_tables_confirmed", []) or tables_removed
     )
     vision_rescued_pairs = list(strict.get("vision_rescued_pairs", []) or [])
+    cross_section_rescued_pairs = list(
+        strict.get("cross_section_rescued_pairs", []) or []
+    )
     tables_comparable_t1 = int(
         strict.get(
             "tables_comparable_t1",
@@ -4663,6 +4738,10 @@ def run_comparison_with_sections(
         summary_text += (
             f" {len(vision_rescued_pairs)} tableau(x) recuperes par validation Vision."
         )
+    if cross_section_rescued_pairs:
+        summary_text += (
+            f" {len(cross_section_rescued_pairs)} tableau(x) recuperes par rescue cross-section."
+        )
 
     extraction_quality_kpis = _compute_extraction_kpis(
         tables_t1,
@@ -4703,6 +4782,7 @@ def run_comparison_with_sections(
             "ambiguous_tables": len(ambiguous_tables),
             "ambiguous_pairs": len(strict.get("ambiguous_pairs", []) or []),
             "vision_rescued_pairs": len(vision_rescued_pairs),
+            "cross_section_rescued_pairs": len(cross_section_rescued_pairs),
             "rescued_matches_count": int(strict.get("rescued_matches_count", 0) or 0),
             "split_merge_rescues_count": int(
                 strict.get("split_merge_rescues_count", 0) or 0
@@ -4868,6 +4948,7 @@ def run_comparison_with_sections(
                     ),
                     "suspicious_pairs_payload": strict.get("suspicious_pairs", []),
                     "vision_rescued_pairs_payload": vision_rescued_pairs,
+                    "cross_section_rescued_pairs_payload": cross_section_rescued_pairs,
                     "ambiguous_tables_payload": ambiguous_tables,
                     "matching_diagnostics": strict.get("matching_diagnostics", {}),
                 },

@@ -174,6 +174,16 @@ def get_validation_config(
         if isinstance(ve, dict) and "vision_pair_validation" in ve:
             base["vision_pair_validation"] = ve["vision_pair_validation"]
 
+    # Cross-section rescue defaults when keys absent
+    if "cross_section_rescue_enabled" not in base:
+        base["cross_section_rescue_enabled"] = False
+    if "cross_section_rescue_rerank_min" not in base:
+        base["cross_section_rescue_rerank_min"] = 0.30
+    if "cross_section_rescue_vision_confidence_min" not in base:
+        base["cross_section_rescue_vision_confidence_min"] = 0.85
+    if "cross_section_rescue_max_candidates_per_table" not in base:
+        base["cross_section_rescue_max_candidates_per_table"] = 3
+
     return base
 
 

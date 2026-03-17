@@ -97,7 +97,6 @@ from app.dash_app.components.review_detail import (
     build_proofs_section,
     section_display_label,
 )
-from app.review_models_v2 import ChangeType
 from app.dash_app.layouts import (
     build_page_results,
     build_page_upload,
@@ -129,6 +128,7 @@ from app.review_models import (
     REVIEW_STATUS_REJECTED,
     ReviewItem,
 )
+from app.review_models_v2 import ChangeType
 from app.review_priority import sort_review_items_by_priority
 from app.review_queue_normalizer import (
     build_normalized_review_queue,
@@ -153,9 +153,12 @@ from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
 # Theme Bootstrap
 APP_THEME = dbc.themes.FLATLY
-REVIEW_QUEUE_V2_ACTIVE = (
-    os.getenv("REVIEW_QUEUE_V2_ACTIVE", "1").strip().lower() in {"1", "true", "yes", "on"}
-)
+REVIEW_QUEUE_V2_ACTIVE = os.getenv("REVIEW_QUEUE_V2_ACTIVE", "1").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
 app = Dash(
     __name__,
@@ -1503,7 +1506,9 @@ def render_results(comparison, indicator, show_results):
     elif indicator:
         bank = indicator.get("bank_code", "N/A")
         title = "Indicateurs"
-    quarter_context = get_payload_quarter_context(data if isinstance(data, dict) else {})
+    quarter_context = get_payload_quarter_context(
+        data if isinstance(data, dict) else {}
+    )
     previous_label = str(quarter_context["previous"]["label"])
     current_label = str(quarter_context["current"]["label"])
     header = html.H5(
@@ -1521,6 +1526,7 @@ def render_results(comparison, indicator, show_results):
         tables_matched = kpi.get("tables_matched", 0)
         ambiguous_tables = kpi.get("ambiguous_tables", 0)
         vision_rescued_pairs = kpi.get("vision_rescued_pairs", 0)
+        cross_section_rescued_pairs = kpi.get("cross_section_rescued_pairs", 0)
         structure_change = status_counts.get("structure_change", 0)
         incertain = status_counts.get("incertain", 0)
         added = kpi.get("total_added_indicators", 0)
@@ -1598,6 +1604,10 @@ def render_results(comparison, indicator, show_results):
             )
         if vision_rescued_pairs:
             parts.append(f" {vision_rescued_pairs} tableau(x) recuperes par Vision.")
+        if cross_section_rescued_pairs:
+            parts.append(
+                f" {cross_section_rescued_pairs} tableau(x) recuperes par rescue cross-section."
+            )
 
         summary_text = "".join(parts)
         executive_summary = dbc.Alert(
@@ -1634,6 +1644,9 @@ def render_results(comparison, indicator, show_results):
         ambiguous_tables = int(kpi.get("ambiguous_tables", 0) or 0)
         ambiguous_pairs = int(kpi.get("ambiguous_pairs", 0) or 0)
         vision_rescued_pairs = int(kpi.get("vision_rescued_pairs", 0) or 0)
+        cross_section_rescued_pairs = int(
+            kpi.get("cross_section_rescued_pairs", 0) or 0
+        )
         tables_comparable_t1 = int(kpi.get("tables_comparable_t1", 0) or 0)
         tables_comparable_t2 = int(kpi.get("tables_comparable_t2", 0) or 0)
         pairing_coverage = float(kpi.get("pairing_coverage", 0.0) or 0.0)
@@ -1770,10 +1783,27 @@ def render_results(comparison, indicator, show_results):
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.P("Ambigus", className="small text-muted mb-0"),
-                            html.H4(
-                                str(ambiguous_tables), className="mb-0 fw-bold"
+                            html.P(
+                                "Cross-section",
+                                className="small text-muted mb-0",
                             ),
+                            html.H4(
+                                str(cross_section_rescued_pairs),
+                                className="mb-0 fw-bold",
+                            ),
+                        ],
+                        className="p-2 text-center",
+                    ),
+                    className="shadow-sm border-0",
+                ),
+                width=3,
+            ),
+            dbc.Col(
+                dbc.Card(
+                    dbc.CardBody(
+                        [
+                            html.P("Ambigus", className="small text-muted mb-0"),
+                            html.H4(str(ambiguous_tables), className="mb-0 fw-bold"),
                         ],
                         className="p-2 text-center",
                     ),
@@ -1836,7 +1866,9 @@ def render_results(comparison, indicator, show_results):
                 " | Extraction vide: Vision n'a produit aucun indicateur comparable."
             )
         if pairing_low_confidence:
-            pairing_context += " | Pairing faible: les tableaux non apparies restent a confirmer."
+            pairing_context += (
+                " | Pairing faible: les tableaux non apparies restent a confirmer."
+            )
         kpis.append(
             dbc.Alert(
                 pairing_context,
@@ -2042,7 +2074,9 @@ def _visible_review_ids(queue: list[dict], filters: dict | None) -> list[str]:
     ]
 
 
-def _get_table_by_review_id(queue: list[dict], review_id: str | None) -> tuple[int, dict | None]:
+def _get_table_by_review_id(
+    queue: list[dict], review_id: str | None
+) -> tuple[int, dict | None]:
     if not queue:
         return -1, None
     rid = str(review_id or "")
@@ -2053,7 +2087,9 @@ def _get_table_by_review_id(queue: list[dict], review_id: str | None) -> tuple[i
     return -1, None
 
 
-def _resolve_change_id(table: dict, preferred_change_id: str | None = None) -> str | None:
+def _resolve_change_id(
+    table: dict, preferred_change_id: str | None = None
+) -> str | None:
     changes = table.get("changes", []) or []
     preferred = str(preferred_change_id or "")
     if preferred and any(str(c.get("change_id", "")) == preferred for c in changes):
@@ -2144,9 +2180,15 @@ def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
         ctype = str(change.get("change_type", ""))
         payload = change.get("payload", {}) or {}
         indicator_name = str(payload.get("indicator_name", "")).strip()
-        if ctype in (ChangeType.INDICATOR_ADDED.value, "indicator_added") and indicator_name:
+        if (
+            ctype in (ChangeType.INDICATOR_ADDED.value, "indicator_added")
+            and indicator_name
+        ):
             added_indicators.append(indicator_name)
-        if ctype in (ChangeType.INDICATOR_REMOVED.value, "indicator_removed") and indicator_name:
+        if (
+            ctype in (ChangeType.INDICATOR_REMOVED.value, "indicator_removed")
+            and indicator_name
+        ):
             removed_indicators.append(indicator_name)
 
     return {
@@ -2206,11 +2248,13 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
             return REVIEW_STATUS_PENDING
 
         has_table_added = any(
-            str(c.get("change_type", "")) in (ChangeType.TABLE_ADDED.value, "table_added")
+            str(c.get("change_type", ""))
+            in (ChangeType.TABLE_ADDED.value, "table_added")
             for c in changes
         )
         has_table_removed = any(
-            str(c.get("change_type", "")) in (ChangeType.TABLE_REMOVED.value, "table_removed")
+            str(c.get("change_type", ""))
+            in (ChangeType.TABLE_REMOVED.value, "table_removed")
             for c in changes
         )
         table_bucket = _table_decision_bucket(table)
@@ -2227,7 +2271,9 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
         event_type = "matched_pair"
         if has_table_added or has_table_removed:
             change_type = (
-                CHANGE_TYPE_TABLE_ADDED if has_table_added else CHANGE_TYPE_TABLE_REMOVED
+                CHANGE_TYPE_TABLE_ADDED
+                if has_table_added
+                else CHANGE_TYPE_TABLE_REMOVED
             )
             event_type = (
                 EVENT_TYPE_TABLE_ADDED if has_table_added else EVENT_TYPE_TABLE_REMOVED
@@ -2277,9 +2323,8 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
                     event_type = EVENT_TYPE_FOOTNOTE_ONLY
                     indicators.append(
                         {
-                            "name": str(payload.get("indicator_name", "")) or str(
-                                payload.get("new_text", "")
-                            ),
+                            "name": str(payload.get("indicator_name", ""))
+                            or str(payload.get("new_text", "")),
                             "type": CHANGE_TYPE_MODIFIED,
                             "review_status": c_status,
                         }
@@ -2587,11 +2632,11 @@ def _build_comparison_statement(item: ReviewItem) -> str:
             "(présent au trimestre précédent)"
         )
     if item.change_type == CHANGE_TYPE_ADDED:
-        return f"Ajout au trimestre courant: {indicator} -- absent au trimestre précédent."
-    if item.change_type == CHANGE_TYPE_REMOVED:
         return (
-            f"Suppression au trimestre courant: {indicator} -- présent au trimestre précédent."
+            f"Ajout au trimestre courant: {indicator} -- absent au trimestre précédent."
         )
+    if item.change_type == CHANGE_TYPE_REMOVED:
+        return f"Suppression au trimestre courant: {indicator} -- présent au trimestre précédent."
     if item.change_type == CHANGE_TYPE_RENAMED:
         return f"Renommage entre trimestre précédent et trimestre courant: {indicator}."
     return f"Changement detecte: {indicator}"
@@ -3259,7 +3304,9 @@ def render_export_tab(review_items_data, indicator_result, show_results):
     State("store-pdf-paths", "data"),
     prevent_initial_call=True,
 )
-def on_download_csv(n_clicks, review_items_data, review_queue_data, indicator_result, paths):
+def on_download_csv(
+    n_clicks, review_items_data, review_queue_data, indicator_result, paths
+):
     """Telecharger le CSV de validation (Excel FR, UTF-8 BOM, separateur ;)."""
     if not n_clicks:
         raise PreventUpdate
@@ -3351,7 +3398,9 @@ def on_download_json(n_clicks, review_items_data, review_queue_data, indicator_r
     State("store-pdf-paths", "data"),
     prevent_initial_call=True,
 )
-def on_download_excel(n_clicks, review_items_data, review_queue_data, indicator_result, paths):
+def on_download_excel(
+    n_clicks, review_items_data, review_queue_data, indicator_result, paths
+):
     """Telecharger le fichier Excel de validation (.xlsx)."""
     if not n_clicks:
         raise PreventUpdate
@@ -3407,9 +3456,11 @@ def on_download_indicator_json_brut(n_clicks, indicator_result):
     import json
 
     bank = str(indicator_result.get("bank_code", "bank"))
-    base_name = _comparison_export_base_name(
-        indicator_result, "canonical"
-    ).replace(" ", "_").lower()
+    base_name = (
+        _comparison_export_base_name(indicator_result, "canonical")
+        .replace(" ", "_")
+        .lower()
+    )
     json_str = json.dumps(indicator_result, ensure_ascii=False, indent=2)
     return dict(content=json_str, filename=f"{base_name}.json")
 
@@ -3712,7 +3763,9 @@ def on_navigate_change_v2(prev, next_c, queue, selection, filters):
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
 
-    resolved_selection, table_idx, change_idx = _resolve_selection(queue, selection, filters)
+    resolved_selection, table_idx, change_idx = _resolve_selection(
+        queue, selection, filters
+    )
     if table_idx < 0:
         raise PreventUpdate
 
@@ -3770,7 +3823,10 @@ def on_change_row_click(n_clicks, queue, selection, filters):
     if table_idx < 0:
         raise PreventUpdate
     table = queue[table_idx]
-    if not any(str(c.get("change_id", "")) == change_id for c in (table.get("changes", []) or [])):
+    if not any(
+        str(c.get("change_id", "")) == change_id
+        for c in (table.get("changes", []) or [])
+    ):
         raise PreventUpdate
     new_selection = {
         "review_id": resolved_selection.get("review_id"),

@@ -147,6 +147,7 @@ REGLES GENERALES
 - Transcrire uniquement ce qui est visible dans l'image
 - Ne jamais inventer d'information
 - Respecter l'ordre visuel
+-Certains colonnes qui ne sont pas premiere colonne ou libellés avec un nom comme i ndicateurs
 
 Retourner également :
 
