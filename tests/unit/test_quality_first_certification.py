@@ -87,6 +87,20 @@ def test_review_required_medium_confidence() -> None:
     assert is_auto_compare_eligible(t) is False
 
 
+def test_recrop_used_high_confidence_can_stay_certified() -> None:
+    t = _table(
+        debug_metrics={
+            "vision_extraction_applied": True,
+            "vision_extraction_confidence": 0.95,
+            "recrop_attempted": True,
+            "recrop_used": True,
+        }
+    )
+    assert derive_extraction_blockers(t) == []
+    assert get_extraction_status(t) == EXTRACTION_STATUS_CERTIFIED
+    assert is_auto_compare_eligible(t) is True
+
+
 def test_evaluate_extraction_quality_fail_on_blocked() -> None:
     certified = _table(table_id="c", debug_metrics={"vision_extraction_confidence": 0.9})
     blocked = _table(table_id="b", debug_metrics={"vision_extraction_confidence": 0.2})

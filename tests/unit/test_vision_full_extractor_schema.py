@@ -16,6 +16,12 @@ from vigilance.extraction.vision_full_extractor import (
 )
 
 
+def test_default_extraction_model_resolves_to_gpt54() -> None:
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False)
+    assert extractor.model_name == "gpt-5.4"
+    assert extractor.model_role == "extraction_primary"
+
+
 def test_parse_vision_result_valid_with_defaults() -> None:
     raw = {
         "indicators": [
@@ -200,6 +206,15 @@ def test_extract_raises_schema_contract_error_once_and_circuit_breaks(
 def test_extract_returns_result_after_successful_api_response(monkeypatch) -> None:
     class _FakeResponse:
         def __init__(self, content: str) -> None:
+            self.usage = type(
+                "Usage",
+                (),
+                {
+                    "prompt_tokens": 321,
+                    "completion_tokens": 654,
+                    "total_tokens": 975,
+                },
+            )()
             self.choices = [
                 type(
                     "Choice",
@@ -215,9 +230,10 @@ def test_extract_returns_result_after_successful_api_response(monkeypatch) -> No
         def __init__(self, content: str) -> None:
             self.calls = 0
             self._content = content
+            self.models: list[str] = []
 
         def create(self, **kwargs):  # type: ignore[no-untyped-def]
-            del kwargs
+            self.models.append(str(kwargs.get("model")))
             self.calls += 1
             return _FakeResponse(self._content)
 
@@ -258,11 +274,99 @@ def test_extract_returns_result_after_successful_api_response(monkeypatch) -> No
     assert result.table_title == "Tableau 1"
     assert result.indicators == [{"text": "Ratio CET1", "bbox": None}]
     assert result.rows == [["Ratio CET1", "13,1 %"]]
+    assert result.requested_max_completion_tokens == 65536
+    assert result.prompt_tokens == 321
+    assert result.completion_tokens == 654
+    assert result.total_tokens == 975
+    assert fake_completions.models == ["gpt-5.4"]
     assert fake_completions.calls == 1
 
 
-def test_extract_returns_none_on_truncation_when_best_effort_fails(monkeypatch) -> None:
-    """When finish_reason=length and truncated JSON has no indicators/confidence, extract() returns None (single call)."""
+def test_extract_with_quality_pass_keeps_same_resolved_model_for_recrop(
+    monkeypatch,
+) -> None:
+    class _FakeResponse:
+        def __init__(self, content: str) -> None:
+            self.choices = [
+                type(
+                    "Choice",
+                    (),
+                    {
+                        "message": type("Message", (), {"content": content})(),
+                        "finish_reason": "stop",
+                    },
+                )()
+            ]
+
+    class _FakeCompletions:
+        def __init__(self, contents: list[str]) -> None:
+            self._contents = list(contents)
+            self.models: list[str] = []
+            self.max_tokens: list[int] = []
+
+        def create(self, **kwargs):  # type: ignore[no-untyped-def]
+            self.models.append(str(kwargs.get("model")))
+            self.max_tokens.append(int(kwargs.get("max_completion_tokens")))
+            content = self._contents.pop(0)
+            return _FakeResponse(content)
+
+    first_payload = {
+        "table_title": "Tableau 1",
+        "headers": ["Indicateur", "Valeur"],
+        "indicators": [{"text": "Ratio CET1", "bbox": None}],
+        "rows": [["Ratio CET1", "13,1 %"]],
+        "footnotes_content": [],
+        "footnote_markers": [],
+        "has_hierarchy": False,
+        "extraction_confidence": "medium",
+        "notes": "",
+        "confidence": 0.4,
+        "appears_truncated": False,
+        "estimated_content_height": 60,
+    }
+    second_payload = dict(first_payload)
+    second_payload["confidence"] = 0.96
+    second_payload["extraction_confidence"] = "high"
+    second_payload["estimated_content_height"] = 88
+
+    fake_completions = _FakeCompletions(
+        [__import__("json").dumps(first_payload), __import__("json").dumps(second_payload)]
+    )
+    fake_client = type(
+        "FakeClient",
+        (),
+        {
+            "chat": type(
+                "FakeChat",
+                (),
+                {"completions": fake_completions},
+            )()
+        },
+    )()
+
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False)
+    extractor._client = fake_client
+    monkeypatch.setattr(extractor, "_ensure_client", lambda: None)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"abc",
+        bank_code="bnc",
+        bbox_norm=[0.2, 0.2, 0.8, 0.8],
+        vision_cfg={},
+        get_recrop_fn=lambda _ext: b"recrop",
+    )
+
+    assert result is not None
+    assert result.recrop_attempted is True
+    assert result.recrop_used is True
+    assert fake_completions.models == ["gpt-5.4", "gpt-5.4"]
+    assert fake_completions.max_tokens == [65536, 65536]
+
+
+def test_extract_returns_placeholder_partial_on_truncation_when_best_effort_fails(
+    monkeypatch,
+) -> None:
+    """When finish_reason=length and best-effort salvage fails, extract() returns a minimal partial result."""
     class _FakeResponse:
         def __init__(self, content: str, finish_reason: str) -> None:
             self.choices = [
@@ -303,9 +407,14 @@ def test_extract_returns_none_on_truncation_when_best_effort_fails(monkeypatch) 
 
     result = extractor.extract(crop_bytes=b"abc", bank_code="bnc")
 
-    assert result is None
+    assert result is not None
+    assert result.vision_status == "partial"
+    assert result.finish_reason == "length"
+    assert result.appears_truncated is True
+    assert result.indicators == []
+    assert result.requested_max_completion_tokens == 65536
     assert len(fake_completions.calls) == 1
-    assert fake_completions.calls[0]["max_completion_tokens"] == 16384
+    assert fake_completions.calls[0]["max_completion_tokens"] == 65536
 
 
 def test_extract_returns_partial_on_truncation_when_best_effort_succeeds(monkeypatch) -> None:
@@ -365,8 +474,10 @@ def test_extract_returns_partial_on_truncation_when_best_effort_succeeds(monkeyp
     assert result.indicators[0]["text"] == "L1"
     assert result.confidence == 0.88
     assert result.rows == []
+    assert result.finish_reason == "length"
+    assert result.requested_max_completion_tokens == 65536
     assert len(fake_completions.calls) == 1
-    assert fake_completions.calls[0]["max_completion_tokens"] == 16384
+    assert fake_completions.calls[0]["max_completion_tokens"] == 65536
 
 
 def test_extract_retries_on_invalid_json_then_succeeds(monkeypatch) -> None:
@@ -433,9 +544,178 @@ def test_extract_retries_on_invalid_json_then_succeeds(monkeypatch) -> None:
 
     assert result is not None
     assert len(fake_completions.calls) == 2
-    assert fake_completions.calls[0]["max_completion_tokens"] == 16384
-    assert fake_completions.calls[1]["max_completion_tokens"] == 16384
+    assert fake_completions.calls[0]["max_completion_tokens"] == 65536
+    assert fake_completions.calls[1]["max_completion_tokens"] == 65536
     assert result.table_title == "Tableau 1"
     assert result.rows == [["L1", "100"], ["L2", "200"]]
     assert result.vision_status == "partial"
     assert "vision_structured_output_fallback" in result.warnings
+    assert result.requested_max_completion_tokens == 65536
+
+
+def test_extract_with_quality_pass_retries_same_crop_at_128k_on_truncation(
+    monkeypatch,
+) -> None:
+    class _FakeResponse:
+        def __init__(self, content: str, finish_reason: str) -> None:
+            self.choices = [
+                type(
+                    "Choice",
+                    (),
+                    {
+                        "message": type("Message", (), {"content": content})(),
+                        "finish_reason": finish_reason,
+                    },
+                )()
+            ]
+
+    valid_payload = {
+        "table_title": "Tableau 99",
+        "headers": ["Indicateur", "Valeur"],
+        "indicators": ["L1", "L2", "L3"],
+        "rows": [["L1", "100"], ["L2", "200"], ["L3", "300"]],
+        "footnotes_content": [],
+        "footnote_markers": [],
+        "has_hierarchy": False,
+        "extraction_confidence": "high",
+        "notes": "",
+        "confidence": 0.97,
+        "appears_truncated": False,
+        "estimated_content_height": 90,
+    }
+
+    class _FakeCompletions:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        def create(self, **kwargs):  # type: ignore[no-untyped-def]
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:
+                return _FakeResponse('{"table_title":"Tronque"', "length")
+            return _FakeResponse(__import__("json").dumps(valid_payload), "stop")
+
+    fake_completions = _FakeCompletions()
+    fake_client = type(
+        "FakeClient",
+        (),
+        {"chat": type("FakeChat", (), {"completions": fake_completions})()},
+    )()
+
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False)
+    extractor._client = fake_client
+    monkeypatch.setattr(extractor, "_ensure_client", lambda: None)
+
+    recrop_calls: list[float] = []
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"abc",
+        bank_code="bnc",
+        bbox_norm=[0.2, 0.2, 0.8, 0.8],
+        vision_cfg={
+            "vision_max_completion_tokens": 65536,
+            "vision_max_completion_tokens_rescue_enabled": True,
+            "vision_max_completion_tokens_rescue": 128000,
+        },
+        get_recrop_fn=lambda ext: recrop_calls.append(ext) or b"recrop",
+    )
+
+    assert result is not None
+    assert [int(call["max_completion_tokens"]) for call in fake_completions.calls] == [
+        65536,
+        128000,
+    ]
+    assert result.requested_max_completion_tokens == 128000
+    assert result.rescue_used is True
+    assert result.recrop_attempted is False
+    assert recrop_calls == []
+
+
+def test_extract_with_quality_pass_recrop_truncation_triggers_128k_rescue(
+    monkeypatch,
+) -> None:
+    class _FakeResponse:
+        def __init__(self, content: str, finish_reason: str) -> None:
+            self.choices = [
+                type(
+                    "Choice",
+                    (),
+                    {
+                        "message": type("Message", (), {"content": content})(),
+                        "finish_reason": finish_reason,
+                    },
+                )()
+            ]
+
+    first_payload = {
+        "table_title": "Tableau 1",
+        "headers": ["Indicateur", "Valeur"],
+        "indicators": ["L1", "L2"],
+        "rows": [["L1", "100"]],
+        "footnotes_content": [],
+        "footnote_markers": [],
+        "has_hierarchy": False,
+        "extraction_confidence": "medium",
+        "notes": "",
+        "confidence": 0.45,
+        "appears_truncated": False,
+        "estimated_content_height": 62,
+    }
+    final_payload = {
+        "table_title": "Tableau 1",
+        "headers": ["Indicateur", "Valeur"],
+        "indicators": ["L1", "L2", "L3"],
+        "rows": [["L1", "100"], ["L2", "200"], ["L3", "300"]],
+        "footnotes_content": [],
+        "footnote_markers": [],
+        "has_hierarchy": False,
+        "extraction_confidence": "high",
+        "notes": "",
+        "confidence": 0.98,
+        "appears_truncated": False,
+        "estimated_content_height": 91,
+    }
+
+    class _FakeCompletions:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        def create(self, **kwargs):  # type: ignore[no-untyped-def]
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:
+                return _FakeResponse(__import__("json").dumps(first_payload), "stop")
+            if len(self.calls) == 2:
+                return _FakeResponse('{"table_title":"Tronque recrop"', "length")
+            return _FakeResponse(__import__("json").dumps(final_payload), "stop")
+
+    fake_completions = _FakeCompletions()
+    fake_client = type(
+        "FakeClient",
+        (),
+        {"chat": type("FakeChat", (), {"completions": fake_completions})()},
+    )()
+
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False)
+    extractor._client = fake_client
+    monkeypatch.setattr(extractor, "_ensure_client", lambda: None)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"abc",
+        bank_code="bnc",
+        bbox_norm=[0.2, 0.2, 0.8, 0.8],
+        vision_cfg={
+            "vision_max_completion_tokens": 65536,
+            "vision_max_completion_tokens_rescue_enabled": True,
+            "vision_max_completion_tokens_rescue": 128000,
+        },
+        get_recrop_fn=lambda _ext: b"recrop",
+    )
+
+    assert result is not None
+    assert [int(call["max_completion_tokens"]) for call in fake_completions.calls] == [
+        65536,
+        65536,
+        128000,
+    ]
+    assert result.recrop_attempted is True
+    assert result.recrop_used is True
+    assert result.requested_max_completion_tokens == 128000
+    assert result.rescue_used is True

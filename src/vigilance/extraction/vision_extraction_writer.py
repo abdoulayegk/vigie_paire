@@ -21,17 +21,116 @@ from ..utils.footnotes_utils import (
 logger = logging.getLogger(__name__)
 
 
+def _table_section(table: Any) -> str:
+    """Return a human-readable section value for a table-like object."""
+    return str(getattr(table, "section", "") or "").strip() or "unknown_section"
+
+
+def _table_title(table: Any) -> str:
+    """Return a readable title fallback for a table-like object."""
+    title = getattr(table, "title_clean", None) or getattr(table, "title", None) or ""
+    return str(title or "").strip() or "(sans titre)"
+
+
+def _table_page(table: Any) -> int:
+    """Return the PDF page number for a table-like object."""
+    return int(getattr(table, "page_pdf", 0) or getattr(table, "page_number", 0) or 0)
+
+
+def _table_indicators_for_text(table: Any) -> list[str]:
+    """Return report-friendly indicators, preferring raw Vision labels."""
+    indicators = get_vision_raw_indicators(table) or get_comparison_indicators(table)
+    return [str(x).strip() for x in indicators if str(x).strip()]
+
+
+def _table_footnotes_for_text(table: Any) -> list[dict[str, str]]:
+    """Return canonical footnotes for human-readable report exports."""
+    return get_canonical_footnotes(table)
+
+
+def _report_statistics(tables: list[Any]) -> dict[str, Any]:
+    """Compute summary statistics for one extracted report."""
+    section_distribution: dict[str, int] = {}
+    tables_with_indicators = 0
+    indicators_total = 0
+    tables_with_footnotes = 0
+    footnote_entries_total = 0
+
+    for table in tables:
+        section = _table_section(table)
+        section_distribution[section] = section_distribution.get(section, 0) + 1
+
+        indicators = _table_indicators_for_text(table)
+        if indicators:
+            tables_with_indicators += 1
+            indicators_total += len(indicators)
+
+        footnotes = _table_footnotes_for_text(table)
+        if footnotes:
+            tables_with_footnotes += 1
+            footnote_entries_total += len(footnotes)
+
+    return {
+        "tables_total": len(tables),
+        "sections_detected": sorted(section_distribution.keys()),
+        "tables_with_indicators": tables_with_indicators,
+        "indicators_total": indicators_total,
+        "tables_with_footnotes": tables_with_footnotes,
+        "footnote_entries_total": footnote_entries_total,
+        "section_distribution": section_distribution,
+    }
+
+
+def _report_summary_payload(
+    tables: list[Any],
+    *,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    meta: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build the canonical report-centric summary payload."""
+    statistics = _report_statistics(tables)
+    payload: dict[str, Any] = {
+        **_report_payload_metadata(
+            bank_code=bank_code,
+            year=year,
+            quarter=quarter,
+            meta=meta,
+        ),
+        "summary": statistics,
+    }
+    warnings: list[dict[str, Any]] = []
+    repr_suspect_count = 0
+    for table in tables:
+        repr_suspect_count += count_stringified_dict_suspects(
+            getattr(table, "footnotes", None) or []
+        )
+    if repr_suspect_count > 0:
+        warnings.append(
+            {
+                "code": "repr_suspect_detected",
+                "message": "Stringified-dict footnotes detected in extracted tables.",
+                "count": int(repr_suspect_count),
+            }
+        )
+    if warnings:
+        payload["warnings"] = warnings
+    return payload
+
+
+def _lines_to_text(lines: list[str]) -> str:
+    """Join text lines with a trailing newline for file outputs."""
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def _table_entry_indicators(
     table: Any,
     source: str,
 ) -> dict[str, Any]:
     """Build indicators entry for one table."""
     table_id = str(getattr(table, "table_id", "") or "")
-    title = (
-        getattr(table, "title_clean", None)
-        or getattr(table, "title", None)
-        or ""
-    )
+    title = getattr(table, "title_clean", None) or getattr(table, "title", None) or ""
     page = int(getattr(table, "page_pdf", 0) or getattr(table, "page_number", 0) or 0)
     indicators = get_comparison_indicators(table)
     indicators_raw = get_vision_raw_indicators(table) or indicators
@@ -39,10 +138,14 @@ def _table_entry_indicators(
 
     sections: list[dict[str, Any]] = []
     if indicators_raw:
-        sections.append({
-            "section": title or "Indicateurs",
-            "indicators": [str(x).strip() for x in indicators_raw if str(x).strip()],
-        })
+        sections.append(
+            {
+                "section": title or "Indicateurs",
+                "indicators": [
+                    str(x).strip() for x in indicators_raw if str(x).strip()
+                ],
+            }
+        )
 
     return {
         "table_id": table_id,
@@ -60,11 +163,7 @@ def _table_entry_footnotes(
 ) -> dict[str, Any]:
     """Build footnotes entry for one table."""
     table_id = str(getattr(table, "table_id", "") or "")
-    title = (
-        getattr(table, "title_clean", None)
-        or getattr(table, "title", None)
-        or ""
-    )
+    title = getattr(table, "title_clean", None) or getattr(table, "title", None) or ""
     page = int(getattr(table, "page_pdf", 0) or getattr(table, "page_number", 0) or 0)
     footnotes_source = getattr(table, "footnotes", None) or []
     footnotes_raw = get_canonical_footnotes(table)
@@ -143,7 +242,9 @@ def write_footnotes_json(
 
     tables_total = len(entries)
     tables_with_footnotes = sum(1 for e in entries if bool(e.get("has_footnotes")))
-    footnote_entries_total = sum(len(e.get("footnotes_content", {}) or {}) for e in entries)
+    footnote_entries_total = sum(
+        len(e.get("footnotes_content", {}) or {}) for e in entries
+    )
     repr_suspect_count = sum(int(e.get("_repr_suspect_count", 0) or 0) for e in entries)
 
     for entry in entries:
@@ -178,4 +279,324 @@ def write_footnotes_json(
         encoding="utf-8",
     )
     logger.debug("Wrote footnotes.json to %s", out_path)
+    return out_path
+
+
+def _report_payload_metadata(
+    *,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    meta: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build common metadata for report-centric extraction artifacts."""
+    metadata = dict(meta or {})
+    created_at = str(
+        metadata.get("created_at")
+        or metadata.get("extracted_at")
+        or datetime.now().isoformat(timespec="seconds")
+    )
+    return {
+        "bank_code": bank_code,
+        "year": int(year),
+        "quarter": str(quarter),
+        "created_at": created_at,
+        "artifact_role": "report_canonical",
+        "authoritative_source": "stored_table_artifacts",
+        "pdf_fingerprint": str(metadata.get("pdf_fingerprint") or ""),
+        "pipeline_version": str(metadata.get("pipeline_version") or ""),
+        "schema_version": metadata.get("schema_version"),
+        "model_version": str(metadata.get("model_version") or ""),
+        "prompt_version": str(metadata.get("prompt_version") or ""),
+    }
+
+
+def write_report_indicators_json(
+    tables: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    *,
+    meta: dict[str, Any] | None = None,
+) -> Path:
+    """Write report-centric indicators.json for one extracted quarter."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    entries = [_table_entry_indicators(table, str(quarter)) for table in tables]
+    indicators_total = sum(
+        len(section.get("indicators", []) or [])
+        for entry in entries
+        for section in list(entry.get("sections") or [])
+        if isinstance(section, dict)
+    )
+    payload: dict[str, Any] = {
+        **_report_payload_metadata(
+            bank_code=bank_code,
+            year=year,
+            quarter=quarter,
+            meta=meta,
+        ),
+        "meta": {
+            "tables_total": len(entries),
+            "indicators_total": indicators_total,
+        },
+        "tables": entries,
+    }
+    out_path = out_dir / "indicators.json"
+    out_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    logger.debug("Wrote report indicators.json to %s", out_path)
+    return out_path
+
+
+def write_report_indicators_txt(
+    tables: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    *,
+    meta: dict[str, Any] | None = None,
+) -> Path:
+    """Write report-centric indicators.txt for one extracted quarter."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    metadata = _report_payload_metadata(
+        bank_code=bank_code,
+        year=year,
+        quarter=quarter,
+        meta=meta,
+    )
+    lines = [
+        "Rapport des indicateurs extraits",
+        f"Banque: {metadata['bank_code']}",
+        f"Annee: {metadata['year']}",
+        f"Trimestre: {metadata['quarter']}",
+        f"Date de generation: {metadata['created_at']}",
+        "",
+    ]
+
+    included = 0
+    for table in tables:
+        indicators = _table_indicators_for_text(table)
+        if not indicators:
+            continue
+        included += 1
+        lines.extend(
+            [
+                f"Section: {_table_section(table)}",
+                f"Tableau: {_table_title(table)}",
+                f"Page: {_table_page(table)}",
+                "Indicateurs:",
+            ]
+        )
+        for idx, indicator in enumerate(indicators, start=1):
+            lines.append(f"{idx}. {indicator}")
+        lines.append("")
+
+    if included == 0:
+        lines.append("Aucun indicateur extrait pour ce rapport.")
+
+    out_path = out_dir / "indicators.txt"
+    out_path.write_text(_lines_to_text(lines), encoding="utf-8")
+    logger.debug("Wrote report indicators.txt to %s", out_path)
+    return out_path
+
+
+def write_report_footnotes_json(
+    tables: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    *,
+    meta: dict[str, Any] | None = None,
+) -> Path:
+    """Write report-centric footnotes.json for one extracted quarter."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    entries = [_table_entry_footnotes(table, str(quarter)) for table in tables]
+    tables_total = len(entries)
+    tables_with_footnotes = sum(1 for e in entries if bool(e.get("has_footnotes")))
+    footnote_entries_total = sum(
+        len(e.get("footnotes_content", {}) or {}) for e in entries
+    )
+    repr_suspect_count = sum(int(e.get("_repr_suspect_count", 0) or 0) for e in entries)
+    for entry in entries:
+        entry.pop("_repr_suspect_count", None)
+    payload: dict[str, Any] = {
+        **_report_payload_metadata(
+            bank_code=bank_code,
+            year=year,
+            quarter=quarter,
+            meta=meta,
+        ),
+        "meta": {
+            "tables_total": tables_total,
+            "tables_with_footnotes": tables_with_footnotes,
+            "footnote_entries_total": footnote_entries_total,
+            "repr_suspect_count": repr_suspect_count,
+        },
+        "tables": entries,
+    }
+    if repr_suspect_count > 0:
+        payload["warnings"] = [
+            {
+                "code": "repr_suspect_detected",
+                "message": "Stringified-dict footnotes detected in source payload.",
+                "count": repr_suspect_count,
+            }
+        ]
+    out_path = out_dir / "footnotes.json"
+    out_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    logger.debug("Wrote report footnotes.json to %s", out_path)
+    return out_path
+
+
+def write_report_footnotes_txt(
+    tables: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    *,
+    meta: dict[str, Any] | None = None,
+) -> Path:
+    """Write report-centric footnotes.txt for one extracted quarter."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    metadata = _report_payload_metadata(
+        bank_code=bank_code,
+        year=year,
+        quarter=quarter,
+        meta=meta,
+    )
+    lines = [
+        "Rapport des footnotes extraites",
+        f"Banque: {metadata['bank_code']}",
+        f"Annee: {metadata['year']}",
+        f"Trimestre: {metadata['quarter']}",
+        f"Date de generation: {metadata['created_at']}",
+        "",
+    ]
+
+    included = 0
+    for table in tables:
+        footnotes = _table_footnotes_for_text(table)
+        if not footnotes:
+            continue
+        included += 1
+        lines.extend(
+            [
+                f"Section: {_table_section(table)}",
+                f"Tableau: {_table_title(table)}",
+                f"Page: {_table_page(table)}",
+                "Footnotes:",
+            ]
+        )
+        for footnote in footnotes:
+            fid = str(footnote.get("id", "") or "").strip() or "-"
+            text = str(footnote.get("text", "") or "").strip()
+            lines.append(f"- [{fid}] {text}")
+        lines.append("")
+
+    if included == 0:
+        lines.append("Aucune footnote extraite pour ce rapport.")
+
+    out_path = out_dir / "footnotes.txt"
+    out_path.write_text(_lines_to_text(lines), encoding="utf-8")
+    logger.debug("Wrote report footnotes.txt to %s", out_path)
+    return out_path
+
+
+def write_report_summary_json(
+    tables: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    *,
+    meta: dict[str, Any] | None = None,
+) -> Path:
+    """Write report_summary.json for one extracted quarter."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    payload = _report_summary_payload(
+        tables,
+        bank_code=bank_code,
+        year=year,
+        quarter=quarter,
+        meta=meta,
+    )
+    out_path = out_dir / "report_summary.json"
+    out_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    logger.debug("Wrote report_summary.json to %s", out_path)
+    return out_path
+
+
+def write_report_summary_txt(
+    tables: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    *,
+    meta: dict[str, Any] | None = None,
+) -> Path:
+    """Write report_summary.txt for one extracted quarter."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    payload = _report_summary_payload(
+        tables,
+        bank_code=bank_code,
+        year=year,
+        quarter=quarter,
+        meta=meta,
+    )
+    summary = payload.get("summary", {}) or {}
+    lines = [
+        "Resume final du rapport extrait",
+        f"Banque: {payload['bank_code']}",
+        f"Annee: {payload['year']}",
+        f"Trimestre: {payload['quarter']}",
+        f"Date de generation: {payload['created_at']}",
+        "",
+        (
+            f"Le rapport contient {summary.get('tables_total', 0)} tableau(x), "
+            f"{summary.get('indicators_total', 0)} indicateur(s) et "
+            f"{summary.get('footnote_entries_total', 0)} footnote(s) extraits."
+        ),
+        "",
+        "Synthese chiffree:",
+        f"- Tables total: {summary.get('tables_total', 0)}",
+        f"- Sections detectees: {len(summary.get('sections_detected', []) or [])}",
+        f"- Tables avec indicateurs: {summary.get('tables_with_indicators', 0)}",
+        f"- Indicateurs total: {summary.get('indicators_total', 0)}",
+        f"- Tables avec footnotes: {summary.get('tables_with_footnotes', 0)}",
+        f"- Footnotes total: {summary.get('footnote_entries_total', 0)}",
+        "",
+        "Repartition par section:",
+    ]
+    section_distribution = summary.get("section_distribution", {}) or {}
+    if section_distribution:
+        for section, count in sorted(section_distribution.items()):
+            lines.append(f"- {section}: {count} tableau(x)")
+    else:
+        lines.append("- Aucune section detectee")
+
+    warnings = payload.get("warnings") or []
+    if warnings:
+        lines.extend(["", "Warnings extraction:"])
+        for warning in warnings:
+            message = str(warning.get("message", "") or "").strip()
+            count = warning.get("count")
+            suffix = f" ({count})" if count is not None else ""
+            lines.append(f"- {message}{suffix}")
+
+    out_path = out_dir / "report_summary.txt"
+    out_path.write_text(_lines_to_text(lines), encoding="utf-8")
+    logger.debug("Wrote report_summary.txt to %s", out_path)
     return out_path

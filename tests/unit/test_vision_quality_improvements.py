@@ -133,6 +133,15 @@ class TestCacheVersioning:
         assert make_cache_key("sha", 1, []) == ""
         assert make_cache_key("sha", 1, [0.1, 0.2]) == ""
 
+    def test_cache_key_changes_when_completion_budget_changes(self) -> None:
+        from vigilance.extraction.vision_cache import make_cache_key
+
+        key_64k = make_cache_key("sha", 1, [0.0, 0.0, 1.0, 1.0], 65536)
+        key_128k = make_cache_key("sha", 1, [0.0, 0.0, 1.0, 1.0], 128000)
+        assert key_64k != key_128k
+        assert key_64k.endswith("_mt65536")
+        assert key_128k.endswith("_mt128000")
+
 
 # ---------------------------------------------------------------------------
 # 3. Prompt reinforcement (no dictionary)

@@ -298,7 +298,17 @@ def build_proofs_section(
 ) -> html.Div:
     """Build proof images section; depends only on table-level data."""
     flag_state = compute_flag_state(item)
-    mode_full = (proof_display_mode or "crop").strip().lower() == "full"
+    normalized_mode = (proof_display_mode or "crop").strip().lower()
+    mode_full = normalized_mode == "full"
+    mode_label = {
+        "crop": "Mode focus tableau",
+        "full": "Mode page complète + bbox",
+        "footnote": "Mode note de bas de tableau",
+    }.get(normalized_mode, "Mode focus tableau")
+
+    def _proof_caption(base_label: str, page: int | None) -> str:
+        page_label = f"Page {page}" if page is not None else "Page indisponible"
+        return f"{base_label} · {page_label} · {mode_label}"
 
     def _img_card(b64, label, placeholder=None, bbox_norm=None, side: str = "t1"):
         if not b64:
@@ -379,22 +389,28 @@ def build_proofs_section(
     if change_type == CHANGE_TYPE_TABLE_ADDED:
         card_t1 = _img_card(
             None,
-            "Trimestre précédent",
+            _proof_caption("Trimestre précédent", item.get("page_t1")),
             placeholder=t(
                 "no_table_added_t2",
                 "Aucun tableau au trimestre précédent (ajout au trimestre courant)",
             ),
         )
         card_t2 = _img_card(
-            img_t2_b64, "Trimestre courant", bbox_norm=bbox_t2_norm, side="t2"
+            img_t2_b64,
+            _proof_caption("Trimestre courant", item.get("page_t2")),
+            bbox_norm=bbox_t2_norm,
+            side="t2",
         )
     elif change_type == CHANGE_TYPE_TABLE_REMOVED:
         card_t1 = _img_card(
-            img_t1_b64, "Trimestre précédent", bbox_norm=bbox_t1_norm, side="t1"
+            img_t1_b64,
+            _proof_caption("Trimestre précédent", item.get("page_t1")),
+            bbox_norm=bbox_t1_norm,
+            side="t1",
         )
         card_t2 = _img_card(
             None,
-            "Trimestre courant",
+            _proof_caption("Trimestre courant", item.get("page_t2")),
             placeholder=t(
                 "no_table_removed_t2",
                 "Aucun tableau au trimestre courant (supprimé depuis le trimestre précédent)",
@@ -402,10 +418,16 @@ def build_proofs_section(
         )
     else:
         card_t1 = _img_card(
-            img_t1_b64, "Trimestre précédent", bbox_norm=bbox_t1_norm, side="t1"
+            img_t1_b64,
+            _proof_caption("Trimestre précédent", item.get("page_t1")),
+            bbox_norm=bbox_t1_norm,
+            side="t1",
         )
         card_t2 = _img_card(
-            img_t2_b64, "Trimestre courant", bbox_norm=bbox_t2_norm, side="t2"
+            img_t2_b64,
+            _proof_caption("Trimestre courant", item.get("page_t2")),
+            bbox_norm=bbox_t2_norm,
+            side="t2",
         )
 
     col_t1 = dbc.Col(
@@ -453,7 +475,17 @@ def build_proofs_section(
         style={"height": "50vh", "minHeight": "400px"},
     )
 
-    return html.Div([proof_mode_toggle, proofs_row])
+    header = html.Div(
+        [
+            html.H6("Preuves visuelles T1/T2", className="mb-1"),
+            html.P(
+                "Référence visuelle pour valider rapidement le changement courant.",
+                className="text-muted small mb-2",
+            ),
+        ]
+    )
+
+    return html.Div([header, proof_mode_toggle, proofs_row])
 
 
 # ---------------------------------------------------------------------------

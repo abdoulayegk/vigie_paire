@@ -174,6 +174,80 @@ def test_collect_vision_rescue_candidates_excludes_cross_section_when_disabled()
     assert len(cross_candidates) == 0
 
 
+def test_collect_vision_rescue_candidates_excludes_blocked_targets() -> None:
+    from app.comparison_runner import _collect_vision_rescue_candidates
+
+    t1_uid = "risk_management|t1_ok|p10"
+    t2_uid_ok = "risk_management|t2_ok|p12"
+    t2_uid_blocked = "risk_management|t2_blocked|p13"
+    t1 = _mk_table(
+        bank="bnc",
+        section="risk_management",
+        page=10,
+        table_id="t1_ok",
+        indicators=["alpha", "beta", "gamma"],
+        title="Table A",
+    )
+    t2_ok = _mk_table(
+        bank="bnc",
+        section="risk_management",
+        page=12,
+        table_id="t2_ok",
+        indicators=["alpha", "beta", "gamma"],
+        title="Table A",
+    )
+    t2_blocked = _mk_table(
+        bank="bnc",
+        section="risk_management",
+        page=13,
+        table_id="t2_blocked",
+        indicators=["alpha", "beta", "gamma"],
+        title="Table A",
+    )
+    t2_blocked.debug_metrics = {
+        "vision_extraction_applied": True,
+        "vision_extraction_confidence": 0.95,
+        "vision_status": "partial",
+    }
+
+    strict = {
+        "pairs": [],
+        "removed_tables": [
+            {
+                "t1_uid": t1_uid,
+                "t1_table_id": "t1_ok",
+                "section": "risk_management",
+                "page_t1": 10,
+                "title_t1": "Table A",
+                "reason": "removed_table",
+                "unmatched_status": "confirmed",
+            }
+        ],
+        "added_tables": [],
+        "ambiguous_unmatched_previous": [],
+        "ambiguous_unmatched_current": [],
+        "suspicious_pairs": [],
+        "debug_unmatched_candidates": [],
+        "debug_unmatched_candidates_t2": [],
+    }
+    t1_by_uid = {t1_uid: t1}
+    t2_by_uid = {t2_uid_ok: t2_ok, t2_uid_blocked: t2_blocked}
+
+    candidates, _ = _collect_vision_rescue_candidates(
+        strict=strict,
+        t1_by_uid=t1_by_uid,
+        t2_by_uid=t2_by_uid,
+        max_candidates_per_table=5,
+        max_tables_per_run=10,
+        cross_section_rescue_enabled=False,
+        cross_section_rerank_min=0.30,
+    )
+
+    candidate_t2_uids = {c.get("t2_uid") for c in candidates}
+    assert t2_uid_ok in candidate_t2_uids
+    assert t2_uid_blocked not in candidate_t2_uids
+
+
 def test_get_validation_config_cross_section_defaults() -> None:
     """get_validation_config applies cross_section_rescue defaults when keys are missing."""
     from vigilance.config import get_validation_config

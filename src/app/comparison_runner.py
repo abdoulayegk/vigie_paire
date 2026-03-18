@@ -383,7 +383,8 @@ def _extract_tables(
     use_vision_extraction: bool | None = None,
     use_stored_extraction_if_available: bool = False,
     extraction_base_dir: str | None = None,
-) -> list[TableArtifact]:
+    return_provenance: bool = False,
+) -> list[TableArtifact] | tuple[list[TableArtifact], dict[str, Any]]:
     from pathlib import Path as _Path
 
     from vigilance.extraction.docling_processor import (
@@ -391,6 +392,32 @@ def _extract_tables(
     )
 
     base_dir = _Path(extraction_base_dir or "outputs/extractions")
+
+    def _build_extraction_source(
+        mode: str,
+        *,
+        selected_reason: str = "",
+    ) -> dict[str, Any]:
+        from app.extraction_storage import describe_extraction_artifacts
+
+        info = describe_extraction_artifacts(
+            bank_code=bank_code,
+            year=year,
+            quarter=quarter,
+            base_dir=base_dir,
+        )
+        info["mode"] = mode
+        if selected_reason:
+            info["selected_reason"] = selected_reason
+        return info
+
+    def _return(
+        tables: list[TableArtifact],
+        provenance: dict[str, Any],
+    ) -> list[TableArtifact] | tuple[list[TableArtifact], dict[str, Any]]:
+        if return_provenance:
+            return (tables, provenance)
+        return tables
 
     def _extraction_snapshot(tables: list[TableArtifact]) -> dict[str, int]:
         comparable = sum(
@@ -468,7 +495,13 @@ def _extract_tables(
                             year,
                             quarter,
                         )
-                        return stored_tables
+                        return _return(
+                            stored_tables,
+                            _build_extraction_source(
+                                "stored",
+                                selected_reason="compatible_cache",
+                            ),
+                        )
         except Exception as e:
             logger.debug("Could not load stored extraction: %s", e)
 
@@ -542,7 +575,13 @@ def _extract_tables(
                     _extraction_snapshot(stored_tables)["tables_with_raw"],
                     _extraction_snapshot(stored_tables)["raw_indicators"],
                 )
-                return stored_tables
+                return _return(
+                    stored_tables,
+                    _build_extraction_source(
+                        "stored",
+                        selected_reason="fresh_degraded_reused_stored",
+                    ),
+                )
 
         if not artifacts:
             logger.warning(
@@ -576,7 +615,10 @@ def _extract_tables(
         year,
         quarter,
     )
-    return artifacts
+    return _return(
+        artifacts,
+        _build_extraction_source("fresh", selected_reason="fresh_extraction"),
+    )
 
 
 def _canonical_indicator_key(text: str) -> str:
@@ -1060,11 +1102,20 @@ def _collect_vision_rescue_candidates(
         if str(item.get("t2_uid", "")).strip()
     }
 
+    def _rescue_target_allowed(table: TableArtifact | None) -> bool:
+        if table is None:
+            return False
+        return get_extraction_status(table) != EXTRACTION_STATUS_BLOCKED
+
     section_t2_unpaired = {
-        str(uid): table for uid, table in t2_by_uid.items() if str(uid) not in paired_t2
+        str(uid): table
+        for uid, table in t2_by_uid.items()
+        if str(uid) not in paired_t2 and _rescue_target_allowed(table)
     }
     section_t1_unpaired = {
-        str(uid): table for uid, table in t1_by_uid.items() if str(uid) not in paired_t1
+        str(uid): table
+        for uid, table in t1_by_uid.items()
+        if str(uid) not in paired_t1 and _rescue_target_allowed(table)
     }
 
     source_specs: list[dict[str, Any]] = []
@@ -2358,35 +2409,90 @@ def _hungarian_pair_added_removed(
         return added_restant, removed_restant, renamed_pairs, debug
 
 
+def _adaptive_fusion_threshold(concat_token_count: int) -> float:
+    if concat_token_count >= 8:
+        return 0.88
+    if concat_token_count < 5:
+        return 0.94
+    return 0.92
+
+
+def _fusion_split_score(single_norm: str, k1: str, k2: str) -> tuple[float, int]:
+    """Order-invariant similarity of single_norm to concat(k1,k2) in either order."""
+    from difflib import SequenceMatcher
+
+    c_fwd = f"{k1} {k2}".strip()
+    c_rev = f"{k2} {k1}".strip()
+    ntok = max(len(c_fwd.split()), 1)
+    if not c_fwd:
+        return 0.0, ntok
+    if rapidfuzz_fuzz is not None:
+        s_fwd = rapidfuzz_fuzz.token_set_ratio(single_norm, c_fwd) / 100.0
+        s_rev = rapidfuzz_fuzz.token_set_ratio(single_norm, c_rev) / 100.0
+        best = max(s_fwd, s_rev)
+    else:
+        best = max(
+            SequenceMatcher(None, single_norm, c_fwd).ratio(),
+            SequenceMatcher(None, single_norm, c_rev).ratio(),
+        )
+    # Truncation: last token of k1 or k2 may be OCR-truncated (e.g. amort vs amorti)
+    toks_single = single_norm.split()
+    for frag_key in (k1, k2):
+        ft = frag_key.split()
+        if not ft or len(ft[-1]) < 4:
+            continue
+        last = ft[-1]
+        for w in toks_single:
+            if len(w) >= len(last) and w.startswith(last) and w != last:
+                repaired = " ".join(ft[:-1] + [w])
+                other = k2 if frag_key is k1 else k1
+                c1 = f"{repaired} {other}".strip()
+                c2 = f"{other} {repaired}".strip()
+                if rapidfuzz_fuzz is not None:
+                    best = max(
+                        best,
+                        rapidfuzz_fuzz.token_set_ratio(single_norm, c1) / 100.0,
+                        rapidfuzz_fuzz.token_set_ratio(single_norm, c2) / 100.0,
+                    )
+                else:
+                    best = max(
+                        best,
+                        SequenceMatcher(None, single_norm, c1).ratio(),
+                        SequenceMatcher(None, single_norm, c2).ratio(),
+                    )
+    return best, ntok
+
+
 def _detect_fusion_split(
     added: list[str], removed: list[str], ratio_threshold: float = 0.92
 ) -> tuple[list[str], list[str], bool]:
     """Merge fusion/split: 1 added = concat of 2 removed (or vice versa).
+    Uses token_set_ratio (order-invariant) and adaptive thresholds.
     Returns (added, removed, had_fusion_split).
     """
-    from difflib import SequenceMatcher
-
     added = list(added)
     removed = list(removed)
     had_fusion_split = False
 
     def _merge_added_from_removed() -> None:
         nonlocal added, removed, had_fusion_split
-        for i, a in enumerate(added[:]):
+        for a in added[:]:
             a_norm = _canonical_indicator_key(a)
+            if not a_norm:
+                continue
             for j, r1 in enumerate(removed):
+                k1 = _canonical_indicator_key(r1)
+                if not k1:
+                    continue
                 for k, r2 in enumerate(removed):
                     if j >= k:
                         continue
-                    concat = (
-                        _canonical_indicator_key(r1)
-                        + " "
-                        + _canonical_indicator_key(r2)
-                    )
-                    if not concat.strip():
+                    k2 = _canonical_indicator_key(r2)
+                    if not k2:
                         continue
-                    ratio = SequenceMatcher(None, a_norm, concat).ratio()
-                    if ratio >= ratio_threshold or concat == a_norm:
+                    score, ntok = _fusion_split_score(a_norm, k1, k2)
+                    thresh = _adaptive_fusion_threshold(ntok)
+                    if score >= thresh or f"{k1} {k2}".strip() == a_norm or f"{k2} {k1}".strip() == a_norm:
                         added.remove(a)
                         removed.remove(r2)
                         removed.remove(r1)
@@ -2397,21 +2503,23 @@ def _detect_fusion_split(
 
     def _merge_removed_from_added() -> None:
         nonlocal added, removed, had_fusion_split
-        for i, r in enumerate(removed[:]):
+        for r in removed[:]:
             r_norm = _canonical_indicator_key(r)
+            if not r_norm:
+                continue
             for j, a1 in enumerate(added):
+                k1 = _canonical_indicator_key(a1)
+                if not k1:
+                    continue
                 for k, a2 in enumerate(added):
                     if j >= k:
                         continue
-                    concat = (
-                        _canonical_indicator_key(a1)
-                        + " "
-                        + _canonical_indicator_key(a2)
-                    )
-                    if not concat.strip():
+                    k2 = _canonical_indicator_key(a2)
+                    if not k2:
                         continue
-                    ratio = SequenceMatcher(None, r_norm, concat).ratio()
-                    if ratio >= ratio_threshold or concat == r_norm:
+                    score, ntok = _fusion_split_score(r_norm, k1, k2)
+                    thresh = _adaptive_fusion_threshold(ntok)
+                    if score >= thresh or f"{k1} {k2}".strip() == r_norm or f"{k2} {k1}".strip() == r_norm:
                         removed.remove(r)
                         added.remove(a2)
                         added.remove(a1)
@@ -2433,6 +2541,44 @@ def _detect_fusion_split(
             changed = True
 
     return added, removed, had_fusion_split
+
+
+def _apply_short_indicator_guard(
+    added_keys: set[str],
+    removed_keys: set[str],
+    stable_keys: set[str],
+    th: dict[str, Any],
+    excluded_counts: dict[str, int],
+) -> None:
+    """Drop short keys that are strict token-subsets of a long stable line (false split)."""
+    if not th.get("indicator_short_guard_enabled", True):
+        return
+    max_t = int(th.get("indicator_short_guard_max_tokens", 3))
+    min_stable = int(th.get("indicator_short_guard_min_stable_tokens", 5))
+    stable_list = [sk for sk in stable_keys if len(sk.split()) >= min_stable]
+
+    def _maybe_drop(key: str, which: str) -> bool:
+        parts = key.split()
+        if len(parts) < 2 or len(parts) > max_t:
+            return False
+        tk = frozenset(parts)
+        for sk in stable_list:
+            st = set(sk.split())
+            if tk < st:
+                if which == "added":
+                    added_keys.discard(key)
+                else:
+                    removed_keys.discard(key)
+                excluded_counts["short_indicator_guard"] = (
+                    excluded_counts.get("short_indicator_guard", 0) + 1
+                )
+                return True
+        return False
+
+    for k in list(added_keys):
+        _maybe_drop(k, "added")
+    for k in list(removed_keys):
+        _maybe_drop(k, "removed")
 
 
 def _indicator_diff(
@@ -2557,6 +2703,9 @@ def _indicator_diff(
 
     if len(resolved_added) > 0:
         excluded_counts["near_stable"] = len(resolved_added)
+
+    stable_keys = set(left_map.keys()) & set(right_map.keys())
+    _apply_short_indicator_guard(added_keys, removed_keys, stable_keys, th, excluded_counts)
 
     added = [right_map[key] for key in added_keys]
     removed = [left_map[key] for key in removed_keys]
@@ -2839,6 +2988,16 @@ def _empty_result(
         if isinstance(quarter_context, dict)
         else ""
     )
+    current_code = (
+        str(quarter_context.get("current", {}).get("code", "t2"))
+        if isinstance(quarter_context, dict)
+        else "t2"
+    )
+    previous_code = (
+        str(quarter_context.get("previous", {}).get("code", "t1"))
+        if isinstance(quarter_context, dict)
+        else "t1"
+    )
     return {
         "schema_version": "comparison_canonical_v1",
         "bank_code": bank_code,
@@ -2879,6 +3038,50 @@ def _empty_result(
             "source_format": "empty",
             "error": reason,
             "quarter_context": quarter_context or {},
+            "extraction_sources": {
+                "previous": {
+                    "quarter": previous_code or "t1",
+                    "label": previous_label or "",
+                    "year": int(
+                        (quarter_context or {}).get("previous", {}).get("year", year)
+                    ),
+                    "mode": "unknown",
+                    "artifact_dir": "",
+                    "tables_path": "",
+                    "indicators_path": "",
+                    "footnotes_path": "",
+                    "meta_path": "",
+                    "snapshot_path": "",
+                    "artifacts_present": {
+                        "snapshot": False,
+                        "tables": False,
+                        "meta": False,
+                        "indicators": False,
+                        "footnotes": False,
+                    },
+                },
+                "current": {
+                    "quarter": current_code or "t2",
+                    "label": current_label or "",
+                    "year": int(
+                        (quarter_context or {}).get("current", {}).get("year", year)
+                    ),
+                    "mode": "unknown",
+                    "artifact_dir": "",
+                    "tables_path": "",
+                    "indicators_path": "",
+                    "footnotes_path": "",
+                    "meta_path": "",
+                    "snapshot_path": "",
+                    "artifacts_present": {
+                        "snapshot": False,
+                        "tables": False,
+                        "meta": False,
+                        "indicators": False,
+                        "footnotes": False,
+                    },
+                },
+            },
             "executive_summary": {
                 "content": "Aucun resultat produit. " + reason,
             },
@@ -2987,6 +3190,49 @@ def run_comparison_with_sections(
 
     try:
         # Run both report extractions in parallel to cut total runtime (Docling + Vision per PDF)
+        def _coerce_tables_with_provenance(
+            value: Any,
+            *,
+            quarter_code: str,
+            quarter_label: str,
+            year_value: int,
+        ) -> tuple[list[TableArtifact], dict[str, Any]]:
+            from pathlib import Path as _Path
+
+            if (
+                isinstance(value, tuple)
+                and len(value) == 2
+                and isinstance(value[0], list)
+                and isinstance(value[1], dict)
+            ):
+                tables = value[0]
+                provenance = dict(value[1])
+            else:
+                tables = list(value or [])
+                provenance = {}
+            base_extraction_dir = _Path("outputs/extractions") / str(bank_code) / str(year_value) / str(quarter_code)
+            provenance.setdefault("quarter", quarter_code)
+            provenance.setdefault("label", quarter_label)
+            provenance.setdefault("year", year_value)
+            provenance.setdefault("mode", "unknown")
+            provenance.setdefault("artifact_dir", str(base_extraction_dir))
+            provenance.setdefault("snapshot_path", str(base_extraction_dir / "extraction_snapshot.json"))
+            provenance.setdefault("tables_path", str(base_extraction_dir / "tables.json"))
+            provenance.setdefault("indicators_path", str(base_extraction_dir / "indicators.json"))
+            provenance.setdefault("footnotes_path", str(base_extraction_dir / "footnotes.json"))
+            provenance.setdefault("meta_path", str(base_extraction_dir / "meta.json"))
+            provenance.setdefault(
+                "artifacts_present",
+                {
+                    "snapshot": False,
+                    "tables": False,
+                    "meta": False,
+                    "indicators": False,
+                    "footnotes": False,
+                },
+            )
+            return tables, provenance
+
         with ThreadPoolExecutor(max_workers=2) as executor:
             fut_t1 = executor.submit(
                 _extract_tables,
@@ -2998,6 +3244,7 @@ def run_comparison_with_sections(
                 api_key=api_key,
                 use_vision_extraction=use_vision_extraction,
                 use_stored_extraction_if_available=use_stored_extraction_if_available,
+                return_provenance=True,
             )
             fut_t2 = executor.submit(
                 _extract_tables,
@@ -3009,9 +3256,20 @@ def run_comparison_with_sections(
                 api_key=api_key,
                 use_vision_extraction=use_vision_extraction,
                 use_stored_extraction_if_available=use_stored_extraction_if_available,
+                return_provenance=True,
             )
-            tables_t1 = fut_t1.result()
-            tables_t2 = fut_t2.result()
+            tables_t1, extraction_source_previous = _coerce_tables_with_provenance(
+                fut_t1.result(),
+                quarter_code=previous_quarter_code,
+                quarter_label=str(quarter_context["previous"]["label"]),
+                year_value=previous_year_val,
+            )
+            tables_t2, extraction_source_current = _coerce_tables_with_provenance(
+                fut_t2.result(),
+                quarter_code=current_quarter_code,
+                quarter_label=str(quarter_context["current"]["label"]),
+                year_value=current_year_val,
+            )
     except Exception as exc:
         if "Vision schema contract invalid" in str(exc):
             raise
@@ -5014,6 +5272,10 @@ def run_comparison_with_sections(
                 "run_id": extraction_run_id,
                 "out_dir": extraction_out_dir,
             },
+            "extraction_sources": {
+                "previous": extraction_source_previous,
+                "current": extraction_source_current,
+            },
         },
     }
 
@@ -5038,9 +5300,9 @@ def run_comparison_with_sections(
     out_path = INDICATOR_COMPARISON_DIR / (
         f"{bank_code}_{current_slug}_vs_{previous_slug}_{stamp}.json"
     )
+    result["meta"]["compare_path"] = str(out_path)
     out_path.write_text(
         json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
     )
-    result["meta"]["compare_path"] = str(out_path)
 
     return result

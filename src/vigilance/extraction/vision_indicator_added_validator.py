@@ -13,6 +13,8 @@ import json
 import logging
 from typing import Any
 
+from vigilance.utils.text_normalize_base import normalize_text_base
+
 logger = logging.getLogger(__name__)
 
 _VALIDATE_ADDED_PROMPT = """Tu es un expert en rapports reglementaires bancaires canadiens.
@@ -143,17 +145,17 @@ def _find_row_bbox_for_indicator(
     """Find row bbox for indicator and return normalized [l,t,r,b] or None."""
     if not row_bboxes:
         return None
-    norm_ind = " ".join(indicator.lower().split()).strip()
+    norm_ind = normalize_text_base(indicator or "")
     matched: tuple[str, float, float] | None = None
     for rb_ind, y0, y1 in row_bboxes:
-        norm_rb = " ".join(str(rb_ind).lower().split()).strip()
+        norm_rb = normalize_text_base(str(rb_ind))
         if norm_ind == norm_rb or norm_ind in norm_rb or norm_rb in norm_ind:
             matched = (rb_ind, y0, y1)
             break
     if matched is None:
         for rb_ind, y0, y1 in row_bboxes:
             if len(norm_ind) > 5 and len(rb_ind) > 5:
-                w1, w2 = set(norm_ind.split()), set(str(rb_ind).lower().split())
+                w1, w2 = set(norm_ind.split()), set(normalize_text_base(str(rb_ind)).split())
                 if w1 & w2 and len(w1 & w2) / max(len(w1), len(w2)) > 0.3:
                     matched = (rb_ind, y0, y1)
                     break

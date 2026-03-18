@@ -887,6 +887,7 @@ class DoclingProcessor:
         labels_only = shared["labels_only"]
         vision_crop_dpi: int = shared.get("vision_crop_dpi", 300)
         vision_preprocess: bool | None = shared.get("vision_preprocess")
+        vision_model_name: str | None = shared.get("vision_model_name")
 
         vision_status_str = "failed"
         warnings_list: list[str] = []
@@ -1035,6 +1036,9 @@ class DoclingProcessor:
             else:
                 warnings_list = ["bbox invalid"]
 
+        requested_max_completion_tokens = int(
+            vision_extraction_cfg.get("vision_max_completion_tokens", 65536)
+        )
         debug_metrics: dict[str, Any] = {
             "vision_status": vision_status_str,
             "vision_extraction_attempted": vision_extraction_attempted,
@@ -1043,7 +1047,12 @@ class DoclingProcessor:
             "vision_schema_contract_failed": vision_schema_contract_failed,
             "has_reference_text": bool(reference_text and len(reference_text.strip()) > 20),
             "warnings": warnings_list,
+            "vision_max_completion_tokens_requested": requested_max_completion_tokens,
+            "vision_max_completion_tokens_rescue_used": False,
         }
+        if vision_model_name:
+            debug_metrics["vision_model"] = vision_model_name
+            debug_metrics["vision_role"] = "extraction_primary"
         if warnings_list:
             debug_metrics["vision_warning_codes"] = list(warnings_list)
             known_failure_codes = {
@@ -1081,6 +1090,23 @@ class DoclingProcessor:
                 debug_metrics["recrop_failed_incomplete"] = (
                     vision_result.recrop_failed_incomplete
                 )
+            if getattr(vision_result, "requested_max_completion_tokens", None) is not None:
+                debug_metrics["vision_max_completion_tokens_requested"] = (
+                    vision_result.requested_max_completion_tokens
+                )
+            debug_metrics["vision_max_completion_tokens_rescue_used"] = bool(
+                getattr(vision_result, "rescue_used", False)
+            )
+            if getattr(vision_result, "finish_reason", None):
+                debug_metrics["vision_finish_reason"] = vision_result.finish_reason
+            if getattr(vision_result, "prompt_tokens", None) is not None:
+                debug_metrics["vision_prompt_tokens"] = vision_result.prompt_tokens
+            if getattr(vision_result, "completion_tokens", None) is not None:
+                debug_metrics["vision_completion_tokens"] = (
+                    vision_result.completion_tokens
+                )
+            if getattr(vision_result, "total_tokens", None) is not None:
+                debug_metrics["vision_total_tokens"] = vision_result.total_tokens
 
         extracted_table = ExtractedTable(
             table_id=table_id,
@@ -1142,7 +1168,7 @@ class DoclingProcessor:
                 except Exception:
                     return {}
 
-            # Vision extraction: GPT-4o as content source (indicators + footnotes) for all tables
+            # Vision extraction: OpenAI Vision as content source (indicators + footnotes) for all tables
             vision_extraction_cfg: dict = {}
             bottom_extension_footnotes = 0.0
             top_extension_title = 0.03
@@ -1152,6 +1178,7 @@ class DoclingProcessor:
             # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
             schema_failure_policy = "fail_fast"
             vision_extractor = None
+            vision_model_name: str | None = None
             pdf_sha = ""
             vision_extraction_disabled_reason: str | None = None
             vision_schema_contract_failed = False
@@ -1193,6 +1220,7 @@ class DoclingProcessor:
                         "degrade_to_docling",
                     }:
                         schema_failure_policy = "fail_fast"
+                    from ..config import resolve_openai_model
                     from ..utils.genai import get_openai_api_key
                     from .vision_cache import compute_pdf_sha256
                     from .vision_full_extractor import (
@@ -1202,12 +1230,15 @@ class DoclingProcessor:
 
                     pdf_sha = compute_pdf_sha256(str(pdf_path))
                     api_key = self.openai_api_key or get_openai_api_key()
+                    vision_model_name = resolve_openai_model("extraction_primary")
                     vision_cache_enabled = bool(
                         vision_extraction_cfg.get("vision_cache_enabled", True)
                     )
                     if api_key:
                         vision_extractor = VisionFullExtractor(
-                            api_key=api_key, use_cache=vision_cache_enabled
+                            api_key=api_key,
+                            model=vision_model_name,
+                            use_cache=vision_cache_enabled,
                         )
                     else:
                         logger.warning(
@@ -1356,6 +1387,7 @@ class DoclingProcessor:
                     "labels_only": labels_only,
                     "vision_crop_dpi": int(vision_extraction_cfg.get("vision_crop_dpi", 300)),
                     "vision_preprocess": vision_extraction_cfg.get("vision_preprocess", True),
+                    "vision_model_name": vision_model_name,
                 }
                 if vision_extractor:
                     try:

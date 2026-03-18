@@ -112,6 +112,7 @@ from app.quarter_utils import (
 )
 from app.review_adapters import build_review_items_from_indicator_result
 from app.review_export import (
+    build_export_metadata,
     export_review_items_json_fr,
     generate_validation_csv,
     generate_validation_excel,
@@ -123,6 +124,9 @@ from app.review_models import (
     CHANGE_TYPE_RENAMED,
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
+    EVENT_TYPE_TABLE_ADDED,
+    EVENT_TYPE_TABLE_REMOVED,
+    EVENT_TYPE_FOOTNOTE_ONLY,
     REVIEW_STATUS_APPROVED,
     REVIEW_STATUS_PENDING,
     REVIEW_STATUS_REJECTED,
@@ -134,6 +138,7 @@ from app.review_queue_normalizer import (
     build_normalized_review_queue,
 )
 from app.review_state import set_review_status
+from app.review_storage import load_review_state, save_review_state
 from app.ui_config import INDICATOR_COMPARISON_DIR
 from app.ui_detection import (
     _detect_sections_core,
@@ -147,6 +152,50 @@ from app.ui_io import (
     save_pdfs_to_temp,
 )
 from vigilance.dash_app.components.review_detail_v2 import build_review_detail_v2
+
+
+def _comparison_path_from_meta(
+    indicator_meta: dict | None, indicator_result: dict | None = None
+) -> str:
+    """Return the persisted comparison path from available Dash state."""
+    meta = indicator_meta if isinstance(indicator_meta, dict) else {}
+    compare_path = str(meta.get("compare_path") or "").strip()
+    if compare_path:
+        return compare_path
+    if isinstance(indicator_result, dict):
+        result_meta = indicator_result.get("meta", {}) or {}
+        return str(result_meta.get("compare_path") or "").strip()
+    return ""
+
+
+def _persist_review_state(
+    *,
+    indicator_meta: dict | None,
+    indicator_result: dict | None = None,
+    review_items: list[dict] | None = None,
+    review_queue: list[dict] | None = None,
+    review_selection: dict | None = None,
+    review_current_idx: int | None = None,
+    current_change_idx: int | None = None,
+    current_indicator_idx: int | None = None,
+    preferred_store: str = "review_queue",
+    source: str = "dash",
+) -> None:
+    """Persist review state next to the comparison JSON when possible."""
+    compare_path = _comparison_path_from_meta(indicator_meta, indicator_result)
+    if not compare_path:
+        return
+    save_review_state(
+        compare_path,
+        review_items=review_items,
+        review_queue=review_queue,
+        review_selection=review_selection,
+        review_current_idx=review_current_idx,
+        current_change_idx=current_change_idx,
+        current_indicator_idx=current_indicator_idx,
+        preferred_store=preferred_store,
+        source=source,
+    )
 from vigilance.dash_app.components.review_queue_v2 import build_review_queue_v2
 from vigilance.extraction.table_annotator import annotate_table_with_changes
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
@@ -1160,7 +1209,16 @@ def update_review_proofs(
         review_queue_data, resolved_selection.get("review_id")
     )
     if table is None:
-        return html.Div()
+        return html.Div(
+            [
+                html.H6("Preuves visuelles T1/T2", className="mb-1"),
+                html.P(
+                    "Aucune preuve visuelle disponible pour la sélection courante.",
+                    className="text-muted small mb-0",
+                ),
+            ],
+            className="p-3 bg-light rounded border",
+        )
 
     item = _table_to_proof_item(table, resolved_selection)
     mode = (proof_display_mode or "crop").strip().lower()
@@ -1252,6 +1310,7 @@ def _derive_table_status(indicators: list[dict]) -> str:
     State("store-review-current-idx", "data"),
     State("store-review-current-indicator-idx", "data"),
     State("review-comment", "value"),
+    State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
 def on_review_action_modern(
@@ -1262,6 +1321,7 @@ def on_review_action_modern(
     current_idx,
     indicator_idx,
     comment,
+    indicator_meta,
 ):
     """Handle review actions per-indicator: Approve/Reject applies to the current indicator only.
 
@@ -1299,6 +1359,14 @@ def on_review_action_modern(
             updated_item["comment"] = comment
         new_items = json.loads(json.dumps(review_items))
         new_items[idx] = updated_item
+        _persist_review_state(
+            indicator_meta=indicator_meta,
+            review_items=new_items,
+            review_current_idx=idx,
+            current_indicator_idx=ind_idx,
+            preferred_store="review_items",
+            source="on_review_action_modern",
+        )
         return new_items, no_update, no_update
     else:
         raise PreventUpdate
@@ -1325,6 +1393,14 @@ def on_review_action_modern(
     next_table_idx = idx
 
     if not updated_indicators:
+        _persist_review_state(
+            indicator_meta=indicator_meta,
+            review_items=new_items,
+            review_current_idx=idx,
+            current_indicator_idx=next_ind_idx,
+            preferred_store="review_items",
+            source="on_review_action_modern",
+        )
         return new_items, next_ind_idx, no_update
 
     def _is_decided(s: str | None) -> bool:
@@ -1336,11 +1412,35 @@ def on_review_action_modern(
 
     if ind_idx < len(updated_indicators) - 1:
         next_ind_idx = ind_idx + 1
+        _persist_review_state(
+            indicator_meta=indicator_meta,
+            review_items=new_items,
+            review_current_idx=idx,
+            current_indicator_idx=next_ind_idx,
+            preferred_store="review_items",
+            source="on_review_action_modern",
+        )
         return new_items, next_ind_idx, no_update
     if all_decided and idx < len(new_items) - 1:
         next_table_idx = idx + 1
         next_ind_idx = 0
+        _persist_review_state(
+            indicator_meta=indicator_meta,
+            review_items=new_items,
+            review_current_idx=next_table_idx,
+            current_indicator_idx=next_ind_idx,
+            preferred_store="review_items",
+            source="on_review_action_modern",
+        )
         return new_items, next_ind_idx, next_table_idx
+    _persist_review_state(
+        indicator_meta=indicator_meta,
+        review_items=new_items,
+        review_current_idx=idx,
+        current_indicator_idx=next_ind_idx,
+        preferred_store="review_items",
+        source="on_review_action_modern",
+    )
     return new_items, next_ind_idx, no_update
 
 
@@ -2269,6 +2369,19 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
         indicators: list[dict[str, str]] = []
         item_type = "indicator"
         event_type = "matched_pair"
+        review_comments: list[str] = []
+        review_timestamps: list[str] = []
+        review_users: list[str] = []
+        for change in changes:
+            note = str(change.get("validation_notes", "")).strip()
+            if note:
+                review_comments.append(note)
+            validated_at = str(change.get("validated_at", "")).strip()
+            if validated_at:
+                review_timestamps.append(validated_at)
+            validated_by = str(change.get("validated_by", "")).strip()
+            if validated_by:
+                review_users.append(validated_by)
         if has_table_added or has_table_removed:
             change_type = (
                 CHANGE_TYPE_TABLE_ADDED
@@ -2359,6 +2472,9 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
                 source_ref_t1=str(table.get("source_pdf_t1", "")),
                 source_ref_t2=str(table.get("source_pdf_t2", "")),
                 review_status=review_status,
+                comment=" | ".join(dict.fromkeys(review_comments)),
+                review_user=" | ".join(dict.fromkeys(review_users)),
+                review_timestamp=max(review_timestamps) if review_timestamps else "",
                 confidence=float(table.get("confidence", 0.0) or 0.0),
                 table_title_raw=str(table.get("table_title") or table_name),
                 table_status=str(table.get("table_status", "")),
@@ -2548,9 +2664,10 @@ def render_sections_tab(indicator_result, show_results):
     Output("store-nav-debug", "data", allow_duplicate=True),
     Input("store-indicator-result", "data"),
     Input("store-pdf-paths", "data"),
+    State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
-def init_review_items(indicator_result, paths):
+def init_review_items(indicator_result, paths, indicator_meta):
     """Construire les ReviewItems depuis indicator_result pour la revue.
 
     Also builds the V2 deduplicated review queue.
@@ -2584,15 +2701,58 @@ def init_review_items(indicator_result, paths):
     )
     serialized_v2 = [t.to_dict() for t in grouped_tables]
 
+    compare_path = _comparison_path_from_meta(indicator_meta, indicator_result)
+    persisted_state = load_review_state(compare_path)
+    if persisted_state:
+        preferred_store = str(
+            persisted_state.get("preferred_store") or "review_queue"
+        ).strip()
+        stored_items = persisted_state.get("review_items")
+        stored_queue = persisted_state.get("review_queue")
+
+        if (
+            preferred_store == "review_items"
+            and isinstance(stored_items, list)
+            and stored_items
+        ):
+            serialized = stored_items
+            grouped_tables = build_normalized_review_queue(
+                indicator_result,
+                serialized,
+                pdf_path_t1=path_t1,
+                pdf_path_t2=path_t2,
+            )
+            serialized_v2 = [t.to_dict() for t in grouped_tables]
+        elif isinstance(stored_queue, list) and stored_queue:
+            serialized_v2 = stored_queue
+            serialized = [it.to_dict() for it in _review_items_from_v2_queue(stored_queue)]
+        elif isinstance(stored_items, list) and stored_items:
+            serialized = stored_items
+            grouped_tables = build_normalized_review_queue(
+                indicator_result,
+                serialized,
+                pdf_path_t1=path_t1,
+                pdf_path_t2=path_t2,
+            )
+            serialized_v2 = [t.to_dict() for t in grouped_tables]
+
     total = len(serialized)
     total_v2 = len(serialized_v2)
     dedup_merged = max(0, total - total_v2)
-    resolved_selection, sel_table_idx, sel_change_idx = _resolve_selection(
-        serialized_v2, {"review_id": None, "change_id": None}
+    persisted_selection = (
+        persisted_state.get("review_selection") if isinstance(persisted_state, dict) else None
     )
+    resolved_selection, sel_table_idx, sel_change_idx = _resolve_selection(
+        serialized_v2, persisted_selection or {"review_id": None, "change_id": None}
+    )
+    if persisted_state and not persisted_selection:
+        sel_table_idx = int(persisted_state.get("review_current_idx", sel_table_idx) or 0)
+        sel_change_idx = int(
+            persisted_state.get("current_change_idx", sel_change_idx) or 0
+        )
     dbg = {
         "writer": "init_review_items",
-        "trigger": "init",
+        "trigger": "persisted_init" if persisted_state else "init",
         "from": None,
         "to": sel_table_idx,
         "total": total,
@@ -2605,6 +2765,17 @@ def init_review_items(indicator_result, paths):
         total_v2,
         dedup_merged,
         REVIEW_QUEUE_V2_ACTIVE,
+    )
+    _persist_review_state(
+        indicator_meta=indicator_meta,
+        indicator_result=indicator_result,
+        review_items=serialized,
+        review_queue=serialized_v2,
+        review_selection=resolved_selection,
+        review_current_idx=sel_table_idx,
+        current_change_idx=sel_change_idx,
+        preferred_store="review_queue",
+        source="init_review_items",
     )
     return (
         serialized,
@@ -3056,10 +3227,11 @@ def on_review_navigate(prev_clicks, next_clicks, review_items, current_idx):
     Input("btn-review-pass", "n_clicks"),
     State("store-review-items", "data"),
     State("store-review-current-idx", "data"),
+    State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
 def on_review_status(
-    approve_clicks, reject_clicks, pass_clicks, review_items, current_idx
+    approve_clicks, reject_clicks, pass_clicks, review_items, current_idx, indicator_meta
 ):
     """Appliquer Valider/Rejeter/Passer sur l'item courant."""
     import json
@@ -3085,6 +3257,13 @@ def on_review_status(
     # Deep copy to ensure Dash detects the change
     new_items = json.loads(json.dumps(review_items))
     new_items[idx] = updated.to_dict()
+    _persist_review_state(
+        indicator_meta=indicator_meta,
+        review_items=new_items,
+        review_current_idx=idx,
+        preferred_store="review_items",
+        source="on_review_status",
+    )
     return new_items
 
 
@@ -3361,7 +3540,7 @@ def on_download_json(n_clicks, review_items_data, review_queue_data, indicator_r
     """Telecharger le JSON de revue."""
     if not n_clicks or (not review_items_data and not review_queue_data):
         raise PreventUpdate
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     ir = indicator_result or {}
     if review_queue_data:
@@ -3375,16 +3554,19 @@ def on_download_json(n_clicks, review_items_data, review_queue_data, indicator_r
     base_name = _comparison_export_base_name(ir, "review").replace(" ", "_").lower()
     json_str = export_review_items_json_fr(
         items,
-        metadata={
-            "bank_code": bank,
-            "quarter_from": q_from,
-            "quarter_to": q_to,
-            "previous_quarter": q_from,
-            "current_quarter": q_to,
-            "comparison_direction": "current_vs_previous",
-            "year": year_val,
-            "exported_at": datetime.now().isoformat(timespec="seconds"),
-        },
+        metadata=build_export_metadata(
+            ir,
+            overrides={
+                "bank_code": bank,
+                "quarter_from": q_from,
+                "quarter_to": q_to,
+                "previous_quarter": q_from,
+                "current_quarter": q_to,
+                "comparison_direction": "current_vs_previous",
+                "year": year_val,
+                "exported_at": datetime.now().isoformat(timespec="seconds"),
+            },
+        ),
     )
     return dict(content=json_str, filename=f"{base_name}.json")
 
@@ -3617,16 +3799,19 @@ def on_load_comparison(n_clicks, filename):
     State("store-review-selection", "data"),
     State("store-review-filters", "data"),
     State("validation-notes-v2", "value"),
+    State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
-def on_validate_change_v2(approve, reject, skip, queue, selection, filters, notes):
+def on_validate_change_v2(
+    approve, reject, skip, queue, selection, filters, notes, indicator_meta
+):
     """Apply validation to current change in V2 queue, auto-advance.
 
     Auto-advance rules:
     - After decision, advance to next change in same table
     - When last change of table is decided, auto-advance to next table
     """
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
@@ -3662,7 +3847,7 @@ def on_validate_change_v2(approve, reject, skip, queue, selection, filters, note
     changes[change_idx]["validation_status"] = decision
     changes[change_idx]["validation_decision"] = decision
     changes[change_idx]["validation_notes"] = notes or ""
-    changes[change_idx]["validated_at"] = datetime.utcnow().isoformat()
+    changes[change_idx]["validated_at"] = datetime.now(timezone.utc).isoformat()
     changes[change_idx]["validated_by"] = "analyst"
 
     # Update table status
@@ -3745,6 +3930,16 @@ def on_validate_change_v2(approve, reject, skip, queue, selection, filters, note
         new_change_idx,
     )
 
+    _persist_review_state(
+        indicator_meta=indicator_meta,
+        review_items=[it.to_dict() for it in _review_items_from_v2_queue(new_queue)],
+        review_queue=new_queue,
+        review_selection=next_selection,
+        review_current_idx=new_table_idx,
+        current_change_idx=new_change_idx,
+        preferred_store="review_queue",
+        source="on_validate_change_v2",
+    )
     return new_queue, next_selection, new_change_idx, new_table_idx
 
 

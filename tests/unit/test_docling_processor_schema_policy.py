@@ -73,6 +73,12 @@ class _PartialVisionExtractor:
                 "vision_lean_mode",
                 "vision_rows_missing_from_fallback",
             ],
+            requested_max_completion_tokens=128000,
+            finish_reason="stop",
+            prompt_tokens=1234,
+            completion_tokens=567,
+            total_tokens=1801,
+            rescue_used=True,
         )
 
 
@@ -179,10 +185,18 @@ def test_schema_policy_degrade_to_docling_disables_vision(
     assert len(extracted.all_tables) == 2
     first_dm = extracted.all_tables[0].debug_metrics or {}
     second_dm = extracted.all_tables[1].debug_metrics or {}
+    assert first_dm.get("vision_model") == "gpt-5.4"
+    assert first_dm.get("vision_role") == "extraction_primary"
+    assert first_dm.get("vision_max_completion_tokens_requested") == 65536
+    assert first_dm.get("vision_max_completion_tokens_rescue_used") is False
     assert first_dm.get("vision_schema_contract_failed") is True
     assert "Vision schema contract invalid" in str(
         first_dm.get("vision_extraction_disabled_reason", "")
     )
+    assert second_dm.get("vision_model") == "gpt-5.4"
+    assert second_dm.get("vision_role") == "extraction_primary"
+    assert second_dm.get("vision_max_completion_tokens_requested") == 65536
+    assert second_dm.get("vision_max_completion_tokens_rescue_used") is False
     assert second_dm.get("vision_extraction_attempted") is False
     assert "Vision schema contract invalid" in str(
         second_dm.get("vision_extraction_disabled_reason", "")
@@ -221,6 +235,14 @@ def test_partial_vision_result_is_still_applied(monkeypatch, tmp_path: Path) -> 
     dm = table.debug_metrics or {}
     assert dm.get("vision_status") == "partial"
     assert dm.get("vision_extraction_applied") is True
+    assert dm.get("vision_model") == "gpt-5.4"
+    assert dm.get("vision_role") == "extraction_primary"
+    assert dm.get("vision_max_completion_tokens_requested") == 128000
+    assert dm.get("vision_max_completion_tokens_rescue_used") is True
+    assert dm.get("vision_finish_reason") == "stop"
+    assert dm.get("vision_prompt_tokens") == 1234
+    assert dm.get("vision_completion_tokens") == 567
+    assert dm.get("vision_total_tokens") == 1801
     assert dm.get("vision_failure_causes") == [
         "vision_truncated",
         "vision_lean_mode",

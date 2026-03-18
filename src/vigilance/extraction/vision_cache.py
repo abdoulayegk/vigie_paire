@@ -10,9 +10,9 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Bump this when prompt, schema, or parsing logic changes so stale cache
-# entries are automatically bypassed without manual cleanup.
-_VISION_CACHE_VERSION = "v2"
+# Bump this when prompt, schema, parsing logic, or extraction-budget routing changes
+# so stale cache entries are automatically bypassed without manual cleanup.
+_VISION_CACHE_VERSION = "v3"
 
 DEFAULT_CACHE_DIR = "outputs/vision_cache"
 DEFAULT_CROP_DIR = "outputs/debug_crops/vision_fallback"
@@ -40,7 +40,12 @@ def compute_pdf_sha256(pdf_path: str) -> str:
     return h.hexdigest()
 
 
-def make_cache_key(pdf_sha: str, page_number: int, bbox_norm: list[float]) -> str:
+def make_cache_key(
+    pdf_sha: str,
+    page_number: int,
+    bbox_norm: list[float],
+    max_completion_tokens: int | None = None,
+) -> str:
     """
     Create a cache key from PDF hash, page number, and normalized bbox.
     Bbox values are rounded to 4 decimal places for stability.
@@ -49,7 +54,13 @@ def make_cache_key(pdf_sha: str, page_number: int, bbox_norm: list[float]) -> st
     if not bbox_norm or len(bbox_norm) != 4:
         return ""
     rounded = [round(float(v), 4) for v in bbox_norm[:4]]
-    return f"{_VISION_CACHE_VERSION}_{pdf_sha}_{page_number}_{rounded[0]}_{rounded[1]}_{rounded[2]}_{rounded[3]}"
+    key = (
+        f"{_VISION_CACHE_VERSION}_{pdf_sha}_{page_number}_"
+        f"{rounded[0]}_{rounded[1]}_{rounded[2]}_{rounded[3]}"
+    )
+    if max_completion_tokens is not None:
+        key += f"_mt{int(max_completion_tokens)}"
+    return key
 
 
 def cache_get(cache_dir: str, key: str) -> dict | None:

@@ -24,6 +24,14 @@ from vigilance.utils.table_page_structure import derive_page_local_structure
 logger = logging.getLogger(__name__)
 
 STORAGE_SCHEMA_VERSION = 3
+TABLES_FILENAME = "tables.json"
+META_FILENAME = "meta.json"
+REPORT_SUMMARY_JSON_FILENAME = "report_summary.json"
+REPORT_SUMMARY_TXT_FILENAME = "report_summary.txt"
+REPORT_INDICATORS_FILENAME = "indicators.json"
+REPORT_INDICATORS_TXT_FILENAME = "indicators.txt"
+REPORT_FOOTNOTES_FILENAME = "footnotes.json"
+REPORT_FOOTNOTES_TXT_FILENAME = "footnotes.txt"
 
 # Contract versions for cache compatibility. Bump to reject older stored artifacts.
 ARTIFACT_CONTRACT_VERSION = 1
@@ -115,6 +123,65 @@ def _normalize_storage_quarter(quarter: str) -> str:
 def _extraction_dir(base_dir: Path, bank_code: str, year: int, quarter: str) -> Path:
     """Return the directory for one report: {base_dir}/{bank}/{year}/{quarter}/."""
     return base_dir / str(bank_code) / str(year) / str(quarter).lower()
+
+
+def get_extraction_artifact_paths(
+    bank_code: str,
+    year: int,
+    quarter: str,
+    base_dir: Path,
+) -> dict[str, Path]:
+    """Return canonical filesystem paths for one stored extraction."""
+    quarter_norm = _normalize_storage_quarter(quarter)
+    target_dir = _extraction_dir(base_dir, bank_code, year, quarter_norm)
+    return {
+        "dir": target_dir,
+        "snapshot": target_dir / EXTRACTION_SNAPSHOT_FILENAME,
+        "tables": target_dir / TABLES_FILENAME,
+        "meta": target_dir / META_FILENAME,
+        "report_summary_json": target_dir / REPORT_SUMMARY_JSON_FILENAME,
+        "report_summary_txt": target_dir / REPORT_SUMMARY_TXT_FILENAME,
+        "indicators": target_dir / REPORT_INDICATORS_FILENAME,
+        "indicators_txt": target_dir / REPORT_INDICATORS_TXT_FILENAME,
+        "footnotes": target_dir / REPORT_FOOTNOTES_FILENAME,
+        "footnotes_txt": target_dir / REPORT_FOOTNOTES_TXT_FILENAME,
+    }
+
+
+def describe_extraction_artifacts(
+    bank_code: str,
+    year: int,
+    quarter: str,
+    base_dir: Path,
+) -> dict[str, Any]:
+    """Describe report-centric extraction artifacts for provenance and observability."""
+    paths = get_extraction_artifact_paths(bank_code, year, quarter, base_dir)
+    return {
+        "bank_code": str(bank_code),
+        "year": int(year),
+        "quarter": _normalize_storage_quarter(quarter),
+        "artifact_dir": str(paths["dir"]),
+        "snapshot_path": str(paths["snapshot"]),
+        "tables_path": str(paths["tables"]),
+        "meta_path": str(paths["meta"]),
+        "report_summary_json_path": str(paths["report_summary_json"]),
+        "report_summary_txt_path": str(paths["report_summary_txt"]),
+        "indicators_path": str(paths["indicators"]),
+        "indicators_txt_path": str(paths["indicators_txt"]),
+        "footnotes_path": str(paths["footnotes"]),
+        "footnotes_txt_path": str(paths["footnotes_txt"]),
+        "artifacts_present": {
+            "snapshot": paths["snapshot"].exists(),
+            "tables": paths["tables"].exists(),
+            "meta": paths["meta"].exists(),
+            "report_summary_json": paths["report_summary_json"].exists(),
+            "report_summary_txt": paths["report_summary_txt"].exists(),
+            "indicators": paths["indicators"].exists(),
+            "indicators_txt": paths["indicators_txt"].exists(),
+            "footnotes": paths["footnotes"].exists(),
+            "footnotes_txt": paths["footnotes_txt"].exists(),
+        },
+    }
 
 
 def _footnote_to_canonical(item: dict[str, Any]) -> dict[str, str]:
@@ -288,6 +355,102 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
 EXTRACTION_SNAPSHOT_FILENAME = "extraction_snapshot.json"
 
 
+def _ensure_report_view_artifacts(
+    *,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    target_dir: Path,
+    tables: list[TableArtifact],
+    meta: dict[str, Any],
+) -> None:
+    """Ensure all report-centric JSON/TXT artifacts exist for this extraction."""
+    report_summary_json_path = target_dir / REPORT_SUMMARY_JSON_FILENAME
+    report_summary_txt_path = target_dir / REPORT_SUMMARY_TXT_FILENAME
+    indicators_path = target_dir / REPORT_INDICATORS_FILENAME
+    indicators_txt_path = target_dir / REPORT_INDICATORS_TXT_FILENAME
+    footnotes_path = target_dir / REPORT_FOOTNOTES_FILENAME
+    footnotes_txt_path = target_dir / REPORT_FOOTNOTES_TXT_FILENAME
+    report_summary_json_missing = not report_summary_json_path.exists()
+    report_summary_txt_missing = not report_summary_txt_path.exists()
+    indicators_missing = not indicators_path.exists()
+    indicators_txt_missing = not indicators_txt_path.exists()
+    footnotes_missing = not footnotes_path.exists()
+    footnotes_txt_missing = not footnotes_txt_path.exists()
+    if (
+        not report_summary_json_missing
+        and not report_summary_txt_missing
+        and not indicators_missing
+        and not indicators_txt_missing
+        and not footnotes_missing
+        and not footnotes_txt_missing
+    ):
+        return
+    from vigilance.extraction.vision_extraction_writer import (
+        write_report_footnotes_txt,
+        write_report_footnotes_json,
+        write_report_indicators_txt,
+        write_report_indicators_json,
+        write_report_summary_json,
+        write_report_summary_txt,
+    )
+
+    if report_summary_json_missing:
+        write_report_summary_json(
+            tables,
+            target_dir,
+            bank_code,
+            year,
+            quarter,
+            meta=meta,
+        )
+    if report_summary_txt_missing:
+        write_report_summary_txt(
+            tables,
+            target_dir,
+            bank_code,
+            year,
+            quarter,
+            meta=meta,
+        )
+    if indicators_missing:
+        write_report_indicators_json(
+            tables,
+            target_dir,
+            bank_code,
+            year,
+            quarter,
+            meta=meta,
+        )
+    if indicators_txt_missing:
+        write_report_indicators_txt(
+            tables,
+            target_dir,
+            bank_code,
+            year,
+            quarter,
+            meta=meta,
+        )
+    if footnotes_missing:
+        write_report_footnotes_json(
+            tables,
+            target_dir,
+            bank_code,
+            year,
+            quarter,
+            meta=meta,
+        )
+    if footnotes_txt_missing:
+        write_report_footnotes_txt(
+            tables,
+            target_dir,
+            bank_code,
+            year,
+            quarter,
+            meta=meta,
+        )
+
+
 def save_extraction(
     bank_code: str,
     year: int,
@@ -326,6 +489,10 @@ def save_extraction(
     meta_payload.setdefault("year", year)
     meta_payload.setdefault("quarter", quarter_norm)
     meta_payload.setdefault("extracted_at", datetime.now(timezone.utc).isoformat())
+    meta_payload.setdefault("created_at", meta_payload.get("extracted_at"))
+    meta_payload.setdefault("pipeline_version", "")
+    meta_payload.setdefault("model_version", "")
+    meta_payload.setdefault("prompt_version", "")
     try:
         manifest = build_extraction_manifest(
             pdf_path=str(meta_payload.get("pdf_path") or ""),
@@ -333,6 +500,7 @@ def save_extraction(
             extraction_mode=str(meta_payload.get("extraction_method") or "vision_full_gpt4o"),
         )
         meta_payload["extraction_manifest"] = manifest
+        meta_payload.setdefault("pdf_fingerprint", manifest.get("pdf_fingerprint", ""))
     except Exception:
         pass
 
@@ -352,15 +520,23 @@ def save_extraction(
     )
     tmp_path.replace(snapshot_path)
 
-    tables_path = target_dir / "tables.json"
+    tables_path = target_dir / TABLES_FILENAME
     tables_path.write_text(
         json.dumps(tables_payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-    meta_path = target_dir / "meta.json"
+    meta_path = target_dir / META_FILENAME
     meta_path.write_text(
         json.dumps(meta_payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
+    )
+    _ensure_report_view_artifacts(
+        bank_code=bank_code,
+        year=year,
+        quarter=quarter_norm,
+        target_dir=target_dir,
+        tables=tables,
+        meta=meta_payload,
     )
 
     logger.info(
@@ -386,10 +562,11 @@ def load_extraction(
     reads tables.json and meta.json. Returns (tables, meta) or None if not found or invalid.
     """
     quarter_norm = _normalize_storage_quarter(quarter)
-    target_dir = _extraction_dir(base_dir, bank_code, year, quarter_norm)
-    snapshot_path = target_dir / EXTRACTION_SNAPSHOT_FILENAME
-    tables_path = target_dir / "tables.json"
-    meta_path = target_dir / "meta.json"
+    paths = get_extraction_artifact_paths(bank_code, year, quarter_norm, base_dir)
+    target_dir = paths["dir"]
+    snapshot_path = paths["snapshot"]
+    tables_path = paths["tables"]
+    meta_path = paths["meta"]
 
     if snapshot_path.exists():
         try:
@@ -424,6 +601,14 @@ def load_extraction(
                 )
                 return None
             _backfill_page_local_structure(tables)
+            _ensure_report_view_artifacts(
+                bank_code=bank_code,
+                year=year,
+                quarter=quarter_norm,
+                target_dir=target_dir,
+                tables=tables,
+                meta=meta,
+            )
             return (tables, meta)
         except (json.JSONDecodeError, TypeError, KeyError) as e:
             logger.debug("Load extraction snapshot failed %s: %s", target_dir, e)
@@ -464,6 +649,14 @@ def load_extraction(
         meta: dict[str, Any] = {}
         if meta_path.exists():
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        _ensure_report_view_artifacts(
+            bank_code=bank_code,
+            year=year,
+            quarter=quarter_norm,
+            target_dir=target_dir,
+            tables=tables,
+            meta=meta,
+        )
         return (tables, meta)
     except (json.JSONDecodeError, TypeError, KeyError) as e:
         logger.debug("Load extraction failed %s: %s", target_dir, e)

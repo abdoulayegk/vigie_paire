@@ -12,11 +12,12 @@ import base64
 import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from ..config import resolve_openai_model
 from ..utils.genai import get_openai_api_key
 from .vision_cache import (
     cache_get,
@@ -31,10 +32,13 @@ _EXTRACTION_METHOD = "vision_full_gpt4o"
 
 _CONFIDENCE_RETRY_THRESHOLD = 0.85
 _RECROP_EXTENSION_INCREMENT = 0.06
-_DEFAULT_MAX_COMPLETION_TOKENS = 16384
-# Current Vision models support 128k context (input+output) but at most 16k completion tokens.
-_MAX_COMPLETION_TOKENS_API_LIMIT = 16384
+_DEFAULT_MAX_COMPLETION_TOKENS = 65536
+# Current extraction routing uses 64k by default and allows a 128k rescue pass when truncation is detected.
+_MAX_COMPLETION_TOKENS_API_LIMIT = 128000
+_RESCUE_MAX_COMPLETION_TOKENS = 128000
+_MAX_COMPLETION_TOKENS_SAFE_FALLBACK = 16384
 _DEFAULT_REFERENCE_TEXT_MAX_CHARS = 6000
+_MODEL_ROLE = "extraction_primary"
 
 _PROMPT_BASE = """
 Tu es un expert en extraction de données financières à partir de rapports bancaires canadiens.
@@ -555,6 +559,13 @@ class VisionFullResult:
     # Status and warnings
     vision_status: str = "ok"  # "ok" | "partial" | "failed"
     warnings: list[str] = field(default_factory=list)
+    # Request metadata for observability/debug_metrics
+    requested_max_completion_tokens: int | None = None
+    finish_reason: str | None = None
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    total_tokens: int | None = None
+    rescue_used: bool = False
     # Recrop quality pass (for debug_metrics)
     recrop_attempted: bool = False
     recrop_used: bool = False
@@ -691,6 +702,79 @@ def _preview_response_text(raw: str, limit: int = 500) -> str:
     head = text[: limit // 2]
     tail = text[-(limit // 2) :]
     return f"{head} ... {tail}"
+
+
+def _extract_usage_metrics(response: Any) -> tuple[int | None, int | None, int | None]:
+    """Best-effort extraction of token usage from OpenAI responses."""
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        return None, None, None
+
+    def _coerce_int(value: Any) -> int | None:
+        if value is None:
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    return (
+        _coerce_int(getattr(usage, "prompt_tokens", None)),
+        _coerce_int(getattr(usage, "completion_tokens", None)),
+        _coerce_int(getattr(usage, "total_tokens", None)),
+    )
+
+
+def _with_attempt_metadata(
+    result: VisionFullResult,
+    *,
+    requested_max_completion_tokens: int,
+    finish_reason: str,
+    prompt_tokens: int | None,
+    completion_tokens: int | None,
+    total_tokens: int | None,
+    rescue_used: bool = False,
+) -> VisionFullResult:
+    """Return a result carrying per-attempt metadata."""
+    return replace(
+        result,
+        requested_max_completion_tokens=requested_max_completion_tokens,
+        finish_reason=finish_reason or None,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=total_tokens,
+        rescue_used=rescue_used,
+    )
+
+
+def _make_truncated_placeholder_result(
+    *,
+    requested_max_completion_tokens: int,
+    finish_reason: str,
+    prompt_tokens: int | None,
+    completion_tokens: int | None,
+    total_tokens: int | None,
+) -> VisionFullResult:
+    """Return a minimal partial result so higher-level rescue logic can retry with more budget."""
+    return VisionFullResult(
+        table_title="",
+        headers=[],
+        indicators=[],
+        rows=[],
+        footnotes_content=[],
+        footnote_markers=[],
+        confidence=0.0,
+        extraction_method=_EXTRACTION_METHOD,
+        appears_truncated=True,
+        estimated_content_height=None,
+        vision_status="partial",
+        warnings=["vision_truncated"],
+        requested_max_completion_tokens=requested_max_completion_tokens,
+        finish_reason=finish_reason or None,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=total_tokens,
+    )
 
 
 _FULL_RESPONSE_KEYS = frozenset(
@@ -914,7 +998,7 @@ def _try_parse_truncated_result(raw_content: str) -> VisionFullResult | None:
 
 class VisionFullExtractor:
     """
-    Extract indicators + footnotes from a table crop image via GPT-4o Vision.
+    Extract indicators + footnotes from a table crop image via OpenAI Vision.
 
     One call per table minimum. Supports:
     - Retry on invalid JSON (with fix prompt)
@@ -925,18 +1009,28 @@ class VisionFullExtractor:
     def __init__(
         self,
         api_key: str | None = None,
-        model: str = "gpt-4o",
+        model: str | None = None,
         max_retries_json: int = 2,
         use_cache: bool = False,
     ):
         self._api_key = api_key or get_openai_api_key()
-        self._model = model
+        self._model = str(model or "").strip() or resolve_openai_model(_MODEL_ROLE)
         self._max_retries_json = max_retries_json
         self._use_cache = use_cache
         self._client: Any = None
         self._disabled_reason: str | None = None
         self._schema_contract_checked: set[str] = set()
         self._schema_contract_error_logged = False
+
+    @property
+    def model_name(self) -> str:
+        """Return the resolved extraction model name."""
+        return self._model
+
+    @property
+    def model_role(self) -> str:
+        """Return the logical role used for model resolution."""
+        return _MODEL_ROLE
 
     def _ensure_schema_validated(self, schema: dict[str, Any] | None = None) -> None:
         """Validate schema once and mark as checked. Raises VisionSchemaContractError if invalid."""
@@ -983,6 +1077,7 @@ class VisionFullExtractor:
         vision_cfg: dict[str, Any] | None = None,
         bottom_extension_used: float = 0.0,
         reference_text: str | None = None,
+        max_completion_tokens_override: int | None = None,
     ) -> VisionFullResult | None:
         """
         Extract indicators and footnotes from a table crop.
@@ -995,6 +1090,7 @@ class VisionFullExtractor:
             bbox_norm: Normalized bbox for cache key (optional)
             vision_cfg: Config overrides (footnote_marker_type, expected_markers)
             bottom_extension_used: Bottom extension already applied (for cache key variant)
+            max_completion_tokens_override: Explicit output budget for this extraction pass
 
         Returns:
             VisionFullResult or None on failure
@@ -1004,6 +1100,24 @@ class VisionFullExtractor:
 
         vision_cfg = vision_cfg or {}
         cache_key = ""
+        configured_max_completion_tokens = max(
+            1,
+            int(
+                max_completion_tokens_override
+                if max_completion_tokens_override is not None
+                else vision_cfg.get(
+                    "vision_max_completion_tokens",
+                    vision_cfg.get(
+                        "vision_max_completion_tokens_full",
+                        _DEFAULT_MAX_COMPLETION_TOKENS,
+                    ),
+                )
+            ),
+        )
+        configured_max_completion_tokens = min(
+            configured_max_completion_tokens, _MAX_COMPLETION_TOKENS_API_LIMIT
+        )
+
         if (
             self._use_cache
             and pdf_sha
@@ -1014,7 +1128,12 @@ class VisionFullExtractor:
             bbox_with_ext = list(bbox_norm)
             if len(bbox_with_ext) >= 4:
                 bbox_with_ext[3] = min(1.0, bbox_with_ext[3] + bottom_extension_used)
-            cache_key = make_cache_key(pdf_sha, page_number, bbox_with_ext)
+            cache_key = make_cache_key(
+                pdf_sha,
+                page_number,
+                bbox_with_ext,
+                max_completion_tokens=configured_max_completion_tokens,
+            )
             if cache_key:
                 cache_dir = get_vision_cache_dir()
                 cached = cache_get(cache_dir, cache_key)
@@ -1093,6 +1212,33 @@ class VisionFullExtractor:
                             ),
                             vision_status=str(cached.get("vision_status") or "ok"),
                             warnings=list(cached.get("warnings") or []),
+                            requested_max_completion_tokens=(
+                                int(cached.get("requested_max_completion_tokens"))
+                                if cached.get("requested_max_completion_tokens")
+                                is not None
+                                else configured_max_completion_tokens
+                            ),
+                            finish_reason=(
+                                str(cached.get("finish_reason"))
+                                if cached.get("finish_reason") is not None
+                                else None
+                            ),
+                            prompt_tokens=(
+                                int(cached.get("prompt_tokens"))
+                                if cached.get("prompt_tokens") is not None
+                                else None
+                            ),
+                            completion_tokens=(
+                                int(cached.get("completion_tokens"))
+                                if cached.get("completion_tokens") is not None
+                                else None
+                            ),
+                            total_tokens=(
+                                int(cached.get("total_tokens"))
+                                if cached.get("total_tokens") is not None
+                                else None
+                            ),
+                            rescue_used=bool(cached.get("rescue_used", False)),
                         )
 
         try:
@@ -1123,25 +1269,12 @@ class VisionFullExtractor:
             image_b64 = base64.standard_b64encode(crop_bytes).decode("ascii")
 
         prompt = _build_prompt(bank_code, vision_cfg, reference_text=reference_text)
-        max_completion_tokens = int(
-            vision_cfg.get(
-                "vision_max_completion_tokens",
-                vision_cfg.get(
-                    "vision_max_completion_tokens_full",
-                    _DEFAULT_MAX_COMPLETION_TOKENS,
-                ),
-            )
-        )
-        max_completion_tokens = min(
-            max_completion_tokens, _MAX_COMPLETION_TOKENS_API_LIMIT
-        )
+        max_completion_tokens = configured_max_completion_tokens
         openai_schema_full = _build_openai_json_schema()
         self._ensure_schema_validated(openai_schema_full)
 
         api_retry_max = int(vision_cfg.get("api_retry_max", 3))
         api_retry_backoff_ms = float(vision_cfg.get("api_retry_backoff_ms", 1000))
-
-        _MAX_COMPLETION_TOKENS_SAFE_FALLBACK = 16384
 
         def _issue_request(
             prompt_text: str,
@@ -1149,7 +1282,7 @@ class VisionFullExtractor:
             structured: bool,
             max_completion_tokens: int,
             label: str,
-        ) -> tuple[str, str, bool] | None:
+        ) -> tuple[str, str, bool, int, int | None, int | None, int | None] | None:
             local_use_structured = structured
             effective_max = max_completion_tokens
             transport_attempt = 0
@@ -1184,10 +1317,17 @@ class VisionFullExtractor:
                         temperature=0,
                         max_completion_tokens=effective_max,
                     )
+                    prompt_tokens, completion_tokens, total_tokens = (
+                        _extract_usage_metrics(response)
+                    )
                     return (
                         response.choices[0].message.content or "",
                         str(getattr(response.choices[0], "finish_reason", "") or ""),
                         local_use_structured,
+                        effective_max,
+                        prompt_tokens,
+                        completion_tokens,
+                        total_tokens,
                     )
                 except Exception as e:
                     err_kind = _classify_openai_error(e)
@@ -1246,7 +1386,15 @@ class VisionFullExtractor:
         if issued is None:
             return None
 
-        raw_content, finish_reason, used_structured = issued
+        (
+            raw_content,
+            finish_reason,
+            used_structured,
+            effective_max_completion_tokens,
+            prompt_tokens,
+            completion_tokens,
+            total_tokens,
+        ) = issued
 
         if finish_reason == "length":
             failure_causes.append("vision_truncated")
@@ -1256,8 +1404,21 @@ class VisionFullExtractor:
             )
             partial_result = _try_parse_truncated_result(raw_content)
             if partial_result is not None:
-                return partial_result
-            return None
+                return _with_attempt_metadata(
+                    partial_result,
+                    requested_max_completion_tokens=effective_max_completion_tokens,
+                    finish_reason=finish_reason,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens,
+                    total_tokens=total_tokens,
+                )
+            return _make_truncated_placeholder_result(
+                requested_max_completion_tokens=effective_max_completion_tokens,
+                finish_reason=finish_reason,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                total_tokens=total_tokens,
+            )
 
         data = _parse_json_response(raw_content)
         if data is None:
@@ -1276,18 +1437,39 @@ class VisionFullExtractor:
                     label="retry-json",
                 )
                 if retry_issued is not None:
-                    retry_raw, retry_reason, _ = retry_issued
+                    (
+                        retry_raw,
+                        retry_reason,
+                        _,
+                        retry_effective_max_completion_tokens,
+                        retry_prompt_tokens,
+                        retry_completion_tokens,
+                        retry_total_tokens,
+                    ) = retry_issued
                     if retry_reason != "length":
                         retry_data = _parse_json_response(retry_raw)
                         if retry_data is not None:
                             result = _parse_vision_result(retry_data)
                             if result is not None:
-                                result.vision_status = "partial"
-                                result.warnings = list(
-                                    dict.fromkeys(
-                                        failure_causes
-                                        + ["vision_structured_output_fallback"]
-                                    )
+                                result = replace(
+                                    result,
+                                    vision_status="partial",
+                                    warnings=list(
+                                        dict.fromkeys(
+                                            failure_causes
+                                            + ["vision_structured_output_fallback"]
+                                        )
+                                    ),
+                                )
+                                result = _with_attempt_metadata(
+                                    result,
+                                    requested_max_completion_tokens=(
+                                        retry_effective_max_completion_tokens
+                                    ),
+                                    finish_reason=retry_reason,
+                                    prompt_tokens=retry_prompt_tokens,
+                                    completion_tokens=retry_completion_tokens,
+                                    total_tokens=retry_total_tokens,
                                 )
                                 if self._use_cache and cache_key:
                                     cache_dir = get_vision_cache_dir()
@@ -1306,6 +1488,12 @@ class VisionFullExtractor:
                                             "estimated_content_height": result.estimated_content_height,
                                             "vision_status": result.vision_status,
                                             "warnings": result.warnings,
+                                            "requested_max_completion_tokens": result.requested_max_completion_tokens,
+                                            "finish_reason": result.finish_reason,
+                                            "prompt_tokens": result.prompt_tokens,
+                                            "completion_tokens": result.completion_tokens,
+                                            "total_tokens": result.total_tokens,
+                                            "rescue_used": result.rescue_used,
                                         },
                                     )
                                 return result
@@ -1332,18 +1520,39 @@ class VisionFullExtractor:
                     label="retry-json",
                 )
                 if retry_issued is not None:
-                    retry_raw, retry_reason, _ = retry_issued
+                    (
+                        retry_raw,
+                        retry_reason,
+                        _,
+                        retry_effective_max_completion_tokens,
+                        retry_prompt_tokens,
+                        retry_completion_tokens,
+                        retry_total_tokens,
+                    ) = retry_issued
                     if retry_reason != "length":
                         retry_data = _parse_json_response(retry_raw)
                         if retry_data is not None:
                             result = _parse_vision_result(retry_data)
                             if result is not None:
-                                result.vision_status = "partial"
-                                result.warnings = list(
-                                    dict.fromkeys(
-                                        failure_causes
-                                        + ["vision_structured_output_fallback"]
-                                    )
+                                result = replace(
+                                    result,
+                                    vision_status="partial",
+                                    warnings=list(
+                                        dict.fromkeys(
+                                            failure_causes
+                                            + ["vision_structured_output_fallback"]
+                                        )
+                                    ),
+                                )
+                                result = _with_attempt_metadata(
+                                    result,
+                                    requested_max_completion_tokens=(
+                                        retry_effective_max_completion_tokens
+                                    ),
+                                    finish_reason=retry_reason,
+                                    prompt_tokens=retry_prompt_tokens,
+                                    completion_tokens=retry_completion_tokens,
+                                    total_tokens=retry_total_tokens,
                                 )
                                 if self._use_cache and cache_key:
                                     cache_dir = get_vision_cache_dir()
@@ -1362,6 +1571,12 @@ class VisionFullExtractor:
                                             "estimated_content_height": result.estimated_content_height,
                                             "vision_status": result.vision_status,
                                             "warnings": result.warnings,
+                                            "requested_max_completion_tokens": result.requested_max_completion_tokens,
+                                            "finish_reason": result.finish_reason,
+                                            "prompt_tokens": result.prompt_tokens,
+                                            "completion_tokens": result.completion_tokens,
+                                            "total_tokens": result.total_tokens,
+                                            "rescue_used": result.rescue_used,
                                         },
                                     )
                                 return result
@@ -1374,8 +1589,16 @@ class VisionFullExtractor:
         if used_structured is False:
             failure_causes.append("vision_structured_output_fallback")
         if result.appears_truncated or failure_causes:
-            result.vision_status = "partial"
-        result.warnings = list(dict.fromkeys(failure_causes))
+            result = replace(result, vision_status="partial")
+        result = replace(result, warnings=list(dict.fromkeys(failure_causes)))
+        result = _with_attempt_metadata(
+            result,
+            requested_max_completion_tokens=effective_max_completion_tokens,
+            finish_reason=finish_reason,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=total_tokens,
+        )
 
         if self._use_cache and cache_key:
             cache_dir = get_vision_cache_dir()
@@ -1394,6 +1617,12 @@ class VisionFullExtractor:
                     "estimated_content_height": result.estimated_content_height,
                     "vision_status": result.vision_status,
                     "warnings": result.warnings,
+                    "requested_max_completion_tokens": result.requested_max_completion_tokens,
+                    "finish_reason": result.finish_reason,
+                    "prompt_tokens": result.prompt_tokens,
+                    "completion_tokens": result.completion_tokens,
+                    "total_tokens": result.total_tokens,
+                    "rescue_used": result.rescue_used,
                 },
             )
         return result
@@ -1411,12 +1640,13 @@ class VisionFullExtractor:
         reference_text: str | None = None,
     ) -> VisionFullResult | None:
         """
-        Extract with optional second pass if quality is low.
+        Extract with a deterministic quality pass.
 
-        If confidence < 0.85 OR indicators empty OR expected markers missing:
-        - Re-crop with bottom_extension + 0.06 via get_recrop_fn
-        - Retry extraction
-        - Return best result (max confidence, markers coherence)
+        Flow:
+        - initial crop at configured budget (64k by default)
+        - same-crop rescue at 128k only when truncation is detected
+        - optional recrop at configured budget
+        - recrop rescue at 128k only when truncation is detected
 
         get_recrop_fn(bottom_extension: float) -> bytes | None
         """
@@ -1426,6 +1656,36 @@ class VisionFullExtractor:
             expected_set = {str(m).strip() for m in expected_markers[:10]}
         else:
             expected_set = set()
+        base_max_completion_tokens = max(
+            1,
+            min(
+                int(
+                    vision_cfg.get(
+                        "vision_max_completion_tokens",
+                        vision_cfg.get(
+                            "vision_max_completion_tokens_full",
+                            _DEFAULT_MAX_COMPLETION_TOKENS,
+                        ),
+                    )
+                ),
+                _MAX_COMPLETION_TOKENS_API_LIMIT,
+            ),
+        )
+        rescue_enabled = bool(
+            vision_cfg.get("vision_max_completion_tokens_rescue_enabled", False)
+        )
+        rescue_max_completion_tokens = max(
+            1,
+            min(
+                int(
+                    vision_cfg.get(
+                        "vision_max_completion_tokens_rescue",
+                        _RESCUE_MAX_COMPLETION_TOKENS,
+                    )
+                ),
+                _MAX_COMPLETION_TOKENS_API_LIMIT,
+            ),
+        )
 
         def _indicator_count(r: VisionFullResult) -> int:
             return len(r.indicators) if r.indicators else 0
@@ -1467,15 +1727,54 @@ class VisionFullExtractor:
                 return True
             return False
 
-        first = self.extract(
-            crop_bytes=crop_bytes,
-            bank_code=bank_code,
-            pdf_sha=pdf_sha,
-            page_number=page_number,
-            bbox_norm=bbox_norm,
-            vision_cfg=vision_cfg,
+        def _has_truncation_signal(result: VisionFullResult | None) -> bool:
+            if result is None:
+                return False
+            if str(result.finish_reason or "").strip().lower() == "length":
+                return True
+            if result.appears_truncated:
+                return True
+            return "vision_truncated" in {str(w).strip() for w in result.warnings or []}
+
+        def _run_pass(
+            *,
+            crop_bytes_for_pass: bytes,
+            bottom_extension_used: float,
+        ) -> VisionFullResult | None:
+            primary = self.extract(
+                crop_bytes=crop_bytes_for_pass,
+                bank_code=bank_code,
+                pdf_sha=pdf_sha,
+                page_number=page_number,
+                bbox_norm=bbox_norm,
+                vision_cfg=vision_cfg,
+                bottom_extension_used=bottom_extension_used,
+                reference_text=reference_text,
+                max_completion_tokens_override=base_max_completion_tokens,
+            )
+            if (
+                rescue_enabled
+                and rescue_max_completion_tokens > base_max_completion_tokens
+                and _has_truncation_signal(primary)
+            ):
+                rescue = self.extract(
+                    crop_bytes=crop_bytes_for_pass,
+                    bank_code=bank_code,
+                    pdf_sha=pdf_sha,
+                    page_number=page_number,
+                    bbox_norm=bbox_norm,
+                    vision_cfg=vision_cfg,
+                    bottom_extension_used=bottom_extension_used,
+                    reference_text=reference_text,
+                    max_completion_tokens_override=rescue_max_completion_tokens,
+                )
+                if rescue is not None:
+                    return replace(rescue, rescue_used=True)
+            return primary
+
+        first = _run_pass(
+            crop_bytes_for_pass=crop_bytes,
             bottom_extension_used=initial_bottom_extension,
-            reference_text=reference_text,
         )
 
         if not _needs_recrop(first):
@@ -1490,71 +1789,32 @@ class VisionFullExtractor:
             # Recrop failed; if first pass was incomplete, mark it
             first_incomplete = _needs_recrop(first)
             if first_incomplete and first is not None:
-                return VisionFullResult(
-                    table_title=first.table_title,
-                    headers=first.headers,
-                    indicators=first.indicators,
-                    rows=first.rows,
-                    footnotes_content=first.footnotes_content,
-                    footnote_markers=first.footnote_markers,
-                    confidence=first.confidence,
-                    extraction_method=first.extraction_method,
-                    appears_truncated=first.appears_truncated,
-                    estimated_content_height=first.estimated_content_height,
-                    vision_status=first.vision_status,
-                    warnings=first.warnings,
+                return replace(
+                    first,
                     recrop_attempted=True,
                     recrop_used=False,
                     recrop_failed_incomplete=True,
                 )
             return first
 
-        second = self.extract(
-            crop_bytes=recrop_bytes,
-            bank_code=bank_code,
-            pdf_sha=pdf_sha,
-            page_number=page_number,
-            bbox_norm=bbox_norm,
-            vision_cfg=vision_cfg,
+        second = _run_pass(
+            crop_bytes_for_pass=recrop_bytes,
             bottom_extension_used=recrop_ext,
-            reference_text=reference_text,
         )
 
         if second is None:
             out = first
             if first is not None:
-                out = VisionFullResult(
-                    table_title=first.table_title,
-                    headers=first.headers,
-                    indicators=first.indicators,
-                    rows=first.rows,
-                    footnotes_content=first.footnotes_content,
-                    footnote_markers=first.footnote_markers,
-                    confidence=first.confidence,
-                    extraction_method=first.extraction_method,
-                    appears_truncated=first.appears_truncated,
-                    estimated_content_height=first.estimated_content_height,
-                    vision_status=first.vision_status,
-                    warnings=first.warnings,
+                out = replace(
+                    first,
                     recrop_attempted=True,
                     recrop_used=False,
                     recrop_failed_incomplete=_needs_recrop(first),
                 )
             return out
         if first is None:
-            return VisionFullResult(
-                table_title=second.table_title,
-                headers=second.headers,
-                indicators=second.indicators,
-                rows=second.rows,
-                footnotes_content=second.footnotes_content,
-                footnote_markers=second.footnote_markers,
-                confidence=second.confidence,
-                extraction_method=second.extraction_method,
-                appears_truncated=second.appears_truncated,
-                estimated_content_height=second.estimated_content_height,
-                vision_status=second.vision_status,
-                warnings=second.warnings,
+            return replace(
+                second,
                 recrop_attempted=True,
                 recrop_used=True,
                 recrop_failed_incomplete=False,
@@ -1586,19 +1846,8 @@ class VisionFullExtractor:
             return s
 
         chosen = second if _score(second) >= _score(first) else first
-        return VisionFullResult(
-            table_title=chosen.table_title,
-            headers=chosen.headers,
-            indicators=chosen.indicators,
-            rows=chosen.rows,
-            footnotes_content=chosen.footnotes_content,
-            footnote_markers=chosen.footnote_markers,
-            confidence=chosen.confidence,
-            extraction_method=chosen.extraction_method,
-            appears_truncated=chosen.appears_truncated,
-            estimated_content_height=chosen.estimated_content_height,
-            vision_status=chosen.vision_status,
-            warnings=chosen.warnings,
+        return replace(
+            chosen,
             recrop_attempted=True,
             recrop_used=(chosen is second),
             recrop_failed_incomplete=False,

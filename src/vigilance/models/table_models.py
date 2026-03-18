@@ -32,6 +32,8 @@ NON_VISION_FATAL_BLOCKERS = frozenset(
 EXTRACTION_CONFIDENCE_CERTIFIED_MIN = 0.5
 # Confidence above this with no blockers and no warnings => certified.
 EXTRACTION_CONFIDENCE_REVIEW_MIN = 0.7
+# Successful recrops with strong confidence can stay certified.
+RECROP_CERTIFIED_MIN = 0.85
 # Legacy alias for config compatibility.
 EXTRACTION_CONFIDENCE_REVIEW_FLOOR = 0.35
 
@@ -264,7 +266,12 @@ def get_extraction_status(
     flags = get_extraction_quality_flags(table)
     if confidence < confidence_review_min:
         return EXTRACTION_STATUS_REVIEW_REQUIRED
-    if flags.get("appears_truncated") or flags.get("recrop_used"):
+    if flags.get("appears_truncated"):
+        return EXTRACTION_STATUS_REVIEW_REQUIRED
+    if flags.get("recrop_used") and confidence < max(
+        confidence_review_min,
+        RECROP_CERTIFIED_MIN,
+    ):
         return EXTRACTION_STATUS_REVIEW_REQUIRED
     return EXTRACTION_STATUS_CERTIFIED
 

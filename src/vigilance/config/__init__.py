@@ -2,10 +2,22 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any
 
 from vigilance.config.loader import _resolve_config_path, get_bank_cfg, load_config
+
+
+_DEFAULT_OPENAI_MODELS: dict[str, str] = {
+    "extraction_primary": "gpt-5.4",
+    "default_genai": "gpt-4o",
+}
+
+_MODEL_ENV_OVERRIDES: dict[str, str] = {
+    "extraction_primary": "OPENAI_MODEL_EXTRACTION_PRIMARY",
+    "default_genai": "OPENAI_MODEL_DEFAULT_GENAI",
+}
 
 
 def load_bank_profiles(config_path: str | Path = "configs/bank_profiles.yaml") -> dict[str, Any]:
@@ -72,6 +84,9 @@ def get_matching_thresholds(
         "indicator_gate_min_token_overlap": 1,
         "indicator_similarity_weights": {"ratio": 0.4, "token_set": 0.6},
         "neighbor_aligned_filter_enabled": True,
+        "indicator_short_guard_enabled": True,
+        "indicator_short_guard_max_tokens": 3,
+        "indicator_short_guard_min_stable_tokens": 5,
     }
     for k, v in _indicator_defaults.items():
         if k not in base:
@@ -128,6 +143,54 @@ def get_vision_extraction_config(
                         base = {**base, **bank_ve}
 
     return base
+
+
+def get_llm_model_config(
+    config_path: str | Path = "configs/bank_profiles.yaml",
+) -> dict[str, str]:
+    """Load lightweight OpenAI model routing config."""
+    path = _resolve_config_path(config_path)
+    base = dict(_DEFAULT_OPENAI_MODELS)
+    if not path.exists():
+        return base
+
+    try:
+        cfg = load_config(path)
+    except Exception:
+        return base
+
+    raw = cfg.get("llm_models")
+    if not isinstance(raw, dict):
+        return base
+
+    for role in _DEFAULT_OPENAI_MODELS:
+        value = raw.get(role)
+        if isinstance(value, str) and value.strip():
+            base[role] = value.strip()
+    return base
+
+
+def resolve_openai_model(
+    role: str,
+    config_path: str | Path = "configs/bank_profiles.yaml",
+) -> str:
+    """Resolve the OpenAI model for a known role with env override support."""
+    key = str(role or "").strip().lower()
+    if key not in _DEFAULT_OPENAI_MODELS:
+        known = ", ".join(sorted(_DEFAULT_OPENAI_MODELS))
+        raise ValueError(f"Unknown OpenAI model role '{role}'. Known roles: {known}")
+
+    env_name = _MODEL_ENV_OVERRIDES.get(key)
+    if env_name:
+        env_value = os.getenv(env_name)
+        if isinstance(env_value, str) and env_value.strip():
+            return env_value.strip()
+
+    cfg = get_llm_model_config(config_path=config_path)
+    value = cfg.get(key)
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return _DEFAULT_OPENAI_MODELS[key]
 
 
 def get_validation_config(
@@ -225,7 +288,9 @@ __all__ = [
     "load_config",
     "get_bank_cfg",
     "get_matching_thresholds",
+    "get_llm_model_config",
     "load_bank_profiles",
+    "resolve_openai_model",
     "get_vision_extraction_config",
     "get_quality_gate_config",
     "get_validation_config",

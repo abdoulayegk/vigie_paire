@@ -167,6 +167,63 @@ def _build_resume_court(
     return base
 
 
+def _augment_resume_with_review_context(
+    resume: str,
+    *,
+    comment: str = "",
+    edited_value: str = "",
+) -> str:
+    """Append analyst review context without changing the supervisor CSV schema."""
+    parts = [str(resume or "").strip()]
+    comment_clean = _sanitize_cell(comment)
+    edited_clean = _sanitize_cell(edited_value)
+    if edited_clean:
+        parts.append(f"Valeur editee: {edited_clean}.")
+    if comment_clean:
+        parts.append(f"Commentaire analyste: {comment_clean}.")
+    return " ".join(part for part in parts if part).strip()
+
+
+def _build_export_context(indicator_result: dict[str, Any] | None) -> dict[str, str]:
+    """Extract stable export context from the canonical comparison payload."""
+    ir = indicator_result or {}
+    meta = ir.get("meta") or {}
+    previous = (meta.get("extraction_sources") or {}).get("previous") or {}
+    current = (meta.get("extraction_sources") or {}).get("current") or {}
+    return {
+        "bank_code": _sanitize_cell(ir.get("bank_code", "")),
+        "quarter_from": _sanitize_cell(
+            ir.get("quarter_from") or ir.get("previous_quarter") or ""
+        ),
+        "quarter_to": _sanitize_cell(
+            ir.get("quarter_to") or ir.get("current_quarter") or ""
+        ),
+        "year": _format_cell(ir.get("year", "")),
+        "compare_path": _sanitize_cell(meta.get("compare_path", "")),
+        "generated_at": _sanitize_cell(meta.get("generated_at", "")),
+        "previous_source_mode": _sanitize_cell(previous.get("mode", "")),
+        "current_source_mode": _sanitize_cell(current.get("mode", "")),
+        "previous_tables_path": _sanitize_cell(previous.get("tables_path", "")),
+        "current_tables_path": _sanitize_cell(current.get("tables_path", "")),
+        "previous_indicators_path": _sanitize_cell(previous.get("indicators_path", "")),
+        "current_indicators_path": _sanitize_cell(current.get("indicators_path", "")),
+        "previous_footnotes_path": _sanitize_cell(previous.get("footnotes_path", "")),
+        "current_footnotes_path": _sanitize_cell(current.get("footnotes_path", "")),
+    }
+
+
+def build_export_metadata(
+    indicator_result: dict[str, Any] | None,
+    *,
+    overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Public helper to build stable export metadata from a comparison payload."""
+    payload = dict(_build_export_context(indicator_result))
+    if overrides:
+        payload.update(dict(overrides))
+    return payload
+
+
 def _to_type_changement(ind_type: str, table_status: str) -> str:
     """Convertit indicator_type + table_status en type_changement francais."""
     if table_status == "structure_change":
@@ -242,6 +299,8 @@ def _iter_validation_rows(
         match_method = str(base.get("match_method", ""))
         suspect = _to_suspect(match_method)
         validation = _to_validation_finale(base.get("review_status", ""))
+        comment = str(base.get("comment", "") or "")
+        edited_value = str(base.get("edited_value", "") or "")
 
         item_type = str(base.get("item_type", "indicator"))
         ga = base.get("genai_analysis") or {}
@@ -255,6 +314,11 @@ def _iter_validation_rows(
             type_chg = _to_type_changement(ind_type, table_status)
             resume = _build_resume_court(
                 ind_type, ind_name, "", "", table_status, suspect=(suspect == "Oui")
+            )
+            resume = _augment_resume_with_review_context(
+                resume,
+                comment=comment,
+                edited_value=edited_value,
             )
 
             if ind_type in ("added", "table_added"):
@@ -303,6 +367,11 @@ def _iter_validation_rows(
                     to_val,
                     table_status,
                     suspect=(suspect == "Oui"),
+                )
+                resume = _augment_resume_with_review_context(
+                    resume,
+                    comment=comment,
+                    edited_value=edited_value,
                 )
 
                 if ind_type == "added":
@@ -382,6 +451,22 @@ def generate_validation_excel(
     ws.append(list(VALIDATION_CSV_COLUMNS))
     for row in _iter_validation_rows(review_items, indicator_result):
         ws.append([row[col] for col in VALIDATION_CSV_COLUMNS])
+
+    ws_context = wb.create_sheet("Contexte")
+    ws_context.append(["cle", "valeur"])
+    for key, value in _build_export_context(indicator_result).items():
+        ws_context.append([key, value])
+
+    ws_tech = wb.create_sheet("Technique")
+    ws_tech.append(list(_CSV_COLUMNS))
+    technical_csv = export_review_items_csv(
+        review_items,
+        metadata=_build_export_context(indicator_result),
+    )
+    reader = csv.DictReader(io.StringIO(technical_csv.lstrip(CSV_BOM)), delimiter=CSV_SEPARATOR)
+    for row in reader:
+        ws_tech.append([row.get(col, "") for col in _CSV_COLUMNS])
+
     buffer = io.BytesIO()
     wb.save(buffer)
     return buffer.getvalue()

@@ -330,6 +330,63 @@ def test_save_writes_schema_version_in_tables_json_root() -> None:
         shutil.rmtree(base_dir, ignore_errors=True)
 
 
+def test_save_extraction_writes_report_centric_json_and_txt_artifacts() -> None:
+    """save_extraction writes report-centric JSON/TXT artifacts for one report."""
+    from app.extraction_storage import save_extraction
+    from vigilance.models.table_models import TableArtifact
+
+    base_dir = Path(tempfile.mkdtemp())
+    try:
+        artifact = TableArtifact(
+            bank_code="bnc",
+            section="capital",
+            page_pdf=1,
+            table_id="tableau_0",
+            title="T1",
+            headers=["Indicateur", "Valeur"],
+            rows=[["Ratio CET1", "13.1"]],
+            first_column_indicators=["ratio cet1"],
+            first_column_indicators_raw=["Ratio CET1"],
+            extraction_method="vision_full_gpt4o",
+            footnotes=[{"marker": "1", "text": "Note provisoire"}],
+            content_source="vision_gpt4o",
+        )
+        save_extraction(
+            bank_code="bnc",
+            year=2025,
+            quarter="t1",
+            tables=[artifact],
+            meta={"schema_version": 2},
+            base_dir=base_dir,
+        )
+        target = base_dir / "bnc" / "2025" / "t1"
+        indicators = json.loads((target / "indicators.json").read_text(encoding="utf-8"))
+        footnotes = json.loads((target / "footnotes.json").read_text(encoding="utf-8"))
+        report_summary = json.loads(
+            (target / "report_summary.json").read_text(encoding="utf-8")
+        )
+        indicators_txt = (target / "indicators.txt").read_text(encoding="utf-8")
+        footnotes_txt = (target / "footnotes.txt").read_text(encoding="utf-8")
+        report_summary_txt = (target / "report_summary.txt").read_text(
+            encoding="utf-8"
+        )
+        assert indicators["artifact_role"] == "report_canonical"
+        assert indicators["quarter"] == "t1"
+        assert indicators["tables"][0]["source"] == "t1"
+        assert "Ratio CET1" in indicators_txt
+        assert footnotes["artifact_role"] == "report_canonical"
+        assert footnotes["tables"][0]["has_footnotes"] is True
+        assert "note provisoire" in footnotes_txt
+        assert report_summary["summary"]["tables_total"] == 1
+        assert report_summary["summary"]["indicators_total"] == 1
+        assert report_summary["summary"]["footnote_entries_total"] == 1
+        assert "Resume final du rapport extrait" in report_summary_txt
+    finally:
+        import shutil
+
+        shutil.rmtree(base_dir, ignore_errors=True)
+
+
 def test_save_normalizes_footnotes_to_id_text_in_file() -> None:
     """Saved tables.json must store footnotes with canonical keys id/text, not marker."""
     from app.extraction_storage import save_extraction
@@ -431,6 +488,77 @@ def test_load_extraction_accepts_legacy_tables_json_without_schema_version() -> 
         import shutil
 
         shutil.rmtree(base, ignore_errors=True)
+
+
+def test_load_extraction_recreates_missing_report_view_artifacts() -> None:
+    """load_extraction regenerates missing report-centric JSON/TXT artifacts locally."""
+    from app.extraction_storage import load_extraction, save_extraction
+    from vigilance.models.table_models import TableArtifact
+
+    base_dir = Path(tempfile.mkdtemp())
+    try:
+        artifact = TableArtifact(
+            bank_code="bnc",
+            section="capital",
+            page_pdf=1,
+            table_id="tableau_0",
+            title="T1",
+            headers=["Indicateur", "Valeur"],
+            rows=[["Ratio CET1", "13.1"]],
+            first_column_indicators=["ratio cet1"],
+            first_column_indicators_raw=["Ratio CET1"],
+            extraction_method="vision_full_gpt4o",
+            footnotes=[{"marker": "1", "text": "Note provisoire"}],
+            content_source="vision_gpt4o",
+        )
+        save_extraction(
+            bank_code="bnc",
+            year=2025,
+            quarter="t1",
+            tables=[artifact],
+            meta={"schema_version": 2},
+            base_dir=base_dir,
+        )
+        target = base_dir / "bnc" / "2025" / "t1"
+        (target / "report_summary.json").unlink()
+        (target / "report_summary.txt").unlink()
+        (target / "indicators.json").unlink()
+        (target / "indicators.txt").unlink()
+        (target / "footnotes.json").unlink()
+        (target / "footnotes.txt").unlink()
+
+        result = load_extraction("bnc", 2025, "t1", base_dir)
+        assert result is not None
+        assert (target / "report_summary.json").exists()
+        assert (target / "report_summary.txt").exists()
+        assert (target / "indicators.json").exists()
+        assert (target / "indicators.txt").exists()
+        assert (target / "footnotes.json").exists()
+        assert (target / "footnotes.txt").exists()
+    finally:
+        import shutil
+
+        shutil.rmtree(base_dir, ignore_errors=True)
+
+
+def test_describe_extraction_artifacts_exposes_report_summary_and_txt_paths() -> None:
+    """describe_extraction_artifacts includes report summary and TXT artifact metadata."""
+    from app.extraction_storage import describe_extraction_artifacts
+
+    base_dir = Path(tempfile.mkdtemp())
+    try:
+        described = describe_extraction_artifacts("bnc", 2025, "t1", base_dir)
+        assert described["report_summary_json_path"].endswith("/t1/report_summary.json")
+        assert described["report_summary_txt_path"].endswith("/t1/report_summary.txt")
+        assert described["indicators_txt_path"].endswith("/t1/indicators.txt")
+        assert described["footnotes_txt_path"].endswith("/t1/footnotes.txt")
+        assert described["artifacts_present"]["report_summary_json"] is False
+        assert described["artifacts_present"]["indicators_txt"] is False
+        assert described["artifacts_present"]["footnotes_txt"] is False
+    finally:
+        import shutil
+
+        shutil.rmtree(base_dir, ignore_errors=True)
 
 
 def test_stored_manifest_compatible_accepts_legacy_meta() -> None:

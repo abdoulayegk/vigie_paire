@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from difflib import SequenceMatcher
 from typing import Optional
 
+from vigilance.utils.text_normalize_base import normalize_text_base
+
 logger = logging.getLogger(__name__)
 
 
@@ -67,21 +69,24 @@ class FootnoteComparator:
 
     def __init__(self, similarity_threshold: float = 0.8):
         self.similarity_threshold = similarity_threshold
+        self._short_footnote_similarity_threshold = 0.92
 
     def compare_footnotes(
         self, footnotes1: dict[str, str], footnotes2: dict[str, str], table_id: Optional[str] = None
     ) -> list[FootnoteChange]:
         changes = []
 
-        norm1 = self._normalize_footnotes(footnotes1)
-        norm2 = self._normalize_footnotes(footnotes2)
+        norm1, raw1 = self._normalize_footnotes_with_raw(footnotes1)
+        norm2, raw2 = self._normalize_footnotes_with_raw(footnotes2)
 
         for ref, text in norm2.items():
             if ref not in norm1:
                 similar_ref = self._find_similar_footnote(text, norm1)
                 if not similar_ref:
                     changes.append(
-                        self._create_footnote_change("new_footnote", ref, text, None, table_id)
+                        self._create_footnote_change(
+                            "new_footnote", ref, raw2.get(ref, text), None, table_id
+                        )
                     )
 
         for ref, text in norm1.items():
@@ -89,30 +94,52 @@ class FootnoteComparator:
                 similar_ref = self._find_similar_footnote(text, norm2)
                 if not similar_ref:
                     changes.append(
-                        self._create_footnote_change("removed_footnote", ref, None, text, table_id)
+                        self._create_footnote_change(
+                            "removed_footnote", ref, None, raw1.get(ref, text), table_id
+                        )
                     )
 
         for ref in set(norm1.keys()) & set(norm2.keys()):
             text1 = norm1[ref]
             text2 = norm2[ref]
-            similarity = SequenceMatcher(None, text1.lower(), text2.lower()).ratio()
-            if similarity < self.similarity_threshold:
+            similarity = SequenceMatcher(None, text1, text2).ratio()
+            thresh = (
+                self._short_footnote_similarity_threshold
+                if max(len(text1), len(text2)) < 50
+                else self.similarity_threshold
+            )
+            if similarity < thresh:
                 changes.append(
-                    self._create_footnote_change("modified_footnote", ref, text2, text1, table_id)
+                    self._create_footnote_change(
+                        "modified_footnote",
+                        ref,
+                        raw2.get(ref, text2),
+                        raw1.get(ref, text1),
+                        table_id,
+                    )
                 )
 
         return changes
 
-    def _normalize_footnotes(self, footnotes: dict) -> dict[str, str]:
-        normalized = {}
+    def _normalize_footnotes_with_raw(
+        self, footnotes: dict
+    ) -> tuple[dict[str, str], dict[str, str]]:
+        """Return (normalized_for_compare, raw_display) keyed by norm_ref."""
+        normalized: dict[str, str] = {}
+        raw_display: dict[str, str] = {}
         for ref, text in footnotes.items():
             norm_ref = str(ref).strip().lower()
             norm_ref = re.sub(r"[^\w]", "", norm_ref)
-            norm_text = str(text).strip()
-            norm_text = re.sub(r"\s+", " ", norm_text)
+            raw = re.sub(r"\s+", " ", str(text).strip())
+            norm_text = normalize_text_base(raw)
             if norm_text:
                 normalized[norm_ref] = norm_text
-        return normalized
+                raw_display[norm_ref] = raw
+        return normalized, raw_display
+
+    def _normalize_footnotes(self, footnotes: dict) -> dict[str, str]:
+        n, _ = self._normalize_footnotes_with_raw(footnotes)
+        return n
 
     def _find_similar_footnote(self, target: str, footnotes: dict[str, str]) -> Optional[str]:
         target_lower = target.lower()
