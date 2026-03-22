@@ -1,4 +1,37 @@
-"""CLI facade for table extraction on previously detected page ranges."""
+"""
+Façade CLI pour l'extraction de tableaux sur des plages de pages pré-détectées.
+
+Ce module constitue la deuxième étape du pipeline d'extraction en ligne de
+commande. Il prend en entrée un fichier ``section_ranges.json`` (produit par
+``run_ranges.py``) et extrait les tableaux financiers des pages correspondantes
+via Docling (et optionnellement GPT-4o Vision).
+
+Les tableaux extraits sont convertis en ``TableArtifact`` canoniques et écrits
+dans un fichier ``tables_docling.json``. Optionnellement, un fichier
+``vigie_extract_v1.json`` peut également être produit (format d'export enrichi).
+
+Usage typique
+-------------
+.. code-block:: bash
+
+    python -m vigilance.cli.run_tables \\
+        --bank rbc \\
+        --pdf /data/rbc_q1_2025.pdf \\
+        --quarter t1-2025 \\
+        --ranges_json outputs/runs/t1-2025/rbc/section_ranges.json \\
+        --out_root outputs/runs \\
+        --vigie_extract
+
+Le chemin du fichier JSON produit est affiché sur la sortie standard.
+
+Formats JSON de plages acceptés
+--------------------------------
+La fonction ``_load_section_ranges`` reconnaît trois formats différents pour
+le fichier ``section_ranges.json`` (rétrocompatibilité) :
+- Clé ``section_ranges`` avec champs ``section``, ``start``, ``end``.
+- Clé ``ranges`` avec champs ``section``, ``start_page_pdf``, ``end_page_pdf``.
+- Clé ``sections`` (dictionnaire) avec champs ``section``, ``start_page``, ``end_page``.
+"""
 
 from __future__ import annotations
 
@@ -33,6 +66,12 @@ DEFAULT_OUT_ROOT = "outputs/runs"
 
 
 def _canonicalize_section(raw: str | None) -> str | None:
+    """Normaliser un nom de section brut pour l'export des tableaux extraits.
+
+    Tente d'utiliser ``canonicalize_section`` depuis le module de taxonomie.
+    En cas d'échec, convertit la chaîne en identifiant ``snake_case``.
+    Retourne ``None`` si la chaîne d'entrée est ``None`` ou vide après nettoyage.
+    """
     if raw is None:
         return None
     try:
@@ -45,6 +84,32 @@ def _canonicalize_section(raw: str | None) -> str | None:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Construire le parseur CLI d'extraction des tableaux sur plages ciblées.
+
+    Arguments obligatoires
+    ----------------------
+    --bank:
+        Code identifiant la banque (ex. ``rbc``).
+    --pdf:
+        Chemin vers le fichier PDF à extraire.
+    --quarter:
+        Libellé du trimestre (ex. ``t1-2025``).
+    --ranges_json:
+        Chemin vers le fichier ``section_ranges.json`` produit par ``run_ranges``.
+
+    Arguments optionnels
+    --------------------
+    --config:
+        Chemin vers le fichier YAML de configuration. Défaut :
+        ``configs/bank_profiles.yaml``.
+    --out_root:
+        Répertoire racine pour les fichiers de sortie. Défaut : ``outputs/runs``.
+    --vigie_extract:
+        Si présent, produit également un fichier ``vigie_extract_v1.json`` en
+        plus du fichier ``tables_docling.json``.
+    --language:
+        Code de langue pour le fichier ``vigie_extract_v1`` (défaut : ``fr``).
+    """
     parser = argparse.ArgumentParser(
         description="Extract tables on selected page ranges."
     )
@@ -71,11 +136,39 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _infer_year(quarter: str) -> int:
+    """Déduire l'année depuis le libellé de trimestre, avec repli sur 2025.
+
+    Recherche un motif ``(19|20)\\d{2}`` dans la chaîne fournie.
+    Retourne 2025 si aucune année n'est trouvée.
+
+    Exemple : ``_infer_year("t1-2025")`` → ``2025``.
+    """
     match = re.search(r"(19|20)\d{2}", quarter)
     return int(match.group(0)) if match else 2025
 
 
 def _load_section_ranges(path: str | Path) -> list[dict[str, Any]]:
+    """Charger des plages de sections depuis les formats JSON reconnus par le projet.
+
+    Supporte trois formats de fichier pour assurer la rétrocompatibilité :
+
+    1. **Format ``section_ranges``** : liste sous la clé ``section_ranges`` avec
+       les champs ``section``, ``start``, ``end``.
+    2. **Format ``ranges``** : liste sous la clé ``ranges`` avec les champs
+       ``section``, ``start_page_pdf``, ``end_page_pdf``.
+    3. **Format ``sections``** : dictionnaire sous la clé ``sections`` avec les
+       champs ``section``, ``start_page``, ``end_page``.
+
+    Les entrées invalides (section vide, page de début ≤ 0, fin < début) sont
+    silencieusement ignorées.
+
+    Lève ``ValueError`` si aucune plage valide n'est trouvée dans le fichier.
+
+    Paramètres
+    ----------
+    path:
+        Chemin vers le fichier JSON des plages de sections.
+    """
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     section_ranges: list[dict[str, Any]] = []
 
@@ -130,6 +223,28 @@ def _load_section_ranges(path: str | Path) -> list[dict[str, Any]]:
 def _to_artifacts(
     raw_tables: list[Any], bank: str, quarter: str, pdf_path: str
 ) -> list[TableArtifact]:
+    """Convertir les tables extraites (Docling) en ``TableArtifact`` canoniques d'export.
+
+    Pour chaque table brute, cette fonction :
+    1. Détermine la source de contenu (Docling ou Vision GPT-4o).
+    2. Pour les banques RBC avec indicateurs Vision, calcule les signaux de
+       hiérarchie de la première colonne (``build_rbc_first_column_signals``).
+    3. Fusionne les indicateurs coupés sur plusieurs lignes et déduplique.
+    4. Normalise chaque indicateur pour la comparaison.
+    5. Normalise les notes de bas de page vers le format canonique.
+    6. Construit et retourne un ``TableArtifact`` avec toutes les métadonnées.
+
+    Paramètres
+    ----------
+    raw_tables:
+        Liste d'objets ``ExtractedTable`` retournés par Docling.
+    bank:
+        Code banque (ex. ``"rbc"``).
+    quarter:
+        Libellé du trimestre (ex. ``"t1-2025"``).
+    pdf_path:
+        Chemin vers le PDF source, inclus dans chaque artefact pour traçabilité.
+    """
     artifacts: list[TableArtifact] = []
     for index, table in enumerate(raw_tables, start=1):
         extraction_method = getattr(table, "extraction_method", None) or "docling"
@@ -210,6 +325,27 @@ def _to_artifacts(
 
 
 def main(argv: list[str] | None = None) -> None:
+    """Extraire les tableaux sur les plages fournies puis écrire les artefacts JSON.
+
+    Étapes exécutées
+    ----------------
+    1. Chargement et validation de la configuration YAML.
+    2. Chargement des plages de sections depuis ``--ranges_json``.
+    3. Import du backend Docling (``extract_tables_docling_by_sections``). Lève
+       ``NotImplementedError`` si Docling n'est pas disponible.
+    4. Extraction des tableaux sur les plages de pages ciblées.
+    5. Conversion des tables brutes en ``TableArtifact`` canoniques.
+    6. Écriture du fichier ``tables_docling.json`` dans
+       ``<out_root>/<quarter>/<bank>/``.
+    7. Si ``--vigie_extract`` est activé, production d'un fichier
+       ``vigie_extract_v1.json`` supplémentaire.
+    8. Affichage du/des chemin(s) des fichiers produits sur la sortie standard.
+
+    Paramètres
+    ----------
+    argv:
+        Liste d'arguments CLI. Si ``None``, utilise ``sys.argv[1:]``.
+    """
     args = build_parser().parse_args(argv)
     cfg = load_config(args.config)
     get_bank_cfg(cfg, args.bank)

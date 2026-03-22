@@ -1,4 +1,19 @@
-"""Configuration helpers for vigilance."""
+"""Configuration helpers for vigilance.
+
+This module provides a YAML-based configuration system for the vigilance application.
+Configuration is loaded from bank_profiles.yaml (or a custom path) with the following
+layers:
+
+- **Bank profiles**: Top-level ``banks`` mapping (bank_code -> profile dict).
+- **Layered defaults**: Each config getter merges global blocks with optional
+  per-bank overrides, then fills missing keys with built-in defaults.
+- **Environment overrides**: LLM model selection can be overridden via env vars
+  (e.g. OPENAI_MODEL_EXTRACTION_PRIMARY, OPENAI_MODEL_DEFAULT_GENAI).
+
+Config path resolution: relative paths are resolved against the repo root
+(pyproject.toml directory) when the path does not exist from the current
+working directory. Absolute paths are used as-is.
+"""
 
 from __future__ import annotations
 
@@ -21,7 +36,16 @@ _MODEL_ENV_OVERRIDES: dict[str, str] = {
 
 
 def load_bank_profiles(config_path: str | Path = "configs/bank_profiles.yaml") -> dict[str, Any]:
-    """Load bank profiles map from the main YAML config."""
+    """Load the bank profiles map from the main YAML config.
+
+    Args:
+        config_path: Path to the YAML config file. Relative paths are resolved
+            against the repo root if they do not exist from cwd.
+
+    Returns:
+        Dict mapping bank_code (lowercase) to bank profile dict. Empty dict
+        if config is missing, invalid, or has no ``banks`` key.
+    """
     cfg = load_config(config_path)
     banks = cfg.get("banks")
     if isinstance(banks, dict):
@@ -33,14 +57,27 @@ def get_matching_thresholds(
     config_path: str | Path = "configs/bank_profiles.yaml",
     bank_code: str | None = None,
 ) -> dict[str, Any]:
-    """Load optional matching thresholds from configuration.
+    """Load matching thresholds from configuration with bank overrides and defaults.
 
     Supports either:
-    - `matching_thresholds: {...}` at root
-    - `matching: { thresholds: {...} }`
+    - ``matching_thresholds: {...}`` at root
+    - ``matching: { thresholds: {...} }``
 
-    If bank_code is provided and banks.<bank_code>.matching_overrides exists,
-    those overrides are merged on top of the base thresholds (e.g. for TD).
+    If bank_code is provided and ``banks.<bank_code>.matching_overrides`` exists,
+    those overrides are merged on top of the base thresholds.
+
+    Indicator diff config (indicator_hungarian_enabled, indicator_rename_min_score,
+    etc.) is included in the returned dict. Use this function where indicator diff
+    thresholds are needed; there is no separate get_indicator_diff_config.
+
+    Args:
+        config_path: Path to the YAML config file.
+        bank_code: Optional bank code for per-bank matching_overrides.
+
+    Returns:
+        Dict of matching thresholds and indicator-diff settings with defaults
+        applied for missing keys (indicator_hungarian_enabled, embedding weights,
+        recall-first engine params, etc.). Empty dict if config is missing or invalid.
     """
     path = _resolve_config_path(config_path)
     if not path.exists():
@@ -103,6 +140,22 @@ def get_matching_thresholds(
         if k not in base:
             base[k] = v
 
+    # Recall-first engine defaults
+    _recall_first_defaults: dict[str, Any] = {
+        "recall_first_engine_enabled": True,
+        "rf_min_match_score": 0.25,
+        "rf_min_match_margin": 0.04,
+        "rf_strong_pair_min_score": 0.50,
+        "rf_strong_pair_min_margin": 0.08,
+        "rf_review_candidate_min_score": 0.15,
+        "rf_max_elimination_rounds": 5,
+        "rf_cross_section_rescue_min_score": 0.20,
+        "rf_min_indicator_signal": 0.10,
+    }
+    for k, v in _recall_first_defaults.items():
+        if k not in base:
+            base[k] = v
+
     return base
 
 
@@ -112,9 +165,16 @@ def get_vision_extraction_config(
 ) -> dict[str, Any]:
     """Load vision_extraction config with optional bank overrides.
 
-    Global keys: enabled, bottom_extension_footnotes, run_on_all_tables,
-    fallback_to_docling_on_error, save_indicators_footnotes_json.
-    Per-bank overrides: footnote_marker_type, expected_markers.
+    Args:
+        config_path: Path to the YAML config file.
+        bank_code: Optional bank code for per-bank vision_extraction overrides
+            (e.g. footnote_marker_type, expected_markers).
+
+    Returns:
+        Dict with keys such as enabled, bottom_extension_footnotes, run_on_all_tables,
+        fallback_to_docling_on_error, save_indicators_footnotes_json. Per-bank
+        overrides merge on top of global vision_extraction block. Empty dict if
+        config is missing or invalid.
     """
     path = _resolve_config_path(config_path)
     if not path.exists():
@@ -148,7 +208,17 @@ def get_vision_extraction_config(
 def get_llm_model_config(
     config_path: str | Path = "configs/bank_profiles.yaml",
 ) -> dict[str, str]:
-    """Load lightweight OpenAI model routing config."""
+    """Load OpenAI model routing config from YAML (no env overrides).
+
+    Args:
+        config_path: Path to the YAML config file.
+
+    Returns:
+        Dict mapping role names (e.g. extraction_primary, default_genai) to model
+        identifiers. Falls back to built-in defaults if config is missing or has
+        no llm_models block. Does not apply environment variable overrides; use
+        resolve_openai_model for that.
+    """
     path = _resolve_config_path(config_path)
     base = dict(_DEFAULT_OPENAI_MODELS)
     if not path.exists():
@@ -174,7 +244,23 @@ def resolve_openai_model(
     role: str,
     config_path: str | Path = "configs/bank_profiles.yaml",
 ) -> str:
-    """Resolve the OpenAI model for a known role with env override support."""
+    """Resolve the OpenAI model for a known role with env override support.
+
+    Resolution order: (1) env var override, (2) llm_models in config, (3) built-in
+    default. Supported roles: extraction_primary, default_genai.
+
+    Args:
+        role: Model role (e.g. extraction_primary, default_genai). Normalized to
+            lowercase. Must be a known role.
+        config_path: Path to the YAML config file for llm_models block.
+
+    Returns:
+        Model identifier string (e.g. gpt-5.4, gpt-4o).
+
+    Raises:
+        ValueError: If role is not in the known roles (extraction_primary,
+            default_genai).
+    """
     key = str(role or "").strip().lower()
     if key not in _DEFAULT_OPENAI_MODELS:
         known = ", ".join(sorted(_DEFAULT_OPENAI_MODELS))
@@ -199,15 +285,21 @@ def get_validation_config(
 ) -> dict[str, Any]:
     """Load validation config (post-matching validators) with optional bank overrides.
 
-    Keys: vision_pair_validation, vision_pair_confidence_min, semantic_judge_enabled,
-    semantic_judge_banks, rename_validator_enabled, rename_validator_confidence_min,
-    rename_validator_batch_size, rename_validator_uncertain_score_band,
-    added_table_validator_enabled,
-    indicator_validator_enabled, indicator_validator_use_vision,
-    indicator_validator_confidence_min, indicator_validator_batch_size.
+    Args:
+        config_path: Path to the YAML config file.
+        bank_code: Optional bank code for per-bank validation overrides.
 
-    For backward compatibility, if vision_pair_validation is absent here, falls back
-    to vision_extraction.vision_pair_validation.
+    Returns:
+        Dict with keys such as vision_pair_validation, vision_pair_confidence_min,
+        semantic_judge_enabled, semantic_judge_banks, rename_validator_enabled,
+        rename_validator_confidence_min, rename_validator_batch_size,
+        rename_validator_uncertain_score_band, added_table_validator_enabled,
+        indicator_validator_enabled, indicator_validator_use_vision,
+        indicator_validator_confidence_min, indicator_validator_batch_size.
+        For backward compatibility, if vision_pair_validation is absent in the
+        validation block, falls back to vision_extraction.vision_pair_validation.
+        Cross-section rescue defaults (cross_section_rescue_enabled, etc.) are
+        applied when keys are absent.
     """
     path = _resolve_config_path(config_path)
     cfg: dict[str, Any] = {}
@@ -254,7 +346,16 @@ def get_quality_gate_config(
     config_path: str | Path = "configs/bank_profiles.yaml",
     bank_code: str | None = None,
 ) -> dict[str, Any]:
-    """Load quality_gate config with optional bank overrides."""
+    """Load quality_gate config with optional bank overrides.
+
+    Args:
+        config_path: Path to the YAML config file.
+        bank_code: Optional bank code for per-bank quality_gate overrides.
+
+    Returns:
+        Dict merged from global quality_gate block and optional bank overrides.
+        Empty dict if config is missing or invalid.
+    """
     path = _resolve_config_path(config_path)
     if not path.exists():
         return {}

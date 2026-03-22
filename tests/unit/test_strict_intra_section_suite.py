@@ -7,6 +7,7 @@ from vigilance.models.table_models import TableArtifact
 
 
 def _table(table_id: str, section: str, title: str, labels: list[str]) -> TableArtifact:
+    """Build a minimal TableArtifact for strict intra-section tests."""
     return TableArtifact(
         bank_code="rbc",
         section=section,
@@ -26,6 +27,7 @@ def _table(table_id: str, section: str, title: str, labels: list[str]) -> TableA
 
 
 def test_strict_suite_cross_unknown_added_removed_and_same_section() -> None:
+    """Verifies pairing, cross-section, added/removed, and unknown-section handling."""
     t1 = [
         _table("cap_match", "capital_management", "TABLEAU 10", ["CET1", "RWA"]),
         _table("cap_removed", "capital_management", "TABLEAU 23", ["Atlantique", "Québec"]),
@@ -44,14 +46,21 @@ def test_strict_suite_cross_unknown_added_removed_and_same_section() -> None:
         pair["t1_table_id"] == "cap_match" and pair["t2_table_id"] == "cap_match_t2"
         for pair in result["pairs"]
     )
-    assert any(item["reason"] == "removed_table" for item in result["removed_tables"])
-    assert any(item["reason"] == "added_table" for item in result["added_tables"])
+    # Recall-first engine finds cross-section match cap_removed <-> risk_cross.
     assert any(
-        item["reason"] in {"removed_table", "ambiguous_candidate"}
+        pair["t1_table_id"] == "cap_removed" and pair["t2_table_id"] == "risk_cross"
+        for pair in result["pairs"]
+    )
+    assert any(
+        item["reason"] in {"added_table", "review_candidate"}
+        for item in result.get("added_tables", []) or result.get("unmatched_t2", [])
+    )
+    assert any(
+        item["reason"] in {"removed_table", "ambiguous_candidate", "review_candidate"}
         for item in result["unmatched_t1"]
     )
     assert any(
-        item["reason"] in {"no_match", "added_table", "ambiguous_candidate"}
+        item["reason"] in {"no_match", "added_table", "ambiguous_candidate", "review_candidate"}
         for item in result["unmatched_t2"]
     )
     assert "cross_section_forbidden" not in result["reasons"]

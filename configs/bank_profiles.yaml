@@ -654,6 +654,21 @@ trend_detection:
     OTHER: 0.7
 
 matching_thresholds:
+  # --- Recall-first engine (default) ---
+  # Global Hungarian assignment + progressive elimination + rescue passes.
+  # Toggle with recall_first_engine_enabled.  All rf_* params below are
+  # active ONLY when this engine is enabled.
+  recall_first_engine_enabled: true
+  rf_min_match_score: 0.25          # min total_score for an assignment to be accepted
+  rf_min_match_margin: 0.04         # min score gap vs next-best alternative
+  rf_strong_pair_min_score: 0.50    # threshold to freeze as strong pair
+  rf_strong_pair_min_margin: 0.08   # margin required for strong pair
+  rf_review_candidate_min_score: 0.15  # min score for review_candidate (plausible match)
+  rf_max_elimination_rounds: 5      # max progressive elimination iterations
+  rf_cross_section_rescue_min_score: 0.20  # min score for cross-section rescue
+  rf_min_indicator_signal: 0.10     # min indicator overlap required for content signal
+
+  # --- Legacy engine settings (active ONLY when recall_first_engine_enabled: false) ---
   use_hungarian_matching: true
   matching_v2_enabled: true
   use_post_hungarian_threshold: true

@@ -45,6 +45,16 @@ EXTRACTION_STATUS_BLOCKED = "blocked"
 def infer_content_source(
     extraction_method: str | None, explicit: str | None = None
 ) -> str:
+    """Infer the content source from extraction method or explicit override.
+
+    Args:
+        extraction_method: The extraction method string (e.g. "vision_full_gpt4o").
+        explicit: Optional explicit content source override; takes precedence.
+
+    Returns:
+        The content source string: VISION_CONTENT_SOURCE for vision-based
+        extraction, UNKNOWN_CONTENT_SOURCE otherwise.
+    """
     value = str(explicit or "").strip()
     if value:
         return value
@@ -63,6 +73,17 @@ def derive_comparison_blockers(
     first_column_indicators_raw: list[str] | None,
     footnotes: FootnoteList | None,
 ) -> list[str]:
+    """Derive comparison blocker codes from content source and table metadata.
+
+    Args:
+        content_source: The content source string (e.g. VISION_CONTENT_SOURCE).
+        first_column_indicators_raw: Raw first-column labels from Vision.
+        footnotes: Canonical footnotes list; None means unavailable.
+
+    Returns:
+        List of blocker codes such as "non_vision_content_source",
+        "missing_vision_indicators", or "footnotes_unavailable".
+    """
     blockers: list[str] = []
     if content_source != VISION_CONTENT_SOURCE:
         blockers.append("non_vision_content_source")
@@ -78,6 +99,16 @@ def is_comparison_eligible(
     *,
     content_source: str,
 ) -> bool:
+    """Check whether a table is eligible for comparison.
+
+    Args:
+        blockers: List of comparison blocker codes.
+        content_source: The content source string.
+
+    Returns:
+        True if content is vision-sourced and no fatal blockers
+        (non_vision_content_source, missing_vision_indicators) are present.
+    """
     if content_source != VISION_CONTENT_SOURCE:
         return False
     blocker_set = {str(item).strip() for item in blockers or [] if str(item).strip()}
@@ -85,7 +116,15 @@ def is_comparison_eligible(
 
 
 def get_vision_raw_indicators(table: Any) -> list[str]:
-    """Return Vision raw first-column labels from a table-like object."""
+    """Return Vision raw first-column labels from a table-like object.
+
+    Args:
+        table: Table-like object with vision_raw_indicators or
+            first_column_indicators_raw attribute.
+
+    Returns:
+        List of non-empty stripped indicator strings; empty list if None or missing.
+    """
     if table is None:
         return []
     values = getattr(table, "vision_raw_indicators", None)
@@ -95,7 +134,15 @@ def get_vision_raw_indicators(table: Any) -> list[str]:
 
 
 def get_comparison_indicators(table: Any) -> list[str]:
-    """Return normalized first-column labels used by the comparator."""
+    """Return normalized first-column labels used by the comparator.
+
+    Args:
+        table: Table-like object with comparison_normalized_indicators or
+            first_column_indicators attribute.
+
+    Returns:
+        List of non-empty stripped indicator strings; empty list if None or missing.
+    """
     if table is None:
         return []
     values = getattr(table, "comparison_normalized_indicators", None)
@@ -105,7 +152,15 @@ def get_comparison_indicators(table: Any) -> list[str]:
 
 
 def get_canonical_footnotes(table: Any) -> FootnoteList:
-    """Return canonical footnotes from a table-like object."""
+    """Return canonical footnotes from a table-like object.
+
+    Args:
+        table: Table-like object with canonical_footnotes or footnotes attribute.
+
+    Returns:
+        Canonical footnote list ``[{"id": str, "text": str}, ...]``;
+        legacy formats are normalized at ingestion.
+    """
     if table is None:
         return []
     values = getattr(table, "canonical_footnotes", None)
@@ -119,11 +174,17 @@ def get_canonical_footnotes(table: Any) -> FootnoteList:
 
 
 def get_extraction_confidence(table: Any) -> float:
-    """
-    Return extraction confidence from a table's debug_metrics (0.0--1.0).
-    Prefer vision_extraction_confidence; fall back to legacy vision_primary_confidence.
+    """Return extraction confidence from a table's debug_metrics (0.0--1.0).
+
+    Prefers vision_extraction_confidence; falls back to vision_primary_confidence.
     When metrics are missing but the table has Vision content and raw indicators,
-    assume certified-level confidence so stored extractions do not false-block.
+    assumes certified-level confidence so stored extractions do not false-block.
+
+    Args:
+        table: Table-like object with debug_metrics and optional content_source.
+
+    Returns:
+        Confidence score in [0.0, 1.0]; 0.0 when table is None or metrics invalid.
     """
     if table is None:
         return 0.0
@@ -149,10 +210,18 @@ def get_extraction_confidence(table: Any) -> float:
 
 
 def get_extraction_quality_flags(table: Any) -> dict[str, bool]:
-    """
-    Return a normalized set of quality flags from a table's debug_metrics.
+    """Return a normalized set of quality flags from a table's debug_metrics.
+
     When metrics are missing but the table has Vision content and raw indicators,
-    assume applied=True so stored extractions do not false-block.
+    assumes vision_extraction_applied=True so stored extractions do not false-block.
+
+    Args:
+        table: Table-like object with debug_metrics and optional content_source.
+
+    Returns:
+        Dict of flag names to booleans: appears_truncated, recrop_attempted,
+        recrop_used, recrop_failed_incomplete, vision_extraction_applied,
+        crop_rejected, partial_result, rows_missing_from_fallback.
     """
     if table is None:
         return {}
@@ -190,9 +259,17 @@ def get_extraction_quality_flags(table: Any) -> dict[str, bool]:
 
 
 def get_extraction_quality_profile(table: Any) -> dict[str, Any]:
-    """
-    Return a normalized quality profile for a table (confidence + flags + bbox_sanity etc.).
+    """Return a normalized quality profile for a table.
+
+    Aggregates confidence, flags, bbox_sanity_profile, and related metadata.
     Use for matcher and observability; avoids ad hoc debug_metrics access.
+
+    Args:
+        table: Table-like object with debug_metrics.
+
+    Returns:
+        Dict with keys: confidence, flags, bbox_sanity_profile,
+        page_title_assist_used, page_title_assist_match_method, warnings.
     """
     if table is None:
         return {}
@@ -215,9 +292,17 @@ def derive_extraction_blockers(
     *,
     confidence_certified_min: float = EXTRACTION_CONFIDENCE_CERTIFIED_MIN,
 ) -> list[str]:
-    """
-    Return the list of extraction blocker codes for this table.
-    Blockers prevent auto-comparison; presence of any => status blocked.
+    """Derive extraction blocker codes for a table.
+
+    Blockers prevent auto-comparison; presence of any yields status blocked.
+
+    Args:
+        table: Table-like object with content_source, debug_metrics, etc.
+        confidence_certified_min: Minimum confidence for certified status.
+
+    Returns:
+        List of blocker codes such as non_vision_content_source,
+        missing_vision_indicators, crop_rejected, low_extraction_confidence.
     """
     if table is None:
         return ["non_vision_content_source"]
@@ -253,9 +338,20 @@ def get_extraction_status(
     confidence_certified_min: float = EXTRACTION_CONFIDENCE_CERTIFIED_MIN,
     confidence_review_min: float = EXTRACTION_CONFIDENCE_REVIEW_MIN,
 ) -> str:
-    """
-    Return extraction status: certified, review_required, or blocked.
-    Only certified tables are eligible for automatic matching.
+    """Return extraction status: certified, review_required, or blocked.
+
+    The recall-first engine includes review_required tables with a
+    capped confidence. See is_matching_eligible for the relaxed gate
+    and is_auto_compare_eligible for the strict (legacy) gate.
+
+    Args:
+        table: Table-like object with debug_metrics and content metadata.
+        confidence_certified_min: Minimum confidence for certified status.
+        confidence_review_min: Minimum confidence to avoid review_required.
+
+    Returns:
+        One of EXTRACTION_STATUS_CERTIFIED, EXTRACTION_STATUS_REVIEW_REQUIRED,
+        or EXTRACTION_STATUS_BLOCKED.
     """
     blockers = derive_extraction_blockers(
         table, confidence_certified_min=confidence_certified_min
@@ -281,16 +377,81 @@ def is_auto_compare_eligible(
     *,
     confidence_certified_min: float = EXTRACTION_CONFIDENCE_CERTIFIED_MIN,
 ) -> bool:
-    """
-    Return True iff the table is certified for automatic comparison.
-    Uncertified tables must not enter the matcher.
+    """Return True iff the table is certified for automatic comparison.
+
+    This is the strict eligibility gate used by the legacy matching engine.
+    The recall-first engine uses is_matching_eligible instead, which also
+    accepts review_required tables.
+
+    Args:
+        table: Table-like object with extraction metadata.
+        confidence_certified_min: Minimum confidence for certified status.
+
+    Returns:
+        True if extraction status is certified; False otherwise.
     """
     return get_extraction_status(table, confidence_certified_min=confidence_certified_min) == EXTRACTION_STATUS_CERTIFIED
 
 
+def is_matching_eligible(
+    table: Any,
+    *,
+    confidence_certified_min: float = EXTRACTION_CONFIDENCE_CERTIFIED_MIN,
+) -> bool:
+    """Return True if the table can participate in matching (recall-first).
+
+    Accepts both certified and review_required tables. Only blocked tables
+    are excluded. Pairs including a review_required table will have their
+    confidence capped by the matching engine.
+
+    Args:
+        table: Table-like object with extraction metadata.
+        confidence_certified_min: Minimum confidence for certified status.
+
+    Returns:
+        True if extraction status is not blocked; False otherwise.
+    """
+    return get_extraction_status(
+        table, confidence_certified_min=confidence_certified_min
+    ) != EXTRACTION_STATUS_BLOCKED
+
+
 @dataclass(slots=True)
 class TableArtifact:
-    """Canonical in-memory representation of one extracted table."""
+    """Canonical in-memory representation of one extracted table.
+
+    Attributes:
+        bank_code: Bank identifier.
+        section: Document section (e.g. balance sheet, income statement).
+        page_pdf: 1-based PDF page number.
+        table_id: Unique table identifier.
+        title: Table title; may include amounts.
+        headers: Column header strings.
+        rows: Table rows as list of cell lists.
+        first_column_indicators: Normalized first-column labels for comparison.
+        extraction_method: Method used (e.g. vision_full_gpt4o).
+        title_clean: Cleaned title without amounts; used for display/pairing.
+        title_raw: Original title for traceability.
+        table_number: Table number if present.
+        bbox: Bounding box as dict or list of floats.
+        table_index_on_page: Index of this table on the page.
+        tables_on_page: Total tables on the page.
+        bbox_top: Top coordinate of bounding box.
+        page_local_role: Role of this table on the page.
+        quarter: Reporting quarter if applicable.
+        pdf_path: Path to source PDF.
+        first_column_indicators_raw: Raw Vision first-column labels.
+        first_column_groups: Grouped indicator labels.
+        hierarchical_indicator_signature: Hierarchical indicator structure.
+        title_reliability: Reliability of title extraction.
+        footnotes: Canonical footnote list.
+        fragmentation_detected: Whether table was detected as fragmented.
+        fragment_near_merge_hint: Hints for fragment merging.
+        debug_metrics: Extraction metrics and quality flags.
+        content_source: Content source (vision_gpt4o or unknown).
+        comparison_eligible: Whether table is eligible for comparison.
+        comparison_blockers: List of blocker codes if not eligible.
+    """
 
     bank_code: str
     section: str
@@ -319,12 +480,19 @@ class TableArtifact:
     title_reliability: str | None = None
     footnotes: FootnoteList | None = None
     fragmentation_detected: bool = False
+    fragment_near_merge_hint: dict[str, Any] | None = None
     debug_metrics: dict[str, Any] | None = None
     content_source: str = UNKNOWN_CONTENT_SOURCE
     comparison_eligible: bool = False
     comparison_blockers: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
+        """Initialize derived fields from extraction state.
+
+        Sets content_source from extraction_method, recomputes comparison_blockers
+        from current state (never accumulates stale blockers from storage reload),
+        and updates comparison_eligible.
+        """
         self.content_source = infer_content_source(
             self.extraction_method,
             self.content_source,
@@ -342,6 +510,11 @@ class TableArtifact:
         )
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialize the artifact to a plain dict for storage or JSON export.
+
+        Returns:
+            Dict with all dataclass fields as key-value pairs.
+        """
         return asdict(self)
 
     @property

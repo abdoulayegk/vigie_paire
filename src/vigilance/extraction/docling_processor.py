@@ -1,16 +1,58 @@
 """
-Processeur PDF base sur Docling pour l'extraction de contenu structure des rapports bancaires.
-Outil principal d'extraction pour les tableaux, le texte et la structure des documents.
+Processeur PDF principal basé sur Docling pour l'extraction structurée des rapports bancaires.
 
-Pipeline d'extraction:
-1. Docling (structure: detection tableaux + bbox + page)
-2. Pour chaque tableau: crop (bbox + extension) -> GPT-4o Vision (contenu)
-3. Si Docling indisponible: document vide (pas de fallback Vision full-page)
+Ce module est le moteur d'extraction du pipeline. Il utilise IBM Docling pour
+détecter la structure des tableaux (boîtes englobantes, en-têtes, lignes) dans
+les PDF bancaires, et optionnellement GPT-4o Vision pour extraire le contenu
+de la première colonne (indicateurs financiers) avec une meilleure précision.
 
-Fonctionnalités:
-- Cache des extractions pour éviter re-traitement (PDFCacheManager)
-- Validation avec GPT-4 Vision (optionnel)
-- Gestion memoire pour gros documents (traitement par chunks)
+Pipeline d'extraction
+---------------------
+1. **Docling** : analyse structurelle du PDF — détecte les tableaux, leurs
+   boîtes englobantes (bbox), leurs en-têtes et leurs lignes. Utilise les
+   modèles ML de Docling pour la détection de structure de tableaux.
+2. **GPT-4o Vision** (optionnel) : pour chaque tableau détecté par Docling,
+   découpe (crop) l'image du tableau selon sa bbox, puis envoie l'image à
+   GPT-4o Vision pour extraire le contenu de la première colonne (indicateurs).
+   Cette étape compense les limitations de Docling sur les tableaux complexes
+   (cellules fusionnées, texte pivoté, hiérarchies imbriquées).
+3. **Fallback** : si Docling n'est pas disponible, retourne un document vide.
+   Il n'y a pas de fallback Vision full-page.
+
+Fonctionnalités principales
+----------------------------
+- **Cache** : les extractions peuvent être mises en cache (``PDFCacheManager``)
+  pour éviter de relancer Docling et Vision sur le même PDF.
+- **Gestion mémoire** : les gros documents sont traités par chunks de pages
+  (``CHUNK_SIZE_PAGES``) pour éviter les débordements mémoire.
+- **Parallélisation Vision** : les appels GPT-4o Vision sont parallélisés via
+  ``ThreadPoolExecutor`` (max ``VISION_EXTRACTION_MAX_WORKERS`` = 4 workers).
+- **Détection de sections** : les tableaux sont assignés à leur section
+  réglementaire (capital, risques, etc.) selon les plages de pages fournies.
+- **Signaux RBC** : pour RBC, des signaux spécifiques (hiérarchie de la première
+  colonne, groupes d'indicateurs) sont calculés.
+
+Structures de données
+---------------------
+- ``ExtractedTable`` : un tableau extrait avec toutes ses métadonnées.
+- ``ExtractedSection`` : une section avec ses tableaux et sa plage de pages.
+- ``ExtractedDocument`` : le document complet avec toutes les sections et tableaux.
+
+Variables d'environnement
+--------------------------
+- ``VIGILANCE_VISION_EXTRACTION_ENABLED`` : active/désactive Vision GPT-4o.
+- ``DOCLING_NUM_THREADS`` / ``OMP_NUM_THREADS`` : nombre de threads pour Docling.
+- ``DOCLING_DEVICE`` : device d'accélération (``auto``, ``cpu``, ``cuda``, ``mps``).
+  Défaut : ``mps`` sur macOS, ``auto`` ailleurs.
+
+Fonctions de niveau module
+---------------------------
+- ``extract_pdf`` : extraction complète d'un PDF.
+- ``extract_pdf_targeted`` : extraction sur des pages spécifiques.
+- ``extract_section_content`` : extraction du contenu textuel d'une section.
+- ``extract_tables_docling_by_sections`` : **point d'entrée principal** pour le
+  pipeline CLI — extrait les tableaux sur les plages de sections fournies.
+- ``extract_tables_docling_priority`` : extraction de tableaux uniquement.
 """
 
 import json
@@ -161,36 +203,75 @@ COMPILED_SECTION_PATTERNS = [
 
 @dataclass
 class ExtractedTable:
-    """Represente un tableau extrait d'un PDF."""
+    """Représente un tableau extrait d'un PDF avec toutes ses métadonnées.
+
+    Attributs principaux
+    --------------------
+    table_id:
+        Identifiant unique du tableau dans le document (ex. ``"table_3_p12"``).
+    page_number:
+        Numéro de page (1-indexé) où le tableau a été détecté.
+    title:
+        Titre du tableau résolu (peut provenir de la légende Docling, d'une
+        ligne de texte au-dessus, ou du titre de page).
+    headers:
+        Liste des en-têtes de colonnes extraits par Docling.
+    rows:
+        Contenu du tableau sous forme de liste de listes (lignes × colonnes).
+    first_column_indicators:
+        Indicateurs de la première colonne après normalisation pour la comparaison.
+        C'est le "fingerprint" du tableau utilisé pour le matching.
+    first_column_indicators_raw:
+        Indicateurs bruts avant normalisation (tels que retournés par Vision GPT-4o).
+        ``None`` si Vision n'a pas été utilisée.
+    footnotes:
+        Liste de dictionnaires ``{"ref": str, "text": str}`` pour les notes de
+        bas de page détectées.
+    section:
+        Nom de section canonique assigné selon les plages de pages
+        (ex. ``"gestion_capital"``).
+    table_number:
+        Numéro logique extrait du titre (ex. ``"28"``, ``"5a"``).
+    title_clean:
+        Titre sans le numéro de tableau ni les unités.
+    title_raw:
+        Titre brut avant tout nettoyage ou matching.
+    bbox:
+        Boîte englobante normalisée ``[left, top, right, bottom]`` dans [0, 1],
+        extraite depuis les métadonnées de provenance Docling.
+    extraction_method:
+        Méthode d'extraction utilisée : ``"docling"`` ou ``"vision_fallback_gpt4o"``.
+    debug_metrics:
+        Métriques de débogage (nombre de lignes, fusions, statut Vision, etc.).
+    fragmentation_detected:
+        ``True`` si des artefacts de fragmentation ont été détectés lors de
+        l'extraction (lignes coupées, cellules fusionnées incorrectement).
+    """
 
     table_id: str
     page_number: int
     title: str | None
     headers: list[str]
     rows: list[list[str]]
-    first_column_indicators: list[str] = field(default_factory=list)  # Fingerprint
+    first_column_indicators: list[str] = field(default_factory=list)
     footnotes: list[dict[str, str]] = field(default_factory=list)
     section: str | None = None
-    section_phase: int | None = None  # Phase de la section (1, 2, 3)
-    table_number: str | None = None  # Numéro extrait du titre (ex: "28", "31", "5a")
-    title_clean: str | None = None  # Titre sans le numéro
-    title_raw: str | None = None  # Titre brut avant nettoyage/matching
-    unit_context: str | None = None  # Ligne d'unité (ex: en millions de dollars)
-    title_resolution_method: str | None = None  # caption/layout_anchor/text_fallback...
-    context_before: str = ""  # 1-2 lignes au-dessus (pour table_type_classifier)
-    context_after: str = ""  # 1-2 lignes en-dessous
-    bbox: list[float] | None = None  # [l, t, r, b] normalisées 0–1 depuis Docling prov
-    first_column_indicators_raw: list[str] | None = None  # Brut avant normalisation
-    first_column_indicators_spatial: list[dict[str, Any]] | None = (
-        None  # Liste d'objets avec texte brut et bbox: [{"text": str, "bbox": [l, t, r, b]}]
-    )
+    section_phase: int | None = None
+    table_number: str | None = None
+    title_clean: str | None = None
+    title_raw: str | None = None
+    unit_context: str | None = None
+    title_resolution_method: str | None = None
+    context_before: str = ""
+    context_after: str = ""
+    bbox: list[float] | None = None
+    first_column_indicators_raw: list[str] | None = None
+    first_column_indicators_spatial: list[dict[str, Any]] | None = None
     first_column_groups: list[str] | None = None
     hierarchical_indicator_signature: list[str] | None = None
     title_reliability: str | None = None
-    debug_metrics: dict[str, Any] = field(
-        default_factory=dict
-    )  # row_count, merge_count, etc.
-    extraction_method: str | None = None  # docling | vision_fallback_gpt4o
+    debug_metrics: dict[str, Any] = field(default_factory=dict)
+    extraction_method: str | None = None
     fragmentation_detected: bool = False
 
     def to_dict(self) -> dict:
@@ -199,7 +280,25 @@ class ExtractedTable:
 
 @dataclass
 class ExtractedSection:
-    """Represente une section extraite d'un PDF."""
+    """Représente une section extraite d'un PDF avec ses tableaux et son contenu textuel.
+
+    Attributs
+    ---------
+    section_id:
+        Identifiant canonique de la section (ex. ``"gestion_capital"``).
+    title:
+        Titre de la section tel qu'il apparaît dans le PDF.
+    start_page:
+        Première page de la section (1-indexé).
+    end_page:
+        Dernière page de la section (incluse).
+    text_content:
+        Contenu textuel brut de la section (paragraphes, titres, etc.).
+    tables:
+        Liste des tableaux détectés dans cette section.
+    phase:
+        Phase de la section (1, 2, 3) pour les sections multi-phases.
+    """
 
     section_id: str
     title: str
@@ -217,7 +316,28 @@ class ExtractedSection:
 
 @dataclass
 class ExtractedDocument:
-    """Represente un document PDF entierement extrait."""
+    """Représente un document PDF entièrement extrait avec toutes ses sections et tableaux.
+
+    Attributs
+    ---------
+    file_path:
+        Chemin absolu vers le fichier PDF source.
+    bank_code:
+        Code identifiant la banque (ex. ``"rbc"``).
+    quarter:
+        Libellé du trimestre (ex. ``"Q1-2025"``).
+    year:
+        Année numérique du trimestre.
+    total_pages:
+        Nombre total de pages du document.
+    sections:
+        Liste des sections détectées avec leurs tableaux et contenu textuel.
+    all_tables:
+        Liste plate de tous les tableaux du document (toutes sections confondues),
+        pour un accès direct sans parcourir les sections.
+    metadata:
+        Métadonnées supplémentaires (version Docling, durée d'extraction, etc.).
+    """
 
     file_path: str
     bank_code: str
@@ -245,7 +365,16 @@ class ExtractedDocument:
 
 
 def _compute_vision_quality_summary(tables: list[Any]) -> dict[str, Any]:
-    """Aggregate per-table debug_metrics into a single quality summary dict."""
+    """Agréger les métriques de débogage par tableau en un résumé de qualité global.
+
+    Parcourt les ``debug_metrics`` de chaque tableau extrait et calcule des
+    statistiques agrégées sur la qualité de l'extraction Vision GPT-4o :
+    nombre de tentatives, succès, échecs partiels, troncatures, confiance faible,
+    recadrages utilisés, bboxes rejetées, etc.
+
+    Retourne un dictionnaire de compteurs utilisé pour le logging et le diagnostic
+    de la qualité d'extraction d'un run complet.
+    """
     total = len(tables)
     attempted = 0
     ok = 0
@@ -273,7 +402,11 @@ def _compute_vision_quality_summary(tables: list[Any]) -> dict[str, Any]:
         if dm.get("appears_truncated"):
             truncated += 1
         conf = dm.get("vision_extraction_confidence", 1.0)
-        if isinstance(conf, (int, float)) and conf < 0.85 and status in ("ok", "partial"):
+        if (
+            isinstance(conf, (int, float))
+            and conf < 0.85
+            and status in ("ok", "partial")
+        ):
             low_confidence += 1
         if dm.get("crop_reject_reason"):
             bbox_rejected += 1
@@ -297,14 +430,43 @@ def _compute_vision_quality_summary(tables: list[Any]) -> dict[str, Any]:
 
 
 class DoclingProcessor:
-    """
-    Processeur PDF principal utilisant IBM Docling pour l'extraction structuree.
-    Gere les mises en page de tableaux complexes, les cellules fusionnees et le contenu pivote.
+    """Processeur PDF principal utilisant Docling pour l'extraction structurée.
 
-    Pipeline de fallback:
-    1. Docling (extraction native)
-    2. GPT-4 Vision (fallback principal)
-    3. Docling-only warning si Vision indisponible
+    Cette classe orchestre l'extraction complète d'un rapport PDF bancaire :
+    détection des tableaux par Docling, extraction du contenu de la première
+    colonne par GPT-4o Vision (optionnel), et production des ``ExtractedTable``
+    avec toutes leurs métadonnées.
+
+    Docling gère les mises en page complexes (cellules fusionnées, texte pivoté,
+    tableaux multi-pages), mais peut manquer des indicateurs dans la première
+    colonne pour les tableaux hiérarchiques. GPT-4o Vision comble cette lacune
+    en analysant l'image recadrée de chaque tableau.
+
+    Pipeline de traitement
+    ----------------------
+    1. Docling analyse le PDF et détecte les tableaux avec leurs bboxes.
+    2. Pour chaque tableau (si Vision activé) :
+       a. Recadrage de l'image du tableau selon sa bbox (+ marge).
+       b. Envoi de l'image à GPT-4o Vision avec un prompt structuré.
+       c. Parsing de la réponse JSON pour extraire les indicateurs.
+    3. Normalisation et enrichissement des indicateurs extraits.
+    4. Assignation des tableaux à leurs sections réglementaires.
+
+    Paramètres du constructeur
+    --------------------------
+    use_ocr:
+        Active l'OCR Docling pour les documents numérisés (PDF image).
+        Défaut : ``False`` (la plupart des rapports bancaires sont natifs).
+    enhance_images:
+        Applique une amélioration d'image avant le traitement Docling.
+    openai_api_key:
+        Clé API OpenAI pour l'extraction Vision GPT-4o. Si ``None``, Vision
+        est désactivé même si ``VIGILANCE_VISION_EXTRACTION_ENABLED`` est ``True``.
+    use_cache:
+        Active le cache des extractions pour éviter de relancer Docling et Vision
+        sur le même PDF.
+    cache_dir:
+        Répertoire du cache (défaut : répertoire système).
     """
 
     def __init__(
@@ -315,16 +477,6 @@ class DoclingProcessor:
         use_cache: bool = False,
         cache_dir: str | None = None,
     ):
-        """
-        Initialiser le processeur Docling.
-
-        Args:
-            use_ocr: Activer l'OCR pour les documents numerises
-            enhance_images: Appliquer l'amelioration d'image avant le traitement
-            openai_api_key: Cle API OpenAI pour Vision (contenu par tableau)
-            use_cache: Activer le cache des extractions (defaut False)
-            cache_dir: Repertoire du cache (optionnel)
-        """
         self.use_ocr = use_ocr
         self.enhance_images = enhance_images
         self.openai_api_key = openai_api_key
@@ -352,7 +504,15 @@ class DoclingProcessor:
             logger.info("Cache PDF active")
 
     def _initialize_docling(self):
-        """Initialisation differee du convertisseur Docling."""
+        """Initialisation différée (lazy) du convertisseur Docling.
+
+        Docling est initialisé à la première utilisation pour éviter le coût
+        de chargement des modèles ML si l'extraction n'est pas nécessaire.
+        Configure le device d'accélération (MPS sur macOS, AUTO ailleurs) et
+        le nombre de threads depuis les variables d'environnement.
+
+        Lève une exception si Docling n'est pas installé.
+        """
         if self._initialized:
             return
 
@@ -1045,7 +1205,9 @@ class DoclingProcessor:
             "vision_extraction_applied": vision_status_str in ("ok", "partial"),
             "vision_extraction_confidence": vision_confidence,
             "vision_schema_contract_failed": vision_schema_contract_failed,
-            "has_reference_text": bool(reference_text and len(reference_text.strip()) > 20),
+            "has_reference_text": bool(
+                reference_text and len(reference_text.strip()) > 20
+            ),
             "warnings": warnings_list,
             "vision_max_completion_tokens_requested": requested_max_completion_tokens,
             "vision_max_completion_tokens_rescue_used": False,
@@ -1090,7 +1252,10 @@ class DoclingProcessor:
                 debug_metrics["recrop_failed_incomplete"] = (
                     vision_result.recrop_failed_incomplete
                 )
-            if getattr(vision_result, "requested_max_completion_tokens", None) is not None:
+            if (
+                getattr(vision_result, "requested_max_completion_tokens", None)
+                is not None
+            ):
                 debug_metrics["vision_max_completion_tokens_requested"] = (
                     vision_result.requested_max_completion_tokens
                 )
@@ -1385,8 +1550,12 @@ class DoclingProcessor:
                     "vision_schema_error_cls": vision_schema_error_cls,
                     "schema_failure_policy": schema_failure_policy,
                     "labels_only": labels_only,
-                    "vision_crop_dpi": int(vision_extraction_cfg.get("vision_crop_dpi", 300)),
-                    "vision_preprocess": vision_extraction_cfg.get("vision_preprocess", True),
+                    "vision_crop_dpi": int(
+                        vision_extraction_cfg.get("vision_crop_dpi", 300)
+                    ),
+                    "vision_preprocess": vision_extraction_cfg.get(
+                        "vision_preprocess", True
+                    ),
                     "vision_model_name": vision_model_name,
                 }
                 if vision_extractor:
@@ -1713,8 +1882,11 @@ class DoclingProcessor:
             # 2) Match by bbox proximity (title above table)
             if candidate is None and table.bbox:
                 other_bboxes = [
-                    t.bbox for t in page_tables
-                    if t is not table and getattr(t, "bbox", None) and len(getattr(t, "bbox", [])) >= 4
+                    t.bbox
+                    for t in page_tables
+                    if t is not table
+                    and getattr(t, "bbox", None)
+                    and len(getattr(t, "bbox", [])) >= 4
                 ]
                 candidate = result.get_candidate_by_bbox_proximity(
                     table.bbox,
@@ -2206,7 +2378,33 @@ def extract_pdf(
     page_ranges: list[tuple[int, int]] | None = None,
     use_vision_extraction: bool | None = None,
 ) -> ExtractedDocument:
-    """Extraire tout le contenu d'un PDF (Docling structure + Vision par tableau)."""
+    """Extraire un PDF complet en combinant structure Docling et contenu Vision par tableau.
+
+    Fonction utilitaire de niveau module qui instancie un ``DoclingProcessor``
+    et appelle ``extract_document``. C'est le point d'entrée le plus simple
+    pour une extraction complète.
+
+    Paramètres
+    ----------
+    pdf_path:
+        Chemin vers le PDF à extraire.
+    bank_code:
+        Code banque (ex. ``"rbc"``).
+    quarter:
+        Libellé du trimestre (ex. ``"Q1-2025"``).
+    year:
+        Année numérique.
+    use_ocr:
+        Active l'OCR Docling pour les PDF numérisés.
+    enhance_images:
+        Applique une amélioration d'image avant le traitement.
+    page_ranges:
+        Liste de tuples ``(start, end)`` pour limiter l'extraction à des pages
+        spécifiques. ``None`` = tout le document.
+    use_vision_extraction:
+        Force l'activation/désactivation de Vision GPT-4o. ``None`` = résolution
+        automatique depuis la config et l'environnement.
+    """
     processor = DoclingProcessor(
         use_ocr=use_ocr,
         enhance_images=enhance_images,
@@ -2230,7 +2428,12 @@ def extract_pdf_targeted(
     use_ocr: bool = False,
     use_vision_extraction: bool | None = None,
 ) -> ExtractedDocument:
-    """Extraire des pages specifiques d'un PDF."""
+    """Extraire uniquement des plages de pages ciblées d'un PDF.
+
+    Wrapper autour de ``extract_pdf`` avec ``page_ranges`` obligatoire.
+    Utile pour extraire une section spécifique sans traiter tout le document,
+    ce qui réduit le temps d'extraction et la consommation mémoire.
+    """
     return extract_pdf(
         pdf_path,
         bank_code,
@@ -2242,17 +2445,6 @@ def extract_pdf_targeted(
     )
 
 
-def extract_pdf_with_fallback(
-    pdf_path: str | Path,
-    bank_code: str,
-    quarter: str,
-    year: int,
-    use_ocr: bool = False,
-) -> ExtractedDocument:
-    """Alias pour extract_pdf (compatibilite API)."""
-    return extract_pdf(pdf_path, bank_code, quarter, year, use_ocr=use_ocr)
-
-
 def extract_section_content(
     pdf_path: str | Path,
     bank_code: str,
@@ -2262,7 +2454,20 @@ def extract_section_content(
     start_page: int,
     end_page: int,
 ) -> ExtractedSection:
-    """Extraire le contenu d'une section specifique."""
+    """Extraire le contenu complet d'une section d'un PDF (texte + tableaux).
+
+    Extrait les pages ``start_page`` à ``end_page`` du PDF, puis combine tout
+    le contenu textuel et tous les tableaux détectés en un seul ``ExtractedSection``.
+
+    Paramètres
+    ----------
+    section_name:
+        Nom de la section (utilisé comme identifiant et titre dans le résultat).
+    start_page:
+        Première page de la section (1-indexé).
+    end_page:
+        Dernière page de la section (incluse).
+    """
     doc = extract_pdf_targeted(
         pdf_path, bank_code, quarter, year, page_ranges=[(start_page, end_page)]
     )
@@ -2295,7 +2500,32 @@ def extract_tables_docling_by_sections(
     section_ranges: list[dict[str, Any]] | None = None,
     use_vision_extraction: bool | None = None,
 ) -> list[ExtractedTable]:
-    """Extract tables on selected section ranges and tag them with section names."""
+    """Extraire les tableaux sur des plages de sections et les annoter avec leur section.
+
+    C'est le **point d'entrée principal** pour le pipeline CLI (``run_tables.py``)
+    et pour ``comparison_runner.py``. Il :
+
+    1. Normalise les plages de sections (format ``{section, start, end}``).
+    2. Appelle ``extract_tables_docling_priority`` pour extraire tous les tableaux
+       sur les pages couvertes par les plages.
+    3. Assigne la section canonique à chaque tableau selon sa page.
+    4. Écrit un fichier de débogage JSON (``extraction_debug_writer``) si disponible.
+    5. Journalise les statistiques d'extraction.
+
+    Paramètres
+    ----------
+    section_ranges:
+        Liste de dictionnaires ``{section: str, start: int, end: int}`` définissant
+        les plages de pages à extraire. Si ``None`` ou vide, extrait tout le document.
+    use_vision_extraction:
+        Force l'activation/désactivation de Vision GPT-4o. ``None`` = résolution
+        automatique.
+
+    Retourne
+    --------
+    Liste de ``ExtractedTable`` avec le champ ``section`` renseigné pour chaque
+    tableau selon sa page d'appartenance.
+    """
     normalized_ranges: list[tuple[str, int, int]] = []
     page_ranges: list[tuple[int, int]] = []
 
@@ -2358,7 +2588,12 @@ def extract_tables_docling_priority(
     page_ranges: list[tuple[int, int]] | None = None,
     use_vision_extraction: bool | None = None,
 ) -> list[ExtractedTable]:
-    """Extraire uniquement les tableaux (Docling structure + Vision par tableau)."""
+    """Extraire uniquement les tableaux d'un PDF (structure Docling + contenu Vision).
+
+    Wrapper simplifié autour de ``extract_pdf`` qui retourne directement la liste
+    plate de tous les tableaux (``doc.all_tables``) sans les sections ni le
+    contenu textuel. Utilisé en interne par ``extract_tables_docling_by_sections``.
+    """
     doc = extract_pdf(
         pdf_path,
         bank_code,
@@ -2369,21 +2604,3 @@ def extract_tables_docling_priority(
     )
     return doc.all_tables
 
-
-def extract_tables_with_context(
-    pdf_path: str | Path,
-    bank_code: str,
-    quarter: str,
-    year: int,
-    page_ranges: list[tuple[int, int]] | None = None,
-    use_vision_extraction: bool | None = None,
-) -> list[ExtractedTable]:
-    """Extraire les tableaux avec contexte enrichi."""
-    return extract_tables_docling_priority(
-        pdf_path,
-        bank_code,
-        quarter,
-        year,
-        page_ranges=page_ranges,
-        use_vision_extraction=use_vision_extraction,
-    )

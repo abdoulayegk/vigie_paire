@@ -16,6 +16,7 @@ def _table(
     bbox: list[float] | None = None,
     footnotes: list[dict[str, str]] | None = None,
 ) -> TableArtifact:
+    """Build a minimal TableArtifact for fragment merger tests."""
     raw_labels = [row[0] for row in rows if row and str(row[0]).strip()]
     return TableArtifact(
         bank_code="rbc",
@@ -38,6 +39,7 @@ def _table(
 
 
 def test_merges_adjacent_fragments_with_high_confidence() -> None:
+    """Adjacent fragments with high similarity score are merged into one table."""
     left = _table(
         table_id="t_left",
         section="risk_management",
@@ -63,6 +65,7 @@ def test_merges_adjacent_fragments_with_high_confidence() -> None:
 
 
 def test_does_not_merge_different_sections() -> None:
+    """Fragments from different sections are not merged."""
     left = _table(
         table_id="t_left",
         section="risk_management",
@@ -84,6 +87,7 @@ def test_does_not_merge_different_sections() -> None:
 
 
 def test_does_not_merge_when_previous_fragment_looks_complete() -> None:
+    """Fragment with total-like row is treated as complete and not merged."""
     left = _table(
         table_id="t_left",
         section="risk_management",
@@ -103,10 +107,11 @@ def test_does_not_merge_when_previous_fragment_looks_complete() -> None:
 
     merged, events = merge_table_fragments([left, right], merge_score_min=0.85)
     assert len(merged) == 2
-    assert events == []
+    assert all(e.get("merge_type") != "fragment_merge" for e in events)
 
 
 def test_does_not_merge_near_duplicates() -> None:
+    """Near-duplicate tables with same indicators but different values are not merged."""
     left = _table(
         table_id="t_left",
         section="risk_management",
@@ -130,6 +135,7 @@ def test_does_not_merge_near_duplicates() -> None:
 
 
 def test_does_not_merge_unknown_sections() -> None:
+    """Fragments in unknown sections are not merged."""
     left = _table(
         table_id="t_left",
         section="unknown_section",
@@ -151,6 +157,7 @@ def test_does_not_merge_unknown_sections() -> None:
 
 
 def test_merge_pair_preserves_and_dedupes_footnotes() -> None:
+    """Merged table preserves footnotes from both fragments and deduplicates by id."""
     left = _table(
         table_id="t_left",
         section="risk_management",

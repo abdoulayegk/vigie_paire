@@ -1,4 +1,54 @@
-"""Strict intra-section comparator for T1/T2 tables."""
+"""
+Moteur de comparaison intra-section T1/T2 avec scoring multi-signaux (version legacy).
+
+Ce module implémente le moteur de pairing original, riche en signaux et en
+heuristiques. Il est encore utilisé par ``comparison_runner.py`` pour certaines
+fonctions (``match_decision``, ``match_tables_intra_section``) et pour la
+structure de données ``MatchDecision``.
+
+Le moteur actif pour le pipeline de production est ``table_pairing_engine.py``
+(``run_strict_intra_section_compare``). Ce module reste présent pour la
+rétrocompatibilité et pour les cas où le scoring détaillé de ``MatchDecision``
+est nécessaire.
+
+Architecture du scoring
+-----------------------
+Le score final d'une paire T1/T2 est une combinaison pondérée de plusieurs
+signaux indépendants :
+
+- **Chevauchement d'indicateurs** (``s_labels``) : similarité Jaccard et
+  containment entre les ensembles d'indicateurs canoniques des deux tableaux.
+  Signal le plus important (poids ~70 %).
+- **Indicateurs distinctifs** (``s_anchors``) : sous-ensemble d'indicateurs
+  rares (peu fréquents dans l'ensemble du corpus) qui servent d'ancres de
+  matching fiables.
+- **Similarité de titre** (``s_title``) : similarité textuelle entre les titres
+  normalisés (sans dates ni unités).
+- **Similarité de structure** (``s_structure``) : compatibilité des schémas
+  d'en-têtes (colonnes).
+- **Proximité de position** (``s_context``) : bonus de proximité basé sur le
+  numéro de page.
+- **Numéro de tableau** : bonus fort si les numéros correspondent, pénalité si
+  ils sont en conflit.
+- **Embeddings sémantiques** (optionnel) : similarité cosinus via un service
+  d'embedding externe.
+
+Règles de rejet dur (guard-rails)
+----------------------------------
+Certaines paires sont rejetées inconditionnellement avant le scoring :
+- Sections différentes (sauf si les deux sont ``unknown_section``).
+- Numéros de tableau en conflit explicite.
+- Ratio de taille trop déséquilibré (> 2.2x par défaut).
+- Chevauchement d'indicateurs trop faible (< seuil configurable).
+
+Classes principales
+-------------------
+- ``TableLabel`` : numéro logique normalisé d'un tableau (base + suffixe).
+- ``PairScoringContext`` : contexte partagé entre toutes les paires d'un run
+  (poids des indicateurs selon leur fréquence dans le corpus).
+- ``ScoreResult`` : score brut + flags de garde-fous pour une paire candidate.
+- ``MatchDecision`` : décision complète avec 30+ champs de diagnostic.
+"""
 
 from __future__ import annotations
 
@@ -134,7 +184,19 @@ _DEFAULTS: dict[str, float] = {
 
 
 def _load_compare_thresholds(bank_code: str | None = None) -> dict[str, float]:
-    """Read thresholds from config with hard-coded fallbacks."""
+    """Charger les seuils de comparaison depuis la config YAML avec replis codés en dur.
+
+    Tente de lire les seuils depuis ``get_matching_thresholds`` pour la banque
+    spécifiée. En cas d'échec (module absent, banque inconnue), utilise les
+    valeurs de ``_DEFAULTS``. Les valeurs de la config écrasent les valeurs par
+    défaut clé par clé.
+
+    Paramètres
+    ----------
+    bank_code:
+        Code banque pour charger des seuils spécifiques (ex. ``"rbc"``).
+        Si ``None``, charge les seuils globaux.
+    """
     try:
         from vigilance.config import get_matching_thresholds
 
@@ -171,7 +233,13 @@ def _infer_bank_code(
     tables_t1: list[TableArtifact],
     tables_t2: list[TableArtifact],
 ) -> str | None:
-    """Infer a unique bank code from table artifacts when available."""
+    """Déduire le code banque unique depuis les artefacts de tableaux.
+
+    Collecte tous les ``bank_code`` distincts présents dans les deux listes.
+    Retourne le code unique si tous les tableaux appartiennent à la même banque,
+    ou ``None`` si plusieurs banques sont détectées (cas anormal) ou si aucun
+    code n'est renseigné.
+    """
     candidates: set[str] = set()
     for table in [*tables_t1, *tables_t2]:
         code = str(getattr(table, "bank_code", "") or "").strip().lower()
@@ -192,10 +260,12 @@ UNKNOWN_SECTIONS = {"", "unknown", "unknown_section"}
 
 
 def _is_known_section(value: str | None) -> bool:
+    """Dire si une section porte une information exploitable pour le matching."""
     return bool(value and value.strip().lower() not in UNKNOWN_SECTIONS)
 
 
 def _table_uid(table: TableArtifact) -> str:
+    """Construire l'identifiant local stable utilisé dans les décisions de matching."""
     return f"{table.section}|{table.table_id}|p{table.page_pdf}"
 
 
@@ -204,6 +274,7 @@ _RBC_SIGNALS_CACHE_MAX = 500
 
 
 def _table_cache_key(table: TableArtifact) -> str:
+    """Construire une clé de cache pour les signaux dérivés d'un tableau."""
     return "|".join(
         [
             _table_uid(table),
@@ -216,6 +287,7 @@ def _table_cache_key(table: TableArtifact) -> str:
 
 
 def _get_rbc_signals(table: TableArtifact) -> Any | None:
+    """Calculer et mettre en cache les signaux structurels RBC de première colonne."""
     bank_code = str(getattr(table, "bank_code", "") or "").strip().lower()
     if not is_rbc_bank(bank_code):
         return None
@@ -238,6 +310,7 @@ def _table_title_reliability(
     table: TableArtifact,
     bank_code: str | None = None,
 ) -> str:
+    """Retourner la fiabilité estimée du titre, avec surcharges RBC si disponibles."""
     resolved_bank = bank_code or getattr(table, "bank_code", None)
     cached = getattr(table, "title_reliability", None)
     if cached:
@@ -246,6 +319,7 @@ def _table_title_reliability(
 
 
 def _use_rbc_first_column_enrichment(table: TableArtifact) -> bool:
+    """Dire si les signaux hiérarchiques RBC doivent influencer le matching."""
     if not is_rbc_bank(getattr(table, "bank_code", None)):
         return False
     explicit_groups = list(getattr(table, "first_column_groups", None) or [])
@@ -263,6 +337,24 @@ def _use_rbc_first_column_enrichment(table: TableArtifact) -> bool:
 
 @dataclass(slots=True, frozen=True)
 class TableLabel:
+    """Représentation normalisée du numéro logique d'un tableau.
+
+    Décompose un numéro de tableau en partie numérique (``base``) et suffixe
+    alphabétique optionnel (``suffix``). Par exemple, le tableau ``"28a"``
+    donne ``TableLabel(base="28", suffix="a")``.
+
+    Utilisé pour détecter les conflits de numérotation entre tableaux T1/T2 :
+    deux tableaux avec des numéros différents (ex. ``28`` vs ``29``) ne peuvent
+    pas être appariés, même si leurs indicateurs se ressemblent.
+
+    Attributs
+    ---------
+    base:
+        Partie numérique du numéro (ex. ``"28"``).
+    suffix:
+        Suffixe alphabétique en minuscules (ex. ``"a"``), ou chaîne vide.
+    """
+
     base: str
     suffix: str
 
@@ -275,6 +367,7 @@ _TABLE_NUMBER_SPLIT_RE = re.compile(r"^(\d+)([a-zA-Z]?)$")
 
 
 def _extract_table_label(table: TableArtifact) -> TableLabel | None:
+    """Extraire un label de tableau depuis ``table_number`` ou le titre."""
     raw_num = getattr(table, "table_number", None)
     if raw_num and str(raw_num).strip():
         m = _TABLE_NUMBER_SPLIT_RE.match(str(raw_num).strip())
@@ -308,6 +401,7 @@ def _canonical_indicator_label(value: str | None) -> str:
 
 
 def _indicator_set(table: TableArtifact) -> set[str]:
+    """Construire l'ensemble canonique d'indicateurs utilisés pour le matching."""
     if _use_rbc_first_column_enrichment(table):
         signals = _get_rbc_signals(table)
         if signals and signals.indicators_clean:
@@ -323,6 +417,23 @@ def _indicator_set(table: TableArtifact) -> set[str]:
 
 @dataclass(slots=True)
 class PairScoringContext:
+    """Contexte local de scoring partagé entre toutes les paires d'un run.
+
+    Ce contexte est calculé une seule fois par run et passé à toutes les
+    fonctions de scoring pour éviter de recalculer les poids des indicateurs
+    à chaque paire.
+
+    Attributs
+    ---------
+    indicator_weights:
+        Dictionnaire ``{indicateur_canonique: poids}`` où le poids est inversement
+        proportionnel à la fréquence de l'indicateur dans le corpus (indicateurs
+        rares = poids élevé = meilleure ancre de matching).
+    total_tables:
+        Nombre total de tableaux dans le run (T1 + T2), utilisé pour normaliser
+        les poids.
+    """
+
     indicator_weights: dict[str, float]
     total_tables: int
 
@@ -357,6 +468,7 @@ def _indicator_sequence(table: TableArtifact) -> list[str]:
 
 
 def _serialize_ineligible_table(table: TableArtifact, *, side: str) -> dict[str, Any]:
+    """Sérialiser un tableau exclu avant comparaison pour audit et debug."""
     return {
         f"{side}_uid": _table_uid(table),
         f"{side}_table_id": table.table_id,
@@ -375,6 +487,7 @@ def _partition_comparison_ready(
     *,
     side: str,
 ) -> tuple[list[TableArtifact], list[dict[str, Any]]]:
+    """Séparer les tableaux comparables des tableaux bloqués par la qualité."""
     eligible: list[TableArtifact] = []
     blocked: list[dict[str, Any]] = []
     for table in tables:
@@ -412,6 +525,7 @@ def _weighted_jaccard(
     *,
     weights: dict[str, float],
 ) -> float:
+    """Calculer un Jaccard pondéré pour favoriser les indicateurs distinctifs."""
     if not left or not right:
         return 0.0
     universe = left | right
@@ -429,6 +543,7 @@ def _window_overlap(
     window: str,
     size: int = 5,
 ) -> float:
+    """Mesurer le recouvrement local au début, milieu ou à la fin des séquences."""
     if not sequence_a or not sequence_b:
         return 0.0
     if window == "top":
@@ -449,6 +564,7 @@ def _window_overlap(
 
 
 def _lcs_normalized(sequence_a: list[str], sequence_b: list[str]) -> float:
+    """Mesurer la similarité d'ordre via la longueur normalisée de la LCS."""
     if not sequence_a or not sequence_b:
         return 0.0
     rows = len(sequence_a)
@@ -464,6 +580,7 @@ def _lcs_normalized(sequence_a: list[str], sequence_b: list[str]) -> float:
 
 
 def _row_count_ratio(table_a: TableArtifact, table_b: TableArtifact) -> float:
+    """Mesurer l'écart de taille entre deux tableaux à partir de leurs lignes utiles."""
     _, rows_a = _table_shape(table_a)
     _, rows_b = _table_shape(table_b)
     if rows_a <= 0 or rows_b <= 0:
@@ -477,6 +594,7 @@ def _build_pair_metrics(
     *,
     scoring_context: PairScoringContext | None = None,
 ) -> dict[str, float]:
+    """Assembler les métriques brutes de similarité pour une paire de tableaux."""
     set_a = _indicator_set(table_t1)
     set_b = _indicator_set(table_t2)
     overlap = set_a & set_b
@@ -659,6 +777,7 @@ def explain_match(
 
 
 def _jaccard(table_a: TableArtifact, table_b: TableArtifact) -> float:
+    """Calculer le recouvrement Jaccard des indicateurs de deux tableaux."""
     a = _indicator_set(table_a)
     b = _indicator_set(table_b)
     if not a or not b:
@@ -667,6 +786,7 @@ def _jaccard(table_a: TableArtifact, table_b: TableArtifact) -> float:
 
 
 def _indicator_containment(table_a: TableArtifact, table_b: TableArtifact) -> float:
+    """Mesurer le containment des indicateurs entre deux tableaux."""
     a = _indicator_set(table_a)
     b = _indicator_set(table_b)
     if not a or not b:
@@ -712,6 +832,7 @@ def _soft_label_overlap(table_a: TableArtifact, table_b: TableArtifact) -> float
 
 
 def _normalize_title(value: str | None) -> str:
+    """Normaliser un titre en retirant ponctuation et variations superficielles."""
     text = (value or "").strip().lower()
     if not text:
         return ""
@@ -739,6 +860,7 @@ def _is_date_only_title(value: str | None) -> bool:
 def _title_similarity(
     table_a: TableArtifact, table_b: TableArtifact, bank_code: str | None = None
 ) -> float:
+    """Comparer les titres utiles de deux tableaux en ignorant le bruit de présentation."""
     effective_bank_code = bank_code or _infer_bank_code([table_a], [table_b])
     if is_header_footer_table_title(
         table_a.title, effective_bank_code
@@ -766,6 +888,7 @@ def _title_body_without_table_number(
 
 
 def _table_shape(table: TableArtifact) -> tuple[int, int]:
+    """Retourner la forme logique d'un tableau sous forme ``(colonnes, lignes)``."""
     header_cols = len(table.headers or [])
     if header_cols <= 0:
         header_cols = max((len(row) for row in (table.rows or []) if row), default=0)
@@ -776,6 +899,7 @@ def _table_shape(table: TableArtifact) -> tuple[int, int]:
 
 
 def _structure_similarity(table_a: TableArtifact, table_b: TableArtifact) -> float:
+    """Comparer la forme générale et les en-têtes de deux tableaux."""
     cols_a, rows_a = _table_shape(table_a)
     cols_b, rows_b = _table_shape(table_b)
 
@@ -790,6 +914,7 @@ def _structure_similarity(table_a: TableArtifact, table_b: TableArtifact) -> flo
 
 
 def _position_proximity(table_a: TableArtifact, table_b: TableArtifact) -> float:
+    """Mesurer la proximité de pagination entre deux tableaux candidats."""
     page_a = int(table_a.page_pdf or 0)
     page_b = int(table_b.page_pdf or 0)
     if page_a <= 0 or page_b <= 0:
@@ -800,6 +925,7 @@ def _position_proximity(table_a: TableArtifact, table_b: TableArtifact) -> float
 
 
 def _context_heading(table: TableArtifact) -> str:
+    """Extraire le meilleur contexte de section ou sous-titre disponible."""
     headers = [str(h).strip() for h in (table.headers or []) if str(h).strip()]
     if headers:
         return " | ".join(headers[:3])
@@ -809,6 +935,7 @@ def _context_heading(table: TableArtifact) -> str:
 def _context_heading_similarity(
     table_a: TableArtifact, table_b: TableArtifact
 ) -> float:
+    """Comparer les contextes de section pour renforcer les matchs plausibles."""
     left = _normalize_title(_context_heading(table_a))
     right = _normalize_title(_context_heading(table_b))
     if not left or not right:
@@ -817,6 +944,7 @@ def _context_heading_similarity(
 
 
 def _section_state(table_t1: TableArtifact, table_t2: TableArtifact) -> str:
+    """Qualifier l'état des sections entre deux tableaux pour les règles métier."""
     left_known = _is_known_section(table_t1.section)
     right_known = _is_known_section(table_t2.section)
     if left_known and right_known:
@@ -829,6 +957,7 @@ def _section_state(table_t1: TableArtifact, table_t2: TableArtifact) -> str:
 def _sections_candidate_compatible(
     table_t1: TableArtifact, table_t2: TableArtifact
 ) -> bool:
+    """Appliquer la règle métier de compatibilité de sections pour une paire candidate."""
     return _section_state(table_t1, table_t2) != "mismatch_known"
 
 
@@ -933,6 +1062,7 @@ def _rbc_structural_bonus(
     indicator_containment: float,
     header_schema_similarity_score: float,
 ) -> float:
+    """Ajouter un bonus limité quand la hiérarchie RBC confirme une paire plausible."""
     if not is_rbc_bank(bank_code):
         return 0.0
     if not (
@@ -977,6 +1107,7 @@ def _composite_score(
     context_signal: float,
     thresholds: dict[str, float] | None = None,
 ) -> float:
+    """Combiner les signaux principaux en un score unique configurable."""
     th = thresholds or {}
     weights = {
         "coverage": float(th.get("weight_coverage", 0.30)),
@@ -1013,6 +1144,7 @@ class ScoreResult:
 
 @dataclass(slots=True)
 class MatchDecision:
+    """Décision détaillée de matching pour une paire T1/T2 candidate."""
     is_match: bool
     reason: str
     score: float
@@ -1116,6 +1248,7 @@ def _top_candidates_for_row(
     t2_list: list[TableArtifact],
     limit: int = 3,
 ) -> list[dict[str, Any]]:
+    """Exporter les meilleurs candidats T2 d'une ligne de la matrice de score."""
     ranked = sorted(
         [
             (float(scores[row_index, j]), j)
@@ -1163,6 +1296,7 @@ def _top_candidates_for_column(
     t1_list: list[TableArtifact],
     limit: int = 3,
 ) -> list[dict[str, Any]]:
+    """Exporter les meilleurs candidats T1 d'une colonne de la matrice de score."""
     ranked = sorted(
         [
             (float(scores[i, col_index]), i)
@@ -1203,6 +1337,7 @@ def _top_candidates_for_column(
 
 
 def _score_margin(candidates: list[dict[str, Any]]) -> float | None:
+    """Calculer l'écart entre le meilleur score et son poursuivant immédiat."""
     if len(candidates) < 2:
         return None
     return float(candidates[0]["score"]) - float(candidates[1]["score"])
@@ -1245,6 +1380,7 @@ def _collect_suspicion_flags(
     row_margin: float | None,
     col_margin: float | None,
 ) -> list[str]:
+    """Dériver des drapeaux de suspicion pour les paires proches mais risquées."""
     flags: list[str] = []
     if decision.coverage_min < float(thresholds.get("suspicious_coverage_min", 0.50)):
         flags.append("low_coverage")
@@ -1280,6 +1416,7 @@ def _collect_candidate_suspicion_flags(
     *,
     thresholds: dict[str, float],
 ) -> list[str]:
+    """Calculer les drapeaux de suspicion d'un candidat déjà sérialisé."""
     if not candidate:
         return []
     flags: list[str] = []
@@ -1317,6 +1454,7 @@ def _rebuild_decision_with_level(
     *,
     decision_level: str,
 ) -> MatchDecision:
+    """Rejouer une décision avec un niveau cible sans recalculer les métriques."""
     return MatchDecision(
         is_match=(decision_level == "match"),
         reason=decision.reason,
@@ -1375,6 +1513,7 @@ def _run_hungarian_assignment(
     embedding_service: EmbeddingService | None,
     use_post_threshold: bool,
 ) -> dict[str, Any]:
+    """Exécuter l'assignation hongroise et produire diagnostics et ambiguïtés."""
     if not t1_list or not t2_list:
         return {
             "assignments": [],
@@ -2808,6 +2947,7 @@ def _allow_rbc_split_merge_rescue(
     union_containment: float,
     schema_score: float,
 ) -> bool:
+    """Restreindre les rescues split/merge RBC aux cas suffisamment étayés."""
     if not is_rbc_bank(bank_code):
         return True
 

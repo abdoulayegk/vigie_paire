@@ -24,5 +24,5 @@ def get_patterns(bank_code: str | None = None) -> dict[str, Any] | None:
         Dictionnaire de patterns ou None si aucun pattern n'est configure.
     """
     # Stub: pas de fichier de config des patterns pour l'instant.
-    # Les appelants (docling_processor, table_image_extractor) gerent None.
+    # Les appelants gerent None.
     return None

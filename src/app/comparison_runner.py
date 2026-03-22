@@ -1,4 +1,38 @@
-"""Run current-vs-previous quarter comparison from uploaded PDFs and section ranges."""
+"""
+Orchestrateur principal de la comparaison trimestrielle T1 vs T2.
+
+Ce module est le point d'entrée central du pipeline de comparaison. Il est appelé
+par l'interface Dash lorsque l'analyste soumet deux rapports PDF (trimestre précédent
+T1 et trimestre courant T2) pour détecter les changements dans les tableaux financiers.
+
+Responsabilités principales
+----------------------------
+1. Résolution de la configuration (code banque, seuils, activation Vision GPT-4o).
+2. Conversion des tableaux extraits en ``TableArtifact`` canoniques.
+3. Appel à ``run_strict_intra_section_compare`` pour associer les tableaux T1/T2
+   par section réglementaire (capital, risques, etc.).
+4. Pour chaque paire de tableaux appariés :
+   - Détection des indicateurs ajoutés, supprimés ou renommés via ``_indicator_diff``.
+   - Détection des changements de notes de bas de page via ``FootnoteComparator``.
+5. Journalisation structurée des décisions de matching et de validation (fichiers JSONL).
+6. Production du dictionnaire de résultats consommé par l'interface Dash.
+
+Flux de données simplifié
+--------------------------
+PDF T1 + PDF T2
+    → extraction Docling (+ Vision GPT-4o optionnel)
+    → TableArtifact[]
+    → run_strict_intra_section_compare  (table_pairing_engine)
+    → paires / tableaux ajoutés / tableaux supprimés / ambigus
+    → _indicator_diff  (indicator_diff_engine)
+    → FootnoteComparator  (footnote_comparator)
+    → résultat complet affiché dans l'interface Dash
+
+Variables d'environnement pertinentes
+--------------------------------------
+- ``VIGILANCE_VISION_EXTRACTION_ENABLED`` : active/désactive l'extraction Vision GPT-4o
+  (valeurs acceptées : "1", "true", "yes", "on" / "0", "false", "no", "off").
+"""
 
 from __future__ import annotations
 
@@ -51,7 +85,10 @@ _SEMANTIC_JUDGE_LOG = LOGS_DIR / "semantic_judge_decisions.jsonl"
 _VALIDATION_LOG = LOGS_DIR / "validation.jsonl"
 from vigilance.compare import run_strict_intra_section_compare
 from vigilance.compare.footnote_comparator import FootnoteComparator
-from vigilance.compare.table_fragment_merger import merge_table_fragments
+from vigilance.compare.table_fragment_merger import (
+    merge_table_fragments,
+    merge_table_sequence,
+)
 from vigilance.config import (
     get_matching_thresholds,
     get_quality_gate_config,
@@ -99,6 +136,12 @@ _INDICATOR_DIFF_DEBUG_LOG = LOGS_DIR / "indicator_diff_debug.jsonl"
 
 
 def _env_bool(name: str) -> bool | None:
+    """Lire une variable d'environnement booléenne avec parsing permissif.
+
+    Retourne ``True`` si la valeur fait partie de ``_ENV_TRUE``, ``False`` si
+    elle fait partie de ``_ENV_FALSE``, et ``None`` si la variable est absente
+    ou contient une valeur non reconnue.
+    """
     raw = os.environ.get(name)
     if raw is None:
         return None
@@ -116,7 +159,27 @@ def _resolve_vision_extraction_enabled(
     *,
     allow_env_legacy: bool = True,
 ) -> bool:
-    """Resolution order: explicit > env > bank config."""
+    """Déterminer si l'extraction Vision GPT-4o doit être activée pour cette banque.
+
+    L'ordre de priorité est le suivant (du plus prioritaire au moins prioritaire) :
+    1. Paramètre explicite passé à la fonction (``explicit``).
+    2. Variable d'environnement ``VIGILANCE_VISION_EXTRACTION_ENABLED`` (si
+       ``allow_env_legacy`` est ``True``).
+    3. Clé ``enabled`` dans la configuration YAML de la banque
+       (``get_vision_extraction_config``).
+    4. ``False`` par défaut si aucune source ne spécifie de valeur.
+
+    Paramètres
+    ----------
+    bank_code:
+        Code identifiant la banque (ex. ``"rbc"``).
+    explicit:
+        Valeur forcée par l'appelant ; si ``None``, la résolution continue
+        vers les sources suivantes.
+    allow_env_legacy:
+        Si ``False``, la variable d'environnement est ignorée (utile pour les
+        tests unitaires qui ne doivent pas dépendre de l'environnement).
+    """
     if explicit is not None:
         return bool(explicit)
     if allow_env_legacy:
@@ -135,7 +198,15 @@ def _resolve_vision_extraction_enabled(
 
 
 def _write_match_decision_log(record: dict[str, Any]) -> None:
-    """Append a structured audit record to the JSONL match-decision log."""
+    """Ajouter un enregistrement d'audit structuré au journal JSONL des décisions de matching.
+
+    Chaque ligne du fichier ``match_decisions.jsonl`` correspond à une décision
+    prise par le moteur de pairing pour une paire de tableaux T1/T2. Ces journaux
+    permettent de retracer et d'auditer les choix algorithmiques après coup.
+
+    Les erreurs d'écriture sont silencieuses (niveau DEBUG) pour ne pas interrompre
+    le pipeline principal.
+    """
     try:
         with open(_MATCH_DECISIONS_LOG, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
@@ -144,7 +215,15 @@ def _write_match_decision_log(record: dict[str, Any]) -> None:
 
 
 def _write_validation_log(record: dict[str, Any], *, run_id: str | None = None) -> None:
-    """Append a structured validation record to the JSONL validation log."""
+    """Ajouter un enregistrement de validation structuré au journal JSONL de validation.
+
+    Le journal ``validation.jsonl`` trace les résultats des contrôles qualité
+    appliqués aux tableaux extraits (statut d'extraction, blocages, confiance).
+    Si ``run_id`` est fourni et absent du ``record``, il est injecté automatiquement
+    pour permettre de regrouper tous les enregistrements d'un même run.
+
+    Les erreurs d'écriture sont silencieuses (niveau DEBUG).
+    """
     try:
         payload = dict(record or {})
         if run_id and not payload.get("run_id"):
@@ -156,9 +235,27 @@ def _write_validation_log(record: dict[str, Any], *, run_id: str | None = None) 
 
 
 def _compare_table_footnotes(t1: TableArtifact, t2: TableArtifact) -> dict[str, Any]:
-    """Compare footnotes between two matched TableArtifacts.
+    """Comparer les notes de bas de page entre deux tableaux appariés.
 
-    Returns a dict with keys: added, removed, modified, counts.
+    Les notes de bas de page contiennent souvent des informations critiques sur
+    les changements méthodologiques et les mises à jour réglementaires (Bâle III,
+    BSIF, IFRS 9, etc.). Cette fonction délègue la comparaison au
+    ``FootnoteComparator`` et retourne un dictionnaire structuré.
+
+    Paramètres
+    ----------
+    t1:
+        Tableau du trimestre précédent.
+    t2:
+        Tableau du trimestre courant.
+
+    Retourne
+    --------
+    Un dictionnaire avec les clés :
+    - ``added`` : liste des nouvelles notes (absentes en T1, présentes en T2).
+    - ``removed`` : liste des notes supprimées (présentes en T1, absentes en T2).
+    - ``modified`` : liste des notes dont le contenu a changé entre T1 et T2.
+    - ``counts`` : dictionnaire ``{added, removed, modified}`` avec les décomptes.
     """
     dict1 = footnotes_list_to_dict(get_canonical_footnotes(t1))
     dict2 = footnotes_list_to_dict(get_canonical_footnotes(t2))
@@ -190,10 +287,25 @@ def _compare_table_footnotes(t1: TableArtifact, t2: TableArtifact) -> dict[str, 
 
 
 def _section_uid(table: TableArtifact) -> str:
+    """Construire un identifiant stable et unique pour un tableau dans le pipeline.
+
+    Le format ``<section>|<table_id>|p<page>`` permet d'identifier sans ambiguïté
+    un tableau même lorsque plusieurs tableaux partagent le même ``table_id`` sur
+    des pages différentes ou dans des sections différentes.
+    """
     return f"{table.section}|{table.table_id}|p{table.page_pdf}"
 
 
 def _canonical_section_name(raw: str) -> str:
+    """Normaliser un nom de section brut vers la taxonomie canonique du comparateur.
+
+    Tente d'abord d'utiliser ``canonicalize_section`` depuis le module de taxonomie.
+    En cas d'échec (module absent), applique des règles de repli simples basées sur
+    des mots-clés (``capital``, ``fonds propres``, ``risque``) avant de convertir
+    le nom en identifiant ``snake_case``.
+
+    Retourne ``"unknown_section"`` si la chaîne d'entrée est vide ou non reconnue.
+    """
     value = (raw or "").strip()
     if not value:
         return "unknown_section"
@@ -212,6 +324,16 @@ def _canonical_section_name(raw: str) -> str:
 
 
 def _normalize_ranges(sections: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    """Nettoyer et homogénéiser les plages de sections passées au runner.
+
+    Accepte des dictionnaires avec les clés ``start_page``/``end_page`` et
+    ``type``/``section``/``label`` (plusieurs formats supportés pour la
+    rétrocompatibilité). Les entrées invalides (page de début ≤ 0, type absent)
+    sont silencieusement ignorées. Le résultat est trié par page de début.
+
+    Retourne une liste de dictionnaires normalisés avec les clés
+    ``section``, ``start`` et ``end``.
+    """
     result: list[dict[str, Any]] = []
     for item in sections or []:
         if not isinstance(item, dict):
@@ -232,6 +354,14 @@ def _normalize_ranges(sections: list[dict[str, Any]] | None) -> list[dict[str, A
 
 
 def _infer_year(*paths: str) -> int:
+    """Déduire l'année depuis des chemins de fichiers ou des libellés de trimestre.
+
+    Parcourt les valeurs fournies dans l'ordre et retourne la première année
+    valide trouvée via une expression régulière ``(19|20)\\d{2}``. Si aucune
+    valeur ne contient d'année, retourne l'année courante du système.
+
+    Exemple : ``_infer_year("Q1-2025", "/data/rbc_q1.pdf")`` → ``2025``.
+    """
     for value in paths:
         match = re.search(r"(19|20)\d{2}", str(value))
         if match:
@@ -250,6 +380,45 @@ def _table_to_artifact(
     bbox_top: float | None = None,
     page_local_role: str | None = None,
 ) -> TableArtifact:
+    """Convertir une table extraite (Docling/Vision) en ``TableArtifact`` canonique.
+
+    Cette fonction applique plusieurs passes de normalisation et d'enrichissement
+    avant de construire le ``TableArtifact`` final utilisé par le moteur de
+    comparaison :
+
+    1. **Source de contenu** : détermine si les indicateurs proviennent de Docling
+       ou de GPT-4o Vision (``infer_content_source``).
+    2. **Signaux RBC** : si la banque est RBC et que des indicateurs Vision sont
+       disponibles, calcule la hiérarchie de la première colonne
+       (``build_rbc_first_column_signals``).
+    3. **Passe qualité 1** : fusionne les indicateurs coupés sur plusieurs lignes
+       par l'extraction (``merge_line_split_indicators``).
+    4. **Passe qualité 2** : déduplique les indicateurs si le taux de doublons
+       dépasse 15 % (``dedupe_indicators``).
+    5. **Normalisation** : applique ``normalize_indicator_for_comparison`` puis
+       ``post_normalize_indicator`` sur chaque indicateur.
+    6. **Notes de bas de page** : normalise les footnotes vers le format canonique.
+    7. **Fiabilité du titre** : évalue la fiabilité du titre extrait pour RBC.
+
+    Paramètres
+    ----------
+    table:
+        Objet brut retourné par Docling (``ExtractedTable`` ou compatible).
+    bank_code:
+        Code banque (ex. ``"rbc"``).
+    quarter:
+        Libellé du trimestre (ex. ``"Q1-2025"``).
+    pdf_path:
+        Chemin vers le PDF source.
+    table_index_on_page:
+        Position ordinale du tableau sur sa page (utile pour le scoring de position).
+    tables_on_page:
+        Nombre total de tableaux sur la même page.
+    bbox_top:
+        Coordonnée verticale normalisée du haut du tableau (0..1).
+    page_local_role:
+        Rôle structurel du tableau sur la page (ex. ``"first"``, ``"last"``).
+    """
     rows = [list(row) for row in (getattr(table, "rows", []) or [])]
     headers = [str(h) for h in (getattr(table, "headers", []) or []) if h is not None]
     extraction_method = getattr(table, "extraction_method", None) or "docling"
@@ -385,6 +554,49 @@ def _extract_tables(
     extraction_base_dir: str | None = None,
     return_provenance: bool = False,
 ) -> list[TableArtifact] | tuple[list[TableArtifact], dict[str, Any]]:
+    """Extraire les tableaux d'un PDF, en privilégiant une extraction stockée si disponible.
+
+    Cette fonction implémente une stratégie d'extraction en deux niveaux :
+
+    1. **Extraction stockée** (si ``use_stored_extraction_if_available`` est ``True``) :
+       tente de charger une extraction précédemment sauvegardée depuis
+       ``extraction_base_dir``. Si le manifeste stocké est compatible avec les
+       paramètres actuels (même PDF, mêmes plages, même mode), l'extraction est
+       réutilisée pour éviter de relancer GPT-4o Vision (coûteux).
+
+    2. **Extraction fraîche** : si aucune extraction stockée valide n'est trouvée,
+       lance ``extract_tables_docling_by_sections`` sur les plages de sections
+       fournies.
+
+    La fonction compare également les snapshots (nombre de tableaux comparables,
+    indicateurs Vision disponibles) pour décider si l'extraction fraîche est
+    meilleure que la stockée (``_prefer_stored_over_fresh``).
+
+    Paramètres
+    ----------
+    pdf_path:
+        Chemin vers le PDF à extraire.
+    bank_code:
+        Code banque (ex. ``"rbc"``).
+    quarter:
+        Libellé du trimestre (ex. ``"Q1-2025"``).
+    year:
+        Année numérique du trimestre.
+    section_ranges:
+        Liste des plages de sections à extraire (``[{section, start, end}]``).
+    api_key:
+        Clé API OpenAI pour l'extraction Vision GPT-4o (``None`` désactive Vision).
+    use_vision_extraction:
+        Force l'activation ou la désactivation de Vision ; ``None`` délègue à la
+        résolution automatique (``_resolve_vision_extraction_enabled``).
+    use_stored_extraction_if_available:
+        Si ``True``, tente de charger une extraction précédemment stockée.
+    extraction_base_dir:
+        Répertoire racine des extractions stockées (défaut : ``outputs/extractions``).
+    return_provenance:
+        Si ``True``, retourne un tuple ``(tables, provenance_dict)`` au lieu de la
+        simple liste de tableaux.
+    """
     from pathlib import Path as _Path
 
     from vigilance.extraction.docling_processor import (
@@ -837,6 +1049,7 @@ def _pre_diff_safety_check(
 def _build_unmatched_candidate_maps(
     strict: dict[str, Any],
 ) -> tuple[dict[str, list[dict[str, Any]]], dict[str, list[dict[str, Any]]]]:
+    """Indexer les candidats debug des tableaux non appariés par UID source."""
     row_map: dict[str, list[dict[str, Any]]] = {}
     for item in strict.get("debug_unmatched_candidates", []) or []:
         if not isinstance(item, dict):
@@ -856,6 +1069,7 @@ def _build_unmatched_candidate_maps(
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
+    """Convertir en flottant avec une valeur de repli robuste."""
     try:
         return float(value)
     except (TypeError, ValueError):
@@ -863,6 +1077,7 @@ def _safe_float(value: Any, default: float = 0.0) -> float:
 
 
 def _safe_int(value: Any, default: int = 0) -> int:
+    """Convertir en entier avec une valeur de repli robuste."""
     try:
         return int(value)
     except (TypeError, ValueError):
@@ -870,6 +1085,7 @@ def _safe_int(value: Any, default: int = 0) -> int:
 
 
 def _candidate_pair_priority(entry: dict[str, Any]) -> tuple[int, float]:
+    """Classer les rescues candidats par source puis par force de signal agrégée."""
     source = str(entry.get("source", "") or "")
     if source == "suspicious_pair":
         source_rank = 0
@@ -890,6 +1106,7 @@ def _candidate_pair_priority(entry: dict[str, Any]) -> tuple[int, float]:
 
 
 def _iter_unique_preserve_order(values: list[str]) -> list[str]:
+    """Dédupliquer une séquence de chaînes en conservant l'ordre initial."""
     seen: set[str] = set()
     out: list[str] = []
     for value in values:
@@ -900,6 +1117,7 @@ def _iter_unique_preserve_order(values: list[str]) -> list[str]:
 
 
 def _table_rescue_indicator_sequence(table: TableArtifact) -> list[str]:
+    """Construire la séquence d'indicateurs utilisée pour le reranking de rescue."""
     indicators = _all_indicators_value_clean_ordered(table)
     out: list[str] = []
     seen: set[str] = set()
@@ -913,10 +1131,12 @@ def _table_rescue_indicator_sequence(table: TableArtifact) -> list[str]:
 
 
 def _table_rescue_title_text(table: TableArtifact) -> str:
+    """Retourner le meilleur titre textuel exploitable pour les rescues."""
     return normalize_indicator_for_comparison(str(getattr(table, "title", "") or ""))
 
 
 def _table_rescue_headers_text(table: TableArtifact) -> str:
+    """Aplatir les en-têtes d'un tableau en texte pour les heuristiques de rescue."""
     headers = [
         str(h).strip()
         for h in (getattr(table, "headers", None) or [])
@@ -926,6 +1146,7 @@ def _table_rescue_headers_text(table: TableArtifact) -> str:
 
 
 def _table_rescue_fingerprint(table: TableArtifact) -> str:
+    """Composer une empreinte textuelle courte pour comparer des candidats de rescue."""
     seq = _table_rescue_indicator_sequence(table)
     if not seq:
         content = ""
@@ -942,6 +1163,7 @@ def _table_rescue_fingerprint(table: TableArtifact) -> str:
 
 
 def _sequence_ratio(left: str, right: str) -> float:
+    """Calculer une similarité séquentielle légère entre deux textes déjà nettoyés."""
     if not left or not right:
         return 0.0
     return SequenceMatcher(None, left, right).ratio()
@@ -950,6 +1172,7 @@ def _sequence_ratio(left: str, right: str) -> float:
 def _indicator_jaccard_from_tables(
     table_a: TableArtifact, table_b: TableArtifact
 ) -> float:
+    """Calculer un Jaccard simple entre les séquences d'indicateurs de deux tableaux."""
     seq_a = set(_table_rescue_indicator_sequence(table_a))
     seq_b = set(_table_rescue_indicator_sequence(table_b))
     if not seq_a or not seq_b:
@@ -960,6 +1183,7 @@ def _indicator_jaccard_from_tables(
 def _table_rescue_row_count_ratio(
     table_a: TableArtifact, table_b: TableArtifact
 ) -> float:
+    """Mesurer l'écart de taille entre deux tableaux lors du rescue."""
     rows_a = len(getattr(table_a, "rows", None) or [])
     rows_b = len(getattr(table_b, "rows", None) or [])
     if rows_a <= 0 or rows_b <= 0:
@@ -970,6 +1194,7 @@ def _table_rescue_row_count_ratio(
 def _table_rescue_page_proximity(
     table_a: TableArtifact, table_b: TableArtifact
 ) -> float:
+    """Mesurer la proximité de pagination utilisée pour le reranking de rescue."""
     page_a = _safe_int(getattr(table_a, "page_pdf", 0), 0)
     page_b = _safe_int(getattr(table_b, "page_pdf", 0), 0)
     if page_a <= 0 or page_b <= 0:
@@ -979,6 +1204,7 @@ def _table_rescue_page_proximity(
 
 
 def _candidate_gap(candidates: list[dict[str, Any]]) -> float | None:
+    """Calculer l'écart entre les deux meilleurs scores d'une liste de candidats."""
     if len(candidates) < 2:
         return None
     return _safe_float(candidates[0].get("score")) - _safe_float(
@@ -992,6 +1218,7 @@ def _rerank_vision_candidate(
     target_table: TableArtifact,
     candidate_payload: dict[str, Any] | None,
 ) -> dict[str, Any]:
+    """Réordonner un candidat strict avec des signaux Vision et de structure additionnels."""
     title_ratio = _sequence_ratio(
         _table_rescue_title_text(source_table),
         _table_rescue_title_text(target_table),
@@ -1069,6 +1296,7 @@ def _collect_vision_rescue_candidates(
     cross_section_rescue_enabled: bool = False,
     cross_section_rerank_min: float = 0.30,
 ) -> tuple[list[dict[str, Any]], int]:
+    """Collecter puis reranker les candidats de rescue issus des sorties strictes."""
     row_candidates_map, col_candidates_map = _build_unmatched_candidate_maps(strict)
     pairs = strict.get("pairs", []) or []
     paired_t1: set[str] = set()
@@ -1283,6 +1511,108 @@ def _collect_vision_rescue_candidates(
     return candidate_entries, len(source_specs)
 
 
+def _semantic_unmatched_confirms_no_match(result: Any) -> bool:
+    """True when the unmatched semantic judge explicitly confirms no-match."""
+    if not isinstance(result, dict):
+        return False
+    final_decision = str(
+        result.get("final_decision", "")
+        or result.get("final_decision_after_guard", "")
+        or ""
+    ).strip()
+    return final_decision.lower() == "no_match"
+
+
+def _upsert_review_candidate(
+    review_candidates: list[dict[str, Any]],
+    candidate: dict[str, Any],
+) -> None:
+    """Merge a review candidate by (side, uid) to avoid duplicate queue entries."""
+    side = str(candidate.get("side", "")).strip()
+    uid = str(candidate.get("uid", "")).strip()
+    if not side or not uid:
+        review_candidates.append(candidate)
+        return
+
+    for existing in review_candidates:
+        if (
+            str(existing.get("side", "")).strip() == side
+            and str(existing.get("uid", "")).strip() == uid
+        ):
+            reason = str(candidate.get("reason", "")).strip()
+            if reason:
+                reason_codes = list(existing.get("reason_codes", []) or [])
+                existing_reason = str(existing.get("reason", "")).strip()
+                if existing_reason and existing_reason not in reason_codes:
+                    reason_codes.append(existing_reason)
+                if reason not in reason_codes:
+                    reason_codes.append(reason)
+                existing["reason_codes"] = reason_codes
+            for key, value in candidate.items():
+                if key in ("side", "uid"):
+                    continue
+                if value not in (None, "", [], {}):
+                    existing[key] = value
+            return
+
+    review_candidates.append(candidate)
+
+
+def _pending_unmatched_review_candidate(
+    *,
+    side: str,
+    uid: str,
+    table_id: str,
+    section: str,
+    page: Any,
+    title: str,
+    reason: str,
+    source_reason: str = "",
+    semantic_judge: dict[str, Any] | None = None,
+    validation: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build a first-class review candidate for an unmatched table awaiting confirmation."""
+    payload: dict[str, Any] = {
+        "side": side,
+        "uid": uid,
+        "table_id": table_id,
+        "section": section,
+        "page": page,
+        "title": title,
+        "reason": reason,
+        "reason_codes": [reason],
+        "confirmation_status": "pending_review",
+    }
+    if source_reason:
+        payload["source_reason"] = source_reason
+    if semantic_judge:
+        payload["semantic_judge"] = semantic_judge
+    if validation:
+        payload["validation"] = validation
+    return payload
+
+
+def _materialize_pair_table(
+    *,
+    primary_uid: str,
+    by_uid: dict[str, TableArtifact],
+    extra_uids: list[str] | None = None,
+) -> TableArtifact | None:
+    """Return primary table, or a synthetic merged table when extra members exist."""
+    primary = by_uid.get(str(primary_uid or "").strip())
+    if primary is None:
+        return None
+    extras = [
+        by_uid[uid]
+        for uid in [str(item or "").strip() for item in (extra_uids or [])]
+        if uid and uid in by_uid and uid != str(primary_uid or "").strip()
+    ]
+    if not extras:
+        return primary
+    merged = merge_table_sequence([primary, *extras])
+    return merged or primary
+
+
 def _rebuild_strict_unmatched_state(
     *,
     strict: dict[str, Any],
@@ -1291,6 +1621,7 @@ def _rebuild_strict_unmatched_state(
     uncertain_t1_uids: set[str],
     uncertain_t2_uids: set[str],
 ) -> None:
+    """Reconstruire les listes d'unmatched après application des rescues Vision."""
     unmatched_t1 = []
     for item in strict.get("unmatched_t1", []) or []:
         t1_uid = str(item.get("t1_uid", "")).strip()
@@ -1350,8 +1681,39 @@ def _rebuild_strict_unmatched_state(
         if str(item.get("t1_uid", "")).strip() not in rescued_t1_uids
         and str(item.get("t1_uid", "")).strip() not in uncertain_t1_uids
     ]
-    strict["added_tables_confirmed"] = list(strict.get("added_tables", []) or [])
-    strict["removed_tables_confirmed"] = list(strict.get("removed_tables", []) or [])
+
+    is_recall_first = (
+        strict.get("matching_diagnostics", {}).get("engine") == "recall_first"
+    )
+
+    if is_recall_first:
+        strict["added_tables_confirmed"] = [
+            item
+            for item in strict.get("added_tables_confirmed", []) or []
+            if str(item.get("t2_uid", "")).strip() not in rescued_t2_uids
+            and str(item.get("t2_uid", "")).strip() not in uncertain_t2_uids
+        ]
+        strict["removed_tables_confirmed"] = [
+            item
+            for item in strict.get("removed_tables_confirmed", []) or []
+            if str(item.get("t1_uid", "")).strip() not in rescued_t1_uids
+            and str(item.get("t1_uid", "")).strip() not in uncertain_t1_uids
+        ]
+
+        rescued_all = rescued_t1_uids | rescued_t2_uids
+        strict["review_candidates"] = [
+            rc
+            for rc in strict.get("review_candidates", []) or []
+            if rc.get("uid", "") not in rescued_all
+        ]
+    else:
+        strict["added_tables_confirmed"] = list(
+            strict.get("added_tables", []) or []
+        )
+        strict["removed_tables_confirmed"] = list(
+            strict.get("removed_tables", []) or []
+        )
+
     strict["ambiguous_tables"] = [
         {
             "side": "previous",
@@ -1543,6 +1905,7 @@ _ROLLFORWARD_HEADER_CHILD_PREFIXES = (
 
 
 def _normalize_value_cells_for_structure(row: list[Any] | tuple[Any, ...]) -> list[str]:
+    """Normaliser les cellules de valeur d'une ligne pour l'analyse structurelle."""
     values: list[str] = []
     for cell in list(row)[1:]:
         text = re.sub(r"\s+", " ", str(cell or "").strip())
@@ -1634,6 +1997,7 @@ _PAGE_REF_ALLOWED_RE = re.compile(r"^(?:notes?\s+)?[\d,\s\-àaet]+$", re.IGNOREC
 
 
 def _looks_like_page_reference_cell(text: str) -> bool:
+    """Détecter une cellule qui ressemble à une simple référence de page."""
     value = re.sub(r"\s+", " ", str(text or "").strip().lower())
     if not value:
         return False
@@ -1647,6 +2011,7 @@ def _looks_like_page_reference_cell(text: str) -> bool:
 
 
 def _is_page_reference_table(table: TableArtifact) -> bool:
+    """Détecter les tableaux de renvoi de pages qui ne doivent pas produire de diff métier."""
     headers = [str(h or "").strip() for h in (getattr(table, "headers", None) or [])]
     if not any(_PAGE_REF_HEADER_RE.search(header) for header in headers):
         return False
@@ -2410,6 +2775,7 @@ def _hungarian_pair_added_removed(
 
 
 def _adaptive_fusion_threshold(concat_token_count: int) -> float:
+    """Adapter le seuil de fusion/split à la longueur totale des libellés concaténés."""
     if concat_token_count >= 8:
         return 0.88
     if concat_token_count < 5:
@@ -2589,6 +2955,7 @@ def _indicator_diff(
     return_debug: bool = False,
     th: dict[str, Any] | None = None,
 ) -> tuple[list[str], list[str], bool, dict[str, int], dict[str, Any] | None]:
+    """Calculer les indicateurs ajoutés/supprimés avec gardes anti-faux-positifs."""
     if _is_page_reference_table(t1) and _is_page_reference_table(t2):
         return [], [], False, {"page_reference_table": 1}, None
 
@@ -2977,6 +3344,7 @@ def _empty_result(
     *,
     quarter_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """Construire un payload canonique vide quand la comparaison ne peut pas s'exécuter."""
     now = datetime.now().isoformat(timespec="seconds")
     current_label = (
         str(quarter_context.get("current", {}).get("label", ""))
@@ -3292,7 +3660,11 @@ def run_comparison_with_sections(
         from vigilance.config import get_matching_thresholds
 
         cfg = get_matching_thresholds(bank_code=bank_code) or {}
-        algorithm_used = "symmetric_assignment"
+        algorithm_used = (
+            "recall_first"
+            if cfg.get("recall_first_engine_enabled", True)
+            else "symmetric_assignment"
+        )
     except Exception:
         cfg = {}
         algorithm_used = "symmetric_assignment"
@@ -3945,11 +4317,17 @@ def run_comparison_with_sections(
     strict.setdefault("vision_unmatched_rescue_candidates", [])
     strict.setdefault("vision_unmatched_rescue_results", [])
     strict.setdefault("vision_rejected_pairs", [])
-    strict.setdefault(
-        "added_tables_confirmed", list(strict.get("added_tables", []) or [])
+    strict.setdefault("review_candidates", [])
+    is_recall_first = (
+        strict.get("matching_diagnostics", {}).get("engine") == "recall_first"
     )
     strict.setdefault(
-        "removed_tables_confirmed", list(strict.get("removed_tables", []) or [])
+        "added_tables_confirmed",
+        [] if is_recall_first else list(strict.get("added_tables", []) or []),
+    )
+    strict.setdefault(
+        "removed_tables_confirmed",
+        [] if is_recall_first else list(strict.get("removed_tables", []) or []),
     )
     strict.setdefault(
         "ambiguous_tables",
@@ -3984,8 +4362,16 @@ def run_comparison_with_sections(
     for pair in strict.get("pairs", []):
         t1_uid = str(pair.get("t1_uid", ""))
         t2_uid = str(pair.get("t2_uid", ""))
-        table_t1 = t1_by_uid.get(t1_uid)
-        table_t2 = t2_by_uid.get(t2_uid)
+        table_t1 = _materialize_pair_table(
+            primary_uid=t1_uid,
+            by_uid=t1_by_uid,
+            extra_uids=list(pair.get("merge_members_t1", []) or []),
+        )
+        table_t2 = _materialize_pair_table(
+            primary_uid=t2_uid,
+            by_uid=t2_by_uid,
+            extra_uids=list(pair.get("split_members_t2", []) or []),
+        )
         if table_t1 is None or table_t2 is None:
             continue
 
@@ -4639,20 +5025,68 @@ def run_comparison_with_sections(
         t = by_uid.get(uid)
         return (getattr(t, "extraction_method", None) or "docling") if t else "docling"
 
-    added_tables_sources = (
-        list(strict.get("added_tables_confirmed", strict.get("added_tables", [])))
-        + vision_rejected_added_items
+    review_candidates = list(strict.get("review_candidates", []) or [])
+
+    def _unique_by_uid(
+        items: list[dict[str, Any]],
+        *,
+        uid_key: str,
+    ) -> list[dict[str, Any]]:
+        seen: set[str] = set()
+        out: list[dict[str, Any]] = []
+        for item in items:
+            uid = str(item.get(uid_key, "")).strip()
+            if not uid or uid in seen:
+                continue
+            seen.add(uid)
+            out.append(item)
+        return out
+
+    pending_added_sources = _unique_by_uid(
+        list(strict.get("added_tables", []) or []),
+        uid_key="t2_uid",
     )
-    removed_tables_sources = (
-        list(strict.get("removed_tables_confirmed", strict.get("removed_tables", [])))
-        + vision_rejected_removed_items
+    pending_removed_sources = _unique_by_uid(
+        list(strict.get("removed_tables", []) or []),
+        uid_key="t1_uid",
+    )
+    explicit_confirmed_added_sources = _unique_by_uid(
+        list(strict.get("added_tables_confirmed", []) or [])
+        + vision_rejected_added_items,
+        uid_key="t2_uid",
+    )
+    explicit_confirmed_removed_sources = _unique_by_uid(
+        list(strict.get("removed_tables_confirmed", []) or [])
+        + vision_rejected_removed_items,
+        uid_key="t1_uid",
     )
 
-    tables_added = []
-    for item in added_tables_sources:
-        t2_uid_added = str(item.get("t2_uid", ""))
+    explicit_confirmed_added_uids = {
+        str(item.get("t2_uid", "")).strip()
+        for item in explicit_confirmed_added_sources
+        if str(item.get("t2_uid", "")).strip()
+    }
+    explicit_confirmed_removed_uids = {
+        str(item.get("t1_uid", "")).strip()
+        for item in explicit_confirmed_removed_sources
+        if str(item.get("t1_uid", "")).strip()
+    }
+    vision_rejected_added_uids = {
+        str(item.get("t2_uid", "")).strip()
+        for item in vision_rejected_added_items
+        if str(item.get("t2_uid", "")).strip()
+    }
+    vision_rejected_removed_uids = {
+        str(item.get("t1_uid", "")).strip()
+        for item in vision_rejected_removed_items
+        if str(item.get("t1_uid", "")).strip()
+    }
+
+    def _build_added_entry(item: dict[str, Any]) -> dict[str, Any]:
+        t2_uid_added = str(item.get("t2_uid", "")).strip()
         t2_t = t2_by_uid.get(t2_uid_added)
         entry: dict[str, Any] = {
+            "uid": t2_uid_added,
             "table_status": "ajoute",
             "table_id": str(item.get("t2_table_id", "")),
             "title": item.get("title_t2", ""),
@@ -4682,58 +5116,13 @@ def run_comparison_with_sections(
         sj = semantic_judge_results.get(f"added_{t2_uid_added}")
         if sj is not None:
             entry["semantic_judge"] = sj
+        return entry
 
-        if (
-            added_table_validator_enabled
-            and api_key
-            and entry.get("bbox_t2")
-            and entry.get("page")
-        ):
-            pdf_added = (t2_t.pdf_path if t2_t else None) or pdf_path_t2
-            if pdf_added:
-                try:
-                    from vigilance.extraction.vision_added_table_validator import (
-                        validate_added_table,
-                    )
-
-                    is_real_new, conf = validate_added_table(
-                        pdf_added,
-                        int(entry["page"]),
-                        entry["bbox_t2"],
-                        api_key,
-                        bottom_extension=bottom_ext,
-                        title=str(entry.get("title", ""))[:200],
-                    )
-                    added_table_validator_stats["calls"] += 1
-                    if not is_real_new and conf >= added_table_validator_confidence_min:
-                        added_table_validator_stats["rejected"] += 1
-                        _write_validation_log(
-                            {
-                                "validator": "added_table",
-                                "bank": bank_code,
-                                "table_id": entry.get("table_id"),
-                                "title": str(entry.get("title", ""))[:80],
-                                "decision": "rejected",
-                                "is_real_new": is_real_new,
-                                "confidence": round(conf, 3),
-                                "timestamp": datetime.now().isoformat(
-                                    timespec="seconds"
-                                ),
-                            },
-                            run_id=extraction_run_id,
-                        )
-                        continue
-                    added_table_validator_stats["accepted"] += 1
-                except Exception as exc:
-                    added_table_validator_stats["errors"] += 1
-                    logger.debug("Added table validator error: %s", exc)
-
-        tables_added.append(entry)
-    tables_removed = []
-    for item in removed_tables_sources:
-        t1_uid_removed = str(item.get("t1_uid", ""))
+    def _build_removed_entry(item: dict[str, Any]) -> dict[str, Any]:
+        t1_uid_removed = str(item.get("t1_uid", "")).strip()
         t1_t = t1_by_uid.get(t1_uid_removed)
         entry_r: dict[str, Any] = {
+            "uid": t1_uid_removed,
             "table_status": "supprime",
             "table_id": str(item.get("t1_table_id", "")),
             "title": item.get("title_t1", ""),
@@ -4763,7 +5152,162 @@ def run_comparison_with_sections(
         sj_r = semantic_judge_results.get(f"removed_{t1_uid_removed}")
         if sj_r is not None:
             entry_r["semantic_judge"] = sj_r
+        return entry_r
+
+    tables_added: list[dict[str, Any]] = []
+    tables_removed: list[dict[str, Any]] = []
+    tables_added_confirmed: list[dict[str, Any]] = []
+    tables_removed_confirmed: list[dict[str, Any]] = []
+    tables_added_pending_review: list[dict[str, Any]] = []
+    tables_removed_pending_review: list[dict[str, Any]] = []
+
+    for item in _unique_by_uid(
+        pending_added_sources + explicit_confirmed_added_sources,
+        uid_key="t2_uid",
+    ):
+        entry = _build_added_entry(item)
+        uid = str(entry.get("uid", "")).strip()
+        force_confirmed = uid in explicit_confirmed_added_uids
+        if uid in vision_rejected_added_uids and not entry.get("source_reason"):
+            entry["source_reason"] = "vision_pair_rejected"
+
+        confirmation_status = "pending_review"
+        confirmation_reason = "awaiting_final_validation"
+        validator_result: dict[str, Any] | None = None
+
+        if force_confirmed:
+            confirmation_status = "confirmed"
+            confirmation_reason = (
+                "vision_pair_rejected"
+                if uid in vision_rejected_added_uids
+                else "explicit_confirmation"
+            )
+        elif _semantic_unmatched_confirms_no_match(entry.get("semantic_judge")):
+            confirmation_status = "confirmed"
+            confirmation_reason = "semantic_judge_no_match"
+        elif (
+            added_table_validator_enabled
+            and api_key
+            and entry.get("bbox_t2")
+            and entry.get("page")
+        ):
+            t2_t = t2_by_uid.get(uid)
+            pdf_added = (t2_t.pdf_path if t2_t else None) or pdf_path_t2
+            if pdf_added:
+                try:
+                    from vigilance.extraction.vision_added_table_validator import (
+                        validate_added_table,
+                    )
+
+                    is_real_new, conf = validate_added_table(
+                        pdf_added,
+                        int(entry["page"]),
+                        entry["bbox_t2"],
+                        api_key,
+                        bottom_extension=bottom_ext,
+                        title=str(entry.get("title", ""))[:200],
+                    )
+                    validator_result = {
+                        "validator": "added_table",
+                        "decision": "confirmed" if is_real_new else "rejected",
+                        "is_real_new": bool(is_real_new),
+                        "confidence": round(float(conf or 0.0), 3),
+                    }
+                    entry["added_table_validation"] = validator_result
+                    added_table_validator_stats["calls"] += 1
+                    if is_real_new and conf >= added_table_validator_confidence_min:
+                        added_table_validator_stats["accepted"] += 1
+                        confirmation_status = "confirmed"
+                        confirmation_reason = "added_table_validator_confirmed"
+                    elif conf >= added_table_validator_confidence_min:
+                        added_table_validator_stats["rejected"] += 1
+                        confirmation_reason = "added_table_validator_rejected"
+                        _write_validation_log(
+                            {
+                                "validator": "added_table",
+                                "bank": bank_code,
+                                "table_id": entry.get("table_id"),
+                                "title": str(entry.get("title", ""))[:80],
+                                "decision": "rejected",
+                                "is_real_new": is_real_new,
+                                "confidence": round(conf, 3),
+                                "timestamp": datetime.now().isoformat(
+                                    timespec="seconds"
+                                ),
+                            },
+                            run_id=extraction_run_id,
+                        )
+                except Exception as exc:
+                    added_table_validator_stats["errors"] += 1
+                    logger.debug("Added table validator error: %s", exc)
+
+        entry["confirmation_status"] = confirmation_status
+        entry["confirmation_reason"] = confirmation_reason
+        tables_added.append(entry)
+        if confirmation_status == "confirmed":
+            tables_added_confirmed.append(entry)
+        else:
+            tables_added_pending_review.append(entry)
+            _upsert_review_candidate(
+                review_candidates,
+                _pending_unmatched_review_candidate(
+                    side="current",
+                    uid=uid,
+                    table_id=str(entry.get("table_id", "")),
+                    section=str(entry.get("section", "")),
+                    page=entry.get("page"),
+                    title=str(entry.get("title", "")),
+                    reason=confirmation_reason,
+                    source_reason=str(entry.get("source_reason", "")),
+                    semantic_judge=entry.get("semantic_judge"),
+                    validation=validator_result,
+                ),
+            )
+
+    for item in _unique_by_uid(
+        pending_removed_sources + explicit_confirmed_removed_sources,
+        uid_key="t1_uid",
+    ):
+        entry_r = _build_removed_entry(item)
+        uid = str(entry_r.get("uid", "")).strip()
+        force_confirmed = uid in explicit_confirmed_removed_uids
+        if uid in vision_rejected_removed_uids and not entry_r.get("source_reason"):
+            entry_r["source_reason"] = "vision_pair_rejected"
+
+        confirmation_status = "pending_review"
+        confirmation_reason = "awaiting_final_validation"
+        if force_confirmed:
+            confirmation_status = "confirmed"
+            confirmation_reason = (
+                "vision_pair_rejected"
+                if uid in vision_rejected_removed_uids
+                else "explicit_confirmation"
+            )
+        elif _semantic_unmatched_confirms_no_match(entry_r.get("semantic_judge")):
+            confirmation_status = "confirmed"
+            confirmation_reason = "semantic_judge_no_match"
+
+        entry_r["confirmation_status"] = confirmation_status
+        entry_r["confirmation_reason"] = confirmation_reason
         tables_removed.append(entry_r)
+        if confirmation_status == "confirmed":
+            tables_removed_confirmed.append(entry_r)
+        else:
+            tables_removed_pending_review.append(entry_r)
+            _upsert_review_candidate(
+                review_candidates,
+                _pending_unmatched_review_candidate(
+                    side="previous",
+                    uid=uid,
+                    table_id=str(entry_r.get("table_id", "")),
+                    section=str(entry_r.get("section", "")),
+                    page=entry_r.get("page"),
+                    title=str(entry_r.get("title", "")),
+                    reason=confirmation_reason,
+                    source_reason=str(entry_r.get("source_reason", "")),
+                    semantic_judge=entry_r.get("semantic_judge"),
+                ),
+            )
 
     # -- POST-MATCHING GenAI classification (does NOT alter matching results) --
     _GENAI_ANALYSIS_FALLBACK: dict[str, Any] = {
@@ -4890,12 +5434,7 @@ def run_comparison_with_sections(
                     t["genai_analysis"] = _GENAI_ANALYSIS_FALLBACK
 
     ambiguous_tables = list(strict.get("ambiguous_tables", []) or [])
-    added_tables_confirmed = list(
-        strict.get("added_tables_confirmed", []) or tables_added
-    )
-    removed_tables_confirmed = list(
-        strict.get("removed_tables_confirmed", []) or tables_removed
-    )
+    review_candidates = list(review_candidates)
     vision_rescued_pairs = list(strict.get("vision_rescued_pairs", []) or [])
     cross_section_rescued_pairs = list(
         strict.get("cross_section_rescued_pairs", []) or []
@@ -4940,7 +5479,9 @@ def run_comparison_with_sections(
             for key in ("added", "removed", "modified")
         )
     )
-    pairing_low_confidence = pairing_coverage < 0.75 or bool(ambiguous_tables)
+    pairing_low_confidence = (
+        pairing_coverage < 0.75 or bool(ambiguous_tables) or bool(review_candidates)
+    )
 
     total_added = sum(len(c.get("added_indicators", [])) for c in comparisons)
     total_removed = sum(len(c.get("removed_indicators", [])) for c in comparisons)
@@ -4955,6 +5496,8 @@ def run_comparison_with_sections(
     total_fn_modified = sum(
         c.get("footnotes_counts", {}).get("modified", 0) for c in comparisons
     )
+    pending_added_count = len(tables_added_pending_review)
+    pending_removed_count = len(tables_removed_pending_review)
 
     status_counts = {
         "stable": sum(1 for c in comparisons if c.get("table_status") == "stable"),
@@ -4962,12 +5505,15 @@ def run_comparison_with_sections(
         "renommage_probable": 0,
         "incertain": sum(1 for c in comparisons if c.get("table_status") == "incertain")
         + len(ambiguous_tables),
-        "needs_review": 0,
+        "review_candidate": len(review_candidates),
+        "needs_review": len(review_candidates),
         "structure_change": sum(
             1 for c in comparisons if c.get("table_status") == "structure_change"
         ),
-        "ajoute": len(added_tables_confirmed),
-        "supprime": len(removed_tables_confirmed),
+        "ajoute": len(tables_added_confirmed),
+        "supprime": len(tables_removed_confirmed),
+        "ajoute_pending_review": pending_added_count,
+        "supprime_pending_review": pending_removed_count,
     }
 
     now = datetime.now().isoformat(timespec="seconds")
@@ -4978,15 +5524,19 @@ def run_comparison_with_sections(
         f"{len(comparisons)} tableaux apparies sur {min(tables_comparable_t1, tables_comparable_t2)} comparables, "
         f"{total_added} ajouts d'indicateurs, {total_removed} suppressions. "
     )
-    if pairing_low_confidence:
+    if pending_added_count or pending_removed_count:
         summary_text += (
-            f"{len(added_tables_confirmed)} tableaux non apparies cote courant et "
-            f"{len(removed_tables_confirmed)} cote precedent restent a confirmer."
+            f"{pending_added_count} tableaux non apparies cote courant et "
+            f"{pending_removed_count} cote precedent restent a confirmer."
         )
     else:
         summary_text += (
-            f"{len(added_tables_confirmed)} tableaux ajoutes confirmes dans le trimestre courant, "
-            f"{len(removed_tables_confirmed)} tableaux retires confirmes depuis le trimestre precedent."
+            f"{len(tables_added_confirmed)} tableaux ajoutes confirmes dans le trimestre courant, "
+            f"{len(tables_removed_confirmed)} tableaux retires confirmes depuis le trimestre precedent."
+        )
+    if review_candidates:
+        summary_text += (
+            f" {len(review_candidates)} tableau(x) en attente de revue analyste (review_candidate)."
         )
     if ambiguous_tables:
         summary_text += (
@@ -5005,8 +5555,8 @@ def run_comparison_with_sections(
         tables_t1,
         tables_t2,
         comparisons,
-        added_tables_confirmed,
-        removed_tables_confirmed,
+        tables_added,
+        tables_removed,
     )
     logger.info(
         "comparison_result_summary tables_t1=%d tables_t2=%d tables_matched=%d bank=%s",
@@ -5033,11 +5583,14 @@ def run_comparison_with_sections(
             "tables_comparable_t1": tables_comparable_t1,
             "tables_comparable_t2": tables_comparable_t2,
             "tables_matched": len(comparisons),
-            "tables_added": len(added_tables_confirmed),
-            "tables_removed": len(removed_tables_confirmed),
-            "tables_added_confirmed": len(added_tables_confirmed),
-            "tables_removed_confirmed": len(removed_tables_confirmed),
+            "tables_added": len(tables_added),
+            "tables_removed": len(tables_removed),
+            "tables_added_confirmed": len(tables_added_confirmed),
+            "tables_removed_confirmed": len(tables_removed_confirmed),
+            "tables_added_pending_review": pending_added_count,
+            "tables_removed_pending_review": pending_removed_count,
             "ambiguous_tables": len(ambiguous_tables),
+            "review_candidates": len(review_candidates),
             "ambiguous_pairs": len(strict.get("ambiguous_pairs", []) or []),
             "vision_rescued_pairs": len(vision_rescued_pairs),
             "cross_section_rescued_pairs": len(cross_section_rescued_pairs),
@@ -5069,11 +5622,14 @@ def run_comparison_with_sections(
         },
         "displaced_indicators": [],
         "table_comparisons": comparisons,
-        "tables_added": added_tables_confirmed,
-        "tables_removed": removed_tables_confirmed,
-        "tables_added_confirmed": added_tables_confirmed,
-        "tables_removed_confirmed": removed_tables_confirmed,
+        "tables_added": tables_added,
+        "tables_removed": tables_removed,
+        "tables_added_confirmed": tables_added_confirmed,
+        "tables_removed_confirmed": tables_removed_confirmed,
+        "tables_added_pending_review": tables_added_pending_review,
+        "tables_removed_pending_review": tables_removed_pending_review,
         "ambiguous_tables": ambiguous_tables,
+        "review_candidates": review_candidates,
         "vision_rescued_pairs": vision_rescued_pairs,
         "probable_pairs": list(strict.get("probable_pairs", [])),
         "rejected_by_vision_pair": rejected_by_vision_pair,
@@ -5204,10 +5760,22 @@ def run_comparison_with_sections(
                     "ambiguous_unmatched_previous": len(
                         strict.get("ambiguous_unmatched_previous", [])
                     ),
+                    "tables_added_total": len(tables_added),
+                    "tables_removed_total": len(tables_removed),
+                    "tables_added_confirmed": len(tables_added_confirmed),
+                    "tables_removed_confirmed": len(tables_removed_confirmed),
+                    "tables_added_pending_review": pending_added_count,
+                    "tables_removed_pending_review": pending_removed_count,
                     "suspicious_pairs_payload": strict.get("suspicious_pairs", []),
                     "vision_rescued_pairs_payload": vision_rescued_pairs,
                     "cross_section_rescued_pairs_payload": cross_section_rescued_pairs,
                     "ambiguous_tables_payload": ambiguous_tables,
+                    "tables_added_payload": tables_added,
+                    "tables_removed_payload": tables_removed,
+                    "tables_added_pending_review_payload": tables_added_pending_review,
+                    "tables_removed_pending_review_payload": tables_removed_pending_review,
+                    "review_candidates_payload": review_candidates,
+                    "review_candidates_count": len(review_candidates),
                     "matching_diagnostics": strict.get("matching_diagnostics", {}),
                 },
                 "semantic_judge": {

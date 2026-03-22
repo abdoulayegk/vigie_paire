@@ -82,7 +82,18 @@ def compute_changed_tables_t2(result: dict[str, Any]) -> int:
 
 
 def get_meta_value(meta: dict[str, Any] | None, *keys: str) -> Any:
-    """Safely fetch a nested value from metadata."""
+    """Safely fetch a nested value from metadata.
+
+    Walks the nested dict path given by keys. Returns None if meta is None,
+    if any intermediate value is not a dict, or if any key is missing.
+
+    Args:
+        meta: Metadata dict, or None (treated as empty).
+        *keys: One or more keys for nested lookup (e.g., ``("section", "title")``).
+
+    Returns:
+        The value at the nested path, or None if the path cannot be traversed.
+    """
     cur: Any = meta or {}
     for key in keys:
         if not isinstance(cur, dict):
@@ -100,6 +111,18 @@ def is_ui_comparison_payload(payload: Any) -> bool:
 
 
 def new_empty_ui_comparison_payload() -> dict[str, Any]:
+    """Build a fresh canonical UI comparison payload with default structure.
+
+    Returns a dict containing all required top-level keys for the Dash app:
+    schema_version, bank_code, quarter fields, summary (zeroed counts and
+    status_counts), empty lists for table_comparisons/tables_added/tables_removed
+    and their variants, and meta (generated_at, provenance, source_format,
+    executive_summary). The executive_summary defaults to a French message
+    indicating no comparison is available.
+
+    Returns:
+        A fully-initialized payload dict conforming to the canonical schema.
+    """
     now = datetime.now().isoformat(timespec="seconds")
     return {
         "schema_version": UI_COMPARISON_PAYLOAD_SCHEMA_VERSION,
@@ -122,7 +145,10 @@ def new_empty_ui_comparison_payload() -> dict[str, Any]:
             "tables_removed": 0,
             "tables_added_confirmed": 0,
             "tables_removed_confirmed": 0,
+            "tables_added_pending_review": 0,
+            "tables_removed_pending_review": 0,
             "ambiguous_tables": 0,
+            "review_candidates": 0,
             "ambiguous_pairs": 0,
             "pairing_coverage": 0.0,
             "indicator_change_pairs": 0,
@@ -138,15 +164,23 @@ def new_empty_ui_comparison_payload() -> dict[str, Any]:
                 "modifie": 0,
                 "renommage_probable": 0,
                 "incertain": 0,
+                "review_candidate": 0,
                 "needs_review": 0,
                 "structure_change": 0,
                 "ajoute": 0,
                 "supprime": 0,
+                "ajoute_pending_review": 0,
+                "supprime_pending_review": 0,
             },
         },
         "table_comparisons": [],
         "tables_added": [],
         "tables_removed": [],
+        "tables_added_confirmed": [],
+        "tables_removed_confirmed": [],
+        "tables_added_pending_review": [],
+        "tables_removed_pending_review": [],
+        "review_candidates": [],
         "meta": {
             "generated_at": now,
             "provenance": "dash_adapter",
@@ -157,7 +191,23 @@ def new_empty_ui_comparison_payload() -> dict[str, Any]:
 
 
 def to_ui_comparison_payload(payload: Any) -> dict[str, Any]:
-    """Best-effort conversion to the canonical payload used by the Dash app."""
+    """Best-effort conversion to the canonical payload used by the Dash app.
+
+    If the payload is already canonical (has schema_version matching
+    UI_COMPARISON_PAYLOAD_SCHEMA_VERSION), returns a deep copy.
+    If it is a legacy ``metier_tableaux`` result, converts to the canonical
+    shape and populates table_comparisons from the ``changes`` list.
+    Otherwise, returns an empty canonical payload with basic fields filled
+    from the input when possible.
+
+    Args:
+        payload: Raw comparison data. May be a canonical dict, a legacy
+            metier dict with result_type ``metier_tableaux``, or any other
+            dict/object. Non-dict inputs yield an empty canonical payload.
+
+    Returns:
+        A dict conforming to the canonical Dash UI comparison schema.
+    """
     if is_ui_comparison_payload(payload):
         return deepcopy(payload)
 

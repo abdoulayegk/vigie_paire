@@ -1,4 +1,25 @@
-"""Conservative merger for table fragments produced by imperfect segmentation."""
+"""Conservative merger for table fragments produced by imperfect segmentation.
+
+When extracting tables from PDFs, layout-based segmentation often splits a single
+logical table across multiple page boundaries or visual breaks. A table that
+spans two pages may be emitted as two distinct fragments with partial headers,
+overlapping indicators, and related footnotes. This module provides a merger that:
+
+- Identifies candidate pairs of fragments belonging to the same logical table
+- Scores pairs using header similarity, spatial proximity, title resemblance,
+  indicator overlap, and continuation hints (e.g. "suite", "continued")
+- Merges only pairs whose score exceeds a configurable threshold
+- Optionally annotates near-threshold pairs with ``fragment_near_merge_hint``
+  so downstream pairing logic can use this signal during split-merge rescue
+
+The algorithm is conservative: it avoids merging unrelated tables (e.g. those
+in different sections, on non-adjacent pages, or with low header similarity)
+and penalizes near-duplicate indicators to prevent merging tables that are
+merely similar rather than true continuations.
+
+Usage:
+    merged_tables, events = merge_table_fragments(tables, merge_score_min=0.85)
+"""
 
 from __future__ import annotations
 
@@ -28,19 +49,58 @@ _TOTAL_ROW_RE = re.compile(r"^\s*(?:total|sous\s*total|net|solde)\b", re.IGNOREC
 
 
 def _canonical_section(value: str | None) -> str:
+    """Normalize a section string for comparison.
+
+    Args:
+        value: Raw section identifier (e.g. from table metadata).
+
+    Returns:
+        Lowercased, stripped section string; empty string if value is None.
+    """
     return (value or "").strip().lower()
 
 
 def _is_known_section(value: str | None) -> bool:
+    """Check whether the section is a known (non-placeholder) section.
+
+    Args:
+        value: Raw section identifier.
+
+    Returns:
+        True if the canonical section is not empty, "unknown", or "unknown_section".
+    """
     return _canonical_section(value) not in UNKNOWN_SECTIONS
 
 
 def _normalize_title(value: str | None) -> str:
+    """Normalize a table title for similarity comparison.
+
+    Strips temporal expressions (years, quarters, dates) and applies
+    matching normalization so titles can be compared consistently.
+
+    Args:
+        value: Raw table title.
+
+    Returns:
+        Normalized title string suitable for SequenceMatcher or similar.
+    """
     cleaned = strip_temporal_expressions(value or "", target="title")
     return normalize_for_matching(cleaned, target="title")
 
 
 def _title_similarity(left: str | None, right: str | None) -> float:
+    """Compute similarity between two table titles (0.0 to 1.0).
+
+    Uses SequenceMatcher on normalized titles. Returns fixed fallbacks when
+    either or both titles are empty to avoid spurious scores.
+
+    Args:
+        left: First table title.
+        right: Second table title.
+
+    Returns:
+        Similarity score: 0.60 if both empty, 0.35 if one empty, else ratio.
+    """
     lnorm = _normalize_title(left)
     rnorm = _normalize_title(right)
     if not lnorm and not rnorm:
@@ -51,6 +111,17 @@ def _title_similarity(left: str | None, right: str | None) -> float:
 
 
 def _extract_indicators(table: TableArtifact) -> set[str]:
+    """Extract normalized indicator labels from a table's first column.
+
+    Skips date-only lines and non-indicator lines, and normalizes each label
+    for comparison.
+
+    Args:
+        table: Table artifact whose indicators to extract.
+
+    Returns:
+        Set of normalized indicator strings.
+    """
     values: set[str] = set()
     for label in get_comparison_indicators(table):
         text = str(label or "").strip()
@@ -63,6 +134,18 @@ def _extract_indicators(table: TableArtifact) -> set[str]:
 
 
 def _indicator_jaccard(left: TableArtifact, right: TableArtifact) -> float:
+    """Compute Jaccard similarity between two tables' indicator sets.
+
+    High values indicate overlapping or near-duplicate indicator rows, which
+    suggests the tables may be similar rather than continuations.
+
+    Args:
+        left: First table artifact.
+        right: Second table artifact.
+
+    Returns:
+        Jaccard index: |intersection| / |union|; 0.0 if either set is empty.
+    """
     lset = _extract_indicators(left)
     rset = _extract_indicators(right)
     if not lset or not rset:
@@ -71,6 +154,18 @@ def _indicator_jaccard(left: TableArtifact, right: TableArtifact) -> float:
 
 
 def _indicator_non_overlap_score(left: TableArtifact, right: TableArtifact) -> float:
+    """Score how little indicator overlap exists (1.0 = no overlap).
+
+    Encourages merging when tables have distinct indicators (continuation);
+    penalizes when indicators heavily overlap (likely duplicates).
+
+    Args:
+        left: First table artifact.
+        right: Second table artifact.
+
+    Returns:
+        1.0 if Jaccard <= 0.05, else max(0, 1 - jaccard).
+    """
     jaccard = _indicator_jaccard(left, right)
     if jaccard <= 0.05:
         return 1.0
@@ -78,6 +173,17 @@ def _indicator_non_overlap_score(left: TableArtifact, right: TableArtifact) -> f
 
 
 def _parse_bbox(value: Any) -> tuple[float, float, float, float] | None:
+    """Parse a bounding box from various formats into (x0, y0, x1, y1).
+
+    Supports: list/tuple [x0,y0,x1,y1], dict with x0/y0/x1/y1, dict with
+    l/t/r/b, dict with x/y/width/height. Returns None for invalid input.
+
+    Args:
+        value: Bounding box in list, tuple, or dict format.
+
+    Returns:
+        Tuple (x0, y0, x1, y1) in normalized coordinates, or None if invalid.
+    """
     if value is None:
         return None
     if isinstance(value, (list, tuple)) and len(value) >= 4:
@@ -137,6 +243,19 @@ def _bbox_vertical_score(
     left: TableArtifact,
     right: TableArtifact,
 ) -> float:
+    """Score vertical proximity of two tables for merge candidacy.
+
+    Same-page: high score when right table sits just below left (small gap).
+    Adjacent pages: high score when left is near bottom and right near top.
+    Returns 0.55 as neutral fallback when bboxes are unavailable.
+
+    Args:
+        left: First (earlier) table artifact.
+        right: Second (later) table artifact.
+
+    Returns:
+        Score in [0.0, 1.0]; higher means better vertical continuation.
+    """
     bbox_left = _parse_bbox(left.bbox)
     bbox_right = _parse_bbox(right.bbox)
     if bbox_left is None or bbox_right is None:
@@ -167,6 +286,17 @@ def _bbox_vertical_score(
 
 
 def _has_continuation_hint(table: TableArtifact) -> bool:
+    """Detect if the table title or first indicator suggests a continuation.
+
+    Looks for patterns like "suite", "continued", "cont'd" in the title or
+    the first indicator row. Such hints boost merge score when present.
+
+    Args:
+        table: Table artifact to inspect.
+
+    Returns:
+        True if a continuation pattern is found.
+    """
     text = str(table.title or "").strip()
     if text and _CONTINUATION_RE.search(text):
         return True
@@ -181,6 +311,18 @@ def _has_continuation_hint(table: TableArtifact) -> bool:
 
 
 def _has_total_row(table: TableArtifact) -> bool:
+    """Check if the table has a total/sous-total/net/solde row near the end.
+
+    Examines the last few indicator rows. Total rows suggest the table is
+    complete; merging with a continuation is penalized when no continuation
+    hint is present.
+
+    Args:
+        table: Table artifact to inspect.
+
+    Returns:
+        True if a total-like row is found in the last 3 indicators.
+    """
     labels = get_vision_raw_indicators(table)
     if not labels:
         labels = get_comparison_indicators(table)
@@ -192,6 +334,22 @@ def _has_total_row(table: TableArtifact) -> bool:
 
 
 def _candidate_merge_score(left: TableArtifact, right: TableArtifact) -> float:
+    """Compute merge score for a candidate (left, right) fragment pair.
+
+    Returns 0.0 unless: same section, known section, right on same or next page,
+    and header similarity >= 0.65. Then scores as weighted combination:
+    35% header, 22% bbox vertical, 12% page adjacency, 10% title similarity,
+    13% indicator non-overlap, 8% continuation hint. Penalties: -0.20 if left
+    has total row but no continuation hint; -0.25 if indicator Jaccard >= 0.75
+    (near-duplicates should not merge).
+
+    Args:
+        left: First (earlier) table artifact.
+        right: Second (later) table artifact.
+
+    Returns:
+        Score in [0.0, 1.0]; >= merge_score_min indicates merge.
+    """
     left_section = _canonical_section(left.section)
     right_section = _canonical_section(right.section)
     if left_section != right_section:
@@ -234,6 +392,18 @@ def _candidate_merge_score(left: TableArtifact, right: TableArtifact) -> float:
 
 
 def _dedupe_preserve(values: list[str]) -> list[str]:
+    """Deduplicate strings by normalized form while preserving original order.
+
+    Uses normalize_indicator_for_comparison for deduplication keys. Skips
+    empty strings and duplicates; returns first occurrence of each unique
+    normalized value.
+
+    Args:
+        values: List of raw indicator strings.
+
+    Returns:
+        Deduplicated list in original order.
+    """
     seen: set[str] = set()
     out: list[str] = []
     for value in values:
@@ -249,6 +419,18 @@ def _dedupe_preserve(values: list[str]) -> list[str]:
 
 
 def _merge_bbox(left: TableArtifact, right: TableArtifact) -> list[float] | None:
+    """Compute the bounding box enclosing both tables.
+
+    Same-page: returns the union (min x0,y0, max x1,y1). Cross-page: returns
+    left's bbox only (merged bbox is not meaningful across pages).
+
+    Args:
+        left: First table artifact.
+        right: Second table artifact.
+
+    Returns:
+        [x0, y0, x1, y1] or None if neither has a valid bbox.
+    """
     bbox_left = _parse_bbox(left.bbox)
     bbox_right = _parse_bbox(right.bbox)
     if bbox_left is None:
@@ -267,7 +449,19 @@ def _merge_bbox(left: TableArtifact, right: TableArtifact) -> list[float] | None
 def _merge_footnotes(
     left: TableArtifact, right: TableArtifact
 ) -> list[dict[str, str]] | None:
-    """Merge footnotes from both fragments, dedupe by normalized (id, text), preserve order."""
+    """Merge footnotes from both fragments into a deduplicated list.
+
+    Combines canonical footnotes from left and right, normalizes to canonical
+    form, and deduplicates by (normalized_id, normalized_text) while preserving
+    encounter order. Empty ids are replaced with positional numbers.
+
+    Args:
+        left: First table artifact.
+        right: Second table artifact.
+
+    Returns:
+        List of {"id", "text"} dicts, or None if no footnotes.
+    """
     combined = normalize_footnotes_to_canonical(
         get_canonical_footnotes(left) + get_canonical_footnotes(right)
     )
@@ -292,6 +486,20 @@ def _merge_footnotes(
 
 
 def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
+    """Merge two table fragments into a single TableArtifact.
+
+    Concatenates rows, deduplicates indicators and raw indicators, takes the
+    longer header set, merges bbox and footnotes. Sets fragmentation_detected
+    and table_id to "left__right". Metadata (bank_code, section, etc.) is
+    inherited from left with right as fallback.
+
+    Args:
+        left: First (earlier) table fragment.
+        right: Second (later) table fragment.
+
+    Returns:
+        New TableArtifact representing the merged table.
+    """
     merged_rows = list(left.rows or []) + list(right.rows or [])
     merged_indicators = _dedupe_preserve(
         get_comparison_indicators(left) + get_comparison_indicators(right)
@@ -350,12 +558,48 @@ def _merge_pair(left: TableArtifact, right: TableArtifact) -> TableArtifact:
     )
 
 
+def merge_table_sequence(tables: list[TableArtifact]) -> TableArtifact | None:
+    """Merge an explicit ordered list of tables into one synthetic artifact.
+
+    Iteratively merges tables from left to right using _merge_pair. Use when
+    the caller has already determined the correct merge order.
+
+    Args:
+        tables: Ordered list of table artifacts to merge.
+
+    Returns:
+        Single merged TableArtifact, or None if the list is empty.
+    """
+    ordered = [table for table in tables if table is not None]
+    if not ordered:
+        return None
+    merged = ordered[0]
+    for table in ordered[1:]:
+        merged = _merge_pair(merged, table)
+    return merged
+
+
 def merge_table_fragments(
     tables: list[TableArtifact],
     *,
     merge_score_min: float = 0.85,
 ) -> tuple[list[TableArtifact], list[dict[str, Any]]]:
-    """Merge conservatively segmented fragments before logical table matching."""
+    """Merge conservatively segmented fragments before logical table matching.
+
+    Sorts tables by (section, page, table_id), then scans adjacent pairs.
+    Pairs with score >= merge_score_min are merged; pairs with score between
+    _NEAR_MERGE_THRESHOLD (0.60) and merge_score_min receive
+    fragment_near_merge_hint annotations for downstream split-merge rescue.
+
+    Args:
+        tables: List of table artifacts from extraction.
+        merge_score_min: Minimum _candidate_merge_score to perform a merge.
+            Default 0.85.
+
+    Returns:
+        Tuple of (merged_table_list, events). Events describe merges and
+        near-merge hints (merge_type, score, section, members, etc.).
+    """
     if len(tables) < 2:
         return list(tables), []
 
@@ -407,10 +651,44 @@ def merge_table_fragments(
             idx += 2
             continue
 
+        if score >= _NEAR_MERGE_THRESHOLD:
+            current.fragment_near_merge_hint = {
+                "neighbor_table_id": nxt.table_id,
+                "neighbor_page": nxt.page_pdf,
+                "merge_score": round(score, 4),
+            }
+            nxt.fragment_near_merge_hint = {
+                "neighbor_table_id": current.table_id,
+                "neighbor_page": current.page_pdf,
+                "merge_score": round(score, 4),
+            }
+            events.append(
+                {
+                    "merge_type": "fragment_near_merge_hint",
+                    "score": round(score, 4),
+                    "section": current.section,
+                    "members": [
+                        {
+                            "table_id": current.table_id,
+                            "page": current.page_pdf,
+                            "title": current.title or "",
+                        },
+                        {
+                            "table_id": nxt.table_id,
+                            "page": nxt.page_pdf,
+                            "title": nxt.title or "",
+                        },
+                    ],
+                }
+            )
+
         merged.append(current)
         idx += 1
 
     return merged, events
 
 
-__all__ = ["merge_table_fragments"]
+_NEAR_MERGE_THRESHOLD = 0.60
+
+
+__all__ = ["merge_table_fragments", "merge_table_sequence"]
