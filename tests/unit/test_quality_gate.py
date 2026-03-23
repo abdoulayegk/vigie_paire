@@ -19,10 +19,9 @@ def test_quality_gate_pass_writes_reports(tmp_path: Path) -> None:
                 "table_id": "t1",
                 "title": "Capital reglementaire",
                 "page": 12,
-                "source": "t1",
-                "sections": [
-                    {"section": "capital", "indicators": ["CET1 ratio", "Tier 1 ratio"]}
-                ],
+                "section": "capital",
+                "indicators_raw": ["CET1 ratio", "Tier 1 ratio"],
+                "indicators_normalized": ["cet1 ratio", "tier 1 ratio"],
             }
         ],
     }
@@ -34,10 +33,10 @@ def test_quality_gate_pass_writes_reports(tmp_path: Path) -> None:
                 "table_id": "t1",
                 "title": "Capital reglementaire",
                 "page": 12,
-                "source": "t1",
-                "has_footnotes": True,
-                "footnote_markers": ["1"],
-                "footnotes_content": {"1": "Includes transitional arrangements."},
+                "section": "capital",
+                "footnotes": [
+                    {"id": "1", "text": "Includes transitional arrangements."}
+                ],
             }
         ],
     }
@@ -70,8 +69,9 @@ def test_quality_gate_fails_on_repr_like_footnotes(tmp_path: Path) -> None:
                 "table_id": "t2",
                 "title": "Gestion des risques",
                 "page": 20,
-                "source": "t2",
-                "sections": [{"section": "risk", "indicators": ["RWA", "LCR"]}],
+                "section": "risk",
+                "indicators_raw": ["RWA", "LCR"],
+                "indicators_normalized": ["rwa", "lcr"],
             }
         ],
     }
@@ -83,10 +83,8 @@ def test_quality_gate_fails_on_repr_like_footnotes(tmp_path: Path) -> None:
                 "table_id": "t2",
                 "title": "Gestion des risques",
                 "page": 20,
-                "source": "t2",
-                "has_footnotes": True,
-                "footnote_markers": ["1"],
-                "footnotes_content": {"1": "{'id': '1', 'text': 'legacy repr'}"},
+                "section": "risk",
+                "footnotes": [{"id": "1", "text": "{'id': '1', 'text': 'legacy repr'}"}],
             }
         ],
     }
@@ -105,25 +103,17 @@ def test_quality_gate_fails_policy_on_duplicates_and_titles() -> None:
                 "table_id": "a",
                 "title": "Expositions brutes 79 772 76 163",
                 "page": 1,
-                "source": "t1",
-                "sections": [
-                    {
-                        "section": "s1",
-                        "indicators": ["x", "x", "x"],
-                    }
-                ],
+                "section": "s1",
+                "indicators_raw": ["x", "x", "x"],
+                "indicators_normalized": ["x", "x", "x"],
             },
             {
                 "table_id": "b",
                 "title": "Revenue 100 200 300",
                 "page": 2,
-                "source": "t2",
-                "sections": [
-                    {
-                        "section": "s2",
-                        "indicators": ["a", "a", "b"],
-                    }
-                ],
+                "section": "s2",
+                "indicators_raw": ["a", "a", "b"],
+                "indicators_normalized": ["a", "a", "b"],
             },
         ]
     }
@@ -150,10 +140,9 @@ def test_quality_gate_detects_line_split_suspicion() -> None:
                 "table_id": "x1",
                 "title": "Risk table",
                 "page": 9,
-                "source": "t1",
-                "sections": [
-                    {"section": "risk", "indicators": ["supplementaires1", "a", "-", "Core capital"]}
-                ],
+                "section": "risk",
+                "indicators_raw": ["supplementaires1", "a", "-", "Core capital"],
+                "indicators_normalized": ["supplementaires1", "a", "-", "core capital"],
             }
         ]
     }
@@ -168,15 +157,17 @@ def test_quality_gate_exempts_date_header_titles_by_default() -> None:
                 "table_id": "d1",
                 "title": "Au 31 janvier 2025",
                 "page": 1,
-                "source": "t1",
-                "sections": [{"section": "s", "indicators": ["CET1"]}],
+                "section": "s",
+                "indicators_raw": ["CET1"],
+                "indicators_normalized": ["cet1"],
             },
             {
                 "table_id": "d2",
                 "title": "Pour le trimestre clos le 31 janvier 2025 31 octobre 2024",
                 "page": 2,
-                "source": "t2",
-                "sections": [{"section": "s", "indicators": ["RWA"]}],
+                "section": "s",
+                "indicators_raw": ["RWA"],
+                "indicators_normalized": ["rwa"],
             },
         ]
     }
@@ -198,8 +189,9 @@ def test_quality_gate_still_flags_true_numeric_title_contamination() -> None:
                 "table_id": "n1",
                 "title": "239 323 240 796",
                 "page": 3,
-                "source": "t1",
-                "sections": [{"section": "s", "indicators": ["Actifs"]}],
+                "section": "s",
+                "indicators_raw": ["Actifs"],
+                "indicators_normalized": ["actifs"],
             }
         ]
     }
@@ -221,8 +213,9 @@ def test_quality_gate_auto_cleaned_title_is_non_blocking() -> None:
                 "table_id": "n2",
                 "title": "BMO (societe mere) 239 323 240 796",
                 "page": 4,
-                "source": "t2",
-                "sections": [{"section": "s", "indicators": ["Actifs"]}],
+                "section": "s",
+                "indicators_raw": ["Actifs"],
+                "indicators_normalized": ["actifs"],
             }
         ]
     }

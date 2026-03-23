@@ -51,12 +51,12 @@ def previous_comparable_quarter(current: QuarterRef) -> QuarterRef:
     - Q2 -> Q1 (same year)
     - Q3 -> Q2 (same year)
     - Q1 -> Q3 (previous year)
-    - Q4 -> Q3 (same year, graceful fallback if Q4 is ever used)
+    - Q4 -> Q4 (previous year)
     """
     if current.quarter == 1:
         return QuarterRef(quarter=3, year=current.year - 1)
     if current.quarter == 4:
-        return QuarterRef(quarter=3, year=current.year)
+        return QuarterRef(quarter=4, year=current.year - 1)
     return QuarterRef(quarter=current.quarter - 1, year=current.year)
 
 

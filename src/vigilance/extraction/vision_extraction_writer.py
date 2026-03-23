@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from ..extraction.section_taxonomy import canonicalize_section
 from ..models.table_models import (
     get_canonical_footnotes,
     get_comparison_indicators,
@@ -20,10 +21,24 @@ from ..utils.footnotes_utils import (
 
 logger = logging.getLogger(__name__)
 
+COMPACT_REPORT_SCHEMA_VERSION = 3
+
 
 def _table_section(table: Any) -> str:
     """Return a human-readable section value for a table-like object."""
     return str(getattr(table, "section", "") or "").strip() or "unknown_section"
+
+
+def _compact_table_section(table: Any) -> str:
+    """Return canonical compact section value with a defensive fallback."""
+    raw = str(getattr(table, "section", "") or "").strip()
+    if not raw:
+        return "unknown_section"
+    try:
+        normalized = canonicalize_section(raw)
+    except Exception:
+        normalized = raw
+    return str(normalized or "unknown_section").strip() or "unknown_section"
 
 
 def _table_title(table: Any) -> str:
@@ -35,6 +50,133 @@ def _table_title(table: Any) -> str:
 def _table_page(table: Any) -> int:
     """Return the PDF page number for a table-like object."""
     return int(getattr(table, "page_pdf", 0) or getattr(table, "page_number", 0) or 0)
+
+
+def _compact_table_title(table: Any) -> str:
+    """Return compact title value; empty string is preserved when no title exists."""
+    title = getattr(table, "title_clean", None)
+    if title is None:
+        title = getattr(table, "title", None)
+    return str(title or "")
+
+
+def _compact_created_at(meta: dict[str, Any] | None = None) -> str:
+    metadata = dict(meta or {})
+    return str(
+        metadata.get("created_at")
+        or metadata.get("extracted_at")
+        or datetime.now().isoformat(timespec="seconds")
+    )
+
+
+def _compact_top_level(
+    *,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    created_at: str,
+    meta: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    metadata = dict(meta or {})
+    return {
+        "bank_code": str(bank_code),
+        "year": int(year),
+        "quarter": str(quarter),
+        "created_at": str(created_at),
+        "schema_version": int(metadata.get("schema_version") or COMPACT_REPORT_SCHEMA_VERSION),
+        "model_version": str(metadata.get("model_version") or ""),
+        "prompt_version": str(metadata.get("prompt_version") or ""),
+    }
+
+
+def _stable_sort_tables(tables: list[Any]) -> list[Any]:
+    indexed = list(enumerate(tables))
+    indexed.sort(
+        key=lambda item: (
+            _table_page(item[1]),
+            int(getattr(item[1], "table_index_on_page", 10**9) or 10**9),
+            item[0],
+        )
+    )
+    return [table for _, table in indexed]
+
+
+def _compact_footnotes(table: Any) -> list[dict[str, str]]:
+    return [
+        {
+            "id": str(item.get("id") or "").strip(),
+            "text": str(item.get("text") or "").strip(),
+        }
+        for item in get_canonical_footnotes(table)
+        if str(item.get("id") or "").strip() and str(item.get("text") or "").strip()
+    ]
+
+
+def _compact_table_common_entry(table: Any) -> dict[str, Any]:
+    return {
+        "table_id": str(getattr(table, "table_id", "") or ""),
+        "page": _table_page(table),
+        "section": _compact_table_section(table),
+        "title": _compact_table_title(table),
+    }
+
+
+def _compact_table_entry(table: Any) -> dict[str, Any]:
+    entry = _compact_table_common_entry(table)
+    entry["headers"] = [
+        str(value) for value in list(getattr(table, "headers", []) or [])
+    ]
+    rows = []
+    for row in list(getattr(table, "rows", []) or []):
+        if isinstance(row, (list, tuple)):
+            rows.append([str(value) for value in row])
+        else:
+            rows.append([str(row)])
+    entry["rows"] = rows
+    entry["indicators_raw"] = [
+        str(value).strip()
+        for value in get_vision_raw_indicators(table)
+        if str(value).strip()
+    ]
+    entry["indicators_normalized"] = [
+        str(value).strip()
+        for value in get_comparison_indicators(table)
+        if str(value).strip()
+    ]
+    entry["footnotes"] = _compact_footnotes(table)
+    return entry
+
+
+def _compact_indicator_entry(table: Any) -> dict[str, Any]:
+    entry = _compact_table_common_entry(table)
+    entry["indicators_raw"] = [
+        str(value).strip()
+        for value in get_vision_raw_indicators(table)
+        if str(value).strip()
+    ]
+    entry["indicators_normalized"] = [
+        str(value).strip()
+        for value in get_comparison_indicators(table)
+        if str(value).strip()
+    ]
+    return entry
+
+
+def _compact_footnote_entry(table: Any) -> dict[str, Any]:
+    entry = _compact_table_common_entry(table)
+    entry["footnotes"] = _compact_footnotes(table)
+    return entry
+
+
+def _atomic_write_json(out_path: Path, payload: dict[str, Any]) -> Path:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = out_path.with_name(out_path.name + ".tmp")
+    tmp_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    tmp_path.replace(out_path)
+    return out_path
 
 
 def _table_indicators_for_text(table: Any) -> list[str]:
@@ -509,6 +651,115 @@ def write_report_footnotes_txt(
     out_path.write_text(_lines_to_text(lines), encoding="utf-8")
     logger.debug("Wrote report footnotes.txt to %s", out_path)
     return out_path
+
+
+def write_compact_tables_json(
+    tables: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    *,
+    meta: dict[str, Any] | None = None,
+) -> Path:
+    """Write the compact canonical tables.json used by the minimal extraction flow."""
+    created_at = _compact_created_at(meta)
+    ordered_tables = _stable_sort_tables(tables)
+    payload: dict[str, Any] = {
+        **_compact_top_level(
+            bank_code=bank_code,
+            year=year,
+            quarter=quarter,
+            created_at=created_at,
+            meta=meta,
+        ),
+        "tables": [_compact_table_entry(table) for table in ordered_tables],
+    }
+    out_path = out_dir / "tables.json"
+    _atomic_write_json(out_path, payload)
+    logger.debug("Wrote compact tables.json to %s", out_path)
+    return out_path
+
+
+def write_compact_indicators_json(
+    tables: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    *,
+    meta: dict[str, Any] | None = None,
+) -> Path:
+    """Write the compact indicators.json used by the minimal extraction flow."""
+    created_at = _compact_created_at(meta)
+    ordered_tables = _stable_sort_tables(tables)
+    payload: dict[str, Any] = {
+        **_compact_top_level(
+            bank_code=bank_code,
+            year=year,
+            quarter=quarter,
+            created_at=created_at,
+            meta=meta,
+        ),
+        "tables": [_compact_indicator_entry(table) for table in ordered_tables],
+    }
+    out_path = out_dir / "indicators.json"
+    _atomic_write_json(out_path, payload)
+    logger.debug("Wrote compact indicators.json to %s", out_path)
+    return out_path
+
+
+def write_compact_footnotes_json(
+    tables: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    *,
+    meta: dict[str, Any] | None = None,
+) -> Path:
+    """Write the compact footnotes.json used by the minimal extraction flow."""
+    created_at = _compact_created_at(meta)
+    ordered_tables = _stable_sort_tables(tables)
+    payload: dict[str, Any] = {
+        **_compact_top_level(
+            bank_code=bank_code,
+            year=year,
+            quarter=quarter,
+            created_at=created_at,
+            meta=meta,
+        ),
+        "tables": [_compact_footnote_entry(table) for table in ordered_tables],
+    }
+    out_path = out_dir / "footnotes.json"
+    _atomic_write_json(out_path, payload)
+    logger.debug("Wrote compact footnotes.json to %s", out_path)
+    return out_path
+
+
+def write_compact_report_artifacts(
+    tables: list[Any],
+    out_dir: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    *,
+    meta: dict[str, Any] | None = None,
+) -> dict[str, Path]:
+    """Write tables.json, indicators.json, and footnotes.json from the same in-memory tables."""
+    metadata = dict(meta or {})
+    metadata["created_at"] = _compact_created_at(metadata)
+    return {
+        "tables": write_compact_tables_json(
+            tables, out_dir, bank_code, year, quarter, meta=metadata
+        ),
+        "indicators": write_compact_indicators_json(
+            tables, out_dir, bank_code, year, quarter, meta=metadata
+        ),
+        "footnotes": write_compact_footnotes_json(
+            tables, out_dir, bank_code, year, quarter, meta=metadata
+        ),
+    }
 
 
 def write_report_summary_json(

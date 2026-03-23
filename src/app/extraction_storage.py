@@ -46,8 +46,12 @@ def build_extraction_manifest(
 ) -> dict[str, Any]:
     """Build manifest for cache compatibility (provenance + contract versions)."""
     try:
-        path_bytes = Path(pdf_path).resolve().as_posix().encode("utf-8")
-        pdf_fingerprint = hashlib.sha256(path_bytes).hexdigest()[:16]
+        pdf_raw = str(pdf_path or "").strip()
+        if pdf_raw:
+            path_bytes = Path(pdf_raw).resolve().as_posix().encode("utf-8")
+            pdf_fingerprint = hashlib.sha256(path_bytes).hexdigest()[:16]
+        else:
+            pdf_fingerprint = ""
     except Exception:
         pdf_fingerprint = ""
     try:
@@ -222,7 +226,7 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     # Normalize keys and handle optional fields
     bank_code = str(d.get("bank_code", "") or "")
     section = str(d.get("section", "") or "")
-    page_pdf = int(d.get("page_pdf", 0) or 0)
+    page_pdf = int(d.get("page_pdf", d.get("page", 0)) or 0)
     table_id = str(d.get("table_id", "") or "")
     title = d.get("title")
     headers = list(d.get("headers") or [])
@@ -235,7 +239,11 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
         d.get("content_source"),
     )
     first_column_indicators_raw_from_storage = d.get("first_column_indicators_raw")
-    raw_indicators_stored = list(d.get("first_column_indicators") or [])
+    if first_column_indicators_raw_from_storage is None:
+        first_column_indicators_raw_from_storage = d.get("indicators_raw")
+    raw_indicators_stored = list(
+        d.get("first_column_indicators") or d.get("indicators_normalized") or []
+    )
     use_raw_reconstruction = (
         content_source == "vision_gpt4o"
         and first_column_indicators_raw_from_storage
@@ -282,6 +290,8 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     quarter = d.get("quarter")
     pdf_path = d.get("pdf_path")
     first_column_indicators_raw = d.get("first_column_indicators_raw")
+    if first_column_indicators_raw is None:
+        first_column_indicators_raw = d.get("indicators_raw")
     first_column_groups = d.get("first_column_groups")
     hierarchical_indicator_signature = d.get("hierarchical_indicator_signature")
     title_reliability = d.get("title_reliability")
@@ -387,10 +397,10 @@ def _ensure_report_view_artifacts(
     ):
         return
     from vigilance.extraction.vision_extraction_writer import (
+        write_compact_footnotes_json,
+        write_compact_indicators_json,
         write_report_footnotes_txt,
-        write_report_footnotes_json,
         write_report_indicators_txt,
-        write_report_indicators_json,
         write_report_summary_json,
         write_report_summary_txt,
     )
@@ -414,7 +424,7 @@ def _ensure_report_view_artifacts(
             meta=meta,
         )
     if indicators_missing:
-        write_report_indicators_json(
+        write_compact_indicators_json(
             tables,
             target_dir,
             bank_code,
@@ -432,7 +442,7 @@ def _ensure_report_view_artifacts(
             meta=meta,
         )
     if footnotes_missing:
-        write_report_footnotes_json(
+        write_compact_footnotes_json(
             tables,
             target_dir,
             bank_code,
@@ -463,7 +473,7 @@ def save_extraction(
     Save extraction for one report.
 
     Writes extraction_snapshot.json atomically (tables + meta in one file so they cannot drift),
-    then tables.json and meta.json for backward compatibility.
+    then the official tables.json and internal meta.json.
     Layout: outputs/extractions/{bank_code}/{year}/{quarter}/.
     Returns the directory path.
     """
@@ -475,14 +485,6 @@ def save_extraction(
     for d in tables_dicts:
         raw_footnotes = d.get("footnotes") or []
         d["footnotes"] = [_footnote_to_canonical(fn) for fn in raw_footnotes]
-    tables_payload = {
-        "schema_version": STORAGE_SCHEMA_VERSION,
-        "tables": tables_dicts,
-        "bank_code": bank_code,
-        "year": year,
-        "quarter": quarter_norm,
-    }
-
     meta_payload = dict(meta or {})
     meta_payload.setdefault("schema_version", STORAGE_SCHEMA_VERSION)
     meta_payload.setdefault("bank_code", bank_code)
@@ -509,7 +511,7 @@ def save_extraction(
         "bank_code": bank_code,
         "year": year,
         "quarter": quarter_norm,
-        "tables": tables_payload["tables"],
+        "tables": tables_dicts,
         "meta": meta_payload,
     }
     snapshot_path = target_dir / EXTRACTION_SNAPSHOT_FILENAME
@@ -520,10 +522,15 @@ def save_extraction(
     )
     tmp_path.replace(snapshot_path)
 
-    tables_path = target_dir / TABLES_FILENAME
-    tables_path.write_text(
-        json.dumps(tables_payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
+    from vigilance.extraction.vision_extraction_writer import write_compact_tables_json
+
+    write_compact_tables_json(
+        tables,
+        target_dir,
+        bank_code,
+        year,
+        quarter_norm,
+        meta=meta_payload,
     )
     meta_path = target_dir / META_FILENAME
     meta_path.write_text(

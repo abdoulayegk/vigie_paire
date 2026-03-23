@@ -1173,7 +1173,10 @@ class SectionLocator:
         Returns:
             SectionMapping avec les sections localisees
         """
-        pdf_path = Path(pdf_path)
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            raise ValueError("Chemin PDF requis pour la localisation des sections.")
+        pdf_path = Path(raw_pdf_path)
 
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF non trouve: {pdf_path}")

@@ -7,8 +7,10 @@ commande. Il prend en entrée un fichier ``section_ranges.json`` (produit par
 via Docling (et optionnellement GPT-4o Vision).
 
 Les tableaux extraits sont convertis en ``TableArtifact`` canoniques et écrits
-dans un fichier ``tables_docling.json``. Optionnellement, un fichier
-``vigie_extract_v1.json`` peut également être produit (format d'export enrichi).
+dans un fichier ``tables_docling.json``. Avec ``--save-extraction``, les memes
+artefacts que l'app (``tables.json``, ``indicators.json``, ``footnotes.json``,
+etc.) sont aussi ecrits sous ``--extraction-root``. Optionnellement, un fichier
+``vigie_extract_v1.json`` peut egalement etre produit (format d'export enrichi).
 
 Usage typique
 -------------
@@ -131,6 +133,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--language", default="fr", help="Language code for vigie_extract (default: fr)"
+    )
+    parser.add_argument(
+        "--save-extraction",
+        action="store_true",
+        default=False,
+        help=(
+            "Also call save_extraction: writes tables.json, indicators.json, "
+            "footnotes.json, report_summary.* under --extraction-root (same layout as the app)."
+        ),
+    )
+    parser.add_argument(
+        "--extraction-root",
+        default="outputs/extractions",
+        help="Root directory when using --save-extraction (default: outputs/extractions)",
     )
     return parser
 
@@ -346,6 +362,13 @@ def main(argv: list[str] | None = None) -> None:
     argv:
         Liste d'arguments CLI. Si ``None``, utilise ``sys.argv[1:]``.
     """
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv()
+    except ImportError:
+        pass
+
     args = build_parser().parse_args(argv)
     cfg = load_config(args.config)
     get_bank_cfg(cfg, args.bank)
@@ -392,6 +415,35 @@ def main(argv: list[str] | None = None) -> None:
         )
         vigie_path = write_vigie_extract(out_dir=out_dir, payload=payload)
         print(vigie_path)
+
+    if args.save_extraction:
+        from app.extraction_storage import get_extraction_artifact_paths, save_extraction
+
+        extraction_root = Path(args.extraction_root)
+        extraction_method = "docling"
+        for art in artifacts:
+            em = getattr(art, "extraction_method", None)
+            if em:
+                extraction_method = str(em)
+                break
+        meta: dict[str, Any] = {
+            "pdf_path": str(Path(args.pdf).resolve()),
+            "section_ranges": section_ranges,
+            "extraction_method": extraction_method,
+        }
+        save_extraction(
+            bank_code=args.bank,
+            year=year,
+            quarter=args.quarter,
+            tables=artifacts,
+            meta=meta,
+            base_dir=extraction_root,
+        )
+        paths = get_extraction_artifact_paths(
+            args.bank, year, args.quarter, extraction_root
+        )
+        print(paths["indicators"])
+        print(paths["footnotes"])
 
 
 if __name__ == "__main__":

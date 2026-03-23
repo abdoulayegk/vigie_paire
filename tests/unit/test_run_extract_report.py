@@ -1,0 +1,116 @@
+from __future__ import annotations
+
+import json
+import sys
+import types
+from pathlib import Path
+from types import SimpleNamespace
+
+import yaml
+
+from vigilance.cli.run_extract_report import main
+
+
+def test_run_extract_report_writes_compact_artifacts(tmp_path: Path, monkeypatch) -> None:
+    cfg_path = tmp_path / "bank_profiles.yaml"
+    cfg_path.write_text(
+        yaml.safe_dump({"version": "1.0", "banks": {"bnc": {"name": "BNC"}}}),
+        encoding="utf-8",
+    )
+
+    locator_module = types.ModuleType("vigilance.extraction.section_locator")
+    processor_module = types.ModuleType("vigilance.extraction.docling_processor")
+
+    def fake_locate_sections_in_pdf(
+        pdf_path: str,
+        bank_code: str | None = None,
+        quarter: str | None = None,
+        year: int = 2025,
+    ) -> SimpleNamespace:
+        assert pdf_path == "dummy.pdf"
+        assert bank_code == "bnc"
+        assert quarter == "t1"
+        assert year == 2025
+        return SimpleNamespace(
+            sections=[
+                SimpleNamespace(
+                    section_type="Gestion des risques",
+                    start_page=12,
+                    end_page=14,
+                )
+            ]
+        )
+
+    def fake_extract_tables_docling_by_sections(
+        pdf_path: str,
+        bank_code: str,
+        quarter: str,
+        year: int,
+        section_ranges: list[dict],
+        use_vision_extraction: object = None,
+    ) -> list[SimpleNamespace]:
+        assert pdf_path == "dummy.pdf"
+        assert bank_code == "bnc"
+        assert quarter == "t1"
+        assert year == 2025
+        assert section_ranges == [
+            {"section": "risk_management", "start": 12, "end": 14}
+        ]
+        return [
+            SimpleNamespace(
+                table_id="tableau_0",
+                page_number=12,
+                section="risk_management",
+                title="Table risque",
+                title_clean=None,
+                headers=["Indicator", "Value"],
+                rows=[["Pertes attendues", "100"]],
+                first_column_indicators_raw=["Pertes attendues"],
+                first_column_indicators=["pertes attendues"],
+                footnotes=[{"id": "1", "text": "Footnote de test"}],
+                table_index_on_page=1,
+            )
+        ]
+
+    locator_module.locate_sections_in_pdf = fake_locate_sections_in_pdf
+    processor_module.extract_tables_docling_by_sections = (
+        fake_extract_tables_docling_by_sections
+    )
+    monkeypatch.setitem(sys.modules, "vigilance.extraction.section_locator", locator_module)
+    monkeypatch.setitem(sys.modules, "vigilance.extraction.docling_processor", processor_module)
+
+    out_root = tmp_path / "outputs"
+    main(
+        [
+            "--bank",
+            "bnc",
+            "--pdf",
+            "dummy.pdf",
+            "--year",
+            "2025",
+            "--quarter",
+            "T1",
+            "--config",
+            str(cfg_path),
+            "--out-root",
+            str(out_root),
+        ]
+    )
+
+    out_dir = out_root / "bnc" / "2025" / "t1"
+    assert (out_dir / "tables.json").exists()
+    assert (out_dir / "indicators.json").exists()
+    assert (out_dir / "footnotes.json").exists()
+
+    tables_payload = json.loads((out_dir / "tables.json").read_text(encoding="utf-8"))
+    indicators_payload = json.loads((out_dir / "indicators.json").read_text(encoding="utf-8"))
+    footnotes_payload = json.loads((out_dir / "footnotes.json").read_text(encoding="utf-8"))
+
+    assert tables_payload["tables"][0]["table_id"] == "tableau_0"
+    assert indicators_payload["tables"][0]["table_id"] == "tableau_0"
+    assert footnotes_payload["tables"][0]["table_id"] == "tableau_0"
+    assert tables_payload["tables"][0]["section"] == "risk_management"
+    assert indicators_payload["tables"][0]["indicators_normalized"] == ["pertes attendues"]
+    assert footnotes_payload["tables"][0]["footnotes"] == [
+        {"id": "1", "text": "Footnote de test"}
+    ]

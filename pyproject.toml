@@ -25,6 +25,8 @@ dependencies = [
 [project.scripts]
 vigilance-run-ranges = "vigilance.cli.run_ranges:main"
 vigilance-run-tables = "vigilance.cli.run_tables:main"
+vigilance-run-extract-report = "vigilance.cli.run_extract_report:main"
+vigilance-run-compare-gpt4o = "vigilance.cli.run_compare_gpt4o:main"
 
 [project.optional-dependencies]
 dev = [
@@ -41,13 +43,15 @@ packages = [
     "app.dash_app.layouts",
     "vigilance",
     "vigilance.cli",
-    "vigilance.compare",
     "vigilance.config",
-    "vigilance.embedding",
-    "vigilance.genai",
+    "vigilance.dash_app",
+    "vigilance.dash_app.callbacks",
+    "vigilance.dash_app.components",
+    "vigilance.dash_app.layouts",
     "vigilance.extraction",
     "vigilance.extract",
     "vigilance.models",
+    "vigilance.quality",
     "vigilance.report",
     "vigilance.utils",
 ]

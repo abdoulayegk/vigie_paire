@@ -189,6 +189,384 @@ def new_empty_ui_comparison_payload() -> dict[str, Any]:
         },
     }
 
+def _quarter_label(quarter: str, year: int) -> str:
+    text = str(quarter or "").strip().lower()
+    if text.startswith("t") and len(text) >= 2 and text[1].isdigit():
+        return f"Q{text[1]}-{year}"
+    return f"{quarter}-{year}" if quarter else str(year)
+
+
+def _build_report_comparison_summary_text(
+    *,
+    current_label: str,
+    previous_label: str,
+    matched_pairs: int,
+    tables_added: int,
+    tables_removed: int,
+    indicator_changes: int,
+    footnote_changes: int,
+    high_priority_items: int,
+) -> str:
+    parts = [
+        f"Comparaison {current_label} vs {previous_label} : {matched_pairs} tableau(x) apparié(s)."
+    ]
+    parts.append(
+        f" {tables_added} tableau(x) ajouté(s), {tables_removed} supprimé(s)."
+    )
+    parts.append(
+        f" {indicator_changes} changement(s) d'indicateur et {footnote_changes} changement(s) de footnote détecté(s)."
+    )
+    if high_priority_items:
+        parts.append(f" {high_priority_items} élément(s) prioritaire(s) à réviser.")
+    else:
+        parts.append(" Aucun élément prioritaire détecté.")
+    return "".join(parts)
+
+
+def _build_footnotes_diff(technical_diff: dict[str, Any]) -> tuple[dict[str, Any], dict[str, int]]:
+    added_items = [
+        {
+            "footnote_ref": str(item.get("id", "") or ""),
+            "old_text": "",
+            "new_text": str(item.get("text", "") or ""),
+            "change_type": "new",
+            "reason": str(item.get("reason", "") or ""),
+        }
+        for item in list(technical_diff.get("footnotes_added", []) or [])
+        if isinstance(item, dict)
+    ]
+    removed_items = [
+        {
+            "footnote_ref": str(item.get("id", "") or ""),
+            "old_text": str(item.get("text", "") or ""),
+            "new_text": "",
+            "change_type": "removed",
+            "reason": str(item.get("reason", "") or ""),
+        }
+        for item in list(technical_diff.get("footnotes_removed", []) or [])
+        if isinstance(item, dict)
+    ]
+    modified_items = [
+        {
+            "footnote_ref": str(
+                item.get("current_id") or item.get("previous_id") or ""
+            ),
+            "old_text": str(item.get("previous_text", "") or ""),
+            "new_text": str(item.get("current_text", "") or ""),
+            "change_type": "modified",
+            "reason": str(item.get("reason", "") or ""),
+        }
+        for item in list(technical_diff.get("footnotes_renamed", []) or [])
+        if isinstance(item, dict)
+    ]
+    counts = {
+        "added": len(added_items),
+        "removed": len(removed_items),
+        "modified": len(modified_items),
+    }
+    return (
+        {
+            "added": added_items,
+            "removed": removed_items,
+            "modified": modified_items,
+            "counts": counts,
+        },
+        counts,
+    )
+
+
+def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    ui_payload = new_empty_ui_comparison_payload()
+    bank_code = str(payload.get("bank_code", "") or "").lower()
+    year_previous = int(payload.get("year_previous", 0) or 0)
+    year_current = int(payload.get("year_current", 0) or 0)
+    quarter_previous = str(payload.get("quarter_previous", "") or "").lower()
+    quarter_current = str(payload.get("quarter_current", "") or "").lower()
+    current_label = _quarter_label(quarter_current, year_current)
+    previous_label = _quarter_label(quarter_previous, year_previous)
+    pdf_previous = str(
+        payload.get("archived_pdf_previous")
+        or payload.get("source_pdf_previous")
+        or ""
+    ).strip()
+    pdf_current = str(
+        payload.get("archived_pdf_current")
+        or payload.get("source_pdf_current")
+        or ""
+    ).strip()
+
+    matched_lookup = {
+        str(item.get("previous_table_id", "") or ""): item
+        for item in list((payload.get("matching") or {}).get("matched_pairs", []) or [])
+        if isinstance(item, dict)
+    }
+
+    ui_payload["bank_code"] = bank_code
+    ui_payload["year"] = year_current or ui_payload["year"]
+    ui_payload["quarter_from"] = previous_label
+    ui_payload["quarter_to"] = current_label
+    ui_payload["previous_quarter"] = previous_label
+    ui_payload["current_quarter"] = current_label
+    ui_payload["comparison_direction"] = "current_vs_previous"
+
+    table_comparisons: list[dict[str, Any]] = []
+    for item in list(payload.get("pair_comparisons", []) or []):
+        if not isinstance(item, dict):
+            continue
+        previous_table_id = str(item.get("previous_table_id", "") or "").strip()
+        current_table_id = str(item.get("current_table_id", "") or "").strip()
+        previous_table = item.get("previous_table") or {}
+        current_table = item.get("current_table") or {}
+        technical_diff = item.get("technical_diff", {}) or {}
+        footnotes_diff, footnotes_counts = _build_footnotes_diff(technical_diff)
+        added = [
+            str(entry.get("value", "") or "").strip()
+            for entry in list(technical_diff.get("indicators_added", []) or [])
+            if isinstance(entry, dict) and str(entry.get("value", "") or "").strip()
+        ]
+        removed = [
+            str(entry.get("value", "") or "").strip()
+            for entry in list(technical_diff.get("indicators_removed", []) or [])
+            if isinstance(entry, dict) and str(entry.get("value", "") or "").strip()
+        ]
+        renamed = [
+            {
+                "from": str(entry.get("previous", "") or "").strip(),
+                "to": str(entry.get("current", "") or "").strip(),
+            }
+            for entry in list(technical_diff.get("indicators_renamed", []) or [])
+            if isinstance(entry, dict)
+            and str(entry.get("previous", "") or "").strip()
+            and str(entry.get("current", "") or "").strip()
+        ]
+        match_info = matched_lookup.get(previous_table_id, {})
+        table_comparisons.append(
+            {
+                "table_id_t1": previous_table_id,
+                "table_id_t2": current_table_id,
+                "title_t1": str(previous_table.get("title", "") or ""),
+                "title_t2": str(current_table.get("title", "") or ""),
+                "page_t1": previous_table.get("page"),
+                "page_t2": current_table.get("page"),
+                "section": str(
+                    current_table.get("section")
+                    or previous_table.get("section")
+                    or "unknown_section"
+                ),
+                "bbox_t1": previous_table.get("bbox"),
+                "bbox_t2": current_table.get("bbox"),
+                "source_pdf_t1": pdf_previous,
+                "source_pdf_t2": pdf_current,
+                "table_status": str(
+                    technical_diff.get("table_level_change", "inchange") or "inchange"
+                ),
+                "match_score": float(item.get("match_confidence") or match_info.get("match_confidence") or 0.0),
+                "match_reason": str(item.get("match_reason") or match_info.get("reason") or ""),
+                "added_indicators": added,
+                "removed_indicators": removed,
+                "renamed_indicators": renamed,
+                "added_indicators_raw": list(added),
+                "removed_indicators_raw": list(removed),
+                "renamed_indicators_raw": [dict(entry) for entry in renamed],
+                "all_indicators_t1": list(previous_table.get("indicators_raw", []) or []),
+                "all_indicators_t2": list(current_table.get("indicators_raw", []) or []),
+                "counts": {
+                    "added": len(added),
+                    "removed": len(removed),
+                    "renamed": len(renamed),
+                    "renamed_probable": 0,
+                },
+                "footnotes_diff": footnotes_diff,
+                "footnotes_counts": footnotes_counts,
+                "uncertain_diff": False,
+                "genai_analysis": dict(item.get("analyst_assessment") or {}),
+                "match_metadata": {
+                    "theme": str(
+                        (item.get("analyst_assessment") or {}).get("theme") or ""
+                    ),
+                    "review_priority": str(
+                        (item.get("analyst_assessment") or {}).get("review_priority")
+                        or ""
+                    ),
+                    "change_significance": str(
+                        (item.get("analyst_assessment") or {}).get(
+                            "change_significance"
+                        )
+                        or ""
+                    ),
+                    "analyst_summary": str(
+                        (item.get("analyst_assessment") or {}).get("analyst_summary")
+                        or ""
+                    ),
+                },
+            }
+        )
+
+    def _table_side_items(items: list[Any], side: str) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            table_id = str(item.get("table_id", "") or "").strip()
+            out.append(
+                {
+                    "table_id": table_id,
+                    "title": str(item.get("title", "") or ""),
+                    "page": item.get("page"),
+                    "section": str(item.get("section", "") or "unknown_section"),
+                    "bbox_t1": item.get("bbox") if side == "previous" else None,
+                    "bbox_t2": item.get("bbox") if side == "current" else None,
+                    "source_pdf_t1": pdf_previous if side == "previous" else "",
+                    "source_pdf_t2": pdf_current if side == "current" else "",
+                    "all_indicators_t1": list(item.get("indicators_raw", []) or [])
+                    if side == "previous"
+                    else [],
+                    "all_indicators_t2": list(item.get("indicators_raw", []) or [])
+                    if side == "current"
+                    else [],
+                    "first_column_indicators_raw": list(item.get("indicators_raw", []) or []),
+                    "first_column_indicators": list(
+                        item.get("indicators_normalized", []) or []
+                    ),
+                    "genai_analysis": dict(item.get("analyst_assessment") or {}),
+                    "semantic_judge": str(item.get("reason", "") or ""),
+                }
+            )
+        return out
+
+    matching = payload.get("matching") or {}
+    ui_payload["table_comparisons"] = table_comparisons
+    ui_payload["tables_added"] = _table_side_items(
+        list(matching.get("tables_added", []) or []),
+        "current",
+    )
+    ui_payload["tables_removed"] = _table_side_items(
+        list(matching.get("tables_removed", []) or []),
+        "previous",
+    )
+
+    indicator_change_pairs = sum(
+        1
+        for item in table_comparisons
+        if item["counts"]["added"] or item["counts"]["removed"] or item["counts"]["renamed"]
+    )
+    footnote_change_pairs = sum(
+        1
+        for item in table_comparisons
+        if any((item.get("footnotes_counts") or {}).values())
+    )
+    matched_pairs_total = int((payload.get("summary") or {}).get("matched_pairs_total", 0) or 0)
+    tables_t1 = matched_pairs_total + len(ui_payload["tables_removed"])
+    tables_t2 = matched_pairs_total + len(ui_payload["tables_added"])
+    pairing_coverage = (
+        matched_pairs_total / max(tables_t1, tables_t2, 1)
+        if tables_t1 or tables_t2
+        else 0.0
+    )
+    summary = ui_payload["summary"]
+    summary.update(
+        {
+            "tables_t1": tables_t1,
+            "tables_t2": tables_t2,
+            "tables_extracted_t1": tables_t1,
+            "tables_extracted_t2": tables_t2,
+            "tables_comparable_t1": tables_t1,
+            "tables_comparable_t2": tables_t2,
+            "tables_matched": matched_pairs_total,
+            "tables_added": len(ui_payload["tables_added"]),
+            "tables_removed": len(ui_payload["tables_removed"]),
+            "tables_added_confirmed": len(ui_payload["tables_added"]),
+            "tables_removed_confirmed": len(ui_payload["tables_removed"]),
+            "tables_added_pending_review": 0,
+            "tables_removed_pending_review": 0,
+            "ambiguous_tables": 0,
+            "review_candidates": 0,
+            "ambiguous_pairs": 0,
+            "pairing_coverage": pairing_coverage,
+            "indicator_change_pairs": indicator_change_pairs,
+            "footnote_change_pairs": footnote_change_pairs,
+            "pairing_low_confidence": any(
+                float(item.get("match_score", 0.0) or 0.0) < 0.75
+                for item in table_comparisons
+            ),
+            "total_added_indicators": sum(
+                len(item.get("added_indicators", []) or [])
+                for item in table_comparisons
+            ),
+            "total_removed_indicators": sum(
+                len(item.get("removed_indicators", []) or [])
+                for item in table_comparisons
+            ),
+            "total_renamed_indicators": sum(
+                len(item.get("renamed_indicators", []) or [])
+                for item in table_comparisons
+            ),
+        }
+    )
+    summary["status_counts"].update(
+        {
+            "stable": sum(
+                1 for item in table_comparisons if item.get("table_status") == "inchange"
+            ),
+            "modifie": sum(
+                1 for item in table_comparisons if item.get("table_status") == "modifie"
+            ),
+            "ajoute": len(ui_payload["tables_added"]),
+            "supprime": len(ui_payload["tables_removed"]),
+        }
+    )
+    summary["tables_changed_t1"] = compute_changed_tables_t1(ui_payload)
+    summary["tables_changed_t2"] = compute_changed_tables_t2(ui_payload)
+
+    raw_summary = payload.get("summary") or {}
+    quarter_context = {
+        "current": {
+            "label": current_label,
+            "code": quarter_current,
+            "quarter": int(quarter_current[1]) if quarter_current.startswith("t") else None,
+            "year": year_current,
+        },
+        "previous": {
+            "label": previous_label,
+            "code": quarter_previous,
+            "quarter": int(quarter_previous[1]) if quarter_previous.startswith("t") else None,
+            "year": year_previous,
+        },
+        "comparison_direction": "current_vs_previous",
+        "comparison_label": f"{current_label} vs {previous_label}",
+    }
+    ui_payload["meta"].update(
+        {
+            "source_format": "report_comparison",
+            "quarter_context": quarter_context,
+            "run_id": str(payload.get("run_id", "") or ""),
+            "reference_resolution": dict(payload.get("reference_resolution") or {}),
+            "pdf_paths": {
+                "pdf_t1": pdf_previous,
+                "pdf_t2": pdf_current,
+                "pdf_previous": pdf_previous,
+                "pdf_current": pdf_current,
+            },
+            "archived_pdf_previous": str(payload.get("archived_pdf_previous", "") or ""),
+            "archived_pdf_current": str(payload.get("archived_pdf_current", "") or ""),
+            "source_pdf_previous": str(payload.get("source_pdf_previous", "") or ""),
+            "source_pdf_current": str(payload.get("source_pdf_current", "") or ""),
+            "executive_summary": {
+                "content": _build_report_comparison_summary_text(
+                    current_label=current_label,
+                    previous_label=previous_label,
+                    matched_pairs=matched_pairs_total,
+                    tables_added=len(ui_payload["tables_added"]),
+                    tables_removed=len(ui_payload["tables_removed"]),
+                    indicator_changes=int(raw_summary.get("indicator_changes_total", 0) or 0),
+                    footnote_changes=int(raw_summary.get("footnote_changes_total", 0) or 0),
+                    high_priority_items=int(raw_summary.get("high_priority_items_total", 0) or 0),
+                )
+            },
+        }
+    )
+    return ui_payload
+
 
 def to_ui_comparison_payload(payload: Any) -> dict[str, Any]:
     """Best-effort conversion to the canonical payload used by the Dash app.
@@ -266,6 +644,9 @@ def to_ui_comparison_payload(payload: Any) -> dict[str, Any]:
             "content": "Conversion depuis un format metier legacy."
         }
         return ui_payload
+
+    if payload.get("artifact_type") == "report_comparison":
+        return _report_comparison_to_ui_payload(payload)
 
     ui_payload["bank_code"] = str(payload.get("bank_code", ""))
     ui_payload["quarter_from"] = str(payload.get("quarter_from", ""))

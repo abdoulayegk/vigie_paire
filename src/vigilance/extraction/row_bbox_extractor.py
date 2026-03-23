@@ -68,7 +68,10 @@ def extract_row_bboxes_from_pdf(
     if not PDFPLUMBER_AVAILABLE:
         return []
 
-    pdf_path = Path(pdf_path)
+    raw_pdf_path = str(pdf_path or "").strip()
+    if not raw_pdf_path:
+        return []
+    pdf_path = Path(raw_pdf_path)
     if not pdf_path.exists():
         return []
 

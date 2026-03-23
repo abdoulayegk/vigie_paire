@@ -16,8 +16,10 @@ logger = logging.getLogger(__name__)
 # Import conditionnel de PyMuPDF
 try:
     import fitz  # PyMuPDF
+    from vigilance.utils.pymupdf_utils import configure_mupdf_runtime
 
     PYMUPDF_AVAILABLE = True
+    configure_mupdf_runtime(fitz)
 except ImportError:
     PYMUPDF_AVAILABLE = False
     logger.warning("PyMuPDF non disponible - preview PDF desactive")

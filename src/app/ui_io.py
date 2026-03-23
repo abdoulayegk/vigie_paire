@@ -30,6 +30,8 @@ def save_pdfs_to_temp(
 
 def load_comparison_result(path: str | Path) -> dict | None:
     """Load a comparison JSON payload from disk."""
+    if not path:
+        return None
     target = Path(path)
     if not target.exists():
         return None
@@ -45,11 +47,21 @@ def get_available_indicator_comparison_options() -> list[dict[str, str]]:
         return []
 
     files = sorted(
-        INDICATOR_COMPARISON_DIR.glob("*.json"),
+        INDICATOR_COMPARISON_DIR.glob("**/*.json"),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
-    return [{"label": path.name, "value": path.name} for path in files]
+    options: list[dict[str, str]] = []
+    for path in files:
+        if path.name != "comparison.json":
+            continue
+        try:
+            rel = path.relative_to(INDICATOR_COMPARISON_DIR)
+        except ValueError:
+            rel = path
+        rel_value = rel.as_posix()
+        options.append({"label": rel_value, "value": rel_value})
+    return options
 
 
 def get_available_comparisons() -> list[dict[str, str]]:

@@ -164,6 +164,16 @@ def test_classify_openai_error_detects_schema_contract_invalid() -> None:
     assert _classify_openai_error(err) == "schema_contract_invalid"
 
 
+def test_classify_openai_error_detects_invalid_request_json_body() -> None:
+    err = RuntimeError(
+        "Error code: 400 - {'error': {'message': "
+        "\"We could not parse the JSON body of your request. "
+        "(HINT: This likely means you aren't using your HTTP library correctly. "
+        "The OpenAI API expects a JSON payload, but what was sent was not valid JSON.)\"}}"
+    )
+    assert _classify_openai_error(err) == "request_body_invalid"
+
+
 def test_extract_raises_schema_contract_error_once_and_circuit_breaks(
     monkeypatch,
 ) -> None:
@@ -280,6 +290,80 @@ def test_extract_returns_result_after_successful_api_response(monkeypatch) -> No
     assert result.total_tokens == 975
     assert fake_completions.models == ["gpt-5.4"]
     assert fake_completions.calls == 1
+
+
+def test_extract_falls_back_to_json_object_when_structured_request_body_is_rejected(
+    monkeypatch,
+) -> None:
+    class _FakeResponse:
+        def __init__(self, content: str) -> None:
+            self.choices = [
+                type(
+                    "Choice",
+                    (),
+                    {
+                        "message": type("Message", (), {"content": content})(),
+                        "finish_reason": "stop",
+                    },
+                )()
+            ]
+
+    class _FakeCompletions:
+        def __init__(self, content: str) -> None:
+            self.calls = 0
+            self.response_formats: list[dict[str, object]] = []
+            self._content = content
+
+        def create(self, **kwargs):  # type: ignore[no-untyped-def]
+            self.calls += 1
+            self.response_formats.append(dict(kwargs.get("response_format") or {}))
+            if self.calls == 1:
+                raise RuntimeError(
+                    "Error code: 400 - {'error': {'message': "
+                    "\"We could not parse the JSON body of your request. "
+                    "(HINT: This likely means you aren't using your HTTP library correctly. "
+                    "The OpenAI API expects a JSON payload, but what was sent was not valid JSON.)\"}}"
+                )
+            return _FakeResponse(self._content)
+
+    payload = {
+        "table_title": "Tableau 1",
+        "headers": ["Indicateur", "Valeur"],
+        "indicators": [{"text": "Ratio CET1", "bbox": None}],
+        "rows": [["Ratio CET1", "13,1 %"]],
+        "footnotes_content": [],
+        "footnote_markers": [],
+        "has_hierarchy": False,
+        "extraction_confidence": "high",
+        "notes": "",
+        "confidence": 0.93,
+        "appears_truncated": False,
+        "estimated_content_height": 81,
+    }
+    fake_completions = _FakeCompletions(__import__("json").dumps(payload))
+    fake_client = type(
+        "FakeClient",
+        (),
+        {
+            "chat": type(
+                "FakeChat",
+                (),
+                {"completions": fake_completions},
+            )()
+        },
+    )()
+
+    extractor = VisionFullExtractor(api_key="test-key", use_cache=False)
+    extractor._client = fake_client
+    monkeypatch.setattr(extractor, "_ensure_client", lambda: None)
+
+    result = extractor.extract(crop_bytes=b"abc", bank_code="bnc")
+
+    assert result is not None
+    assert result.table_title == "Tableau 1"
+    assert fake_completions.calls == 2
+    assert fake_completions.response_formats[0]["type"] == "json_schema"
+    assert fake_completions.response_formats[1] == {"type": "json_object"}
 
 
 def test_extract_with_quality_pass_keeps_same_resolved_model_for_recrop(

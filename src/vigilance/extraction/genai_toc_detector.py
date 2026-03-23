@@ -241,7 +241,12 @@ Réponds en JSON :
         Returns:
             TOCDetectionResult avec is_toc et confidence
         """
-        pdf_path = Path(pdf_path)
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            return TOCDetectionResult(
+                is_toc=False, confidence=0.0, page_number=page_num, entries=[]
+            )
+        pdf_path = Path(raw_pdf_path)
 
         # Convertir la page en image
         image_b64 = self._page_to_base64(pdf_path, page_num)
@@ -277,7 +282,12 @@ Réponds en JSON :
         Returns:
             TOCDetectionResult avec entries remplies
         """
-        pdf_path = Path(pdf_path)
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            return TOCDetectionResult(
+                is_toc=False, confidence=0.0, page_number=page_num, entries=[]
+            )
+        pdf_path = Path(raw_pdf_path)
 
         image_b64 = self._page_to_base64(pdf_path, page_num)
         if not image_b64:
@@ -315,7 +325,10 @@ Réponds en JSON :
         Returns:
             Liste de SectionDetectionResult
         """
-        pdf_path = Path(pdf_path)
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            return []
+        pdf_path = Path(raw_pdf_path)
 
         image_b64 = self._page_to_base64(pdf_path, toc_page)
         if not image_b64:
@@ -352,7 +365,10 @@ Réponds en JSON :
         Returns:
             Liste de SectionDetectionResult
         """
-        pdf_path = Path(pdf_path)
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            return []
+        pdf_path = Path(raw_pdf_path)
 
         if search_pages is None:
             search_pages = list(range(2, 11))  # Pages 2-10

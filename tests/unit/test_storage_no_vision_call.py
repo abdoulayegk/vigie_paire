@@ -330,8 +330,8 @@ def test_save_writes_schema_version_in_tables_json_root() -> None:
         shutil.rmtree(base_dir, ignore_errors=True)
 
 
-def test_save_extraction_writes_report_centric_json_and_txt_artifacts() -> None:
-    """save_extraction writes report-centric JSON/TXT artifacts for one report."""
+def test_save_extraction_writes_unified_json_and_txt_artifacts() -> None:
+    """save_extraction writes the official JSON contract plus secondary TXT artifacts."""
     from app.extraction_storage import save_extraction
     from vigilance.models.table_models import TableArtifact
 
@@ -370,13 +370,15 @@ def test_save_extraction_writes_report_centric_json_and_txt_artifacts() -> None:
         report_summary_txt = (target / "report_summary.txt").read_text(
             encoding="utf-8"
         )
-        assert indicators["artifact_role"] == "report_canonical"
         assert indicators["quarter"] == "t1"
-        assert indicators["tables"][0]["source"] == "t1"
+        assert indicators["tables"][0]["section"] == "capital"
+        assert indicators["tables"][0]["indicators_raw"] == ["Ratio CET1"]
+        assert indicators["tables"][0]["indicators_normalized"] == ["ratio cet1"]
         assert "Ratio CET1" in indicators_txt
-        assert footnotes["artifact_role"] == "report_canonical"
-        assert footnotes["tables"][0]["has_footnotes"] is True
-        assert "note provisoire" in footnotes_txt
+        assert footnotes["tables"][0]["footnotes"] == [
+            {"id": "1", "text": "Note provisoire"}
+        ]
+        assert "Note provisoire" in footnotes_txt
         assert report_summary["summary"]["tables_total"] == 1
         assert report_summary["summary"]["indicators_total"] == 1
         assert report_summary["summary"]["footnote_entries_total"] == 1
@@ -484,6 +486,61 @@ def test_load_extraction_accepts_legacy_tables_json_without_schema_version() -> 
         assert tables[0].footnotes[0]["text"] == "Note one"
         assert tables[0].footnotes[1]["id"] == "2"
         assert tables[0].footnotes[1]["text"] == "Note two"
+    finally:
+        import shutil
+
+        shutil.rmtree(base, ignore_errors=True)
+
+
+def test_load_extraction_accepts_compact_tables_json_without_snapshot() -> None:
+    """load_extraction must rebuild TableArtifact from the official compact tables.json."""
+    from app.extraction_storage import load_extraction
+
+    base = Path(tempfile.mkdtemp())
+    target = base / "bnc" / "2025" / "t1"
+    target.mkdir(parents=True)
+    (target / "tables.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 3,
+                "bank_code": "bnc",
+                "year": 2025,
+                "quarter": "t1",
+                "created_at": "2026-03-22T10:00:00",
+                "model_version": "gpt-4o",
+                "prompt_version": "extract_v1",
+                "tables": [
+                    {
+                        "table_id": "tableau_1",
+                        "page": 7,
+                        "section": "capital_management",
+                        "title": "Capital",
+                        "headers": ["Indicateur", "Valeur"],
+                        "rows": [["Ratio CET1", "13.1"]],
+                        "indicators_raw": ["Ratio CET1"],
+                        "indicators_normalized": ["ratio cet1"],
+                        "footnotes": [{"id": "1", "text": "Note A"}],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (target / "meta.json").write_text(
+        json.dumps({"bank_code": "bnc", "year": 2025, "quarter": "t1"}),
+        encoding="utf-8",
+    )
+    try:
+        result = load_extraction("bnc", 2025, "t1", base)
+        assert result is not None
+        tables, _meta = result
+        assert len(tables) == 1
+        assert tables[0].table_id == "tableau_1"
+        assert tables[0].page_pdf == 7
+        assert tables[0].section == "capital_management"
+        assert tables[0].first_column_indicators == ["ratio cet1"]
+        assert tables[0].first_column_indicators_raw == ["Ratio CET1"]
+        assert tables[0].footnotes == [{"id": "1", "text": "Note A"}]
     finally:
         import shutil
 

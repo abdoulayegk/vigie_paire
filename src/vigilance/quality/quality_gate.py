@@ -388,34 +388,50 @@ def _assess_title_quality(
 
 def _make_footnote_index(
     foot_tables: list[dict[str, Any]],
-) -> tuple[dict[tuple[str, str, int], dict[str, Any]], dict[tuple[str, str], list[dict[str, Any]]]]:
-    exact: dict[tuple[str, str, int], dict[str, Any]] = {}
-    by_source_id: dict[tuple[str, str], list[dict[str, Any]]] = {}
+) -> tuple[
+    dict[tuple[str, int, str], dict[str, Any]],
+    dict[str, list[dict[str, Any]]],
+]:
+    exact: dict[tuple[str, int, str], dict[str, Any]] = {}
+    by_table_id: dict[str, list[dict[str, Any]]] = {}
     for entry in foot_tables:
-        source = str(entry.get("source", "") or "")
         table_id = str(entry.get("table_id", "") or "")
         page = int(entry.get("page", 0) or 0)
-        exact[(source, table_id, page)] = entry
-        by_source_id.setdefault((source, table_id), []).append(entry)
-    return exact, by_source_id
+        section = str(entry.get("section", "") or "unknown_section")
+        exact[(table_id, page, section)] = entry
+        by_table_id.setdefault(table_id, []).append(entry)
+    return exact, by_table_id
 
 
 def _find_footnote_entry(
     indicators_entry: dict[str, Any],
     *,
-    exact_idx: dict[tuple[str, str, int], dict[str, Any]],
-    by_source_id: dict[tuple[str, str], list[dict[str, Any]]],
+    exact_idx: dict[tuple[str, int, str], dict[str, Any]],
+    by_table_id: dict[str, list[dict[str, Any]]],
 ) -> dict[str, Any] | None:
-    source = str(indicators_entry.get("source", "") or "")
     table_id = str(indicators_entry.get("table_id", "") or "")
     page = int(indicators_entry.get("page", 0) or 0)
-    exact = exact_idx.get((source, table_id, page))
+    section = str(indicators_entry.get("section", "") or "unknown_section")
+    exact = exact_idx.get((table_id, page, section))
     if exact is not None:
         return exact
-    candidates = by_source_id.get((source, table_id), [])
+    candidates = by_table_id.get(table_id, [])
     if candidates:
         return candidates[0]
     return None
+
+
+def _footnote_list(
+    foot_entry: dict[str, Any] | None,
+) -> list[dict[str, Any]] | None:
+    if not isinstance(foot_entry, dict):
+        return None
+    footnotes = foot_entry.get("footnotes", [])
+    if footnotes is None:
+        return []
+    if not isinstance(footnotes, list):
+        return None
+    return [item for item in footnotes if isinstance(item, dict)]
 
 
 def _analyze_footnote_integrity(
@@ -426,22 +442,21 @@ def _analyze_footnote_integrity(
     if not foot_entry:
         return "pass", []
 
-    has_footnotes = bool(foot_entry.get("has_footnotes"))
-    if not has_footnotes:
+    footnotes = _footnote_list(foot_entry)
+    if footnotes is None:
+        return "fail", ["missing_or_invalid_footnotes"]
+    if not footnotes:
         return "pass", []
 
     reasons: list[str] = []
-    content = foot_entry.get("footnotes_content", {})
-    markers = foot_entry.get("footnote_markers", []) or []
-
-    if not isinstance(content, dict) or not content:
-        reasons.append("missing_or_invalid_footnotes_content")
-        return "fail", reasons
-
     empty_values = 0
     repr_like_values = 0
-    for value in content.values():
-        txt = str(value or "").strip()
+    missing_ids = 0
+    for item in footnotes:
+        marker = _normalize_marker(str(item.get("id", "") or ""))
+        txt = str(item.get("text", "") or "").strip()
+        if not marker:
+            missing_ids += 1
         if not txt:
             empty_values += 1
             continue
@@ -451,19 +466,19 @@ def _analyze_footnote_integrity(
         reasons.append(f"empty_footnote_values({empty_values})")
     if repr_like_values > 0:
         reasons.append(f"repr_like_footnote_values({repr_like_values})")
-
-    marker_norm = {_normalize_marker(m) for m in markers if _normalize_marker(m)}
-    key_norm = {_normalize_marker(k) for k in content.keys() if _normalize_marker(k)}
-
-    if key_norm and not marker_norm:
-        reasons.append("missing_footnote_markers")
-    elif marker_norm:
-        missing = marker_norm - key_norm
-        missing_ratio = len(missing) / len(marker_norm) if marker_norm else 0.0
-        if missing_ratio > float(missing_marker_majority_threshold):
-            reasons.append(f"marker_key_mismatch_ratio({missing_ratio:.2f})")
+    if missing_ids > 0:
+        reasons.append(f"missing_footnote_ids({missing_ids})")
 
     return ("fail", reasons) if reasons else ("pass", [])
+
+
+def _indicators_for_quality(entry: dict[str, Any]) -> list[str]:
+    raw = entry.get("indicators_raw", [])
+    normalized = entry.get("indicators_normalized", [])
+    candidates = raw if isinstance(raw, list) and raw else normalized
+    if not isinstance(candidates, list):
+        return []
+    return [str(item) for item in candidates]
 
 
 def _score_table(
@@ -507,7 +522,7 @@ def evaluate_quality(
     if not isinstance(footnotes_tables, list):
         footnotes_tables = []
 
-    foot_exact, foot_by_sid = _make_footnote_index(
+    foot_exact, foot_by_table_id = _make_footnote_index(
         [e for e in footnotes_tables if isinstance(e, dict)]
     )
 
@@ -522,31 +537,23 @@ def evaluate_quality(
         if not isinstance(entry, dict):
             continue
         title = str(entry.get("title", "") or "")
-        sections = entry.get("sections", []) or []
-        if not isinstance(sections, list):
-            sections = []
+        section_name = str(entry.get("section", "") or "unknown_section")
 
         max_dup_ratio = 0.0
         dup_by_section: list[dict[str, Any]] = []
-        suspicious_count = 0
-        for section in sections:
-            if not isinstance(section, dict):
-                continue
-            sec_name = str(section.get("section", "") or "unknown")
-            indicators = section.get("indicators", []) or []
-            if not isinstance(indicators, list):
-                indicators = []
-            lines = [str(x) for x in indicators]
-            sec_dup = _duplicate_ratio(lines)
-            max_dup_ratio = max(max_dup_ratio, sec_dup)
-            dup_by_section.append(
-                {
-                    "section": sec_name,
-                    "indicator_count": len(lines),
-                    "duplicate_ratio": round(sec_dup, 4),
-                }
-            )
-            suspicious_count += sum(1 for line in lines if _is_line_split_suspicious(line))
+        indicators = _indicators_for_quality(entry)
+        suspicious_count = sum(
+            1 for line in indicators if _is_line_split_suspicious(line)
+        )
+        sec_dup = _duplicate_ratio(indicators)
+        max_dup_ratio = max(max_dup_ratio, sec_dup)
+        dup_by_section.append(
+            {
+                "section": section_name,
+                "indicator_count": len(indicators),
+                "duplicate_ratio": round(sec_dup, 4),
+            }
+        )
 
         (
             title_contaminated,
@@ -569,7 +576,7 @@ def evaluate_quality(
             duplicates_excess_count += 1
 
         foot_entry = _find_footnote_entry(
-            entry, exact_idx=foot_exact, by_source_id=foot_by_sid
+            entry, exact_idx=foot_exact, by_table_id=foot_by_table_id
         )
         foot_status, foot_reasons = _analyze_footnote_integrity(
             foot_entry,
@@ -598,9 +605,9 @@ def evaluate_quality(
         per_table.append(
             {
                 "table_key": {
-                    "source": str(entry.get("source", "") or ""),
                     "table_id": str(entry.get("table_id", "") or ""),
                     "page": int(entry.get("page", 0) or 0),
+                    "section": section_name,
                 },
                 "title": title,
                 "title_effective": title_effective,
@@ -743,13 +750,13 @@ def _report_markdown(report: dict[str, Any]) -> str:
         lines.append("- No degraded tables detected.")
     for idx, table in enumerate(worst, start=1):
         key = table.get("table_key", {}) or {}
-        source = key.get("source", "")
         table_id = key.get("table_id", "")
         page = key.get("page", 0)
+        section = key.get("section", "unknown_section")
         score = int(table.get("overall_table_quality_score", 0) or 0)
         reasons = table.get("reasons", []) or []
         lines.append(
-            f"{idx}. [{source}] {table_id} p.{page} | score={score} | reasons={', '.join(reasons) if reasons else 'none'}"
+            f"{idx}. [{section}] {table_id} p.{page} | score={score} | reasons={', '.join(reasons) if reasons else 'none'}"
         )
 
     lines.append("")

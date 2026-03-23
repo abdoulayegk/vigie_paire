@@ -7,6 +7,8 @@ from typing import Any
 
 import yaml
 
+DEFAULT_CONFIG_RELATIVE_PATH = Path("configs") / "bank_profiles.yaml"
+
 
 def _repo_root() -> Path:
     """Return repository root (directory containing pyproject.toml)."""
@@ -18,9 +20,10 @@ def _repo_root() -> Path:
     return current.parents[3]
 
 
-def _resolve_config_path(path: str | Path) -> Path:
+def _resolve_config_path(path: str | Path | None) -> Path:
     """Resolve config path robustly across different working directories."""
-    config_path = Path(path)
+    raw_path = str(path or "").strip()
+    config_path = Path(raw_path) if raw_path else DEFAULT_CONFIG_RELATIVE_PATH
     if config_path.is_absolute():
         return config_path
     if config_path.exists():

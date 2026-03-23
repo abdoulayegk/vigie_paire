@@ -75,6 +75,7 @@ from ..utils.indicator_cleaner import (
 from ..utils.matching_normalizer import (
     strip_temporal_expressions,
 )
+from ..utils.pymupdf_utils import configure_mupdf_runtime
 from ..utils.rbc_table_signals import (
     classify_rbc_title_reliability,
     is_rbc_bank,
@@ -93,6 +94,19 @@ from .table_title_resolver import (
 )
 
 logger = logging.getLogger(__name__)
+configure_mupdf_runtime(fitz)
+
+
+def _coerce_pdf_path(pdf_path: str | Path | os.PathLike[str] | None) -> Path:
+    if pdf_path is None:
+        raise ValueError("Chemin PDF requis pour l'extraction.")
+    try:
+        path = Path(pdf_path)
+    except TypeError as exc:
+        raise ValueError(f"Chemin PDF invalide: {pdf_path!r}") from exc
+    if not str(path).strip():
+        raise ValueError("Chemin PDF vide pour l'extraction.")
+    return path
 
 _ENV_TRUE = {"1", "true", "yes", "on"}
 _ENV_FALSE = {"0", "false", "no", "off"}
@@ -618,7 +632,7 @@ class DoclingProcessor:
             bank_code, use_vision_extraction
         )
 
-        pdf_path = Path(pdf_path)
+        pdf_path = _coerce_pdf_path(pdf_path)
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF non trouve: {pdf_path}")
 
@@ -2603,4 +2617,3 @@ def extract_tables_docling_priority(
         use_vision_extraction=use_vision_extraction,
     )
     return doc.all_tables
-

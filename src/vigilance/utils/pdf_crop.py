@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from .pymupdf_utils import configure_mupdf_runtime
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,6 +39,7 @@ def crop_table_image(
     except ImportError:
         logger.debug("PyMuPDF (fitz) not available for crop_table_image")
         return False
+    configure_mupdf_runtime(fitz)
 
     try:
         doc = fitz.open(pdf_path)
@@ -204,6 +207,7 @@ def crop_table_region_to_bytes(
     except ImportError:
         logger.debug("PyMuPDF (fitz) not available for crop_table_region_to_bytes")
         return b""
+    configure_mupdf_runtime(fitz)
 
     try:
         doc = fitz.open(pdf_path)
@@ -270,6 +274,7 @@ def render_page_with_bbox_highlight_to_bytes(
         )
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
         return full if full else b""
+    configure_mupdf_runtime(fitz)
 
     try:
         doc = fitz.open(pdf_path)
@@ -337,6 +342,7 @@ def crop_footnote_region_to_bytes(
         logger.debug("PyMuPDF (fitz) not available for crop_footnote_region_to_bytes")
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
         return full if full else b""
+    configure_mupdf_runtime(fitz)
 
     try:
         doc = fitz.open(pdf_path)

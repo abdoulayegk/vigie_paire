@@ -124,9 +124,9 @@ from app.review_models import (
     CHANGE_TYPE_RENAMED,
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
+    EVENT_TYPE_FOOTNOTE_ONLY,
     EVENT_TYPE_TABLE_ADDED,
     EVENT_TYPE_TABLE_REMOVED,
-    EVENT_TYPE_FOOTNOTE_ONLY,
     REVIEW_STATUS_APPROVED,
     REVIEW_STATUS_PENDING,
     REVIEW_STATUS_REJECTED,
@@ -196,6 +196,8 @@ def _persist_review_state(
         preferred_store=preferred_store,
         source=source,
     )
+
+
 from vigilance.dash_app.components.review_queue_v2 import build_review_queue_v2
 from vigilance.extraction.table_annotator import annotate_table_with_changes
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
@@ -262,6 +264,101 @@ def _quarter_context_from_store(data: dict | None) -> dict:
         if isinstance(current, dict) and isinstance(previous, dict):
             return data
     return build_quarter_context("Q2", year=2025)
+
+
+def _pdf_paths_from_comparison_meta(
+    indicator_meta: dict | None,
+    indicator_result: dict | None = None,
+) -> dict[str, str]:
+    meta: dict[str, object] = {}
+    top_level: dict[str, object] = {}
+    if isinstance(indicator_result, dict):
+        top_level = indicator_result
+        result_meta = indicator_result.get("meta", {})
+        if isinstance(result_meta, dict):
+            meta.update(result_meta)
+    if isinstance(indicator_meta, dict):
+        meta.update(indicator_meta)
+
+    raw_paths = meta.get("pdf_paths")
+    if isinstance(raw_paths, dict):
+        previous = str(
+            raw_paths.get("pdf_previous")
+            or raw_paths.get("pdf_t1")
+            or meta.get("archived_pdf_previous")
+            or meta.get("source_pdf_previous")
+            or ""
+        ).strip()
+        current = str(
+            raw_paths.get("pdf_current")
+            or raw_paths.get("pdf_t2")
+            or meta.get("archived_pdf_current")
+            or meta.get("source_pdf_current")
+            or ""
+        ).strip()
+    else:
+        previous = str(
+            meta.get("archived_pdf_previous")
+            or top_level.get("archived_pdf_previous")
+            or meta.get("source_pdf_previous")
+            or top_level.get("source_pdf_previous")
+            or ""
+        ).strip()
+        current = str(
+            meta.get("archived_pdf_current")
+            or top_level.get("archived_pdf_current")
+            or meta.get("source_pdf_current")
+            or top_level.get("source_pdf_current")
+            or ""
+        ).strip()
+
+    return {
+        "pdf_t1": previous,
+        "pdf_t2": current,
+        "pdf_previous": previous,
+        "pdf_current": current,
+    }
+
+
+def _normalize_pdf_paths_store(paths: dict | None) -> dict[str, str]:
+    source = paths if isinstance(paths, dict) else {}
+    previous = str(
+        source.get("pdf_previous")
+        or source.get("pdf_t1")
+        or ""
+    ).strip()
+    current = str(
+        source.get("pdf_current")
+        or source.get("pdf_t2")
+        or ""
+    ).strip()
+    return {
+        "pdf_t1": previous,
+        "pdf_t2": current,
+        "pdf_previous": previous,
+        "pdf_current": current,
+    }
+
+
+def _missing_pdf_warning(paths: dict[str, str] | None) -> str:
+    if not isinstance(paths, dict):
+        return (
+            "Comparaison chargée, mais les PDF archivés de preuve sont indisponibles."
+        )
+    missing: list[str] = []
+    previous = str(paths.get("pdf_previous") or paths.get("pdf_t1") or "").strip()
+    current = str(paths.get("pdf_current") or paths.get("pdf_t2") or "").strip()
+    if not previous or not Path(previous).exists():
+        missing.append("rapport précédent")
+    if not current or not Path(current).exists():
+        missing.append("rapport courant")
+    if not missing:
+        return ""
+    joined = " et ".join(missing)
+    return (
+        "Comparaison chargée, mais la preuve PDF archivée est indisponible pour le "
+        f"{joined}."
+    )
 
 
 def _comparison_export_base_name(payload: dict | None, suffix: str) -> str:
@@ -565,12 +662,14 @@ def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
         b2 = decode(upl_t2.get("content"))
         temp_dir = tempfile.mkdtemp()
         path_t1, path_t2 = save_pdfs_to_temp(b1, b2, temp_dir=Path(temp_dir))
-        paths = {
+        paths = _normalize_pdf_paths_store(
+            {
             "pdf_t1": path_t1,
             "pdf_t2": path_t2,
             "pdf_previous": path_t1,
             "pdf_current": path_t2,
-        }
+            }
+        )
     except ValueError as e:
         return (
             None,
@@ -893,8 +992,15 @@ def on_analyze(
     else:
         sections_t1 = detection.get("detection_t1", {}).get("sections", [])
         sections_t2 = detection.get("detection_t2", {}).get("sections", [])
-    path_t1 = paths.get("pdf_previous") or paths.get("pdf_t1")
-    path_t2 = paths.get("pdf_current") or paths.get("pdf_t2")
+    normalized_paths = _normalize_pdf_paths_store(paths)
+    path_t1 = normalized_paths.get("pdf_previous") or normalized_paths.get("pdf_t1")
+    path_t2 = normalized_paths.get("pdf_current") or normalized_paths.get("pdf_t2")
+    logger.info(
+        "[on_analyze] bank=%s previous_pdf=%r current_pdf=%r",
+        bank_code,
+        path_t1,
+        path_t2,
+    )
 
     api_key = (os.environ.get("OPENAI_API_KEY") or "").strip() or None
     use_genai = bool(api_key)
@@ -911,7 +1017,7 @@ def on_analyze(
         genai_classification_opt and "classify" in genai_classification_opt and api_key
     )
     # Stored extraction disabled by default; re-enable by uncommenting and removing the line below.
-    use_stored_extraction = False
+    use_stored_extraction = True
     # use_stored_extraction = not bool(
     #     force_reextract_opt and "reextract" in (force_reextract_opt or [])
     # )
@@ -935,7 +1041,18 @@ def on_analyze(
             use_stored_extraction_if_available=use_stored_extraction,
         )
     except Exception as e:
+        logger.exception(
+            "[on_analyze] analysis_failed bank=%s previous_pdf=%r current_pdf=%r",
+            bank_code,
+            path_t1,
+            path_t2,
+        )
         err_text = str(e)
+        if "__fspath__ returns a str, not 'NoneType'" in err_text:
+            err_text = (
+                "Un chemin PDF ou artefact de comparaison est manquant dans le pipeline. "
+                "Consulter le terminal Dash: la stack trace complète est maintenant journalisée."
+            )
         if "Vision schema contract invalid" in err_text:
             err_text = (
                 "Run interrompu: contrat de schema Vision invalide. "
@@ -2673,11 +2790,21 @@ def init_review_items(indicator_result, paths, indicator_meta):
     Also builds the V2 deduplicated review queue.
     Quality gate is not used for blocking; review items are always built from comparison results.
     """
-    if not indicator_result or not paths:
+    if not indicator_result:
         raise PreventUpdate
 
-    path_t1 = paths.get("pdf_previous", "") or paths.get("pdf_t1", "")
-    path_t2 = paths.get("pdf_current", "") or paths.get("pdf_t2", "")
+    runtime_paths = paths if isinstance(paths, dict) else {}
+    meta_paths = _pdf_paths_from_comparison_meta(indicator_meta, indicator_result)
+    effective_paths = dict(runtime_paths)
+    for key, value in meta_paths.items():
+        if value:
+            effective_paths[key] = value
+    path_t1 = effective_paths.get("pdf_previous", "") or effective_paths.get(
+        "pdf_t1", ""
+    )
+    path_t2 = effective_paths.get("pdf_current", "") or effective_paths.get(
+        "pdf_t2", ""
+    )
     bank_code = str(indicator_result.get("bank_code", ""))
     quarter_from = quarter_label_from_payload(indicator_result, "previous")
     quarter_to = quarter_label_from_payload(indicator_result, "current")
@@ -2725,7 +2852,9 @@ def init_review_items(indicator_result, paths, indicator_meta):
             serialized_v2 = [t.to_dict() for t in grouped_tables]
         elif isinstance(stored_queue, list) and stored_queue:
             serialized_v2 = stored_queue
-            serialized = [it.to_dict() for it in _review_items_from_v2_queue(stored_queue)]
+            serialized = [
+                it.to_dict() for it in _review_items_from_v2_queue(stored_queue)
+            ]
         elif isinstance(stored_items, list) and stored_items:
             serialized = stored_items
             grouped_tables = build_normalized_review_queue(
@@ -2740,13 +2869,17 @@ def init_review_items(indicator_result, paths, indicator_meta):
     total_v2 = len(serialized_v2)
     dedup_merged = max(0, total - total_v2)
     persisted_selection = (
-        persisted_state.get("review_selection") if isinstance(persisted_state, dict) else None
+        persisted_state.get("review_selection")
+        if isinstance(persisted_state, dict)
+        else None
     )
     resolved_selection, sel_table_idx, sel_change_idx = _resolve_selection(
         serialized_v2, persisted_selection or {"review_id": None, "change_id": None}
     )
     if persisted_state and not persisted_selection:
-        sel_table_idx = int(persisted_state.get("review_current_idx", sel_table_idx) or 0)
+        sel_table_idx = int(
+            persisted_state.get("review_current_idx", sel_table_idx) or 0
+        )
         sel_change_idx = int(
             persisted_state.get("current_change_idx", sel_change_idx) or 0
         )
@@ -2836,8 +2969,9 @@ def _get_proof_image_b64_for_item(
 
     ref = item_dict.get("source_ref_t1" if side == "t1" else "source_ref_t2", "")
     page = item_dict.get("page_t1" if side == "t1" else "page_t2")
-    path_t1 = paths.get("pdf_t1", "") if paths else ""
-    path_t2 = paths.get("pdf_t2", "") if paths else ""
+    normalized_paths = _normalize_pdf_paths_store(paths)
+    path_t1 = normalized_paths.get("pdf_t1", "")
+    path_t2 = normalized_paths.get("pdf_t2", "")
     pdf_path = path_t1 if side == "t1" else path_t2
     if not pdf_path:
         pdf_path = ref
@@ -2959,8 +3093,9 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
 
     ref = item_dict.get("source_ref_t1" if side == "t1" else "source_ref_t2", "")
     page = item_dict.get("page_t1" if side == "t1" else "page_t2")
-    path_t1 = paths.get("pdf_t1", "") if paths else ""
-    path_t2 = paths.get("pdf_t2", "") if paths else ""
+    normalized_paths = _normalize_pdf_paths_store(paths)
+    path_t1 = normalized_paths.get("pdf_t1", "")
+    path_t2 = normalized_paths.get("pdf_t2", "")
 
     pdf_path = path_t1 if side == "t1" else path_t2
     if not pdf_path:
@@ -3231,7 +3366,12 @@ def on_review_navigate(prev_clicks, next_clicks, review_items, current_idx):
     prevent_initial_call=True,
 )
 def on_review_status(
-    approve_clicks, reject_clicks, pass_clicks, review_items, current_idx, indicator_meta
+    approve_clicks,
+    reject_clicks,
+    pass_clicks,
+    review_items,
+    current_idx,
+    indicator_meta,
 ):
     """Appliquer Valider/Rejeter/Passer sur l'item courant."""
     import json
@@ -3540,7 +3680,7 @@ def on_download_json(n_clicks, review_items_data, review_queue_data, indicator_r
     """Telecharger le JSON de revue."""
     if not n_clicks or (not review_items_data and not review_queue_data):
         raise PreventUpdate
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     ir = indicator_result or {}
     if review_queue_data:
@@ -3730,6 +3870,7 @@ def populate_load_options(_detection):
     Output("store-comparison-result", "data", allow_duplicate=True),
     Output("store-indicator-result", "data", allow_duplicate=True),
     Output("store-indicator-meta", "data", allow_duplicate=True),
+    Output("store-pdf-paths", "data", allow_duplicate=True),
     Output("store-sections-validated", "data", allow_duplicate=True),
     Output("main-content", "children", allow_duplicate=True),
     Output("notification", "children", allow_duplicate=True),
@@ -3752,32 +3893,56 @@ def on_load_comparison(n_clicks, filename):
             no_update,
             no_update,
             no_update,
+            no_update,
             dbc.Alert(f"Impossible de charger {filename}", color="danger"),
             no_update,
         )
 
     if data.get("result_type") == "metier_tableaux":
+        pdf_paths = _normalize_pdf_paths_store(_pdf_paths_from_comparison_meta({}, data))
+        warning = _missing_pdf_warning(pdf_paths)
         return (
             None,
             data,
-            {"compare_path": str(filepath), "source": "load"},
+            {"compare_path": str(filepath), "source": "load", "pdf_paths": pdf_paths},
+            pdf_paths,
             True,
             build_page_results(),
-            dbc.Alert(f"Comparaison chargee: {filename}", color="success"),
+            dbc.Alert(
+                warning or f"Comparaison chargee: {filename}",
+                color="warning" if warning else "success",
+            ),
             True,
         )
 
     canonical = to_canonical_payload(data)
     if not is_canonical_comparison(canonical):
         canonical = data
+    canonical_meta = (
+        dict(canonical.get("meta", {})) if isinstance(canonical, dict) else {}
+    )
+    pdf_paths = _normalize_pdf_paths_store(
+        _pdf_paths_from_comparison_meta(canonical_meta, canonical)
+    )
+    indicator_meta = {
+        **canonical_meta,
+        "compare_path": str(filepath),
+        "source": "load",
+        "pdf_paths": pdf_paths,
+    }
+    warning = _missing_pdf_warning(pdf_paths)
 
     return (
         canonical,
         canonical,
-        {"compare_path": str(filepath), "source": "load"},
+        indicator_meta,
+        pdf_paths,
         True,
         build_page_results(),
-        dbc.Alert(f"Comparaison chargee: {filename}", color="success"),
+        dbc.Alert(
+            warning or f"Comparaison chargee: {filename}",
+            color="warning" if warning else "success",
+        ),
         True,
     )
 

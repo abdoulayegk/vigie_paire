@@ -1,178 +1,167 @@
-# bank-peer-vigilance
+# Bank Peer Vigilance
 
-Façade `src/vigilance/` avec moteurs désormais rangés sous `src/vigilance/`.
+Application de vigie bancaire pour extraire, comparer et revoir des tableaux réglementaires issus de rapports PDF.
 
-## Structure (résumé)
+Le système repose sur trois blocs :
+- extraction ciblée des sections pertinentes d’un rapport
+- comparaison GPT des tableaux entre deux périodes
+- interface Dash de revue analyste avec historique par run
 
-- `src/vigilance/extraction/`: moteur extraction PDF
-- `src/vigilance/compare/`: moteur officiel de pairing et comparaison tableaux
-- `src/vigilance/genai/`: aides GenAI optionnelles (semantic judge, validateurs)
-- `extraction/`: shims de compatibilité imports legacy
-- `tests/unit/`
+## Architecture
 
-## Comparateur officiel
+Le pipeline officiel est le suivant :
 
-- Point d'entrée recommandé: `vigilance.compare.run_strict_intra_section_compare`
-- Sortie harmonisée:
-  - `pairs`
-  - `added_tables`
-  - `removed_tables`
-  - `unmatched_t1`
-  - `unmatched_t2`
-  - `reasons`
+```text
+PDF
+-> détection des sections utiles
+-> extraction des tableaux
+-> génération des artefacts canoniques
+-> comparaison GPT sur tables.json
+-> comparison.json
+-> revue Dash
+```
 
-## Règle de matching (stricte)
+Artefacts d’extraction :
+- `tables.json` : source canonique
+- `indicators.json` : projection
+- `footnotes.json` : projection
 
-- Matching autorisé uniquement si sections identiques:
-  - `capital_management` ↔ `capital_management`
-  - `risk_management` ↔ `risk_management`
-  - `regulatory_updates` ↔ `regulatory_updates`
-- Tout cross-section est interdit (`cross_section_forbidden`)
-- `unknown_section` ne matche jamais automatiquement
+Artefact de comparaison :
+- `comparison.json` : sortie backend officielle, historisée par `run_id`
+
+## Structure utile
+
+- `src/vigilance/extraction/` : moteur d’extraction PDF
+- `src/vigilance/compare_gpt.py` : moteur de comparaison GPT
+- `src/vigilance/cli/` : CLI d’extraction et de comparaison
+- `src/vigilance/dash_app/` : application Dash
+- `src/app/` : adaptateurs UI, orchestration Dash, historique et revue
+- `configs/bank_profiles.yaml` : configuration banques / modèles / pipeline
+- `tests/unit/` : tests unitaires
 
 ## Installation
-
-Avec `pip`:
-
-```bash
-pip install -e .
-```
-
-Avec `uv`:
-
-```bash
-uv pip install -e .
-```
-
-Pour les dependances de dev (tests):
 
 ```bash
 uv sync --extra dev
 ```
 
-Regle pratique:
-- ne pas lancer `uv sync` a chaque execution de l'app,
-- lancer `uv sync` seulement quand `pyproject.toml` ou `uv.lock` change.
-
-## Demarrage Dash (stable)
-
-Commande recommandee:
+Ou, si tu utilises `pip` :
 
 ```bash
-cd /Users/balde/Desktop/vigie_paire
-UV_CACHE_DIR=.uv-cache PYTHONPATH=src DASH_DEBUG=0 DOCLING_NUM_THREADS=4 uv run python -m app.app
+pip install -e .
 ```
 
-Avec `fish`:
+## Variables d’environnement
 
-```fish
-cd /Users/balde/Desktop/vigie_paire
-set -x UV_CACHE_DIR .uv-cache
-set -x PYTHONPATH src
-set -x DASH_DEBUG 0
-set -x DOCLING_NUM_THREADS 4
-uv run python -m app.app
-```
+Le projet charge automatiquement `.env` au démarrage de Dash.
 
-Ou via script helper (depuis n'importe quel dossier):
+Variables principales :
+- `OPENAI_API_KEY` : requis pour l’extraction Vision et la comparaison GPT
+- `DASH_PORT` : port Dash, par défaut `8050`
+- `DASH_DEBUG` : `0` ou `1`
+
+## Lancer Dash
+
+Depuis la racine du repo :
 
 ```bash
-scripts/run_dash.sh
+UV_CACHE_DIR=/tmp/uv-cache uv run python -m vigilance.dash_app.app
 ```
 
-Variables utiles:
-- `DASH_DEBUG` (defaut: `0`)
-- `DASH_PORT` (defaut: `8050`)
-- `DOCLING_NUM_THREADS` (defaut: `4`)
-- `VISION_CACHE_DIR` (defaut: `outputs/vision_cache`) — repertoire du cache GPT-4o Vision pour les indicateurs de premiere colonne.
-- `VISION_CROP_DIR` (defaut: `outputs/debug_crops/vision_fallback`) — repertoire des crops debug du fallback Vision.
+Puis ouvrir :
+
+```text
+http://127.0.0.1:8050
+```
 
 ## CLI
 
-Détection des sections:
+### 1. Extraire un rapport
 
 ```bash
-python -m vigilance.cli.run_ranges \
-  --bank rbc \
-  --pdf /path/to/report.pdf \
-  --quarter t1-2025 \
-  --config configs/bank_profiles.yaml \
-  --out_root outputs/runs
+uv run vigilance-run-extract-report \
+  --bank bnc \
+  --pdf data/bnc/report.pdf \
+  --year 2026 \
+  --quarter t1
 ```
 
-Extraction des tableaux Docling sur ranges:
+Sortie :
+
+```text
+outputs/extractions/{bank}/{year}/{quarter}/
+  tables.json
+  indicators.json
+  footnotes.json
+```
+
+### 2. Comparer un rapport courant à sa période de référence métier
 
 ```bash
-python -m vigilance.cli.run_tables \
-  --bank rbc \
-  --pdf /path/to/report.pdf \
-  --quarter t1-2025 \
-  --config configs/bank_profiles.yaml \
-  --ranges_json outputs/runs/t1-2025/rbc/section_ranges.json \
-  --out_root outputs/runs
+uv run vigilance-run-compare-gpt4o \
+  --bank bnc \
+  --year-current 2026 \
+  --quarter-current t1
 ```
 
-Scripts installables équivalents:
+La période de référence est résolue automatiquement selon la règle métier :
+- `T2-Y -> T1-Y`
+- `T3-Y -> T2-Y`
+- `T1-Y -> T3-(Y-1)`
+- `T4-Y -> T4-(Y-1)`
+
+Sortie :
+
+```text
+outputs/comparisons/{bank}/{current}_vs_{previous}/{run_id}/comparison.json
+```
+
+Le dossier de run contient aussi les PDF archivés utilisés pour la preuve Dash.
+
+## Règles de comparaison
+
+La comparaison GPT est volontairement limitée à :
+- la première colonne des tableaux
+- les footnotes associées
+
+Le moteur ignore explicitement :
+- les valeurs numériques
+- les pourcentages et montants
+- les dates
+- les labels de période
+
+Le résultat identifie :
+- tableaux ajoutés / supprimés
+- indicateurs ajoutés / supprimés / renommés
+- footnotes ajoutées / supprimées / renommées
+
+## Dash
+
+L’interface Dash permet :
+- l’upload de deux rapports
+- la validation des sections détectées
+- le lancement de l’extraction et de la comparaison
+- la revue analyste par thème et priorité
+- le rechargement d’un `comparison.json` historique
+
+Les runs historiques sont isolés et non écrasables.
+
+## Tests
+
+Exécuter la suite unitaire :
 
 ```bash
-vigilance-run-ranges --help
-vigilance-run-tables --help
+uv run pytest
 ```
 
-Sorties JSON:
-
-- `outputs/runs/{quarter}/{bank}/section_ranges.json`
-- `outputs/runs/{quarter}/{bank}/tables_docling.json`
-  - chaque table contient `section` et `first_column_indicators`
-
-## Benchmark runtime
-
-Mesure mediane sur 3 runs:
-- `T_boot` (commande -> "Dash is running")
-- `T_first_screen` (commande -> endpoint `/` pret)
-- `T_compare` (optionnel, comparaison PDF end-to-end)
-
-Exemple startup uniquement:
+Exécuter un sous-ensemble ciblé :
 
 ```bash
-python scripts/measure_runtime.py --runs 3 --output-json artifacts/perf/current.json
+uv run pytest tests/unit/test_compare_gpt.py
 ```
 
-En environnement headless/sandbox (sans acces HTTP local):
+## Notes
 
-```bash
-python scripts/measure_runtime.py --runs 3 --skip-first-screen-check
-```
-
-Exemple complet avec comparaison:
-
-```bash
-python scripts/measure_runtime.py \
-  --runs 3 \
-  --pdf-t1 /path/to/t1.pdf \
-  --pdf-t2 /path/to/t2.pdf \
-  --bank rbc \
-  --sections-t1 /path/to/sections_t1.json \
-  --sections-t2 /path/to/sections_t2.json \
-  --output-json artifacts/perf/current.json
-```
-
-Comparaison avec un baseline:
-
-```bash
-python scripts/measure_runtime.py \
-  --runs 3 \
-  --baseline-json artifacts/perf/baseline.json \
-  --output-json artifacts/perf/current.json
-```
-
-## Audit strict intra-section
-
-Commande locale:
-
-```bash
-uv run python scripts/audit_intra_section.py \
-  --input tests/fixtures/strict_intra_section_sample.json \
-  --output artifacts/intra_section_audit.json \
-  --fail-on-violations
-```
+- Les extractions sous `outputs/extractions/` servent de cache technique par période.
+- La vérité historisée côté analyse est le dossier de run sous `outputs/comparisons/`.
+- Le projet privilégie la robustesse de la revue analyste et l’auditabilité des résultats.

@@ -35,8 +35,10 @@ def pdf_page_to_image(
         return None
     try:
         import fitz  # PyMuPDF
+        from .pymupdf_utils import configure_mupdf_runtime
     except ImportError:
         return None
+    configure_mupdf_runtime(fitz)
 
     try:
         doc = fitz.open(pdf_path)

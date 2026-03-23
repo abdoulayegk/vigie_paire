@@ -514,6 +514,12 @@ def _validate_no_map_like_objects(node: Any, path: str) -> None:
 def _classify_openai_error(exc: Exception) -> str:
     """Classify OpenAI API error to choose deterministic handling."""
     msg = str(exc).lower()
+    if (
+        "could not parse the json body of your request" in msg
+        or "what was sent was not valid json" in msg
+        or ("json body" in msg and "not valid json" in msg)
+    ):
+        return "request_body_invalid"
     if "invalid schema for response_format" in msg or (
         "missing '" in msg and "response_format" in msg and "required" in msg
     ):
@@ -1351,10 +1357,11 @@ class VisionFullExtractor:
                         continue
                     if (
                         local_use_structured
-                        and err_kind == "structured_output_unsupported"
+                        and err_kind
+                        in ("structured_output_unsupported", "request_body_invalid")
                     ):
                         logger.debug(
-                            "Structured Outputs unsupported for %s, falling back to json_object: %s",
+                            "Structured Outputs unavailable for %s, falling back to json_object: %s",
                             label,
                             e,
                         )

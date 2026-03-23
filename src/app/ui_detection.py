@@ -62,7 +62,9 @@ def _fallback_sections(total_pages: int) -> list[dict[str, Any]]:
 
 def _detect_sections_core(pdf_path: str | Path, bank_code: str | None = None) -> dict[str, Any]:
     """Detect key sections in a PDF and return UI-friendly ranges."""
-    path = str(pdf_path)
+    path = str(pdf_path or "").strip()
+    if not path:
+        return {"sections": _fallback_sections(1), "total_pages": 1}
     info = get_pdf_info(path)
     total_pages = int(info.get("total_pages", 0) or 0)
 

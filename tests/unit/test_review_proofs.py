@@ -145,3 +145,19 @@ def test_update_review_proofs_uses_requested_display_mode(monkeypatch) -> None:
     text = _flatten_text(result)
     assert seen_modes == ["footnote", "footnote"]
     assert "Mode note de bas de tableau" in text
+
+
+def test_get_proof_image_b64_tolerates_none_pdf_paths(monkeypatch) -> None:
+    monkeypatch.setattr(dash_app, "get_pdf_preview", lambda *args, **kwargs: None)
+
+    result = dash_app._get_proof_image_b64(
+        {
+            "page_t1": 4,
+            "source_ref_t1": None,
+            "bbox_t1": None,
+        },
+        "t1",
+        {"pdf_t1": None, "pdf_previous": None},
+    )
+
+    assert result is None

@@ -31,7 +31,10 @@ def get_vision_crop_dir() -> str:
 def compute_pdf_sha256(pdf_path: str) -> str:
     """Compute SHA256 hash of PDF file contents."""
     h = hashlib.sha256()
-    path = Path(pdf_path)
+    raw = str(pdf_path or "").strip()
+    if not raw:
+        return ""
+    path = Path(raw)
     if not path.exists():
         return ""
     with path.open("rb") as f:
