@@ -14,6 +14,7 @@ from typing import Any
 
 from vigilance.config import resolve_openai_model
 from vigilance.utils.genai import get_openai_api_key
+from vigilance.utils.model_cost import estimate_openai_cost_usd
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +22,229 @@ MATCH_PROMPT_VERSION = "table_match_v2"
 DIFF_PROMPT_VERSION = "table_diff_v2"
 COMPARISON_SCHEMA_VERSION = 1
 
+TABLE_MATCH_SYSTEM_PROMPT = """
+You are a senior financial disclosure table matching engine working for a banking analyst.
+
+You compare canonical financial tables extracted from two quarterly bank reports:
+- previous report
+- current report
+
+Your job is to recover the maximum number of true one-to-one table correspondences across both reports, while keeping false matches extremely low.
+
+You must perform a GLOBAL one-to-one assignment:
+- each previous table can match at most one current table
+- each current table can match at most one previous table
+
+Your target is high-recall, high-precision matching:
+- match every table that clearly represents the same business table across the two reports
+- never force a weak, speculative, or low-evidence pair
+- leave unmatched only when evidence is genuinely insufficient or when a table appears to be an extraction artifact
+
+Core matching logic:
+
+PRIMARY evidence:
+- indicators_normalized overlap in business meaning
+- overall row structure similarity
+- row ordering pattern
+- distinctive row sequence
+- whether the two tables represent the same business purpose
+
+STRONG supporting evidence:
+- row_count similarity
+- header similarity
+- distinctive footnote semantics
+- distinctive, stable title similarity when present
+
+WEAK supporting evidence / tie-break only:
+- section similarity
+- page proximity
+- extraction order proximity
+- same page
+- nearby index
+
+Important rules:
+- A small overlap of only a few generic indicators is NOT enough for a match.
+- Do not match tables only because they are in the same section, on the same page, or have nearby extraction order.
+- Do not match tables only because they have a similar generic title.
+- Use title as strong evidence only when it is specific, distinctive, and clearly points to the same business sub-table.
+- Use headers as strong supporting evidence, especially to separate similar tables within the same section.
+- Use row_count as a structural consistency signal:
+  - a small row_count difference is positive evidence
+  - a moderate row_count difference can still be acceptable if semantic evidence is strong
+  - a large row_count difference is negative evidence unless the business meaning and structure are still clearly aligned
+- Relative order in the extraction lists is important as a tie-breaker, especially when multiple candidates are similar on the same page, but it is never sufficient by itself.
+- Tables with no rows and no indicators should be treated as extraction artifacts unless there is strong evidence they are real standalone tables.
+- Ignore numeric value changes, percentages, currency amounts, dates, date formats, period labels, page references, punctuation differences, OCR noise, and footnote marker formatting differences.
+- Ignore simple footnote renumbering if semantic content is unchanged.
+
+Decision policy:
+1. First identify the strongest high-confidence pairs.
+2. Then resolve the remaining unmatched tables using the remaining free candidates.
+3. Prefer semantic and structural correctness over blindly maximizing pair count.
+4. If a real corresponding table clearly exists in both reports, it should be matched.
+5. If evidence remains genuinely ambiguous after considering all signals, do not guess.
+
+Confidence guidance:
+- 0.90 to 1.00 = very strong match
+- 0.75 to 0.89 = strong match
+- 0.60 to 0.74 = plausible but weaker; acceptable only if it is still the best globally coherent candidate
+- below 0.60 = do not match
+
+Return valid JSON only.
+Do not return markdown.
+Do not add commentary outside JSON.
+"""
+
 _HIGH_IMPACT_THEMES = frozenset({"capital", "liquidite", "financement"})
 _RISK_THEMES = frozenset({"risque_credit", "risque_marche", "risque_operationnel"})
 REFERENCE_RESOLUTION_RULE = (
     "t2->t1 meme annee; t3->t2 meme annee; "
     "t1->t3 annee precedente; t4->t4 annee precedente"
 )
+
+_SECTION_THEME_MAP = {
+    "capital": "capital",
+    "capital_management": "capital",
+    "liquidite": "liquidite",
+    "liquidity": "liquidite",
+    "funding": "financement",
+    "funding_management": "financement",
+}
+
+_TITLE_THEME_RULES: list[tuple[str, tuple[str, ...]]] = [
+    (
+        "risque_credit",
+        (
+            "risque de credit",
+            "credit risk",
+            "perte de credit",
+            "pertes de credit",
+            "expected credit",
+            "expositions au risque de credit",
+            "provisions pour pertes sur creances",
+        ),
+    ),
+    (
+        "risque_marche",
+        (
+            "risque de marche",
+            "market risk",
+            "trading",
+            "valeur a risque",
+            "value at risk",
+            "var",
+        ),
+    ),
+    (
+        "risque_operationnel",
+        (
+            "risque operationnel",
+            "operational risk",
+            "cyber",
+            "fraude",
+        ),
+    ),
+    (
+        "liquidite",
+        (
+            "liquidite",
+            "liquidity",
+            "lcr",
+            "nsfr",
+            "hqla",
+            "ratio structurel de liquidite",
+        ),
+    ),
+    (
+        "capital",
+        (
+            "capital",
+            "fonds propres",
+            "cet1",
+            "tier 1",
+            "tlac",
+            "levier",
+            "leverage",
+        ),
+    ),
+    (
+        "financement",
+        (
+            "financement",
+            "funding",
+            "depot",
+            "depots",
+        ),
+    ),
+]
+
+_INDICATOR_THEME_RULES: list[tuple[str, tuple[str, ...]]] = [
+    (
+        "capital",
+        (
+            "ratio cet1",
+            "ratio tier 1",
+            "ratio total",
+            "ratio de levier",
+            "tlac",
+        ),
+    ),
+    (
+        "liquidite",
+        (
+            "lcr",
+            "nsfr",
+            "hqla",
+            "liquidite",
+            "ratio structurel de liquidite",
+        ),
+    ),
+    (
+        "risque_credit",
+        (
+            "pertes de credit",
+            "perte de credit",
+            "expected credit",
+            "provision",
+            "provisions",
+            "exposition",
+            "expositions",
+            "ecl",
+        ),
+    ),
+    (
+        "risque_marche",
+        (
+            "trading",
+            "var",
+            "value at risk",
+            "valeur a risque",
+            "sensibilite",
+        ),
+    ),
+    (
+        "risque_operationnel",
+        (
+            "operational",
+            "operationnel",
+            "cyber",
+            "fraude",
+        ),
+    ),
+    (
+        "financement",
+        (
+            "depots",
+            "depot",
+            "billets",
+            "papier commercial",
+            "emprunts",
+            "obligations",
+            "financement",
+            "funding",
+        ),
+    ),
+]
 
 
 def _atomic_write_json(path: Path, payload: dict[str, Any]) -> Path:
@@ -48,6 +266,20 @@ def _coerce_pathlike(value: Any, field: str) -> Path:
         return Path(text)
     except TypeError as exc:
         raise ValueError(f"Chemin invalide pour {field}: {value!r}") from exc
+
+
+def _coerce_int(value: Any) -> int:
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _coerce_float(value: Any) -> float:
+    try:
+        return float(value or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -108,11 +340,48 @@ def _normalize_footnotes(raw: Any) -> list[dict[str, str]]:
     return normalized
 
 
-def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
+_TABLE_MATCH_CARD_MAX_HEADERS = 24
+
+
+def _table_card(
+    entry: dict[str, Any],
+    *,
+    extraction_index: int,
+    max_headers_in_card: int = _TABLE_MATCH_CARD_MAX_HEADERS,
+) -> dict[str, Any]:
+    rows_raw = entry.get("rows", [])
+    row_count = len(rows_raw) if isinstance(rows_raw, list) else 0
+
+    header_source = entry.get("headers", [])
+    header_list = list(header_source) if isinstance(header_source, list) else []
+    cap = max(0, int(max_headers_in_card))
+    headers = []
+    for h in header_list[:cap]:
+        cell = str(h).strip()
+        if cell:
+            headers.append(cell)
+    header_columns_total = len(header_list)
+
+    page_raw = entry.get("page")
+    page: int | None
+    try:
+        page = (
+            int(page_raw)
+            if page_raw is not None and str(page_raw).strip() != ""
+            else None
+        )
+    except (TypeError, ValueError):
+        page = None
+
     return {
         "table_id": str(entry.get("table_id", "") or ""),
+        "extraction_index": int(extraction_index),
         "section": str(entry.get("section", "") or "unknown_section"),
         "title": str(entry.get("title", "") or ""),
+        "page": page,
+        "row_count": row_count,
+        "headers": headers,
+        "header_columns_total": header_columns_total,
         "indicators_normalized": [
             str(value).strip()
             for value in list(entry.get("indicators_normalized", []) or [])
@@ -272,7 +541,12 @@ def _normalize_footnote_renames(items: Any) -> list[dict[str, str]]:
         previous_text = str(item.get("previous_text", "") or "").strip()
         current_text = str(item.get("current_text", "") or "").strip()
         reason = str(item.get("reason", "") or "").strip()
-        if not previous_id and not current_id and not previous_text and not current_text:
+        if (
+            not previous_id
+            and not current_id
+            and not previous_text
+            and not current_text
+        ):
             continue
         out.append(
             {
@@ -286,6 +560,27 @@ def _normalize_footnote_renames(items: Any) -> list[dict[str, str]]:
     return out
 
 
+def _extract_usage_metrics(response: Any) -> tuple[int, int, int]:
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        return 0, 0, 0
+    try:
+        prompt = int(getattr(usage, "prompt_tokens", 0) or 0)
+    except (TypeError, ValueError):
+        prompt = 0
+    try:
+        completion = int(getattr(usage, "completion_tokens", 0) or 0)
+    except (TypeError, ValueError):
+        completion = 0
+    try:
+        total = int(getattr(usage, "total_tokens", 0) or 0)
+    except (TypeError, ValueError):
+        total = 0
+    if total <= 0:
+        total = prompt + completion
+    return prompt, completion, total
+
+
 def _call_openai_json(
     *,
     model: str,
@@ -293,6 +588,8 @@ def _call_openai_json(
     max_completion_tokens: int = 4000,
     temperature: float = 0.0,
     api_retry_max: int = 2,
+    usage_recorder: list[dict[str, Any]] | None = None,
+    call_kind: str = "comparison",
 ) -> dict[str, Any]:
     api_key = get_openai_api_key()
     if not api_key:
@@ -317,12 +614,26 @@ def _call_openai_json(
             data = json.loads(raw)
             if not isinstance(data, dict):
                 raise ValueError("OpenAI response is not a JSON object")
+            if usage_recorder is not None:
+                prompt_tokens, completion_tokens, total_tokens = _extract_usage_metrics(
+                    response
+                )
+                usage_recorder.append(
+                    {
+                        "model": model,
+                        "call_kind": call_kind,
+                        "prompt_tokens": prompt_tokens,
+                        "completion_tokens": completion_tokens,
+                        "total_tokens": total_tokens,
+                    }
+                )
             return data
         except Exception as exc:
             last_error = exc
             message = str(exc).lower()
             retryable = (
-                "rate" in message and "limit" in message
+                "rate" in message
+                and "limit" in message
                 or "timeout" in message
                 or "timed out" in message
                 or "connection" in message
@@ -348,6 +659,66 @@ def _theme_text(*parts: Any) -> str:
     return re.sub(r"\s+", " ", folded).strip()
 
 
+def _match_theme_from_text(
+    text: str,
+    rules: list[tuple[str, tuple[str, ...]]],
+) -> str | None:
+    for theme, tokens in rules:
+        if any(token in text for token in tokens):
+            return theme
+    return None
+
+
+def _normalize_label(value: Any) -> str:
+    text = _theme_text(value)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _normalize_footnote_signature(item: dict[str, str]) -> str:
+    fid = _normalize_label(item.get("id", ""))
+    text = _normalize_label(item.get("text", ""))
+    return f"{fid}|{text}"
+
+
+def _is_trivial_no_change(
+    previous_table: dict[str, Any],
+    current_table: dict[str, Any],
+) -> bool:
+    previous_indicators = [
+        _normalize_label(value)
+        for value in list(previous_table.get("indicators_normalized", []) or [])
+        if _normalize_label(value)
+    ]
+    current_indicators = [
+        _normalize_label(value)
+        for value in list(current_table.get("indicators_normalized", []) or [])
+        if _normalize_label(value)
+    ]
+    if previous_indicators != current_indicators:
+        return False
+    previous_footnotes = [
+        _normalize_footnote_signature(item)
+        for item in _normalize_footnotes(previous_table.get("footnotes", []))
+    ]
+    current_footnotes = [
+        _normalize_footnote_signature(item)
+        for item in _normalize_footnotes(current_table.get("footnotes", []))
+    ]
+    return previous_footnotes == current_footnotes
+
+
+def _zero_technical_diff() -> dict[str, Any]:
+    return {
+        "indicators_added": [],
+        "indicators_removed": [],
+        "indicators_renamed": [],
+        "footnotes_added": [],
+        "footnotes_removed": [],
+        "footnotes_renamed": [],
+        "table_level_change": "inchange",
+    }
+
+
 def _classify_theme(
     *,
     section: str,
@@ -355,59 +726,32 @@ def _classify_theme(
     indicators: list[str],
     footnotes: list[dict[str, str]],
 ) -> str:
-    text = _theme_text(
-        section,
-        title,
-        " ".join(indicators),
-        " ".join(item.get("text", "") for item in footnotes),
+    title_theme = _match_theme_from_text(_theme_text(title), _TITLE_THEME_RULES)
+    if title_theme:
+        return title_theme
+
+    section_key = str(section or "").strip().lower()
+    if section_key in _SECTION_THEME_MAP:
+        return _SECTION_THEME_MAP[section_key]
+
+    section_theme = _match_theme_from_text(_theme_text(section), _TITLE_THEME_RULES)
+    if section_theme:
+        return section_theme
+
+    indicator_theme = _match_theme_from_text(
+        _theme_text(" ".join(indicators)),
+        _INDICATOR_THEME_RULES,
     )
-    if any(
-        token in text
-        for token in (
-            "capital",
-            "fonds propres",
-            "cet1",
-            "tier 1",
-            "tlac",
-            "levier",
-            "leverage",
-        )
-    ):
-        return "capital"
-    if any(
-        token in text
-        for token in ("liquidite", "liquidity", "lcr", "nsfr", "hqla")
-    ):
-        return "liquidite"
-    if any(
-        token in text
-        for token in ("funding", "financement", "depot", "depots")
-    ):
-        return "financement"
-    if any(
-        token in text
-        for token in (
-            "credit risk",
-            "risque de credit",
-            "perte de credit",
-            "expected credit",
-        )
-    ):
-        return "risque_credit"
-    if any(
-        token in text
-        for token in ("market risk", "risque de marche", "trading", "var")
-    ):
-        return "risque_marche"
-    if any(
-        token in text
-        for token in (
-            "operational risk",
-            "risque operationnel",
-            "operational",
-        )
-    ):
-        return "risque_operationnel"
+    if indicator_theme:
+        return indicator_theme
+
+    footnote_theme = _match_theme_from_text(
+        _theme_text(" ".join(item.get("text", "") for item in footnotes)),
+        _INDICATOR_THEME_RULES,
+    )
+    if footnote_theme:
+        return footnote_theme
+
     return "autre"
 
 
@@ -516,18 +860,31 @@ def _match_tables(
     current_cards: list[dict[str, Any]],
     *,
     model: str,
+    usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     prompt = {
-        "task": "Match canonical financial tables across two report extracts.",
+        "task": (
+            "Match canonical financial tables between the previous extract and the "
+            "current extract using a partial bijection, maximizing true matches while "
+            "avoiding false matches."
+        ),
         "rules": [
-            "Return JSON only.",
-            "Each previous table can match at most one current table.",
-            "Each current table can match at most one previous table.",
-            "Match tables semantically using first-column indicators and associated footnotes.",
-            "Section and title are weak context only; prioritize indicators_normalized and footnotes.",
-            "Ignore all numeric changes, dates, period labels, and date formats.",
-            "Unmatched current tables go to tables_added.",
-            "Unmatched previous tables go to tables_removed.",
+            "Return JSON only, strictly following response_schema.",
+            "Each previous_table_id can appear at most once in matched_pairs.",
+            "Each current_table_id can appear at most once in matched_pairs.",
+            "Use indicators_normalized and overall business meaning as the main evidence.",
+            "Use row structure, row ordering pattern, and row_count similarity as strong structural evidence.",
+            "Use header similarity as strong supporting evidence, especially to distinguish similar tables within the same section.",
+            "Use footnotes as supporting semantic evidence, especially when they are distinctive.",
+            "If a specific and distinctive title is present and aligns strongly across both reports, treat it as strong corroborating evidence.",
+            "Do not use title alone as sufficient evidence for a match.",
+            "Do not match on a small overlap of generic indicators only.",
+            "Do not match tables only because they are on the same page, in the same section, or close in extraction order.",
+            "When multiple candidates are similar, prefer the candidate with the strongest overall semantic and structural alignment.",
+            "Use extraction order and page proximity only as tie-breakers when semantic evidence is otherwise close.",
+            "Treat empty or near-empty tables as extraction artifacts unless strong evidence shows they are real tables.",
+            "If a table clearly exists in both reports, match it.",
+            "Leave unmatched only when evidence is genuinely insufficient or the table is likely an extraction artifact.",
         ],
         "response_schema": {
             "matched_pairs": [
@@ -535,11 +892,26 @@ def _match_tables(
                     "previous_table_id": "string",
                     "current_table_id": "string",
                     "match_confidence": "number_0_to_1",
-                    "reason": "string",
+                    "reason": (
+                        "short explanation grounded in business meaning, indicators, "
+                        "row structure, row_count, headers, footnotes, title, and "
+                        "tie-break evidence if used"
+                    ),
                 }
             ],
-            "tables_added": [{"table_id": "string", "reason": "string"}],
-            "tables_removed": [{"table_id": "string", "reason": "string"}],
+            "tables_added": [
+                {
+                    "table_id": "string",
+                    "reason": "short explanation",
+                }
+            ],
+            "tables_removed": [
+                {
+                    "table_id": "string",
+                    "reason": "short explanation",
+                }
+            ],
+            "warnings": ["string"],
         },
         "previous_tables": previous_cards,
         "current_tables": current_cards,
@@ -549,15 +921,15 @@ def _match_tables(
         messages=[
             {
                 "role": "system",
-                "content": (
-                    "You compare extracted financial tables for a banking analyst. "
-                    "Match tables semantically using first-column indicators and footnotes only. "
-                    "Ignore numeric changes, dates, period labels, and date formats. "
-                    "Return valid JSON only and do not add commentary."
-                ),
+                "content": TABLE_MATCH_SYSTEM_PROMPT,
             },
-            {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)},
+            {
+                "role": "user",
+                "content": json.dumps(prompt, ensure_ascii=False),
+            },
         ],
+        usage_recorder=usage_recorder,
+        call_kind="matching",
     )
 
     previous_ids = {card["table_id"] for card in previous_cards}
@@ -615,10 +987,16 @@ def _match_tables(
         out: list[dict[str, str]] = []
         if not isinstance(items, list):
             return out
+        legacy_key = (
+            "current_table_id" if field == "tables_added" else "previous_table_id"
+        )
         for item in items:
             if not isinstance(item, dict):
                 continue
-            table_id = _require_string(item.get("table_id"), field)
+            table_id = _require_string(
+                item.get("table_id") or item.get(legacy_key),
+                field,
+            )
             if table_id not in valid_ids:
                 raise ValueError(f"Unknown table_id in {field}: {table_id}")
             out.append(
@@ -649,7 +1027,17 @@ def _diff_pair(
     current_table: dict[str, Any],
     *,
     model: str,
+    usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    if _is_trivial_no_change(previous_table, current_table):
+        return {
+            "technical_diff": _zero_technical_diff(),
+            "reason": (
+                "Aucun changement semantique: indicateurs et footnotes "
+                "identiques apres normalisation locale."
+            ),
+            "diff_mode": "local_exact_match",
+        }
     prompt = {
         "task": "Compare two matched financial tables and identify semantic changes.",
         "rules": [
@@ -666,9 +1054,7 @@ def _diff_pair(
             "indicators_renamed": [
                 {"previous": "string", "current": "string", "reason": "string"}
             ],
-            "footnotes_added": [
-                {"id": "string", "text": "string", "reason": "string"}
-            ],
+            "footnotes_added": [{"id": "string", "text": "string", "reason": "string"}],
             "footnotes_removed": [
                 {"id": "string", "text": "string", "reason": "string"}
             ],
@@ -700,6 +1086,8 @@ def _diff_pair(
             },
             {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)},
         ],
+        usage_recorder=usage_recorder,
+        call_kind="diff_pair",
     )
 
     technical_diff = {
@@ -727,6 +1115,7 @@ def _diff_pair(
     return {
         "technical_diff": technical_diff,
         "reason": str(data.get("reason", "") or "").strip(),
+        "diff_mode": "gpt",
     }
 
 
@@ -754,13 +1143,81 @@ def _count_high_priority_items(
     total = 0
     for item in pair_comparisons:
         assessment = item.get("analyst_assessment", {}) or {}
-        if str(assessment.get("review_priority", "") or "") in {"prioritaire", "critique"}:
+        if str(assessment.get("review_priority", "") or "") in {
+            "prioritaire",
+            "critique",
+        }:
             total += 1
     for item in tables_added + tables_removed:
         assessment = item.get("analyst_assessment", {}) or {}
-        if str(assessment.get("review_priority", "") or "") in {"prioritaire", "critique"}:
+        if str(assessment.get("review_priority", "") or "") in {
+            "prioritaire",
+            "critique",
+        }:
             total += 1
     return total
+
+
+def _aggregate_usage_metrics(records: list[dict[str, Any]]) -> dict[str, int]:
+    prompt_tokens = 0
+    completion_tokens = 0
+    total_tokens = 0
+    for item in records:
+        if not isinstance(item, dict):
+            continue
+        prompt_tokens += _coerce_int(item.get("prompt_tokens"))
+        completion_tokens += _coerce_int(item.get("completion_tokens"))
+        total_tokens += _coerce_int(item.get("total_tokens"))
+    if total_tokens == 0:
+        total_tokens = prompt_tokens + completion_tokens
+    return {
+        "prompt_tokens_total": prompt_tokens,
+        "completion_tokens_total": completion_tokens,
+        "total_tokens_total": total_tokens,
+        "comparison_calls_total": len(records),
+    }
+
+
+def _aggregate_extraction_run_metrics(
+    extraction_run_metrics: dict[str, Any] | None,
+    *,
+    runtime_extraction_sec: float,
+) -> dict[str, Any]:
+    previous = dict((extraction_run_metrics or {}).get("previous") or {})
+    current = dict((extraction_run_metrics or {}).get("current") or {})
+    vision_calls_total = _coerce_int(previous.get("vision_calls_total")) + _coerce_int(
+        current.get("vision_calls_total")
+    )
+    vision_rescue_total = _coerce_int(
+        previous.get("vision_rescue_total")
+    ) + _coerce_int(current.get("vision_rescue_total"))
+    prompt_tokens_total = _coerce_int(
+        previous.get("prompt_tokens_total")
+    ) + _coerce_int(current.get("prompt_tokens_total"))
+    completion_tokens_total = _coerce_int(
+        previous.get("completion_tokens_total")
+    ) + _coerce_int(current.get("completion_tokens_total"))
+    total_tokens_total = _coerce_int(previous.get("total_tokens_total")) + _coerce_int(
+        current.get("total_tokens_total")
+    )
+    estimated_cost = _coerce_float(previous.get("estimated_cost_usd")) + _coerce_float(
+        current.get("estimated_cost_usd")
+    )
+    return {
+        "runtime_extraction_sec": round(
+            max(0.0, float(runtime_extraction_sec or 0.0)), 3
+        ),
+        "vision_calls_total": vision_calls_total,
+        "vision_rescue_total": vision_rescue_total,
+        "prompt_tokens_total": prompt_tokens_total,
+        "completion_tokens_total": completion_tokens_total,
+        "total_tokens_total": total_tokens_total,
+        "estimated_cost_usd": round(estimated_cost, 6),
+        "cache_hits_total": int(bool(previous.get("cache_hit")))
+        + int(bool(current.get("cache_hit"))),
+        "previous": previous,
+        "current": current,
+    }
 
 
 def compare_reports_gpt4o(
@@ -773,7 +1230,10 @@ def compare_reports_gpt4o(
     reference_resolution: dict[str, Any] | None = None,
     source_pdf_previous: str | None = None,
     source_pdf_current: str | None = None,
+    runtime_extraction_sec: float | None = None,
+    extraction_run_metrics: dict[str, Any] | None = None,
 ) -> Path:
+    comparison_started_at = time.monotonic()
     previous_dir_path = _coerce_pathlike(previous_dir, "previous_dir")
     current_dir_path = _coerce_pathlike(current_dir, "current_dir")
     out_root_path = _coerce_pathlike(out_root, "out_root")
@@ -791,8 +1251,13 @@ def compare_reports_gpt4o(
         for entry in list(current_payload.get("tables", []) or [])
         if isinstance(entry, dict)
     ]
-    previous_cards = [_table_card(entry) for entry in previous_tables]
-    current_cards = [_table_card(entry) for entry in current_tables]
+    previous_cards = [
+        _table_card(entry, extraction_index=i)
+        for i, entry in enumerate(previous_tables)
+    ]
+    current_cards = [
+        _table_card(entry, extraction_index=i) for i, entry in enumerate(current_tables)
+    ]
     previous_lookup = {
         entry["table_id"]: _table_detail(entry) for entry in previous_tables
     }
@@ -818,8 +1283,14 @@ def compare_reports_gpt4o(
     model_name = str(
         model or resolve_openai_model("default_genai", config_path=config_path)
     )
+    usage_records: list[dict[str, Any]] = []
 
-    match_result = _match_tables(previous_cards, current_cards, model=model_name)
+    match_result = _match_tables(
+        previous_cards,
+        current_cards,
+        model=model_name,
+        usage_recorder=usage_records,
+    )
 
     tables_added: list[dict[str, Any]] = []
     for item in match_result["tables_added"]:
@@ -877,6 +1348,7 @@ def compare_reports_gpt4o(
             previous_lookup[previous_table_id],
             current_lookup[current_table_id],
             model=model_name,
+            usage_recorder=usage_records,
         )
         pair_comparisons.append(
             {
@@ -884,6 +1356,7 @@ def compare_reports_gpt4o(
                 "current_table_id": current_table_id,
                 "match_confidence": pair["match_confidence"],
                 "match_reason": pair.get("reason", ""),
+                "diff_mode": str(diff.get("diff_mode", "") or ""),
                 "previous_table": previous_snapshots[previous_table_id],
                 "current_table": current_snapshots[current_table_id],
                 "technical_diff": diff["technical_diff"],
@@ -904,6 +1377,48 @@ def compare_reports_gpt4o(
         tables_added,
         tables_removed,
     )
+    comparison_runtime_sec = round(
+        max(0.0, time.monotonic() - comparison_started_at), 3
+    )
+    comparison_metrics = _aggregate_usage_metrics(usage_records)
+    comparison_metrics["runtime_comparison_sec"] = comparison_runtime_sec
+    comparison_metrics["comparison_local_diff_skips"] = sum(
+        1
+        for item in pair_comparisons
+        if str(item.get("diff_mode", "") or "") == "local_exact_match"
+    )
+    comparison_metrics["estimated_cost_usd"] = estimate_openai_cost_usd(
+        model_name,
+        prompt_tokens=comparison_metrics["prompt_tokens_total"],
+        completion_tokens=comparison_metrics["completion_tokens_total"],
+    )
+    extraction_metrics = _aggregate_extraction_run_metrics(
+        extraction_run_metrics,
+        runtime_extraction_sec=float(runtime_extraction_sec or 0.0),
+    )
+    run_metrics = {
+        "runtime_extraction_sec": extraction_metrics["runtime_extraction_sec"],
+        "runtime_comparison_sec": comparison_metrics["runtime_comparison_sec"],
+        "vision_calls_total": extraction_metrics["vision_calls_total"],
+        "vision_rescue_total": extraction_metrics["vision_rescue_total"],
+        "comparison_calls_total": comparison_metrics["comparison_calls_total"],
+        "comparison_local_diff_skips": comparison_metrics[
+            "comparison_local_diff_skips"
+        ],
+        "prompt_tokens_total": extraction_metrics["prompt_tokens_total"]
+        + comparison_metrics["prompt_tokens_total"],
+        "completion_tokens_total": extraction_metrics["completion_tokens_total"]
+        + comparison_metrics["completion_tokens_total"],
+        "total_tokens_total": extraction_metrics["total_tokens_total"]
+        + comparison_metrics["total_tokens_total"],
+        "estimated_cost_usd": round(
+            float(extraction_metrics["estimated_cost_usd"] or 0.0)
+            + float(comparison_metrics["estimated_cost_usd"] or 0.0),
+            6,
+        ),
+        "extraction": extraction_metrics,
+        "comparison": comparison_metrics,
+    }
 
     base_out_dir = (
         out_root_path
@@ -954,6 +1469,7 @@ def compare_reports_gpt4o(
             "tables_removed": tables_removed,
         },
         "pair_comparisons": pair_comparisons,
+        "run_metrics": run_metrics,
         "summary": {
             "matched_pairs_total": len(match_result["matched_pairs"]),
             "tables_added_total": len(tables_added),

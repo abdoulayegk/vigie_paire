@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import logging
 
 from app import comparison_canonical as cc
+from app.review_adapters import build_review_items_from_indicator_result
+from app.review_queue_normalizer import build_normalized_review_queue
 
 
 def _raw_report_comparison() -> dict:
@@ -114,6 +117,17 @@ def _raw_report_comparison() -> dict:
             "footnote_changes_total": 1,
             "high_priority_items_total": 2,
         },
+        "run_metrics": {
+            "runtime_extraction_sec": 12.5,
+            "runtime_comparison_sec": 1.4,
+            "vision_calls_total": 18,
+            "vision_rescue_total": 2,
+            "comparison_calls_total": 2,
+            "prompt_tokens_total": 4200,
+            "completion_tokens_total": 900,
+            "total_tokens_total": 5100,
+            "estimated_cost_usd": 0.123,
+        },
     }
 
 
@@ -136,6 +150,7 @@ def test_to_canonical_payload_supports_report_comparison_without_extraction_look
     assert canonical["meta"]["run_id"] == "20260323_143015"
     assert canonical["meta"]["pdf_paths"]["pdf_previous"] == "/archive/run/previous_report.pdf"
     assert canonical["meta"]["pdf_paths"]["pdf_current"] == "/archive/run/current_report.pdf"
+    assert canonical["meta"]["run_metrics"]["vision_calls_total"] == 18
 
     comp = canonical["table_comparisons"][0]
     assert comp["table_id_t1"] == "prev_1"
@@ -169,3 +184,44 @@ def test_report_comparison_conversion_is_stable_without_extraction_files() -> No
     assert first == second
     assert second["tables_added"][0]["title"] == "Liquidite"
     assert mutated["matching"]["tables_added"][0]["title"] == "Liquidite MAJ"
+
+
+def test_to_canonical_payload_warns_when_visual_context_missing(caplog) -> None:
+    raw = _raw_report_comparison()
+    raw["pair_comparisons"][0]["previous_table"]["bbox"] = None
+    raw["pair_comparisons"][0]["current_table"]["page"] = None
+
+    with caplog.at_level(logging.WARNING):
+        canonical = cc.to_canonical_payload(raw)
+
+    assert canonical["table_comparisons"][0]["bbox_t1"] is None
+    assert canonical["table_comparisons"][0]["page_t2"] is None
+    assert "missing_visual_context" in caplog.text
+    assert "prev_1" in caplog.text
+    assert "curr_1" in caplog.text
+
+
+def test_report_comparison_bbox_survives_review_queue_normalization() -> None:
+    raw = _raw_report_comparison()
+    canonical = cc.to_canonical_payload(raw)
+
+    items = build_review_items_from_indicator_result(
+        canonical,
+        bank_code="bnc",
+        quarter_from=canonical["quarter_from"],
+        quarter_to=canonical["quarter_to"],
+        pdf_path_t1="/tmp/prev.pdf",
+        pdf_path_t2="/tmp/curr.pdf",
+    )
+    queue = build_normalized_review_queue(
+        canonical,
+        [item.to_dict() for item in items],
+        "/tmp/prev.pdf",
+        "/tmp/curr.pdf",
+    )
+
+    matched_table = next(
+        table for table in queue if table.table_id_t1 == "prev_1" and table.table_id_t2 == "curr_1"
+    )
+    assert matched_table.bbox_t1 == [0.1, 0.2, 0.8, 0.7]
+    assert matched_table.bbox_t2 == [0.2, 0.2, 0.85, 0.72]

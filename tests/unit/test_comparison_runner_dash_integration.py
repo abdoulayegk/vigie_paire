@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from app import comparison_runner as cr
+from app.extraction_storage import build_extraction_manifest
 
 
 def _write_tables_json(path: Path, *, bank: str, year: int, quarter: str, table_id: str, title: str) -> None:
@@ -13,13 +14,32 @@ def _write_tables_json(path: Path, *, bank: str, year: int, quarter: str, table_
     path.write_text(
         json.dumps(
             {
-                "schema_version": 3,
+                "schema_version": 4,
                 "bank_code": bank,
                 "year": year,
                 "quarter": quarter,
                 "created_at": "2026-03-23T10:00:00",
                 "model_version": "gpt-4o",
                 "prompt_version": "extract_v1",
+                "extraction_manifest": {
+                    "pdf_fingerprint": "abc123",
+                    "section_ranges_fingerprint": "def456",
+                    "artifact_contract_version": 1,
+                    "extraction_metrics_version": 1,
+                    "quality_policy_version": 1,
+                },
+                "metrics": {
+                    "mode": "fresh",
+                    "runtime_sec": 1.25,
+                    "vision_calls_total": 1,
+                    "vision_rescue_total": 0,
+                    "prompt_tokens_total": 100,
+                    "completion_tokens_total": 20,
+                    "total_tokens_total": 120,
+                    "estimated_cost_usd": 0.00045,
+                    "tables_total": 1,
+                    "cache_hit": False,
+                },
                 "tables": [
                     {
                         "table_id": table_id,
@@ -87,6 +107,8 @@ def test_run_comparison_with_sections_returns_dash_canonical(
         assert Path(current_dir) == extraction_root / "bnc" / "2026" / "t1"
         assert kwargs["source_pdf_previous"].endswith("/prev.pdf")
         assert kwargs["source_pdf_current"].endswith("/curr.pdf")
+        assert kwargs["runtime_extraction_sec"] >= 0.0
+        assert set(kwargs["extraction_run_metrics"]) == {"previous", "current"}
         out_path = (
             Path(out_root)
             / "bnc"
@@ -174,6 +196,18 @@ def test_run_comparison_with_sections_returns_dash_canonical(
                         "footnote_changes_total": 0,
                         "high_priority_items_total": 0,
                     },
+                    "run_metrics": {
+                        "runtime_extraction_sec": kwargs["runtime_extraction_sec"],
+                        "runtime_comparison_sec": 0.5,
+                        "vision_calls_total": 2,
+                        "vision_rescue_total": 0,
+                        "comparison_calls_total": 1,
+                        "comparison_local_diff_skips": 0,
+                        "prompt_tokens_total": 220,
+                        "completion_tokens_total": 40,
+                        "total_tokens_total": 260,
+                        "estimated_cost_usd": 0.001,
+                    },
                 },
                 ensure_ascii=False,
                 indent=2,
@@ -213,11 +247,68 @@ def test_run_comparison_with_sections_returns_dash_canonical(
     assert result["meta"]["run_id"] == "20260323_143015"
     assert result["meta"]["pdf_paths"]["pdf_previous"] == "/archive/prev.pdf"
     assert result["meta"]["pdf_paths"]["pdf_current"] == "/archive/curr.pdf"
+    assert result["meta"]["run_metrics"]["comparison_calls_total"] == 1
     assert result["meta"]["extraction_sources"]["previous"]["tables_path"].endswith(
         "/2025/t3/tables.json"
     )
     assert result["table_comparisons"][0]["table_id_t1"] == "prev_1"
+    assert result["table_comparisons"][0]["bbox_t1"] == [0.1, 0.2, 0.8, 0.7]
+    assert result["table_comparisons"][0]["bbox_t2"] == [0.1, 0.2, 0.8, 0.7]
     assert result["table_comparisons"][0]["source_pdf_t1"] == "/archive/prev.pdf"
+
+
+def test_extract_tables_reuses_only_matching_manifest(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(cr, "EXTRACTION_ROOT", tmp_path / "outputs" / "extractions")
+
+    pdf_path = tmp_path / "source.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4")
+    out_dir = cr.EXTRACTION_ROOT / "bnc" / "2025" / "t1"
+    _write_tables_json(
+        out_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t1",
+        table_id="stored_1",
+        title="Capital stocke",
+    )
+    tables_payload = json.loads((out_dir / "tables.json").read_text(encoding="utf-8"))
+    tables_payload["extraction_manifest"] = build_extraction_manifest(
+        pdf_path=str(pdf_path),
+        section_ranges=[{"section": "capital", "start": 1, "end": 2}],
+        extraction_mode="vision_full_gpt4o",
+    )
+    (out_dir / "tables.json").write_text(
+        json.dumps(tables_payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    (out_dir / "indicators.json").write_text("{}", encoding="utf-8")
+    (out_dir / "footnotes.json").write_text("{}", encoding="utf-8")
+
+    def should_not_extract(**kwargs):
+        raise AssertionError("fresh extraction should not run when manifest matches")
+
+    monkeypatch.setattr(
+        "vigilance.extraction.docling_processor.extract_tables_docling_by_sections",
+        should_not_extract,
+    )
+
+    tables, provenance = cr._extract_tables(
+        pdf_path=str(pdf_path),
+        bank_code="bnc",
+        quarter="t1",
+        year=2025,
+        sections=[{"section": "capital", "start_page": 1, "end_page": 2}],
+        use_vision_extraction=True,
+        use_stored_extraction_if_available=True,
+        return_provenance=True,
+    )
+
+    assert provenance["mode"] == "stored"
+    assert provenance["run_metrics"]["cache_hit"] is True
+    assert provenance["run_metrics"]["vision_calls_total"] == 0
 
 
 def test_run_comparison_with_sections_rejects_missing_pdf_paths(

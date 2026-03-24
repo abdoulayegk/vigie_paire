@@ -21,7 +21,7 @@ from ..utils.footnotes_utils import (
 
 logger = logging.getLogger(__name__)
 
-COMPACT_REPORT_SCHEMA_VERSION = 3
+COMPACT_REPORT_SCHEMA_VERSION = 4
 
 
 def _table_section(table: Any) -> str:
@@ -86,6 +86,8 @@ def _compact_top_level(
         "schema_version": int(metadata.get("schema_version") or COMPACT_REPORT_SCHEMA_VERSION),
         "model_version": str(metadata.get("model_version") or ""),
         "prompt_version": str(metadata.get("prompt_version") or ""),
+        "extraction_manifest": dict(metadata.get("extraction_manifest") or {}),
+        "metrics": dict(metadata.get("metrics") or {}),
     }
 
 
@@ -112,12 +114,62 @@ def _compact_footnotes(table: Any) -> list[dict[str, str]]:
     ]
 
 
+def _compact_table_bbox(table: Any) -> list[float] | None:
+    """Return normalized bbox [l, t, r, b] when valid, else None."""
+    bbox = getattr(table, "bbox", None)
+    try:
+        if isinstance(bbox, (list, tuple)) and len(bbox) >= 4:
+            normalized = [
+                float(bbox[0]),
+                float(bbox[1]),
+                float(bbox[2]),
+                float(bbox[3]),
+            ]
+        elif isinstance(bbox, dict):
+            if {"l", "t", "r", "b"}.issubset(bbox):
+                normalized = [
+                    float(bbox["l"]),
+                    float(bbox["t"]),
+                    float(bbox["r"]),
+                    float(bbox["b"]),
+                ]
+            elif {"x0", "y0", "x1"}.issubset(bbox):
+                y1 = bbox.get("y1")
+                if y1 is None:
+                    return None
+                normalized = [
+                    float(bbox["x0"]),
+                    float(bbox["y0"]),
+                    float(bbox["x1"]),
+                    float(y1),
+                ]
+            else:
+                return None
+        else:
+            return None
+    except (KeyError, TypeError, ValueError):
+        return None
+
+    l_, top, r, bottom = normalized
+    if not (
+        0.0 <= l_ <= 1.0
+        and 0.0 <= top <= 1.0
+        and 0.0 <= r <= 1.0
+        and 0.0 <= bottom <= 1.0
+    ):
+        return None
+    if r <= l_ or bottom <= top:
+        return None
+    return normalized
+
+
 def _compact_table_common_entry(table: Any) -> dict[str, Any]:
     return {
         "table_id": str(getattr(table, "table_id", "") or ""),
         "page": _table_page(table),
         "section": _compact_table_section(table),
         "title": _compact_table_title(table),
+        "bbox": _compact_table_bbox(table),
     }
 
 

@@ -13,6 +13,7 @@ def _table(
     page: int,
     section: str | None,
     title: str | None,
+    bbox: list[float] | None,
     raw: list[str] | None,
     normalized: list[str] | None,
     footnotes: list[dict] | None,
@@ -26,6 +27,7 @@ def _table(
         section=section,
         title=title,
         title_clean=None,
+        bbox=bbox,
         headers=headers or [],
         rows=rows or [],
         first_column_indicators_raw=raw,
@@ -42,6 +44,7 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
             page=4,
             section=None,
             title=None,
+            bbox=None,
             raw=None,
             normalized=None,
             footnotes=None,
@@ -54,6 +57,7 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
             page=3,
             section="Gestion des risques",
             title="Table risque",
+            bbox=[0.1, 0.2, 0.8, 0.7],
             raw=["Pertes de credit", "Total"],
             normalized=["pertes de credit", "total"],
             footnotes=[{"marker": "1", "text": "Note de risque"}],
@@ -69,7 +73,18 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
         bank_code="bnc",
         year=2025,
         quarter="t1",
-        meta={"model_version": "gpt-5.4", "prompt_version": "extract_v1"},
+        meta={
+            "model_version": "gpt-5.4",
+            "prompt_version": "extract_v1",
+            "extraction_manifest": {
+                "pdf_fingerprint": "abc123",
+                "section_ranges_fingerprint": "def456",
+            },
+            "metrics": {
+                "vision_calls_total": 2,
+                "estimated_cost_usd": 0.01,
+            },
+        },
     )
 
     assert set(paths) == {"tables", "indicators", "footnotes"}
@@ -84,6 +99,7 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
     risk_table = tables_payload["tables"][0]
     assert risk_table["section"] == "risk_management"
     assert risk_table["title"] == "Table risque"
+    assert risk_table["bbox"] == [0.1, 0.2, 0.8, 0.7]
     assert risk_table["headers"] == ["Indicator", "Amount"]
     assert risk_table["rows"] == [["Pertes de credit", "10"]]
     assert risk_table["indicators_raw"] == ["Pertes de credit", "Total"]
@@ -93,6 +109,7 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
     empty_table = tables_payload["tables"][1]
     assert empty_table["section"] == "unknown_section"
     assert empty_table["title"] == ""
+    assert empty_table["bbox"] is None
     assert empty_table["indicators_raw"] == []
     assert empty_table["indicators_normalized"] == []
     assert empty_table["footnotes"] == []
@@ -103,6 +120,7 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
         "page",
         "section",
         "title",
+        "bbox",
         "indicators_raw",
         "indicators_normalized",
     }
@@ -116,6 +134,7 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
         "page",
         "section",
         "title",
+        "bbox",
         "footnotes",
     }
     assert "footnotes_content" not in footnotes_entry
@@ -126,6 +145,8 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
         assert payload["bank_code"] == "bnc"
         assert payload["year"] == 2025
         assert payload["quarter"] == "t1"
-        assert payload["schema_version"] == 3
+        assert payload["schema_version"] == 4
         assert payload["model_version"] == "gpt-5.4"
         assert payload["prompt_version"] == "extract_v1"
+        assert payload["extraction_manifest"]["pdf_fingerprint"] == "abc123"
+        assert payload["metrics"]["vision_calls_total"] == 2

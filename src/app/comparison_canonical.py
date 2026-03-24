@@ -12,11 +12,14 @@ from __future__ import annotations
 
 from copy import deepcopy
 from datetime import datetime
+import logging
 from typing import Any
 
 from app.quarter_utils import get_payload_quarter_context
 
 UI_COMPARISON_PAYLOAD_SCHEMA_VERSION = "comparison_canonical_v1"
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -275,6 +278,37 @@ def _build_footnotes_diff(technical_diff: dict[str, Any]) -> tuple[dict[str, Any
     )
 
 
+def _warn_missing_visual_context(
+    *,
+    previous_table_id: str,
+    current_table_id: str,
+    previous_table: dict[str, Any],
+    current_table: dict[str, Any],
+) -> None:
+    missing_page = []
+    missing_bbox = []
+
+    if previous_table.get("page") is None:
+        missing_page.append("t1")
+    if current_table.get("page") is None:
+        missing_page.append("t2")
+    if previous_table.get("bbox") is None:
+        missing_bbox.append("t1")
+    if current_table.get("bbox") is None:
+        missing_bbox.append("t2")
+
+    if not missing_page and not missing_bbox:
+        return
+
+    logger.warning(
+        "[comparison_canonical] missing_visual_context previous_table_id=%s current_table_id=%s missing_page=%s missing_bbox=%s",
+        previous_table_id,
+        current_table_id,
+        ",".join(missing_page) or "-",
+        ",".join(missing_bbox) or "-",
+    )
+
+
 def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
     ui_payload = new_empty_ui_comparison_payload()
     bank_code = str(payload.get("bank_code", "") or "").lower()
@@ -318,6 +352,12 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
         previous_table = item.get("previous_table") or {}
         current_table = item.get("current_table") or {}
         technical_diff = item.get("technical_diff", {}) or {}
+        _warn_missing_visual_context(
+            previous_table_id=previous_table_id,
+            current_table_id=current_table_id,
+            previous_table=previous_table,
+            current_table=current_table,
+        )
         footnotes_diff, footnotes_counts = _build_footnotes_diff(technical_diff)
         added = [
             str(entry.get("value", "") or "").strip()
@@ -541,6 +581,7 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "quarter_context": quarter_context,
             "run_id": str(payload.get("run_id", "") or ""),
             "reference_resolution": dict(payload.get("reference_resolution") or {}),
+            "run_metrics": dict(payload.get("run_metrics") or {}),
             "pdf_paths": {
                 "pdf_t1": pdf_previous,
                 "pdf_t2": pdf_current,

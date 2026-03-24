@@ -29,17 +29,23 @@ def _cached_render_or_crop(
     )
 
     if not bbox_key:
-        raw = get_pdf_preview(pdf_path, page, scale=scale)
-        return raw if raw else b""
+        if display_mode == "full":
+            raw = get_pdf_preview(pdf_path, page, scale=scale)
+            return raw if raw else b""
+        return b""
 
     try:
         bbox = json.loads(bbox_key)
         if not (isinstance(bbox, list) and len(bbox) == 4):
+            if display_mode == "full":
+                raw = get_pdf_preview(pdf_path, page, scale=scale)
+                return raw if raw else b""
+            return b""
+    except (json.JSONDecodeError, TypeError):
+        if display_mode == "full":
             raw = get_pdf_preview(pdf_path, page, scale=scale)
             return raw if raw else b""
-    except (json.JSONDecodeError, TypeError):
-        raw = get_pdf_preview(pdf_path, page, scale=scale)
-        return raw if raw else b""
+        return b""
 
     try:
         if display_mode == "full":
@@ -51,10 +57,10 @@ def _cached_render_or_crop(
         else:  # "crop" (default)
             return crop_table_region_to_bytes(pdf_path, page, bbox, scale=scale)
     except Exception:
-        pass
-
-    raw = get_pdf_preview(pdf_path, page, scale=scale)
-    return raw if raw else b""
+        if display_mode == "full":
+            raw = get_pdf_preview(pdf_path, page, scale=scale)
+            return raw if raw else b""
+        return b""
 
 
 try:
@@ -1016,11 +1022,9 @@ def on_analyze(
     include_genai_classification = bool(
         genai_classification_opt and "classify" in genai_classification_opt and api_key
     )
-    # Stored extraction disabled by default; re-enable by uncommenting and removing the line below.
-    use_stored_extraction = True
-    # use_stored_extraction = not bool(
-    #     force_reextract_opt and "reextract" in (force_reextract_opt or [])
-    # )
+    use_stored_extraction = not bool(
+        force_reextract_opt and "reextract" in (force_reextract_opt or [])
+    )
 
     try:
         result = run_comparison_with_sections(
@@ -1342,14 +1346,19 @@ def update_review_proofs(
     if mode not in ("crop", "full", "footnote"):
         mode = "crop"
 
-    img_t1_b64 = _get_proof_image_b64_for_item(
+    proof_t1 = _get_proof_render_result_for_item(
         item, "t1", paths or {}, proof_display_mode=mode
     )
-    img_t2_b64 = _get_proof_image_b64_for_item(
+    proof_t2 = _get_proof_render_result_for_item(
         item, "t2", paths or {}, proof_display_mode=mode
     )
     return build_proofs_section(
-        item=item, img_t1_b64=img_t1_b64, img_t2_b64=img_t2_b64, proof_display_mode=mode
+        item=item,
+        img_t1_b64=str(proof_t1.get("image_b64") or "") or None,
+        img_t2_b64=str(proof_t2.get("image_b64") or "") or None,
+        proof_display_mode=mode,
+        proof_result_t1=proof_t1,
+        proof_result_t2=proof_t2,
     )
 
 
@@ -2953,6 +2962,89 @@ def _filter_noise(items: list[str]) -> list[str]:
     ]
 
 
+def _normalize_proof_bbox(bbox: Any) -> list[float] | None:
+    """Return [l, t, r, b] in 0..1 when usable for proof rendering."""
+    if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+        return None
+    try:
+        normalized = [
+            float(bbox[0]),
+            float(bbox[1]),
+            float(bbox[2]),
+            float(bbox[3]),
+        ]
+    except (TypeError, ValueError):
+        return None
+    l_, top, r, bottom = normalized
+    if not (
+        0.0 <= l_ <= 1.0
+        and 0.0 <= top <= 1.0
+        and 0.0 <= r <= 1.0
+        and 0.0 <= bottom <= 1.0
+    ):
+        return None
+    if r <= l_ or bottom <= top:
+        return None
+    return normalized
+
+
+def _proof_render_result(
+    image_b64: str | None, status: str, mode_effective: str
+) -> dict[str, str | None]:
+    return {
+        "image_b64": image_b64,
+        "status": status,
+        "mode_effective": mode_effective,
+    }
+
+
+def _get_proof_render_result_for_item(
+    item_dict: dict, side: str, paths: dict, *, proof_display_mode: str = "crop"
+) -> dict[str, str | None]:
+    """Return proof image + availability status for one side."""
+    display_mode = (proof_display_mode or "crop").strip().lower()
+    if display_mode not in {"crop", "full", "footnote"}:
+        display_mode = "crop"
+
+    page = item_dict.get("page_t1" if side == "t1" else "page_t2")
+    if page is None:
+        return _proof_render_result(None, "page_missing", display_mode)
+
+    ref = item_dict.get("source_ref_t1" if side == "t1" else "source_ref_t2", "")
+    normalized_paths = _normalize_pdf_paths_store(paths)
+    pdf_path = (
+        normalized_paths.get("pdf_t1", "")
+        if side == "t1"
+        else normalized_paths.get("pdf_t2", "")
+    )
+    if not pdf_path:
+        pdf_path = ref
+    if not pdf_path:
+        return _proof_render_result(None, "render_failed", display_mode)
+
+    bbox = _normalize_proof_bbox(
+        item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
+    )
+    if display_mode in {"crop", "footnote"} and bbox is None:
+        return _proof_render_result(None, "bbox_missing", display_mode)
+
+    if display_mode == "full" and bbox is None:
+        image_b64 = _get_proof_image_b64(item_dict, side, paths)
+        if image_b64:
+            return _proof_render_result(image_b64, "ok", "full_without_bbox")
+        return _proof_render_result(None, "render_failed", "full_without_bbox")
+
+    image_b64 = _get_proof_image_b64_for_item(
+        item_dict,
+        side,
+        paths,
+        proof_display_mode=display_mode,
+    )
+    if image_b64:
+        return _proof_render_result(image_b64, "ok", display_mode)
+    return _proof_render_result(None, "render_failed", display_mode)
+
+
 def _get_proof_image_b64_for_item(
     item_dict: dict, side: str, paths: dict, *, proof_display_mode: str = "crop"
 ) -> str | None:
@@ -2975,16 +3067,20 @@ def _get_proof_image_b64_for_item(
     pdf_path = path_t1 if side == "t1" else path_t2
     if not pdf_path:
         pdf_path = ref
+    bbox = _normalize_proof_bbox(
+        item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
+    )
 
     # For "footnote" or "full" modes, always render from PDF (ignore pre-existing images)
     if display_mode in ("footnote", "full"):
         if not pdf_path or page is None:
-            return _get_proof_image_b64(item_dict, side, paths)
+            return None
+        if display_mode == "footnote" and bbox is None:
+            return None
 
         page_effective = max(1, int(page))
-        bbox = item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
         bbox_key = ""
-        if bbox and isinstance(bbox, list) and len(bbox) == 4:
+        if bbox:
             bbox_key = json.dumps(bbox)
         try:
             raw_bytes = _cached_render_or_crop(
@@ -2994,7 +3090,7 @@ def _get_proof_image_b64_for_item(
                 return base64.b64encode(raw_bytes).decode("ascii")
         except Exception as e:
             logger.warning("Render failed for mode %s: %s", display_mode, e)
-        return _get_proof_image_b64(item_dict, side, paths)
+        return None
 
     # For "crop" mode, use existing images if available
     base_img_b64: str | None = None
@@ -3025,12 +3121,13 @@ def _get_proof_image_b64_for_item(
 
     if base_img_b64 is None:
         if not pdf_path or page is None:
-            return _get_proof_image_b64(item_dict, side, paths)
+            return None
+        if bbox is None:
+            return None
 
         page_effective = max(1, int(page))
-        bbox = item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
         bbox_key = ""
-        if bbox and isinstance(bbox, list) and len(bbox) == 4:
+        if bbox:
             bbox_key = json.dumps(bbox)
         try:
             raw_bytes = _cached_render_or_crop(
@@ -3044,7 +3141,7 @@ def _get_proof_image_b64_for_item(
             base_img_b64 = None
 
     if not base_img_b64:
-        return _get_proof_image_b64(item_dict, side, paths)
+        return None
 
     all_t1 = _filter_noise(list(item_dict.get("all_indicators_t1") or []))
     all_t2 = _filter_noise(list(item_dict.get("all_indicators_t2") or []))
