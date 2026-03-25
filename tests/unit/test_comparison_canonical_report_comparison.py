@@ -21,6 +21,9 @@ def _raw_report_comparison() -> dict:
         "source_pdf_current": "/tmp/curr.pdf",
         "archived_pdf_previous": "/archive/run/previous_report.pdf",
         "archived_pdf_current": "/archive/run/current_report.pdf",
+        "model_version": "gpt-5.4",
+        "prompt_version_match": "table_match_v6",
+        "prompt_version_diff": "table_diff_v4",
         "reference_resolution": {
             "mode": "automatique",
             "year_previous": 2025,
@@ -43,8 +46,7 @@ def _raw_report_comparison() -> dict:
                     "page": 14,
                     "section": "liquidite",
                     "bbox": [0.1, 0.1, 0.9, 0.6],
-                    "indicators_raw": ["LCR"],
-                    "indicators_normalized": ["lcr"],
+                    "indicators": ["LCR"],
                     "footnotes": [],
                     "reason": "Nouveau tableau",
                     "analyst_assessment": {
@@ -69,8 +71,7 @@ def _raw_report_comparison() -> dict:
                     "page": 8,
                     "section": "capital",
                     "bbox": [0.1, 0.2, 0.8, 0.7],
-                    "indicators_raw": ["Ratio CET1"],
-                    "indicators_normalized": ["ratio cet1"],
+                    "indicators": ["Ratio CET1"],
                     "footnotes": [{"id": "1", "text": "Note A"}],
                 },
                 "current_table": {
@@ -79,8 +80,7 @@ def _raw_report_comparison() -> dict:
                     "page": 10,
                     "section": "capital",
                     "bbox": [0.2, 0.2, 0.85, 0.72],
-                    "indicators_raw": ["Ratio CET1", "Ratio de levier"],
-                    "indicators_normalized": ["ratio cet1", "ratio de levier"],
+                    "indicators": ["Ratio CET1", "Ratio de levier"],
                     "footnotes": [{"id": "1", "text": "Note A maj"}],
                 },
                 "technical_diff": {
@@ -148,6 +148,9 @@ def test_to_canonical_payload_supports_report_comparison_without_extraction_look
     assert canonical["meta"]["source_format"] == "report_comparison"
     assert canonical["meta"]["reference_resolution"]["quarter_previous"] == "t3"
     assert canonical["meta"]["run_id"] == "20260323_143015"
+    assert canonical["meta"]["model_version"] == "gpt-5.4"
+    assert canonical["meta"]["prompt_version_match"] == "table_match_v6"
+    assert canonical["meta"]["prompt_version_diff"] == "table_diff_v4"
     assert canonical["meta"]["pdf_paths"]["pdf_previous"] == "/archive/run/previous_report.pdf"
     assert canonical["meta"]["pdf_paths"]["pdf_current"] == "/archive/run/current_report.pdf"
     assert canonical["meta"]["run_metrics"]["vision_calls_total"] == 18
@@ -169,6 +172,7 @@ def test_to_canonical_payload_supports_report_comparison_without_extraction_look
     assert added_table["table_id"] == "curr_2"
     assert added_table["title"] == "Liquidite"
     assert added_table["first_column_indicators_raw"] == ["LCR"]
+    assert added_table["first_column_indicators"] == ["LCR"]
     assert added_table["bbox_t2"] == [0.1, 0.1, 0.9, 0.6]
     assert added_table["source_pdf_t2"] == "/archive/run/current_report.pdf"
 
@@ -225,3 +229,91 @@ def test_report_comparison_bbox_survives_review_queue_normalization() -> None:
     )
     assert matched_table.bbox_t1 == [0.1, 0.2, 0.8, 0.7]
     assert matched_table.bbox_t2 == [0.2, 0.2, 0.85, 0.72]
+
+
+def test_to_canonical_payload_separates_artifacts_and_extraction_suspects() -> None:
+    raw = _raw_report_comparison()
+    raw["matching"]["artifacts_confirmed_previous"] = [
+        {
+            "table_id": "prev_artifact",
+            "title": "Rapport de gestion",
+            "page": 40,
+            "section": "risk_management",
+            "bbox": [0.1, 0.1, 0.9, 0.8],
+            "indicators": [],
+            "reason": "Artefact confirme.",
+        }
+    ]
+    raw["matching"]["artifacts_confirmed_current"] = []
+    raw["matching"]["extraction_suspects_previous"] = []
+    raw["matching"]["extraction_suspects_current"] = [
+        {
+            "table_id": "curr_suspect",
+            "title": "Rapport de gestion",
+            "page": 41,
+            "section": "risk_management",
+            "bbox": [0.1, 0.1, 0.9, 0.8],
+            "indicators": [],
+            "reason": "Extraction suspecte.",
+        }
+    ]
+    raw["summary"]["artifacts_confirmed_previous_total"] = 1
+    raw["summary"]["artifacts_confirmed_current_total"] = 0
+    raw["summary"]["extraction_suspects_previous_total"] = 0
+    raw["summary"]["extraction_suspects_current_total"] = 1
+
+    canonical = cc.to_canonical_payload(raw)
+
+    assert canonical["summary"]["artifacts_confirmed_previous"] == 1
+    assert canonical["summary"]["extraction_suspects_current"] == 1
+    assert canonical["summary"]["tables_added"] == 1
+    assert canonical["summary"]["tables_added_pending_review"] == 1
+    assert canonical["summary"]["review_candidates"] == 1
+    assert canonical["artifacts_confirmed_previous"][0]["table_id"] == "prev_artifact"
+    assert canonical["extraction_suspects_current"][0]["table_id"] == "curr_suspect"
+    assert canonical["tables_added_pending_review"][0]["table_id"] == "curr_suspect"
+
+
+def test_review_queue_includes_extraction_suspects_as_pending_review() -> None:
+    raw = _raw_report_comparison()
+    raw["matching"]["tables_added"] = []
+    raw["matching"]["artifacts_confirmed_previous"] = []
+    raw["matching"]["artifacts_confirmed_current"] = []
+    raw["matching"]["extraction_suspects_previous"] = []
+    raw["matching"]["extraction_suspects_current"] = [
+        {
+            "table_id": "curr_suspect",
+            "title": "Rapport de gestion",
+            "page": 41,
+            "section": "risk_management",
+            "bbox": [0.1, 0.1, 0.9, 0.8],
+            "indicators": [],
+            "extraction_status": "suspect_unresolved",
+            "reason": "Extraction suspecte.",
+        }
+    ]
+    raw["summary"]["tables_added_total"] = 0
+    raw["summary"]["artifacts_confirmed_previous_total"] = 0
+    raw["summary"]["artifacts_confirmed_current_total"] = 0
+    raw["summary"]["extraction_suspects_previous_total"] = 0
+    raw["summary"]["extraction_suspects_current_total"] = 1
+
+    canonical = cc.to_canonical_payload(raw)
+    items = build_review_items_from_indicator_result(
+        canonical,
+        bank_code="bnc",
+        quarter_from=canonical["quarter_from"],
+        quarter_to=canonical["quarter_to"],
+        pdf_path_t1="/tmp/prev.pdf",
+        pdf_path_t2="/tmp/curr.pdf",
+    )
+    queue = build_normalized_review_queue(
+        canonical,
+        [item.to_dict() for item in items],
+        "/tmp/prev.pdf",
+        "/tmp/curr.pdf",
+    )
+
+    suspect = next(table for table in queue if table.table_id_t2 == "curr_suspect")
+    assert suspect.match_metadata["review_kind"] == "extraction_suspect"
+    assert suspect.changes[0].change_type == "table_added"

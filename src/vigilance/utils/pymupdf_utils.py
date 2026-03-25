@@ -28,4 +28,3 @@ def configure_mupdf_runtime(fitz: Any) -> None:
     except Exception as exc:
         logger.debug("Impossible de configurer MuPDF proprement: %s", exc)
     _MUPDF_CONFIGURED = True
-

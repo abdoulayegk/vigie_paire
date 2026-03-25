@@ -20,7 +20,9 @@ def _clean_line(value: str | None) -> str:
     return line.strip(" -:;,")
 
 
-def extract_table_number_and_inline_title(line: str | None) -> tuple[str | None, str | None]:
+def extract_table_number_and_inline_title(
+    line: str | None,
+) -> tuple[str | None, str | None]:
     """Extract table number and optional inline title from one line."""
     value = _clean_line(line)
     if not value:
@@ -58,7 +60,9 @@ def resolve_title_from_lines(
     _ = bank_code  # Reserved for future bank-specific rules.
 
     normalized_lines = [_clean_line(line) for line in lines if _clean_line(line)]
-    unit_context = next((line for line in normalized_lines if is_unit_context_line(line)), "")
+    unit_context = next(
+        (line for line in normalized_lines if is_unit_context_line(line)), ""
+    )
 
     for idx, line in enumerate(normalized_lines):
         number, inline = extract_table_number_and_inline_title(line)
@@ -89,7 +93,9 @@ def resolve_title_from_lines(
             "resolution_method": "layout_anchor" if followup_title else "number_only",
         }
 
-    fallback_title = next((line for line in normalized_lines if not is_unit_context_line(line)), "")
+    fallback_title = next(
+        (line for line in normalized_lines if not is_unit_context_line(line)), ""
+    )
     if not fallback_title and first_row_cells:
         fallback_title = _clean_line(first_row_cells[0] if first_row_cells else "")
 

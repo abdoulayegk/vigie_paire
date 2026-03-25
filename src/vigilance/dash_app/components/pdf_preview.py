@@ -5,7 +5,9 @@ from __future__ import annotations
 from dash import html
 
 
-def pdf_images_from_base64(images: list[str], captions: list[str] | None = None) -> html.Div:
+def pdf_images_from_base64(
+    images: list[str], captions: list[str] | None = None
+) -> html.Div:
     """
     Afficher des images PDF (base64) dans une grille.
 
@@ -25,7 +27,9 @@ def pdf_images_from_base64(images: list[str], captions: list[str] | None = None)
         children.append(
             html.Div(
                 [
-                    html.Img(src=src, style={"maxWidth": "100%", "border": "1px solid #ddd"}),
+                    html.Img(
+                        src=src, style={"maxWidth": "100%", "border": "1px solid #ddd"}
+                    ),
                     html.P(cap, className="small text-muted mt-1"),
                 ],
                 className="mb-3",

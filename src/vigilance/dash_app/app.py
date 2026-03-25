@@ -328,16 +328,8 @@ def _pdf_paths_from_comparison_meta(
 
 def _normalize_pdf_paths_store(paths: dict | None) -> dict[str, str]:
     source = paths if isinstance(paths, dict) else {}
-    previous = str(
-        source.get("pdf_previous")
-        or source.get("pdf_t1")
-        or ""
-    ).strip()
-    current = str(
-        source.get("pdf_current")
-        or source.get("pdf_t2")
-        or ""
-    ).strip()
+    previous = str(source.get("pdf_previous") or source.get("pdf_t1") or "").strip()
+    current = str(source.get("pdf_current") or source.get("pdf_t2") or "").strip()
     return {
         "pdf_t1": previous,
         "pdf_t2": current,
@@ -477,6 +469,17 @@ app.layout = html.Div(
 # =============================================================================
 # Callbacks
 # =============================================================================
+
+
+clientside_callback(
+    """
+    function(running) {
+        return running ? {"display": "block"} : {"display": "none"};
+    }
+    """,
+    Output("analysis-progress-container", "style"),
+    Input("store-analysis-running", "data"),
+)
 
 
 clientside_callback(
@@ -670,10 +673,10 @@ def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
         path_t1, path_t2 = save_pdfs_to_temp(b1, b2, temp_dir=Path(temp_dir))
         paths = _normalize_pdf_paths_store(
             {
-            "pdf_t1": path_t1,
-            "pdf_t2": path_t2,
-            "pdf_previous": path_t1,
-            "pdf_current": path_t2,
+                "pdf_t1": path_t1,
+                "pdf_t2": path_t2,
+                "pdf_previous": path_t1,
+                "pdf_current": path_t2,
             }
         )
     except ValueError as e:
@@ -960,11 +963,6 @@ def compile_adjusted_sections(starts, ends, ids_start, ids_end, detection):
     State("store-validation-start-ms", "data"),
     prevent_initial_call=True,
     running=[
-        (
-            Output("analysis-progress-container", "style"),
-            {"display": "block"},
-            {"display": "none"},
-        ),
         (Output("store-analysis-running", "data"), True, False),
     ],
 )
@@ -3996,7 +3994,9 @@ def on_load_comparison(n_clicks, filename):
         )
 
     if data.get("result_type") == "metier_tableaux":
-        pdf_paths = _normalize_pdf_paths_store(_pdf_paths_from_comparison_meta({}, data))
+        pdf_paths = _normalize_pdf_paths_store(
+            _pdf_paths_from_comparison_meta({}, data)
+        )
         warning = _missing_pdf_warning(pdf_paths)
         return (
             None,
@@ -4376,4 +4376,13 @@ def block_next_table_until_complete_v2(queue, selection):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    import os
+
+    debug = os.getenv("DASH_DEBUG", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    port = int(os.getenv("DASH_PORT", "8050"))
+    app.run(debug=debug, use_reloader=debug, port=port)

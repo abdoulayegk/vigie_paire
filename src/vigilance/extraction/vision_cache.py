@@ -86,11 +86,19 @@ def cache_put(cache_dir: str, key: str, payload: dict) -> None:
     """
     Store a payload in the cache. Overwrites if key exists.
     """
-    if not key or not isinstance(payload, dict) or ".." in key or "/" in key or "\\" in key:
+    if (
+        not key
+        or not isinstance(payload, dict)
+        or ".." in key
+        or "/" in key
+        or "\\" in key
+    ):
         return
     path = Path(cache_dir) / f"{key}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
-        path.write_text(json.dumps(payload, ensure_ascii=False, indent=None), encoding="utf-8")
+        path.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=None), encoding="utf-8"
+        )
     except Exception as e:
         logger.debug("Vision cache put failed: %s", e)

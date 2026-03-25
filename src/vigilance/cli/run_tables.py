@@ -325,6 +325,10 @@ def _to_artifacts(
                 hierarchical_indicator_signature=hierarchical_indicator_signature,
                 table_number=getattr(table, "table_number", None),
                 bbox=getattr(table, "bbox", None),
+                table_index_on_page=getattr(table, "table_index_on_page", None),
+                tables_on_page=getattr(table, "tables_on_page", None),
+                bbox_top=getattr(table, "bbox_top", None),
+                page_local_role=getattr(table, "page_local_role", None),
                 extraction_method=extraction_method,
                 quarter=quarter,
                 pdf_path=pdf_path,
@@ -417,7 +421,10 @@ def main(argv: list[str] | None = None) -> None:
         print(vigie_path)
 
     if args.save_extraction:
-        from app.extraction_storage import get_extraction_artifact_paths, save_extraction
+        from app.extraction_storage import (
+            get_extraction_artifact_paths,
+            save_extraction,
+        )
 
         extraction_root = Path(args.extraction_root)
         extraction_method = "docling"

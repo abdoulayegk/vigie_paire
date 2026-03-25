@@ -12,7 +12,9 @@ def build_page_load(options: list[dict]) -> html.Div:
         id="load-content",
         children=[
             html.H4("Charger une comparaison existante"),
-            html.P("Selectionnez un fichier JSON de comparaison.", className="text-muted"),
+            html.P(
+                "Selectionnez un fichier JSON de comparaison.", className="text-muted"
+            ),
             html.Hr(),
             dcc.Dropdown(
                 id="load-comparison-dropdown",

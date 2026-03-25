@@ -29,6 +29,9 @@ def _write_report_comparison(
                 "source_pdf_current": "/tmp/current_upload.pdf",
                 "archived_pdf_previous": archived_previous,
                 "archived_pdf_current": archived_current,
+                "model_version": "gpt-5.4",
+                "prompt_version_match": "table_match_v6",
+                "prompt_version_diff": "table_diff_v4",
                 "reference_resolution": {
                     "mode": "automatique",
                     "year_previous": 2025,
@@ -83,6 +86,9 @@ def test_on_load_comparison_restores_archived_pdf_paths(
     _, indicator_result, indicator_meta, pdf_paths, sections_validated, page, notification, show_results = result
     assert indicator_result["meta"]["pdf_paths"]["pdf_previous"] == str(previous_pdf)
     assert indicator_meta["pdf_paths"]["pdf_current"] == str(current_pdf)
+    assert indicator_meta["model_version"] == "gpt-5.4"
+    assert indicator_meta["prompt_version_match"] == "table_match_v6"
+    assert indicator_meta["prompt_version_diff"] == "table_diff_v4"
     assert pdf_paths["pdf_previous"] == str(previous_pdf)
     assert pdf_paths["pdf_current"] == str(current_pdf)
     assert sections_validated is True

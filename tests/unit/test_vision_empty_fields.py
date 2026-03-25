@@ -14,10 +14,9 @@ from vigilance.extraction.vision_full_extractor import (
 def test_parse_returns_empty_table_title_when_not_provided() -> None:
     """When Vision doesn't include a title, table_title must be empty string."""
     raw = {
-        "indicators": [{"text": "Ratio CET1", "bbox": None}],
+        "table_summary": "Capital réglementaire",
+        "indicators": ["Ratio CET1"],
         "footnotes_content": [],
-        "footnote_markers": [],
-        "confidence": 0.80,
     }
     result = _parse_vision_result(raw)
     assert result is not None
@@ -27,35 +26,32 @@ def test_parse_returns_empty_table_title_when_not_provided() -> None:
 def test_parse_returns_empty_headers_when_missing() -> None:
     """When Vision doesn't include headers, headers must be empty list."""
     raw = {
-        "indicators": [{"text": "Indicateur A", "bbox": None}],
+        "table_summary": "Indicateur A",
+        "indicators": ["Indicateur A"],
         "footnotes_content": [],
-        "footnote_markers": [],
-        "confidence": 0.80,
     }
     result = _parse_vision_result(raw)
     assert result is not None
     assert result.headers == [], f"Expected empty headers, got {result.headers!r}"
 
 
-def test_parse_returns_empty_rows_when_missing() -> None:
-    """When Vision doesn't include rows, rows must be empty list."""
+def test_parse_returns_summary_when_provided() -> None:
+    """The minimal schema keeps GPT-provided table_summary."""
     raw = {
-        "indicators": [{"text": "Indicateur A", "bbox": None}],
+        "table_summary": "Risque de crédit",
+        "indicators": ["Indicateur A"],
         "footnotes_content": [],
-        "footnote_markers": [],
-        "confidence": 0.80,
     }
     result = _parse_vision_result(raw)
     assert result is not None
-    assert result.rows == [], f"Expected empty rows, got {result.rows!r}"
+    assert result.table_summary == "Risque de crédit"
 
 
 def test_vision_failed_result_has_no_docling_content() -> None:
     """A failed Vision result (None) must not be backfilled — caller must keep content empty."""
     raw: dict[str, object] = {
-        # Missing required 'indicators' and 'confidence' fields — should fail validation
+        # Missing required 'indicators' and 'table_summary' fields — should fail validation
         "footnotes_content": [],
-        "footnote_markers": [],
     }
     result = _parse_vision_result(raw)
     # When Vision parse fails, result is None (no content, no backfill)
@@ -65,10 +61,9 @@ def test_vision_failed_result_has_no_docling_content() -> None:
 def test_vision_status_ok_when_parse_succeeds() -> None:
     """vision_status must be 'ok' on successful parse."""
     raw = {
-        "indicators": [{"text": "Total", "bbox": None}],
+        "table_summary": "Capital",
+        "indicators": ["Total"],
         "footnotes_content": [],
-        "footnote_markers": [],
-        "confidence": 0.95,
     }
     result = _parse_vision_result(raw)
     assert result is not None

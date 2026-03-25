@@ -47,29 +47,39 @@ def write_extraction_debug(
             first_clean = list(getattr(t, "first_column_indicators", []) or [])
 
             vision_arb = dm.get("vision_arbitration")
-            records.append({
-                "page_number": int(getattr(t, "page_number", 0) or 0),
-                "section": getattr(t, "section", None),
-                "table_id": getattr(t, "table_id", ""),
-                "title_raw": getattr(t, "title_raw", None),
-                "title_clean": getattr(t, "title_clean", None),
-                "row_count_before_merge": dm.get("row_count_before_merge"),
-                "row_count_after_merge": dm.get("row_count_after_merge"),
-                "merge_count": dm.get("merge_count", 0),
-                "footnote_row_filtered_count": dm.get("footnote_row_filtered_count", 0),
-                "indicator_count": dm.get("indicator_count", len(first_clean)),
-                "duplicate_ratio": dm.get("duplicate_ratio", 0.0),
-                "header_like_ratio": dm.get("header_like_ratio", 0.0),
-                "table_quality_score": dm.get("table_quality_score"),
-                "quality_suspect_for_vision": dm.get("quality_suspect_for_vision", False),
-                "vision_fallback_attempted": dm.get("vision_fallback_attempted", False),
-                "vision_fallback_applied": dm.get("vision_fallback_applied", False),
-                "vision_arbitration": vision_arb,
-                "extraction_method": getattr(t, "extraction_method", None),
-                "indicator_entries_sample": dm.get("indicator_entries_sample", [])[:5],
-                "first_column_raw": first_raw,
-                "first_column_clean": first_clean,
-            })
+            records.append(
+                {
+                    "page_number": int(getattr(t, "page_number", 0) or 0),
+                    "section": getattr(t, "section", None),
+                    "table_id": getattr(t, "table_id", ""),
+                    "title_raw": getattr(t, "title_raw", None),
+                    "title_clean": getattr(t, "title_clean", None),
+                    "row_count_before_merge": dm.get("row_count_before_merge"),
+                    "row_count_after_merge": dm.get("row_count_after_merge"),
+                    "merge_count": dm.get("merge_count", 0),
+                    "footnote_row_filtered_count": dm.get(
+                        "footnote_row_filtered_count", 0
+                    ),
+                    "indicator_count": dm.get("indicator_count", len(first_clean)),
+                    "duplicate_ratio": dm.get("duplicate_ratio", 0.0),
+                    "header_like_ratio": dm.get("header_like_ratio", 0.0),
+                    "table_quality_score": dm.get("table_quality_score"),
+                    "quality_suspect_for_vision": dm.get(
+                        "quality_suspect_for_vision", False
+                    ),
+                    "vision_fallback_attempted": dm.get(
+                        "vision_fallback_attempted", False
+                    ),
+                    "vision_fallback_applied": dm.get("vision_fallback_applied", False),
+                    "vision_arbitration": vision_arb,
+                    "extraction_method": getattr(t, "extraction_method", None),
+                    "indicator_entries_sample": dm.get("indicator_entries_sample", [])[
+                        :5
+                    ],
+                    "first_column_raw": first_raw,
+                    "first_column_clean": first_clean,
+                }
+            )
 
         payload: dict[str, Any] = {
             "bank": bank,
@@ -79,7 +89,9 @@ def write_extraction_debug(
             "table_count": len(records),
             "tables": records,
         }
-        out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+        out_path.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
         logger.debug("Extraction debug written to %s", out_path)
         return out_path
     except Exception:

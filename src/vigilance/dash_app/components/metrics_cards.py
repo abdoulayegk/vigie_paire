@@ -8,7 +8,10 @@ from dash import html
 
 def metric_card(title: str, value: str | int, delta: str | None = None) -> dbc.Card:
     """Carte metrique simple."""
-    body = [html.H5(str(value), className="card-title"), html.P(title, className="card-text small")]
+    body = [
+        html.H5(str(value), className="card-title"),
+        html.P(title, className="card-text small"),
+    ]
     if delta:
         body.append(html.Span(delta, className="badge bg-secondary"))
 

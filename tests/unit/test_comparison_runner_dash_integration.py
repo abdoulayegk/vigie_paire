@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 
 from app import comparison_runner as cr
-from app.extraction_storage import build_extraction_manifest
 
 
 def _write_tables_json(path: Path, *, bank: str, year: int, quarter: str, table_id: str, title: str) -> None:
@@ -14,41 +13,22 @@ def _write_tables_json(path: Path, *, bank: str, year: int, quarter: str, table_
     path.write_text(
         json.dumps(
             {
-                "schema_version": 4,
+                "schema_version": 7,
                 "bank_code": bank,
                 "year": year,
                 "quarter": quarter,
                 "created_at": "2026-03-23T10:00:00",
-                "model_version": "gpt-4o",
-                "prompt_version": "extract_v1",
-                "extraction_manifest": {
-                    "pdf_fingerprint": "abc123",
-                    "section_ranges_fingerprint": "def456",
-                    "artifact_contract_version": 1,
-                    "extraction_metrics_version": 1,
-                    "quality_policy_version": 1,
-                },
-                "metrics": {
-                    "mode": "fresh",
-                    "runtime_sec": 1.25,
-                    "vision_calls_total": 1,
-                    "vision_rescue_total": 0,
-                    "prompt_tokens_total": 100,
-                    "completion_tokens_total": 20,
-                    "total_tokens_total": 120,
-                    "estimated_cost_usd": 0.00045,
-                    "tables_total": 1,
-                    "cache_hit": False,
-                },
                 "tables": [
                     {
                         "table_id": table_id,
                         "page": 5,
                         "section": "capital",
                         "title": title,
+                        "table_summary": title,
                         "bbox": [0.1, 0.2, 0.8, 0.7],
-                        "indicators_raw": ["Ratio CET1"],
-                        "indicators_normalized": ["ratio cet1"],
+                        "row_count": 1,
+                        "headers": ["Indicateur"],
+                        "indicators": ["Ratio CET1"],
                         "footnotes": [{"id": "1", "text": "Note A"}],
                     }
                 ],
@@ -156,8 +136,7 @@ def test_run_comparison_with_sections_returns_dash_canonical(
                                 "page": 5,
                                 "section": "capital",
                                 "bbox": [0.1, 0.2, 0.8, 0.7],
-                                "indicators_raw": ["Ratio CET1"],
-                                "indicators_normalized": ["ratio cet1"],
+                                "indicators": ["Ratio CET1"],
                                 "footnotes": [{"id": "1", "text": "Note A"}],
                             },
                             "current_table": {
@@ -166,8 +145,7 @@ def test_run_comparison_with_sections_returns_dash_canonical(
                                 "page": 5,
                                 "section": "capital",
                                 "bbox": [0.1, 0.2, 0.8, 0.7],
-                                "indicators_raw": ["Ratio CET1"],
-                                "indicators_normalized": ["ratio cet1"],
+                                "indicators": ["Ratio CET1"],
                                 "footnotes": [{"id": "1", "text": "Note A"}],
                             },
                             "technical_diff": {
@@ -255,9 +233,11 @@ def test_run_comparison_with_sections_returns_dash_canonical(
     assert result["table_comparisons"][0]["bbox_t1"] == [0.1, 0.2, 0.8, 0.7]
     assert result["table_comparisons"][0]["bbox_t2"] == [0.1, 0.2, 0.8, 0.7]
     assert result["table_comparisons"][0]["source_pdf_t1"] == "/archive/prev.pdf"
+    assert result["table_comparisons"][0]["all_indicators_t1"] == ["Ratio CET1"]
+    assert result["table_comparisons"][0]["all_indicators_t2"] == ["Ratio CET1"]
 
 
-def test_extract_tables_reuses_only_matching_manifest(
+def test_extract_tables_reuses_schema_v7_storage(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
@@ -274,21 +254,11 @@ def test_extract_tables_reuses_only_matching_manifest(
         table_id="stored_1",
         title="Capital stocke",
     )
-    tables_payload = json.loads((out_dir / "tables.json").read_text(encoding="utf-8"))
-    tables_payload["extraction_manifest"] = build_extraction_manifest(
-        pdf_path=str(pdf_path),
-        section_ranges=[{"section": "capital", "start": 1, "end": 2}],
-        extraction_mode="vision_full_gpt4o",
-    )
-    (out_dir / "tables.json").write_text(
-        json.dumps(tables_payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
     (out_dir / "indicators.json").write_text("{}", encoding="utf-8")
     (out_dir / "footnotes.json").write_text("{}", encoding="utf-8")
 
     def should_not_extract(**kwargs):
-        raise AssertionError("fresh extraction should not run when manifest matches")
+        raise AssertionError("fresh extraction should not run when schema_version=7 is already stored")
 
     monkeypatch.setattr(
         "vigilance.extraction.docling_processor.extract_tables_docling_by_sections",

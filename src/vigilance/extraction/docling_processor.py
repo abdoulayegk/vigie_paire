@@ -81,6 +81,7 @@ from ..utils.rbc_table_signals import (
     is_rbc_bank,
     is_unreliable_rbc_title,
 )
+from ..utils.table_page_structure import derive_page_local_structure
 from .docling_normalization import (
     _extract_table_context_split,
     # _is_footnote_row and _merge_fragmented_cells removed: Docling content no longer extracted.
@@ -107,6 +108,7 @@ def _coerce_pdf_path(pdf_path: str | Path | os.PathLike[str] | None) -> Path:
     if not str(path).strip():
         raise ValueError("Chemin PDF vide pour l'extraction.")
     return path
+
 
 _ENV_TRUE = {"1", "true", "yes", "on"}
 _ENV_FALSE = {"0", "false", "no", "off"}
@@ -248,6 +250,8 @@ class ExtractedTable:
         Numéro logique extrait du titre (ex. ``"28"``, ``"5a"``).
     title_clean:
         Titre sans le numéro de tableau ni les unités.
+    table_summary:
+        Résumé court du sujet métier du tableau généré par GPT.
     title_raw:
         Titre brut avant tout nettoyage ou matching.
     bbox:
@@ -257,6 +261,9 @@ class ExtractedTable:
         Méthode d'extraction utilisée : ``"docling"`` ou ``"vision_fallback_gpt4o"``.
     debug_metrics:
         Métriques de débogage (nombre de lignes, fusions, statut Vision, etc.).
+    extraction_status:
+        Etat canonique de l'extraction du tableau: ``ok``, ``rescued``,
+        ``suspect_unresolved`` ou ``confirmed_no_table``.
     fragmentation_detected:
         ``True`` si des artefacts de fragmentation ont été détectés lors de
         l'extraction (lignes coupées, cellules fusionnées incorrectement).
@@ -273,12 +280,17 @@ class ExtractedTable:
     section_phase: int | None = None
     table_number: str | None = None
     title_clean: str | None = None
+    table_summary: str | None = None
     title_raw: str | None = None
     unit_context: str | None = None
     title_resolution_method: str | None = None
     context_before: str = ""
     context_after: str = ""
     bbox: list[float] | None = None
+    table_index_on_page: int | None = None
+    tables_on_page: int | None = None
+    bbox_top: float | None = None
+    page_local_role: str | None = None
     first_column_indicators_raw: list[str] | None = None
     first_column_indicators_spatial: list[dict[str, Any]] | None = None
     first_column_groups: list[str] | None = None
@@ -286,6 +298,7 @@ class ExtractedTable:
     title_reliability: str | None = None
     debug_metrics: dict[str, Any] = field(default_factory=dict)
     extraction_method: str | None = None
+    extraction_status: str = "ok"
     fragmentation_detected: bool = False
 
     def to_dict(self) -> dict:
@@ -413,7 +426,10 @@ def _compute_vision_quality_summary(tables: list[Any]) -> dict[str, Any]:
             partial += 1
         elif status == "failed":
             failed += 1
-        if dm.get("appears_truncated"):
+        retry_reasons = {
+            str(value).strip() for value in list(dm.get("retry_reasons") or []) if str(value).strip()
+        }
+        if "output_budget_truncated" in retry_reasons:
             truncated += 1
         conf = dm.get("vision_extraction_confidence", 1.0)
         if (
@@ -892,6 +908,10 @@ class DoclingProcessor:
                     context_before=t.get("context_before", ""),
                     context_after=t.get("context_after", ""),
                     bbox=t.get("bbox"),
+                    table_index_on_page=t.get("table_index_on_page"),
+                    tables_on_page=t.get("tables_on_page"),
+                    bbox_top=t.get("bbox_top"),
+                    page_local_role=t.get("page_local_role"),
                     first_column_groups=t.get("first_column_groups"),
                     hierarchical_indicator_signature=t.get(
                         "hierarchical_indicator_signature"
@@ -899,6 +919,7 @@ class DoclingProcessor:
                     title_reliability=t.get("title_reliability"),
                     debug_metrics=t.get("debug_metrics", {}),
                     extraction_method=t.get("extraction_method"),
+                    extraction_status=t.get("extraction_status", "ok"),
                 )
             )
 
@@ -931,6 +952,10 @@ class DoclingProcessor:
                         context_before=t.get("context_before", ""),
                         context_after=t.get("context_after", ""),
                         bbox=t.get("bbox"),
+                        table_index_on_page=t.get("table_index_on_page"),
+                        tables_on_page=t.get("tables_on_page"),
+                        bbox_top=t.get("bbox_top"),
+                        page_local_role=t.get("page_local_role"),
                         first_column_groups=t.get("first_column_groups"),
                         hierarchical_indicator_signature=t.get(
                             "hierarchical_indicator_signature"
@@ -938,6 +963,7 @@ class DoclingProcessor:
                         title_reliability=t.get("title_reliability"),
                         debug_metrics=t.get("debug_metrics", {}),
                         extraction_method=t.get("extraction_method"),
+                        extraction_status=t.get("extraction_status", "ok"),
                     )
                 )
 
@@ -1068,6 +1094,7 @@ class DoclingProcessor:
         title = ""
         table_number: str | None = None
         title_clean: str | None = None
+        table_summary: str | None = None
         title_raw: str | None = None
         out_headers: list[str] = []
         out_rows: list[list[str]] = []
@@ -1075,13 +1102,13 @@ class DoclingProcessor:
         indicators: list[str] = []
         indicators_spatial_raw: list[Any] = []
         footnotes: list[dict] = []
-        vision_confidence = 0.0
         vision_extraction_attempted = False
         vision_schema_contract_failed = False
         vision_extraction_disabled_reason: str | None = None
         crop_reject_reason: str | None = None
         bbox_sanity_profile: dict[str, Any] | None = None
         vision_result: Any = None
+        extraction_status = "ok"
 
         if vision_extractor and table_bbox and len(table_bbox) == 4:
             vision_extraction_attempted = True
@@ -1132,6 +1159,25 @@ class DoclingProcessor:
                                 dpi=vision_crop_dpi,
                             )
 
+                        def _variant_crop(
+                            *,
+                            bbox_override: list[float] | None = None,
+                            bottom_extension: float | None = None,
+                        ) -> bytes:
+                            return crop_table_region_to_bytes(
+                                str(pdf_path),
+                                page_num,
+                                bbox_override or table_bbox,
+                                bottom_extension=(
+                                    initial_bottom_ext
+                                    if bottom_extension is None
+                                    else float(bottom_extension)
+                                ),
+                                top_extension=top_extension_title,
+                                horizontal_padding=horizontal_padding,
+                                dpi=vision_crop_dpi,
+                            )
+
                         crop_bytes = _recrop(initial_bottom_ext)
                         if not crop_bytes:
                             vision_extraction_attempted = True
@@ -1149,6 +1195,7 @@ class DoclingProcessor:
                                 vision_cfg=vision_extraction_cfg,
                                 initial_bottom_extension=initial_bottom_ext,
                                 get_recrop_fn=_recrop,
+                                get_variant_crop_fn=_variant_crop,
                                 reference_text=reference_text,
                             )
                             if vision_result is not None:
@@ -1157,21 +1204,19 @@ class DoclingProcessor:
                                     title or None
                                 )
                                 title_raw = title or None
+                                table_summary = (
+                                    str(vision_result.table_summary or "").strip() or None
+                                )
                                 out_headers = (
                                     [] if labels_only else (vision_result.headers or [])
                                 )
-                                out_rows = (
-                                    [] if labels_only else (vision_result.rows or [])
-                                )
-                                indicators_spatial_raw = list(
-                                    vision_result.indicators or []
-                                )
+                                out_rows = []
                                 indicators_raw_text = [
-                                    item.get("text", "")
-                                    if isinstance(item, dict)
-                                    else str(item)
-                                    for item in indicators_spatial_raw
+                                    str(item).strip()
+                                    for item in list(vision_result.indicators or [])
+                                    if str(item).strip()
                                 ]
+                                indicators_spatial_raw = []
                                 indicators = [
                                     normalize_indicator_for_comparison(text)
                                     for text in indicators_raw_text
@@ -1181,8 +1226,18 @@ class DoclingProcessor:
                                     if labels_only
                                     else vision_result.to_footnotes_list()
                                 )
-                                vision_confidence = vision_result.confidence
                                 vision_status_str = vision_result.vision_status or "ok"
+                                extraction_status = (
+                                    str(
+                                        getattr(
+                                            vision_result,
+                                            "extraction_status",
+                                            "ok",
+                                        )
+                                        or "ok"
+                                    ).strip()
+                                    or "ok"
+                                )
                                 warnings_list = list(vision_result.warnings or [])
                             else:
                                 vision_status_str = "failed"
@@ -1217,7 +1272,6 @@ class DoclingProcessor:
             "vision_status": vision_status_str,
             "vision_extraction_attempted": vision_extraction_attempted,
             "vision_extraction_applied": vision_status_str in ("ok", "partial"),
-            "vision_extraction_confidence": vision_confidence,
             "vision_schema_contract_failed": vision_schema_contract_failed,
             "has_reference_text": bool(
                 reference_text and len(reference_text.strip()) > 20
@@ -1256,8 +1310,12 @@ class DoclingProcessor:
             debug_metrics["bbox_sanity_profile"] = bbox_sanity_profile
         # Recrop and completeness (from vision result when available)
         if vision_result is not None:
-            if hasattr(vision_result, "appears_truncated"):
-                debug_metrics["appears_truncated"] = vision_result.appears_truncated
+            if hasattr(vision_result, "retry_reasons"):
+                debug_metrics["retry_reasons"] = list(vision_result.retry_reasons or [])
+            if hasattr(vision_result, "no_table_detected"):
+                debug_metrics["no_table_detected"] = bool(
+                    vision_result.no_table_detected
+                )
             if hasattr(vision_result, "recrop_attempted"):
                 debug_metrics["recrop_attempted"] = vision_result.recrop_attempted
             if hasattr(vision_result, "recrop_used"):
@@ -1265,6 +1323,32 @@ class DoclingProcessor:
             if hasattr(vision_result, "recrop_failed_incomplete"):
                 debug_metrics["recrop_failed_incomplete"] = (
                     vision_result.recrop_failed_incomplete
+                )
+            if getattr(vision_result, "acceptance_reason", None):
+                debug_metrics["acceptance_reason"] = vision_result.acceptance_reason
+            if hasattr(vision_result, "rejection_reasons"):
+                debug_metrics["rejection_reasons"] = list(
+                    vision_result.rejection_reasons or []
+                )
+            if getattr(vision_result, "selected_candidate_name", None):
+                debug_metrics["selected_candidate_name"] = (
+                    vision_result.selected_candidate_name
+                )
+            if hasattr(vision_result, "no_table_evidence_count"):
+                debug_metrics["no_table_evidence_count"] = int(
+                    vision_result.no_table_evidence_count or 0
+                )
+            if hasattr(vision_result, "summary_present"):
+                debug_metrics["summary_present"] = bool(
+                    vision_result.summary_present
+                )
+            if hasattr(vision_result, "indicator_count"):
+                debug_metrics["indicator_count"] = int(
+                    vision_result.indicator_count or 0
+                )
+            if hasattr(vision_result, "candidate_quality_rank"):
+                debug_metrics["candidate_quality_rank"] = list(
+                    vision_result.candidate_quality_rank or []
                 )
             if (
                 getattr(vision_result, "requested_max_completion_tokens", None)
@@ -1276,6 +1360,7 @@ class DoclingProcessor:
             debug_metrics["vision_max_completion_tokens_rescue_used"] = bool(
                 getattr(vision_result, "rescue_used", False)
             )
+            debug_metrics["extraction_status"] = extraction_status
             if getattr(vision_result, "finish_reason", None):
                 debug_metrics["vision_finish_reason"] = vision_result.finish_reason
             if getattr(vision_result, "prompt_tokens", None) is not None:
@@ -1302,6 +1387,7 @@ class DoclingProcessor:
             bbox=table_bbox,
             table_number=table_number,
             title_clean=title_clean,
+            table_summary=table_summary,
             title_raw=title_raw,
             title_reliability=classify_rbc_title_reliability(
                 title_clean or title or title_raw,
@@ -1313,6 +1399,7 @@ class DoclingProcessor:
                 else "vision_failed"
             ),
             debug_metrics=debug_metrics,
+            extraction_status=extraction_status,
         )
         return (idx, extracted_table, page_num)
 
@@ -2562,6 +2649,7 @@ def extract_tables_docling_by_sections(
         page_ranges=page_ranges or None,
         use_vision_extraction=use_vision_extraction,
     )
+    _assign_canonical_table_ids(tables)
 
     if not normalized_ranges:
         pass
@@ -2592,6 +2680,68 @@ def extract_tables_docling_by_sections(
         page_ranges,
     )
     return tables
+
+
+def _page_role_from_index(index_on_page: int, tables_on_page: int) -> str:
+    if tables_on_page <= 1:
+        return "single"
+    if index_on_page <= 1:
+        return "first"
+    if index_on_page >= tables_on_page:
+        return "last"
+    return "middle"
+
+
+def _assign_canonical_table_ids(tables: list[ExtractedTable]) -> None:
+    """Assign deterministic ids based on page and local table order."""
+    if not tables:
+        return
+
+    page_counts: dict[int, int] = {}
+    for table in tables:
+        page = int(getattr(table, "page_number", 0) or 0)
+        page_counts[page] = page_counts.get(page, 0) + 1
+
+    structure = derive_page_local_structure(tables)
+    fallback_index_by_page: dict[int, int] = {}
+    used_ids: set[str] = set()
+
+    for table in tables:
+        page = int(getattr(table, "page_number", 0) or 0)
+        prior_id = str(getattr(table, "table_id", "") or "")
+        info = structure.get((prior_id, page))
+
+        if info is not None:
+            index_on_page = int(info.get("table_index_on_page", 0) or 0)
+            tables_on_page = int(
+                info.get("tables_on_page", page_counts.get(page, 1)) or 1
+            )
+            bbox_top = info.get("bbox_top")
+            page_local_role = str(
+                info.get(
+                    "page_local_role",
+                    _page_role_from_index(index_on_page, tables_on_page),
+                )
+            )
+        else:
+            fallback_index_by_page[page] = fallback_index_by_page.get(page, 0) + 1
+            index_on_page = fallback_index_by_page[page]
+            tables_on_page = int(page_counts.get(page, 1) or 1)
+            bbox_top = None
+            page_local_role = _page_role_from_index(index_on_page, tables_on_page)
+
+        table_id = f"tbl_p{page:03d}_i{index_on_page:02d}"
+        if table_id in used_ids:
+            raise ValueError(
+                f"Duplicate canonical table_id generated: {table_id!r} on page {page}"
+            )
+
+        table.table_index_on_page = index_on_page
+        table.tables_on_page = tables_on_page
+        table.bbox_top = float(bbox_top) if bbox_top is not None else None
+        table.page_local_role = page_local_role
+        table.table_id = table_id
+        used_ids.add(table_id)
 
 
 def extract_tables_docling_priority(

@@ -208,7 +208,9 @@ Réponds en JSON :
                             {"type": "text", "text": prompt},
                             {
                                 "type": "image_url",
-                                "image_url": {"url": f"data:image/png;base64,{image_base64}"},
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{image_base64}"
+                                },
                             },
                         ],
                     }
@@ -230,7 +232,9 @@ Réponds en JSON :
             logger.error(f"Erreur API Vision: {e}")
             return None
 
-    def detect_toc_page(self, pdf_path: str | Path, page_num: int) -> TOCDetectionResult:
+    def detect_toc_page(
+        self, pdf_path: str | Path, page_num: int
+    ) -> TOCDetectionResult:
         """
         Détecter si une page contient une Table des Matières.
 
@@ -271,7 +275,9 @@ Réponds en JSON :
             raw_response=json.dumps(result),
         )
 
-    def extract_toc_entries(self, pdf_path: str | Path, page_num: int) -> TOCDetectionResult:
+    def extract_toc_entries(
+        self, pdf_path: str | Path, page_num: int
+    ) -> TOCDetectionResult:
         """
         Extraire les entrées d'une Table des Matières.
 
@@ -382,7 +388,9 @@ Réponds en JSON :
 
             if detection.is_toc and detection.confidence >= 0.8:
                 toc_page = page_num
-                logger.info(f"GenAI: TDM trouvée page {page_num} (conf={detection.confidence:.2f})")
+                logger.info(
+                    f"GenAI: TDM trouvée page {page_num} (conf={detection.confidence:.2f})"
+                )
                 break
 
         if toc_page is None:

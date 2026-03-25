@@ -54,7 +54,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--bank", required=True, help="Bank code (e.g. bnc)")
     parser.add_argument("--pdf", required=True, help="Input PDF path")
-    parser.add_argument("--year", required=True, type=int, help="Report year (e.g. 2025)")
+    parser.add_argument(
+        "--year", required=True, type=int, help="Report year (e.g. 2025)"
+    )
     parser.add_argument("--quarter", required=True, help="Quarter label (e.g. t1)")
     parser.add_argument("--config", default=DEFAULT_CONFIG, help="YAML config path")
     parser.add_argument(
@@ -71,7 +73,9 @@ def main(argv: list[str] | None = None) -> None:
     get_bank_cfg(cfg, args.bank)
 
     try:
-        from vigilance.extraction.docling_processor import extract_tables_docling_by_sections
+        from vigilance.extraction.docling_processor import (
+            extract_tables_docling_by_sections,
+        )
         from vigilance.extraction.section_locator import locate_sections_in_pdf
     except Exception as exc:
         raise NotImplementedError(
@@ -97,10 +101,14 @@ def main(argv: list[str] | None = None) -> None:
         section_ranges=section_ranges,
     )
 
-    out_dir = Path(args.out_root) / str(args.bank).lower() / str(args.year) / quarter_norm
+    out_dir = (
+        Path(args.out_root) / str(args.bank).lower() / str(args.year) / quarter_norm
+    )
     model_version = ""
     try:
-        model_version = resolve_openai_model("extraction_primary", config_path=args.config)
+        model_version = resolve_openai_model(
+            "extraction_primary", config_path=args.config
+        )
     except Exception:
         model_version = ""
 
@@ -117,7 +125,9 @@ def main(argv: list[str] | None = None) -> None:
     )
     missing = [name for name, path in paths.items() if not path.exists()]
     if missing:
-        raise RuntimeError(f"Missing output artifacts after extraction: {', '.join(missing)}")
+        raise RuntimeError(
+            f"Missing output artifacts after extraction: {', '.join(missing)}"
+        )
     print(out_dir)
 
 

@@ -184,7 +184,11 @@ def estimate_row_positions(
 
 
 def draw_circle(
-    draw: ImageDraw.ImageDraw, x: int, y: int, radius: int = CIRCLE_RADIUS, color: str = "red"
+    draw: ImageDraw.ImageDraw,
+    x: int,
+    y: int,
+    radius: int = CIRCLE_RADIUS,
+    color: str = "red",
 ) -> None:
     """
     Dessiner un cercle sur l'image.
@@ -199,12 +203,18 @@ def draw_circle(
     rgb = COLORS.get(color, COLORS["red"])
 
     draw.ellipse(
-        [x - radius, y - radius, x + radius, y + radius], outline=rgb, width=LINE_WIDTH_CIRCLE
+        [x - radius, y - radius, x + radius, y + radius],
+        outline=rgb,
+        width=LINE_WIDTH_CIRCLE,
     )
 
 
 def draw_rectangle_border(
-    draw: ImageDraw.ImageDraw, width: int, height: int, color: str = "red", padding: int = 5
+    draw: ImageDraw.ImageDraw,
+    width: int,
+    height: int,
+    color: str = "red",
+    padding: int = 5,
 ) -> None:
     """
     Dessiner un rectangle autour de l'image entiere.
@@ -305,7 +315,9 @@ def annotate_table_image(
         draw_rectangle_border(draw, width, height, color)
     else:
         # Calculer positions des lignes (utilise row_bboxes si disponible)
-        positions = estimate_row_positions(all_indicators, height, row_bboxes=row_bboxes)
+        positions = estimate_row_positions(
+            all_indicators, height, row_bboxes=row_bboxes
+        )
 
         # Trouver les indicateurs a marquer
         for idx, (indicator, y_pos) in enumerate(positions):
@@ -323,7 +335,9 @@ def annotate_table_image(
             # Mode debug: afficher l'index de chaque ligne
             if debug_mode:
                 debug_color = (
-                    COLORS.get(color, COLORS["red"]) if is_highlighted else (128, 128, 128)
+                    COLORS.get(color, COLORS["red"])
+                    if is_highlighted
+                    else (128, 128, 128)
                 )
                 try:
                     # Dessiner l'index de ligne
@@ -381,7 +395,9 @@ def annotate_table_with_changes(
     if is_for_t1:
         # Pour T1: marquer en rouge ce qui a disparu
         if is_removed_table:
-            return annotate_table_image(image_base64, [], [], color="red", is_entire_table=True)
+            return annotate_table_image(
+                image_base64, [], [], color="red", is_entire_table=True
+            )
         else:
             return annotate_table_image(
                 image_base64,
@@ -395,7 +411,9 @@ def annotate_table_with_changes(
     else:
         # Pour T2: marquer en vert ce qui est nouveau
         if is_new_table:
-            return annotate_table_image(image_base64, [], [], color="green", is_entire_table=True)
+            return annotate_table_image(
+                image_base64, [], [], color="green", is_entire_table=True
+            )
         else:
             return annotate_table_image(
                 image_base64,

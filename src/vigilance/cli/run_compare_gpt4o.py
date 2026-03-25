@@ -22,8 +22,12 @@ def build_parser() -> argparse.ArgumentParser:
         description="Compare two extracted reports with GPT-4o using canonical tables.json artifacts."
     )
     parser.add_argument("--bank", required=True, help="Bank code (e.g. bnc)")
-    parser.add_argument("--year-current", required=True, type=int, help="Current report year")
-    parser.add_argument("--quarter-current", required=True, help="Current report quarter (e.g. t2)")
+    parser.add_argument(
+        "--year-current", required=True, type=int, help="Current report year"
+    )
+    parser.add_argument(
+        "--quarter-current", required=True, help="Current report quarter (e.g. t2)"
+    )
     parser.add_argument("--config", default=DEFAULT_CONFIG, help="YAML config path")
     parser.add_argument(
         "--extraction-root",
@@ -41,6 +45,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional OpenAI model override (defaults to config role default_genai)",
     )
     return parser
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()

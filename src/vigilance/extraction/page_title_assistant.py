@@ -423,7 +423,8 @@ class PageTitleAssistant:
                 last_error = e
                 msg = str(e).lower()
                 retryable = (
-                    "rate" in msg and "limit" in msg
+                    "rate" in msg
+                    and "limit" in msg
                     or "timeout" in msg
                     or "timed out" in msg
                     or "connection" in msg

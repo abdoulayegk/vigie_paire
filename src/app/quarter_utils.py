@@ -7,9 +7,7 @@ import re
 from typing import Any
 
 
-_QUARTER_RE = re.compile(
-    r"(?i)\b([qt])\s*([1-4])(?:\s*[-_/ ]\s*((?:19|20)\d{2}))?\b"
-)
+_QUARTER_RE = re.compile(r"(?i)\b([qt])\s*([1-4])(?:\s*[-_/ ]\s*((?:19|20)\d{2}))?\b")
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,7 +24,9 @@ class QuarterRef:
         return f"Q{self.quarter}-{self.year}"
 
 
-def parse_quarter_ref(value: str | None, *, year: int | str | None = None) -> QuarterRef:
+def parse_quarter_ref(
+    value: str | None, *, year: int | str | None = None
+) -> QuarterRef:
     """Parse a quarter reference from formats like ``Q2-2025``, ``T2_2025`` or ``Q2``."""
     text = str(value or "").strip()
     if not text:
@@ -38,7 +38,9 @@ def parse_quarter_ref(value: str | None, *, year: int | str | None = None) -> Qu
 
     quarter_num = int(match.group(2))
     parsed_year = match.group(3)
-    effective_year = int(parsed_year) if parsed_year else int(year) if year is not None else None
+    effective_year = (
+        int(parsed_year) if parsed_year else int(year) if year is not None else None
+    )
     if effective_year is None:
         raise ValueError(f"Quarter year is required for {text!r}")
     return QuarterRef(quarter=quarter_num, year=int(effective_year))
@@ -97,13 +99,19 @@ def get_payload_quarter_context(payload: dict[str, Any] | None) -> dict[str, Any
     meta = data.get("meta") if isinstance(data, dict) else {}
     if isinstance(meta, dict):
         ctx = meta.get("quarter_context")
-        if isinstance(ctx, dict) and isinstance(ctx.get("current"), dict) and isinstance(
-            ctx.get("previous"), dict
+        if (
+            isinstance(ctx, dict)
+            and isinstance(ctx.get("current"), dict)
+            and isinstance(ctx.get("previous"), dict)
         ):
             return ctx
 
-    current_label = str(data.get("current_quarter", "") or data.get("quarter_to", "")).strip()
-    previous_label = str(data.get("previous_quarter", "") or data.get("quarter_from", "")).strip()
+    current_label = str(
+        data.get("current_quarter", "") or data.get("quarter_to", "")
+    ).strip()
+    previous_label = str(
+        data.get("previous_quarter", "") or data.get("quarter_from", "")
+    ).strip()
     fallback_year = data.get("year")
     if current_label:
         try:
@@ -115,7 +123,12 @@ def get_payload_quarter_context(payload: dict[str, Any] | None) -> dict[str, Any
         except Exception:
             pass
     return {
-        "current": {"label": "Trimestre courant", "code": "", "quarter": None, "year": fallback_year},
+        "current": {
+            "label": "Trimestre courant",
+            "code": "",
+            "quarter": None,
+            "year": fallback_year,
+        },
         "previous": {
             "label": "Trimestre precedent",
             "code": "",

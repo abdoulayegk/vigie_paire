@@ -23,10 +23,39 @@ _INDICATOR_TRAILING_PAREN_LETTER = re.compile(
 )
 
 _STOPWORDS = frozenset(
-    {"de", "du", "des", "la", "le", "les", "et", "ou", "and", "the", "of", "to", "en", "au", "aux", "a", "an"}
+    {
+        "de",
+        "du",
+        "des",
+        "la",
+        "le",
+        "les",
+        "et",
+        "ou",
+        "and",
+        "the",
+        "of",
+        "to",
+        "en",
+        "au",
+        "aux",
+        "a",
+        "an",
+    }
 )
 _UNIT_TOKENS = frozenset(
-    {"%", "million", "millions", "milliard", "milliards", "dollars", "cad", "usd", "tableau", "table"}
+    {
+        "%",
+        "million",
+        "millions",
+        "milliard",
+        "milliards",
+        "dollars",
+        "cad",
+        "usd",
+        "tableau",
+        "table",
+    }
 )
 
 

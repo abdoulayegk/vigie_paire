@@ -1,4 +1,4 @@
-"""Writer for Vision extraction audit: indicators.json and footnotes.json."""
+"""Writers for the canonical extraction contract and its derived review artifacts."""
 
 from __future__ import annotations
 
@@ -21,13 +21,7 @@ from ..utils.footnotes_utils import (
 
 logger = logging.getLogger(__name__)
 
-COMPACT_REPORT_SCHEMA_VERSION = 4
-
-
-def _table_section(table: Any) -> str:
-    """Return a human-readable section value for a table-like object."""
-    return str(getattr(table, "section", "") or "").strip() or "unknown_section"
-
+COMPACT_REPORT_SCHEMA_VERSION = 7
 
 def _compact_table_section(table: Any) -> str:
     """Return canonical compact section value with a defensive fallback."""
@@ -39,13 +33,6 @@ def _compact_table_section(table: Any) -> str:
     except Exception:
         normalized = raw
     return str(normalized or "unknown_section").strip() or "unknown_section"
-
-
-def _table_title(table: Any) -> str:
-    """Return a readable title fallback for a table-like object."""
-    title = getattr(table, "title_clean", None) or getattr(table, "title", None) or ""
-    return str(title or "").strip() or "(sans titre)"
-
 
 def _table_page(table: Any) -> int:
     """Return the PDF page number for a table-like object."""
@@ -77,17 +64,12 @@ def _compact_top_level(
     created_at: str,
     meta: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    metadata = dict(meta or {})
     return {
         "bank_code": str(bank_code),
         "year": int(year),
         "quarter": str(quarter),
         "created_at": str(created_at),
-        "schema_version": int(metadata.get("schema_version") or COMPACT_REPORT_SCHEMA_VERSION),
-        "model_version": str(metadata.get("model_version") or ""),
-        "prompt_version": str(metadata.get("prompt_version") or ""),
-        "extraction_manifest": dict(metadata.get("extraction_manifest") or {}),
-        "metrics": dict(metadata.get("metrics") or {}),
+        "schema_version": COMPACT_REPORT_SCHEMA_VERSION,
     }
 
 
@@ -103,6 +85,27 @@ def _stable_sort_tables(tables: list[Any]) -> list[Any]:
     return [table for _, table in indexed]
 
 
+def _validate_unique_table_ids(tables: list[Any]) -> None:
+    seen: dict[str, tuple[int, int]] = {}
+    for index, table in enumerate(tables):
+        table_id = str(getattr(table, "table_id", "") or "").strip()
+        page = _table_page(table)
+        if not table_id:
+            raise ValueError(
+                f"Empty table_id at tables[{index}] on page {page}; table_id must be non-empty and unique within tables.json"
+            )
+        previous = seen.get(table_id)
+        if previous is not None:
+            previous_index, previous_page = previous
+            raise ValueError(
+                "Duplicate table_id in tables.json: "
+                f"{table_id!r} at tables[{previous_index}] page {previous_page} "
+                f"and tables[{index}] page {page}. "
+                "Multiple tables may share a page, but table_id must remain unique."
+            )
+        seen[table_id] = (index, page)
+
+
 def _compact_footnotes(table: Any) -> list[dict[str, str]]:
     return [
         {
@@ -112,6 +115,14 @@ def _compact_footnotes(table: Any) -> list[dict[str, str]]:
         for item in get_canonical_footnotes(table)
         if str(item.get("id") or "").strip() and str(item.get("text") or "").strip()
     ]
+
+
+def _compact_indicator_rows(table: Any) -> list[str]:
+    """Return the minimal raw indicator rows for compact readability exports."""
+    indicators = get_vision_raw_indicators(table)
+    if not indicators:
+        indicators = get_comparison_indicators(table)
+    return [str(value).strip() for value in indicators if str(value).strip()]
 
 
 def _compact_table_bbox(table: Any) -> list[float] | None:
@@ -175,49 +186,52 @@ def _compact_table_common_entry(table: Any) -> dict[str, Any]:
 
 def _compact_table_entry(table: Any) -> dict[str, Any]:
     entry = _compact_table_common_entry(table)
+    entry["extraction_status"] = str(
+        getattr(table, "extraction_status", "") or "ok"
+    ).strip() or "ok"
     entry["headers"] = [
         str(value) for value in list(getattr(table, "headers", []) or [])
     ]
-    rows = []
-    for row in list(getattr(table, "rows", []) or []):
-        if isinstance(row, (list, tuple)):
-            rows.append([str(value) for value in row])
-        else:
-            rows.append([str(row)])
-    entry["rows"] = rows
-    entry["indicators_raw"] = [
-        str(value).strip()
-        for value in get_vision_raw_indicators(table)
-        if str(value).strip()
-    ]
-    entry["indicators_normalized"] = [
-        str(value).strip()
-        for value in get_comparison_indicators(table)
-        if str(value).strip()
-    ]
+    indicators = _compact_indicator_rows(table)
+    entry["table_summary"] = str(getattr(table, "table_summary", "") or "")
+    entry["row_count"] = len(indicators)
+    entry["indicators"] = indicators
     entry["footnotes"] = _compact_footnotes(table)
     return entry
 
 
-def _compact_indicator_entry(table: Any) -> dict[str, Any]:
-    entry = _compact_table_common_entry(table)
-    entry["indicators_raw"] = [
-        str(value).strip()
-        for value in get_vision_raw_indicators(table)
-        if str(value).strip()
-    ]
-    entry["indicators_normalized"] = [
-        str(value).strip()
-        for value in get_comparison_indicators(table)
-        if str(value).strip()
-    ]
-    return entry
+def _compact_indicator_entry(table_entry: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "table_id": str(table_entry.get("table_id", "") or ""),
+        "page": int(table_entry.get("page", 0) or 0),
+        "section": str(table_entry.get("section", "") or "unknown_section"),
+        "title": str(table_entry.get("title", "") or ""),
+        "indicators": [
+            str(value).strip()
+            for value in list(table_entry.get("indicators", []) or [])
+            if str(value).strip()
+        ],
+    }
 
 
-def _compact_footnote_entry(table: Any) -> dict[str, Any]:
-    entry = _compact_table_common_entry(table)
-    entry["footnotes"] = _compact_footnotes(table)
-    return entry
+def _compact_footnote_entry(table_entry: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "table_id": str(table_entry.get("table_id", "") or ""),
+        "page": int(table_entry.get("page", 0) or 0),
+        "section": str(table_entry.get("section", "") or "unknown_section"),
+        "footnotes": [
+            {
+                "id": str(item.get("id", "") or "").strip(),
+                "text": str(item.get("text", "") or "").strip(),
+            }
+            for item in list(table_entry.get("footnotes", []) or [])
+            if isinstance(item, dict)
+            and (
+                str(item.get("id", "") or "").strip()
+                or str(item.get("text", "") or "").strip()
+            )
+        ],
+    }
 
 
 def _atomic_write_json(out_path: Path, payload: dict[str, Any]) -> Path:
@@ -229,94 +243,6 @@ def _atomic_write_json(out_path: Path, payload: dict[str, Any]) -> Path:
     )
     tmp_path.replace(out_path)
     return out_path
-
-
-def _table_indicators_for_text(table: Any) -> list[str]:
-    """Return report-friendly indicators, preferring raw Vision labels."""
-    indicators = get_vision_raw_indicators(table) or get_comparison_indicators(table)
-    return [str(x).strip() for x in indicators if str(x).strip()]
-
-
-def _table_footnotes_for_text(table: Any) -> list[dict[str, str]]:
-    """Return canonical footnotes for human-readable report exports."""
-    return get_canonical_footnotes(table)
-
-
-def _report_statistics(tables: list[Any]) -> dict[str, Any]:
-    """Compute summary statistics for one extracted report."""
-    section_distribution: dict[str, int] = {}
-    tables_with_indicators = 0
-    indicators_total = 0
-    tables_with_footnotes = 0
-    footnote_entries_total = 0
-
-    for table in tables:
-        section = _table_section(table)
-        section_distribution[section] = section_distribution.get(section, 0) + 1
-
-        indicators = _table_indicators_for_text(table)
-        if indicators:
-            tables_with_indicators += 1
-            indicators_total += len(indicators)
-
-        footnotes = _table_footnotes_for_text(table)
-        if footnotes:
-            tables_with_footnotes += 1
-            footnote_entries_total += len(footnotes)
-
-    return {
-        "tables_total": len(tables),
-        "sections_detected": sorted(section_distribution.keys()),
-        "tables_with_indicators": tables_with_indicators,
-        "indicators_total": indicators_total,
-        "tables_with_footnotes": tables_with_footnotes,
-        "footnote_entries_total": footnote_entries_total,
-        "section_distribution": section_distribution,
-    }
-
-
-def _report_summary_payload(
-    tables: list[Any],
-    *,
-    bank_code: str,
-    year: int,
-    quarter: str,
-    meta: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Build the canonical report-centric summary payload."""
-    statistics = _report_statistics(tables)
-    payload: dict[str, Any] = {
-        **_report_payload_metadata(
-            bank_code=bank_code,
-            year=year,
-            quarter=quarter,
-            meta=meta,
-        ),
-        "summary": statistics,
-    }
-    warnings: list[dict[str, Any]] = []
-    repr_suspect_count = 0
-    for table in tables:
-        repr_suspect_count += count_stringified_dict_suspects(
-            getattr(table, "footnotes", None) or []
-        )
-    if repr_suspect_count > 0:
-        warnings.append(
-            {
-                "code": "repr_suspect_detected",
-                "message": "Stringified-dict footnotes detected in extracted tables.",
-                "count": int(repr_suspect_count),
-            }
-        )
-    if warnings:
-        payload["warnings"] = warnings
-    return payload
-
-
-def _lines_to_text(lines: list[str]) -> str:
-    """Join text lines with a trailing newline for file outputs."""
-    return "\n".join(lines).rstrip() + "\n"
-
 
 def _table_entry_indicators(
     table: Any,
@@ -476,235 +402,6 @@ def write_footnotes_json(
     return out_path
 
 
-def _report_payload_metadata(
-    *,
-    bank_code: str,
-    year: int,
-    quarter: str,
-    meta: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Build common metadata for report-centric extraction artifacts."""
-    metadata = dict(meta or {})
-    created_at = str(
-        metadata.get("created_at")
-        or metadata.get("extracted_at")
-        or datetime.now().isoformat(timespec="seconds")
-    )
-    return {
-        "bank_code": bank_code,
-        "year": int(year),
-        "quarter": str(quarter),
-        "created_at": created_at,
-        "artifact_role": "report_canonical",
-        "authoritative_source": "stored_table_artifacts",
-        "pdf_fingerprint": str(metadata.get("pdf_fingerprint") or ""),
-        "pipeline_version": str(metadata.get("pipeline_version") or ""),
-        "schema_version": metadata.get("schema_version"),
-        "model_version": str(metadata.get("model_version") or ""),
-        "prompt_version": str(metadata.get("prompt_version") or ""),
-    }
-
-
-def write_report_indicators_json(
-    tables: list[Any],
-    out_dir: Path,
-    bank_code: str,
-    year: int,
-    quarter: str,
-    *,
-    meta: dict[str, Any] | None = None,
-) -> Path:
-    """Write report-centric indicators.json for one extracted quarter."""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    entries = [_table_entry_indicators(table, str(quarter)) for table in tables]
-    indicators_total = sum(
-        len(section.get("indicators", []) or [])
-        for entry in entries
-        for section in list(entry.get("sections") or [])
-        if isinstance(section, dict)
-    )
-    payload: dict[str, Any] = {
-        **_report_payload_metadata(
-            bank_code=bank_code,
-            year=year,
-            quarter=quarter,
-            meta=meta,
-        ),
-        "meta": {
-            "tables_total": len(entries),
-            "indicators_total": indicators_total,
-        },
-        "tables": entries,
-    }
-    out_path = out_dir / "indicators.json"
-    out_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    logger.debug("Wrote report indicators.json to %s", out_path)
-    return out_path
-
-
-def write_report_indicators_txt(
-    tables: list[Any],
-    out_dir: Path,
-    bank_code: str,
-    year: int,
-    quarter: str,
-    *,
-    meta: dict[str, Any] | None = None,
-) -> Path:
-    """Write report-centric indicators.txt for one extracted quarter."""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    metadata = _report_payload_metadata(
-        bank_code=bank_code,
-        year=year,
-        quarter=quarter,
-        meta=meta,
-    )
-    lines = [
-        "Rapport des indicateurs extraits",
-        f"Banque: {metadata['bank_code']}",
-        f"Annee: {metadata['year']}",
-        f"Trimestre: {metadata['quarter']}",
-        f"Date de generation: {metadata['created_at']}",
-        "",
-    ]
-
-    included = 0
-    for table in tables:
-        indicators = _table_indicators_for_text(table)
-        if not indicators:
-            continue
-        included += 1
-        lines.extend(
-            [
-                f"Section: {_table_section(table)}",
-                f"Tableau: {_table_title(table)}",
-                f"Page: {_table_page(table)}",
-                "Indicateurs:",
-            ]
-        )
-        for idx, indicator in enumerate(indicators, start=1):
-            lines.append(f"{idx}. {indicator}")
-        lines.append("")
-
-    if included == 0:
-        lines.append("Aucun indicateur extrait pour ce rapport.")
-
-    out_path = out_dir / "indicators.txt"
-    out_path.write_text(_lines_to_text(lines), encoding="utf-8")
-    logger.debug("Wrote report indicators.txt to %s", out_path)
-    return out_path
-
-
-def write_report_footnotes_json(
-    tables: list[Any],
-    out_dir: Path,
-    bank_code: str,
-    year: int,
-    quarter: str,
-    *,
-    meta: dict[str, Any] | None = None,
-) -> Path:
-    """Write report-centric footnotes.json for one extracted quarter."""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    entries = [_table_entry_footnotes(table, str(quarter)) for table in tables]
-    tables_total = len(entries)
-    tables_with_footnotes = sum(1 for e in entries if bool(e.get("has_footnotes")))
-    footnote_entries_total = sum(
-        len(e.get("footnotes_content", {}) or {}) for e in entries
-    )
-    repr_suspect_count = sum(int(e.get("_repr_suspect_count", 0) or 0) for e in entries)
-    for entry in entries:
-        entry.pop("_repr_suspect_count", None)
-    payload: dict[str, Any] = {
-        **_report_payload_metadata(
-            bank_code=bank_code,
-            year=year,
-            quarter=quarter,
-            meta=meta,
-        ),
-        "meta": {
-            "tables_total": tables_total,
-            "tables_with_footnotes": tables_with_footnotes,
-            "footnote_entries_total": footnote_entries_total,
-            "repr_suspect_count": repr_suspect_count,
-        },
-        "tables": entries,
-    }
-    if repr_suspect_count > 0:
-        payload["warnings"] = [
-            {
-                "code": "repr_suspect_detected",
-                "message": "Stringified-dict footnotes detected in source payload.",
-                "count": repr_suspect_count,
-            }
-        ]
-    out_path = out_dir / "footnotes.json"
-    out_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    logger.debug("Wrote report footnotes.json to %s", out_path)
-    return out_path
-
-
-def write_report_footnotes_txt(
-    tables: list[Any],
-    out_dir: Path,
-    bank_code: str,
-    year: int,
-    quarter: str,
-    *,
-    meta: dict[str, Any] | None = None,
-) -> Path:
-    """Write report-centric footnotes.txt for one extracted quarter."""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    metadata = _report_payload_metadata(
-        bank_code=bank_code,
-        year=year,
-        quarter=quarter,
-        meta=meta,
-    )
-    lines = [
-        "Rapport des footnotes extraites",
-        f"Banque: {metadata['bank_code']}",
-        f"Annee: {metadata['year']}",
-        f"Trimestre: {metadata['quarter']}",
-        f"Date de generation: {metadata['created_at']}",
-        "",
-    ]
-
-    included = 0
-    for table in tables:
-        footnotes = _table_footnotes_for_text(table)
-        if not footnotes:
-            continue
-        included += 1
-        lines.extend(
-            [
-                f"Section: {_table_section(table)}",
-                f"Tableau: {_table_title(table)}",
-                f"Page: {_table_page(table)}",
-                "Footnotes:",
-            ]
-        )
-        for footnote in footnotes:
-            fid = str(footnote.get("id", "") or "").strip() or "-"
-            text = str(footnote.get("text", "") or "").strip()
-            lines.append(f"- [{fid}] {text}")
-        lines.append("")
-
-    if included == 0:
-        lines.append("Aucune footnote extraite pour ce rapport.")
-
-    out_path = out_dir / "footnotes.txt"
-    out_path.write_text(_lines_to_text(lines), encoding="utf-8")
-    logger.debug("Wrote report footnotes.txt to %s", out_path)
-    return out_path
-
-
 def write_compact_tables_json(
     tables: list[Any],
     out_dir: Path,
@@ -717,6 +414,7 @@ def write_compact_tables_json(
     """Write the compact canonical tables.json used by the minimal extraction flow."""
     created_at = _compact_created_at(meta)
     ordered_tables = _stable_sort_tables(tables)
+    _validate_unique_table_ids(ordered_tables)
     payload: dict[str, Any] = {
         **_compact_top_level(
             bank_code=bank_code,
@@ -733,27 +431,36 @@ def write_compact_tables_json(
     return out_path
 
 
+def _load_tables_payload(tables_json_path: Path) -> dict[str, Any]:
+    payload = json.loads(tables_json_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"Invalid tables.json payload at {tables_json_path}")
+    return payload
+
+
+def _projection_top_level_from_tables(payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "bank_code": str(payload.get("bank_code", "") or ""),
+        "year": int(payload.get("year", 0) or 0),
+        "quarter": str(payload.get("quarter", "") or ""),
+        "created_at": str(payload.get("created_at", "") or ""),
+        "schema_version": int(payload.get("schema_version", COMPACT_REPORT_SCHEMA_VERSION) or COMPACT_REPORT_SCHEMA_VERSION),
+    }
+
+
 def write_compact_indicators_json(
-    tables: list[Any],
+    tables_json_path: Path,
     out_dir: Path,
-    bank_code: str,
-    year: int,
-    quarter: str,
-    *,
-    meta: dict[str, Any] | None = None,
 ) -> Path:
-    """Write the compact indicators.json used by the minimal extraction flow."""
-    created_at = _compact_created_at(meta)
-    ordered_tables = _stable_sort_tables(tables)
+    """Write indicators.json as a direct projection of tables.json."""
+    tables_payload = _load_tables_payload(tables_json_path)
     payload: dict[str, Any] = {
-        **_compact_top_level(
-            bank_code=bank_code,
-            year=year,
-            quarter=quarter,
-            created_at=created_at,
-            meta=meta,
-        ),
-        "tables": [_compact_indicator_entry(table) for table in ordered_tables],
+        **_projection_top_level_from_tables(tables_payload),
+        "tables": [
+            _compact_indicator_entry(table)
+            for table in list(tables_payload.get("tables", []) or [])
+            if isinstance(table, dict)
+        ],
     }
     out_path = out_dir / "indicators.json"
     _atomic_write_json(out_path, payload)
@@ -762,26 +469,18 @@ def write_compact_indicators_json(
 
 
 def write_compact_footnotes_json(
-    tables: list[Any],
+    tables_json_path: Path,
     out_dir: Path,
-    bank_code: str,
-    year: int,
-    quarter: str,
-    *,
-    meta: dict[str, Any] | None = None,
 ) -> Path:
-    """Write the compact footnotes.json used by the minimal extraction flow."""
-    created_at = _compact_created_at(meta)
-    ordered_tables = _stable_sort_tables(tables)
+    """Write footnotes.json as a direct projection of tables.json."""
+    tables_payload = _load_tables_payload(tables_json_path)
     payload: dict[str, Any] = {
-        **_compact_top_level(
-            bank_code=bank_code,
-            year=year,
-            quarter=quarter,
-            created_at=created_at,
-            meta=meta,
-        ),
-        "tables": [_compact_footnote_entry(table) for table in ordered_tables],
+        **_projection_top_level_from_tables(tables_payload),
+        "tables": [
+            _compact_footnote_entry(table)
+            for table in list(tables_payload.get("tables", []) or [])
+            if isinstance(table, dict)
+        ],
     }
     out_path = out_dir / "footnotes.json"
     _atomic_write_json(out_path, payload)
@@ -798,108 +497,14 @@ def write_compact_report_artifacts(
     *,
     meta: dict[str, Any] | None = None,
 ) -> dict[str, Path]:
-    """Write tables.json, indicators.json, and footnotes.json from the same in-memory tables."""
+    """Write tables.json first, then derive indicators.json and footnotes.json from it."""
     metadata = dict(meta or {})
     metadata["created_at"] = _compact_created_at(metadata)
+    tables_path = write_compact_tables_json(
+        tables, out_dir, bank_code, year, quarter, meta=metadata
+    )
     return {
-        "tables": write_compact_tables_json(
-            tables, out_dir, bank_code, year, quarter, meta=metadata
-        ),
-        "indicators": write_compact_indicators_json(
-            tables, out_dir, bank_code, year, quarter, meta=metadata
-        ),
-        "footnotes": write_compact_footnotes_json(
-            tables, out_dir, bank_code, year, quarter, meta=metadata
-        ),
+        "tables": tables_path,
+        "indicators": write_compact_indicators_json(tables_path, out_dir),
+        "footnotes": write_compact_footnotes_json(tables_path, out_dir),
     }
-
-
-def write_report_summary_json(
-    tables: list[Any],
-    out_dir: Path,
-    bank_code: str,
-    year: int,
-    quarter: str,
-    *,
-    meta: dict[str, Any] | None = None,
-) -> Path:
-    """Write report_summary.json for one extracted quarter."""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    payload = _report_summary_payload(
-        tables,
-        bank_code=bank_code,
-        year=year,
-        quarter=quarter,
-        meta=meta,
-    )
-    out_path = out_dir / "report_summary.json"
-    out_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    logger.debug("Wrote report_summary.json to %s", out_path)
-    return out_path
-
-
-def write_report_summary_txt(
-    tables: list[Any],
-    out_dir: Path,
-    bank_code: str,
-    year: int,
-    quarter: str,
-    *,
-    meta: dict[str, Any] | None = None,
-) -> Path:
-    """Write report_summary.txt for one extracted quarter."""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    payload = _report_summary_payload(
-        tables,
-        bank_code=bank_code,
-        year=year,
-        quarter=quarter,
-        meta=meta,
-    )
-    summary = payload.get("summary", {}) or {}
-    lines = [
-        "Resume final du rapport extrait",
-        f"Banque: {payload['bank_code']}",
-        f"Annee: {payload['year']}",
-        f"Trimestre: {payload['quarter']}",
-        f"Date de generation: {payload['created_at']}",
-        "",
-        (
-            f"Le rapport contient {summary.get('tables_total', 0)} tableau(x), "
-            f"{summary.get('indicators_total', 0)} indicateur(s) et "
-            f"{summary.get('footnote_entries_total', 0)} footnote(s) extraits."
-        ),
-        "",
-        "Synthese chiffree:",
-        f"- Tables total: {summary.get('tables_total', 0)}",
-        f"- Sections detectees: {len(summary.get('sections_detected', []) or [])}",
-        f"- Tables avec indicateurs: {summary.get('tables_with_indicators', 0)}",
-        f"- Indicateurs total: {summary.get('indicators_total', 0)}",
-        f"- Tables avec footnotes: {summary.get('tables_with_footnotes', 0)}",
-        f"- Footnotes total: {summary.get('footnote_entries_total', 0)}",
-        "",
-        "Repartition par section:",
-    ]
-    section_distribution = summary.get("section_distribution", {}) or {}
-    if section_distribution:
-        for section, count in sorted(section_distribution.items()):
-            lines.append(f"- {section}: {count} tableau(x)")
-    else:
-        lines.append("- Aucune section detectee")
-
-    warnings = payload.get("warnings") or []
-    if warnings:
-        lines.extend(["", "Warnings extraction:"])
-        for warning in warnings:
-            message = str(warning.get("message", "") or "").strip()
-            count = warning.get("count")
-            suffix = f" ({count})" if count is not None else ""
-            lines.append(f"- {message}{suffix}")
-
-    out_path = out_dir / "report_summary.txt"
-    out_path.write_text(_lines_to_text(lines), encoding="utf-8")
-    logger.debug("Wrote report_summary.txt to %s", out_path)
-    return out_path

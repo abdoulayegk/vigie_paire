@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 # Changed-tables metrics
 # ---------------------------------------------------------------------------
 
+
 def _is_comparison_changed(c: dict[str, Any]) -> bool:
     """Return True when a matched-pair comparison entry has any detected change.
 
@@ -150,6 +151,10 @@ def new_empty_ui_comparison_payload() -> dict[str, Any]:
             "tables_removed_confirmed": 0,
             "tables_added_pending_review": 0,
             "tables_removed_pending_review": 0,
+            "artifacts_confirmed_previous": 0,
+            "artifacts_confirmed_current": 0,
+            "extraction_suspects_previous": 0,
+            "extraction_suspects_current": 0,
             "ambiguous_tables": 0,
             "review_candidates": 0,
             "ambiguous_pairs": 0,
@@ -174,11 +179,17 @@ def new_empty_ui_comparison_payload() -> dict[str, Any]:
                 "supprime": 0,
                 "ajoute_pending_review": 0,
                 "supprime_pending_review": 0,
+                "artefact": 0,
+                "suspect_extraction": 0,
             },
         },
         "table_comparisons": [],
         "tables_added": [],
         "tables_removed": [],
+        "artifacts_confirmed_previous": [],
+        "artifacts_confirmed_current": [],
+        "extraction_suspects_previous": [],
+        "extraction_suspects_current": [],
         "tables_added_confirmed": [],
         "tables_removed_confirmed": [],
         "tables_added_pending_review": [],
@@ -191,6 +202,7 @@ def new_empty_ui_comparison_payload() -> dict[str, Any]:
             "executive_summary": {"content": "Aucune comparaison disponible."},
         },
     }
+
 
 def _quarter_label(quarter: str, year: int) -> str:
     text = str(quarter or "").strip().lower()
@@ -213,9 +225,7 @@ def _build_report_comparison_summary_text(
     parts = [
         f"Comparaison {current_label} vs {previous_label} : {matched_pairs} tableau(x) apparié(s)."
     ]
-    parts.append(
-        f" {tables_added} tableau(x) ajouté(s), {tables_removed} supprimé(s)."
-    )
+    parts.append(f" {tables_added} tableau(x) ajouté(s), {tables_removed} supprimé(s).")
     parts.append(
         f" {indicator_changes} changement(s) d'indicateur et {footnote_changes} changement(s) de footnote détecté(s)."
     )
@@ -226,7 +236,9 @@ def _build_report_comparison_summary_text(
     return "".join(parts)
 
 
-def _build_footnotes_diff(technical_diff: dict[str, Any]) -> tuple[dict[str, Any], dict[str, int]]:
+def _build_footnotes_diff(
+    technical_diff: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, int]]:
     added_items = [
         {
             "footnote_ref": str(item.get("id", "") or ""),
@@ -319,14 +331,10 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
     current_label = _quarter_label(quarter_current, year_current)
     previous_label = _quarter_label(quarter_previous, year_previous)
     pdf_previous = str(
-        payload.get("archived_pdf_previous")
-        or payload.get("source_pdf_previous")
-        or ""
+        payload.get("archived_pdf_previous") or payload.get("source_pdf_previous") or ""
     ).strip()
     pdf_current = str(
-        payload.get("archived_pdf_current")
-        or payload.get("source_pdf_current")
-        or ""
+        payload.get("archived_pdf_current") or payload.get("source_pdf_current") or ""
     ).strip()
 
     matched_lookup = {
@@ -400,16 +408,22 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 "table_status": str(
                     technical_diff.get("table_level_change", "inchange") or "inchange"
                 ),
-                "match_score": float(item.get("match_confidence") or match_info.get("match_confidence") or 0.0),
-                "match_reason": str(item.get("match_reason") or match_info.get("reason") or ""),
+                "match_score": float(
+                    item.get("match_confidence")
+                    or match_info.get("match_confidence")
+                    or 0.0
+                ),
+                "match_reason": str(
+                    item.get("match_reason") or match_info.get("reason") or ""
+                ),
                 "added_indicators": added,
                 "removed_indicators": removed,
                 "renamed_indicators": renamed,
                 "added_indicators_raw": list(added),
                 "removed_indicators_raw": list(removed),
                 "renamed_indicators_raw": [dict(entry) for entry in renamed],
-                "all_indicators_t1": list(previous_table.get("indicators_raw", []) or []),
-                "all_indicators_t2": list(current_table.get("indicators_raw", []) or []),
+                "all_indicators_t1": list(previous_table.get("indicators", []) or []),
+                "all_indicators_t2": list(current_table.get("indicators", []) or []),
                 "counts": {
                     "added": len(added),
                     "removed": len(removed),
@@ -458,16 +472,14 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                     "bbox_t2": item.get("bbox") if side == "current" else None,
                     "source_pdf_t1": pdf_previous if side == "previous" else "",
                     "source_pdf_t2": pdf_current if side == "current" else "",
-                    "all_indicators_t1": list(item.get("indicators_raw", []) or [])
+                    "all_indicators_t1": list(item.get("indicators", []) or [])
                     if side == "previous"
                     else [],
-                    "all_indicators_t2": list(item.get("indicators_raw", []) or [])
+                    "all_indicators_t2": list(item.get("indicators", []) or [])
                     if side == "current"
                     else [],
-                    "first_column_indicators_raw": list(item.get("indicators_raw", []) or []),
-                    "first_column_indicators": list(
-                        item.get("indicators_normalized", []) or []
-                    ),
+                    "first_column_indicators_raw": list(item.get("indicators", []) or []),
+                    "first_column_indicators": list(item.get("indicators", []) or []),
                     "genai_analysis": dict(item.get("analyst_assessment") or {}),
                     "semantic_judge": str(item.get("reason", "") or ""),
                 }
@@ -484,23 +496,68 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
         list(matching.get("tables_removed", []) or []),
         "previous",
     )
+    ui_payload["artifacts_confirmed_previous"] = _table_side_items(
+        list(matching.get("artifacts_confirmed_previous", []) or []),
+        "previous",
+    )
+    ui_payload["artifacts_confirmed_current"] = _table_side_items(
+        list(matching.get("artifacts_confirmed_current", []) or []),
+        "current",
+    )
+    ui_payload["extraction_suspects_previous"] = _table_side_items(
+        list(matching.get("extraction_suspects_previous", []) or []),
+        "previous",
+    )
+    ui_payload["extraction_suspects_current"] = _table_side_items(
+        list(matching.get("extraction_suspects_current", []) or []),
+        "current",
+    )
+    ui_payload["tables_added_confirmed"] = list(ui_payload["tables_added"])
+    ui_payload["tables_removed_confirmed"] = list(ui_payload["tables_removed"])
+    ui_payload["tables_added_pending_review"] = list(
+        ui_payload["extraction_suspects_current"]
+    )
+    ui_payload["tables_removed_pending_review"] = list(
+        ui_payload["extraction_suspects_previous"]
+    )
+    ui_payload["review_candidates"] = list(ui_payload["extraction_suspects_current"]) + list(
+        ui_payload["extraction_suspects_previous"]
+    )
 
     indicator_change_pairs = sum(
         1
         for item in table_comparisons
-        if item["counts"]["added"] or item["counts"]["removed"] or item["counts"]["renamed"]
+        if item["counts"]["added"]
+        or item["counts"]["removed"]
+        or item["counts"]["renamed"]
     )
     footnote_change_pairs = sum(
         1
         for item in table_comparisons
         if any((item.get("footnotes_counts") or {}).values())
     )
-    matched_pairs_total = int((payload.get("summary") or {}).get("matched_pairs_total", 0) or 0)
-    tables_t1 = matched_pairs_total + len(ui_payload["tables_removed"])
-    tables_t2 = matched_pairs_total + len(ui_payload["tables_added"])
+    matched_pairs_total = int(
+        (payload.get("summary") or {}).get("matched_pairs_total", 0) or 0
+    )
+    tables_extracted_t1 = (
+        matched_pairs_total
+        + len(ui_payload["tables_removed"])
+        + len(ui_payload["artifacts_confirmed_previous"])
+        + len(ui_payload["extraction_suspects_previous"])
+    )
+    tables_extracted_t2 = (
+        matched_pairs_total
+        + len(ui_payload["tables_added"])
+        + len(ui_payload["artifacts_confirmed_current"])
+        + len(ui_payload["extraction_suspects_current"])
+    )
+    tables_t1 = tables_extracted_t1
+    tables_t2 = tables_extracted_t2
+    tables_comparable_t1 = matched_pairs_total + len(ui_payload["tables_removed"])
+    tables_comparable_t2 = matched_pairs_total + len(ui_payload["tables_added"])
     pairing_coverage = (
-        matched_pairs_total / max(tables_t1, tables_t2, 1)
-        if tables_t1 or tables_t2
+        matched_pairs_total / max(tables_comparable_t1, tables_comparable_t2, 1)
+        if tables_comparable_t1 or tables_comparable_t2
         else 0.0
     )
     summary = ui_payload["summary"]
@@ -508,19 +565,35 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
         {
             "tables_t1": tables_t1,
             "tables_t2": tables_t2,
-            "tables_extracted_t1": tables_t1,
-            "tables_extracted_t2": tables_t2,
-            "tables_comparable_t1": tables_t1,
-            "tables_comparable_t2": tables_t2,
+            "tables_extracted_t1": tables_extracted_t1,
+            "tables_extracted_t2": tables_extracted_t2,
+            "tables_comparable_t1": tables_comparable_t1,
+            "tables_comparable_t2": tables_comparable_t2,
             "tables_matched": matched_pairs_total,
             "tables_added": len(ui_payload["tables_added"]),
             "tables_removed": len(ui_payload["tables_removed"]),
             "tables_added_confirmed": len(ui_payload["tables_added"]),
             "tables_removed_confirmed": len(ui_payload["tables_removed"]),
-            "tables_added_pending_review": 0,
-            "tables_removed_pending_review": 0,
+            "tables_added_pending_review": len(
+                ui_payload["tables_added_pending_review"]
+            ),
+            "tables_removed_pending_review": len(
+                ui_payload["tables_removed_pending_review"]
+            ),
+            "artifacts_confirmed_previous": len(
+                ui_payload["artifacts_confirmed_previous"]
+            ),
+            "artifacts_confirmed_current": len(
+                ui_payload["artifacts_confirmed_current"]
+            ),
+            "extraction_suspects_previous": len(
+                ui_payload["extraction_suspects_previous"]
+            ),
+            "extraction_suspects_current": len(
+                ui_payload["extraction_suspects_current"]
+            ),
             "ambiguous_tables": 0,
-            "review_candidates": 0,
+            "review_candidates": len(ui_payload["review_candidates"]),
             "ambiguous_pairs": 0,
             "pairing_coverage": pairing_coverage,
             "indicator_change_pairs": indicator_change_pairs,
@@ -546,13 +619,21 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
     summary["status_counts"].update(
         {
             "stable": sum(
-                1 for item in table_comparisons if item.get("table_status") == "inchange"
+                1
+                for item in table_comparisons
+                if item.get("table_status") == "inchange"
             ),
             "modifie": sum(
                 1 for item in table_comparisons if item.get("table_status") == "modifie"
             ),
             "ajoute": len(ui_payload["tables_added"]),
             "supprime": len(ui_payload["tables_removed"]),
+            "ajoute_pending_review": len(ui_payload["tables_added_pending_review"]),
+            "supprime_pending_review": len(ui_payload["tables_removed_pending_review"]),
+            "artefact": len(ui_payload["artifacts_confirmed_previous"])
+            + len(ui_payload["artifacts_confirmed_current"]),
+            "suspect_extraction": len(ui_payload["extraction_suspects_previous"])
+            + len(ui_payload["extraction_suspects_current"]),
         }
     )
     summary["tables_changed_t1"] = compute_changed_tables_t1(ui_payload)
@@ -563,13 +644,17 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "current": {
             "label": current_label,
             "code": quarter_current,
-            "quarter": int(quarter_current[1]) if quarter_current.startswith("t") else None,
+            "quarter": int(quarter_current[1])
+            if quarter_current.startswith("t")
+            else None,
             "year": year_current,
         },
         "previous": {
             "label": previous_label,
             "code": quarter_previous,
-            "quarter": int(quarter_previous[1]) if quarter_previous.startswith("t") else None,
+            "quarter": int(quarter_previous[1])
+            if quarter_previous.startswith("t")
+            else None,
             "year": year_previous,
         },
         "comparison_direction": "current_vs_previous",
@@ -578,6 +663,9 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
     ui_payload["meta"].update(
         {
             "source_format": "report_comparison",
+            "model_version": str(payload.get("model_version", "") or ""),
+            "prompt_version_match": str(payload.get("prompt_version_match", "") or ""),
+            "prompt_version_diff": str(payload.get("prompt_version_diff", "") or ""),
             "quarter_context": quarter_context,
             "run_id": str(payload.get("run_id", "") or ""),
             "reference_resolution": dict(payload.get("reference_resolution") or {}),
@@ -588,7 +676,9 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 "pdf_previous": pdf_previous,
                 "pdf_current": pdf_current,
             },
-            "archived_pdf_previous": str(payload.get("archived_pdf_previous", "") or ""),
+            "archived_pdf_previous": str(
+                payload.get("archived_pdf_previous", "") or ""
+            ),
             "archived_pdf_current": str(payload.get("archived_pdf_current", "") or ""),
             "source_pdf_previous": str(payload.get("source_pdf_previous", "") or ""),
             "source_pdf_current": str(payload.get("source_pdf_current", "") or ""),
@@ -599,9 +689,15 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                     matched_pairs=matched_pairs_total,
                     tables_added=len(ui_payload["tables_added"]),
                     tables_removed=len(ui_payload["tables_removed"]),
-                    indicator_changes=int(raw_summary.get("indicator_changes_total", 0) or 0),
-                    footnote_changes=int(raw_summary.get("footnote_changes_total", 0) or 0),
-                    high_priority_items=int(raw_summary.get("high_priority_items_total", 0) or 0),
+                    indicator_changes=int(
+                        raw_summary.get("indicator_changes_total", 0) or 0
+                    ),
+                    footnote_changes=int(
+                        raw_summary.get("footnote_changes_total", 0) or 0
+                    ),
+                    high_priority_items=int(
+                        raw_summary.get("high_priority_items_total", 0) or 0
+                    ),
                 )
             },
         }
@@ -643,8 +739,17 @@ def to_ui_comparison_payload(payload: Any) -> dict[str, Any]:
             if not isinstance(change, dict):
                 continue
             ctype = str(change.get("change_type", ""))
-            added = [str(change.get("indicator_name"))] if ctype in {"added", "table_added"} and change.get("indicator_name") else []
-            removed = [str(change.get("indicator_name"))] if ctype in {"removed", "table_removed"} and change.get("indicator_name") else []
+            added = (
+                [str(change.get("indicator_name"))]
+                if ctype in {"added", "table_added"} and change.get("indicator_name")
+                else []
+            )
+            removed = (
+                [str(change.get("indicator_name"))]
+                if ctype in {"removed", "table_removed"}
+                and change.get("indicator_name")
+                else []
+            )
             table_comparisons.append(
                 {
                     "table_id_t1": f"legacy_t1_{index}",
@@ -678,8 +783,12 @@ def to_ui_comparison_payload(payload: Any) -> dict[str, Any]:
         ui_payload["summary"]["status_counts"]["modifie"] = sum(
             1 for item in table_comparisons if item.get("table_status") == "modifie"
         )
-        ui_payload["summary"]["tables_changed_t1"] = compute_changed_tables_t1(ui_payload)
-        ui_payload["summary"]["tables_changed_t2"] = compute_changed_tables_t2(ui_payload)
+        ui_payload["summary"]["tables_changed_t1"] = compute_changed_tables_t1(
+            ui_payload
+        )
+        ui_payload["summary"]["tables_changed_t2"] = compute_changed_tables_t2(
+            ui_payload
+        )
         ui_payload["meta"]["source_format"] = "legacy_metier"
         ui_payload["meta"]["executive_summary"] = {
             "content": "Conversion depuis un format metier legacy."

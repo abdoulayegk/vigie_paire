@@ -149,7 +149,9 @@ def _build_resume_court(
     elif indicator_type == "table_added":
         base = "Nouveau tableau dans le trimestre courant."
     elif indicator_type == "table_removed":
-        base = "Tableau présent au trimestre précédent mais absent au trimestre courant."
+        base = (
+            "Tableau présent au trimestre précédent mais absent au trimestre courant."
+        )
     elif indicator_type == "modified":
         base = "Modification de tableau détectée."
     elif indicator_type == "uncertain":
@@ -463,7 +465,9 @@ def generate_validation_excel(
         review_items,
         metadata=_build_export_context(indicator_result),
     )
-    reader = csv.DictReader(io.StringIO(technical_csv.lstrip(CSV_BOM)), delimiter=CSV_SEPARATOR)
+    reader = csv.DictReader(
+        io.StringIO(technical_csv.lstrip(CSV_BOM)), delimiter=CSV_SEPARATOR
+    )
     for row in reader:
         ws_tech.append([row.get(col, "") for col in _CSV_COLUMNS])
 
@@ -580,7 +584,9 @@ def export_review_items_csv(
                     ),
                     "confidence": _format_cell(base.get("confidence", "")),
                     "match_method": _sanitize_cell(base.get("match_method", "")),
-                    "review_status": _sanitize_cell(ind.get("review_status", base.get("review_status", ""))),
+                    "review_status": _sanitize_cell(
+                        ind.get("review_status", base.get("review_status", ""))
+                    ),
                     "idee": "",
                     "sujet": "",
                     "validation_finale": "",

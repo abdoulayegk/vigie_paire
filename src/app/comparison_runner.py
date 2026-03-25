@@ -11,10 +11,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from app.comparison_canonical import new_empty_ui_comparison_payload, to_canonical_payload
-from app.extraction_storage import build_extraction_manifest, is_stored_manifest_compatible
+from app.comparison_canonical import (
+    new_empty_ui_comparison_payload,
+    to_canonical_payload,
+)
 from app.ui_config import OUTPUT_DIR
-from vigilance.config import resolve_openai_model
 from vigilance.compare_gpt import (
     REFERENCE_RESOLUTION_RULE,
     compare_reports_gpt4o,
@@ -92,19 +93,6 @@ def _extract_metrics_from_tables(
     return metrics
 
 
-def _stored_manifest_matches(
-    payload: dict[str, Any],
-    expected_manifest: dict[str, Any],
-) -> bool:
-    stored_manifest = payload.get("extraction_manifest")
-    if not isinstance(stored_manifest, dict) or not stored_manifest:
-        return False
-    return is_stored_manifest_compatible(
-        {"extraction_manifest": stored_manifest},
-        expected_manifest,
-    )
-
-
 def _quarter_label(quarter: str, year: int) -> str:
     code = normalize_quarter(quarter)
     return f"Q{code[1]}-{int(year)}"
@@ -128,10 +116,7 @@ def _build_section_ranges(sections: Any) -> list[dict[str, Any]]:
         if start <= 0 or end < start:
             continue
         section = str(
-            entry.get("section")
-            or entry.get("type")
-            or entry.get("section_key")
-            or ""
+            entry.get("section") or entry.get("type") or entry.get("section_key") or ""
         ).strip()
         section = canonicalize_section(section) or "unknown_section"
         ranges.append({"section": section, "start": start, "end": end})
@@ -156,8 +141,12 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _resolve_pdf_input_path(value: Any, *, label: str) -> str:
     raw = str(value or "").strip()
     if not raw:
-        logger.warning("[run_comparison_with_sections] missing_pdf_path label=%s", label)
-        raise ValueError(f"{label} introuvable. Veuillez recharger le PDF avant l'analyse.")
+        logger.warning(
+            "[run_comparison_with_sections] missing_pdf_path label=%s", label
+        )
+        raise ValueError(
+            f"{label} introuvable. Veuillez recharger le PDF avant l'analyse."
+        )
     path = Path(raw)
     if not path.exists() or not path.is_file():
         logger.warning(
@@ -180,7 +169,9 @@ def _extract_tables(
     use_stored_extraction_if_available: bool = False,
     return_provenance: bool = False,
 ) -> Any:
-    from vigilance.extraction.docling_processor import extract_tables_docling_by_sections
+    from vigilance.extraction.docling_processor import (
+        extract_tables_docling_by_sections,
+    )
 
     extraction_started_at = time.monotonic()
     quarter_code = normalize_quarter(quarter)
@@ -190,23 +181,13 @@ def _extract_tables(
     section_ranges = _build_section_ranges(sections)
     if not section_ranges:
         raise ValueError("Aucune section valide fournie pour l'extraction.")
-    extraction_mode = (
-        "vision_full_gpt4o" if use_vision_extraction is not False else "docling_only"
-    )
-    expected_manifest = build_extraction_manifest(
-        pdf_path=pdf_path,
-        section_ranges=section_ranges,
-        extraction_mode=extraction_mode,
-    )
-
     mode = "fresh"
     source_metrics: dict[str, Any] = {}
     if use_stored_extraction_if_available and all(artifacts_present.values()):
         payload = _load_json(paths["tables"])
-        if _stored_manifest_matches(payload, expected_manifest):
+        if int(payload.get("schema_version", 0) or 0) == 7:
             tables = list(payload.get("tables", []) or [])
             mode = "stored"
-            source_metrics = dict(payload.get("metrics") or {})
             extraction_metrics = _empty_extraction_metrics(mode=mode)
             extraction_metrics["runtime_sec"] = round(
                 max(0.0, time.monotonic() - extraction_started_at), 3
@@ -214,7 +195,7 @@ def _extract_tables(
             extraction_metrics["tables_total"] = len(tables)
         else:
             logger.info(
-                "[_extract_tables] manifest_mismatch bank=%s year=%s quarter=%s -> reextract",
+                "[_extract_tables] stored_schema_mismatch bank=%s year=%s quarter=%s -> reextract",
                 str(bank_code).lower(),
                 int(year),
                 quarter_code,
@@ -234,23 +215,13 @@ def _extract_tables(
             runtime_sec=time.monotonic() - extraction_started_at,
             mode=mode,
         )
-        try:
-            extraction_model_version = resolve_openai_model("extraction_primary")
-        except Exception:
-            extraction_model_version = ""
         write_compact_report_artifacts(
             tables=tables,
             out_dir=out_dir,
             bank_code=str(bank_code).lower(),
             year=int(year),
             quarter=quarter_code,
-            meta={
-                "model_version": extraction_model_version,
-                "prompt_version": "extract_v1",
-                "pdf_fingerprint": expected_manifest.get("pdf_fingerprint", ""),
-                "extraction_manifest": expected_manifest,
-                "metrics": extraction_metrics,
-            },
+            meta={},
         )
         artifacts_present = {name: path.exists() for name, path in paths.items()}
         source_metrics = dict(extraction_metrics)
@@ -273,7 +244,6 @@ def _extract_tables(
         "artifacts_present": artifacts_present,
         "quarter": quarter_code,
         "year": int(year),
-        "extraction_manifest": expected_manifest,
         "run_metrics": extraction_metrics,
         "source_metrics": source_metrics,
     }
@@ -305,13 +275,25 @@ def _empty_result(
     payload["meta"]["extraction_sources"] = {
         "previous": {
             "mode": "unknown",
-            "quarter": str((quarter_context or {}).get("previous", {}).get("code") or ""),
-            "artifacts_present": {"tables": False, "indicators": False, "footnotes": False},
+            "quarter": str(
+                (quarter_context or {}).get("previous", {}).get("code") or ""
+            ),
+            "artifacts_present": {
+                "tables": False,
+                "indicators": False,
+                "footnotes": False,
+            },
         },
         "current": {
             "mode": "unknown",
-            "quarter": str((quarter_context or {}).get("current", {}).get("code") or ""),
-            "artifacts_present": {"tables": False, "indicators": False, "footnotes": False},
+            "quarter": str(
+                (quarter_context or {}).get("current", {}).get("code") or ""
+            ),
+            "artifacts_present": {
+                "tables": False,
+                "indicators": False,
+                "footnotes": False,
+            },
         },
     }
     return payload
@@ -366,9 +348,7 @@ def run_comparison_with_sections(
 
     current_quarter_value = current_quarter or "Q2"
     current_year_value = int(
-        current_year
-        or _extract_year(current_quarter_value)
-        or datetime.now().year
+        current_year or _extract_year(current_quarter_value) or datetime.now().year
     )
     current_quarter_code = normalize_quarter(current_quarter_value)
     resolved_previous_year, resolved_previous_quarter_code = resolve_reference_period(
@@ -401,8 +381,12 @@ def run_comparison_with_sections(
         "comparison_label": f"{current_label} vs {previous_label}",
     }
 
-    previous_sections_value = sections_previous if sections_previous is not None else sections_t1
-    current_sections_value = sections_current if sections_current is not None else sections_t2
+    previous_sections_value = (
+        sections_previous if sections_previous is not None else sections_t1
+    )
+    current_sections_value = (
+        sections_current if sections_current is not None else sections_t2
+    )
     if not previous_sections_value or not current_sections_value:
         return _empty_result(
             bank_code,
@@ -432,7 +416,9 @@ def run_comparison_with_sections(
         use_stored_extraction_if_available=use_stored_extraction_if_available,
         return_provenance=True,
     )
-    extraction_runtime_sec = round(max(0.0, time.monotonic() - extraction_started_at), 3)
+    extraction_runtime_sec = round(
+        max(0.0, time.monotonic() - extraction_started_at), 3
+    )
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=Path(previous_provenance["artifact_dir"]),

@@ -30,9 +30,16 @@ _GENAI_SCHEMA = {
     ],
 }
 
-_VALID_RELEVANCE_LABELS = frozenset({
-    "REGLEMENTAIRE", "RISQUE", "CAPITAL", "STRUCTURE", "COSMETIQUE", "INCONNU",
-})
+_VALID_RELEVANCE_LABELS = frozenset(
+    {
+        "REGLEMENTAIRE",
+        "RISQUE",
+        "CAPITAL",
+        "STRUCTURE",
+        "COSMETIQUE",
+        "INCONNU",
+    }
+)
 
 _EN_TO_FR_RELEVANCE_LABELS: dict[str, str] = {
     "REGULATORY": "REGLEMENTAIRE",
@@ -93,37 +100,44 @@ def _build_genai_input(result: dict[str, Any], max_tables: int = 50) -> str:
             len(comp.get("added_indicators", []))
             + len(comp.get("removed_indicators", []))
             + len(comp.get("renamed_indicators", []))
-            + sum(comp.get("footnotes_counts", {}).get(k, 0) for k in ("added", "removed", "modified"))
+            + sum(
+                comp.get("footnotes_counts", {}).get(k, 0)
+                for k in ("added", "removed", "modified")
+            )
         )
         if n > 0:
             tables_with_changes.append(comp)
 
     for ta in result.get("tables_added", []):
-        tables_with_changes.append({
-            "table_id_t1": "",
-            "table_id_t2": ta.get("table_id", ""),
-            "title_t1": "",
-            "title_t2": ta.get("title", ""),
-            "section": ta.get("section", ""),
-            "added_indicators": ta.get("indicators", [])[:10],
-            "removed_indicators": [],
-            "renamed_indicators": [],
-            "table_status": "ajoute",
-            "footnotes_counts": {"added": 0, "removed": 0, "modified": 0},
-        })
+        tables_with_changes.append(
+            {
+                "table_id_t1": "",
+                "table_id_t2": ta.get("table_id", ""),
+                "title_t1": "",
+                "title_t2": ta.get("title", ""),
+                "section": ta.get("section", ""),
+                "added_indicators": ta.get("indicators", [])[:10],
+                "removed_indicators": [],
+                "renamed_indicators": [],
+                "table_status": "ajoute",
+                "footnotes_counts": {"added": 0, "removed": 0, "modified": 0},
+            }
+        )
     for tr in result.get("tables_removed", []):
-        tables_with_changes.append({
-            "table_id_t1": tr.get("table_id", ""),
-            "table_id_t2": "",
-            "title_t1": tr.get("title", ""),
-            "title_t2": "",
-            "section": tr.get("section", ""),
-            "added_indicators": [],
-            "removed_indicators": tr.get("indicators", [])[:10],
-            "renamed_indicators": [],
-            "table_status": "supprime",
-            "footnotes_counts": {"added": 0, "removed": 0, "modified": 0},
-        })
+        tables_with_changes.append(
+            {
+                "table_id_t1": tr.get("table_id", ""),
+                "table_id_t2": "",
+                "title_t1": tr.get("title", ""),
+                "title_t2": "",
+                "section": tr.get("section", ""),
+                "added_indicators": [],
+                "removed_indicators": tr.get("indicators", [])[:10],
+                "renamed_indicators": [],
+                "table_status": "supprime",
+                "footnotes_counts": {"added": 0, "removed": 0, "modified": 0},
+            }
+        )
 
     tables_with_changes = tables_with_changes[:max_tables]
 
@@ -138,11 +152,17 @@ def _build_genai_input(result: dict[str, Any], max_tables: int = 50) -> str:
         renamed = comp.get("renamed_indicators", [])[:10]
         fn_counts = comp.get("footnotes_counts", {})
 
-        lines = [f"\n--- Tableau {uid} : {title} (section : {section}, statut : {status})"]
+        lines = [
+            f"\n--- Tableau {uid} : {title} (section : {section}, statut : {status})"
+        ]
         if added:
-            lines.append(f"  Indicateurs ajoutes : {', '.join(str(a)[:80] for a in added)}")
+            lines.append(
+                f"  Indicateurs ajoutes : {', '.join(str(a)[:80] for a in added)}"
+            )
         if removed:
-            lines.append(f"  Indicateurs supprimes : {', '.join(str(r)[:80] for r in removed)}")
+            lines.append(
+                f"  Indicateurs supprimes : {', '.join(str(r)[:80] for r in removed)}"
+            )
         if renamed:
             ren_strs = []
             for r in renamed:
@@ -153,7 +173,9 @@ def _build_genai_input(result: dict[str, Any], max_tables: int = 50) -> str:
             lines.append(f"  Renommes : {', '.join(s[:80] for s in ren_strs)}")
         fn_total = sum(fn_counts.get(k, 0) for k in ("added", "removed", "modified"))
         if fn_total:
-            lines.append(f"  Notes modifiees : +{fn_counts.get('added', 0)} -{fn_counts.get('removed', 0)} mod {fn_counts.get('modified', 0)}")
+            lines.append(
+                f"  Notes modifiees : +{fn_counts.get('added', 0)} -{fn_counts.get('removed', 0)} mod {fn_counts.get('modified', 0)}"
+            )
         parts.extend(lines)
 
     return "\n".join(parts)
@@ -251,8 +273,8 @@ def _validate_genai_response(data: dict[str, Any]) -> dict[str, Any]:
     if overall not in _VALID_OVERALL:
         overall = "MOYENNE"
 
-    reg_mentions = (
-        data.get("mentions_reglementaires") or data.get("regulatory_mentions")
+    reg_mentions = data.get("mentions_reglementaires") or data.get(
+        "regulatory_mentions"
     )
     if not isinstance(reg_mentions, list):
         reg_mentions = []
@@ -274,12 +296,14 @@ def _validate_genai_response(data: dict[str, Any]) -> dict[str, Any]:
         key_changes = tbl.get("changements_cles") or tbl.get("key_changes")
         if not isinstance(key_changes, list):
             key_changes = []
-        tables.append({
-            "table_uid": str(tbl.get("table_uid", "")),
-            "label_pertinence": label,
-            "raison": str(tbl.get("raison") or tbl.get("why") or "")[:500],
-            "changements_cles": [str(c)[:200] for c in key_changes][:5],
-        })
+        tables.append(
+            {
+                "table_uid": str(tbl.get("table_uid", "")),
+                "label_pertinence": label,
+                "raison": str(tbl.get("raison") or tbl.get("why") or "")[:500],
+                "changements_cles": [str(c)[:200] for c in key_changes][:5],
+            }
+        )
 
     return {
         "resume_executif": bullets,
@@ -308,7 +332,9 @@ def _heuristic_fallback(result: dict[str, Any]) -> dict[str, Any]:
     if removed_ind:
         bullets.append(f"{removed_ind} indicateur(s) supprime(s).")
     if tables_added:
-        bullets.append(f"{tables_added} nouveau(x) tableau(x) dans le trimestre courant.")
+        bullets.append(
+            f"{tables_added} nouveau(x) tableau(x) dans le trimestre courant."
+        )
     if tables_removed:
         bullets.append(
             f"{tables_removed} tableau(x) retire(s) depuis le trimestre precedent."
@@ -326,7 +352,9 @@ def _heuristic_fallback(result: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "resume_executif": bullets,
-        "pertinence_globale": "MOYENNE" if (added_ind + removed_ind + fn_total) > 0 else "FAIBLE",
+        "pertinence_globale": "MOYENNE"
+        if (added_ind + removed_ind + fn_total) > 0
+        else "FAIBLE",
         "mentions_reglementaires": [],
         "tableaux": [],
     }

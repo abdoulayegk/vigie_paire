@@ -1,16 +1,11 @@
-"""Vision-based full extraction: indicators (first column) + footnotes in one GPT-4o call.
-
-Quality-first: supports multi-pass (re-crop with extended bottom if confidence low),
-retry on invalid JSON. Used as primary content source when vision_extraction.enabled.
-
-Uses Pydantic validation and OpenAI Structured Outputs (json_schema) when available.
-"""
+"""Vision-based minimal extraction: title, summary, headers, indicators, and footnotes."""
 
 from __future__ import annotations
 
 import base64
 import json
 import logging
+import re
 import time
 from dataclasses import dataclass, field, replace
 from typing import Any
@@ -30,7 +25,6 @@ logger = logging.getLogger(__name__)
 
 _EXTRACTION_METHOD = "vision_full_gpt4o"
 
-_CONFIDENCE_RETRY_THRESHOLD = 0.85
 _RECROP_EXTENSION_INCREMENT = 0.06
 _DEFAULT_MAX_COMPLETION_TOKENS = 65536
 # Current extraction routing uses 64k by default and allows a 128k rescue pass when truncation is detected.
@@ -39,6 +33,59 @@ _RESCUE_MAX_COMPLETION_TOKENS = 128000
 _MAX_COMPLETION_TOKENS_SAFE_FALLBACK = 16384
 _DEFAULT_REFERENCE_TEXT_MAX_CHARS = 6000
 _MODEL_ROLE = "extraction_primary"
+_GENERIC_PAGE_TITLES = {
+    "rapport de gestion",
+    "management's discussion and analysis",
+    "management discussion and analysis",
+    "rapport annuel",
+    "shareholders report",
+    "rapport aux actionnaires",
+}
+_WEAK_INDICATOR_EXACT = {
+    "total",
+    "totaux",
+    "autres",
+    "autre",
+    "other",
+    "others",
+    "canada",
+    "united states",
+    "états-unis",
+    "etats-unis",
+}
+_WEAK_INDICATOR_TOKENS = {
+    "total",
+    "totaux",
+    "autres",
+    "autre",
+    "other",
+    "others",
+    "canada",
+    "united",
+    "states",
+    "états",
+    "etats",
+    "unis",
+}
+_NARRATIVE_INDICATOR_PHRASES = (
+    "texte narratif",
+    "rapport de gestion",
+    "cette section",
+    "ce tableau",
+    "comprend",
+    "comprennent",
+    "inclut",
+    "incluent",
+    "présente",
+    "presente",
+    "présentent",
+    "presentent",
+    "représente",
+    "represente",
+    "décrit",
+    "decrit",
+    "description",
+)
 
 _PROMPT_BASE = """
 Tu es un expert en extraction de données financières à partir de rapports bancaires canadiens.
@@ -48,18 +95,26 @@ On te fournit l'image RECADRÉE d'un tableau financier extrait d'un rapport banc
 L'image montre le tableau ciblé et peut inclure un petit contexte au-dessus (titre) et en dessous (notes de bas de page).
 
 Ta mission :
-1. Extrais TOUTES les données (indicateurs, en-têtes, lignes de données) visibles dans l'image.
-   - INTERDICTION formelle d'inventer des lignes ou des données non visibles.
-2. Si le TITRE du tableau est visible en haut de l'image (numéro "Tableau XX" et/ou nom), inclus-le.
-3. Si des notes de bas de page sont visibles en bas de l'image, lis-les et rattache-les au tableau.
-La précision est critique : un seul libellé incorrect ou manquant provoque des faux positifs dans le pipeline de comparaison en aval.
----
+1. Extrais uniquement les champs suivants s'ils sont visibles :
+   - `table_title`
+   - `table_summary`
+   - `headers`
+   - `indicators`
+   - `footnotes_content`
+   - `no_table_detected`
+2. N'invente jamais d'information absente.
+3. La précision est critique : un seul libellé incorrect ou manquant provoque des faux positifs dans le pipeline de comparaison.
 
-1. INDICATEURS (première colonne du tableau)
+1. TITRE ET RÉSUMÉ
 
----
+- `table_title` : inclure le numéro du tableau et le titre complet s'ils sont visibles.
+- `table_summary` : phrase nominale de 15 mots maximum décrivant uniquement le sujet métier du tableau.
+- ne pas inventer de chiffres, de variations, de conclusions, ni d'analyse trimestrielle.
+
+2. INDICATEURS (première colonne du tableau)
 
 Extraire tous les libellés de la première colonne du tableau dans l'ordre visuel strict (de haut en bas).
+L'unité correcte d'extraction est l'INDICATEUR LOGIQUE, pas la ligne visuelle brute.
 
 RÈGLE SPÉCIALE : Si la première colonne ne contient que des index numériques (1, 2, 3...), prends le libellé de la deuxième colonne comme indicateur.
 
@@ -73,10 +128,12 @@ LISTE NOIRE (ne JAMAIS extraire comme indicateur) :
 
 Inclure :
 
-- lignes d'indicateurs réelles (lignes associées à des valeurs numériques dans les colonnes)
+- lignes d'indicateurs réelles
 - sous-lignes indentées (conserver les espaces d'indentation pour représenter la hiérarchie)
+- lignes de groupe et sous-groupes si elles servent de libellés de ligne
 - sous-totaux
 - totaux
+- dates, périodes et buckets de maturité quand ils servent de libellés de ligne
 - lignes contenant des références de notes comme (1), (2),(1)(2), *, †
 
 Exclure :
@@ -85,8 +142,6 @@ Exclure :
 - symboles monétaires seuls (ex: $)
 - titres du tableau
 - en-têtes de colonnes
-- titres de groupes ou sections (lignes sans valeurs associées)
-- années ou périodes (ex : 2024, 2025, T1)
 - unités (ex : %, en millions, en milliards)
 - valeurs numériques
 - notes de bas de page
@@ -99,20 +154,52 @@ Règles importantes :
 - respecter strictement l'ordre visuel
 - ne jamais inventer d'indicateur
 
-RÈGLE ANTI-FUSION (CRITIQUE) :
-- Chaque ligne visuelle distincte du tableau doit produire UN indicateur séparé.
-- Si deux lignes de texte sont proches verticalement mais clairement séparées, crée DEUX objets indicateurs distincts.
-- Ne JAMAIS concaténer ou fusionner plusieurs lignes en un seul indicateur.
-- En cas de doute sur la séparation, privilégie la création d'indicateurs séparés.
+RÈGLE DE FUSION DES LIBELLÉS MULTILIGNES (CRITIQUE) :
+- Un même indicateur peut occuper 1, 2 ou 3 lignes visuelles dans la première colonne.
+- Si un libellé est renvoyé à la ligne à cause de la largeur de colonne, de la mise en page ou d'un retour automatique, fusionne ces lignes en UN SEUL indicateur logique.
+- Retourne le libellé final concaténé dans l'ordre naturel de lecture, sans inventer, résumer ou réécrire le texte.
+
+Fusionner plusieurs lignes visuelles en un seul indicateur si la plupart des signaux suivants sont présents :
+- même alignement horizontal dans la première colonne
+- même niveau d'indentation
+- la ligne suivante complète grammaticalement ou sémantiquement la précédente
+- la ligne suivante ne porte pas une nouvelle série de valeurs indépendante
+- le texte combiné forme un libellé métier cohérent
+
+Ne PAS fusionner si :
+- chaque ligne correspond à un indicateur métier distinct
+- la deuxième ligne introduit un nouvel item, un sous-total, un total ou une nouvelle catégorie
+- la première ligne est un titre de groupe sans valeurs et la suivante est un sous-item distinct
+- chaque ligne a ses propres valeurs associées
+
+Ordre de décision en cas d'ambiguïté :
+- d'abord vérifier si chaque ligne a ses propres valeurs
+- ensuite utiliser l'alignement et l'indentation
+- ensuite vérifier la continuité grammaticale
+- enfin vérifier si le texte fusionné forme un libellé métier naturel
+
+Exemples à FUSIONNER :
+- "Actions émises dans le cadre des régimes de" + "rémunération fondée sur des actions (1)"
+- "Émission de billets de capital à recours limité (LRCN) de" + "série 5 (2), (3), (4)"
+- "Rachat de débentures subordonnées échéant le" + "23 décembre 2029 (2), (3)"
+
+Exemples à NE PAS fusionner :
+- "Fonds propres de première catégorie" + "Actions émises dans le cadre des régimes..."
+- "Actifs liquides de haute qualité" + "Total des actifs liquides de haute qualité"
 
 EXCLUSION DES PARAGRAPHES NARRATIFS :
 - Ne pas extraire les blocs de texte explicatif (phrases complètes qui traversent plusieurs colonnes).
 - Les paragraphes descriptifs ou les notes intégrées au milieu du tableau ne sont PAS des indicateurs.
-- Un indicateur est typiquement un libellé court (1 à 10 mots) aligné dans la première colonne.
+- Un indicateur est typiquement un libellé aligné dans la première colonne ; il peut être court ou long et peut s'étendre sur plusieurs lignes visuelles.
 
 ---
 
-2. NOTES DE BAS DE TABLEAU (FOOTNOTES)
+3. EN-TÊTES DE COLONNES
+
+- `headers` : retourne les en-têtes visibles dans l'ordre.
+- si aucun en-tête n'est visible, retourne une liste vide.
+
+4. NOTES DE BAS DE TABLEAU (FOOTNOTES)
 
 ---
 
@@ -151,11 +238,7 @@ REGLES GENERALES
 - Transcrire uniquement ce qui est visible dans l'image
 - Ne jamais inventer d'information
 - Respecter l'ordre visuel
--Certains colonnes qui ne sont pas premiere colonne ou libellés avec un nom comme i ndicateurs
-
-Retourner également :
-
-- confidence : score global entre 0.0 et 1.0 basé sur la lisibilité
+- Ne jamais corriger, traduire, normaliser ni dédupliquer le texte visible
 """
 
 _PROMPT_JSON_STRICT = """
@@ -167,33 +250,25 @@ L'objet JSON doit rigoureusement suivre cette structure:
 
 {
 "table_title": "Tableau 1 - Titre complet ou chaine vide si absent",
+"table_summary": "Sujet métier du tableau en 15 mots maximum",
 "headers": ["Colonne 1", "Colonne 2", "Colonne 3"],
 "indicators": ["Libelle 1", " Sous-libelle", "Total"],
-"rows": [
-  ["Libelle 1", "100", "200"],
-  [" Sous-libelle", "50", "150"]
-],
 "footnotes_content": [
   {"id": "1", "text": "texte note 1"},
   {"id": "2", "text": "texte note 2"}
 ],
-"footnote_markers": ["1", "2"],
-"has_hierarchy": true,
-"extraction_confidence": "high",
-"notes": "Tableau bien cadré",
-"confidence": 0.95,
-"appears_truncated": false,
-"estimated_content_height": null
+"no_table_detected": false
 }
 
 REGLES DE VALIDATION
 
 - table_title : inclure le numéro ("Tableau XX") ET le titre s'ils sont présents en haut de l'image. Chaine vide si aucun titre visible (NE JAMAIS inventer).
+- table_summary : phrase nominale unique de 15 mots maximum, décrivant le sujet métier du tableau
 - headers : liste vide si aucun en-tete visible
-- indicators doit respecter l'ordre visuel du tableau
-- rows : liste vide si aucune donnee visible
+- indicators doit respecter l'ordre visuel du tableau et contenir UN seul élément par indicateur logique, même si le libellé visible occupe plusieurs lignes visuelles
 - footnotes_content doit respecter l'ordre visuel des notes (haut → bas)
 - ne jamais trier les notes par identifiant
+- no_table_detected = true uniquement si aucune vraie structure tabulaire n'est visible dans le crop
 - si aucune note n'est visible :
   footnotes_content = []
 
@@ -202,39 +277,30 @@ DEFINITIONS
 table_title
 Titre complet et visible du tableau, incluant le numéro (ex: "Tableau 1") s'il est présent sur la même ligne ou la ligne juste au-dessus. "" si absent.
 
+table_summary
+Résumé métier du tableau. 15 mots maximum. Décrire seulement le sujet du tableau.
+
 headers
 Liste des en-tetes de colonnes.
 
 indicators
-Liste des libellés extraits de la première colonne.
-
-rows
-Liste de listes de chaînes : toutes les lignes de données du tableau.
+Liste des libellés logiques extraits de la première colonne. Si un même libellé est visible sur plusieurs lignes visuelles, le fusionner en un seul élément.
 
 footnotes_content
 Liste ORDONNEE des notes (ordre visuel strict, haut → bas).
 
-footnote_markers
-Liste simple des marqueurs détectés dans le tableau.
+no_table_detected
+Booléen strict. true seulement si l'image ne contient pas de vrai tableau exploitable.
+"""
 
-has_hierarchy
-true si le tableau utilise l'indentation ou des sous-catégories.
+_PROMPT_RESCUE_SUFFIX = """
 
-extraction_confidence
-"high" (lisible et structuré), "medium" (lisible mais doutes), "low" (illisible ou cassé).
-
-notes
-Brefs commentaires sur la qualité de l'image ou du tableau (ex: "flou", "coupé", "ok").
-
-confidence
-Score numérique (0.0 - 1.0) basé sur la lisibilité globale.
-
-appears_truncated
-true si le tableau ou les footnotes semblent coupés.
-
-estimated_content_height
-Pourcentage estimé du contenu visible.
-Mettre null si impossible à estimer.
+MODE RESCUE
+- L'extraction précédente était vide, partielle ou probablement contaminée par du mobilier de page.
+- Ignore les titres de page, en-têtes de section, libellés narratifs et mobilier non tabulaire.
+- Si un vrai tableau est visible dans le crop, extrais-le complètement.
+- Si le crop contient à la fois un titre de page et un vrai tableau, le titre de page ne doit PAS devenir table_title.
+- Utilise `no_table_detected=true` uniquement si aucune vraie structure tabulaire exploitable n'est visible.
 """
 
 
@@ -255,26 +321,6 @@ class VisionFootnoteItem(BaseModel):
         return s
 
 
-class VisionIndicatorItem(BaseModel):
-    """Strict item schema for one indicator with spatial coordinates."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    text: str = Field(description="Libellé exact de l'indicateur")
-    bbox: list[float] | None = Field(
-        default=None,
-        description="Coordonnées normalisées [x_min, y_min, x_max, y_max] (0-1), null si incertain",
-    )
-
-    @field_validator("text", mode="before")
-    @classmethod
-    def _coerce_non_empty_str(cls, v: Any) -> str:
-        s = str(v or "").strip()
-        if not s:
-            raise ValueError("indicator text must be non-empty")
-        return s
-
-
 class VisionResponseCommonSchema(BaseModel):
     """Common schema for full and fallback Vision responses."""
 
@@ -284,35 +330,24 @@ class VisionResponseCommonSchema(BaseModel):
         default="",
         description="Titre complet et visible du tableau, incluant le numéro (ex: 'Tableau 1') s'il est au-dessus. Chaine vide si aucun titre visible.",
     )
+    table_summary: str = Field(
+        default="",
+        description="Résumé métier du tableau en 15 mots maximum, sans chiffres inventés ni interprétation.",
+    )
     headers: list[str] = Field(
         default_factory=list,
         description="En-tetes de colonnes du tableau, dans l'ordre",
     )
     indicators: list[str] = Field(
-        description="Libelles de la premiere colonne, ordre visuel haut vers bas",
+        description="Libelles logiques de la premiere colonne, ordre visuel haut vers bas. Fusionner les retours a la ligne d'un meme libelle en un seul element.",
     )
     footnotes_content: list[VisionFootnoteItem] = Field(
         description="Liste ORDONNEE de notes structurees [{id, text}] — ordre visuel strict",
         default_factory=list,
     )
-    footnote_markers: list[str] = Field(
-        description="Liste des marqueurs detectes (1, 2, 3 ou format parenthesique)",
-        default_factory=list,
-    )
-    confidence: float = Field(
-        description="Score numérique 0.0-1.0 de confiance globale.",
-        ge=0.0,
-        le=1.0,
-    )
-    appears_truncated: bool = Field(
+    no_table_detected: bool = Field(
         default=False,
-        description="Si le contenu semble coupe (crop trop court)",
-    )
-    estimated_content_height: int | None = Field(
-        default=None,
-        description="Hauteur estimee du contenu visible en pourcentage (0-100)",
-        ge=0,
-        le=100,
+        description="True only when no real tabular structure is visible in the crop.",
     )
 
     @field_validator("indicators", mode="before")
@@ -331,9 +366,13 @@ class VisionResponseCommonSchema(BaseModel):
                 text = str(item.get("text") or "").strip()
                 if text:
                     result.append(text)
-            elif isinstance(item, VisionIndicatorItem):
-                result.append(item.text)
         return result
+
+    @field_validator("table_summary", mode="after")
+    @classmethod
+    def _normalize_table_summary(cls, v: str) -> str:
+        words = [word for word in str(v or "").split() if word.strip()]
+        return " ".join(words[:15]).strip()
 
     @field_validator("headers", mode="after")
     @classmethod
@@ -367,45 +406,8 @@ class VisionResponseCommonSchema(BaseModel):
             return out
         return []
 
-    @field_validator("footnote_markers", mode="after")
-    @classmethod
-    def _normalize_footnote_markers(cls, v: list[str]) -> list[str]:
-        return [str(x).strip() for x in v if str(x).strip()]
-
-
 class VisionFullResponseSchema(VisionResponseCommonSchema):
     """Strict schema for normal Vision extraction output."""
-
-    rows: list[list[str]] = Field(
-        default_factory=list,
-        description="Lignes de donnees du tableau (liste de listes de chaines)",
-    )
-    has_hierarchy: bool = Field(
-        description="True si le tableau contient des sous-catégories indentées ou une structure hiérarchique explicite.",
-        default=False,
-    )
-    extraction_confidence: str = Field(
-        description="Niveau de confiance qualitatif ('high', 'medium', 'low').",
-        default="medium",
-        pattern="^(high|medium|low)$",
-    )
-    notes: str = Field(
-        description="Observations pertinentes sur la qualité ou la structure (ex: 'flou', 'ratures', 'colonnes décalées').",
-        default="",
-    )
-
-    @field_validator("rows", mode="before")
-    @classmethod
-    def _coerce_rows(cls, v: Any) -> list[list[str]]:
-        if not isinstance(v, list):
-            return []
-        result: list[list[str]] = []
-        for row in v:
-            if isinstance(row, list):
-                result.append([str(cell) for cell in row])
-            elif isinstance(row, str):
-                result.append([row])
-        return result
 
 
 class VisionSchemaContractError(RuntimeError):
@@ -543,43 +545,37 @@ def _classify_openai_error(exc: Exception) -> str:
 
 @dataclass
 class VisionFullResult:
-    """Result of Vision full extraction (full table content + footnotes).
+    """Result of Vision minimal extraction."""
 
-    Source of truth for ALL content fields when Vision extracts a table.
-    footnotes_content is an ORDERED LIST preserving visual order (haut → bas).
-    No content field is ever backfilled from Docling when Vision is used.
-    """
-
-    # Content fields — all come from Vision, never from Docling
     table_title: str
+    table_summary: str
     headers: list[str]
-    indicators: list[dict[str, Any]]
-    rows: list[list[str]]
-    # footnotes as ordered list (visual order preserved, never sorted by marker)
+    indicators: list[str]
     footnotes_content: list[dict[str, str]]
-    footnote_markers: list[str]
-    confidence: float
+    no_table_detected: bool = False
     extraction_method: str = _EXTRACTION_METHOD
-    appears_truncated: bool = False
-    estimated_content_height: int | None = None
-    # Status and warnings
-    vision_status: str = "ok"  # "ok" | "partial" | "failed"
+    vision_status: str = "ok"
     warnings: list[str] = field(default_factory=list)
-    # Request metadata for observability/debug_metrics
+    retry_reasons: list[str] = field(default_factory=list)
     requested_max_completion_tokens: int | None = None
     finish_reason: str | None = None
     prompt_tokens: int | None = None
     completion_tokens: int | None = None
     total_tokens: int | None = None
     rescue_used: bool = False
-    # Recrop quality pass (for debug_metrics)
     recrop_attempted: bool = False
     recrop_used: bool = False
     recrop_failed_incomplete: bool = False
+    extraction_status: str = "ok"
+    acceptance_reason: str | None = None
+    rejection_reasons: list[str] = field(default_factory=list)
+    selected_candidate_name: str | None = None
+    no_table_evidence_count: int = 0
+    summary_present: bool = False
+    indicator_count: int = 0
+    candidate_quality_rank: list[int] = field(default_factory=list)
 
     def to_footnotes_list(self) -> list[dict[str, str]]:
-        """Return footnotes as ordered list (visual order). No sorting by marker."""
-        # footnotes_content is already the ordered list — return a copy.
         return list(self.footnotes_content)
 
 
@@ -587,6 +583,8 @@ def _build_prompt(
     bank_code: str,
     vision_cfg: dict[str, Any],
     reference_text: str | None = None,
+    *,
+    rescue_mode: bool = False,
 ) -> str:
     """Build prompt with bank-specific footnote marker hints and OCR reference text (always injected when provided)."""
     marker_type = str(vision_cfg.get("footnote_marker_type", "")).strip().lower()
@@ -622,6 +620,7 @@ def _build_prompt(
             "des libellés d'indicateurs, en-têtes et notes de bas de page. "
             "Transcris les libellés d'indicateurs à l'identique du dictionnaire quand il est fourni ; "
             "ne modifie pas la casse, la ponctuation ni les espaces. "
+            "Si un libellé long est renvoyé sur 2 ou plusieurs lignes visuelles, reconstruis-le comme un seul indicateur logique et ne le coupe jamais en deux indicateurs distincts, car cela crée des faux positifs en aval. "
             "En cas de conflit entre l'image et le dictionnaire, privilégie l'orthographe du dictionnaire.\n"
         )
     else:
@@ -632,15 +631,19 @@ def _build_prompt(
             "\n\nCONSIGNE (pas de dictionnaire OCR disponible) : "
             "Transcris EXACTEMENT ce que tu vois dans l'image. "
             "Ne corrige PAS l'orthographe, la casse, la ponctuation ni les espaces des libelles. "
+            "Si un libellé long occupe 2 ou plusieurs lignes visuelles, retourne un seul indicateur logique et ne le scinde jamais en deux indicateurs. "
             "Conserve les accents, les tirets et les caracteres speciaux tels quels.\n"
         )
 
-    return (
+    prompt = (
         _PROMPT_BASE
         + (f"\n{suffix}\n" if suffix else "")
         + reference_section
         + _PROMPT_JSON_STRICT
     )
+    if rescue_mode:
+        prompt = prompt + _PROMPT_RESCUE_SUFFIX
+    return prompt
 
 
 def _build_content(prompt: str, image_b64: str) -> list[Any]:
@@ -764,17 +767,14 @@ def _make_truncated_placeholder_result(
     """Return a minimal partial result so higher-level rescue logic can retry with more budget."""
     return VisionFullResult(
         table_title="",
+        table_summary="",
         headers=[],
         indicators=[],
-        rows=[],
         footnotes_content=[],
-        footnote_markers=[],
-        confidence=0.0,
         extraction_method=_EXTRACTION_METHOD,
-        appears_truncated=True,
-        estimated_content_height=None,
         vision_status="partial",
         warnings=["vision_truncated"],
+        retry_reasons=["output_budget_truncated"],
         requested_max_completion_tokens=requested_max_completion_tokens,
         finish_reason=finish_reason or None,
         prompt_tokens=prompt_tokens,
@@ -786,20 +786,14 @@ def _make_truncated_placeholder_result(
 _FULL_RESPONSE_KEYS = frozenset(
     {
         "table_title",
+        "table_summary",
         "headers",
         "indicators",
-        "rows",
         "footnotes_content",
-        "footnote_markers",
-        "has_hierarchy",
-        "extraction_confidence",
-        "notes",
-        "confidence",
-        "appears_truncated",
-        "estimated_content_height",
+        "no_table_detected",
     }
 )
-_FULL_REQUIRED_KEYS = frozenset({"indicators", "confidence"})
+_FULL_REQUIRED_KEYS = frozenset({"table_summary", "indicators"})
 
 
 def _extract_embedded_schema_candidate(raw: dict[str, Any]) -> dict[str, Any] | None:
@@ -877,82 +871,41 @@ def _parse_vision_result(
             )
             return None
 
-    # Build ordered footnotes list — preserves visual order from Pydantic validation.
-    # The _coerce_footnotes_content validator already normalized dict->list.
     footnotes_ordered: list[dict[str, str]] = [
-        {"marker": str(item.id).strip(), "text": str(item.text).strip()}
+        {"id": str(item.id).strip(), "text": str(item.text).strip()}
         for item in validated.footnotes_content
         if str(item.id).strip() and str(item.text).strip()
     ]
-
-    # Build structured indicators list — preserves text + bbox from Pydantic validation.
-    indicators_ordered: list[dict[str, Any]] = [
-        {
-            "text": str(item).strip(),
-            "bbox": None,
-        }
-        for item in validated.indicators
-        if str(item).strip()
-    ]
+    indicators_ordered = [str(item).strip() for item in validated.indicators if str(item).strip()]
 
     return VisionFullResult(
         table_title=validated.table_title or "",
+        table_summary=validated.table_summary or "",
         headers=validated.headers or [],
         indicators=indicators_ordered,
-        rows=list(getattr(validated, "rows", []) or []),
         footnotes_content=footnotes_ordered,
-        footnote_markers=validated.footnote_markers,
-        confidence=validated.confidence,
+        no_table_detected=bool(validated.no_table_detected),
         extraction_method=_EXTRACTION_METHOD,
-        appears_truncated=validated.appears_truncated,
-        estimated_content_height=validated.estimated_content_height,
         vision_status="ok",
         warnings=[],
     )
 
 
 def _try_parse_truncated_result(raw_content: str) -> VisionFullResult | None:
-    """Best-effort parse of truncated JSON: salvage as much as possible.
-
-    Minimum viable: indicators + confidence.  Beyond that, we try each
-    field independently so a cut mid-rows still keeps the rows written
-    before the truncation point (and likewise for footnotes_content).
-    """
+    """Best-effort parse of truncated JSON for the minimal extraction contract."""
     data = _parse_json_response(raw_content)
     if not data or not isinstance(data, dict):
         return None
     indicators_raw = data.get("indicators")
-    confidence_val = data.get("confidence")
-    if indicators_raw is None or confidence_val is None:
+    if indicators_raw is None:
         return None
     if not isinstance(indicators_raw, list):
         return None
-    try:
-        conf = float(confidence_val)
-        if not 0 <= conf <= 1:
-            return None
-    except (TypeError, ValueError):
-        return None
-    indicators_ordered: list[dict[str, Any]] = [
-        {"text": str(item).strip(), "bbox": None}
+    indicators_ordered: list[str] = [
+        str(item).strip()
         for item in indicators_raw
         if str(item).strip()
     ]
-
-    # --- rows (best-effort: keep fully-written rows) ---
-    rows: list[list[str]] = []
-    try:
-        rows_raw = data.get("rows")
-        if isinstance(rows_raw, list):
-            for row in rows_raw:
-                if isinstance(row, list) and all(
-                    isinstance(c, (str, int, float)) for c in row
-                ):
-                    rows.append([str(c) for c in row])
-    except Exception:
-        rows = []
-
-    # --- footnotes_content (best-effort: keep fully-written items) ---
     footnotes_content: list[dict[str, str]] = []
     try:
         fn_raw = data.get("footnotes_content")
@@ -965,51 +918,446 @@ def _try_parse_truncated_result(raw_content: str) -> VisionFullResult | None:
                 ).strip()
                 text = str(item.get("text") or item.get("value") or "").strip()
                 if marker and text:
-                    footnotes_content.append({"marker": marker, "text": text})
+                    footnotes_content.append({"id": marker, "text": text})
         elif isinstance(fn_raw, dict):
             for k, v in fn_raw.items():
                 marker = str(k).strip()
                 text = str(v).strip()
                 if marker and text:
-                    footnotes_content.append({"marker": marker, "text": text})
+                    footnotes_content.append({"id": marker, "text": text})
     except Exception:
         footnotes_content = []
 
-    salvaged_parts: list[str] = []
-    if rows:
-        salvaged_parts.append(f"rows={len(rows)}")
-    if footnotes_content:
-        salvaged_parts.append(f"footnotes={len(footnotes_content)}")
-    if salvaged_parts:
-        logger.info(
-            "Truncation recovery salvaged partial data: %s",
-            ", ".join(salvaged_parts),
-        )
-
     return VisionFullResult(
         table_title=str(data.get("table_title") or "").strip(),
+        table_summary=str(data.get("table_summary") or "").strip(),
         headers=[str(x).strip() for x in data.get("headers") or []],
         indicators=indicators_ordered,
-        rows=rows,
         footnotes_content=footnotes_content,
-        footnote_markers=[str(x).strip() for x in data.get("footnote_markers") or []],
-        confidence=conf,
+        no_table_detected=bool(data.get("no_table_detected", False)),
         extraction_method=_EXTRACTION_METHOD,
-        appears_truncated=True,
-        estimated_content_height=None,
         vision_status="partial",
         warnings=["vision_truncated"],
+        retry_reasons=["output_budget_truncated"],
     )
+
+
+def _is_generic_page_title(value: str) -> bool:
+    title = " ".join(str(value or "").strip().lower().split())
+    return title in _GENERIC_PAGE_TITLES
+
+
+def _bbox_area(bbox_norm: list[float] | None) -> float:
+    if not bbox_norm or len(bbox_norm) < 4:
+        return 0.0
+    try:
+        left, top, right, bottom = [float(v) for v in bbox_norm[:4]]
+    except (TypeError, ValueError):
+        return 0.0
+    if right <= left or bottom <= top:
+        return 0.0
+    return max(0.0, (right - left) * (bottom - top))
+
+
+def _is_trivial_result(
+    result: VisionFullResult | None,
+    *,
+    bbox_norm: list[float] | None = None,
+) -> bool:
+    if result is None:
+        return True
+    indicators = [str(v).strip() for v in list(result.indicators or []) if str(v).strip()]
+    headers = [str(v).strip() for v in list(result.headers or []) if str(v).strip()]
+    summary = str(result.table_summary or "").strip()
+    title = str(result.table_title or "").strip()
+    if result.no_table_detected and not indicators and not headers:
+        return True
+    if indicators:
+        return False
+    if headers or summary:
+        return False
+    if _is_generic_page_title(title):
+        return True
+    return _bbox_area(bbox_norm) >= 0.12 or not title
+
+
+def _normalized_signal_text(value: str) -> str:
+    return " ".join(str(value or "").strip().lower().split())
+
+
+def _is_period_like_indicator(text: str) -> bool:
+    normalized = _normalized_signal_text(text)
+    if not normalized:
+        return True
+    if re.fullmatch(r"(?:q|t)\s*[1-4](?:\s*\d{4})?", normalized):
+        return True
+    if re.fullmatch(r"\d{4}", normalized):
+        return True
+    return False
+
+
+def _is_weak_indicator(text: str) -> bool:
+    normalized = _normalized_signal_text(text)
+    if not normalized:
+        return True
+    if normalized in _WEAK_INDICATOR_EXACT:
+        return True
+    tokens = normalized.split()
+    if 0 < len(tokens) <= 3 and all(token in _WEAK_INDICATOR_TOKENS for token in tokens):
+        return True
+    if _is_period_like_indicator(normalized):
+        return True
+    return False
+
+
+def _looks_narrative_indicator(text: str) -> bool:
+    normalized = _normalized_signal_text(text)
+    if not normalized:
+        return False
+    if any(phrase in normalized for phrase in _NARRATIVE_INDICATOR_PHRASES):
+        return True
+    if normalized.endswith("."):
+        return True
+    tokens = normalized.split()
+    return len(tokens) >= 6 and any(
+        phrase in normalized
+        for phrase in (" la ", " le ", " les ", " des ", " du ", " au ", " aux ")
+    )
+
+
+def _viable_indicator_count(result: VisionFullResult | None) -> int:
+    if result is None:
+        return 0
+    count = 0
+    for raw in list(result.indicators or []):
+        text = str(raw or "").strip()
+        if not text:
+            continue
+        if _is_generic_page_title(text):
+            continue
+        if not any(char.isalpha() for char in text):
+            continue
+        if _is_weak_indicator(text):
+            continue
+        if _looks_narrative_indicator(text):
+            continue
+        count += 1
+    return count
+
+
+def _weak_indicator_count(result: VisionFullResult | None) -> int:
+    if result is None:
+        return 0
+    return sum(
+        1
+        for raw in list(result.indicators or [])
+        if str(raw or "").strip() and _is_weak_indicator(str(raw or "").strip())
+    )
+
+
+def _narrative_indicator_count(result: VisionFullResult | None) -> int:
+    if result is None:
+        return 0
+    return sum(
+        1
+        for raw in list(result.indicators or [])
+        if str(raw or "").strip()
+        and _looks_narrative_indicator(str(raw or "").strip())
+    )
+
+
+def _contamination_score(result: VisionFullResult | None) -> int:
+    if result is None:
+        return 99
+    title = str(result.table_title or "").strip()
+    score = 0
+    if title and _is_generic_page_title(title):
+        score += 2
+    score += _weak_indicator_count(result)
+    score += 2 * _narrative_indicator_count(result)
+    return score
+
+
+def _has_dominant_contamination(result: VisionFullResult | None) -> bool:
+    if result is None:
+        return True
+    viable_count = _viable_indicator_count(result)
+    score = _contamination_score(result)
+    return viable_count <= 0 or score >= (viable_count + 1)
+
+
+def _has_generic_title_without_support(result: VisionFullResult | None) -> bool:
+    if result is None:
+        return True
+    title = str(result.table_title or "").strip()
+    if not title or not _is_generic_page_title(title):
+        return False
+    headers = [str(v).strip() for v in list(result.headers or []) if str(v).strip()]
+    footnotes = [
+        item
+        for item in list(result.footnotes_content or [])
+        if isinstance(item, dict)
+        and (
+            str(item.get("id") or "").strip() or str(item.get("text") or "").strip()
+        )
+    ]
+    return len(headers) < 2 and not footnotes
+
+
+def _has_strong_non_summary_signals(result: VisionFullResult | None) -> bool:
+    if result is None:
+        return False
+    if _has_dominant_contamination(result):
+        return False
+    viable_indicators = _viable_indicator_count(result)
+    headers = [str(v).strip() for v in list(result.headers or []) if str(v).strip()]
+    footnotes = [
+        item
+        for item in list(result.footnotes_content or [])
+        if isinstance(item, dict)
+        and (
+            str(item.get("id") or "").strip() or str(item.get("text") or "").strip()
+        )
+    ]
+    title = str(result.table_title or "").strip()
+    if viable_indicators >= 3:
+        return True
+    if viable_indicators >= 2 and (
+        headers or footnotes or (title and not _is_generic_page_title(title))
+    ):
+        return True
+    if viable_indicators >= 1 and len(headers) >= 2 and bool(footnotes):
+        return True
+    return False
+
+
+def _is_viable_result(result: VisionFullResult | None) -> bool:
+    if result is None:
+        return False
+    if result.no_table_detected:
+        return False
+    return _viable_indicator_count(result) > 0 and not _has_dominant_contamination(result)
+
+
+def _collect_incompleteness_reasons(
+    result: VisionFullResult | None,
+    *,
+    bbox_norm: list[float] | None = None,
+    expected_footnote_ids: set[str] | None = None,
+) -> list[str]:
+    if result is None:
+        return ["missing_result"]
+    reasons: list[str] = []
+    expected_ids = expected_footnote_ids or set()
+    title = str(result.table_title or "").strip()
+    summary = str(result.table_summary or "").strip()
+    if "output_budget_truncated" in set(result.retry_reasons or []):
+        reasons.append("output_budget_truncated")
+    if _viable_indicator_count(result) == 0:
+        reasons.append("no_viable_indicators")
+    if not summary:
+        reasons.append("missing_table_summary")
+    if title and _is_generic_page_title(title):
+        reasons.append("generic_page_title")
+    if _has_generic_title_without_support(result):
+        reasons.append("generic_title_without_support")
+        reasons.append("dominant_contamination")
+    if _narrative_indicator_count(result) > 0:
+        reasons.append("narrative_indicator_contamination")
+    if _weak_indicator_count(result) > 0 and _viable_indicator_count(result) == 0:
+        reasons.append("weak_indicator_only")
+    if _has_dominant_contamination(result):
+        reasons.append("dominant_contamination")
+    if (
+        bbox_norm
+        and len(bbox_norm) >= 4
+        and bbox_norm[1] < 0.15
+        and not title
+    ):
+        reasons.append("top_context_missing_title")
+    if (
+        bbox_norm
+        and len(bbox_norm) >= 4
+        and bbox_norm[3] < 0.92
+        and expected_ids
+    ):
+        found_ids = {
+            str(item.get("id") or "").strip()
+            for item in list(result.footnotes_content or [])
+            if isinstance(item, dict) and str(item.get("id") or "").strip()
+        }
+        if not (found_ids & expected_ids):
+            reasons.append("missing_expected_footnotes")
+    return reasons
+
+
+def _candidate_quality_score(
+    result: VisionFullResult | None,
+    *,
+    bbox_norm: list[float] | None = None,
+    expected_footnote_ids: set[str] | None = None,
+) -> tuple[int, int, int, int, int, int, int]:
+    if result is None:
+        return (0, 0, 0, 0, 0, 0, 0)
+    viable_indicators = _viable_indicator_count(result)
+    headers = [str(v).strip() for v in list(result.headers or []) if str(v).strip()]
+    title = str(result.table_title or "").strip()
+    summary = str(result.table_summary or "").strip()
+    found_footnotes = {
+        str(item.get("id") or "").strip()
+        for item in list(result.footnotes_content or [])
+        if isinstance(item, dict) and str(item.get("id") or "").strip()
+    }
+    expected_ids = expected_footnote_ids or set()
+    return (
+        1 if _is_viable_result(result) else 0,
+        -_contamination_score(result),
+        1 if summary else 0,
+        viable_indicators,
+        len(found_footnotes & expected_ids),
+        len(headers),
+        0 if _is_generic_page_title(title) else (1 if title else 0),
+    )
+
+
+def _finalize_selected_candidate(
+    selected: VisionFullResult,
+    *,
+    best_name: str,
+    initial_rejection_reasons: list[str],
+    no_table_evidence_count: int,
+    bbox_norm: list[float] | None = None,
+    expected_footnote_ids: set[str] | None = None,
+) -> VisionFullResult | None:
+    selected_rejection_reasons = _collect_incompleteness_reasons(
+        selected,
+        bbox_norm=bbox_norm,
+        expected_footnote_ids=expected_footnote_ids,
+    )
+    combined_rejection_reasons = list(
+        dict.fromkeys(initial_rejection_reasons + selected_rejection_reasons)
+    )
+    summary_present = bool(str(selected.table_summary or "").strip())
+    contamination_is_low = not _has_dominant_contamination(selected)
+    viable_count = _viable_indicator_count(selected)
+    headers = [str(v).strip() for v in list(selected.headers or []) if str(v).strip()]
+    footnotes = [
+        item
+        for item in list(selected.footnotes_content or [])
+        if isinstance(item, dict)
+        and (
+            str(item.get("id") or "").strip() or str(item.get("text") or "").strip()
+        )
+    ]
+    if _has_generic_title_without_support(selected):
+        combined_rejection_reasons = list(
+            dict.fromkeys(
+                combined_rejection_reasons
+                + ["generic_title_without_support", "dominant_contamination"]
+            )
+        )
+        contamination_is_low = False
+
+    if summary_present and contamination_is_low and viable_count > 0:
+        acceptance_reason = (
+            "initial_complete"
+            if best_name == "initial" and not initial_rejection_reasons
+            else "rescued_summary_recovered"
+        )
+        return _build_result_debug_metadata(
+            selected,
+            acceptance_reason=acceptance_reason,
+            rejection_reasons=combined_rejection_reasons,
+            selected_candidate_name=best_name,
+            no_table_evidence_count=no_table_evidence_count,
+            bbox_norm=bbox_norm,
+            expected_footnote_ids=expected_footnote_ids,
+        )
+
+    if (
+        not summary_present
+        and contamination_is_low
+        and viable_count >= 3
+        and (len(headers) >= 2 or bool(footnotes))
+        and _has_strong_non_summary_signals(selected)
+    ):
+        return _build_result_debug_metadata(
+            replace(selected, extraction_status="rescued"),
+            acceptance_reason="rescued_without_summary_strong_structure",
+            rejection_reasons=combined_rejection_reasons,
+            selected_candidate_name=best_name,
+            no_table_evidence_count=no_table_evidence_count,
+            bbox_norm=bbox_norm,
+            expected_footnote_ids=expected_footnote_ids,
+        )
+    return None
+
+
+def _build_result_debug_metadata(
+    result: VisionFullResult,
+    *,
+    acceptance_reason: str,
+    rejection_reasons: list[str],
+    selected_candidate_name: str,
+    no_table_evidence_count: int,
+    bbox_norm: list[float] | None = None,
+    expected_footnote_ids: set[str] | None = None,
+) -> VisionFullResult:
+    quality_rank = list(
+        _candidate_quality_score(
+            result,
+            bbox_norm=bbox_norm,
+            expected_footnote_ids=expected_footnote_ids,
+        )
+    )
+    return replace(
+        result,
+        acceptance_reason=acceptance_reason,
+        rejection_reasons=list(dict.fromkeys(rejection_reasons)),
+        selected_candidate_name=selected_candidate_name,
+        no_table_evidence_count=max(0, int(no_table_evidence_count)),
+        summary_present=bool(str(result.table_summary or "").strip()),
+        indicator_count=len(
+            [str(v).strip() for v in list(result.indicators or []) if str(v).strip()]
+        ),
+        candidate_quality_rank=quality_rank,
+    )
+
+
+def _cache_payload_from_result(result: VisionFullResult) -> dict[str, Any]:
+    return {
+        "table_title": result.table_title,
+        "table_summary": result.table_summary,
+        "headers": result.headers,
+        "indicators": result.indicators,
+        "footnotes_content": result.footnotes_content,
+        "no_table_detected": result.no_table_detected,
+        "vision_status": result.vision_status,
+        "warnings": result.warnings,
+        "retry_reasons": result.retry_reasons,
+        "requested_max_completion_tokens": result.requested_max_completion_tokens,
+        "finish_reason": result.finish_reason,
+        "prompt_tokens": result.prompt_tokens,
+        "completion_tokens": result.completion_tokens,
+        "total_tokens": result.total_tokens,
+        "rescue_used": result.rescue_used,
+        "extraction_status": result.extraction_status,
+        "acceptance_reason": result.acceptance_reason,
+        "rejection_reasons": result.rejection_reasons,
+        "selected_candidate_name": result.selected_candidate_name,
+        "no_table_evidence_count": result.no_table_evidence_count,
+        "summary_present": result.summary_present,
+        "indicator_count": result.indicator_count,
+        "candidate_quality_rank": result.candidate_quality_rank,
+    }
 
 
 class VisionFullExtractor:
     """
     Extract indicators + footnotes from a table crop image via OpenAI Vision.
 
-    One call per table minimum. Supports:
-    - Retry on invalid JSON (with fix prompt)
-    - Multi-pass: re-crop with bottom_extension if confidence < 0.85 or indicators empty
-    - Cache via vision_cache (pdf_sha + page + bbox)
+    One call per table minimum. Supports retry on invalid JSON, deterministic recrop,
+    and cache via vision_cache (pdf_sha + page + bbox).
     """
 
     def __init__(
@@ -1084,6 +1432,7 @@ class VisionFullExtractor:
         bottom_extension_used: float = 0.0,
         reference_text: str | None = None,
         max_completion_tokens_override: int | None = None,
+        rescue_mode: bool = False,
     ) -> VisionFullResult | None:
         """
         Extract indicators and footnotes from a table crop.
@@ -1126,6 +1475,7 @@ class VisionFullExtractor:
 
         if (
             self._use_cache
+            and not rescue_mode
             and pdf_sha
             and page_number
             and bbox_norm
@@ -1146,29 +1496,27 @@ class VisionFullExtractor:
                 if cached:
                     indicators = cached.get("indicators")
                     fn_content_raw = cached.get("footnotes_content", [])
-                    fn_markers = cached.get("footnote_markers", [])
-                    confidence = float(cached.get("confidence", 0.0))
-                    appears_truncated = bool(cached.get("appears_truncated", False))
-                    estimated_content_height = cached.get("estimated_content_height")
-                    # Migration shim: legacy cache stores indicators as list[str],
-                    # new format is list[dict] with {text, bbox}.
+                    retry_reasons = [
+                        str(value).strip()
+                        for value in list(cached.get("retry_reasons", []) or [])
+                        if str(value).strip()
+                    ]
                     if isinstance(indicators, list):
-                        migrated_indicators: list[dict[str, Any]] = []
+                        migrated_indicators: list[str] = []
                         for item in indicators:
                             if isinstance(item, str) and item.strip():
-                                migrated_indicators.append(
-                                    {"text": item.strip(), "bbox": None}
-                                )
+                                migrated_indicators.append(item.strip())
                             elif isinstance(item, dict) and item.get("text"):
-                                migrated_indicators.append(item)
+                                migrated_indicators.append(
+                                    str(item.get("text") or "").strip()
+                                )
                         indicators = migrated_indicators
                     else:
                         indicators = None
                     if isinstance(indicators, list):
-                        # Migration shim: legacy cache may store footnotes as dict.
                         if isinstance(fn_content_raw, dict):
                             fn_content: list[dict[str, str]] = [
-                                {"marker": str(k), "text": str(v)}
+                                {"id": str(k), "text": str(v)}
                                 for k, v in fn_content_raw.items()
                                 if str(k).strip() and str(v).strip()
                             ]
@@ -1177,47 +1525,35 @@ class VisionFullExtractor:
                                 item
                                 for item in fn_content_raw
                                 if isinstance(item, dict)
-                                and (item.get("marker") or item.get("id"))
+                                and (item.get("id") or item.get("marker"))
                                 and item.get("text")
                             ]
-                            # Normalize legacy {id,text} -> {marker,text}
                             fn_content = [
                                 {
-                                    "marker": str(
-                                        item.get("marker") or item.get("id", "")
-                                    ).strip(),
+                                    "id": str(item.get("id") or item.get("marker") or "").strip(),
                                     "text": str(item.get("text", "")).strip(),
                                 }
                                 for item in fn_content
                             ]
                         else:
                             fn_content = []
-                        if isinstance(fn_markers, list):
-                            fn_markers = [str(x) for x in fn_markers]
-                        else:
-                            fn_markers = []
                         logger.info(
-                            "VisionFull cache hit: %d indicators, conf=%.2f",
+                            "VisionFull cache hit: %d indicators",
                             len(indicators),
-                            confidence,
                         )
                         return VisionFullResult(
                             table_title=str(cached.get("table_title") or ""),
+                            table_summary=str(cached.get("table_summary") or ""),
                             headers=list(cached.get("headers") or []),
                             indicators=indicators,
-                            rows=list(cached.get("rows") or []),
                             footnotes_content=fn_content,
-                            footnote_markers=fn_markers,
-                            confidence=max(0.0, min(1.0, confidence)),
-                            extraction_method=_EXTRACTION_METHOD,
-                            appears_truncated=appears_truncated,
-                            estimated_content_height=(
-                                int(estimated_content_height)
-                                if estimated_content_height is not None
-                                else None
+                            no_table_detected=bool(
+                                cached.get("no_table_detected", False)
                             ),
+                            extraction_method=_EXTRACTION_METHOD,
                             vision_status=str(cached.get("vision_status") or "ok"),
                             warnings=list(cached.get("warnings") or []),
+                            retry_reasons=retry_reasons,
                             requested_max_completion_tokens=(
                                 int(cached.get("requested_max_completion_tokens"))
                                 if cached.get("requested_max_completion_tokens")
@@ -1245,6 +1581,35 @@ class VisionFullExtractor:
                                 else None
                             ),
                             rescue_used=bool(cached.get("rescue_used", False)),
+                            extraction_status=str(
+                                cached.get("extraction_status") or "ok"
+                            ).strip()
+                            or "ok",
+                            acceptance_reason=(
+                                str(cached.get("acceptance_reason")).strip()
+                                if cached.get("acceptance_reason") is not None
+                                else None
+                            ),
+                            rejection_reasons=[
+                                str(value).strip()
+                                for value in list(cached.get("rejection_reasons", []) or [])
+                                if str(value).strip()
+                            ],
+                            selected_candidate_name=(
+                                str(cached.get("selected_candidate_name")).strip()
+                                if cached.get("selected_candidate_name") is not None
+                                else None
+                            ),
+                            no_table_evidence_count=int(
+                                cached.get("no_table_evidence_count") or 0
+                            ),
+                            summary_present=bool(cached.get("summary_present", False)),
+                            indicator_count=int(cached.get("indicator_count") or 0),
+                            candidate_quality_rank=[
+                                int(value)
+                                for value in list(cached.get("candidate_quality_rank", []) or [])
+                                if isinstance(value, (int, float))
+                            ],
                         )
 
         try:
@@ -1274,7 +1639,12 @@ class VisionFullExtractor:
             logger.debug("Vision preprocessing failed, using raw: %s", e)
             image_b64 = base64.standard_b64encode(crop_bytes).decode("ascii")
 
-        prompt = _build_prompt(bank_code, vision_cfg, reference_text=reference_text)
+        prompt = _build_prompt(
+            bank_code,
+            vision_cfg,
+            reference_text=reference_text,
+            rescue_mode=rescue_mode,
+        )
         max_completion_tokens = configured_max_completion_tokens
         openai_schema_full = _build_openai_json_schema()
         self._ensure_schema_validated(openai_schema_full)
@@ -1355,10 +1725,9 @@ class VisionFullExtractor:
                         )
                         effective_max = _MAX_COMPLETION_TOKENS_SAFE_FALLBACK
                         continue
-                    if (
-                        local_use_structured
-                        and err_kind
-                        in ("structured_output_unsupported", "request_body_invalid")
+                    if local_use_structured and err_kind in (
+                        "structured_output_unsupported",
+                        "request_body_invalid",
                     ):
                         logger.debug(
                             "Structured Outputs unavailable for %s, falling back to json_object: %s",
@@ -1483,25 +1852,7 @@ class VisionFullExtractor:
                                     cache_put(
                                         cache_dir,
                                         cache_key,
-                                        {
-                                            "table_title": result.table_title,
-                                            "headers": result.headers,
-                                            "indicators": result.indicators,
-                                            "rows": result.rows,
-                                            "footnotes_content": result.footnotes_content,
-                                            "footnote_markers": result.footnote_markers,
-                                            "confidence": result.confidence,
-                                            "appears_truncated": result.appears_truncated,
-                                            "estimated_content_height": result.estimated_content_height,
-                                            "vision_status": result.vision_status,
-                                            "warnings": result.warnings,
-                                            "requested_max_completion_tokens": result.requested_max_completion_tokens,
-                                            "finish_reason": result.finish_reason,
-                                            "prompt_tokens": result.prompt_tokens,
-                                            "completion_tokens": result.completion_tokens,
-                                            "total_tokens": result.total_tokens,
-                                            "rescue_used": result.rescue_used,
-                                        },
+                                        _cache_payload_from_result(result),
                                     )
                                 return result
             logger.warning(
@@ -1566,25 +1917,7 @@ class VisionFullExtractor:
                                     cache_put(
                                         cache_dir,
                                         cache_key,
-                                        {
-                                            "table_title": result.table_title,
-                                            "headers": result.headers,
-                                            "indicators": result.indicators,
-                                            "rows": result.rows,
-                                            "footnotes_content": result.footnotes_content,
-                                            "footnote_markers": result.footnote_markers,
-                                            "confidence": result.confidence,
-                                            "appears_truncated": result.appears_truncated,
-                                            "estimated_content_height": result.estimated_content_height,
-                                            "vision_status": result.vision_status,
-                                            "warnings": result.warnings,
-                                            "requested_max_completion_tokens": result.requested_max_completion_tokens,
-                                            "finish_reason": result.finish_reason,
-                                            "prompt_tokens": result.prompt_tokens,
-                                            "completion_tokens": result.completion_tokens,
-                                            "total_tokens": result.total_tokens,
-                                            "rescue_used": result.rescue_used,
-                                        },
+                                        _cache_payload_from_result(result),
                                     )
                                 return result
             logger.warning(
@@ -1595,9 +1928,16 @@ class VisionFullExtractor:
 
         if used_structured is False:
             failure_causes.append("vision_structured_output_fallback")
-        if result.appears_truncated or failure_causes:
+        retry_reasons = list(result.retry_reasons or [])
+        if "vision_truncated" in failure_causes and "output_budget_truncated" not in retry_reasons:
+            retry_reasons.append("output_budget_truncated")
+        if retry_reasons or failure_causes:
             result = replace(result, vision_status="partial")
-        result = replace(result, warnings=list(dict.fromkeys(failure_causes)))
+        result = replace(
+            result,
+            warnings=list(dict.fromkeys(failure_causes)),
+            retry_reasons=list(dict.fromkeys(retry_reasons)),
+        )
         result = _with_attempt_metadata(
             result,
             requested_max_completion_tokens=effective_max_completion_tokens,
@@ -1612,25 +1952,7 @@ class VisionFullExtractor:
             cache_put(
                 cache_dir,
                 cache_key,
-                {
-                    "table_title": result.table_title,
-                    "headers": result.headers,
-                    "indicators": result.indicators,
-                    "rows": result.rows,
-                    "footnotes_content": result.footnotes_content,
-                    "footnote_markers": result.footnote_markers,
-                    "confidence": result.confidence,
-                    "appears_truncated": result.appears_truncated,
-                    "estimated_content_height": result.estimated_content_height,
-                    "vision_status": result.vision_status,
-                    "warnings": result.warnings,
-                    "requested_max_completion_tokens": result.requested_max_completion_tokens,
-                    "finish_reason": result.finish_reason,
-                    "prompt_tokens": result.prompt_tokens,
-                    "completion_tokens": result.completion_tokens,
-                    "total_tokens": result.total_tokens,
-                    "rescue_used": result.rescue_used,
-                },
+                _cache_payload_from_result(result),
             )
         return result
 
@@ -1644,6 +1966,7 @@ class VisionFullExtractor:
         vision_cfg: dict[str, Any] | None = None,
         initial_bottom_extension: float = 0.0,
         get_recrop_fn: Any = None,
+        get_variant_crop_fn: Any = None,
         reference_text: str | None = None,
     ) -> VisionFullResult | None:
         """
@@ -1694,52 +2017,28 @@ class VisionFullExtractor:
             ),
         )
 
-        def _indicator_count(r: VisionFullResult) -> int:
-            return len(r.indicators) if r.indicators else 0
-
-        def _row_count(r: VisionFullResult) -> int:
-            return len(r.rows) if r.rows else 0
+        def _footnote_ids(r: VisionFullResult) -> set[str]:
+            return {
+                str(item.get("id") or "").strip()
+                for item in list(r.footnotes_content or [])
+                if isinstance(item, dict) and str(item.get("id") or "").strip()
+            }
 
         def _needs_recrop(result: VisionFullResult | None) -> bool:
-            if result is None:
-                return True
-            if result.appears_truncated:
-                return True
-            if result.confidence < _CONFIDENCE_RETRY_THRESHOLD:
-                return True
-            if not result.indicators:
-                return True
-            if expected_set and result.footnote_markers:
-                found = {str(m).strip() for m in result.footnote_markers}
-                if not (found & expected_set) and len(found) < len(expected_set):
-                    return True
-            # Completeness: indicators present but rows nearly empty
-            n_ind = _indicator_count(result)
-            n_row = _row_count(result)
-            if n_ind >= 5 and n_row < max(1, int(0.3 * n_ind)):
-                return True
-            # Suspicious indicator/row mismatch (many indicators, few rows, non-empty)
-            if n_ind >= 8 and 0 < n_row < n_ind // 2:
-                return True
-            # Missing title when crop is near page top (bbox_norm top < 0.15)
-            if (
-                bbox_norm
-                and len(bbox_norm) >= 2
-                and bbox_norm[1] < 0.15
-                and not (result.table_title or "").strip()
-            ):
-                return True
-            # Suspiciously small output: many indicators but very few data rows
-            if n_ind >= 10 and n_row <= 1:
-                return True
-            return False
+            return bool(
+                _collect_incompleteness_reasons(
+                    result,
+                    bbox_norm=bbox_norm,
+                    expected_footnote_ids=expected_set,
+                )
+            )
 
         def _has_truncation_signal(result: VisionFullResult | None) -> bool:
             if result is None:
                 return False
             if str(result.finish_reason or "").strip().lower() == "length":
                 return True
-            if result.appears_truncated:
+            if "output_budget_truncated" in set(result.retry_reasons or []):
                 return True
             return "vision_truncated" in {str(w).strip() for w in result.warnings or []}
 
@@ -1747,6 +2046,7 @@ class VisionFullExtractor:
             *,
             crop_bytes_for_pass: bytes,
             bottom_extension_used: float,
+            rescue_mode: bool = False,
         ) -> VisionFullResult | None:
             primary = self.extract(
                 crop_bytes=crop_bytes_for_pass,
@@ -1758,6 +2058,7 @@ class VisionFullExtractor:
                 bottom_extension_used=bottom_extension_used,
                 reference_text=reference_text,
                 max_completion_tokens_override=base_max_completion_tokens,
+                rescue_mode=rescue_mode,
             )
             if (
                 rescue_enabled
@@ -1774,6 +2075,7 @@ class VisionFullExtractor:
                     bottom_extension_used=bottom_extension_used,
                     reference_text=reference_text,
                     max_completion_tokens_override=rescue_max_completion_tokens,
+                    rescue_mode=rescue_mode,
                 )
                 if rescue is not None:
                     return replace(rescue, rescue_used=True)
@@ -1784,78 +2086,211 @@ class VisionFullExtractor:
             bottom_extension_used=initial_bottom_extension,
         )
 
-        if not _needs_recrop(first):
-            return first
-
-        if get_recrop_fn is None:
-            return first
-
-        recrop_ext = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
-        recrop_bytes = get_recrop_fn(recrop_ext)
-        if not recrop_bytes:
-            # Recrop failed; if first pass was incomplete, mark it
-            first_incomplete = _needs_recrop(first)
-            if first_incomplete and first is not None:
-                return replace(
-                    first,
-                    recrop_attempted=True,
-                    recrop_used=False,
-                    recrop_failed_incomplete=True,
-                )
-            return first
-
-        second = _run_pass(
-            crop_bytes_for_pass=recrop_bytes,
-            bottom_extension_used=recrop_ext,
+        initial_is_suspect = _is_trivial_result(first, bbox_norm=bbox_norm)
+        initial_rejection_reasons = _collect_incompleteness_reasons(
+            first,
+            bbox_norm=bbox_norm,
+            expected_footnote_ids=expected_set,
         )
-
-        if second is None:
-            out = first
-            if first is not None:
-                out = replace(
-                    first,
-                    recrop_attempted=True,
-                    recrop_used=False,
-                    recrop_failed_incomplete=_needs_recrop(first),
-                )
-            return out
-        if first is None:
-            return replace(
-                second,
-                recrop_attempted=True,
-                recrop_used=True,
-                recrop_failed_incomplete=False,
+        if not initial_is_suspect and not initial_rejection_reasons:
+            assert first is not None
+            return _build_result_debug_metadata(
+                replace(first, extraction_status="ok"),
+                acceptance_reason="initial_complete",
+                rejection_reasons=[],
+                selected_candidate_name="initial",
+                no_table_evidence_count=0,
+                bbox_norm=bbox_norm,
+                expected_footnote_ids=expected_set,
             )
 
-        def _completeness(r: VisionFullResult) -> float:
-            c = 0.0
-            n_ind = _indicator_count(r)
-            n_row = _row_count(r)
-            if n_ind > 0 and n_row > 0:
-                ratio = n_row / n_ind
-                c += 0.2 * min(1.0, ratio)  # row/indicator balance
-            if (r.table_title or "").strip():
-                c += 0.15
-            if not r.appears_truncated:
-                c += 0.15
-            if r.indicators:
-                c += 0.1 * min(1.0, len(r.indicators) / 20.0)
-            return c
+        candidates: list[tuple[str, VisionFullResult | None]] = [("initial", first)]
+        no_table_evidence = 0
+        if first is not None and first.no_table_detected and _is_trivial_result(
+            first, bbox_norm=bbox_norm
+        ):
+            no_table_evidence += 1
 
-        def _score(r: VisionFullResult) -> float:
-            s = r.confidence
-            s += _completeness(r)
-            if r.indicators:
-                s += 0.05 * min(1.0, len(r.indicators) / 20.0)
-            if expected_set and r.footnote_markers:
-                found = {str(m).strip() for m in r.footnote_markers}
-                s += 0.1 * (len(found & expected_set) / max(1, len(expected_set)))
-            return s
+        same_crop_rescue = _run_pass(
+            crop_bytes_for_pass=crop_bytes,
+            bottom_extension_used=initial_bottom_extension,
+            rescue_mode=True,
+        )
+        candidates.append(("same_crop_rescue", same_crop_rescue))
+        if same_crop_rescue is not None and same_crop_rescue.no_table_detected and _is_trivial_result(
+            same_crop_rescue, bbox_norm=bbox_norm
+        ):
+            no_table_evidence += 1
 
-        chosen = second if _score(second) >= _score(first) else first
-        return replace(
-            chosen,
-            recrop_attempted=True,
-            recrop_used=(chosen is second),
-            recrop_failed_incomplete=False,
+        def _append_candidate(
+            name: str,
+            crop_bytes_for_pass: bytes | None,
+            *,
+            bottom_extension_used: float,
+            candidate_bbox: list[float] | None = None,
+        ) -> None:
+            nonlocal no_table_evidence
+            if not crop_bytes_for_pass:
+                return
+            result = _run_pass(
+                crop_bytes_for_pass=crop_bytes_for_pass,
+                bottom_extension_used=bottom_extension_used,
+                rescue_mode=True,
+            )
+            candidates.append((name, result))
+            if result is not None and result.no_table_detected and _is_trivial_result(
+                result, bbox_norm=candidate_bbox or bbox_norm
+            ):
+                no_table_evidence += 1
+
+        if get_variant_crop_fn is not None and bbox_norm and len(bbox_norm) >= 4:
+            left, top, right, bottom = [float(v) for v in bbox_norm[:4]]
+            height = max(0.0, bottom - top)
+            width = max(0.0, right - left)
+
+            top_trim_bbox = [
+                left,
+                min(bottom, top + min(height * 0.12, 0.06)),
+                right,
+                bottom,
+            ]
+            _append_candidate(
+                "top_trim",
+                get_variant_crop_fn(
+                    bbox_override=top_trim_bbox,
+                    bottom_extension=initial_bottom_extension,
+                ),
+                bottom_extension_used=initial_bottom_extension,
+                candidate_bbox=top_trim_bbox,
+            )
+
+            recrop_ext = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
+            _append_candidate(
+                "bottom_extended",
+                get_variant_crop_fn(bottom_extension=recrop_ext),
+                bottom_extension_used=recrop_ext,
+            )
+
+            tight_bbox = [
+                max(0.0, left + min(width * 0.015, 0.01)),
+                min(bottom, top + min(height * 0.08, 0.04)),
+                min(1.0, right - min(width * 0.015, 0.01)),
+                bottom,
+            ]
+            if tight_bbox[2] > tight_bbox[0] and tight_bbox[3] > tight_bbox[1]:
+                _append_candidate(
+                    "tight_body",
+                    get_variant_crop_fn(
+                        bbox_override=tight_bbox,
+                        bottom_extension=max(0.0, initial_bottom_extension * 0.5),
+                    ),
+                    bottom_extension_used=max(0.0, initial_bottom_extension * 0.5),
+                    candidate_bbox=tight_bbox,
+                )
+        elif get_recrop_fn is not None:
+            recrop_ext = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
+            _append_candidate(
+                "bottom_extended",
+                get_recrop_fn(recrop_ext),
+                bottom_extension_used=recrop_ext,
+            )
+
+        usable_candidates = [
+            item
+            for item in candidates
+            if item[1] is not None and _is_viable_result(item[1])
+        ]
+        if usable_candidates:
+            best_name, best_result = max(
+                usable_candidates,
+                key=lambda item: _candidate_quality_score(
+                    item[1],
+                    bbox_norm=bbox_norm,
+                    expected_footnote_ids=expected_set,
+                ),
+            )
+            assert best_result is not None
+            final_status = (
+                "ok"
+                if best_name == "initial" and not initial_rejection_reasons
+                else "rescued"
+            )
+            selected = replace(
+                best_result,
+                rescue_used=best_name != "initial" or best_result.rescue_used,
+                recrop_attempted=len(candidates) > 1,
+                recrop_used=best_name != "initial",
+                recrop_failed_incomplete=False,
+                extraction_status=final_status,
+            )
+            finalized = _finalize_selected_candidate(
+                selected,
+                best_name=best_name,
+                initial_rejection_reasons=initial_rejection_reasons,
+                no_table_evidence_count=no_table_evidence,
+                bbox_norm=bbox_norm,
+                expected_footnote_ids=expected_set,
+            )
+            if finalized is not None:
+                return finalized
+
+        if no_table_evidence >= 2:
+            fallback = same_crop_rescue or first or VisionFullResult(
+                table_title="",
+                table_summary="",
+                headers=[],
+                indicators=[],
+                footnotes_content=[],
+                no_table_detected=True,
+            )
+            return _build_result_debug_metadata(
+                replace(
+                    fallback,
+                    no_table_detected=True,
+                    recrop_attempted=len(candidates) > 1,
+                    recrop_used=False,
+                    recrop_failed_incomplete=False,
+                    extraction_status="confirmed_no_table",
+                ),
+                acceptance_reason="confirmed_no_table_after_repeated_no_table_evidence",
+                rejection_reasons=initial_rejection_reasons or ["no_table_evidence"],
+                selected_candidate_name="same_crop_rescue" if same_crop_rescue else "initial",
+                no_table_evidence_count=no_table_evidence,
+                bbox_norm=bbox_norm,
+                expected_footnote_ids=expected_set,
+            )
+
+        fallback = same_crop_rescue or first
+        if fallback is None:
+            fallback = VisionFullResult(
+                table_title="",
+                table_summary="",
+                headers=[],
+                indicators=[],
+                footnotes_content=[],
+            )
+        fallback_rejection_reasons = list(
+            dict.fromkeys(
+                initial_rejection_reasons
+                + _collect_incompleteness_reasons(
+                    fallback,
+                    bbox_norm=bbox_norm,
+                    expected_footnote_ids=expected_set,
+                )
+            )
+        )
+        return _build_result_debug_metadata(
+            replace(
+                fallback,
+                recrop_attempted=len(candidates) > 1,
+                recrop_used=False,
+                recrop_failed_incomplete=True,
+                extraction_status="suspect_unresolved",
+            ),
+            acceptance_reason="suspect_unresolved_after_rescue_exhaustion",
+            rejection_reasons=fallback_rejection_reasons or ["rescue_exhausted"],
+            selected_candidate_name="same_crop_rescue" if same_crop_rescue else "initial",
+            no_table_evidence_count=no_table_evidence,
+            bbox_norm=bbox_norm,
+            expected_footnote_ids=expected_set,
         )

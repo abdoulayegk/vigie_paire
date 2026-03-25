@@ -314,7 +314,9 @@ def build_proofs_section(
             "Mode focus tableau",
         )
 
-    def _proof_caption(base_label: str, page: int | None, mode_value: str | None) -> str:
+    def _proof_caption(
+        base_label: str, page: int | None, mode_value: str | None
+    ) -> str:
         page_label = f"Page {page}" if page is not None else "Page indisponible"
         return f"{base_label} · {page_label} · {_mode_label(mode_value)}"
 
@@ -636,9 +638,7 @@ def render_table_only_view(
     else:
         page_t1_str = str(page_t1) if page_t1 is not None else "-"
         page_t2_str = str(page_t2) if page_t2 is not None else "-"
-        page_text = (
-            f"Pages: précédent p.{page_t1_str}, courant p.{page_t2_str}"
-        )
+        page_text = f"Pages: précédent p.{page_t1_str}, courant p.{page_t2_str}"
     confidence = item.get("confidence", 0.0)
     review_status = item.get("review_status", REVIEW_STATUS_PENDING)
 
@@ -760,9 +760,7 @@ def render_indicator_diff_view(
     else:
         page_t1_str = str(page_t1) if page_t1 is not None else "-"
         page_t2_str = str(page_t2) if page_t2 is not None else "-"
-        page_text = (
-            f"Pages: précédent p.{page_t1_str}, courant p.{page_t2_str}"
-        )
+        page_text = f"Pages: précédent p.{page_t1_str}, courant p.{page_t2_str}"
     confidence = item.get("confidence", 0.0)
     comment = item.get("comment", "")
     indicators = item.get("indicators", [])
@@ -932,9 +930,7 @@ def render_indicator_diff_view(
                 detail_children.append(
                     html.Div(
                         [
-                            html.Small(
-                                "Précédent: ", className="fw-bold text-danger"
-                            ),
+                            html.Small("Précédent: ", className="fw-bold text-danger"),
                             html.Small(old_text[:300]),
                         ],
                         className="ms-3 mb-1 bg-light p-1 rounded",

@@ -35,7 +35,9 @@ _MODEL_ENV_OVERRIDES: dict[str, str] = {
 }
 
 
-def load_bank_profiles(config_path: str | Path = "configs/bank_profiles.yaml") -> dict[str, Any]:
+def load_bank_profiles(
+    config_path: str | Path = "configs/bank_profiles.yaml",
+) -> dict[str, Any]:
     """Load the bank profiles map from the main YAML config.
 
     Args:

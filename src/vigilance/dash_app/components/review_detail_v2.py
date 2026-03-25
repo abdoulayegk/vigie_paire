@@ -139,7 +139,8 @@ def _is_table_only_view(table: dict) -> bool:
 def _build_fallback_genai_message(table: dict) -> str:
     """Build analyst-friendly fallback when GenAI classification is unavailable."""
     change_types = {
-        str(change.get("change_type", "")) for change in (table.get("changes", []) or [])
+        str(change.get("change_type", ""))
+        for change in (table.get("changes", []) or [])
     }
     match_meta = table.get("match_metadata") or {}
     semantic_judge = (
@@ -150,9 +151,7 @@ def _build_fallback_genai_message(table: dict) -> str:
         final_decision = str(semantic_judge.get("final_decision", "") or "").strip()
         guard_action = str(semantic_judge.get("guard_action", "") or "").strip()
         if final_decision and guard_action:
-            semantic_hint = (
-                f" Controle semantique: {final_decision} ({guard_action})."
-            )
+            semantic_hint = f" Controle semantique: {final_decision} ({guard_action})."
 
     if change_types.intersection({ChangeType.TABLE_REMOVED.value, "table_removed"}):
         return (
@@ -566,71 +565,75 @@ def build_review_detail_v2(
     table_only_view = _is_table_only_view(table)
 
     # Proof images
-    proof_section = html.Div(
-        [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [
-                            html.H6(
-                                [
-                                    html.I(className="bi bi-file-earmark-pdf me-2"),
-                                    "Trimestre courant",
-                                ],
-                                className="mb-2",
-                            ),
-                            html.Img(
-                                src=f"data:image/png;base64,{proof_image_t2_b64}"
+    proof_section = (
+        html.Div(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                html.H6(
+                                    [
+                                        html.I(className="bi bi-file-earmark-pdf me-2"),
+                                        "Trimestre courant",
+                                    ],
+                                    className="mb-2",
+                                ),
+                                html.Img(
+                                    src=f"data:image/png;base64,{proof_image_t2_b64}"
+                                    if proof_image_t2_b64
+                                    else "",
+                                    className="img-fluid border rounded",
+                                    style={
+                                        "maxHeight": "400px",
+                                        "width": "100%",
+                                        "objectFit": "contain",
+                                    },
+                                )
                                 if proof_image_t2_b64
-                                else "",
-                                className="img-fluid border rounded",
-                                style={
-                                    "maxHeight": "400px",
-                                    "width": "100%",
-                                    "objectFit": "contain",
-                                },
-                            )
-                            if proof_image_t2_b64
-                            else html.Div(
-                                "Image non disponible",
-                                className="text-muted p-4 bg-light rounded text-center",
-                            ),
-                        ],
-                        md=6,
-                    ),
-                    dbc.Col(
-                        [
-                            html.H6(
-                                [
-                                    html.I(className="bi bi-file-earmark-pdf me-2"),
-                                    "Trimestre précédent",
-                                ],
-                                className="mb-2",
-                            ),
-                            html.Img(
-                                src=f"data:image/png;base64,{proof_image_t1_b64}"
+                                else html.Div(
+                                    "Image non disponible",
+                                    className="text-muted p-4 bg-light rounded text-center",
+                                ),
+                            ],
+                            md=6,
+                        ),
+                        dbc.Col(
+                            [
+                                html.H6(
+                                    [
+                                        html.I(className="bi bi-file-earmark-pdf me-2"),
+                                        "Trimestre précédent",
+                                    ],
+                                    className="mb-2",
+                                ),
+                                html.Img(
+                                    src=f"data:image/png;base64,{proof_image_t1_b64}"
+                                    if proof_image_t1_b64
+                                    else "",
+                                    className="img-fluid border rounded",
+                                    style={
+                                        "maxHeight": "400px",
+                                        "width": "100%",
+                                        "objectFit": "contain",
+                                    },
+                                )
                                 if proof_image_t1_b64
-                                else "",
-                                className="img-fluid border rounded",
-                                style={
-                                    "maxHeight": "400px",
-                                    "width": "100%",
-                                    "objectFit": "contain",
-                                },
-                            )
-                            if proof_image_t1_b64
-                            else html.Div(
-                                "Image non disponible",
-                                className="text-muted p-4 bg-light rounded text-center",
-                            ),
-                        ],
-                        md=6,
-                    ),
-                ]
-            ),
-        ],
-        className="mb-4",
-    ) if show_proofs else html.Div()
+                                else html.Div(
+                                    "Image non disponible",
+                                    className="text-muted p-4 bg-light rounded text-center",
+                                ),
+                            ],
+                            md=6,
+                        ),
+                    ]
+                ),
+            ],
+            className="mb-4",
+        )
+        if show_proofs
+        else html.Div()
+    )
 
     genai_section = _build_genai_section(table)
 

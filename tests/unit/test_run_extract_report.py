@@ -58,10 +58,11 @@ def test_run_extract_report_writes_compact_artifacts(tmp_path: Path, monkeypatch
         ]
         return [
             SimpleNamespace(
-                table_id="tableau_0",
+                table_id="tbl_p012_i01",
                 page_number=12,
                 section="risk_management",
                 title="Table risque",
+                table_summary="Résumé métier du risque",
                 title_clean=None,
                 headers=["Indicator", "Value"],
                 rows=[["Pertes attendues", "100"]],
@@ -106,11 +107,17 @@ def test_run_extract_report_writes_compact_artifacts(tmp_path: Path, monkeypatch
     indicators_payload = json.loads((out_dir / "indicators.json").read_text(encoding="utf-8"))
     footnotes_payload = json.loads((out_dir / "footnotes.json").read_text(encoding="utf-8"))
 
-    assert tables_payload["tables"][0]["table_id"] == "tableau_0"
-    assert indicators_payload["tables"][0]["table_id"] == "tableau_0"
-    assert footnotes_payload["tables"][0]["table_id"] == "tableau_0"
+    assert tables_payload["tables"][0]["table_id"] == "tbl_p012_i01"
+    assert indicators_payload["tables"][0]["table_id"] == "tbl_p012_i01"
+    assert footnotes_payload["tables"][0]["table_id"] == "tbl_p012_i01"
     assert tables_payload["tables"][0]["section"] == "risk_management"
-    assert indicators_payload["tables"][0]["indicators_normalized"] == ["pertes attendues"]
+    assert tables_payload["tables"][0]["row_count"] == 1
+    assert tables_payload["tables"][0]["table_summary"] == "Résumé métier du risque"
+    assert tables_payload["tables"][0]["indicators"] == ["Pertes attendues"]
+    assert indicators_payload["schema_version"] == 7
+    assert indicators_payload["tables"][0]["section"] == "risk_management"
+    assert indicators_payload["tables"][0]["title"] == "Table risque"
+    assert indicators_payload["tables"][0]["indicators"] == ["Pertes attendues"]
     assert footnotes_payload["tables"][0]["footnotes"] == [
         {"id": "1", "text": "Footnote de test"}
     ]

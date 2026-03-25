@@ -150,7 +150,9 @@ def _classify_rbc_row(row: list[str]) -> tuple[str, str]:
     if not non_empty_values:
         return ("group_label", label)
 
-    value_like_count = sum(1 for cell in non_empty_values if _cell_looks_like_value(cell))
+    value_like_count = sum(
+        1 for cell in non_empty_values if _cell_looks_like_value(cell)
+    )
     if value_like_count == 0:
         return ("group_label", label)
 
@@ -178,7 +180,9 @@ def build_rbc_first_column_signals(
     raw_indicators: list[str] | None,
 ) -> RbcFirstColumnSignals:
     """Split RBC first-column content into true indicators and structural groups."""
-    candidate_rows = [list(row) for row in (rows or []) if isinstance(row, list) and row]
+    candidate_rows = [
+        list(row) for row in (rows or []) if isinstance(row, list) and row
+    ]
     indicator_rows: list[str] = []
     group_rows: list[str] = []
     hierarchical_rows: list[str] = []
@@ -202,7 +206,9 @@ def build_rbc_first_column_signals(
 
     fallback_rows = _fallback_indicator_rows(list(raw_indicators or []))
     use_row_signals = len(indicator_rows) >= max(2, min(3, len(fallback_rows) or 2))
-    final_indicator_raw = _uniq(indicator_rows if use_row_signals or not fallback_rows else fallback_rows)
+    final_indicator_raw = _uniq(
+        indicator_rows if use_row_signals or not fallback_rows else fallback_rows
+    )
 
     if not hierarchical_rows or len(hierarchical_rows) != len(indicator_rows):
         hierarchical_rows = list(indicator_rows)
@@ -230,5 +236,7 @@ def build_rbc_first_column_signals(
         indicators_clean=_uniq(indicators_clean),
         groups_raw=_uniq(group_rows),
         groups_clean=_uniq(groups_clean),
-        hierarchical_indicator_signature=_uniq(_clean_label(label) for label in hierarchical_rows),
+        hierarchical_indicator_signature=_uniq(
+            _clean_label(label) for label in hierarchical_rows
+        ),
     )

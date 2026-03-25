@@ -6,25 +6,59 @@ from pathlib import Path
 import pytest
 
 from vigilance.compare_gpt import (
+    DIFF_PROMPT_VERSION,
+    MATCH_PROMPT_VERSION,
     compare_reports_gpt4o,
     normalize_quarter,
     resolve_reference_period,
 )
-from vigilance.cli.run_compare_gpt4o import main
 
 
-def _write_tables_json(path: Path, *, bank: str, year: int, quarter: str, tables: list[dict]) -> None:
+def _table(
+    *,
+    table_id: str,
+    page: int,
+    section: str,
+    title: str,
+    table_summary: str,
+    headers: list[str],
+    indicators: list[str],
+    footnotes: list[dict[str, str]] | None = None,
+    bbox: list[float] | None = None,
+    extraction_status: str = "ok",
+) -> dict:
+    return {
+        "table_id": table_id,
+        "page": page,
+        "section": section,
+        "title": title,
+        "table_summary": table_summary,
+        "bbox": bbox,
+        "row_count": len(indicators),
+        "headers": headers,
+        "indicators": indicators,
+        "footnotes": footnotes or [],
+        "extraction_status": extraction_status,
+    }
+
+
+def _write_tables_json(
+    path: Path,
+    *,
+    bank: str,
+    year: int,
+    quarter: str,
+    tables: list[dict],
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(
             {
-                "schema_version": 3,
+                "schema_version": 7,
                 "bank_code": bank,
                 "year": year,
                 "quarter": quarter,
-                "created_at": "2026-03-22T10:00:00",
-                "model_version": "gpt-4o",
-                "prompt_version": "extract_v1",
+                "created_at": "2026-03-24T10:00:00",
                 "tables": tables,
             },
             ensure_ascii=False,
@@ -34,7 +68,13 @@ def _write_tables_json(path: Path, *, bank: str, year: int, quarter: str, tables
     )
 
 
-def test_compare_reports_gpt4o_writes_comparison_json(
+def test_normalize_quarter_and_reference_period() -> None:
+    assert normalize_quarter("Q2") == "t2"
+    assert resolve_reference_period(2026, "t2") == (2026, "t1")
+    assert resolve_reference_period(2026, "t1") == (2025, "t3")
+
+
+def test_compare_reports_gpt4o_uses_canonical_prompt_cards_and_gpt_diff(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
@@ -46,28 +86,25 @@ def test_compare_reports_gpt4o_writes_comparison_json(
         year=2025,
         quarter="t1",
         tables=[
-            {
-                "table_id": "prev_1",
-                "page": 10,
-                "section": "capital_management",
-                "title": "Capital",
-                "headers": ["Indicateur", "Valeur"],
-                "rows": [["Ratio CET1", "13.1"]],
-                "indicators_raw": ["Ratio CET1"],
-                "indicators_normalized": ["ratio cet1"],
-                "footnotes": [{"id": "1", "text": "Note A"}],
-            },
-            {
-                "table_id": "prev_2",
-                "page": 12,
-                "section": "risk_management",
-                "title": "Risque",
-                "headers": ["Indicateur", "Valeur"],
-                "rows": [["RWA", "100"]],
-                "indicators_raw": ["RWA"],
-                "indicators_normalized": ["rwa"],
-                "footnotes": [],
-            },
+            _table(
+                table_id="prev_capital",
+                page=10,
+                section="capital_management",
+                title="Capital",
+                table_summary="Ratios de capital réglementaire",
+                headers=["Indicateur", "Valeur"] + [f"H{i}" for i in range(1, 26)],
+                indicators=["Ratio CET1"],
+                footnotes=[{"id": "1", "text": "Note A"}],
+            ),
+            _table(
+                table_id="prev_removed",
+                page=12,
+                section="risk_management",
+                title="Risque",
+                table_summary="Tableau de risque hérité",
+                headers=["Indicateur", "Valeur"],
+                indicators=["RWA"],
+            ),
         ],
     )
     _write_tables_json(
@@ -76,50 +113,65 @@ def test_compare_reports_gpt4o_writes_comparison_json(
         year=2025,
         quarter="t2",
         tables=[
-            {
-                "table_id": "curr_1",
-                "page": 11,
-                "section": "capital_management",
-                "title": "Capital",
-                "headers": ["Indicateur", "Valeur"],
-                "rows": [["Ratio CET1", "13.4"], ["Ratio de levier", "4.1"]],
-                "indicators_raw": ["Ratio CET1", "Ratio de levier"],
-                "indicators_normalized": ["ratio cet1", "ratio de levier"],
-                "footnotes": [{"id": "1", "text": "Note A mise a jour"}],
-            },
-            {
-                "table_id": "curr_2",
-                "page": 15,
-                "section": "liquidite",
-                "title": "Liquidite",
-                "headers": ["Indicateur", "Valeur"],
-                "rows": [["LCR", "120"]],
-                "indicators_raw": ["LCR"],
-                "indicators_normalized": ["lcr"],
-                "footnotes": [],
-            },
+            _table(
+                table_id="curr_capital",
+                page=11,
+                section="capital_management",
+                title="Capital",
+                table_summary="Ratios de capital réglementaire",
+                headers=["Indicateur", "Valeur"],
+                indicators=["Ratio CET1", "Ratio de levier"],
+                footnotes=[{"id": "1", "text": "Note A mise à jour"}],
+            ),
+            _table(
+                table_id="curr_added",
+                page=14,
+                section="liquidite",
+                title="Liquidité",
+                table_summary="Tableau de liquidité à court terme",
+                headers=["Indicateur", "Valeur"],
+                indicators=["LCR"],
+            ),
         ],
     )
 
     responses = [
         {
-            "matched_pairs": [
+            "current_table_decisions": [
                 {
-                    "previous_table_id": "prev_1",
-                    "current_table_id": "curr_1",
-                    "match_confidence": 0.97,
-                    "reason": "Meme sujet et meme indicateur principal.",
+                    "current_table_id": "curr_capital",
+                    "decision": "matched",
+                    "previous_table_id": "prev_capital",
+                    "match_confidence": 0.98,
+                    "reason": "Même sujet et mêmes indicateurs principaux.",
+                },
+                {
+                    "current_table_id": "curr_added",
+                    "decision": "unresolved",
+                    "reason": "Aucune contrepartie précédente assez solide au pass strict.",
                 }
             ],
-            "tables_added": [{"table_id": "curr_2", "reason": "Nouveau tableau"}],
-            "tables_removed": [{"table_id": "prev_2", "reason": "Tableau absent au trimestre courant"}],
+            "warnings": [],
+        },
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_added",
+                    "decision": "added",
+                    "reason": "Aucun équivalent clair dans le rapport précédent.",
+                }
+            ],
+            "warnings": [],
         },
         {
             "indicators_added": [
-                {"value": "ratio de levier", "reason": "Ajoute dans le tableau courant"}
+                {"value": "Ratio de levier", "reason": "Nouvel indicateur courant."}
             ],
             "indicators_removed": [],
             "indicators_renamed": [],
+            "reason": "Le tableau gagne un indicateur.",
+        },
+        {
             "footnotes_added": [],
             "footnotes_removed": [],
             "footnotes_renamed": [
@@ -127,181 +179,213 @@ def test_compare_reports_gpt4o_writes_comparison_json(
                     "previous_id": "1",
                     "current_id": "1",
                     "previous_text": "Note A",
-                    "current_text": "Note A mise a jour",
-                    "reason": "Meme note reformulee",
+                    "current_text": "Note A mise à jour",
+                    "reason": "Même note avec reformulation matérielle.",
                 }
             ],
-            "reason": "Le tableau conserve sa structure avec un indicateur supplementaire.",
+            "reason": "La note est reformulée matériellement.",
         },
     ]
-
-    seen_prompts: list[dict] = []
+    seen_prompts: list[tuple[str, dict]] = []
 
     def fake_call_openai_json(**kwargs):
-        assert kwargs["model"] == "gpt-4o-test"
-        assert isinstance(kwargs["messages"], list)
         prompt = json.loads(kwargs["messages"][-1]["content"])
-        seen_prompts.append(prompt)
+        seen_prompts.append((kwargs["call_kind"], prompt))
         return responses.pop(0)
 
     monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
-
-    previous_pdf = tmp_path / "previous.pdf"
-    current_pdf = tmp_path / "current.pdf"
-    previous_pdf.write_bytes(b"%PDF-1.4 previous")
-    current_pdf.write_bytes(b"%PDF-1.4 current")
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
         model="gpt-4o-test",
-        source_pdf_previous=str(previous_pdf),
-        source_pdf_current=str(current_pdf),
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    assert payload["artifact_type"] == "report_comparison"
-    assert payload["run_id"]
-    assert payload["bank_code"] == "bnc"
-    assert payload["quarter_previous"] == "t1"
-    assert payload["quarter_current"] == "t2"
-    assert payload["source_pdf_previous"] == str(previous_pdf)
-    assert payload["source_pdf_current"] == str(current_pdf)
-    assert payload["archived_pdf_previous"] == str(comparison_path.parent / "previous_report.pdf")
-    assert payload["archived_pdf_current"] == str(comparison_path.parent / "current_report.pdf")
-    assert (comparison_path.parent / "previous_report.pdf").read_bytes() == previous_pdf.read_bytes()
-    assert (comparison_path.parent / "current_report.pdf").read_bytes() == current_pdf.read_bytes()
-    assert payload["reference_resolution"]["mode"] == "automatique"
-    assert payload["reference_resolution"]["year_previous"] == 2025
-    assert payload["reference_resolution"]["quarter_previous"] == "t1"
-    assert comparison_path.parent.name == payload["run_id"]
-    assert payload["matching"]["matched_pairs"][0]["previous_table_id"] == "prev_1"
-    assert payload["matching"]["tables_added"][0]["table_id"] == "curr_2"
-    assert payload["matching"]["tables_added"][0]["title"] == "Liquidite"
-    assert payload["matching"]["tables_added"][0]["page"] == 15
-    assert payload["matching"]["tables_added"][0]["analyst_assessment"]["theme"] == "liquidite"
-    assert payload["matching"]["tables_removed"][0]["analyst_assessment"]["theme"] == "autre"
-    assert payload["matching"]["tables_removed"][0]["title"] == "Risque"
-    assert payload["summary"]["matched_pairs_total"] == 1
-    assert payload["summary"]["tables_added_total"] == 1
-    assert payload["summary"]["tables_removed_total"] == 1
-    assert payload["summary"]["indicator_changes_total"] == 1
-    assert payload["summary"]["footnote_changes_total"] == 1
-    assert payload["summary"]["high_priority_items_total"] >= 1
-    assert payload["pair_comparisons"][0]["technical_diff"]["table_level_change"] == "modifie"
-    assert payload["pair_comparisons"][0]["technical_diff"]["indicators_added"][0]["value"] == "ratio de levier"
-    assert payload["pair_comparisons"][0]["previous_table"]["title"] == "Capital"
-    assert payload["pair_comparisons"][0]["current_table"]["page"] == 11
-    assert payload["pair_comparisons"][0]["analyst_assessment"]["theme"] == "capital"
-    assert payload["pair_comparisons"][0]["analyst_assessment"]["review_priority"] in {"prioritaire", "critique"}
+    assert payload["matching"]["matched_pairs"] == [
+        {
+            "previous_table_id": "prev_capital",
+            "current_table_id": "curr_capital",
+            "match_confidence": 0.98,
+            "reason": "Même sujet et mêmes indicateurs principaux.",
+        }
+    ]
+    assert payload["matching"]["tables_added"][0]["table_id"] == "curr_added"
+    assert payload["matching"]["tables_removed"][0]["table_id"] == "prev_removed"
+    assert payload["prompt_version_match"] == MATCH_PROMPT_VERSION
+    assert payload["prompt_version_diff"] == DIFF_PROMPT_VERSION
+    assert payload["pair_comparisons"][0]["diff_mode"] == "gpt"
+    assert payload["pair_comparisons"][0]["technical_diff"]["indicators_added"] == [
+        {"value": "Ratio de levier", "reason": "Nouvel indicateur courant."}
+    ]
+    assert payload["pair_comparisons"][0]["technical_diff"]["footnotes_renamed"] == [
+        {
+            "previous_id": "1",
+            "current_id": "1",
+            "previous_text": "Note A",
+            "current_text": "Note A mise à jour",
+            "reason": "Même note avec reformulation matérielle.",
+        }
+    ]
+    assert payload["run_metrics"]["matching_passes_total"] == 2
+    assert payload["run_metrics"]["audit_passes_total"] == 0
 
-    match_prompt = seen_prompts[0]
-    assert "previous_tables" in match_prompt
-    assert match_prompt["response_schema"]["tables_added"][0]["table_id"] == "string"
-    assert match_prompt["response_schema"]["tables_removed"][0]["table_id"] == "string"
+    match_kind, match_prompt = seen_prompts[0]
+    assert match_kind == "matching"
     prev0 = match_prompt["previous_tables"][0]
-    assert prev0["extraction_index"] == 0
-    assert prev0["page"] == 10
-    assert prev0["row_count"] == 1
-    assert prev0["headers"] == ["Indicateur", "Valeur"]
-    assert prev0["header_columns_total"] == 2
-    assert "rows" not in prev0
+    assert set(prev0) == {
+        "table_id",
+        "section",
+        "title",
+        "table_summary",
+        "page",
+        "row_count",
+        "headers",
+        "indicators",
+        "footnotes",
+    }
+    assert "extraction_index" not in prev0
+    assert "header_columns_total" not in prev0
+    assert len(prev0["headers"]) == 27
 
-    diff_prompt = seen_prompts[1]
-    assert "headers" not in diff_prompt["previous_table"]
-    assert "rows" not in diff_prompt["previous_table"]
-    assert "headers" not in diff_prompt["current_table"]
-    assert "rows" not in diff_prompt["current_table"]
 
-
-def test_compare_reports_gpt4o_accepts_legacy_unmatched_id_keys(
+def test_compare_reports_gpt4o_allows_cross_section_matching_in_single_pass(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
-    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    previous_dir = tmp_path / "extractions" / "rbc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "rbc" / "2025" / "t2"
     _write_tables_json(
         previous_dir / "tables.json",
-        bank="bnc",
+        bank="rbc",
         year=2025,
         quarter="t1",
         tables=[
-            {
-                "table_id": "prev_1",
-                "page": 10,
-                "section": "capital_management",
-                "title": "Capital",
-                "headers": ["Indicateur", "Valeur"],
-                "rows": [["Ratio CET1", "13.1"]],
-                "indicators_raw": ["Ratio CET1"],
-                "indicators_normalized": ["ratio cet1"],
-                "footnotes": [],
-            },
-            {
-                "table_id": "prev_2",
-                "page": 12,
-                "section": "risk_management",
-                "title": "Risque",
-                "headers": ["Indicateur", "Valeur"],
-                "rows": [["RWA", "100"]],
-                "indicators_raw": ["RWA"],
-                "indicators_normalized": ["rwa"],
-                "footnotes": [],
-            },
+            _table(
+                table_id="prev_lcr",
+                page=20,
+                section="risk_management",
+                title="Ratio de liquidité à court terme",
+                table_summary="Mesures de liquidité réglementaires",
+                headers=["Indicateur", "Valeur"],
+                indicators=["Total des actifs liquides", "LCR"],
+            )
         ],
     )
     _write_tables_json(
         current_dir / "tables.json",
-        bank="bnc",
+        bank="rbc",
         year=2025,
         quarter="t2",
         tables=[
-            {
-                "table_id": "curr_1",
-                "page": 11,
-                "section": "capital_management",
-                "title": "Capital",
-                "headers": ["Indicateur", "Valeur"],
-                "rows": [["Ratio CET1", "13.4"]],
-                "indicators_raw": ["Ratio CET1"],
-                "indicators_normalized": ["ratio cet1"],
-                "footnotes": [],
-            },
-            {
-                "table_id": "curr_2",
-                "page": 15,
-                "section": "liquidite",
-                "title": "Liquidite",
-                "headers": ["Indicateur", "Valeur"],
-                "rows": [["LCR", "120"]],
-                "indicators_raw": ["LCR"],
-                "indicators_normalized": ["lcr"],
-                "footnotes": [],
-            },
+            _table(
+                table_id="curr_lcr",
+                page=24,
+                section="liquidite",
+                title="Ratio de liquidité à court terme",
+                table_summary="Mesures de liquidité réglementaires",
+                headers=["Indicateur", "Valeur"],
+                indicators=["Total des actifs liquides", "LCR"],
+            )
         ],
     )
 
     responses = [
         {
-            "matched_pairs": [
+            "current_table_decisions": [
                 {
+                    "current_table_id": "curr_lcr",
+                    "decision": "matched",
+                    "previous_table_id": "prev_lcr",
+                    "match_confidence": 0.91,
+                    "reason": "Même tableau malgré la section différente.",
+                }
+            ],
+            "warnings": [],
+        },
+        {
+            "indicators_added": [],
+            "indicators_removed": [],
+            "indicators_renamed": [],
+            "footnotes_added": [],
+            "footnotes_removed": [],
+            "footnotes_renamed": [],
+            "reason": "Aucun changement sémantique détecté.",
+        },
+    ]
+    seen_modes: list[str] = []
+
+    def fake_call_openai_json(**kwargs):
+        if kwargs["call_kind"] == "matching":
+            prompt = json.loads(kwargs["messages"][-1]["content"])
+            seen_modes.append(prompt["task"])
+        return responses.pop(0)
+
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+
+    comparison_path = compare_reports_gpt4o(
+        previous_dir=previous_dir,
+        current_dir=current_dir,
+        out_root=tmp_path / "comparisons",
+        model="gpt-4o-test",
+    )
+
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert payload["matching"]["matched_pairs"][0]["current_table_id"] == "curr_lcr"
+    assert payload["run_metrics"]["matching_passes_total"] == 1
+    assert payload["run_metrics"]["unmatched_after_primary_total"] == 0
+    assert payload["run_metrics"]["unmatched_after_rescue_total"] == 0
+    assert len(seen_modes) == 1
+
+
+def test_compare_reports_gpt4o_retries_invalid_matching_output(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    previous_dir = tmp_path / "extractions" / "td" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "td" / "2025" / "t2"
+    table_prev = _table(
+        table_id="prev_1",
+        page=8,
+        section="capital_management",
+        title="Capital",
+        table_summary="Ratios de capital",
+        headers=["Indicateur", "Valeur"],
+        indicators=["Ratio CET1"],
+    )
+    table_curr = _table(
+        table_id="curr_1",
+        page=9,
+        section="capital_management",
+        title="Capital",
+        table_summary="Ratios de capital",
+        headers=["Indicateur", "Valeur"],
+        indicators=["Ratio CET1"],
+    )
+    _write_tables_json(previous_dir / "tables.json", bank="td", year=2025, quarter="t1", tables=[table_prev])
+    _write_tables_json(current_dir / "tables.json", bank="td", year=2025, quarter="t2", tables=[table_curr])
+
+    responses = [
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_unknown",
+                    "decision": "matched",
                     "previous_table_id": "prev_1",
+                    "match_confidence": 0.90,
+                    "reason": "Réponse invalide.",
+                }
+            ]
+        },
+        {
+            "current_table_decisions": [
+                {
                     "current_table_id": "curr_1",
-                    "match_confidence": 0.97,
-                    "reason": "Meme sujet et meme indicateur principal.",
-                }
-            ],
-            "tables_added": [
-                {
-                    "current_table_id": "curr_2",
-                    "reason": "Nouveau tableau",
-                }
-            ],
-            "tables_removed": [
-                {
-                    "previous_table_id": "prev_2",
-                    "reason": "Tableau absent au trimestre courant",
+                    "decision": "matched",
+                    "previous_table_id": "prev_1",
+                    "match_confidence": 0.96,
+                    "reason": "Même tableau.",
                 }
             ],
         },
@@ -312,7 +396,122 @@ def test_compare_reports_gpt4o_accepts_legacy_unmatched_id_keys(
             "footnotes_added": [],
             "footnotes_removed": [],
             "footnotes_renamed": [],
-            "reason": "Aucun changement semantique.",
+            "reason": "Aucun changement.",
+        },
+    ]
+    feedbacks: list[str] = []
+
+    def fake_call_openai_json(**kwargs):
+        prompt = json.loads(kwargs["messages"][-1]["content"])
+        if "validation_feedback" in prompt:
+            feedbacks.append(prompt["validation_feedback"])
+        return responses.pop(0)
+
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+
+    comparison_path = compare_reports_gpt4o(
+        previous_dir=previous_dir,
+        current_dir=current_dir,
+        out_root=tmp_path / "comparisons",
+        model="gpt-4o-test",
+    )
+
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert payload["matching"]["matched_pairs"][0]["current_table_id"] == "curr_1"
+    assert payload["run_metrics"]["matching_output_retries_total"] >= 1
+    assert feedbacks
+
+
+def test_compare_reports_gpt4o_rejects_duplicate_pairs_without_local_scoring(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    previous_dir = tmp_path / "extractions" / "cibc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "cibc" / "2025" / "t2"
+    _write_tables_json(
+        previous_dir / "tables.json",
+        bank="cibc",
+        year=2025,
+        quarter="t1",
+        tables=[
+            _table(
+                table_id="prev_a",
+                page=5,
+                section="risk_management",
+                title="Risque A",
+                table_summary="Tableau A",
+                headers=["Indicateur", "Valeur"],
+                indicators=["Alpha"],
+            ),
+            _table(
+                table_id="prev_b",
+                page=6,
+                section="risk_management",
+                title="Risque B",
+                table_summary="Tableau B",
+                headers=["Indicateur", "Valeur"],
+                indicators=["Bêta"],
+            ),
+        ],
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="cibc",
+        year=2025,
+        quarter="t2",
+        tables=[
+            _table(
+                table_id="curr_a",
+                page=5,
+                section="risk_management",
+                title="Risque A",
+                table_summary="Tableau A",
+                headers=["Indicateur", "Valeur"],
+                indicators=["Alpha"],
+            )
+        ],
+    )
+
+    responses = [
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_a",
+                    "decision": "matched",
+                    "previous_table_id": "prev_a",
+                    "match_confidence": 0.95,
+                    "reason": "Première paire valide.",
+                },
+                {
+                    "current_table_id": "curr_a",
+                    "decision": "matched",
+                    "previous_table_id": "prev_b",
+                    "match_confidence": 0.94,
+                    "reason": "Doublon à rejeter.",
+                },
+            ],
+            "warnings": [],
+        },
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_a",
+                    "decision": "matched",
+                    "previous_table_id": "prev_a",
+                    "match_confidence": 0.95,
+                    "reason": "Première paire valide.",
+                }
+            ],
+            "warnings": [],
+        },
+        {
+            "indicators_added": [],
+            "indicators_removed": [],
+            "indicators_renamed": [],
+            "footnotes_added": [],
+            "footnotes_removed": [],
+            "footnotes_renamed": [],
+            "reason": "Aucun changement.",
         },
     ]
 
@@ -329,113 +528,93 @@ def test_compare_reports_gpt4o_accepts_legacy_unmatched_id_keys(
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    assert payload["matching"]["tables_added"] == [
+    assert payload["matching"]["matched_pairs"] == [
         {
-            "table_id": "curr_2",
-            "reason": "Nouveau tableau",
-            "title": "Liquidite",
-            "page": 15,
-            "section": "liquidite",
-            "bbox": None,
-            "indicators_raw": ["LCR"],
-            "indicators_normalized": ["lcr"],
-            "footnotes": [],
-            "analyst_assessment": {
-                "theme": "liquidite",
-                "change_significance": "eleve",
-                "review_priority": "critique",
-                "analyst_summary": "Nouveau tableau sur le theme liquidite a revoir par l'analyste.",
-            },
+            "previous_table_id": "prev_a",
+            "current_table_id": "curr_a",
+            "match_confidence": 0.95,
+            "reason": "Première paire valide.",
         }
     ]
-    assert payload["matching"]["tables_removed"] == [
-        {
-            "table_id": "prev_2",
-            "reason": "Tableau absent au trimestre courant",
-            "title": "Risque",
-            "page": 12,
-            "section": "risk_management",
-            "bbox": None,
-            "indicators_raw": ["RWA"],
-            "indicators_normalized": ["rwa"],
-            "footnotes": [],
-            "analyst_assessment": {
-                "theme": "autre",
-                "change_significance": "moyen",
-                "review_priority": "normale",
-                "analyst_summary": "Tableau supprime sur le theme autre a confirmer par l'analyste.",
-            },
-        }
-    ]
+    assert payload["run_metrics"]["matching_pairs_llm_duplicates_total"] == 1
+    assert payload["run_metrics"]["matching_pairs_llm_deduped_total"] == 0
+    assert payload["run_metrics"]["matching_output_retries_total"] >= 1
+    assert payload["run_metrics"]["matching_validation_failures_total"] >= 1
 
 
-def test_compare_reports_gpt4o_rejects_missing_pathlike_inputs(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="Chemin requis manquant: previous_dir"):
-        compare_reports_gpt4o(
-            previous_dir=None,
-            current_dir=tmp_path / "current",
-            out_root=tmp_path / "comparisons",
-            model="gpt-4o-test",
-        )
-
-
-def test_compare_reports_gpt4o_prompts_ignore_numeric_and_date_changes(
+def test_compare_reports_gpt4o_recovers_unresolved_pairs_in_second_matching_stage(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
-    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    previous_dir = tmp_path / "extractions" / "rbc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "rbc" / "2025" / "t2"
     _write_tables_json(
         previous_dir / "tables.json",
-        bank="bnc",
+        bank="rbc",
         year=2025,
         quarter="t1",
         tables=[
-            {
-                "table_id": "prev_num",
-                "page": 5,
-                "section": "capital_management",
-                "title": "Capital au 31 janvier 2025",
-                "headers": ["Indicateur", "T1 2025"],
-                "rows": [["Ratio CET1", "13.1"]],
-                "indicators_raw": ["Ratio CET1"],
-                "indicators_normalized": ["ratio cet1"],
-                "footnotes": [{"id": "1", "text": "Au 31 janvier 2025."}],
-            }
-        ],
-    )
+            _table(
+                table_id="prev_x",
+                page=10,
+                section="risk_management",
+                title="Liquidité",
+                table_summary="Mesures de liquidité",
+                    headers=["Indicateur", "Valeur"],
+                    indicators=["LCR"],
+                )
+                ,
+                _table(
+                    table_id="prev_y",
+                    page=11,
+                    section="risk_management",
+                    title="Liquidité secondaire",
+                    table_summary="Mesures de liquidité secondaires",
+                    headers=["Indicateur", "Valeur"],
+                    indicators=["NSFR"],
+                )
+            ],
+        )
     _write_tables_json(
         current_dir / "tables.json",
-        bank="bnc",
+        bank="rbc",
         year=2025,
         quarter="t2",
         tables=[
-            {
-                "table_id": "curr_num",
-                "page": 6,
-                "section": "capital_management",
-                "title": "Capital au 30 avril 2025",
-                "headers": ["Indicateur", "T2 2025"],
-                "rows": [["Ratio CET1", "13.9"]],
-                "indicators_raw": ["Ratio CET1"],
-                "indicators_normalized": ["ratio cet1"],
-                "footnotes": [{"id": "1", "text": "Au 30 avril 2025."}],
-            }
+            _table(
+                table_id="curr_x",
+                page=12,
+                section="liquidite",
+                title="Liquidité",
+                table_summary="Mesures de liquidité",
+                headers=["Indicateur", "Valeur"],
+                indicators=["LCR"],
+            )
         ],
     )
 
     responses = [
         {
-            "matched_pairs": [
+            "current_table_decisions": [
                 {
-                    "previous_table_id": "prev_num",
-                    "current_table_id": "curr_num",
-                    "match_confidence": 0.99,
-                    "reason": "Meme indicateur et meme theme.",
+                    "current_table_id": "curr_x",
+                    "decision": "unresolved",
+                    "reason": "Deux candidats précédents restent plausibles au pass strict.",
                 }
             ],
-            "tables_added": [],
-            "tables_removed": [],
+            "warnings": [],
+        },
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_x",
+                    "decision": "matched",
+                    "previous_table_id": "prev_x",
+                    "match_confidence": 0.93,
+                    "reason": "Réconcilié dans le pass de récupération.",
+                }
+            ],
+            "warnings": [],
         },
         {
             "indicators_added": [],
@@ -444,14 +623,15 @@ def test_compare_reports_gpt4o_prompts_ignore_numeric_and_date_changes(
             "footnotes_added": [],
             "footnotes_removed": [],
             "footnotes_renamed": [],
-            "reason": "Les differences numeriques et de date sont ignorees.",
+            "reason": "Aucun changement.",
         },
     ]
-    seen_rules: list[list[str]] = []
+    stages: list[str] = []
 
     def fake_call_openai_json(**kwargs):
         prompt = json.loads(kwargs["messages"][-1]["content"])
-        seen_rules.append(prompt["rules"])
+        if kwargs["call_kind"] == "matching":
+            stages.append(str(prompt.get("stage", "")))
         return responses.pop(0)
 
     monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
@@ -464,136 +644,134 @@ def test_compare_reports_gpt4o_prompts_ignore_numeric_and_date_changes(
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    technical_diff = payload["pair_comparisons"][0]["technical_diff"]
-    assert technical_diff["table_level_change"] == "inchange"
-    assert payload["summary"]["indicator_changes_total"] == 0
-    assert payload["summary"]["footnote_changes_total"] == 0
-    assert any("Ignore all numeric changes" in " ".join(rules) for rules in seen_rules)
+    assert payload["matching"]["matched_pairs"][0]["current_table_id"] == "curr_x"
+    assert payload["matching"]["tables_removed"][0]["table_id"] == "prev_y"
+    assert payload["run_metrics"]["matching_passes_total"] == 2
+    assert payload["run_metrics"]["unmatched_after_primary_total"] == 3
+    assert stages == ["primary", "recovery"]
 
 
-def test_compare_reports_gpt4o_classifies_credit_risk_deterministically(
-    tmp_path: Path,
-    monkeypatch,
-) -> None:
-    previous_dir = tmp_path / "extractions" / "bns" / "2025" / "t1"
-    current_dir = tmp_path / "extractions" / "bns" / "2025" / "t2"
-    tables = [
-        {
-            "table_id": "risk_1",
-            "page": 8,
-            "section": "funding",
-            "title": "Expositions au risque de credit de la Banque par regions",
-            "headers": ["Indicateur", "Valeur"],
-            "rows": [["Amerique latine", "100"]],
-            "indicators_raw": ["Amerique latine", "Europe"],
-            "indicators_normalized": ["amerique latine", "europe"],
-            "footnotes": [],
-        }
-    ]
-    _write_tables_json(
-        previous_dir / "tables.json",
-        bank="bns",
-        year=2025,
-        quarter="t1",
-        tables=tables,
-    )
-    _write_tables_json(
-        current_dir / "tables.json",
-        bank="bns",
-        year=2025,
-        quarter="t2",
-        tables=tables,
-    )
-
-    responses = [
-        {
-            "matched_pairs": [
-                {
-                    "previous_table_id": "risk_1",
-                    "current_table_id": "risk_1",
-                    "match_confidence": 0.99,
-                    "reason": "Meme tableau",
-                }
-            ],
-            "tables_added": [],
-            "tables_removed": [],
-        }
-    ]
-
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json",
-        lambda **_: responses.pop(0),
-    )
-
-    comparison_path = compare_reports_gpt4o(
-        previous_dir=previous_dir,
-        current_dir=current_dir,
-        out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
-    )
-
-    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    assessment = payload["pair_comparisons"][0]["analyst_assessment"]
-    assert assessment["theme"] == "risque_credit"
-
-
-def test_compare_reports_gpt4o_short_circuits_trivial_diff_and_records_metrics(
+def test_compare_reports_gpt4o_retries_incomplete_matching_coverage(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
     previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
     current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
-    tables = [
-        {
-            "table_id": "same_1",
-            "page": 3,
-            "section": "capital_management",
-            "title": "Capital",
-            "headers": ["Indicateur", "T1 2025"],
-            "rows": [["Ratio CET1", "13.1"]],
-            "indicators_raw": ["Ratio CET1"],
-            "indicators_normalized": ["ratio cet1"],
-            "footnotes": [{"id": "1", "text": "Note stable"}],
-        }
-    ]
     _write_tables_json(
         previous_dir / "tables.json",
         bank="bnc",
         year=2025,
         quarter="t1",
-        tables=tables,
+        tables=[
+            _table(
+                table_id="prev_unmatched",
+                page=20,
+                section="risk_management",
+                title="Ancien tableau",
+                table_summary="Ancien tableau de risque",
+                headers=["Indicateur", "Valeur"],
+                indicators=["RWA"],
+            )
+        ],
     )
     _write_tables_json(
         current_dir / "tables.json",
         bank="bnc",
         year=2025,
         quarter="t2",
-        tables=tables,
+        tables=[
+            _table(
+                table_id="curr_unmatched_a",
+                page=21,
+                section="risk_management",
+                title="Nouveau tableau A",
+                table_summary="Nouveau tableau de risque A",
+                headers=["Indicateur", "Valeur"],
+                indicators=["LCR"],
+            ),
+            _table(
+                table_id="curr_unmatched_b",
+                page=22,
+                section="risk_management",
+                title="Nouveau tableau B",
+                table_summary="Nouveau tableau de risque B",
+                headers=["Indicateur", "Valeur"],
+                indicators=["NSFR"],
+            ),
+            _table(
+                table_id="curr_unmatched_c",
+                page=23,
+                section="risk_management",
+                title="Nouveau tableau C",
+                table_summary="Nouveau tableau de risque C",
+                headers=["Indicateur", "Valeur"],
+                indicators=["HQLA"],
+            ),
+        ],
     )
 
-    def fake_call_openai_json(**kwargs):
-        if kwargs.get("usage_recorder") is not None:
-            kwargs["usage_recorder"].append(
+    responses = [
+        {
+            "current_table_decisions": [
                 {
-                    "model": kwargs["model"],
-                    "call_kind": kwargs.get("call_kind", ""),
-                    "prompt_tokens": 120,
-                    "completion_tokens": 30,
-                    "total_tokens": 150,
-                }
-            )
-        return {
-            "matched_pairs": [
-                {
-                    "previous_table_id": "same_1",
-                    "current_table_id": "same_1",
-                    "match_confidence": 1.0,
-                    "reason": "Meme tableau",
+                    "current_table_id": "curr_unmatched_a",
+                    "decision": "unresolved",
+                    "reason": "Nouveau tableau réel A.",
                 }
             ],
-            "tables_added": [],
-            "tables_removed": [],
-        }
+            "warnings": [],
+        },
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_unmatched_a",
+                    "decision": "unresolved",
+                    "reason": "Nouveau tableau réel A.",
+                },
+                {
+                    "current_table_id": "curr_unmatched_b",
+                    "decision": "unresolved",
+                    "reason": "Nouveau tableau réel B.",
+                },
+                {
+                    "current_table_id": "curr_unmatched_c",
+                    "decision": "unresolved",
+                    "reason": "Nouveau tableau réel C.",
+                },
+            ],
+            "warnings": [],
+        },
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_unmatched_a",
+                    "decision": "added",
+                    "reason": "Nouveau tableau réel A.",
+                },
+                {
+                    "current_table_id": "curr_unmatched_b",
+                    "decision": "added",
+                    "reason": "Nouveau tableau réel B.",
+                },
+                {
+                    "current_table_id": "curr_unmatched_c",
+                    "decision": "added",
+                    "reason": "Nouveau tableau réel C.",
+                },
+            ],
+            "warnings": [],
+        },
+    ]
+    feedbacks: list[str] = []
+    required_ids: list[list[str]] = []
+
+    def fake_call_openai_json(**kwargs):
+        prompt = json.loads(kwargs["messages"][-1]["content"])
+        if kwargs["call_kind"] == "matching":
+            required_ids.append(list(prompt.get("required_current_table_ids", [])))
+        if kwargs["call_kind"] == "matching" and "validation_feedback" in prompt:
+            feedbacks.append(prompt["validation_feedback"])
+        return responses.pop(0)
 
     monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
 
@@ -601,209 +779,375 @@ def test_compare_reports_gpt4o_short_circuits_trivial_diff_and_records_metrics(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o",
-        runtime_extraction_sec=4.25,
-        extraction_run_metrics={
-            "previous": {
-                "vision_calls_total": 3,
-                "vision_rescue_total": 1,
-                "prompt_tokens_total": 1000,
-                "completion_tokens_total": 200,
-                "total_tokens_total": 1200,
-                "estimated_cost_usd": 0.018,
-                "cache_hit": False,
-            },
-            "current": {
-                "vision_calls_total": 4,
-                "vision_rescue_total": 0,
-                "prompt_tokens_total": 900,
-                "completion_tokens_total": 180,
-                "total_tokens_total": 1080,
-                "estimated_cost_usd": 0.016,
-                "cache_hit": False,
-            },
-        },
+        model="gpt-4o-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    pair = payload["pair_comparisons"][0]
-    assert pair["technical_diff"]["table_level_change"] == "inchange"
-    assert pair["diff_mode"] == "local_exact_match"
-    metrics = payload["run_metrics"]
-    assert metrics["runtime_extraction_sec"] == 4.25
-    assert metrics["vision_calls_total"] == 7
-    assert metrics["vision_rescue_total"] == 1
-    assert metrics["comparison_calls_total"] == 1
-    assert metrics["comparison_local_diff_skips"] == 1
-    assert metrics["prompt_tokens_total"] == 2020
-    assert metrics["completion_tokens_total"] == 410
-    assert metrics["estimated_cost_usd"] > 0.0
+    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == [
+        "curr_unmatched_a",
+        "curr_unmatched_b",
+        "curr_unmatched_c",
+    ]
+    assert payload["matching"]["tables_added"][0]["reason"] == "Nouveau tableau réel A."
+    assert payload["matching"]["tables_added"][0]["title"] == "Nouveau tableau A"
+    assert payload["matching"]["tables_removed"][0]["table_id"] == "prev_unmatched"
+    assert payload["run_metrics"]["matching_output_retries_total"] >= 1
+    assert payload["run_metrics"]["matching_validation_failures_total"] >= 1
+    assert feedbacks
+    assert required_ids
+    assert required_ids[0] == [
+        "curr_unmatched_a",
+        "curr_unmatched_b",
+        "curr_unmatched_c",
+    ]
+    assert "curr_unmatched_b" in feedbacks[0]
+    assert "curr_unmatched_c" in feedbacks[0]
 
 
-def test_compare_reports_gpt4o_isolates_runs_with_unique_output_dirs(
+def test_compare_reports_gpt4o_separates_artifacts_and_extraction_suspects(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t3"
-    current_dir = tmp_path / "extractions" / "bnc" / "2026" / "t1"
+    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
     _write_tables_json(
         previous_dir / "tables.json",
         bank="bnc",
         year=2025,
-        quarter="t3",
+        quarter="t1",
         tables=[
-            {
-                "table_id": "prev_1",
-                "page": 1,
-                "section": "capital",
-                "title": "Capital",
-                "headers": [],
-                "rows": [],
-                "indicators_raw": ["Ratio CET1"],
-                "indicators_normalized": ["ratio cet1"],
-                "footnotes": [],
-            }
+            _table(
+                table_id="prev_artifact",
+                page=40,
+                section="risk_management",
+                title="Rapport de gestion",
+                table_summary="",
+                headers=[],
+                indicators=[],
+                bbox=[0.1, 0.1, 0.9, 0.8],
+                extraction_status="confirmed_no_table",
+            )
         ],
     )
     _write_tables_json(
         current_dir / "tables.json",
         bank="bnc",
-        year=2026,
-        quarter="t1",
+        year=2025,
+        quarter="t2",
         tables=[
-            {
-                "table_id": "curr_1",
-                "page": 2,
-                "section": "capital",
-                "title": "Capital",
-                "headers": [],
-                "rows": [],
-                "indicators_raw": ["Ratio CET1"],
-                "indicators_normalized": ["ratio cet1"],
-                "footnotes": [],
-            }
+            _table(
+                table_id="curr_real_add",
+                page=41,
+                section="risk_management",
+                title="Nouveau vrai tableau",
+                table_summary="Nouveau sujet métier",
+                headers=["Indicateur", "Valeur"],
+                indicators=["LCR"],
+            ),
+            _table(
+                table_id="curr_suspect",
+                page=42,
+                section="risk_management",
+                title="Rapport de gestion",
+                table_summary="",
+                headers=[],
+                indicators=[],
+                bbox=[0.1, 0.1, 0.9, 0.8],
+                extraction_status="suspect_unresolved",
+            ),
         ],
     )
 
     responses = [
         {
-            "matched_pairs": [
+            "current_table_decisions": [
                 {
-                    "previous_table_id": "prev_1",
-                    "current_table_id": "curr_1",
-                    "match_confidence": 1.0,
-                    "reason": "Meme tableau",
+                    "current_table_id": "curr_real_add",
+                    "decision": "unresolved",
+                    "reason": "Vrai nouveau tableau.",
                 }
             ],
-            "tables_added": [],
-            "tables_removed": [],
-        },
-        {
-            "indicators_added": [],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [],
-            "reason": "Aucun changement.",
-        },
-        {
-            "matched_pairs": [
-                {
-                    "previous_table_id": "prev_1",
-                    "current_table_id": "curr_1",
-                    "match_confidence": 1.0,
-                    "reason": "Meme tableau",
-                }
-            ],
-            "tables_added": [],
-            "tables_removed": [],
-        },
-        {
-            "indicators_added": [],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [],
-            "reason": "Aucun changement.",
+            "warnings": [],
         },
     ]
 
     monkeypatch.setattr(
         "vigilance.compare_gpt._call_openai_json",
-        lambda **_: responses.pop(0),
+        lambda **kwargs: responses.pop(0),
     )
-    monkeypatch.setattr("vigilance.compare_gpt._make_run_id", lambda: "20260323_143015")
 
-    path_a = compare_reports_gpt4o(
-        previous_dir=previous_dir,
-        current_dir=current_dir,
-        out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
-    )
-    path_b = compare_reports_gpt4o(
+    comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
         model="gpt-4o-test",
     )
 
-    assert path_a != path_b
-    assert path_a.parent.name == "20260323_143015"
-    assert path_b.parent.name == "20260323_143015_02"
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == [
+        "curr_real_add"
+    ]
+    assert payload["matching"]["tables_removed"] == []
+    assert [item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]] == [
+        "prev_artifact"
+    ]
+    assert [item["table_id"] for item in payload["matching"]["extraction_suspects_current"]] == [
+        "curr_suspect"
+    ]
+    assert payload["summary"]["tables_added_total"] == 1
+    assert payload["summary"]["tables_removed_total"] == 0
+    assert payload["summary"]["artifacts_confirmed_previous_total"] == 1
+    assert payload["summary"]["extraction_suspects_current_total"] == 1
 
 
-def test_run_compare_gpt4o_cli_resolves_standard_paths(tmp_path: Path, monkeypatch) -> None:
-    expected = tmp_path / "comparisons" / "bnc" / "2025_t2_vs_2025_t1" / "comparison.json"
-
-    def fake_compare_reports_gpt4o(**kwargs):
-        assert kwargs["previous_dir"] == tmp_path / "extractions" / "bnc" / "2025" / "t1"
-        assert kwargs["current_dir"] == tmp_path / "extractions" / "bnc" / "2025" / "t2"
-        assert kwargs["out_root"] == tmp_path / "comparisons"
-        assert kwargs["reference_resolution"]["mode"] == "automatique"
-        assert kwargs["reference_resolution"]["year_previous"] == 2025
-        assert kwargs["reference_resolution"]["quarter_previous"] == "t1"
-        expected.parent.mkdir(parents=True, exist_ok=True)
-        expected.write_text("{}", encoding="utf-8")
-        return expected
-
-    monkeypatch.setattr(
-        "vigilance.cli.run_compare_gpt4o.compare_reports_gpt4o",
-        fake_compare_reports_gpt4o,
+def test_compare_reports_gpt4o_preclassifies_artifacts_and_suspects_before_audit(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    _write_tables_json(
+        previous_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t1",
+        tables=[
+            _table(
+                table_id="prev_artifact",
+                page=40,
+                section="risk_management",
+                title="Rapport de gestion",
+                table_summary="",
+                headers=[],
+                indicators=[],
+                bbox=[0.1, 0.1, 0.9, 0.8],
+                extraction_status="confirmed_no_table",
+            )
+        ],
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t2",
+        tables=[
+            _table(
+                table_id="curr_suspect",
+                page=41,
+                section="risk_management",
+                title="Rapport de gestion",
+                table_summary="",
+                headers=[],
+                indicators=[],
+                bbox=[0.1, 0.1, 0.9, 0.8],
+                extraction_status="suspect_unresolved",
+            )
+        ],
     )
 
-    rc = main(
-        [
-            "--bank",
-            "bnc",
-            "--year-current",
-            "2025",
-            "--quarter-current",
-            "T2",
-            "--extraction-root",
-            str(tmp_path / "extractions"),
-            "--out-root",
-            str(tmp_path / "comparisons"),
-        ]
+    call_kinds: list[str] = []
+    responses: list[dict] = []
+
+    def fake_call_openai_json(**kwargs):
+        call_kinds.append(kwargs["call_kind"])
+        return responses.pop(0)
+
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+
+    comparison_path = compare_reports_gpt4o(
+        previous_dir=previous_dir,
+        current_dir=current_dir,
+        out_root=tmp_path / "comparisons",
+        model="gpt-4o-test",
     )
 
-    assert rc == 0
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert call_kinds == []
+    assert payload["matching"]["tables_added"] == []
+    assert payload["matching"]["tables_removed"] == []
+    assert [item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]] == [
+        "prev_artifact"
+    ]
+    assert [item["table_id"] for item in payload["matching"]["extraction_suspects_current"]] == [
+        "curr_suspect"
+    ]
 
 
-def test_resolve_reference_period_follows_business_rule() -> None:
-    assert resolve_reference_period(2025, "t2") == (2025, "t1")
-    assert resolve_reference_period(2025, "t3") == (2025, "t2")
-    assert resolve_reference_period(2026, "t1") == (2025, "t3")
-    assert resolve_reference_period(2026, "t4") == (2025, "t4")
+def test_compare_reports_gpt4o_sends_trivial_ok_tables_to_business_matching(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    _write_tables_json(
+        previous_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t1",
+        tables=[],
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t2",
+        tables=[
+            _table(
+                table_id="curr_trivial_ok",
+                page=40,
+                section="risk_management",
+                title="Rapport de gestion",
+                table_summary="",
+                headers=[],
+                indicators=[],
+                bbox=[0.1, 0.1, 0.9, 0.8],
+                extraction_status="ok",
+            )
+        ],
+    )
+
+    call_kinds: list[str] = []
+    responses = [
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_trivial_ok",
+                    "decision": "unresolved",
+                    "reason": "Tableau business non apparie.",
+                }
+            ],
+            "warnings": [],
+        },
+    ]
+
+    def fake_call_openai_json(**kwargs):
+        call_kinds.append(kwargs["call_kind"])
+        return responses.pop(0)
+
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+
+    comparison_path = compare_reports_gpt4o(
+        previous_dir=previous_dir,
+        current_dir=current_dir,
+        out_root=tmp_path / "comparisons",
+        model="gpt-4o-test",
+    )
+
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert call_kinds == ["matching"]
+    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == [
+        "curr_trivial_ok"
+    ]
+    assert payload["matching"]["artifacts_confirmed_current"] == []
 
 
-def test_normalize_quarter_accepts_t_and_q_variants() -> None:
-    assert normalize_quarter("T1") == "t1"
-    assert normalize_quarter("Q2") == "t2"
-    assert normalize_quarter(" q3 ") == "t3"
+def test_compare_reports_gpt4o_always_uses_gpt_for_unchanged_diff(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    table_prev = _table(
+        table_id="prev_same",
+        page=3,
+        section="capital_management",
+        title="Capital",
+        table_summary="Ratios de capital",
+        headers=["Indicateur", "Valeur"],
+        indicators=["Ratio CET1"],
+        footnotes=[{"id": "1", "text": "Note stable"}],
+    )
+    table_curr = _table(
+        table_id="curr_same",
+        page=4,
+        section="capital_management",
+        title="Capital",
+        table_summary="Ratios de capital",
+        headers=["Indicateur", "Valeur"],
+        indicators=["Ratio CET1"],
+        footnotes=[{"id": "1", "text": "Note stable"}],
+    )
+    _write_tables_json(previous_dir / "tables.json", bank="bnc", year=2025, quarter="t1", tables=[table_prev])
+    _write_tables_json(current_dir / "tables.json", bank="bnc", year=2025, quarter="t2", tables=[table_curr])
+
+    call_kinds: list[str] = []
+    responses = [
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_same",
+                    "decision": "matched",
+                    "previous_table_id": "prev_same",
+                    "match_confidence": 0.99,
+                    "reason": "Même tableau.",
+                }
+            ],
+            "warnings": [],
+        },
+        {
+            "indicators_added": [],
+            "indicators_removed": [],
+            "indicators_renamed": [],
+            "reason": "Aucun changement sémantique sur les indicateurs.",
+        },
+        {
+            "footnotes_added": [],
+            "footnotes_removed": [],
+            "footnotes_renamed": [],
+            "reason": "Aucun changement sémantique sur les notes.",
+        },
+    ]
+
+    def fake_call_openai_json(**kwargs):
+        call_kinds.append(kwargs["call_kind"])
+        return responses.pop(0)
+
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+
+    comparison_path = compare_reports_gpt4o(
+        previous_dir=previous_dir,
+        current_dir=current_dir,
+        out_root=tmp_path / "comparisons",
+        model="gpt-4o-test",
+    )
+
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert call_kinds == ["matching", "diff_indicators", "diff_footnotes"]
+    assert payload["pair_comparisons"][0]["diff_mode"] == "gpt"
+    assert payload["pair_comparisons"][0]["technical_diff"]["table_level_change"] == "inchange"
+    assert payload["run_metrics"]["comparison_calls_total"] == 3
 
 
-def test_normalize_quarter_rejects_invalid_values() -> None:
-    with pytest.raises(ValueError):
-        normalize_quarter("t5")
+def test_compare_reports_gpt4o_rejects_non_schema_7_tables_json(tmp_path: Path) -> None:
+    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    previous_dir.mkdir(parents=True, exist_ok=True)
+    current_dir.mkdir(parents=True, exist_ok=True)
+    (previous_dir / "tables.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 6,
+                "bank_code": "bnc",
+                "year": 2025,
+                "quarter": "t1",
+                "created_at": "2026-03-24T10:00:00",
+                "tables": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t2",
+        tables=[],
+    )
+
+    with pytest.raises(ValueError, match="schema_version=6"):
+        compare_reports_gpt4o(
+            previous_dir=previous_dir,
+            current_dir=current_dir,
+            out_root=tmp_path / "comparisons",
+            model="gpt-4o-test",
+        )

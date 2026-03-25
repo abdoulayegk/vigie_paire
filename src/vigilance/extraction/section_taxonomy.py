@@ -29,41 +29,50 @@ def canonicalize_section(raw: str) -> str:
     if snake in {"capital_management", "risk_management", "regulatory_updates"}:
         return snake
 
-    if any(
-        token in spaced
-        for token in (
-            "gestion capital",
-            "gestion du capital",
-            "gestion fonds propres",
-            "gestion des fonds propres",
-            "situation des fonds propres",
-            "fonds propres",
-            "capitalisation",
+    if (
+        any(
+            token in spaced
+            for token in (
+                "gestion capital",
+                "gestion du capital",
+                "gestion fonds propres",
+                "gestion des fonds propres",
+                "situation des fonds propres",
+                "fonds propres",
+                "capitalisation",
+            )
         )
-    ) or snake == "gestion_capital":
+        or snake == "gestion_capital"
+    ):
         return "capital_management"
 
-    if any(
-        token in spaced
-        for token in (
-            "gestion risques",
-            "gestion des risques",
-            "gestion du risque",
-            "risk management",
-            "risque",
+    if (
+        any(
+            token in spaced
+            for token in (
+                "gestion risques",
+                "gestion des risques",
+                "gestion du risque",
+                "risk management",
+                "risque",
+            )
         )
-    ) or snake == "gestion_risques":
+        or snake == "gestion_risques"
+    ):
         return "risk_management"
 
-    if any(
-        token in spaced
-        for token in (
-            "faits nouveaux en matiere de reglementation",
-            "reglementation",
-            "regulatory updates",
-            "regulatory update",
+    if (
+        any(
+            token in spaced
+            for token in (
+                "faits nouveaux en matiere de reglementation",
+                "reglementation",
+                "regulatory updates",
+                "regulatory update",
+            )
         )
-    ) or snake == "gestion_reglementation":
+        or snake == "gestion_reglementation"
+    ):
         return "regulatory_updates"
 
     return snake

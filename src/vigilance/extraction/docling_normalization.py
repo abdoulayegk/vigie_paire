@@ -174,7 +174,10 @@ def _extract_table_context(page_text: str, table_title: str | None) -> str:
 
 
 def _extract_table_context_split(
-    page_text: str, table_title: str | None, chars_before: int = 300, chars_after: int = 400
+    page_text: str,
+    table_title: str | None,
+    chars_before: int = 300,
+    chars_after: int = 400,
 ) -> tuple[str, str]:
     """
     Extraire le contexte avant et apres un tableau (pour table_type_classifier).

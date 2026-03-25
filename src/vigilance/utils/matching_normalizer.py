@@ -327,14 +327,16 @@ def is_date_only_line(text: str) -> bool:
 
 
 # Known section headers (no colon): normalized form for _classify_excluded_line.
-_SECTION_HEADER_ALLOWLIST_NORMALIZED = frozenset({
-    "general",
-    "liquidite",
-    "risque de credit",
-    "autres risques",
-    "risque de marche",
-    "risque operationnel",
-})
+_SECTION_HEADER_ALLOWLIST_NORMALIZED = frozenset(
+    {
+        "general",
+        "liquidite",
+        "risque de credit",
+        "autres risques",
+        "risque de marche",
+        "risque operationnel",
+    }
+)
 
 
 def _is_section_header_line(text: str) -> bool:

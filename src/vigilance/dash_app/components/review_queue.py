@@ -139,11 +139,17 @@ def build_review_queue(
         indicators = item.get("indicators", [])
         n_indicators = len(indicators)
         n_decided = sum(
-            1 for ind in indicators
-            if ind.get("review_status", REVIEW_STATUS_PENDING) in (REVIEW_STATUS_APPROVED, REVIEW_STATUS_REJECTED)
+            1
+            for ind in indicators
+            if ind.get("review_status", REVIEW_STATUS_PENDING)
+            in (REVIEW_STATUS_APPROVED, REVIEW_STATUS_REJECTED)
         )
         all_decided = n_decided == n_indicators and n_indicators > 0
-        n_rejected = sum(1 for ind in indicators if ind.get("review_status") == REVIEW_STATUS_REJECTED)
+        n_rejected = sum(
+            1
+            for ind in indicators
+            if ind.get("review_status") == REVIEW_STATUS_REJECTED
+        )
 
         if all_decided and n_rejected == 0:
             icon = html.I(className="bi bi-check-circle-fill text-success me-2")
@@ -254,12 +260,16 @@ def build_review_queue(
                 )
             )
 
-        progress_badge = dbc.Badge(
-            f"{n_decided}/{n_indicators}",
-            color="primary" if all_decided else "secondary",
-            className="ms-auto",
-            pill=True,
-        ) if n_indicators > 0 else html.Span()
+        progress_badge = (
+            dbc.Badge(
+                f"{n_decided}/{n_indicators}",
+                color="primary" if all_decided else "secondary",
+                className="ms-auto",
+                pill=True,
+            )
+            if n_indicators > 0
+            else html.Span()
+        )
 
         item_content = dbc.ListGroupItem(
             [

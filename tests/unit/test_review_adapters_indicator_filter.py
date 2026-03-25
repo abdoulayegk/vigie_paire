@@ -174,7 +174,7 @@ def test_build_indicator_change_rows_excludes_date_only_for_added_removed_tables
                 "table_id": "t2_1",
                 "section": "Autres",
                 "page": 43,
-                "first_column_indicators": [
+                "indicators": [
                     "Au 30 avril 2025",
                     "Prets garantis",
                 ],
@@ -186,7 +186,7 @@ def test_build_indicator_change_rows_excludes_date_only_for_added_removed_tables
                 "table_id": "t1_1",
                 "section": "Autres",
                 "page": 10,
-                "first_column_indicators": [
+                "indicators": [
                     "Au 31 janvier 2025",
                     "Dépôts personnels",
                 ],
@@ -195,8 +195,14 @@ def test_build_indicator_change_rows_excludes_date_only_for_added_removed_tables
     }
     rows = build_indicator_change_rows(payload)
     assert len(rows) == 2
-    indicator_col_added = next((r["Indicateur"] for r in rows if r.get("Page T2") == 43), "")
-    indicator_col_removed = next((r["Indicateur"] for r in rows if r.get("Page T1") == 10), "")
+    indicator_col_added = next(
+        (r["Indicateur"] for r in rows if r.get("Page courante") == 43),
+        "",
+    )
+    indicator_col_removed = next(
+        (r["Indicateur"] for r in rows if r.get("Page précédente") == 10),
+        "",
+    )
     assert "Au 30 avril 2025" not in indicator_col_added
     assert "Prets garantis" in indicator_col_added
     assert "Au 31 janvier 2025" not in indicator_col_removed
