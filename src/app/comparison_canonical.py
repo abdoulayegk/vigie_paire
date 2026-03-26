@@ -543,13 +543,13 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
         matched_pairs_total
         + len(ui_payload["tables_removed"])
         + len(ui_payload["artifacts_confirmed_previous"])
-        + len(ui_payload["extraction_suspects_previous"])
+        # NOTE: extraction_suspects excluded from totals – they are unverified
     )
     tables_extracted_t2 = (
         matched_pairs_total
         + len(ui_payload["tables_added"])
         + len(ui_payload["artifacts_confirmed_current"])
-        + len(ui_payload["extraction_suspects_current"])
+        # NOTE: extraction_suspects excluded from totals – they are unverified
     )
     tables_t1 = tables_extracted_t1
     tables_t2 = tables_extracted_t2
