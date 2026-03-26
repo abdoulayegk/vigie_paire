@@ -14,7 +14,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, TypedDict
 
-from vigilance.models.table_models import VISION_CONTENT_SOURCE, TableArtifact
+from vigilance.models.table_models import (
+    TABLE_EXTRACTION_STATUS_OK,
+    VISION_CONTENT_SOURCE,
+    TableArtifact,
+)
 
 SCHEMA_VERSION = "vigie_extract_v1"
 
@@ -545,6 +549,10 @@ def load_artifacts_from_vigie_extract(
                     ],
                     content_source=str(
                         table.get("content_source") or VISION_CONTENT_SOURCE
+                    ),
+                    extraction_status=(
+                        str(table.get("extraction_status") or "").strip()
+                        or TABLE_EXTRACTION_STATUS_OK
                     ),
                     comparison_eligible=bool(
                         table.get("comparison_eligible", bool(indicators))

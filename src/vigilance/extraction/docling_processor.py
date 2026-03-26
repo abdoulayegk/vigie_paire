@@ -1755,13 +1755,6 @@ class DoclingProcessor:
             # Extraire le contenu textuel pour les sections
             text_content = doc.export_to_markdown()
 
-            # Page-Level Title Assist: lightweight Vision pre-pass for missing titles
-            all_tables = self._page_level_title_assist(
-                all_tables,
-                pdf_path,
-                bank_code,
-                vision_extraction_cfg,
-            )
 
             # Enrichir les titres manquants depuis le texte de la page (pdfplumber)
             # sans melanger contenu Docling/Vision : seul le champ titre est complete.

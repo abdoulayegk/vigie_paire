@@ -826,7 +826,16 @@ def test_compare_reports_gpt4o_separates_artifacts_and_extraction_suspects(
                 indicators=[],
                 bbox=[0.1, 0.1, 0.9, 0.8],
                 extraction_status="confirmed_no_table",
-            )
+            ),
+            _table(
+                table_id="prev_biz",
+                page=39,
+                section="risk_management",
+                title="Ancre suspect",
+                table_summary="",
+                headers=["Indicateur", "Valeur"],
+                indicators=["Ligne"],
+            ),
         ],
     )
     _write_tables_json(
@@ -862,12 +871,28 @@ def test_compare_reports_gpt4o_separates_artifacts_and_extraction_suspects(
         {
             "current_table_decisions": [
                 {
+                    "current_table_id": "curr_suspect",
+                    "decision": "matched",
+                    "previous_table_id": "prev_biz",
+                    "reason": "Ancre commune.",
+                    "match_confidence": 0.82,
+                },
+                {
                     "current_table_id": "curr_real_add",
                     "decision": "unresolved",
                     "reason": "Vrai nouveau tableau.",
-                }
+                },
             ],
             "warnings": [],
+        },
+        {
+            "indicators_added": [],
+            "indicators_removed": [],
+            "indicators_renamed": [],
+            "footnotes_added": [],
+            "footnotes_removed": [],
+            "footnotes_renamed": [],
+            "reason": "Aucun changement.",
         },
     ]
 
@@ -894,6 +919,9 @@ def test_compare_reports_gpt4o_separates_artifacts_and_extraction_suspects(
     assert [item["table_id"] for item in payload["matching"]["extraction_suspects_current"]] == [
         "curr_suspect"
     ]
+    assert "extraction_status=suspect_unresolved" in (
+        payload["matching"]["extraction_suspects_current"][0].get("reason") or ""
+    )
     assert payload["summary"]["tables_added_total"] == 1
     assert payload["summary"]["tables_removed_total"] == 0
     assert payload["summary"]["artifacts_confirmed_previous_total"] == 1
@@ -946,7 +974,18 @@ def test_compare_reports_gpt4o_preclassifies_artifacts_and_suspects_before_audit
     )
 
     call_kinds: list[str] = []
-    responses: list[dict] = []
+    responses: list[dict] = [
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_suspect",
+                    "decision": "unresolved",
+                    "reason": "Pas de tableau precedent business comparable.",
+                }
+            ],
+            "warnings": [],
+        },
+    ]
 
     def fake_call_openai_json(**kwargs):
         call_kinds.append(kwargs["call_kind"])
@@ -962,8 +1001,8 @@ def test_compare_reports_gpt4o_preclassifies_artifacts_and_suspects_before_audit
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    assert call_kinds == []
-    assert payload["matching"]["tables_added"] == []
+    assert call_kinds == ["matching"]
+    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == ["curr_suspect"]
     assert payload["matching"]["tables_removed"] == []
     assert [item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]] == [
         "prev_artifact"

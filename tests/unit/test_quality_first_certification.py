@@ -58,9 +58,9 @@ def test_extraction_status_drives_comparison_eligibility() -> None:
 
     assert ok_table.comparison_eligible is True
     assert rescued_table.comparison_eligible is True
-    assert suspect_table.comparison_eligible is False
+    assert suspect_table.comparison_eligible is True
     assert artifact_table.comparison_eligible is False
-    assert suspect_table.comparison_blockers == [TABLE_EXTRACTION_STATUS_SUSPECT_UNRESOLVED]
+    assert suspect_table.comparison_blockers == []
     assert artifact_table.comparison_blockers == [TABLE_EXTRACTION_STATUS_CONFIRMED_NO_TABLE]
 
 

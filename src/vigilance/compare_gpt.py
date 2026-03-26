@@ -22,9 +22,19 @@ logger = logging.getLogger(__name__)
 MATCH_PROMPT_VERSION = "table_match_v8"
 DIFF_PROMPT_VERSION = "table_diff_v4"
 COMPARISON_SCHEMA_VERSION = 2
-_BUSINESS_EXTRACTION_STATUSES = frozenset({"ok", "rescued"})
+_BUSINESS_EXTRACTION_STATUSES = frozenset({"ok", "rescued", "suspect_unresolved"})
 _ARTIFACT_EXTRACTION_STATUSES = frozenset({"confirmed_no_table"})
-_SUSPECT_EXTRACTION_STATUSES = frozenset({"suspect_unresolved"})
+_SUSPECT_EXTRACTION_STATUSES = frozenset()  # No longer excluding any tables from matching
+
+
+def _is_ghost_table(entry: dict[str, Any]) -> bool:
+    """Return True if the table has 0 real indicators (not a real table)."""
+    from vigilance.extraction.vision_full_extractor import _count_real_indicators
+
+    indicators = list(entry.get("indicators", []) or [])
+    headers = list(entry.get("headers", []) or [])
+    return _count_real_indicators(indicators) == 0 and len(headers) == 0
+
 
 PRIMARY_MATCH_SYSTEM_PROMPT = """
 You are a brutal, ultra-strict financial table matcher for Canadian bank reports.
@@ -330,11 +340,16 @@ def _partition_tables_by_status(
     business: list[dict[str, Any]] = []
     artifacts: list[dict[str, str]] = []
     suspects: list[dict[str, str]] = []
+    ghost_ids: list[str] = []
     for entry in tables:
         if not isinstance(entry, dict):
             continue
         table_id = str(entry.get("table_id", "") or "").strip()
         if not table_id:
+            continue
+        # Ghost table filter: 0 real indicators = not a real table
+        if _is_ghost_table(entry):
+            ghost_ids.append(table_id)
             continue
         status = _normalize_extraction_status(entry.get("extraction_status"))
         if status in _BUSINESS_EXTRACTION_STATUSES:
@@ -350,10 +365,57 @@ def _partition_tables_by_status(
             suspects.append(
                 {
                     "table_id": table_id,
-                    "reason": "Excluded from business matching by extraction_status=suspect_unresolved.",
+                    "reason": (
+                        "Excluded from business matching: extraction_status not classified "
+                        "as business or artifact (unexpected)."
+                    ),
                 }
             )
+    if ghost_ids:
+        logger.info(
+            "Filtered %d ghost table(s) (0 real indicators): %s",
+            len(ghost_ids),
+            ", ".join(ghost_ids),
+        )
     return business, artifacts, suspects
+
+
+def _merge_extraction_suspect_side(
+    tables: list[dict[str, Any]],
+    partition_suspect_refs: list[dict[str, str]],
+    snapshots: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Build review-queue rows for extraction suspects: partition edge cases plus
+    all tables with extraction_status suspect_unresolved (still matched).
+    """
+    by_id: dict[str, dict[str, str]] = {}
+    for item in partition_suspect_refs:
+        tid = str(item.get("table_id", "") or "").strip()
+        if tid:
+            by_id[tid] = {
+                "table_id": tid,
+                "reason": str(item.get("reason", "") or ""),
+            }
+    suspect_reason = (
+        "extraction_status=suspect_unresolved; table included in matching and "
+        "flagged for extraction review."
+    )
+    for entry in tables:
+        if not isinstance(entry, dict):
+            continue
+        tid = str(entry.get("table_id", "") or "").strip()
+        if not tid:
+            continue
+        if _normalize_extraction_status(entry.get("extraction_status")) != "suspect_unresolved":
+            continue
+        by_id.setdefault(
+            tid,
+            {"table_id": tid, "reason": suspect_reason},
+        )
+    return [
+        {**by_id[tid], **(snapshots.get(tid) or {})}
+        for tid in sorted(by_id.keys())
+    ]
 
 
 def _make_run_id() -> str:
@@ -1142,6 +1204,103 @@ def _aggregate_extraction_run_metrics(
     }
 
 
+DEVIL_ADVOCATE_SYSTEM_PROMPT = """\
+You are a second-opinion financial table matcher reviewing the work of a first analyst.
+
+You receive:
+1. Tables from the Previous Quarter (PQ) that the first analyst marked as "removed" (i.e., not matched to anything).
+2. Tables from the Current Quarter (CQ) that the first analyst marked as "added" (i.e., not matched to anything).
+3. Optionally, pairs the first analyst matched with LOW confidence (< 0.90).
+
+Your mission:
+- Look for pairs among the "removed" PQ and "added" CQ tables that the first analyst MISSED.
+- IMPORTANT: Extraction can be TRUNCATED. A CQ table with only 1-2 indicators could be a truncated version of a PQ table with 17 indicators. Do NOT reject a match solely because of a large row_count difference. Focus on whether the EXISTING indicators in the shorter table appear in the longer one.
+- If two tables share even a few matching indicator labels, column headers, or footnotes, they are likely the same table with a truncated extraction.
+- For low-confidence pairs: confirm or contest them. If you agree, say "confirmed". If you disagree, say "contested".
+
+OUTPUT FORMAT (JSON):
+{
+  "new_matches": [
+    {
+      "previous_table_id": "tbl_pXXX_iYY",
+      "current_table_id": "tbl_pXXX_iYY",
+      "match_confidence": 0.75,
+      "reason": "Both tables share indicators X, Y, Z. CQ version appears truncated."
+    }
+  ],
+  "confirmed_low_confidence": [
+    {"previous_table_id": "...", "current_table_id": "...", "verdict": "confirmed"}
+  ],
+  "contested_pairs": [
+    {"previous_table_id": "...", "current_table_id": "...", "verdict": "contested", "reason": "..."}
+  ]
+}
+
+If you find NO new matches and have nothing to contest, return:
+{"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []}
+"""
+
+
+def _devil_advocate_review(
+    tables_added_cards: list[dict[str, Any]],
+    tables_removed_cards: list[dict[str, Any]],
+    low_confidence_pairs: list[dict[str, Any]],
+    *,
+    model: str,
+    usage_recorder: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Run a second-opinion review on unmatched and low-confidence tables."""
+    if not tables_added_cards and not tables_removed_cards and not low_confidence_pairs:
+        logger.info("Devil's Advocate: nothing to review (all matched with high confidence)")
+        return {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []}
+
+    user_payload = {
+        "unmatched_previous_tables": tables_removed_cards,
+        "unmatched_current_tables": tables_added_cards,
+        "low_confidence_pairs": low_confidence_pairs,
+    }
+
+    logger.info(
+        "Devil's Advocate: reviewing %d unmatched PQ + %d unmatched CQ + %d low-confidence pairs",
+        len(tables_removed_cards),
+        len(tables_added_cards),
+        len(low_confidence_pairs),
+    )
+
+    try:
+        result = _call_openai_json(
+            model=model,
+            messages=[
+                {"role": "system", "content": DEVIL_ADVOCATE_SYSTEM_PROMPT},
+                {"role": "user", "content": json.dumps(user_payload, ensure_ascii=False)},
+            ],
+            max_completion_tokens=4000,
+            temperature=0.0,
+            usage_recorder=usage_recorder,
+            call_kind="devil_advocate",
+        )
+    except Exception as exc:
+        logger.warning("Devil's Advocate: API call failed: %s", exc)
+        return {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []}
+
+    new_matches = list(result.get("new_matches", []) or [])
+    confirmed = list(result.get("confirmed_low_confidence", []) or [])
+    contested = list(result.get("contested_pairs", []) or [])
+
+    logger.info(
+        "Devil's Advocate: found %d new matches, %d confirmed, %d contested",
+        len(new_matches),
+        len(confirmed),
+        len(contested),
+    )
+
+    return {
+        "new_matches": new_matches,
+        "confirmed_low_confidence": confirmed,
+        "contested_pairs": contested,
+    }
+
+
 def compare_reports_gpt4o(
     previous_dir: Path | str,
     current_dir: Path | str,
@@ -1310,6 +1469,74 @@ def compare_reports_gpt4o(
             }
         )
 
+    # --- Devil's Advocate: second-opinion review on unmatched / low-confidence ---
+    low_confidence_pairs = [
+        p for p in match_result.get("matched_pairs", [])
+        if float(p.get("match_confidence", 1.0)) < 0.90
+    ]
+    da_added_cards = [
+        _table_card(entry) for entry in current_business_tables
+        if any(
+            a.get("table_id") == entry.get("table_id")
+            for a in match_result.get("tables_added", [])
+        )
+    ]
+    da_removed_cards = [
+        _table_card(entry) for entry in previous_business_tables
+        if any(
+            r.get("table_id") == entry.get("table_id")
+            for r in match_result.get("tables_removed", [])
+        )
+    ]
+    da_result = _devil_advocate_review(
+        da_added_cards,
+        da_removed_cards,
+        low_confidence_pairs,
+        model=model_name,
+        usage_recorder=usage_records,
+    )
+    # Promote new matches found by Devil's Advocate
+    for new_match in da_result.get("new_matches", []):
+        prev_id = str(new_match.get("previous_table_id", "") or "").strip()
+        cur_id = str(new_match.get("current_table_id", "") or "").strip()
+        if not prev_id or not cur_id:
+            continue
+        if prev_id not in previous_snapshots or cur_id not in current_snapshots:
+            logger.warning(
+                "Devil's Advocate: skipping invalid match %s <-> %s", prev_id, cur_id
+            )
+            continue
+        # Add to matched_pairs
+        match_result["matched_pairs"].append({
+            "previous_table_id": prev_id,
+            "current_table_id": cur_id,
+            "match_confidence": float(new_match.get("match_confidence", 0.75)),
+            "reason": str(new_match.get("reason", "")),
+            "source": "devil_advocate",
+        })
+        # Remove from tables_added / tables_removed
+        tables_added = [t for t in tables_added if t.get("table_id") != cur_id]
+        tables_removed = [t for t in tables_removed if t.get("table_id") != prev_id]
+        logger.info(
+            "Devil's Advocate promoted match: %s <-> %s (conf=%.2f)",
+            prev_id, cur_id, float(new_match.get("match_confidence", 0.75)),
+        )
+    # Mark contested pairs for review
+    for contested in da_result.get("contested_pairs", []):
+        prev_id = str(contested.get("previous_table_id", "") or "").strip()
+        cur_id = str(contested.get("current_table_id", "") or "").strip()
+        for pair in match_result["matched_pairs"]:
+            if (
+                pair.get("previous_table_id") == prev_id
+                and pair.get("current_table_id") == cur_id
+            ):
+                pair["review_required"] = True
+                pair["devil_advocate_reason"] = str(contested.get("reason", ""))
+                logger.info(
+                    "Devil's Advocate contested pair: %s <-> %s", prev_id, cur_id
+                )
+
+
     artifacts_confirmed_previous: list[dict[str, Any]] = []
     for item in previous_artifact_refs:
         table_id = item["table_id"]
@@ -1320,15 +1547,16 @@ def compare_reports_gpt4o(
         table_id = item["table_id"]
         artifacts_confirmed_current.append({**item, **current_snapshots[table_id]})
 
-    extraction_suspects_previous: list[dict[str, Any]] = []
-    for item in previous_suspect_refs:
-        table_id = item["table_id"]
-        extraction_suspects_previous.append({**item, **previous_snapshots[table_id]})
-
-    extraction_suspects_current: list[dict[str, Any]] = []
-    for item in current_suspect_refs:
-        table_id = item["table_id"]
-        extraction_suspects_current.append({**item, **current_snapshots[table_id]})
+    extraction_suspects_previous = _merge_extraction_suspect_side(
+        previous_tables,
+        previous_suspect_refs,
+        previous_snapshots,
+    )
+    extraction_suspects_current = _merge_extraction_suspect_side(
+        current_tables,
+        current_suspect_refs,
+        current_snapshots,
+    )
 
     pair_comparisons: list[dict[str, Any]] = []
     diff_calls_total = 0
