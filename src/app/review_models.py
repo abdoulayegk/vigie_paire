@@ -61,6 +61,9 @@ class ReviewItem:
     source_ref_t2: str = ""
     review_status: str = REVIEW_STATUS_PENDING
     comment: str = ""
+    review_user: str = ""
+    review_timestamp: str = ""
+    edited_value: str = ""
     confidence: float = 0.0
     proof_image_path: str = ""
     proof_mode: str = ""
@@ -100,6 +103,9 @@ class ReviewItem:
             "source_ref_t2": self.source_ref_t2,
             "review_status": self.review_status,
             "comment": self.comment,
+            "review_user": self.review_user,
+            "review_timestamp": self.review_timestamp,
+            "edited_value": self.edited_value,
             "confidence": float(self.confidence),
             "proof_image_path": self.proof_image_path,
             "proof_mode": self.proof_mode,
@@ -141,6 +147,9 @@ class ReviewItem:
             source_ref_t2=str(data.get("source_ref_t2", "")),
             review_status=str(data.get("review_status", REVIEW_STATUS_PENDING)),
             comment=str(data.get("comment", "")),
+            review_user=str(data.get("review_user", "")),
+            review_timestamp=str(data.get("review_timestamp", "")),
+            edited_value=str(data.get("edited_value", "")),
             confidence=float(data.get("confidence", 0.0) or 0.0),
             proof_image_path=str(data.get("proof_image_path", "")),
             proof_mode=str(data.get("proof_mode", "")),

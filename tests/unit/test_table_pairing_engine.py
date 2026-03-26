@@ -1,3 +1,5 @@
+"""Unit tests for table pairing engine (strict intra-section compare)."""
+
 from __future__ import annotations
 
 from vigilance.compare import run_strict_intra_section_compare
@@ -15,6 +17,7 @@ def _table(
     headers: list[str] | None = None,
     raw_indicators: list[str] | None = None,
 ) -> TableArtifact:
+    """Build a minimal TableArtifact for pairing engine tests."""
     raw_title = title if title is not None else ""
     raw = list(raw_indicators if raw_indicators is not None else indicators)
     return TableArtifact(
@@ -61,6 +64,7 @@ def test_public_pairing_footnote_only_variants_full_overlap() -> None:
 
 
 def test_public_pairing_matches_without_title_or_number_when_indicators_are_distinctive() -> None:
+    """Tables without title/number pair when first-column indicators are distinctive."""
     t1 = _table(
         table_id="t1",
         title=None,
@@ -85,6 +89,7 @@ def test_public_pairing_matches_without_title_or_number_when_indicators_are_dist
 
 
 def test_public_pairing_same_number_does_not_win_without_content_alignment() -> None:
+    """Same table number alone does not pair tables with mismatched indicators."""
     t1 = _table(
         table_id="t1",
         section="capital_management",
@@ -111,6 +116,7 @@ def test_public_pairing_same_number_does_not_win_without_content_alignment() -> 
 
 
 def test_public_pairing_high_global_overlap_but_generic_family_becomes_ambiguous() -> None:
+    """Generic indicator families with high overlap produce ambiguous pairs, not matches."""
     t1 = _table(
         table_id="t1",
         title="Exposition geographique",
@@ -138,6 +144,7 @@ def test_public_pairing_high_global_overlap_but_generic_family_becomes_ambiguous
 
 
 def test_public_pairing_exposes_comparable_counts_and_coverage() -> None:
+    """Result exposes tables_comparable_t1/t2, pairing_coverage, and matching_diagnostics."""
     comparable_t1 = _table(
         table_id="t1",
         indicators=["NSFR", "LCR"],
@@ -168,3 +175,21 @@ def test_public_pairing_exposes_comparable_counts_and_coverage() -> None:
     assert result["pairing_coverage"] == 1.0
     assert result["matching_diagnostics"]["tables_comparable_t1"] == 1
     assert result["matching_diagnostics"]["pairing_coverage"] == 1.0
+
+
+def test_recall_first_leaves_unmatched_tables_pending_until_runner_validation() -> None:
+    """Removed tables stay in pending_review until runner confirms them."""
+    removed_only = _table(
+        table_id="t1_removed",
+        indicators=["CET1", "AT1", "Tier 2"],
+    )
+
+    result = run_strict_intra_section_compare([removed_only], [])
+
+    assert len(result["removed_tables"]) == 1
+    assert result["removed_tables_confirmed"] == []
+    assert result["added_tables_confirmed"] == []
+    assert result["removed_tables_pending_review"] == result["removed_tables"]
+    tracking = result["matching_diagnostics"]["recall_loss_tracking"]
+    assert tracking["confirmed_removed"] == 0
+    assert tracking["pending_removed_candidates"] == 1

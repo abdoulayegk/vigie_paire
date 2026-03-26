@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from .pymupdf_utils import configure_mupdf_runtime
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,6 +39,7 @@ def crop_table_image(
     except ImportError:
         logger.debug("PyMuPDF (fitz) not available for crop_table_image")
         return False
+    configure_mupdf_runtime(fitz)
 
     try:
         doc = fitz.open(pdf_path)
@@ -108,11 +111,7 @@ def bbox_sanity_profile(bbox_norm: list[float]) -> dict:
     area = w * h
     aspect = w / h if h > 0 else 0.0
     # Near-full-page if area or any dimension is above threshold
-    near_full = (
-        area >= 0.90
-        or w >= 0.95
-        or h >= 0.95
-    )
+    near_full = area >= 0.90 or w >= 0.95 or h >= 0.95
     profile: dict = {
         "width_norm": round(w, 6),
         "height_norm": round(h, 6),
@@ -123,7 +122,9 @@ def bbox_sanity_profile(bbox_norm: list[float]) -> dict:
     return profile
 
 
-def is_bbox_sane(bbox_norm: list[float], cfg: dict | None = None) -> tuple[bool, str | None, dict]:
+def is_bbox_sane(
+    bbox_norm: list[float], cfg: dict | None = None
+) -> tuple[bool, str | None, dict]:
     """
     Return (sane, reject_reason, profile). If sane is False, reject_reason is set.
     cfg may contain: bbox_min_width, bbox_min_height, bbox_min_area, bbox_max_area,
@@ -156,7 +157,11 @@ def is_bbox_sane(bbox_norm: list[float], cfg: dict | None = None) -> tuple[bool,
     if area > max_area:
         profile["reject_reason"] = "bbox_area_too_large"
         return False, "bbox_area_too_large", profile
-    if area >= near_full_threshold or w >= near_full_threshold or h >= near_full_threshold:
+    if (
+        area >= near_full_threshold
+        or w >= near_full_threshold
+        or h >= near_full_threshold
+    ):
         profile["reject_reason"] = "bbox_near_full_page"
         return False, "bbox_near_full_page", profile
     # Extreme aspect ratio inconsistent with tables (e.g. 20:1 or 1:20)
@@ -204,6 +209,7 @@ def crop_table_region_to_bytes(
     except ImportError:
         logger.debug("PyMuPDF (fitz) not available for crop_table_region_to_bytes")
         return b""
+    configure_mupdf_runtime(fitz)
 
     try:
         doc = fitz.open(pdf_path)
@@ -270,6 +276,7 @@ def render_page_with_bbox_highlight_to_bytes(
         )
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
         return full if full else b""
+    configure_mupdf_runtime(fitz)
 
     try:
         doc = fitz.open(pdf_path)
@@ -337,6 +344,7 @@ def crop_footnote_region_to_bytes(
         logger.debug("PyMuPDF (fitz) not available for crop_footnote_region_to_bytes")
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
         return full if full else b""
+    configure_mupdf_runtime(fitz)
 
     try:
         doc = fitz.open(pdf_path)

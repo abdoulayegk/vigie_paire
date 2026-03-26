@@ -346,10 +346,8 @@ def test_slug_to_canonical_roundtrip() -> None:
         assert SLUG_TO_CANONICAL[slug] == canonical
 
 
-def test_loaded_artifacts_work_with_comparator() -> None:
-    """Artifacts loaded from JSON can be matched by the comparator."""
-    from vigilance.compare.indicator_comparator import match_decision
-
+def test_loaded_artifacts_default_to_ok_status_and_comparison_eligible() -> None:
+    """Artifacts loaded from vigie_extract keep the simplified comparison gate."""
     indicators = ["CET1", "Tier 1", "Total Capital", "Leverage Ratio"]
     first_col = [
         {"row_idx": i, "text": t, "text_norm": t.lower(), "note_refs": []}
@@ -398,8 +396,9 @@ def test_loaded_artifacts_work_with_comparator() -> None:
     arts_t2 = load_artifacts_from_vigie_extract(payload_t2)
     assert len(arts_t1) == 1
     assert len(arts_t2) == 1
-
-    decision = match_decision(arts_t1[0], arts_t2[0])
-    assert decision.is_match is True
-    assert decision.indicator_overlap == 1.0
-    assert decision.reason in ("table_number_match", "indicator_overlap_match", "indicator_set_hash_exact")
+    assert arts_t1[0].extraction_status == "ok"
+    assert arts_t2[0].extraction_status == "ok"
+    assert arts_t1[0].comparison_eligible is True
+    assert arts_t2[0].comparison_eligible is True
+    assert arts_t1[0].comparison_blockers == []
+    assert arts_t2[0].comparison_blockers == []

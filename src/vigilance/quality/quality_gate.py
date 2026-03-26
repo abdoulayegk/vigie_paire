@@ -1,4 +1,4 @@
-"""Strict Quality Gate for extraction outputs (indicators + footnotes) and extraction certification."""
+"""Strict Quality Gate for extraction outputs rooted in canonical ``tables.json``."""
 
 from __future__ import annotations
 
@@ -12,13 +12,13 @@ from pathlib import Path
 from typing import Any
 
 from vigilance.models.table_models import (
-    EXTRACTION_STATUS_BLOCKED,
-    EXTRACTION_STATUS_CERTIFIED,
-    EXTRACTION_STATUS_REVIEW_REQUIRED,
-    derive_extraction_blockers,
+    TABLE_EXTRACTION_STATUS_CONFIRMED_NO_TABLE,
+    TABLE_EXTRACTION_STATUS_OK,
+    TABLE_EXTRACTION_STATUS_RESCUED,
+    TABLE_EXTRACTION_STATUS_SUSPECT_UNRESOLVED,
     get_extraction_confidence,
     get_extraction_quality_flags,
-    get_extraction_status,
+    normalize_extraction_status,
 )
 from vigilance.utils.indicator_cleaner import (
     clean_table_title_contamination,
@@ -38,10 +38,8 @@ _DEFAULT_CONFIG: dict[str, Any] = {
     "title_numeric_density_threshold": 0.45,
 }
 
-# Extraction certification: strict quality-first defaults (fail on any blocked table).
 _DEFAULT_EXTRACTION_CONFIG: dict[str, Any] = {
-    "max_tables_blocked": 0,
-    "max_tables_review_required": 10,
+    "fail_on_suspect_unresolved": True,
     "fail_on_budget_exhausted": True,
 }
 
@@ -85,47 +83,48 @@ def evaluate_extraction_quality(
     tables: list[Any],
     *,
     config: dict[str, Any] | None = None,
-    max_blocked_evidence: int = 50,
+    max_suspect_evidence: int = 50,
 ) -> dict[str, Any]:
     """
-    Evaluate extraction certification across tables. Returns status, fail_reasons, summary,
-    blocker_breakdown (counts per blocker reason), and blocked_table_evidence for diagnostics.
+    Evaluate extraction quality from canonical extraction_status values only.
     """
     cfg = dict(_DEFAULT_EXTRACTION_CONFIG)
     if isinstance(config, dict):
         cfg.update(config)
-    max_blocked = int(cfg.get("max_tables_blocked", 0))
-    max_review_required = int(cfg.get("max_tables_review_required", 10))
+    fail_on_suspect_unresolved = bool(cfg.get("fail_on_suspect_unresolved", True))
     fail_on_budget = bool(cfg.get("fail_on_budget_exhausted", True))
 
-    tables_blocked = 0
-    tables_review_required = 0
-    tables_certified = 0
+    tables_ok = 0
+    tables_rescued = 0
+    tables_confirmed_no_table = 0
+    tables_suspect_unresolved = 0
     tables_crop_rejected = 0
     tables_low_confidence = 0
     tables_budget_exhausted = 0
-    blocker_breakdown: dict[str, int] = {}
-    blocked_evidence: list[dict[str, Any]] = []
+    suspect_evidence: list[dict[str, Any]] = []
 
     for table in tables or []:
-        status = get_extraction_status(table)
-        blockers = derive_extraction_blockers(table)
-        for b in blockers:
-            blocker_breakdown[b] = blocker_breakdown.get(b, 0) + 1
-        if status == EXTRACTION_STATUS_BLOCKED:
-            tables_blocked += 1
-            if len(blocked_evidence) < max_blocked_evidence:
+        status = normalize_extraction_status(getattr(table, "extraction_status", None))
+        if status == TABLE_EXTRACTION_STATUS_SUSPECT_UNRESOLVED:
+            tables_suspect_unresolved += 1
+            if len(suspect_evidence) < max_suspect_evidence:
                 conf = get_extraction_confidence(table)
-                blocked_evidence.append({
-                    "section": getattr(table, "section", None),
-                    "page": getattr(table, "page_pdf", None),
-                    "blockers": blockers,
-                    "confidence": round(conf, 3),
-                })
-        elif status == EXTRACTION_STATUS_REVIEW_REQUIRED:
-            tables_review_required += 1
+                suspect_evidence.append(
+                    {
+                        "table_id": getattr(table, "table_id", None),
+                        "section": getattr(table, "section", None),
+                        "page": getattr(table, "page_pdf", None),
+                        "extraction_status": status,
+                        "confidence": round(conf, 3),
+                        "flags": get_extraction_quality_flags(table),
+                    }
+                )
+        elif status == TABLE_EXTRACTION_STATUS_CONFIRMED_NO_TABLE:
+            tables_confirmed_no_table += 1
+        elif status == TABLE_EXTRACTION_STATUS_RESCUED:
+            tables_rescued += 1
         else:
-            tables_certified += 1
+            tables_ok += 1
         flags = get_extraction_quality_flags(table)
         if flags.get("crop_rejected"):
             tables_crop_rejected += 1
@@ -136,13 +135,9 @@ def evaluate_extraction_quality(
             tables_budget_exhausted += 1
 
     fail_reasons: list[str] = []
-    if tables_blocked > max_blocked:
+    if fail_on_suspect_unresolved and tables_suspect_unresolved > 0:
         fail_reasons.append(
-            f"extraction_blocked_tables={tables_blocked}>max({max_blocked})"
-        )
-    if tables_review_required > max_review_required:
-        fail_reasons.append(
-            f"extraction_review_required_tables={tables_review_required}>max({max_review_required})"
+            f"extraction_suspect_unresolved_tables={tables_suspect_unresolved}"
         )
     if fail_on_budget and tables_budget_exhausted > 0:
         fail_reasons.append(
@@ -154,21 +149,20 @@ def evaluate_extraction_quality(
 
     summary = {
         "tables_total": len(tables or []),
-        "tables_certified": tables_certified,
-        "tables_review_required": tables_review_required,
-        "tables_blocked": tables_blocked,
+        "tables_ok": tables_ok,
+        "tables_rescued": tables_rescued,
+        "tables_confirmed_no_table": tables_confirmed_no_table,
+        "tables_suspect_unresolved": tables_suspect_unresolved,
         "tables_crop_rejected": tables_crop_rejected,
         "tables_low_confidence": tables_low_confidence,
         "tables_budget_exhausted": tables_budget_exhausted,
-        "blocker_breakdown": blocker_breakdown,
     }
     return {
         "status": status,
         "eligible_for_review": eligible_for_review,
         "fail_reasons": fail_reasons,
         "summary": summary,
-        "blocker_breakdown": blocker_breakdown,
-        "blocked_table_evidence": blocked_evidence,
+        "suspect_table_evidence": suspect_evidence,
     }
 
 
@@ -178,6 +172,53 @@ def _safe_read_json(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError(f"Invalid JSON object in {path}")
     return data
+
+
+def _project_quality_payloads_from_tables(
+    tables_payload: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    top = {
+        "bank_code": str(tables_payload.get("bank_code", "") or ""),
+        "year": int(tables_payload.get("year", 0) or 0),
+        "quarter": str(tables_payload.get("quarter", "") or ""),
+        "created_at": str(tables_payload.get("created_at", "") or ""),
+        "schema_version": int(tables_payload.get("schema_version", 7) or 7),
+    }
+    tables = [
+        entry
+        for entry in list(tables_payload.get("tables", []) or [])
+        if isinstance(entry, dict)
+    ]
+    indicators_payload = {
+        **top,
+        "tables": [
+            {
+                "table_id": str(entry.get("table_id", "") or ""),
+                "page": int(entry.get("page", 0) or 0),
+                "section": str(entry.get("section", "") or "unknown_section"),
+                "title": str(entry.get("title", "") or ""),
+                "indicators": [
+                    str(value).strip()
+                    for value in list(entry.get("indicators", []) or [])
+                    if str(value).strip()
+                ],
+            }
+            for entry in tables
+        ],
+    }
+    footnotes_payload = {
+        **top,
+        "tables": [
+            {
+                "table_id": str(entry.get("table_id", "") or ""),
+                "page": int(entry.get("page", 0) or 0),
+                "section": str(entry.get("section", "") or "unknown_section"),
+                "footnotes": list(entry.get("footnotes", []) or []),
+            }
+            for entry in tables
+        ],
+    }
+    return indicators_payload, footnotes_payload
 
 
 def _normalize_text(value: str) -> str:
@@ -222,13 +263,13 @@ def _is_repr_like(text: str) -> bool:
     low = value.lower()
     return (
         "'text':" in low
-        or "\"text\":" in low
+        or '"text":' in low
         or "'id':" in low
-        or "\"id\":" in low
+        or '"id":' in low
         or "'marker':" in low
-        or "\"marker\":" in low
+        or '"marker":' in low
         or "'value':" in low
-        or "\"value\":" in low
+        or '"value":' in low
     )
 
 
@@ -380,7 +421,11 @@ def _assess_title_quality(
             cleaned,
             title_density_threshold=title_density_threshold,
         )
-        if has_alpha and not contaminated_cleaned and not _is_date_header_title(cleaned):
+        if (
+            has_alpha
+            and not contaminated_cleaned
+            and not _is_date_header_title(cleaned)
+        ):
             return False, False, True, cleaned
 
     return True, False, False, (cleaned or raw)
@@ -388,34 +433,50 @@ def _assess_title_quality(
 
 def _make_footnote_index(
     foot_tables: list[dict[str, Any]],
-) -> tuple[dict[tuple[str, str, int], dict[str, Any]], dict[tuple[str, str], list[dict[str, Any]]]]:
-    exact: dict[tuple[str, str, int], dict[str, Any]] = {}
-    by_source_id: dict[tuple[str, str], list[dict[str, Any]]] = {}
+) -> tuple[
+    dict[tuple[str, int, str], dict[str, Any]],
+    dict[str, list[dict[str, Any]]],
+]:
+    exact: dict[tuple[str, int, str], dict[str, Any]] = {}
+    by_table_id: dict[str, list[dict[str, Any]]] = {}
     for entry in foot_tables:
-        source = str(entry.get("source", "") or "")
         table_id = str(entry.get("table_id", "") or "")
         page = int(entry.get("page", 0) or 0)
-        exact[(source, table_id, page)] = entry
-        by_source_id.setdefault((source, table_id), []).append(entry)
-    return exact, by_source_id
+        section = str(entry.get("section", "") or "unknown_section")
+        exact[(table_id, page, section)] = entry
+        by_table_id.setdefault(table_id, []).append(entry)
+    return exact, by_table_id
 
 
 def _find_footnote_entry(
     indicators_entry: dict[str, Any],
     *,
-    exact_idx: dict[tuple[str, str, int], dict[str, Any]],
-    by_source_id: dict[tuple[str, str], list[dict[str, Any]]],
+    exact_idx: dict[tuple[str, int, str], dict[str, Any]],
+    by_table_id: dict[str, list[dict[str, Any]]],
 ) -> dict[str, Any] | None:
-    source = str(indicators_entry.get("source", "") or "")
     table_id = str(indicators_entry.get("table_id", "") or "")
     page = int(indicators_entry.get("page", 0) or 0)
-    exact = exact_idx.get((source, table_id, page))
+    section = str(indicators_entry.get("section", "") or "unknown_section")
+    exact = exact_idx.get((table_id, page, section))
     if exact is not None:
         return exact
-    candidates = by_source_id.get((source, table_id), [])
+    candidates = by_table_id.get(table_id, [])
     if candidates:
         return candidates[0]
     return None
+
+
+def _footnote_list(
+    foot_entry: dict[str, Any] | None,
+) -> list[dict[str, Any]] | None:
+    if not isinstance(foot_entry, dict):
+        return None
+    footnotes = foot_entry.get("footnotes", [])
+    if footnotes is None:
+        return []
+    if not isinstance(footnotes, list):
+        return None
+    return [item for item in footnotes if isinstance(item, dict)]
 
 
 def _analyze_footnote_integrity(
@@ -426,22 +487,21 @@ def _analyze_footnote_integrity(
     if not foot_entry:
         return "pass", []
 
-    has_footnotes = bool(foot_entry.get("has_footnotes"))
-    if not has_footnotes:
+    footnotes = _footnote_list(foot_entry)
+    if footnotes is None:
+        return "fail", ["missing_or_invalid_footnotes"]
+    if not footnotes:
         return "pass", []
 
     reasons: list[str] = []
-    content = foot_entry.get("footnotes_content", {})
-    markers = foot_entry.get("footnote_markers", []) or []
-
-    if not isinstance(content, dict) or not content:
-        reasons.append("missing_or_invalid_footnotes_content")
-        return "fail", reasons
-
     empty_values = 0
     repr_like_values = 0
-    for value in content.values():
-        txt = str(value or "").strip()
+    missing_ids = 0
+    for item in footnotes:
+        marker = _normalize_marker(str(item.get("id", "") or ""))
+        txt = str(item.get("text", "") or "").strip()
+        if not marker:
+            missing_ids += 1
         if not txt:
             empty_values += 1
             continue
@@ -451,19 +511,22 @@ def _analyze_footnote_integrity(
         reasons.append(f"empty_footnote_values({empty_values})")
     if repr_like_values > 0:
         reasons.append(f"repr_like_footnote_values({repr_like_values})")
-
-    marker_norm = {_normalize_marker(m) for m in markers if _normalize_marker(m)}
-    key_norm = {_normalize_marker(k) for k in content.keys() if _normalize_marker(k)}
-
-    if key_norm and not marker_norm:
-        reasons.append("missing_footnote_markers")
-    elif marker_norm:
-        missing = marker_norm - key_norm
-        missing_ratio = len(missing) / len(marker_norm) if marker_norm else 0.0
-        if missing_ratio > float(missing_marker_majority_threshold):
-            reasons.append(f"marker_key_mismatch_ratio({missing_ratio:.2f})")
+    if missing_ids > 0:
+        reasons.append(f"missing_footnote_ids({missing_ids})")
 
     return ("fail", reasons) if reasons else ("pass", [])
+
+
+def _indicators_for_quality(entry: dict[str, Any]) -> list[str]:
+    row_labels = entry.get("indicators", [])
+    candidates = (
+        row_labels
+        if isinstance(row_labels, list) and row_labels
+        else entry.get("indicators_row", [])
+    )
+    if not isinstance(candidates, list):
+        return []
+    return [str(item) for item in candidates]
 
 
 def _score_table(
@@ -478,7 +541,11 @@ def _score_table(
     if title_contaminated:
         score -= 20.0
     if duplicate_ratio > duplicate_threshold:
-        severity = min(1.0, (duplicate_ratio - duplicate_threshold) / max(0.01, 1.0 - duplicate_threshold))
+        severity = min(
+            1.0,
+            (duplicate_ratio - duplicate_threshold)
+            / max(0.01, 1.0 - duplicate_threshold),
+        )
         score -= 30.0 * severity
     score -= min(25.0, suspicious_line_splits * 8.0)
     if footnote_integrity == "fail":
@@ -507,7 +574,7 @@ def evaluate_quality(
     if not isinstance(footnotes_tables, list):
         footnotes_tables = []
 
-    foot_exact, foot_by_sid = _make_footnote_index(
+    foot_exact, foot_by_table_id = _make_footnote_index(
         [e for e in footnotes_tables if isinstance(e, dict)]
     )
 
@@ -522,31 +589,23 @@ def evaluate_quality(
         if not isinstance(entry, dict):
             continue
         title = str(entry.get("title", "") or "")
-        sections = entry.get("sections", []) or []
-        if not isinstance(sections, list):
-            sections = []
+        section_name = str(entry.get("section", "") or "unknown_section")
 
         max_dup_ratio = 0.0
         dup_by_section: list[dict[str, Any]] = []
-        suspicious_count = 0
-        for section in sections:
-            if not isinstance(section, dict):
-                continue
-            sec_name = str(section.get("section", "") or "unknown")
-            indicators = section.get("indicators", []) or []
-            if not isinstance(indicators, list):
-                indicators = []
-            lines = [str(x) for x in indicators]
-            sec_dup = _duplicate_ratio(lines)
-            max_dup_ratio = max(max_dup_ratio, sec_dup)
-            dup_by_section.append(
-                {
-                    "section": sec_name,
-                    "indicator_count": len(lines),
-                    "duplicate_ratio": round(sec_dup, 4),
-                }
-            )
-            suspicious_count += sum(1 for line in lines if _is_line_split_suspicious(line))
+        indicators = _indicators_for_quality(entry)
+        suspicious_count = sum(
+            1 for line in indicators if _is_line_split_suspicious(line)
+        )
+        sec_dup = _duplicate_ratio(indicators)
+        max_dup_ratio = max(max_dup_ratio, sec_dup)
+        dup_by_section.append(
+            {
+                "section": section_name,
+                "indicator_count": len(indicators),
+                "duplicate_ratio": round(sec_dup, 4),
+            }
+        )
 
         (
             title_contaminated,
@@ -569,7 +628,7 @@ def evaluate_quality(
             duplicates_excess_count += 1
 
         foot_entry = _find_footnote_entry(
-            entry, exact_idx=foot_exact, by_source_id=foot_by_sid
+            entry, exact_idx=foot_exact, by_table_id=foot_by_table_id
         )
         foot_status, foot_reasons = _analyze_footnote_integrity(
             foot_entry,
@@ -598,9 +657,9 @@ def evaluate_quality(
         per_table.append(
             {
                 "table_key": {
-                    "source": str(entry.get("source", "") or ""),
                     "table_id": str(entry.get("table_id", "") or ""),
                     "page": int(entry.get("page", 0) or 0),
+                    "section": section_name,
                 },
                 "title": title,
                 "title_effective": title_effective,
@@ -634,7 +693,10 @@ def evaluate_quality(
 
     worst = sorted(
         per_table,
-        key=lambda t: (int(t.get("overall_table_quality_score", 0)), -len(t.get("reasons", []))),
+        key=lambda t: (
+            int(t.get("overall_table_quality_score", 0)),
+            -len(t.get("reasons", [])),
+        ),
     )
 
     recommended_actions: list[str] = []
@@ -705,8 +767,16 @@ def _report_markdown(report: dict[str, Any]) -> str:
     )
     lines.append("")
     lines.append("## Summary")
+    lines.append(f"- Tables analyzed: {int(summary.get('tables_total', 0) or 0)}")
+    lines.append(f"- Tables ok: {int(summary.get('tables_ok', 0) or 0)}")
     lines.append(
-        f"- Tables analyzed: {int(summary.get('tables_total', 0) or 0)}"
+        f"- Tables rescued: {int(summary.get('tables_rescued', 0) or 0)}"
+    )
+    lines.append(
+        f"- Confirmed non-table artifacts: {int(summary.get('tables_confirmed_no_table', 0) or 0)}"
+    )
+    lines.append(
+        f"- Extraction suspects unresolved: {int(summary.get('tables_suspect_unresolved', 0) or 0)}"
     )
     lines.append(
         f"- Footnote integrity fails: {int(summary.get('tables_failed_footnote_integrity', 0) or 0)}"
@@ -743,13 +813,13 @@ def _report_markdown(report: dict[str, Any]) -> str:
         lines.append("- No degraded tables detected.")
     for idx, table in enumerate(worst, start=1):
         key = table.get("table_key", {}) or {}
-        source = key.get("source", "")
         table_id = key.get("table_id", "")
         page = key.get("page", 0)
+        section = key.get("section", "unknown_section")
         score = int(table.get("overall_table_quality_score", 0) or 0)
         reasons = table.get("reasons", []) or []
         lines.append(
-            f"{idx}. [{source}] {table_id} p.{page} | score={score} | reasons={', '.join(reasons) if reasons else 'none'}"
+            f"{idx}. [{section}] {table_id} p.{page} | score={score} | reasons={', '.join(reasons) if reasons else 'none'}"
         )
 
     lines.append("")
@@ -769,8 +839,7 @@ def _report_markdown(report: dict[str, Any]) -> str:
 
 def run_quality_gate(
     *,
-    indicators_path: Path,
-    footnotes_path: Path,
+    tables_path: Path,
     out_dir: Path,
     bank_code: str,
     run_id: str,
@@ -782,11 +851,86 @@ def run_quality_gate(
 
     now = datetime.now().isoformat(timespec="seconds")
     try:
-        indicators_payload = _safe_read_json(indicators_path)
-        footnotes_payload = _safe_read_json(footnotes_path)
-        report = evaluate_quality(
-            indicators_payload, footnotes_payload, config=cfg
+        tables_payload = _safe_read_json(tables_path)
+        indicators_payload, footnotes_payload = _project_quality_payloads_from_tables(
+            tables_payload
         )
+        structural_report = evaluate_quality(
+            indicators_payload,
+            footnotes_payload,
+            config=cfg,
+        )
+        from app.extraction_storage import table_artifact_from_dict
+
+        tables_for_quality = [
+            table_artifact_from_dict(
+                {
+                    **{
+                        "bank_code": str(tables_payload.get("bank_code", "") or ""),
+                        "quarter": str(tables_payload.get("quarter", "") or ""),
+                    },
+                    **entry,
+                }
+            )
+            for entry in list(tables_payload.get("tables", []) or [])
+            if isinstance(entry, dict)
+        ]
+        extraction_report = evaluate_extraction_quality(
+            tables_for_quality,
+            config=cfg,
+        )
+        extraction_status_by_id = {
+            str(entry.get("table_id", "") or ""): str(
+                entry.get("extraction_status", "") or "ok"
+            )
+            for entry in list(tables_payload.get("tables", []) or [])
+            if isinstance(entry, dict)
+        }
+        for table_report in list(structural_report.get("tables", []) or []):
+            if not isinstance(table_report, dict):
+                continue
+            table_key = table_report.get("table_key", {}) or {}
+            table_id = str(table_key.get("table_id", "") or "")
+            table_report["extraction_status"] = normalize_extraction_status(
+                extraction_status_by_id.get(table_id)
+            )
+
+        fail_reasons = list(extraction_report.get("fail_reasons", []) or []) + list(
+            structural_report.get("fail_reasons", []) or []
+        )
+        recommended_actions = list(extraction_report.get("recommended_actions", []) or [])
+        if int(
+            (extraction_report.get("summary") or {}).get(
+                "tables_suspect_unresolved", 0
+            )
+            or 0
+        ):
+            recommended_actions.append(
+                "Relancer le rescue cible ou envoyer en revue extraction les tableaux suspect_unresolved."
+            )
+        recommended_actions.extend(
+            list(structural_report.get("recommended_actions", []) or [])
+        )
+        if not recommended_actions:
+            recommended_actions = ["Aucune action corrective critique detectee."]
+
+        report = {
+            "status": "FAIL" if fail_reasons else "PASS",
+            "eligible_for_review": not bool(fail_reasons),
+            "thresholds": {
+                **dict(extraction_report.get("thresholds") or {}),
+                **dict(structural_report.get("thresholds") or {}),
+            },
+            "summary": {
+                **dict(extraction_report.get("summary") or {}),
+                **dict(structural_report.get("summary") or {}),
+            },
+            "fail_reasons": fail_reasons,
+            "recommended_actions": recommended_actions,
+            "top_worst_tables": list(structural_report.get("top_worst_tables", []) or []),
+            "tables": list(structural_report.get("tables", []) or []),
+            "extraction_quality": extraction_report,
+        }
     except Exception as exc:
         logger.exception("Quality gate failed to analyze extraction outputs")
         report = {
@@ -809,6 +953,10 @@ def run_quality_gate(
             },
             "summary": {
                 "tables_total": 0,
+                "tables_ok": 0,
+                "tables_rescued": 0,
+                "tables_confirmed_no_table": 0,
+                "tables_suspect_unresolved": 0,
                 "tables_failed_footnote_integrity": 0,
                 "tables_duplicate_ratio_excess": 0,
                 "tables_title_contaminated": 0,
@@ -817,10 +965,26 @@ def run_quality_gate(
             },
             "fail_reasons": [f"quality_gate_runtime_error({exc})"],
             "recommended_actions": [
-                "Verifier la presence/validite de indicators.json et footnotes.json."
+                "Verifier la presence/validite de tables.json."
             ],
             "top_worst_tables": [],
             "tables": [],
+            "extraction_quality": {
+                "status": "FAIL",
+                "eligible_for_review": False,
+                "fail_reasons": [f"quality_gate_runtime_error({exc})"],
+                "summary": {
+                    "tables_total": 0,
+                    "tables_ok": 0,
+                    "tables_rescued": 0,
+                    "tables_confirmed_no_table": 0,
+                    "tables_suspect_unresolved": 0,
+                    "tables_crop_rejected": 0,
+                    "tables_low_confidence": 0,
+                    "tables_budget_exhausted": 0,
+                },
+                "suspect_table_evidence": [],
+            },
         }
 
     payload: dict[str, Any] = {
@@ -874,12 +1038,11 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _build_arg_parser().parse_args(argv)
     run_dir = Path(args.run_dir)
-    indicators_path = run_dir / "indicators.json"
-    footnotes_path = run_dir / "footnotes.json"
+    tables_path = run_dir / "tables.json"
 
-    if not indicators_path.exists() or not footnotes_path.exists():
+    if not tables_path.exists():
         print(
-            f"Missing required files in {run_dir}: indicators.json and footnotes.json",
+            f"Missing required file in {run_dir}: tables.json",
             flush=True,
         )
         return 2
@@ -887,17 +1050,16 @@ def main(argv: list[str] | None = None) -> int:
     bank_code = str(args.bank or "").strip()
     run_id = str(args.run_id or "").strip()
     try:
-        indicators_payload = _safe_read_json(indicators_path)
+        tables_payload = _safe_read_json(tables_path)
     except Exception:
-        indicators_payload = {}
+        tables_payload = {}
     if not bank_code:
-        bank_code = str(indicators_payload.get("bank_code", "") or "unknown")
+        bank_code = str(tables_payload.get("bank_code", "") or "unknown")
     if not run_id:
-        run_id = str(indicators_payload.get("run_id", "") or run_dir.name)
+        run_id = run_dir.name
 
     result = run_quality_gate(
-        indicators_path=indicators_path,
-        footnotes_path=footnotes_path,
+        tables_path=tables_path,
         out_dir=run_dir,
         bank_code=bank_code,
         run_id=run_id,

@@ -9,6 +9,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from vigilance.utils.text_normalize_base import normalize_text_base
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -42,10 +44,8 @@ def _bbox_overlap_ratio(
 
 
 def _normalize_for_match(text: str) -> str:
-    """Normalize text for matching."""
-    if not text:
-        return ""
-    return " ".join(str(text).lower().split()).strip()
+    """Normalize text for matching (accents, apostrophes, whitespace, lower)."""
+    return normalize_text_base(text or "")
 
 
 def extract_row_bboxes_from_pdf(
@@ -68,7 +68,10 @@ def extract_row_bboxes_from_pdf(
     if not PDFPLUMBER_AVAILABLE:
         return []
 
-    pdf_path = Path(pdf_path)
+    raw_pdf_path = str(pdf_path or "").strip()
+    if not raw_pdf_path:
+        return []
+    pdf_path = Path(raw_pdf_path)
     if not pdf_path.exists():
         return []
 

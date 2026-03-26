@@ -118,7 +118,9 @@ def validate_added_table(
             },
         ]
         if title:
-            content.insert(0, {"type": "text", "text": f"Titre du tableau: {title}\n\n"})
+            content.insert(
+                0, {"type": "text", "text": f"Titre du tableau: {title}\n\n"}
+            )
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": content}],

@@ -253,7 +253,10 @@ def build_page_results() -> html.Div:
                             [
                                 html.Div(
                                     [
-                                        html.Div(id="review-proof-container", className="mb-3"),
+                                        html.Div(
+                                            id="review-proof-container",
+                                            className="mb-3",
+                                        ),
                                         html.Div(id="review-meta-container"),
                                     ],
                                     id="review-detail-container",

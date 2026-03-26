@@ -208,7 +208,9 @@ Réponds en JSON :
                             {"type": "text", "text": prompt},
                             {
                                 "type": "image_url",
-                                "image_url": {"url": f"data:image/png;base64,{image_base64}"},
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{image_base64}"
+                                },
                             },
                         ],
                     }
@@ -230,7 +232,9 @@ Réponds en JSON :
             logger.error(f"Erreur API Vision: {e}")
             return None
 
-    def detect_toc_page(self, pdf_path: str | Path, page_num: int) -> TOCDetectionResult:
+    def detect_toc_page(
+        self, pdf_path: str | Path, page_num: int
+    ) -> TOCDetectionResult:
         """
         Détecter si une page contient une Table des Matières.
 
@@ -241,7 +245,12 @@ Réponds en JSON :
         Returns:
             TOCDetectionResult avec is_toc et confidence
         """
-        pdf_path = Path(pdf_path)
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            return TOCDetectionResult(
+                is_toc=False, confidence=0.0, page_number=page_num, entries=[]
+            )
+        pdf_path = Path(raw_pdf_path)
 
         # Convertir la page en image
         image_b64 = self._page_to_base64(pdf_path, page_num)
@@ -266,7 +275,9 @@ Réponds en JSON :
             raw_response=json.dumps(result),
         )
 
-    def extract_toc_entries(self, pdf_path: str | Path, page_num: int) -> TOCDetectionResult:
+    def extract_toc_entries(
+        self, pdf_path: str | Path, page_num: int
+    ) -> TOCDetectionResult:
         """
         Extraire les entrées d'une Table des Matières.
 
@@ -277,7 +288,12 @@ Réponds en JSON :
         Returns:
             TOCDetectionResult avec entries remplies
         """
-        pdf_path = Path(pdf_path)
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            return TOCDetectionResult(
+                is_toc=False, confidence=0.0, page_number=page_num, entries=[]
+            )
+        pdf_path = Path(raw_pdf_path)
 
         image_b64 = self._page_to_base64(pdf_path, page_num)
         if not image_b64:
@@ -315,7 +331,10 @@ Réponds en JSON :
         Returns:
             Liste de SectionDetectionResult
         """
-        pdf_path = Path(pdf_path)
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            return []
+        pdf_path = Path(raw_pdf_path)
 
         image_b64 = self._page_to_base64(pdf_path, toc_page)
         if not image_b64:
@@ -352,7 +371,10 @@ Réponds en JSON :
         Returns:
             Liste de SectionDetectionResult
         """
-        pdf_path = Path(pdf_path)
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            return []
+        pdf_path = Path(raw_pdf_path)
 
         if search_pages is None:
             search_pages = list(range(2, 11))  # Pages 2-10
@@ -366,7 +388,9 @@ Réponds en JSON :
 
             if detection.is_toc and detection.confidence >= 0.8:
                 toc_page = page_num
-                logger.info(f"GenAI: TDM trouvée page {page_num} (conf={detection.confidence:.2f})")
+                logger.info(
+                    f"GenAI: TDM trouvée page {page_num} (conf={detection.confidence:.2f})"
+                )
                 break
 
         if toc_page is None:

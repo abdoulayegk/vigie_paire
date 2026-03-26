@@ -18,8 +18,7 @@ def build_sidebar() -> dbc.Col:
     # Generate years from the current year through 2040.
     current_year = 2025
     year_options = [
-        {"label": str(y), "value": str(y)}
-        for y in range(2040, current_year - 1, -1)
+        {"label": str(y), "value": str(y)} for y in range(2040, current_year - 1, -1)
     ]
 
     quarter_options = [
@@ -57,7 +56,9 @@ def build_sidebar() -> dbc.Col:
                     # 1. Analyst Info
                     html.Label("Nom de l'Analyste", className="fw-bold small"),
                     dbc.Input(
-                        id="analyst-name", placeholder="ex: Jean Dupont", className="mb-3"
+                        id="analyst-name",
+                        placeholder="ex: Jean Dupont",
+                        className="mb-3",
                     ),
                     # 2. Bank & Year
                     dbc.Row(
@@ -99,7 +100,11 @@ def build_sidebar() -> dbc.Col:
                         id="data-source-type",
                         options=[
                             {"label": "Upload PDF", "value": "upload"},
-                            {"label": "Base de Données", "value": "db", "disabled": True},
+                            {
+                                "label": "Base de Données",
+                                "value": "db",
+                                "disabled": True,
+                            },
                         ],
                         value="upload",
                         className="mb-3 small",
@@ -133,7 +138,8 @@ def build_sidebar() -> dbc.Col:
                         className="mb-1",
                     ),
                     html.Div(
-                        id="upload-t2-name", className="small text-success mb-2 fst-italic"
+                        id="upload-t2-name",
+                        className="small text-success mb-2 fst-italic",
                     ),
                     html.Label(
                         "Rapport trimestre precedent",
@@ -161,10 +167,13 @@ def build_sidebar() -> dbc.Col:
                         className="mb-1",
                     ),
                     html.Div(
-                        id="upload-t1-name", className="small text-success mb-2 fst-italic"
+                        id="upload-t1-name",
+                        className="small text-success mb-2 fst-italic",
                     ),
                     # 5. Quarter Selection for Comparison
-                    html.Label("Trimestre courant sélectionné", className="fw-bold small"),
+                    html.Label(
+                        "Trimestre courant sélectionné", className="fw-bold small"
+                    ),
                     dcc.Dropdown(
                         id="current-quarter",
                         options=quarter_options,
@@ -172,7 +181,9 @@ def build_sidebar() -> dbc.Col:
                         clearable=False,
                         className="small mb-2",
                     ),
-                    html.Label("Trimestre précédent comparé", className="fw-bold small"),
+                    html.Label(
+                        "Trimestre précédent comparé", className="fw-bold small"
+                    ),
                     html.Div(
                         id="previous-quarter-display",
                         className="small border rounded bg-light px-2 py-2 mb-2 text-muted",

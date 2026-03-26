@@ -11,6 +11,7 @@ from app.quarter_utils import build_quarter_context, parse_quarter_ref
         ("Q2", 2025, "Q1-2025"),
         ("Q3", 2025, "Q2-2025"),
         ("Q1", 2026, "Q3-2025"),
+        ("Q4", 2026, "Q4-2025"),
     ],
 )
 def test_build_quarter_context_infers_previous_quarter(

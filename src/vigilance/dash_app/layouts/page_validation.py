@@ -13,7 +13,8 @@ def build_page_validation() -> html.Div:
         children=[
             html.H4("Validation des Sections"),
             html.P(
-                "Sections detectees. Ajustez si necessaire puis validez.", className="text-muted"
+                "Sections detectees. Ajustez si necessaire puis validez.",
+                className="text-muted",
             ),
             dbc.Spinner(html.Div(id="validation-sections-container"), color="primary"),
             html.Hr(),

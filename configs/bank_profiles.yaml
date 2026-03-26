@@ -1,5 +1,9 @@
 version: "1.0"
 
+llm_models:
+  extraction_primary: gpt-5.4
+  default_genai: gpt-4o
+
 vision_extraction:
   enabled: true
   bottom_extension_footnotes: 0.12
@@ -25,9 +29,11 @@ vision_extraction:
   api_retry_max: 3
   api_retry_backoff_ms: 1000
   api_timeout_sec: 120
-  # Single pipeline: one max_completion_tokens for all Vision table extraction (no full/lean).
-  # 128k is model context (input+output); current Vision models allow at most 16k completion tokens.
-  vision_max_completion_tokens: 16384
+  # Single pipeline: one max_completion_tokens budget for all Vision table extraction (no full/lean).
+  # Default to 64k for large tables, with an optional 128k rescue pass when truncation is detected.
+  vision_max_completion_tokens: 65536
+  vision_max_completion_tokens_rescue_enabled: true
+  vision_max_completion_tokens_rescue: 128000
   vision_reference_text_max_chars: 6000
   # DPI for table crop rendering (higher = sharper but larger images). Default: 300.
   vision_crop_dpi: 300
@@ -73,12 +79,17 @@ validation:
   indicator_validator_confidence_min: 0.8
   indicator_validator_batch_size: 8
   vision_unmatched_rescue_enabled: true
+  cross_section_rescue_enabled: false
+  cross_section_rescue_rerank_min: 0.30
+  cross_section_rescue_vision_confidence_min: 0.85
+  cross_section_rescue_max_candidates_per_table: 3
 
 banks:
   bnc:
     vision_extraction:
       footnote_marker_type: "parenthetical"
-      expected_markers: ["(1)", "(2)", "(3)", "(4)", "(5)"]
+      expected_markers:
+        ["(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)", "(9)", "(10)"]
     name: "Banque Nationale du Canada"
     short_name: "BNC"
     file_patterns:
@@ -146,7 +157,7 @@ banks:
   rbc:
     vision_extraction:
       footnote_marker_type: "superscript"
-      expected_markers: ["1", "2", "3", "4", "5"]
+      expected_markers: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
     name: "Banque Royale du Canada"
     short_name: "RBC"
     file_patterns:
@@ -237,7 +248,7 @@ banks:
   td:
     vision_extraction:
       footnote_marker_type: "superscript"
-      expected_markers: ["1", "2", "3", "4", "5"]
+      expected_markers: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
     name: "Banque Toronto-Dominion"
     short_name: "TD"
     file_patterns:
@@ -307,7 +318,7 @@ banks:
   bmo:
     vision_extraction:
       footnote_marker_type: "superscript"
-      expected_markers: ["1", "2", "3", "4", "5"]
+      expected_markers: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
     name: "Banque de Montreal"
     short_name: "BMO"
     file_patterns:
@@ -370,15 +381,27 @@ banks:
       - "Principaux risques et risques émergents pouvant influer sur les résultats futurs"
       - "Risque de marché"
       - "Annexes"
+    validation:
+      cross_section_rescue_enabled: true
     matching_overrides:
       use_hungarian_matching: true
       margin_threshold: 0.15
       rescue_single_min_title_similarity: 0.60
+      overlap_threshold: 0.48
+      use_plan_score_formula: true
+      min_label_overlap_reject: 0.48
+      rescue_single_min_containment: 0.55
+      title_override_min_similarity: 0.72
+      title_override_body_similarity: 0.70
+      title_override_min_structure: 0.25
+      title_override_min_overlap: 0.40
+      title_override_max_size_ratio: 0.50
 
   bns:
     vision_extraction:
       footnote_marker_type: "parenthetical"
-      expected_markers: ["(1)", "(2)", "(3)", "(4)", "(5)"]
+      expected_markers:
+        ["(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)", "(9)", "(10)"]
     name: "Banque de Nouvelle-Ecosse (Scotiabank)"
     short_name: "Scotia"
     file_patterns:
@@ -631,6 +654,21 @@ trend_detection:
     OTHER: 0.7
 
 matching_thresholds:
+  # --- Recall-first engine (default) ---
+  # Global Hungarian assignment + progressive elimination + rescue passes.
+  # Toggle with recall_first_engine_enabled.  All rf_* params below are
+  # active ONLY when this engine is enabled.
+  recall_first_engine_enabled: true
+  rf_min_match_score: 0.25          # min total_score for an assignment to be accepted
+  rf_min_match_margin: 0.04         # min score gap vs next-best alternative
+  rf_strong_pair_min_score: 0.50    # threshold to freeze as strong pair
+  rf_strong_pair_min_margin: 0.08   # margin required for strong pair
+  rf_review_candidate_min_score: 0.15  # min score for review_candidate (plausible match)
+  rf_max_elimination_rounds: 5      # max progressive elimination iterations
+  rf_cross_section_rescue_min_score: 0.20  # min score for cross-section rescue
+  rf_min_indicator_signal: 0.10     # min indicator overlap required for content signal
+
+  # --- Legacy engine settings (active ONLY when recall_first_engine_enabled: false) ---
   use_hungarian_matching: true
   matching_v2_enabled: true
   use_post_hungarian_threshold: true

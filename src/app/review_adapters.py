@@ -45,6 +45,15 @@ def build_review_items_from_indicator_result(
     table_comparisons = indicator_result.get("table_comparisons", [])
     seq = 1
 
+    def _source_ref(comp_or_table: dict[str, Any], side: str) -> str:
+        embedded = str(
+            comp_or_table.get("source_pdf_t1" if side == "t1" else "source_pdf_t2", "")
+            or ""
+        ).strip()
+        if embedded:
+            return embedded
+        return pdf_path_t1 if side == "t1" else pdf_path_t2
+
     for comp in table_comparisons:
         if not isinstance(comp, dict):
             continue
@@ -103,8 +112,8 @@ def build_review_items_from_indicator_result(
                     table_id_t2=table_id_t2,
                     page_t1=page_t1,
                     page_t2=page_t2,
-                    source_ref_t1=pdf_path_t1,
-                    source_ref_t2=pdf_path_t2,
+                    source_ref_t1=_source_ref(comp, "t1"),
+                    source_ref_t2=_source_ref(comp, "t2"),
                     confidence=confidence,
                     table_title_raw=table_name,
                     table_status=table_status_raw,
@@ -173,7 +182,11 @@ def build_review_items_from_indicator_result(
             )
 
         for idx, ren in enumerate(renamed):
-            ren_raw = renamed_raw[idx] if isinstance(renamed_raw, list) and idx < len(renamed_raw) else {}
+            ren_raw = (
+                renamed_raw[idx]
+                if isinstance(renamed_raw, list) and idx < len(renamed_raw)
+                else {}
+            )
             if isinstance(ren, dict):
                 old_clean = str(ren.get("from", ""))
                 new_clean = str(ren.get("to", ""))
@@ -243,8 +256,8 @@ def build_review_items_from_indicator_result(
                 table_id_t2=table_id_t2,
                 page_t1=page_t1,
                 page_t2=page_t2,
-                source_ref_t1=pdf_path_t1,
-                source_ref_t2=pdf_path_t2,
+                source_ref_t1=_source_ref(comp, "t1"),
+                source_ref_t2=_source_ref(comp, "t2"),
                 confidence=confidence,
                 table_title_raw=table_title_raw_value,
                 table_status=str(comp.get("table_status", "")),
@@ -338,8 +351,8 @@ def build_review_items_from_indicator_result(
                 table_id_t2=str(comp.get("table_id_t2", "")),
                 page_t1=comp.get("page_t1"),
                 page_t2=comp.get("page_t2"),
-                source_ref_t1=pdf_path_t1,
-                source_ref_t2=pdf_path_t2,
+                source_ref_t1=_source_ref(comp, "t1"),
+                source_ref_t2=_source_ref(comp, "t2"),
                 confidence=float(comp.get("match_score", 0.0) or 0.0),
                 table_title_raw=table_name,
                 table_status=str(comp.get("table_status", "")),
@@ -381,7 +394,7 @@ def build_review_items_from_indicator_result(
                 table_number=table_number,
                 table_id_t2=table_id_t2,
                 page_t2=page_t2,
-                source_ref_t2=pdf_path_t2,
+                source_ref_t2=_source_ref(table, "t2"),
                 confidence=1.0,
                 table_title_raw=table_name,
                 table_status="ajoute",
@@ -424,7 +437,7 @@ def build_review_items_from_indicator_result(
                 table_number=table_number,
                 table_id_t1=table_id_t1,
                 page_t1=page_t1,
-                source_ref_t1=pdf_path_t1,
+                source_ref_t1=_source_ref(table, "t1"),
                 confidence=1.0,
                 table_title_raw=table_name,
                 table_status="supprime",
@@ -437,6 +450,104 @@ def build_review_items_from_indicator_result(
                 removed_indicators=[],
                 genai_analysis=table.get("genai_analysis") or {},
                 match_metadata=match_meta_removed,
+                event_type=EVENT_TYPE_TABLE_REMOVED,
+            )
+        )
+        seq += 1
+
+    tables_added_pending_review = (
+        indicator_result.get("tables_added_pending_review", []) or []
+    )
+    for table in tables_added_pending_review:
+        if not isinstance(table, dict):
+            continue
+
+        table_name = str(table.get("title") or table.get("table_id", ""))
+        section = str(table.get("section", ""))
+        page_t2 = table.get("page")
+        table_id_t2 = str(table.get("table_id", ""))
+        table_number = str(table.get("table_number") or "")
+
+        match_meta_pending_added: dict[str, Any] = {
+            "review_kind": "extraction_suspect",
+            "pending_review": True,
+            "extraction_status": str(
+                table.get("extraction_status", "suspect_unresolved") or "suspect_unresolved"
+            ),
+        }
+
+        items.append(
+            ReviewItem(
+                change_id=_make_change_id("tbl_add_pending", seq),
+                change_type=CHANGE_TYPE_TABLE_ADDED,
+                indicator=t("needs_review"),
+                section=section,
+                table_name=table_name,
+                table_number=table_number,
+                table_id_t2=table_id_t2,
+                page_t2=page_t2,
+                source_ref_t2=_source_ref(table, "t2"),
+                confidence=float(table.get("match_confidence", 0.0) or 0.0),
+                table_title_raw=table_name,
+                table_status="ajoute_pending_review",
+                indicators=[],
+                all_indicators_t1=table.get("all_indicators_t1") or [],
+                all_indicators_t2=table.get("all_indicators_t2") or [],
+                bbox_t1=table.get("bbox_t1"),
+                bbox_t2=table.get("bbox_t2"),
+                added_indicators=[],
+                removed_indicators=[],
+                genai_analysis=table.get("genai_analysis") or {},
+                match_metadata=match_meta_pending_added,
+                event_type=EVENT_TYPE_TABLE_ADDED,
+            )
+        )
+        seq += 1
+
+    tables_removed_pending_review = (
+        indicator_result.get("tables_removed_pending_review", []) or []
+    )
+    for table in tables_removed_pending_review:
+        if not isinstance(table, dict):
+            continue
+
+        table_name = str(table.get("title") or table.get("table_id", ""))
+        section = str(table.get("section", ""))
+        page_t1 = table.get("page")
+        table_id_t1 = str(table.get("table_id", ""))
+        table_number = str(table.get("table_number") or "")
+
+        match_meta_pending_removed: dict[str, Any] = {
+            "review_kind": "extraction_suspect",
+            "pending_review": True,
+            "extraction_status": str(
+                table.get("extraction_status", "suspect_unresolved") or "suspect_unresolved"
+            ),
+        }
+
+        items.append(
+            ReviewItem(
+                change_id=_make_change_id("tbl_rem_pending", seq),
+                change_type=CHANGE_TYPE_TABLE_REMOVED,
+                indicator=t("needs_review"),
+                section=section,
+                table_name=table_name,
+                table_number=table_number,
+                table_id_t1=table_id_t1,
+                page_t1=page_t1,
+                source_ref_t1=_source_ref(table, "t1"),
+                confidence=float(table.get("match_confidence", 0.0) or 0.0),
+                table_title_raw=table_name,
+                table_status="supprime_pending_review",
+                indicators=[],
+                all_indicators_t1=table.get("all_indicators_t1") or [],
+                all_indicators_t2=table.get("all_indicators_t2") or [],
+                bbox_t1=table.get("bbox_t1"),
+                bbox_t2=table.get("bbox_t2"),
+                added_indicators=[],
+                removed_indicators=[],
+                genai_analysis=table.get("genai_analysis") or {},
+                match_metadata=match_meta_pending_removed,
                 event_type=EVENT_TYPE_TABLE_REMOVED,
             )
         )

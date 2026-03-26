@@ -28,19 +28,8 @@ def _make_tables_json(
                 "bank_code": bank_code,
                 "year": year,
                 "quarter": quarter,
-            }
-        ),
-        encoding="utf-8",
-    )
-    meta_path = target / "meta.json"
-    meta_path.write_text(
-        json.dumps(
-            {
-                "bank_code": bank_code,
-                "year": year,
-                "quarter": quarter,
-                "schema_version": 2,
-                "extraction_method": "vision_full_gpt4o",
+                "created_at": "2026-03-24T10:00:00",
+                "schema_version": 7,
             }
         ),
         encoding="utf-8",
@@ -55,18 +44,16 @@ def test_load_extraction_returns_stored_tables() -> None:
     stored_table = {
         "bank_code": "bnc",
         "section": "capital",
-        "page_pdf": 3,
+        "page": 3,
         "table_id": "tableau_0",
         "title": "Tableau 1",
+        "table_summary": "Capital réglementaire",
+        "bbox": None,
         "headers": ["Période", "T1 2025"],
-        "rows": [["Ratio CET1", "13.1%"]],
-        "first_column_indicators": ["ratio cet1"],
-        "first_column_indicators_raw": ["Ratio CET1"],
-        "extraction_method": "vision_full_gpt4o",
-        "footnotes": [{"marker": "1", "text": "Note provisoire"}],
-        "debug_metrics": {"vision_status": "ok"},
-        "quarter": "t1",
-        "content_source": "vision_gpt4o",
+        "row_count": 1,
+        "indicators": ["Ratio CET1"],
+        "footnotes": [{"id": "1", "text": "Note provisoire"}],
+        "extraction_status": "rescued",
     }
 
     base_dir = _make_tables_json("bnc", 2025, "t1", [stored_table])
@@ -78,7 +65,8 @@ def test_load_extraction_returns_stored_tables() -> None:
         t = tables[0]
         assert t.table_id == "tableau_0"
         assert t.title == "Tableau 1"
-        assert meta.get("schema_version") == 2
+        assert t.extraction_status == "rescued"
+        assert meta.get("schema_version") == 7
     finally:
         import shutil
 
@@ -125,14 +113,14 @@ def test_table_artifact_from_dict_normalizes_indicators() -> None:
     d = {
         "bank_code": "bnc",
         "section": "capital",
-        "page_pdf": 1,
+        "page": 1,
         "table_id": "t1",
         "title": "Fonds propres",
+        "table_summary": "Fonds propres",
         "headers": ["Indicateur", "Valeur"],
-        "rows": [["Total des fonds propres *", "100"], ["CET1 ratio (1)", "13"]],
-        "first_column_indicators": ["Total des fonds propres *", "CET1 ratio (1)"],
-        "first_column_indicators_raw": ["Total des fonds propres *", "CET1 ratio (1)"],
-        "extraction_method": "docling",
+        "row_count": 2,
+        "indicators": ["Total des fonds propres *", "CET1 ratio (1)"],
+        "extraction_method": "vision_minimal",
         "footnotes": [],
     }
     artifact = table_artifact_from_dict(d)
@@ -160,42 +148,14 @@ def test_table_artifact_from_dict_uses_raw_pipeline_when_raw_present() -> None:
     d = {
         "bank_code": "bmo",
         "section": "capital",
-        "page_pdf": 1,
+        "page": 1,
         "table_id": "t1",
         "title": "Capital",
+        "table_summary": "Capital",
         "headers": ["Indicateur", "Valeur"],
-        "rows": [],
-        "first_column_indicators": ["ratio cet1", "tier 1", "total des fonds propre"],
-        "first_column_indicators_raw": raw_list,
+        "row_count": len(raw_list),
+        "indicators": raw_list,
         "extraction_method": "vision_full_gpt4o",
-        "footnotes": [],
-    }
-    artifact = table_artifact_from_dict(d)
-    assert artifact.first_column_indicators == expected
-
-
-def test_table_artifact_from_dict_fallback_when_no_raw() -> None:
-    """When first_column_indicators_raw is missing or empty, build from stored first_column_indicators (backward compat)."""
-    from app.extraction_storage import table_artifact_from_dict
-    from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
-
-    stored_normalized = ["ratio cet1", "pret de detail"]
-    expected = [
-        n
-        for ind in stored_normalized
-        if (n := normalize_indicator_for_comparison(str(ind).strip()))
-    ]
-    d = {
-        "bank_code": "bmo",
-        "section": "capital",
-        "page_pdf": 1,
-        "table_id": "t1",
-        "title": "Capital",
-        "headers": ["Indicateur", "Valeur"],
-        "rows": [],
-        "first_column_indicators": stored_normalized,
-        "first_column_indicators_raw": None,
-        "extraction_method": "docling",
         "footnotes": [],
     }
     artifact = table_artifact_from_dict(d)
@@ -222,8 +182,10 @@ def test_save_then_load_roundtrip() -> None:
             extraction_method="vision_full_gpt4o",
             footnotes=[{"marker": "1", "text": "Note"}],
             debug_metrics={"vision_status": "ok"},
+            table_summary="Capital réglementaire",
             quarter="t1",
             content_source="vision_gpt4o",
+            extraction_status="rescued",
         )
         save_extraction(
             bank_code="bnc",
@@ -239,7 +201,9 @@ def test_save_then_load_roundtrip() -> None:
         assert len(tables) == 1
         assert tables[0].table_id == "tableau_0"
         assert tables[0].title == "Tableau 1"
-        assert meta.get("schema_version") == 2
+        assert tables[0].table_summary == "Capital réglementaire"
+        assert tables[0].extraction_status == "rescued"
+        assert meta.get("schema_version") == 7
     finally:
         import shutil
 
@@ -265,6 +229,7 @@ def test_save_then_load_roundtrip_preserves_rbc_matching_fields() -> None:
             first_column_groups=["Prets"],
             hierarchical_indicator_signature=["Prets > Prets de detail"],
             title_reliability="reliable",
+            table_summary="Risque de marché au bilan",
             extraction_method="vision_full_gpt4o",
             footnotes=[],
             content_source="vision_gpt4o",
@@ -281,9 +246,10 @@ def test_save_then_load_roundtrip_preserves_rbc_matching_fields() -> None:
         assert result is not None
         tables, _ = result
         loaded = tables[0]
-        assert loaded.first_column_groups == ["Prets"]
-        assert loaded.hierarchical_indicator_signature == ["Prets > Prets de detail"]
-        assert loaded.title_reliability == "reliable"
+        assert loaded.first_column_groups is None
+        assert loaded.hierarchical_indicator_signature is None
+        assert loaded.title_reliability is None
+        assert loaded.table_summary == "Risque de marché au bilan"
     finally:
         import shutil
 
@@ -321,9 +287,59 @@ def test_save_writes_schema_version_in_tables_json_root() -> None:
         )
         tables_path = base_dir / "bnc" / "2025" / "t1" / "tables.json"
         raw = json.loads(tables_path.read_text(encoding="utf-8"))
-        assert raw.get("schema_version") == 3
+        assert raw.get("schema_version") == 7
         assert "tables" in raw
         assert len(raw["tables"]) == 1
+    finally:
+        import shutil
+
+        shutil.rmtree(base_dir, ignore_errors=True)
+
+
+def test_save_extraction_writes_unified_json_and_txt_artifacts() -> None:
+    """save_extraction writes the official JSON contract only."""
+    from app.extraction_storage import save_extraction
+    from vigilance.models.table_models import TableArtifact
+
+    base_dir = Path(tempfile.mkdtemp())
+    try:
+        artifact = TableArtifact(
+            bank_code="bnc",
+            section="capital",
+            page_pdf=1,
+            table_id="tableau_0",
+            title="T1",
+            headers=["Indicateur", "Valeur"],
+            rows=[["Ratio CET1", "13.1"]],
+            first_column_indicators=["ratio cet1"],
+            first_column_indicators_raw=["Ratio CET1"],
+            extraction_method="vision_full_gpt4o",
+            footnotes=[{"marker": "1", "text": "Note provisoire"}],
+            table_summary="Capital réglementaire",
+            content_source="vision_gpt4o",
+        )
+        save_extraction(
+            bank_code="bnc",
+            year=2025,
+            quarter="t1",
+            tables=[artifact],
+            meta={"schema_version": 2},
+            base_dir=base_dir,
+        )
+        target = base_dir / "bnc" / "2025" / "t1"
+        indicators = json.loads((target / "indicators.json").read_text(encoding="utf-8"))
+        footnotes = json.loads((target / "footnotes.json").read_text(encoding="utf-8"))
+        tables = json.loads((target / "tables.json").read_text(encoding="utf-8"))
+        assert indicators["quarter"] == "t1"
+        assert indicators["schema_version"] == 7
+        assert indicators["tables"][0]["section"] == "capital"
+        assert indicators["tables"][0]["title"] == "T1"
+        assert indicators["tables"][0]["indicators"] == ["Ratio CET1"]
+        assert footnotes["tables"][0]["footnotes"] == [
+            {"id": "1", "text": "Note provisoire"}
+        ]
+        assert "title" not in footnotes["tables"][0]
+        assert tables["tables"][0]["table_summary"] == "Capital réglementaire"
     finally:
         import shutil
 
@@ -349,6 +365,7 @@ def test_save_normalizes_footnotes_to_id_text_in_file() -> None:
             first_column_indicators_raw=[],
             extraction_method="vision_full_gpt4o",
             footnotes=[{"marker": "1", "text": "Note provisoire"}],
+            table_summary="Capital réglementaire",
             content_source="vision_gpt4o",
         )
         save_extraction(
@@ -375,106 +392,123 @@ def test_save_normalizes_footnotes_to_id_text_in_file() -> None:
         shutil.rmtree(base_dir, ignore_errors=True)
 
 
-def test_load_extraction_accepts_legacy_tables_json_without_schema_version() -> None:
-    """load_extraction must load tables.json that has no schema_version at root (legacy)."""
+def test_load_extraction_reads_minimal_tables_json() -> None:
+    """load_extraction must rebuild TableArtifact from the official minimal tables.json."""
     from app.extraction_storage import load_extraction
 
     base = Path(tempfile.mkdtemp())
     target = base / "bnc" / "2025" / "t1"
     target.mkdir(parents=True)
-    tables_path = target / "tables.json"
-    # Legacy: no schema_version at root; footnotes as dict
-    tables_path.write_text(
+    (target / "tables.json").write_text(
         json.dumps(
             {
-                "tables": [
-                    {
-                        "bank_code": "bnc",
-                        "section": "capital",
-                        "page_pdf": 2,
-                        "table_id": "tableau_0",
-                        "title": "Legacy table",
-                        "headers": ["A"],
-                        "rows": [["x"]],
-                        "first_column_indicators": [],
-                        "extraction_method": "docling",
-                        "footnotes": {"1": "Note one", "2": "Note two"},
-                    }
-                ],
+                "schema_version": 7,
+                "created_at": "2026-03-22T10:00:00",
                 "bank_code": "bnc",
                 "year": 2025,
                 "quarter": "t1",
+                "tables": [
+                    {
+                        "table_id": "tableau_1",
+                        "page": 7,
+                        "section": "capital_management",
+                        "title": "Capital",
+                        "table_summary": "Capital",
+                        "bbox": None,
+                        "row_count": 1,
+                        "headers": ["Indicateur", "Valeur"],
+                        "indicators": ["Ratio CET1"],
+                        "footnotes": [{"id": "1", "text": "Note A"}],
+                    }
+                ],
             }
         ),
-        encoding="utf-8",
-    )
-    meta_path = target / "meta.json"
-    meta_path.write_text(
-        json.dumps({"bank_code": "bnc", "year": 2025, "quarter": "t1"}),
         encoding="utf-8",
     )
     try:
         result = load_extraction("bnc", 2025, "t1", base)
         assert result is not None
-        tables, meta = result
+        tables, _meta = result
         assert len(tables) == 1
-        assert tables[0].title == "Legacy table"
-        assert tables[0].table_id == "tableau_0"
-        assert tables[0].footnotes is not None
-        assert len(tables[0].footnotes) == 2
-        # Legacy dict is normalized to list with id/text
-        assert tables[0].footnotes[0]["id"] == "1"
-        assert tables[0].footnotes[0]["text"] == "Note one"
-        assert tables[0].footnotes[1]["id"] == "2"
-        assert tables[0].footnotes[1]["text"] == "Note two"
+        assert tables[0].table_id == "tableau_1"
+        assert tables[0].page_pdf == 7
+        assert tables[0].section == "capital_management"
+        assert tables[0].first_column_indicators == ["ratio cet1"]
+        assert tables[0].first_column_indicators_raw == ["Ratio CET1"]
+        assert tables[0].table_summary == "Capital"
+        assert tables[0].footnotes == [{"id": "1", "text": "Note A"}]
     finally:
         import shutil
 
         shutil.rmtree(base, ignore_errors=True)
 
 
-def test_stored_manifest_compatible_accepts_legacy_meta() -> None:
-    """When stored meta has no extraction_manifest (legacy), compatibility check accepts it."""
-    from app.extraction_storage import is_stored_manifest_compatible
+def test_load_extraction_recreates_missing_derived_json_artifacts() -> None:
+    """load_extraction regenerates missing derived JSON artifacts locally."""
+    from app.extraction_storage import load_extraction, save_extraction
+    from vigilance.models.table_models import TableArtifact
 
-    stored_meta = {"bank_code": "bns", "year": 2025, "quarter": "t1"}
-    expected = {"pdf_fingerprint": "abc", "section_ranges_fingerprint": "def"}
-    assert is_stored_manifest_compatible(stored_meta, expected) is True
+    base_dir = Path(tempfile.mkdtemp())
+    try:
+        artifact = TableArtifact(
+            bank_code="bnc",
+            section="capital",
+            page_pdf=1,
+            table_id="tableau_0",
+            title="T1",
+            headers=["Indicateur", "Valeur"],
+            rows=[["Ratio CET1", "13.1"]],
+            first_column_indicators=["ratio cet1"],
+            first_column_indicators_raw=["Ratio CET1"],
+            extraction_method="vision_full_gpt4o",
+            footnotes=[{"marker": "1", "text": "Note provisoire"}],
+            table_summary="Capital réglementaire",
+            content_source="vision_gpt4o",
+        )
+        save_extraction(
+            bank_code="bnc",
+            year=2025,
+            quarter="t1",
+            tables=[artifact],
+            meta={"schema_version": 2},
+            base_dir=base_dir,
+        )
+        target = base_dir / "bnc" / "2025" / "t1"
+        (target / "indicators.json").unlink()
+        (target / "footnotes.json").unlink()
+
+        result = load_extraction("bnc", 2025, "t1", base_dir)
+        assert result is not None
+        assert (target / "indicators.json").exists()
+        assert (target / "footnotes.json").exists()
+    finally:
+        import shutil
+
+        shutil.rmtree(base_dir, ignore_errors=True)
 
 
-def test_stored_manifest_incompatible_when_version_older() -> None:
-    """When stored manifest has older artifact_contract_version, compatibility check rejects."""
-    from app.extraction_storage import is_stored_manifest_compatible
+def test_load_extraction_rejects_non_current_schema_version() -> None:
+    from app.extraction_storage import load_extraction
 
-    stored_meta = {
-        "extraction_manifest": {
-            "artifact_contract_version": 0,
-            "extraction_metrics_version": 1,
-            "quality_policy_version": 1,
-        }
-    }
-    expected = {
-        "artifact_contract_version": 1,
-        "extraction_metrics_version": 1,
-        "quality_policy_version": 1,
-    }
-    assert is_stored_manifest_compatible(stored_meta, expected) is False
+    base_dir = Path(tempfile.mkdtemp())
+    target = base_dir / "bnc" / "2025" / "t1"
+    target.mkdir(parents=True)
+    (target / "tables.json").write_text(
+        json.dumps(
+            {
+                "bank_code": "bnc",
+                "year": 2025,
+                "quarter": "t1",
+                "created_at": "2026-03-24T10:00:00",
+                "schema_version": 6,
+                "tables": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    try:
+        assert load_extraction("bnc", 2025, "t1", base_dir) is None
+    finally:
+        import shutil
 
-
-def test_stored_manifest_incompatible_when_pdf_fingerprint_differs() -> None:
-    """When stored manifest has different pdf_fingerprint, compatibility check rejects."""
-    from app.extraction_storage import is_stored_manifest_compatible
-
-    stored_meta = {
-        "extraction_manifest": {
-            "pdf_fingerprint": "aaa",
-            "section_ranges_fingerprint": "bbb",
-            "artifact_contract_version": 1,
-        }
-    }
-    expected = {
-        "pdf_fingerprint": "ccc",
-        "section_ranges_fingerprint": "bbb",
-        "artifact_contract_version": 1,
-    }
-    assert is_stored_manifest_compatible(stored_meta, expected) is False
+        shutil.rmtree(base_dir, ignore_errors=True)

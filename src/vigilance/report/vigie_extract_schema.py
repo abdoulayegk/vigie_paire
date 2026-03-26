@@ -427,12 +427,8 @@ def build_vigie_extract(
                 quality_flags=[],
                 bbox=getattr(t, "bbox", None),
                 content_source=str(getattr(t, "content_source", "") or ""),
-                comparison_eligible=bool(
-                    getattr(t, "comparison_eligible", False)
-                ),
-                comparison_blockers=list(
-                    getattr(t, "comparison_blockers", None) or []
-                ),
+                comparison_eligible=bool(getattr(t, "comparison_eligible", False)),
+                comparison_blockers=list(getattr(t, "comparison_blockers", None) or []),
             )
             if not first_col and indicators_clean:
                 table_payload["quality_flags"] = [
@@ -553,9 +549,7 @@ def load_artifacts_from_vigie_extract(
                     comparison_eligible=bool(
                         table.get("comparison_eligible", bool(indicators))
                     ),
-                    comparison_blockers=list(
-                        table.get("comparison_blockers") or []
-                    ),
+                    comparison_blockers=list(table.get("comparison_blockers") or []),
                 )
             )
 

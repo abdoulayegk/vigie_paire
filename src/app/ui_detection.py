@@ -7,7 +7,11 @@ import re
 from pathlib import Path
 from typing import Any
 
-from vigilance.extraction.pdf_preview import get_pdf_info, render_pdf_page, render_pdf_pages
+from vigilance.extraction.pdf_preview import (
+    get_pdf_info,
+    render_pdf_page,
+    render_pdf_pages,
+)
 
 _SECTION_LABELS = {
     "gestion_capital": "Gestion du capital",
@@ -60,9 +64,13 @@ def _fallback_sections(total_pages: int) -> list[dict[str, Any]]:
     ]
 
 
-def _detect_sections_core(pdf_path: str | Path, bank_code: str | None = None) -> dict[str, Any]:
+def _detect_sections_core(
+    pdf_path: str | Path, bank_code: str | None = None
+) -> dict[str, Any]:
     """Detect key sections in a PDF and return UI-friendly ranges."""
-    path = str(pdf_path)
+    path = str(pdf_path or "").strip()
+    if not path:
+        return {"sections": _fallback_sections(1), "total_pages": 1}
     info = get_pdf_info(path)
     total_pages = int(info.get("total_pages", 0) or 0)
 
@@ -72,7 +80,9 @@ def _detect_sections_core(pdf_path: str | Path, bank_code: str | None = None) ->
         mapping = locate_sections_in_pdf(path, bank_code=bank_code, quarter="dash")
         sections: list[dict[str, Any]] = []
         for item in getattr(mapping, "sections", []) or []:
-            section_type = _normalize_section_type(str(getattr(item, "section_type", "")))
+            section_type = _normalize_section_type(
+                str(getattr(item, "section_type", ""))
+            )
             start = int(getattr(item, "start_page", 1) or 1)
             end = int(getattr(item, "end_page", start) or start)
             if end < start:
@@ -89,12 +99,19 @@ def _detect_sections_core(pdf_path: str | Path, bank_code: str | None = None) ->
         if not sections:
             sections = _fallback_sections(total_pages)
         sections.sort(key=lambda s: int(s.get("start_page", 0)))
-        return {"sections": sections, "total_pages": int(getattr(mapping, "total_pages", total_pages) or total_pages)}
+        return {
+            "sections": sections,
+            "total_pages": int(
+                getattr(mapping, "total_pages", total_pages) or total_pages
+            ),
+        }
     except Exception:
         return {"sections": _fallback_sections(total_pages), "total_pages": total_pages}
 
 
-def get_pdf_preview(pdf_path: str | Path, page: int, scale: float = 1.5) -> bytes | None:
+def get_pdf_preview(
+    pdf_path: str | Path, page: int, scale: float = 1.5
+) -> bytes | None:
     """Render one page as bytes for inline display."""
     if page is None:
         return None

@@ -16,8 +16,10 @@ logger = logging.getLogger(__name__)
 # Import conditionnel de PyMuPDF
 try:
     import fitz  # PyMuPDF
+    from vigilance.utils.pymupdf_utils import configure_mupdf_runtime
 
     PYMUPDF_AVAILABLE = True
+    configure_mupdf_runtime(fitz)
 except ImportError:
     PYMUPDF_AVAILABLE = False
     logger.warning("PyMuPDF non disponible - preview PDF desactive")
@@ -179,7 +181,9 @@ def render_pdf_pages(
     return previews
 
 
-def extract_text_from_pages(pdf_path: str | Path, start_page: int, end_page: int) -> str:
+def extract_text_from_pages(
+    pdf_path: str | Path, start_page: int, end_page: int
+) -> str:
     """
     Extraire le texte d'une plage de pages.
 
@@ -249,7 +253,11 @@ def get_pdf_info(pdf_path: str | Path) -> dict:
 
     try:
         doc = fitz.open(str(pdf_path))
-        info = {"total_pages": len(doc), "metadata": doc.metadata or {}, "available": True}
+        info = {
+            "total_pages": len(doc),
+            "metadata": doc.metadata or {},
+            "available": True,
+        }
         doc.close()
         return info
     except Exception as e:
@@ -301,7 +309,9 @@ def create_section_preview(
     )
 
 
-def create_thumbnail(pdf_path: str | Path, page_number: int, width: int = 200) -> bytes | None:
+def create_thumbnail(
+    pdf_path: str | Path, page_number: int, width: int = 200
+) -> bytes | None:
     """
     Creer une vignette d'une page.
 
@@ -394,4 +404,8 @@ def is_preview_available() -> bool:
 
 def get_preview_status() -> dict:
     """Obtenir le statut des dependances de preview."""
-    return {"pymupdf": PYMUPDF_AVAILABLE, "pil": PIL_AVAILABLE, "ready": PYMUPDF_AVAILABLE}
+    return {
+        "pymupdf": PYMUPDF_AVAILABLE,
+        "pil": PIL_AVAILABLE,
+        "ready": PYMUPDF_AVAILABLE,
+    }

@@ -29,17 +29,23 @@ def _cached_render_or_crop(
     )
 
     if not bbox_key:
-        raw = get_pdf_preview(pdf_path, page, scale=scale)
-        return raw if raw else b""
+        if display_mode == "full":
+            raw = get_pdf_preview(pdf_path, page, scale=scale)
+            return raw if raw else b""
+        return b""
 
     try:
         bbox = json.loads(bbox_key)
         if not (isinstance(bbox, list) and len(bbox) == 4):
+            if display_mode == "full":
+                raw = get_pdf_preview(pdf_path, page, scale=scale)
+                return raw if raw else b""
+            return b""
+    except (json.JSONDecodeError, TypeError):
+        if display_mode == "full":
             raw = get_pdf_preview(pdf_path, page, scale=scale)
             return raw if raw else b""
-    except (json.JSONDecodeError, TypeError):
-        raw = get_pdf_preview(pdf_path, page, scale=scale)
-        return raw if raw else b""
+        return b""
 
     try:
         if display_mode == "full":
@@ -51,10 +57,10 @@ def _cached_render_or_crop(
         else:  # "crop" (default)
             return crop_table_region_to_bytes(pdf_path, page, bbox, scale=scale)
     except Exception:
-        pass
-
-    raw = get_pdf_preview(pdf_path, page, scale=scale)
-    return raw if raw else b""
+        if display_mode == "full":
+            raw = get_pdf_preview(pdf_path, page, scale=scale)
+            return raw if raw else b""
+        return b""
 
 
 try:
@@ -97,7 +103,6 @@ from app.dash_app.components.review_detail import (
     build_proofs_section,
     section_display_label,
 )
-from app.review_models_v2 import ChangeType
 from app.dash_app.layouts import (
     build_page_results,
     build_page_upload,
@@ -113,6 +118,7 @@ from app.quarter_utils import (
 )
 from app.review_adapters import build_review_items_from_indicator_result
 from app.review_export import (
+    build_export_metadata,
     export_review_items_json_fr,
     generate_validation_csv,
     generate_validation_excel,
@@ -124,16 +130,21 @@ from app.review_models import (
     CHANGE_TYPE_RENAMED,
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
+    EVENT_TYPE_FOOTNOTE_ONLY,
+    EVENT_TYPE_TABLE_ADDED,
+    EVENT_TYPE_TABLE_REMOVED,
     REVIEW_STATUS_APPROVED,
     REVIEW_STATUS_PENDING,
     REVIEW_STATUS_REJECTED,
     ReviewItem,
 )
+from app.review_models_v2 import ChangeType
 from app.review_priority import sort_review_items_by_priority
 from app.review_queue_normalizer import (
     build_normalized_review_queue,
 )
 from app.review_state import set_review_status
+from app.review_storage import load_review_state, save_review_state
 from app.ui_config import INDICATOR_COMPARISON_DIR
 from app.ui_detection import (
     _detect_sections_core,
@@ -147,15 +158,64 @@ from app.ui_io import (
     save_pdfs_to_temp,
 )
 from vigilance.dash_app.components.review_detail_v2 import build_review_detail_v2
+
+
+def _comparison_path_from_meta(
+    indicator_meta: dict | None, indicator_result: dict | None = None
+) -> str:
+    """Return the persisted comparison path from available Dash state."""
+    meta = indicator_meta if isinstance(indicator_meta, dict) else {}
+    compare_path = str(meta.get("compare_path") or "").strip()
+    if compare_path:
+        return compare_path
+    if isinstance(indicator_result, dict):
+        result_meta = indicator_result.get("meta", {}) or {}
+        return str(result_meta.get("compare_path") or "").strip()
+    return ""
+
+
+def _persist_review_state(
+    *,
+    indicator_meta: dict | None,
+    indicator_result: dict | None = None,
+    review_items: list[dict] | None = None,
+    review_queue: list[dict] | None = None,
+    review_selection: dict | None = None,
+    review_current_idx: int | None = None,
+    current_change_idx: int | None = None,
+    current_indicator_idx: int | None = None,
+    preferred_store: str = "review_queue",
+    source: str = "dash",
+) -> None:
+    """Persist review state next to the comparison JSON when possible."""
+    compare_path = _comparison_path_from_meta(indicator_meta, indicator_result)
+    if not compare_path:
+        return
+    save_review_state(
+        compare_path,
+        review_items=review_items,
+        review_queue=review_queue,
+        review_selection=review_selection,
+        review_current_idx=review_current_idx,
+        current_change_idx=current_change_idx,
+        current_indicator_idx=current_indicator_idx,
+        preferred_store=preferred_store,
+        source=source,
+    )
+
+
 from vigilance.dash_app.components.review_queue_v2 import build_review_queue_v2
 from vigilance.extraction.table_annotator import annotate_table_with_changes
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
 # Theme Bootstrap
 APP_THEME = dbc.themes.FLATLY
-REVIEW_QUEUE_V2_ACTIVE = (
-    os.getenv("REVIEW_QUEUE_V2_ACTIVE", "1").strip().lower() in {"1", "true", "yes", "on"}
-)
+REVIEW_QUEUE_V2_ACTIVE = os.getenv("REVIEW_QUEUE_V2_ACTIVE", "1").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
 app = Dash(
     __name__,
@@ -210,6 +270,93 @@ def _quarter_context_from_store(data: dict | None) -> dict:
         if isinstance(current, dict) and isinstance(previous, dict):
             return data
     return build_quarter_context("Q2", year=2025)
+
+
+def _pdf_paths_from_comparison_meta(
+    indicator_meta: dict | None,
+    indicator_result: dict | None = None,
+) -> dict[str, str]:
+    meta: dict[str, object] = {}
+    top_level: dict[str, object] = {}
+    if isinstance(indicator_result, dict):
+        top_level = indicator_result
+        result_meta = indicator_result.get("meta", {})
+        if isinstance(result_meta, dict):
+            meta.update(result_meta)
+    if isinstance(indicator_meta, dict):
+        meta.update(indicator_meta)
+
+    raw_paths = meta.get("pdf_paths")
+    if isinstance(raw_paths, dict):
+        previous = str(
+            raw_paths.get("pdf_previous")
+            or raw_paths.get("pdf_t1")
+            or meta.get("archived_pdf_previous")
+            or meta.get("source_pdf_previous")
+            or ""
+        ).strip()
+        current = str(
+            raw_paths.get("pdf_current")
+            or raw_paths.get("pdf_t2")
+            or meta.get("archived_pdf_current")
+            or meta.get("source_pdf_current")
+            or ""
+        ).strip()
+    else:
+        previous = str(
+            meta.get("archived_pdf_previous")
+            or top_level.get("archived_pdf_previous")
+            or meta.get("source_pdf_previous")
+            or top_level.get("source_pdf_previous")
+            or ""
+        ).strip()
+        current = str(
+            meta.get("archived_pdf_current")
+            or top_level.get("archived_pdf_current")
+            or meta.get("source_pdf_current")
+            or top_level.get("source_pdf_current")
+            or ""
+        ).strip()
+
+    return {
+        "pdf_t1": previous,
+        "pdf_t2": current,
+        "pdf_previous": previous,
+        "pdf_current": current,
+    }
+
+
+def _normalize_pdf_paths_store(paths: dict | None) -> dict[str, str]:
+    source = paths if isinstance(paths, dict) else {}
+    previous = str(source.get("pdf_previous") or source.get("pdf_t1") or "").strip()
+    current = str(source.get("pdf_current") or source.get("pdf_t2") or "").strip()
+    return {
+        "pdf_t1": previous,
+        "pdf_t2": current,
+        "pdf_previous": previous,
+        "pdf_current": current,
+    }
+
+
+def _missing_pdf_warning(paths: dict[str, str] | None) -> str:
+    if not isinstance(paths, dict):
+        return (
+            "Comparaison chargée, mais les PDF archivés de preuve sont indisponibles."
+        )
+    missing: list[str] = []
+    previous = str(paths.get("pdf_previous") or paths.get("pdf_t1") or "").strip()
+    current = str(paths.get("pdf_current") or paths.get("pdf_t2") or "").strip()
+    if not previous or not Path(previous).exists():
+        missing.append("rapport précédent")
+    if not current or not Path(current).exists():
+        missing.append("rapport courant")
+    if not missing:
+        return ""
+    joined = " et ".join(missing)
+    return (
+        "Comparaison chargée, mais la preuve PDF archivée est indisponible pour le "
+        f"{joined}."
+    )
 
 
 def _comparison_export_base_name(payload: dict | None, suffix: str) -> str:
@@ -322,6 +469,17 @@ app.layout = html.Div(
 # =============================================================================
 # Callbacks
 # =============================================================================
+
+
+clientside_callback(
+    """
+    function(running) {
+        return running ? {"display": "block"} : {"display": "none"};
+    }
+    """,
+    Output("analysis-progress-container", "style"),
+    Input("store-analysis-running", "data"),
+)
 
 
 clientside_callback(
@@ -513,12 +671,14 @@ def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
         b2 = decode(upl_t2.get("content"))
         temp_dir = tempfile.mkdtemp()
         path_t1, path_t2 = save_pdfs_to_temp(b1, b2, temp_dir=Path(temp_dir))
-        paths = {
-            "pdf_t1": path_t1,
-            "pdf_t2": path_t2,
-            "pdf_previous": path_t1,
-            "pdf_current": path_t2,
-        }
+        paths = _normalize_pdf_paths_store(
+            {
+                "pdf_t1": path_t1,
+                "pdf_t2": path_t2,
+                "pdf_previous": path_t1,
+                "pdf_current": path_t2,
+            }
+        )
     except ValueError as e:
         return (
             None,
@@ -803,11 +963,6 @@ def compile_adjusted_sections(starts, ends, ids_start, ids_end, detection):
     State("store-validation-start-ms", "data"),
     prevent_initial_call=True,
     running=[
-        (
-            Output("analysis-progress-container", "style"),
-            {"display": "block"},
-            {"display": "none"},
-        ),
         (Output("store-analysis-running", "data"), True, False),
     ],
 )
@@ -841,8 +996,15 @@ def on_analyze(
     else:
         sections_t1 = detection.get("detection_t1", {}).get("sections", [])
         sections_t2 = detection.get("detection_t2", {}).get("sections", [])
-    path_t1 = paths.get("pdf_previous") or paths.get("pdf_t1")
-    path_t2 = paths.get("pdf_current") or paths.get("pdf_t2")
+    normalized_paths = _normalize_pdf_paths_store(paths)
+    path_t1 = normalized_paths.get("pdf_previous") or normalized_paths.get("pdf_t1")
+    path_t2 = normalized_paths.get("pdf_current") or normalized_paths.get("pdf_t2")
+    logger.info(
+        "[on_analyze] bank=%s previous_pdf=%r current_pdf=%r",
+        bank_code,
+        path_t1,
+        path_t2,
+    )
 
     api_key = (os.environ.get("OPENAI_API_KEY") or "").strip() or None
     use_genai = bool(api_key)
@@ -858,11 +1020,9 @@ def on_analyze(
     include_genai_classification = bool(
         genai_classification_opt and "classify" in genai_classification_opt and api_key
     )
-    # Stored extraction disabled by default; re-enable by uncommenting and removing the line below.
-    use_stored_extraction = False
-    # use_stored_extraction = not bool(
-    #     force_reextract_opt and "reextract" in (force_reextract_opt or [])
-    # )
+    use_stored_extraction = not bool(
+        force_reextract_opt and "reextract" in (force_reextract_opt or [])
+    )
 
     try:
         result = run_comparison_with_sections(
@@ -883,7 +1043,18 @@ def on_analyze(
             use_stored_extraction_if_available=use_stored_extraction,
         )
     except Exception as e:
+        logger.exception(
+            "[on_analyze] analysis_failed bank=%s previous_pdf=%r current_pdf=%r",
+            bank_code,
+            path_t1,
+            path_t2,
+        )
         err_text = str(e)
+        if "__fspath__ returns a str, not 'NoneType'" in err_text:
+            err_text = (
+                "Un chemin PDF ou artefact de comparaison est manquant dans le pipeline. "
+                "Consulter le terminal Dash: la stack trace complète est maintenant journalisée."
+            )
         if "Vision schema contract invalid" in err_text:
             err_text = (
                 "Run interrompu: contrat de schema Vision invalide. "
@@ -1157,21 +1328,35 @@ def update_review_proofs(
         review_queue_data, resolved_selection.get("review_id")
     )
     if table is None:
-        return html.Div()
+        return html.Div(
+            [
+                html.H6("Preuves visuelles T1/T2", className="mb-1"),
+                html.P(
+                    "Aucune preuve visuelle disponible pour la sélection courante.",
+                    className="text-muted small mb-0",
+                ),
+            ],
+            className="p-3 bg-light rounded border",
+        )
 
     item = _table_to_proof_item(table, resolved_selection)
     mode = (proof_display_mode or "crop").strip().lower()
     if mode not in ("crop", "full", "footnote"):
         mode = "crop"
 
-    img_t1_b64 = _get_proof_image_b64_for_item(
+    proof_t1 = _get_proof_render_result_for_item(
         item, "t1", paths or {}, proof_display_mode=mode
     )
-    img_t2_b64 = _get_proof_image_b64_for_item(
+    proof_t2 = _get_proof_render_result_for_item(
         item, "t2", paths or {}, proof_display_mode=mode
     )
     return build_proofs_section(
-        item=item, img_t1_b64=img_t1_b64, img_t2_b64=img_t2_b64, proof_display_mode=mode
+        item=item,
+        img_t1_b64=str(proof_t1.get("image_b64") or "") or None,
+        img_t2_b64=str(proof_t2.get("image_b64") or "") or None,
+        proof_display_mode=mode,
+        proof_result_t1=proof_t1,
+        proof_result_t2=proof_t2,
     )
 
 
@@ -1249,6 +1434,7 @@ def _derive_table_status(indicators: list[dict]) -> str:
     State("store-review-current-idx", "data"),
     State("store-review-current-indicator-idx", "data"),
     State("review-comment", "value"),
+    State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
 def on_review_action_modern(
@@ -1259,6 +1445,7 @@ def on_review_action_modern(
     current_idx,
     indicator_idx,
     comment,
+    indicator_meta,
 ):
     """Handle review actions per-indicator: Approve/Reject applies to the current indicator only.
 
@@ -1296,6 +1483,14 @@ def on_review_action_modern(
             updated_item["comment"] = comment
         new_items = json.loads(json.dumps(review_items))
         new_items[idx] = updated_item
+        _persist_review_state(
+            indicator_meta=indicator_meta,
+            review_items=new_items,
+            review_current_idx=idx,
+            current_indicator_idx=ind_idx,
+            preferred_store="review_items",
+            source="on_review_action_modern",
+        )
         return new_items, no_update, no_update
     else:
         raise PreventUpdate
@@ -1322,6 +1517,14 @@ def on_review_action_modern(
     next_table_idx = idx
 
     if not updated_indicators:
+        _persist_review_state(
+            indicator_meta=indicator_meta,
+            review_items=new_items,
+            review_current_idx=idx,
+            current_indicator_idx=next_ind_idx,
+            preferred_store="review_items",
+            source="on_review_action_modern",
+        )
         return new_items, next_ind_idx, no_update
 
     def _is_decided(s: str | None) -> bool:
@@ -1333,11 +1536,35 @@ def on_review_action_modern(
 
     if ind_idx < len(updated_indicators) - 1:
         next_ind_idx = ind_idx + 1
+        _persist_review_state(
+            indicator_meta=indicator_meta,
+            review_items=new_items,
+            review_current_idx=idx,
+            current_indicator_idx=next_ind_idx,
+            preferred_store="review_items",
+            source="on_review_action_modern",
+        )
         return new_items, next_ind_idx, no_update
     if all_decided and idx < len(new_items) - 1:
         next_table_idx = idx + 1
         next_ind_idx = 0
+        _persist_review_state(
+            indicator_meta=indicator_meta,
+            review_items=new_items,
+            review_current_idx=next_table_idx,
+            current_indicator_idx=next_ind_idx,
+            preferred_store="review_items",
+            source="on_review_action_modern",
+        )
         return new_items, next_ind_idx, next_table_idx
+    _persist_review_state(
+        indicator_meta=indicator_meta,
+        review_items=new_items,
+        review_current_idx=idx,
+        current_indicator_idx=next_ind_idx,
+        preferred_store="review_items",
+        source="on_review_action_modern",
+    )
     return new_items, next_ind_idx, no_update
 
 
@@ -1503,7 +1730,9 @@ def render_results(comparison, indicator, show_results):
     elif indicator:
         bank = indicator.get("bank_code", "N/A")
         title = "Indicateurs"
-    quarter_context = get_payload_quarter_context(data if isinstance(data, dict) else {})
+    quarter_context = get_payload_quarter_context(
+        data if isinstance(data, dict) else {}
+    )
     previous_label = str(quarter_context["previous"]["label"])
     current_label = str(quarter_context["current"]["label"])
     header = html.H5(
@@ -1521,6 +1750,7 @@ def render_results(comparison, indicator, show_results):
         tables_matched = kpi.get("tables_matched", 0)
         ambiguous_tables = kpi.get("ambiguous_tables", 0)
         vision_rescued_pairs = kpi.get("vision_rescued_pairs", 0)
+        cross_section_rescued_pairs = kpi.get("cross_section_rescued_pairs", 0)
         structure_change = status_counts.get("structure_change", 0)
         incertain = status_counts.get("incertain", 0)
         added = kpi.get("total_added_indicators", 0)
@@ -1598,6 +1828,10 @@ def render_results(comparison, indicator, show_results):
             )
         if vision_rescued_pairs:
             parts.append(f" {vision_rescued_pairs} tableau(x) recuperes par Vision.")
+        if cross_section_rescued_pairs:
+            parts.append(
+                f" {cross_section_rescued_pairs} tableau(x) recuperes par rescue cross-section."
+            )
 
         summary_text = "".join(parts)
         executive_summary = dbc.Alert(
@@ -1634,6 +1868,9 @@ def render_results(comparison, indicator, show_results):
         ambiguous_tables = int(kpi.get("ambiguous_tables", 0) or 0)
         ambiguous_pairs = int(kpi.get("ambiguous_pairs", 0) or 0)
         vision_rescued_pairs = int(kpi.get("vision_rescued_pairs", 0) or 0)
+        cross_section_rescued_pairs = int(
+            kpi.get("cross_section_rescued_pairs", 0) or 0
+        )
         tables_comparable_t1 = int(kpi.get("tables_comparable_t1", 0) or 0)
         tables_comparable_t2 = int(kpi.get("tables_comparable_t2", 0) or 0)
         pairing_coverage = float(kpi.get("pairing_coverage", 0.0) or 0.0)
@@ -1770,10 +2007,27 @@ def render_results(comparison, indicator, show_results):
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.P("Ambigus", className="small text-muted mb-0"),
-                            html.H4(
-                                str(ambiguous_tables), className="mb-0 fw-bold"
+                            html.P(
+                                "Cross-section",
+                                className="small text-muted mb-0",
                             ),
+                            html.H4(
+                                str(cross_section_rescued_pairs),
+                                className="mb-0 fw-bold",
+                            ),
+                        ],
+                        className="p-2 text-center",
+                    ),
+                    className="shadow-sm border-0",
+                ),
+                width=3,
+            ),
+            dbc.Col(
+                dbc.Card(
+                    dbc.CardBody(
+                        [
+                            html.P("Ambigus", className="small text-muted mb-0"),
+                            html.H4(str(ambiguous_tables), className="mb-0 fw-bold"),
                         ],
                         className="p-2 text-center",
                     ),
@@ -1836,7 +2090,9 @@ def render_results(comparison, indicator, show_results):
                 " | Extraction vide: Vision n'a produit aucun indicateur comparable."
             )
         if pairing_low_confidence:
-            pairing_context += " | Pairing faible: les tableaux non apparies restent a confirmer."
+            pairing_context += (
+                " | Pairing faible: les tableaux non apparies restent a confirmer."
+            )
         kpis.append(
             dbc.Alert(
                 pairing_context,
@@ -2042,7 +2298,9 @@ def _visible_review_ids(queue: list[dict], filters: dict | None) -> list[str]:
     ]
 
 
-def _get_table_by_review_id(queue: list[dict], review_id: str | None) -> tuple[int, dict | None]:
+def _get_table_by_review_id(
+    queue: list[dict], review_id: str | None
+) -> tuple[int, dict | None]:
     if not queue:
         return -1, None
     rid = str(review_id or "")
@@ -2053,7 +2311,9 @@ def _get_table_by_review_id(queue: list[dict], review_id: str | None) -> tuple[i
     return -1, None
 
 
-def _resolve_change_id(table: dict, preferred_change_id: str | None = None) -> str | None:
+def _resolve_change_id(
+    table: dict, preferred_change_id: str | None = None
+) -> str | None:
     changes = table.get("changes", []) or []
     preferred = str(preferred_change_id or "")
     if preferred and any(str(c.get("change_id", "")) == preferred for c in changes):
@@ -2144,9 +2404,15 @@ def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
         ctype = str(change.get("change_type", ""))
         payload = change.get("payload", {}) or {}
         indicator_name = str(payload.get("indicator_name", "")).strip()
-        if ctype in (ChangeType.INDICATOR_ADDED.value, "indicator_added") and indicator_name:
+        if (
+            ctype in (ChangeType.INDICATOR_ADDED.value, "indicator_added")
+            and indicator_name
+        ):
             added_indicators.append(indicator_name)
-        if ctype in (ChangeType.INDICATOR_REMOVED.value, "indicator_removed") and indicator_name:
+        if (
+            ctype in (ChangeType.INDICATOR_REMOVED.value, "indicator_removed")
+            and indicator_name
+        ):
             removed_indicators.append(indicator_name)
 
     return {
@@ -2206,11 +2472,13 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
             return REVIEW_STATUS_PENDING
 
         has_table_added = any(
-            str(c.get("change_type", "")) in (ChangeType.TABLE_ADDED.value, "table_added")
+            str(c.get("change_type", ""))
+            in (ChangeType.TABLE_ADDED.value, "table_added")
             for c in changes
         )
         has_table_removed = any(
-            str(c.get("change_type", "")) in (ChangeType.TABLE_REMOVED.value, "table_removed")
+            str(c.get("change_type", ""))
+            in (ChangeType.TABLE_REMOVED.value, "table_removed")
             for c in changes
         )
         table_bucket = _table_decision_bucket(table)
@@ -2225,9 +2493,24 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
         indicators: list[dict[str, str]] = []
         item_type = "indicator"
         event_type = "matched_pair"
+        review_comments: list[str] = []
+        review_timestamps: list[str] = []
+        review_users: list[str] = []
+        for change in changes:
+            note = str(change.get("validation_notes", "")).strip()
+            if note:
+                review_comments.append(note)
+            validated_at = str(change.get("validated_at", "")).strip()
+            if validated_at:
+                review_timestamps.append(validated_at)
+            validated_by = str(change.get("validated_by", "")).strip()
+            if validated_by:
+                review_users.append(validated_by)
         if has_table_added or has_table_removed:
             change_type = (
-                CHANGE_TYPE_TABLE_ADDED if has_table_added else CHANGE_TYPE_TABLE_REMOVED
+                CHANGE_TYPE_TABLE_ADDED
+                if has_table_added
+                else CHANGE_TYPE_TABLE_REMOVED
             )
             event_type = (
                 EVENT_TYPE_TABLE_ADDED if has_table_added else EVENT_TYPE_TABLE_REMOVED
@@ -2277,9 +2560,8 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
                     event_type = EVENT_TYPE_FOOTNOTE_ONLY
                     indicators.append(
                         {
-                            "name": str(payload.get("indicator_name", "")) or str(
-                                payload.get("new_text", "")
-                            ),
+                            "name": str(payload.get("indicator_name", ""))
+                            or str(payload.get("new_text", "")),
                             "type": CHANGE_TYPE_MODIFIED,
                             "review_status": c_status,
                         }
@@ -2314,6 +2596,9 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
                 source_ref_t1=str(table.get("source_pdf_t1", "")),
                 source_ref_t2=str(table.get("source_pdf_t2", "")),
                 review_status=review_status,
+                comment=" | ".join(dict.fromkeys(review_comments)),
+                review_user=" | ".join(dict.fromkeys(review_users)),
+                review_timestamp=max(review_timestamps) if review_timestamps else "",
                 confidence=float(table.get("confidence", 0.0) or 0.0),
                 table_title_raw=str(table.get("table_title") or table_name),
                 table_status=str(table.get("table_status", "")),
@@ -2503,19 +2788,30 @@ def render_sections_tab(indicator_result, show_results):
     Output("store-nav-debug", "data", allow_duplicate=True),
     Input("store-indicator-result", "data"),
     Input("store-pdf-paths", "data"),
+    State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
-def init_review_items(indicator_result, paths):
+def init_review_items(indicator_result, paths, indicator_meta):
     """Construire les ReviewItems depuis indicator_result pour la revue.
 
     Also builds the V2 deduplicated review queue.
     Quality gate is not used for blocking; review items are always built from comparison results.
     """
-    if not indicator_result or not paths:
+    if not indicator_result:
         raise PreventUpdate
 
-    path_t1 = paths.get("pdf_previous", "") or paths.get("pdf_t1", "")
-    path_t2 = paths.get("pdf_current", "") or paths.get("pdf_t2", "")
+    runtime_paths = paths if isinstance(paths, dict) else {}
+    meta_paths = _pdf_paths_from_comparison_meta(indicator_meta, indicator_result)
+    effective_paths = dict(runtime_paths)
+    for key, value in meta_paths.items():
+        if value:
+            effective_paths[key] = value
+    path_t1 = effective_paths.get("pdf_previous", "") or effective_paths.get(
+        "pdf_t1", ""
+    )
+    path_t2 = effective_paths.get("pdf_current", "") or effective_paths.get(
+        "pdf_t2", ""
+    )
     bank_code = str(indicator_result.get("bank_code", ""))
     quarter_from = quarter_label_from_payload(indicator_result, "previous")
     quarter_to = quarter_label_from_payload(indicator_result, "current")
@@ -2539,15 +2835,64 @@ def init_review_items(indicator_result, paths):
     )
     serialized_v2 = [t.to_dict() for t in grouped_tables]
 
+    compare_path = _comparison_path_from_meta(indicator_meta, indicator_result)
+    persisted_state = load_review_state(compare_path)
+    if persisted_state:
+        preferred_store = str(
+            persisted_state.get("preferred_store") or "review_queue"
+        ).strip()
+        stored_items = persisted_state.get("review_items")
+        stored_queue = persisted_state.get("review_queue")
+
+        if (
+            preferred_store == "review_items"
+            and isinstance(stored_items, list)
+            and stored_items
+        ):
+            serialized = stored_items
+            grouped_tables = build_normalized_review_queue(
+                indicator_result,
+                serialized,
+                pdf_path_t1=path_t1,
+                pdf_path_t2=path_t2,
+            )
+            serialized_v2 = [t.to_dict() for t in grouped_tables]
+        elif isinstance(stored_queue, list) and stored_queue:
+            serialized_v2 = stored_queue
+            serialized = [
+                it.to_dict() for it in _review_items_from_v2_queue(stored_queue)
+            ]
+        elif isinstance(stored_items, list) and stored_items:
+            serialized = stored_items
+            grouped_tables = build_normalized_review_queue(
+                indicator_result,
+                serialized,
+                pdf_path_t1=path_t1,
+                pdf_path_t2=path_t2,
+            )
+            serialized_v2 = [t.to_dict() for t in grouped_tables]
+
     total = len(serialized)
     total_v2 = len(serialized_v2)
     dedup_merged = max(0, total - total_v2)
-    resolved_selection, sel_table_idx, sel_change_idx = _resolve_selection(
-        serialized_v2, {"review_id": None, "change_id": None}
+    persisted_selection = (
+        persisted_state.get("review_selection")
+        if isinstance(persisted_state, dict)
+        else None
     )
+    resolved_selection, sel_table_idx, sel_change_idx = _resolve_selection(
+        serialized_v2, persisted_selection or {"review_id": None, "change_id": None}
+    )
+    if persisted_state and not persisted_selection:
+        sel_table_idx = int(
+            persisted_state.get("review_current_idx", sel_table_idx) or 0
+        )
+        sel_change_idx = int(
+            persisted_state.get("current_change_idx", sel_change_idx) or 0
+        )
     dbg = {
         "writer": "init_review_items",
-        "trigger": "init",
+        "trigger": "persisted_init" if persisted_state else "init",
         "from": None,
         "to": sel_table_idx,
         "total": total,
@@ -2560,6 +2905,17 @@ def init_review_items(indicator_result, paths):
         total_v2,
         dedup_merged,
         REVIEW_QUEUE_V2_ACTIVE,
+    )
+    _persist_review_state(
+        indicator_meta=indicator_meta,
+        indicator_result=indicator_result,
+        review_items=serialized,
+        review_queue=serialized_v2,
+        review_selection=resolved_selection,
+        review_current_idx=sel_table_idx,
+        current_change_idx=sel_change_idx,
+        preferred_store="review_queue",
+        source="init_review_items",
     )
     return (
         serialized,
@@ -2587,11 +2943,11 @@ def _build_comparison_statement(item: ReviewItem) -> str:
             "(présent au trimestre précédent)"
         )
     if item.change_type == CHANGE_TYPE_ADDED:
-        return f"Ajout au trimestre courant: {indicator} -- absent au trimestre précédent."
-    if item.change_type == CHANGE_TYPE_REMOVED:
         return (
-            f"Suppression au trimestre courant: {indicator} -- présent au trimestre précédent."
+            f"Ajout au trimestre courant: {indicator} -- absent au trimestre précédent."
         )
+    if item.change_type == CHANGE_TYPE_REMOVED:
+        return f"Suppression au trimestre courant: {indicator} -- présent au trimestre précédent."
     if item.change_type == CHANGE_TYPE_RENAMED:
         return f"Renommage entre trimestre précédent et trimestre courant: {indicator}."
     return f"Changement detecte: {indicator}"
@@ -2602,6 +2958,89 @@ def _filter_noise(items: list[str]) -> list[str]:
     return [
         x for x in items if x and normalize_indicator_for_comparison(str(x).strip())
     ]
+
+
+def _normalize_proof_bbox(bbox: Any) -> list[float] | None:
+    """Return [l, t, r, b] in 0..1 when usable for proof rendering."""
+    if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
+        return None
+    try:
+        normalized = [
+            float(bbox[0]),
+            float(bbox[1]),
+            float(bbox[2]),
+            float(bbox[3]),
+        ]
+    except (TypeError, ValueError):
+        return None
+    l_, top, r, bottom = normalized
+    if not (
+        0.0 <= l_ <= 1.0
+        and 0.0 <= top <= 1.0
+        and 0.0 <= r <= 1.0
+        and 0.0 <= bottom <= 1.0
+    ):
+        return None
+    if r <= l_ or bottom <= top:
+        return None
+    return normalized
+
+
+def _proof_render_result(
+    image_b64: str | None, status: str, mode_effective: str
+) -> dict[str, str | None]:
+    return {
+        "image_b64": image_b64,
+        "status": status,
+        "mode_effective": mode_effective,
+    }
+
+
+def _get_proof_render_result_for_item(
+    item_dict: dict, side: str, paths: dict, *, proof_display_mode: str = "crop"
+) -> dict[str, str | None]:
+    """Return proof image + availability status for one side."""
+    display_mode = (proof_display_mode or "crop").strip().lower()
+    if display_mode not in {"crop", "full", "footnote"}:
+        display_mode = "crop"
+
+    page = item_dict.get("page_t1" if side == "t1" else "page_t2")
+    if page is None:
+        return _proof_render_result(None, "page_missing", display_mode)
+
+    ref = item_dict.get("source_ref_t1" if side == "t1" else "source_ref_t2", "")
+    normalized_paths = _normalize_pdf_paths_store(paths)
+    pdf_path = (
+        normalized_paths.get("pdf_t1", "")
+        if side == "t1"
+        else normalized_paths.get("pdf_t2", "")
+    )
+    if not pdf_path:
+        pdf_path = ref
+    if not pdf_path:
+        return _proof_render_result(None, "render_failed", display_mode)
+
+    bbox = _normalize_proof_bbox(
+        item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
+    )
+    if display_mode in {"crop", "footnote"} and bbox is None:
+        return _proof_render_result(None, "bbox_missing", display_mode)
+
+    if display_mode == "full" and bbox is None:
+        image_b64 = _get_proof_image_b64(item_dict, side, paths)
+        if image_b64:
+            return _proof_render_result(image_b64, "ok", "full_without_bbox")
+        return _proof_render_result(None, "render_failed", "full_without_bbox")
+
+    image_b64 = _get_proof_image_b64_for_item(
+        item_dict,
+        side,
+        paths,
+        proof_display_mode=display_mode,
+    )
+    if image_b64:
+        return _proof_render_result(image_b64, "ok", display_mode)
+    return _proof_render_result(None, "render_failed", display_mode)
 
 
 def _get_proof_image_b64_for_item(
@@ -2620,21 +3059,26 @@ def _get_proof_image_b64_for_item(
 
     ref = item_dict.get("source_ref_t1" if side == "t1" else "source_ref_t2", "")
     page = item_dict.get("page_t1" if side == "t1" else "page_t2")
-    path_t1 = paths.get("pdf_t1", "") if paths else ""
-    path_t2 = paths.get("pdf_t2", "") if paths else ""
+    normalized_paths = _normalize_pdf_paths_store(paths)
+    path_t1 = normalized_paths.get("pdf_t1", "")
+    path_t2 = normalized_paths.get("pdf_t2", "")
     pdf_path = path_t1 if side == "t1" else path_t2
     if not pdf_path:
         pdf_path = ref
+    bbox = _normalize_proof_bbox(
+        item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
+    )
 
     # For "footnote" or "full" modes, always render from PDF (ignore pre-existing images)
     if display_mode in ("footnote", "full"):
         if not pdf_path or page is None:
-            return _get_proof_image_b64(item_dict, side, paths)
+            return None
+        if display_mode == "footnote" and bbox is None:
+            return None
 
         page_effective = max(1, int(page))
-        bbox = item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
         bbox_key = ""
-        if bbox and isinstance(bbox, list) and len(bbox) == 4:
+        if bbox:
             bbox_key = json.dumps(bbox)
         try:
             raw_bytes = _cached_render_or_crop(
@@ -2644,7 +3088,7 @@ def _get_proof_image_b64_for_item(
                 return base64.b64encode(raw_bytes).decode("ascii")
         except Exception as e:
             logger.warning("Render failed for mode %s: %s", display_mode, e)
-        return _get_proof_image_b64(item_dict, side, paths)
+        return None
 
     # For "crop" mode, use existing images if available
     base_img_b64: str | None = None
@@ -2675,12 +3119,13 @@ def _get_proof_image_b64_for_item(
 
     if base_img_b64 is None:
         if not pdf_path or page is None:
-            return _get_proof_image_b64(item_dict, side, paths)
+            return None
+        if bbox is None:
+            return None
 
         page_effective = max(1, int(page))
-        bbox = item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
         bbox_key = ""
-        if bbox and isinstance(bbox, list) and len(bbox) == 4:
+        if bbox:
             bbox_key = json.dumps(bbox)
         try:
             raw_bytes = _cached_render_or_crop(
@@ -2694,7 +3139,7 @@ def _get_proof_image_b64_for_item(
             base_img_b64 = None
 
     if not base_img_b64:
-        return _get_proof_image_b64(item_dict, side, paths)
+        return None
 
     all_t1 = _filter_noise(list(item_dict.get("all_indicators_t1") or []))
     all_t2 = _filter_noise(list(item_dict.get("all_indicators_t2") or []))
@@ -2743,8 +3188,9 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
 
     ref = item_dict.get("source_ref_t1" if side == "t1" else "source_ref_t2", "")
     page = item_dict.get("page_t1" if side == "t1" else "page_t2")
-    path_t1 = paths.get("pdf_t1", "") if paths else ""
-    path_t2 = paths.get("pdf_t2", "") if paths else ""
+    normalized_paths = _normalize_pdf_paths_store(paths)
+    path_t1 = normalized_paths.get("pdf_t1", "")
+    path_t2 = normalized_paths.get("pdf_t2", "")
 
     pdf_path = path_t1 if side == "t1" else path_t2
     if not pdf_path:
@@ -3011,10 +3457,16 @@ def on_review_navigate(prev_clicks, next_clicks, review_items, current_idx):
     Input("btn-review-pass", "n_clicks"),
     State("store-review-items", "data"),
     State("store-review-current-idx", "data"),
+    State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
 def on_review_status(
-    approve_clicks, reject_clicks, pass_clicks, review_items, current_idx
+    approve_clicks,
+    reject_clicks,
+    pass_clicks,
+    review_items,
+    current_idx,
+    indicator_meta,
 ):
     """Appliquer Valider/Rejeter/Passer sur l'item courant."""
     import json
@@ -3040,6 +3492,13 @@ def on_review_status(
     # Deep copy to ensure Dash detects the change
     new_items = json.loads(json.dumps(review_items))
     new_items[idx] = updated.to_dict()
+    _persist_review_state(
+        indicator_meta=indicator_meta,
+        review_items=new_items,
+        review_current_idx=idx,
+        preferred_store="review_items",
+        source="on_review_status",
+    )
     return new_items
 
 
@@ -3259,7 +3718,9 @@ def render_export_tab(review_items_data, indicator_result, show_results):
     State("store-pdf-paths", "data"),
     prevent_initial_call=True,
 )
-def on_download_csv(n_clicks, review_items_data, review_queue_data, indicator_result, paths):
+def on_download_csv(
+    n_clicks, review_items_data, review_queue_data, indicator_result, paths
+):
     """Telecharger le CSV de validation (Excel FR, UTF-8 BOM, separateur ;)."""
     if not n_clicks:
         raise PreventUpdate
@@ -3328,16 +3789,19 @@ def on_download_json(n_clicks, review_items_data, review_queue_data, indicator_r
     base_name = _comparison_export_base_name(ir, "review").replace(" ", "_").lower()
     json_str = export_review_items_json_fr(
         items,
-        metadata={
-            "bank_code": bank,
-            "quarter_from": q_from,
-            "quarter_to": q_to,
-            "previous_quarter": q_from,
-            "current_quarter": q_to,
-            "comparison_direction": "current_vs_previous",
-            "year": year_val,
-            "exported_at": datetime.now().isoformat(timespec="seconds"),
-        },
+        metadata=build_export_metadata(
+            ir,
+            overrides={
+                "bank_code": bank,
+                "quarter_from": q_from,
+                "quarter_to": q_to,
+                "previous_quarter": q_from,
+                "current_quarter": q_to,
+                "comparison_direction": "current_vs_previous",
+                "year": year_val,
+                "exported_at": datetime.now().isoformat(timespec="seconds"),
+            },
+        ),
     )
     return dict(content=json_str, filename=f"{base_name}.json")
 
@@ -3351,7 +3815,9 @@ def on_download_json(n_clicks, review_items_data, review_queue_data, indicator_r
     State("store-pdf-paths", "data"),
     prevent_initial_call=True,
 )
-def on_download_excel(n_clicks, review_items_data, review_queue_data, indicator_result, paths):
+def on_download_excel(
+    n_clicks, review_items_data, review_queue_data, indicator_result, paths
+):
     """Telecharger le fichier Excel de validation (.xlsx)."""
     if not n_clicks:
         raise PreventUpdate
@@ -3407,9 +3873,11 @@ def on_download_indicator_json_brut(n_clicks, indicator_result):
     import json
 
     bank = str(indicator_result.get("bank_code", "bank"))
-    base_name = _comparison_export_base_name(
-        indicator_result, "canonical"
-    ).replace(" ", "_").lower()
+    base_name = (
+        _comparison_export_base_name(indicator_result, "canonical")
+        .replace(" ", "_")
+        .lower()
+    )
     json_str = json.dumps(indicator_result, ensure_ascii=False, indent=2)
     return dict(content=json_str, filename=f"{base_name}.json")
 
@@ -3497,6 +3965,7 @@ def populate_load_options(_detection):
     Output("store-comparison-result", "data", allow_duplicate=True),
     Output("store-indicator-result", "data", allow_duplicate=True),
     Output("store-indicator-meta", "data", allow_duplicate=True),
+    Output("store-pdf-paths", "data", allow_duplicate=True),
     Output("store-sections-validated", "data", allow_duplicate=True),
     Output("main-content", "children", allow_duplicate=True),
     Output("notification", "children", allow_duplicate=True),
@@ -3519,32 +3988,58 @@ def on_load_comparison(n_clicks, filename):
             no_update,
             no_update,
             no_update,
+            no_update,
             dbc.Alert(f"Impossible de charger {filename}", color="danger"),
             no_update,
         )
 
     if data.get("result_type") == "metier_tableaux":
+        pdf_paths = _normalize_pdf_paths_store(
+            _pdf_paths_from_comparison_meta({}, data)
+        )
+        warning = _missing_pdf_warning(pdf_paths)
         return (
             None,
             data,
-            {"compare_path": str(filepath), "source": "load"},
+            {"compare_path": str(filepath), "source": "load", "pdf_paths": pdf_paths},
+            pdf_paths,
             True,
             build_page_results(),
-            dbc.Alert(f"Comparaison chargee: {filename}", color="success"),
+            dbc.Alert(
+                warning or f"Comparaison chargee: {filename}",
+                color="warning" if warning else "success",
+            ),
             True,
         )
 
     canonical = to_canonical_payload(data)
     if not is_canonical_comparison(canonical):
         canonical = data
+    canonical_meta = (
+        dict(canonical.get("meta", {})) if isinstance(canonical, dict) else {}
+    )
+    pdf_paths = _normalize_pdf_paths_store(
+        _pdf_paths_from_comparison_meta(canonical_meta, canonical)
+    )
+    indicator_meta = {
+        **canonical_meta,
+        "compare_path": str(filepath),
+        "source": "load",
+        "pdf_paths": pdf_paths,
+    }
+    warning = _missing_pdf_warning(pdf_paths)
 
     return (
         canonical,
         canonical,
-        {"compare_path": str(filepath), "source": "load"},
+        indicator_meta,
+        pdf_paths,
         True,
         build_page_results(),
-        dbc.Alert(f"Comparaison chargee: {filename}", color="success"),
+        dbc.Alert(
+            warning or f"Comparaison chargee: {filename}",
+            color="warning" if warning else "success",
+        ),
         True,
     )
 
@@ -3566,16 +4061,19 @@ def on_load_comparison(n_clicks, filename):
     State("store-review-selection", "data"),
     State("store-review-filters", "data"),
     State("validation-notes-v2", "value"),
+    State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
-def on_validate_change_v2(approve, reject, skip, queue, selection, filters, notes):
+def on_validate_change_v2(
+    approve, reject, skip, queue, selection, filters, notes, indicator_meta
+):
     """Apply validation to current change in V2 queue, auto-advance.
 
     Auto-advance rules:
     - After decision, advance to next change in same table
     - When last change of table is decided, auto-advance to next table
     """
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
@@ -3611,7 +4109,7 @@ def on_validate_change_v2(approve, reject, skip, queue, selection, filters, note
     changes[change_idx]["validation_status"] = decision
     changes[change_idx]["validation_decision"] = decision
     changes[change_idx]["validation_notes"] = notes or ""
-    changes[change_idx]["validated_at"] = datetime.utcnow().isoformat()
+    changes[change_idx]["validated_at"] = datetime.now(timezone.utc).isoformat()
     changes[change_idx]["validated_by"] = "analyst"
 
     # Update table status
@@ -3694,6 +4192,16 @@ def on_validate_change_v2(approve, reject, skip, queue, selection, filters, note
         new_change_idx,
     )
 
+    _persist_review_state(
+        indicator_meta=indicator_meta,
+        review_items=[it.to_dict() for it in _review_items_from_v2_queue(new_queue)],
+        review_queue=new_queue,
+        review_selection=next_selection,
+        review_current_idx=new_table_idx,
+        current_change_idx=new_change_idx,
+        preferred_store="review_queue",
+        source="on_validate_change_v2",
+    )
     return new_queue, next_selection, new_change_idx, new_table_idx
 
 
@@ -3712,7 +4220,9 @@ def on_navigate_change_v2(prev, next_c, queue, selection, filters):
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
 
-    resolved_selection, table_idx, change_idx = _resolve_selection(queue, selection, filters)
+    resolved_selection, table_idx, change_idx = _resolve_selection(
+        queue, selection, filters
+    )
     if table_idx < 0:
         raise PreventUpdate
 
@@ -3770,7 +4280,10 @@ def on_change_row_click(n_clicks, queue, selection, filters):
     if table_idx < 0:
         raise PreventUpdate
     table = queue[table_idx]
-    if not any(str(c.get("change_id", "")) == change_id for c in (table.get("changes", []) or [])):
+    if not any(
+        str(c.get("change_id", "")) == change_id
+        for c in (table.get("changes", []) or [])
+    ):
         raise PreventUpdate
     new_selection = {
         "review_id": resolved_selection.get("review_id"),
@@ -3863,4 +4376,13 @@ def block_next_table_until_complete_v2(queue, selection):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    import os
+
+    debug = os.getenv("DASH_DEBUG", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    port = int(os.getenv("DASH_PORT", "8050"))
+    app.run(debug=debug, use_reloader=debug, port=port)

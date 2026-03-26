@@ -1,165 +1,119 @@
-"""Contract and semantics tests for comparison_canonical_v2.
+"""Contract tests for the current canonical UI comparison payload.
 
-- No public quarter_from, quarter_to, *_t1, *_t2 in canonical output.
-- added = current-only, removed = previous-only, rename = previous -> current.
+This suite intentionally validates the actively supported Dash/UI contract,
+which is ``comparison_canonical_v1``. The previous v2 expectations were
+historical and no longer match the public payload emitted by the app.
 """
 
 from __future__ import annotations
 
 from app.comparison_canonical import (
-    SCHEMA_VERSION_V2,
-    get_canonical_v2,
-    is_canonical_comparison_v2,
+    UI_COMPARISON_PAYLOAD_SCHEMA_VERSION,
+    is_ui_comparison_payload,
+    new_empty_ui_comparison_payload,
     to_canonical_payload,
 )
 
-# Keys that must not appear in public v2 comparison entries
-FORBIDDEN_IN_ENTRIES = {
-    "table_id_t1",
-    "table_id_t2",
-    "page_t1",
-    "page_t2",
-    "title_t1",
-    "title_t2",
-    "bbox_t1",
-    "bbox_t2",
-    "row_bboxes_t1",
-    "row_bboxes_t2",
-}
 
-
-def test_v2_payload_has_no_quarter_from_to() -> None:
-    """Canonical v2 output must not contain quarter_from or quarter_to."""
-    v2 = {
-        "schema_version": SCHEMA_VERSION_V2,
-        "quarter_previous": "Q1_2025",
-        "quarter_current": "Q2_2025",
-        "table_comparisons": [],
-        "tables_added": [],
-        "tables_removed": [],
-    }
-    out = get_canonical_v2(v2)
-    assert "quarter_from" not in out
-    assert "quarter_to" not in out
-    assert out.get("quarter_previous") == "Q1_2025"
-    assert out.get("quarter_current") == "Q2_2025"
-
-
-def test_v2_conversion_strips_t1_t2_from_comparison_entries() -> None:
-    """get_canonical_v2 must not expose *_t1/*_t2 in table_comparisons entries."""
-    v1_like = {
-        "schema_version": "comparison_canonical_v1",
-        "quarter_from": "t1",
-        "quarter_to": "t2",
-        "table_comparisons": [
+def _raw_report_comparison() -> dict:
+    return {
+        "artifact_type": "report_comparison",
+        "run_id": "20260325_120000",
+        "bank_code": "bnc",
+        "year_previous": 2025,
+        "quarter_previous": "t3",
+        "year_current": 2026,
+        "quarter_current": "t1",
+        "source_pdf_previous": "/tmp/prev.pdf",
+        "source_pdf_current": "/tmp/curr.pdf",
+        "archived_pdf_previous": "/archive/prev.pdf",
+        "archived_pdf_current": "/archive/curr.pdf",
+        "matching": {
+            "matched_pairs": [
+                {
+                    "previous_table_id": "prev_1",
+                    "current_table_id": "curr_1",
+                    "match_confidence": 0.98,
+                    "reason": "Même concept.",
+                }
+            ],
+            "tables_added": [],
+            "tables_removed": [],
+        },
+        "pair_comparisons": [
             {
-                "table_id_t1": "id1",
-                "table_id_t2": "id2",
-                "page_t1": 1,
-                "page_t2": 2,
-                "title_t1": "A",
-                "title_t2": "B",
+                "previous_table_id": "prev_1",
+                "current_table_id": "curr_1",
+                "match_confidence": 0.98,
+                "match_reason": "Même concept.",
+                "previous_table": {
+                    "table_id": "prev_1",
+                    "title": "Capital précédent",
+                    "page": 8,
+                    "section": "capital",
+                    "bbox": [0.1, 0.2, 0.8, 0.7],
+                    "indicators": ["Ratio CET1"],
+                    "footnotes": [],
+                },
+                "current_table": {
+                    "table_id": "curr_1",
+                    "title": "Capital courant",
+                    "page": 10,
+                    "section": "capital",
+                    "bbox": [0.1, 0.2, 0.8, 0.7],
+                    "indicators": ["Ratio CET1"],
+                    "footnotes": [],
+                },
+                "technical_diff": {
+                    "indicators_added": [],
+                    "indicators_removed": [],
+                    "indicators_renamed": [],
+                    "footnotes_added": [],
+                    "footnotes_removed": [],
+                    "footnotes_renamed": [],
+                    "table_level_change": "inchange",
+                },
+                "analyst_assessment": {},
+                "reason": "Aucun changement.",
             }
         ],
-        "tables_added": [],
-        "tables_removed": [],
+        "summary": {
+            "matched_pairs_total": 1,
+            "tables_added_total": 0,
+            "tables_removed_total": 0,
+            "indicator_changes_total": 0,
+            "footnote_changes_total": 0,
+            "high_priority_items_total": 0,
+        },
     }
-    out = get_canonical_v2(v1_like)
-    assert out["schema_version"] == SCHEMA_VERSION_V2
-    assert "quarter_from" not in out
-    assert "quarter_to" not in out
-    comps = out.get("table_comparisons", [])
-    assert len(comps) == 1
-    c = comps[0]
-    for bad in FORBIDDEN_IN_ENTRIES:
-        assert bad not in c, f"comparison entry must not contain {bad}"
-    assert c.get("table_id_previous") == "id1"
-    assert c.get("table_id_current") == "id2"
-    assert c.get("page_previous") == 1
-    assert c.get("page_current") == 2
 
 
-def test_to_canonical_payload_returns_v2_only() -> None:
-    """to_canonical_payload must return v2 schema without forbidden keys."""
-    empty = to_canonical_payload({})
-    assert empty.get("schema_version") == SCHEMA_VERSION_V2
-    assert "quarter_from" not in empty
-    assert "quarter_to" not in empty
+def test_new_empty_ui_payload_uses_current_schema_version() -> None:
+    payload = new_empty_ui_comparison_payload()
 
-    assert "quarter_from" not in empty
-    assert "quarter_to" not in empty
+    assert payload["schema_version"] == UI_COMPARISON_PAYLOAD_SCHEMA_VERSION
+    assert is_ui_comparison_payload(payload)
 
 
-def test_semantics_added_is_current_only() -> None:
-    """added_indicators: present in current, absent in previous (semantic)."""
-    payload = {
-        "schema_version": SCHEMA_VERSION_V2,
-        "quarter_previous": "Q1",
-        "quarter_current": "Q2",
-        "table_comparisons": [
-            {
-                "table_id_previous": "p1",
-                "table_id_current": "c1",
-                "added_indicators": ["New indicator"],
-                "removed_indicators": [],
-                "renamed_indicators": [],
-            }
-        ],
-        "tables_added": [],
-        "tables_removed": [],
-    }
-    assert is_canonical_comparison_v2(payload)
-    comp = payload["table_comparisons"][0]
-    assert "New indicator" in comp.get("added_indicators", [])
-    assert comp.get("added_indicators")  # added = current-only
-    out = get_canonical_v2(payload)
-    assert out["table_comparisons"][0].get("added_indicators") == ["New indicator"]
+def test_to_canonical_payload_returns_current_ui_schema() -> None:
+    payload = to_canonical_payload({})
+
+    assert payload["schema_version"] == UI_COMPARISON_PAYLOAD_SCHEMA_VERSION
+    assert is_ui_comparison_payload(payload)
+    assert payload["meta"]["source_format"] == "unknown"
 
 
-def test_semantics_removed_is_previous_only() -> None:
-    """removed_indicators: present in previous, absent in current (semantic)."""
-    payload = {
-        "schema_version": SCHEMA_VERSION_V2,
-        "quarter_previous": "Q1",
-        "quarter_current": "Q2",
-        "table_comparisons": [
-            {
-                "table_id_previous": "p1",
-                "table_id_current": "c1",
-                "added_indicators": [],
-                "removed_indicators": ["Gone indicator"],
-                "renamed_indicators": [],
-            }
-        ],
-        "tables_added": [],
-        "tables_removed": [],
-    }
-    comp = payload["table_comparisons"][0]
-    assert "Gone indicator" in comp.get("removed_indicators", [])
-    out = get_canonical_v2(payload)
-    assert out["table_comparisons"][0].get("removed_indicators") == ["Gone indicator"]
+def test_report_comparison_conversion_keeps_current_dash_entry_shape() -> None:
+    payload = to_canonical_payload(_raw_report_comparison())
 
+    assert payload["schema_version"] == UI_COMPARISON_PAYLOAD_SCHEMA_VERSION
+    assert payload["quarter_from"] == "Q3-2025"
+    assert payload["quarter_to"] == "Q1-2026"
 
-def test_semantics_rename_direction_previous_to_current() -> None:
-    """renamed_indicators: direction is previous -> current (from -> to)."""
-    payload = {
-        "schema_version": SCHEMA_VERSION_V2,
-        "quarter_previous": "Q1",
-        "quarter_current": "Q2",
-        "table_comparisons": [
-            {
-                "table_id_previous": "p1",
-                "table_id_current": "c1",
-                "added_indicators": [],
-                "removed_indicators": [],
-                "renamed_indicators": [{"from": "Old label", "to": "New label"}],
-            }
-        ],
-        "tables_added": [],
-        "tables_removed": [],
-    }
-    comp = payload["table_comparisons"][0]
-    ren = comp.get("renamed_indicators", [])
-    assert len(ren) == 1
-    assert ren[0].get("from") == "Old label"
-    assert ren[0].get("to") == "New label"
+    entry = payload["table_comparisons"][0]
+    assert entry["table_id_t1"] == "prev_1"
+    assert entry["table_id_t2"] == "curr_1"
+    assert entry["page_t1"] == 8
+    assert entry["page_t2"] == 10
+    assert "table_id_previous" not in entry
+    assert "table_id_current" not in entry

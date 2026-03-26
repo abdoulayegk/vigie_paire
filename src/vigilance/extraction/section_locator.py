@@ -73,7 +73,11 @@ class VisualTextElement:
     def is_likely_header(self) -> bool:
         """Determiner si l'element a les caracteristiques d'un titre."""
         # Criteres: grande taille, gras, ou majuscules
-        return self.font_size >= 12.0 or self.is_bold or (self.is_uppercase and len(self.text) > 10)
+        return (
+            self.font_size >= 12.0
+            or self.is_bold
+            or (self.is_uppercase and len(self.text) > 10)
+        )
 
 
 @dataclass
@@ -334,14 +338,18 @@ def _get_bank_section_names(bank_code: str) -> dict:
     # Support both shapes:
     # - {"banks": {...}} (legacy raw file)
     # - {...} where keys are bank codes (load_bank_profiles helper)
-    banks_cfg = config.get("banks", {}) if isinstance(config.get("banks"), dict) else config
+    banks_cfg = (
+        config.get("banks", {}) if isinstance(config.get("banks"), dict) else config
+    )
 
     if bank_code in banks_cfg and isinstance(banks_cfg.get(bank_code), dict):
         sections = banks_cfg[bank_code].get("sections", {})
         return {
             "gestion_capital": sections.get("capital_management", {}).get("names", []),
             "gestion_risques": sections.get("risk_management", {}).get("names", []),
-            "gestion_reglementation": sections.get("regulatory_updates", {}).get("names", []),
+            "gestion_reglementation": sections.get("regulatory_updates", {}).get(
+                "names", []
+            ),
         }
 
     # Fallback par defaut si la banque n'est pas configuree
@@ -397,7 +405,9 @@ def _load_bank_config() -> dict:
         return load_config("configs/bank_profiles.yaml")
     except Exception as e:
         if "beyond top-level package" in str(e):
-            logger.debug("Configuration parent package indisponible, fallback local actif")
+            logger.debug(
+                "Configuration parent package indisponible, fallback local actif"
+            )
         else:
             logger.warning(f"Impossible de charger la configuration bancaire: {e}")
 
@@ -429,7 +439,8 @@ def _load_bank_config() -> dict:
 # Build BANK_SECTION_NAMES for backward compatibility
 # This is used by tests and other modules that expect a dict
 BANK_SECTION_NAMES = {
-    bank: _get_bank_section_names(bank) for bank in ["bnc", "rbc", "td", "bmo", "bns", "cibc"]
+    bank: _get_bank_section_names(bank)
+    for bank in ["bnc", "rbc", "td", "bmo", "bns", "cibc"]
 }
 
 
@@ -443,7 +454,9 @@ class SectionLocator:
     3. Detection des sections suivantes + scan des titres
     """
 
-    def __init__(self, bank_code: str | None = None, quarter: str | None = None, year: int = 2025):
+    def __init__(
+        self, bank_code: str | None = None, quarter: str | None = None, year: int = 2025
+    ):
         """
         Initialiser le localisateur.
 
@@ -495,7 +508,9 @@ class SectionLocator:
 
         # D'abord les patterns par defaut
         for section_type, patterns in FOLLOWING_SECTION_PATTERNS.items():
-            self.following_patterns[section_type] = [re.compile(p, re.IGNORECASE) for p in patterns]
+            self.following_patterns[section_type] = [
+                re.compile(p, re.IGNORECASE) for p in patterns
+            ]
 
         # Ajouter les patterns specifiques de la banque depuis la config
         if self.bank_code and self.bank_config:
@@ -543,13 +558,19 @@ class SectionLocator:
 
         # Overrides globaux optionnels
         overrides = boundary_config.get("section_length_overrides", {})
-        override = overrides.get(section_type, {}) if isinstance(overrides, dict) else {}
+        override = (
+            overrides.get(section_type, {}) if isinstance(overrides, dict) else {}
+        )
         if override:
             constraints["min_length"] = int(
-                override.get("min_length", override.get("min_pages", constraints["min_length"]))
+                override.get(
+                    "min_length", override.get("min_pages", constraints["min_length"])
+                )
             )
             constraints["max_length"] = int(
-                override.get("max_length", override.get("max_pages", constraints["max_length"]))
+                override.get(
+                    "max_length", override.get("max_pages", constraints["max_length"])
+                )
             )
             constraints["default_length"] = int(
                 override.get(
@@ -566,7 +587,9 @@ class SectionLocator:
         }
         if self.bank_code:
             bank_sections = (
-                self.bank_config.get("banks", {}).get(self.bank_code, {}).get("sections", {})
+                self.bank_config.get("banks", {})
+                .get(self.bank_code, {})
+                .get("sections", {})
             )
             section_name = section_name_map.get(section_type)
             section_cfg = bank_sections.get(section_name, {}) if section_name else {}
@@ -574,24 +597,30 @@ class SectionLocator:
             if isinstance(bank_override, dict) and bank_override:
                 constraints["min_length"] = int(
                     bank_override.get(
-                        "min_length", bank_override.get("min_pages", constraints["min_length"])
+                        "min_length",
+                        bank_override.get("min_pages", constraints["min_length"]),
                     )
                 )
                 constraints["max_length"] = int(
                     bank_override.get(
-                        "max_length", bank_override.get("max_pages", constraints["max_length"])
+                        "max_length",
+                        bank_override.get("max_pages", constraints["max_length"]),
                     )
                 )
                 constraints["default_length"] = int(
                     bank_override.get(
                         "default_length",
-                        bank_override.get("default_span", constraints["default_length"]),
+                        bank_override.get(
+                            "default_span", constraints["default_length"]
+                        ),
                     )
                 )
 
         # Normalisation defensive
         constraints["min_length"] = max(1, constraints["min_length"])
-        constraints["max_length"] = max(constraints["min_length"], constraints["max_length"])
+        constraints["max_length"] = max(
+            constraints["min_length"], constraints["max_length"]
+        )
         constraints["default_length"] = min(
             max(constraints["default_length"], constraints["min_length"]),
             constraints["max_length"],
@@ -685,7 +714,9 @@ class SectionLocator:
 
         return min(max(score, 0.0), 1.0)
 
-    def _is_section_bounds_suspicious(self, section: LocatedSection, total_pages: int) -> bool:
+    def _is_section_bounds_suspicious(
+        self, section: LocatedSection, total_pages: int
+    ) -> bool:
         """Verifier si les bornes d'une section semblent anormales."""
         if not section.start_page or not section.end_page:
             return True
@@ -836,9 +867,8 @@ class SectionLocator:
         """
         if not detection_method:
             return False
-        return (
-            detection_method.startswith("toc")
-            or detection_method.startswith("manual_override")
+        return detection_method.startswith("toc") or detection_method.startswith(
+            "manual_override"
         )
 
     def _get_config_section_names(self, section_type: str) -> list[str]:
@@ -935,7 +965,9 @@ class SectionLocator:
                     line_stripped = line.strip()
                     if not line_stripped:
                         continue
-                    if not self._line_matches_section_title(line_stripped, section_names):
+                    if not self._line_matches_section_title(
+                        line_stripped, section_names
+                    ):
                         continue
                     if not self._is_likely_section_title(
                         line_stripped, page_text, matches_configured_pattern=True
@@ -990,7 +1022,10 @@ class SectionLocator:
         return None
 
     def _refine_cibc_target_sections(
-        self, sections: list[LocatedSection], text_by_page: dict[int, str], total_pages: int
+        self,
+        sections: list[LocatedSection],
+        text_by_page: dict[int, str],
+        total_pages: int,
     ) -> list[LocatedSection]:
         """
         Recaler CIBC pour les 2 sections cibles:
@@ -1113,7 +1148,9 @@ class SectionLocator:
         # Cas 2: Confiance moyenne trop faible
         avg_confidence = sum(s.confidence for s in sections) / len(sections)
         if avg_confidence < 0.7:
-            logger.info(f"GenAI fallback: confiance moyenne faible ({avg_confidence:.2f})")
+            logger.info(
+                f"GenAI fallback: confiance moyenne faible ({avg_confidence:.2f})"
+            )
             return True
 
         return False
@@ -1173,7 +1210,10 @@ class SectionLocator:
         Returns:
             SectionMapping avec les sections localisees
         """
-        pdf_path = Path(pdf_path)
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            raise ValueError("Chemin PDF requis pour la localisation des sections.")
+        pdf_path = Path(raw_pdf_path)
 
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF non trouve: {pdf_path}")
@@ -1218,7 +1258,11 @@ class SectionLocator:
                         )
 
         # ETAPE 2.1: Overrides manuels en garde-fou
-        for section_type in ["gestion_capital", "gestion_risques", "gestion_reglementation"]:
+        for section_type in [
+            "gestion_capital",
+            "gestion_risques",
+            "gestion_reglementation",
+        ]:
             override = self._get_manual_override(section_type)
             if not (override and override[0] and override[1]):
                 continue
@@ -1227,7 +1271,9 @@ class SectionLocator:
             if not toc_reliable:
                 apply_override = True
             else:
-                existing = next((s for s in sections if s.section_type == section_type), None)
+                existing = next(
+                    (s for s in sections if s.section_type == section_type), None
+                )
                 if existing is None:
                     apply_override = True
                 elif self._is_section_bounds_suspicious(existing, total_pages):
@@ -1282,7 +1328,9 @@ class SectionLocator:
             logger.info("Detection visuelle activee pour sections manquantes...")
             visual_elements = self._extract_visual_elements(pdf_path)
             if visual_elements:
-                visual_sections = self._detect_section_headers_visual(visual_elements, text_by_page)
+                visual_sections = self._detect_section_headers_visual(
+                    visual_elements, text_by_page
+                )
                 for visual_section in visual_sections:
                     if (
                         visual_section.section_type == "gestion_reglementation"
@@ -1318,7 +1366,9 @@ class SectionLocator:
                         )
 
         # ETAPE 3: Determiner les pages de fin avec la logique hybride
-        sections = self._determine_end_pages(sections, text_by_page, toc_entries, total_pages)
+        sections = self._determine_end_pages(
+            sections, text_by_page, toc_entries, total_pages
+        )
 
         # ETAPE 4: Validation croisee multi-methodes (Amélioration 1)
         # Cette etape utilise aussi la validation contextuelle (Amélioration 2)
@@ -1330,7 +1380,9 @@ class SectionLocator:
         # ETAPE 4.6: Re-appliquer les contraintes de longueur apres validation croisee
         # (la correction multi-methodes peut deplacer les bornes).
         sections = [
-            self._apply_section_length_constraints(s, total_pages, source="post_validation")
+            self._apply_section_length_constraints(
+                s, total_pages, source="post_validation"
+            )
             for s in sections
         ]
 
@@ -1381,7 +1433,9 @@ class SectionLocator:
             sections = adjusted
 
         # ETAPE 4.7: Recalage specifique CIBC des 2 sections cibles sur titres reels
-        sections = self._refine_cibc_target_sections(sections, text_by_page, total_pages)
+        sections = self._refine_cibc_target_sections(
+            sections, text_by_page, total_pages
+        )
 
         # ETAPE 4.8: Normaliser la taxonomie des sections en sortie.
         for section in sections:
@@ -1438,7 +1492,9 @@ class SectionLocator:
 
         return text_by_page
 
-    def _extract_visual_elements(self, pdf_path: Path) -> dict[int, list[VisualTextElement]]:
+    def _extract_visual_elements(
+        self, pdf_path: Path
+    ) -> dict[int, list[VisualTextElement]]:
         """
         Extraire les elements de texte avec leurs caracteristiques visuelles.
 
@@ -1483,7 +1539,9 @@ class SectionLocator:
                         lines[y_pos].append(char)
 
                     # Traiter chaque ligne - construire UNE entree par ligne
-                    for line_idx, (y_key, line_chars) in enumerate(sorted(lines.items())):
+                    for line_idx, (y_key, line_chars) in enumerate(
+                        sorted(lines.items())
+                    ):
                         # Trier par position X
                         line_chars.sort(key=lambda c: c.get("x0", 0))
 
@@ -1494,7 +1552,9 @@ class SectionLocator:
                             continue
 
                         # Taille de police: prendre le MAX (pas la moyenne)
-                        sizes = [c.get("size", 0) for c in line_chars if c.get("size", 0) > 0]
+                        sizes = [
+                            c.get("size", 0) for c in line_chars if c.get("size", 0) > 0
+                        ]
                         max_font_size = max(sizes) if sizes else 0
 
                         # Police: verifier si au moins un caractere est en gras
@@ -1537,7 +1597,8 @@ class SectionLocator:
             return False
         font_lower = font_name.lower()
         return any(
-            marker in font_lower for marker in ["bold", "heavy", "black", "demi", "semi", "medium"]
+            marker in font_lower
+            for marker in ["bold", "heavy", "black", "demi", "semi", "medium"]
         )
 
     def _merge_adjacent_elements(
@@ -1592,7 +1653,9 @@ class SectionLocator:
         return merged
 
     def _detect_section_headers_visual(
-        self, visual_elements: dict[int, list[VisualTextElement]], text_by_page: dict[int, str]
+        self,
+        visual_elements: dict[int, list[VisualTextElement]],
+        text_by_page: dict[int, str],
     ) -> list[LocatedSection]:
         """
         Detecter les titres de sections en utilisant les caracteristiques visuelles.
@@ -1699,7 +1762,9 @@ class SectionLocator:
                                 )
                                 # Ajouter aux candidats avec le score visuel brut
                                 # (taille de police comme critere de departage)
-                                candidates[section_type].append((section, elem.font_size))
+                                candidates[section_type].append(
+                                    (section, elem.font_size)
+                                )
                                 logger.debug(
                                     f"Candidat visuel: {section_type} page {page_num} "
                                     f"(taille={elem.font_size:.1f}, gras={elem.is_bold}, "
@@ -1801,7 +1866,9 @@ class SectionLocator:
                     toc_page = page_num
                     # Prendre aussi les pages suivantes (TDM peut s'etendre sur 2-3 pages)
                     toc_text = page_text
-                    for next_page in range(page_num + 1, min(page_num + 4, len(text_by_page) + 1)):
+                    for next_page in range(
+                        page_num + 1, min(page_num + 4, len(text_by_page) + 1)
+                    ):
                         toc_text += "\n" + text_by_page.get(next_page, "")
                     break
 
@@ -1869,13 +1936,17 @@ class SectionLocator:
         # Log des entrees principales (level 0) pour debug
         level0_entries = [e for e in entries if e.level == 0]
         if level0_entries:
-            logger.debug(f"TDM: {len(level0_entries)} sections principales (level 0) trouvees:")
+            logger.debug(
+                f"TDM: {len(level0_entries)} sections principales (level 0) trouvees:"
+            )
             for e in level0_entries[:10]:  # Limiter a 10 pour eviter trop de logs
                 logger.debug(f"  - Page {e.page}: '{e.title}' (level={e.level})")
 
         return entries
 
-    def _parse_toc_line(self, line: str, max_pages: int = 200) -> TocEntry | list[TocEntry] | None:
+    def _parse_toc_line(
+        self, line: str, max_pages: int = 200
+    ) -> TocEntry | list[TocEntry] | None:
         """
         Parser une ligne de la Table des matieres.
 
@@ -1959,7 +2030,10 @@ class SectionLocator:
                     if (
                         section_name_normalized in title_normalized
                         or title_normalized in section_name_normalized
-                        or self._text_similarity(title_normalized, section_name_normalized) > 0.7
+                        or self._text_similarity(
+                            title_normalized, section_name_normalized
+                        )
+                        > 0.7
                     ):
                         level = 0  # Forcer comme section principale
                         logger.debug(
@@ -1982,7 +2056,10 @@ class SectionLocator:
                         if (
                             followed_normalized in title_normalized
                             or title_normalized in followed_normalized
-                            or self._text_similarity(title_normalized, followed_normalized) > 0.7
+                            or self._text_similarity(
+                                title_normalized, followed_normalized
+                            )
+                            > 0.7
                         ):
                             level = 0  # Forcer comme section principale
                             logger.debug(
@@ -2062,7 +2139,9 @@ class SectionLocator:
                 if len(title) < 3:
                     continue
 
-                entries.append(TocEntry(title=title, page=page_num, level=0, raw_line=line))
+                entries.append(
+                    TocEntry(title=title, page=page_num, level=0, raw_line=line)
+                )
 
         return entries
 
@@ -2149,7 +2228,9 @@ class SectionLocator:
 
         return unique
 
-    def _detect_sections_from_full_toc(self, toc_entries: list[TocEntry]) -> list[LocatedSection]:
+    def _detect_sections_from_full_toc(
+        self, toc_entries: list[TocEntry]
+    ) -> list[LocatedSection]:
         """
         Detecter les sections cibles depuis la TDM complete.
 
@@ -2183,8 +2264,9 @@ class SectionLocator:
                 for pattern in config_patterns["regex"]:
                     if pattern.search(entry.title):
                         # Verifier que ce n'est pas une sous-section de risques
-                        if section_type == "gestion_capital" and self._is_risk_subsection(
-                            entry.title
+                        if (
+                            section_type == "gestion_capital"
+                            and self._is_risk_subsection(entry.title)
                         ):
                             continue
 
@@ -2204,9 +2286,13 @@ class SectionLocator:
                         )
 
                         for next_entry in entries_by_page[i + 1 :]:
-                            if next_entry.level == 0 and next_entry.page >= min_end_page:
-                                if section_type == "gestion_risques" and self._is_risk_subsection(
-                                    next_entry.title
+                            if (
+                                next_entry.level == 0
+                                and next_entry.page >= min_end_page
+                            ):
+                                if (
+                                    section_type == "gestion_risques"
+                                    and self._is_risk_subsection(next_entry.title)
                                 ):
                                     logger.debug(
                                         f"TDM: Section suivante ignoree (sous-section risques): "
@@ -2365,13 +2451,23 @@ class SectionLocator:
                 return True
 
         # Commence par un mot-cle de section
-        keywords = ["gestion", "risque", "capital", "fonds", "situation", "facteurs", "examen"]
+        keywords = [
+            "gestion",
+            "risque",
+            "capital",
+            "fonds",
+            "situation",
+            "facteurs",
+            "examen",
+        ]
         if any(line_stripped.lower().startswith(kw) for kw in keywords):
             return True
 
         return False
 
-    def _scan_section_titles(self, text_by_page: dict[int, str]) -> list[LocatedSection]:
+    def _scan_section_titles(
+        self, text_by_page: dict[int, str]
+    ) -> list[LocatedSection]:
         """
         Scanner le PDF pour trouver les titres de sections.
 
@@ -2529,7 +2625,9 @@ class SectionLocator:
 
         return sections
 
-    def _find_first_risk_subsection(self, text_by_page: dict[int, str]) -> LocatedSection | None:
+    def _find_first_risk_subsection(
+        self, text_by_page: dict[int, str]
+    ) -> LocatedSection | None:
         """
         Trouver la premiere sous-section de risques comme proxy pour la section principale.
 
@@ -2571,7 +2669,9 @@ class SectionLocator:
 
         return None
 
-    def _calculate_title_confidence(self, title: str, page_text: str, keywords: list[str]) -> float:
+    def _calculate_title_confidence(
+        self, title: str, page_text: str, keywords: list[str]
+    ) -> float:
         """
         Calculer le score de confiance pour un titre de section.
 
@@ -2618,12 +2718,17 @@ class SectionLocator:
         # Bonus si le titre est seul sur sa ligne (probable titre de section)
         for line in page_text.split("\n")[:30]:
             line_stripped = line.strip()
-            if normalize_text(line_stripped) == title_normalized and len(line_stripped) < 60:
+            if (
+                normalize_text(line_stripped) == title_normalized
+                and len(line_stripped) < 60
+            ):
                 score += 0.15
                 break
 
         # Penalite si le titre contient des elements de TDM
-        if re.search(r"\d{2,}.*\d{2,}", title):  # Plusieurs numeros = probablement ligne TDM
+        if re.search(
+            r"\d{2,}.*\d{2,}", title
+        ):  # Plusieurs numeros = probablement ligne TDM
             score -= 0.2
 
         return max(0.0, min(score, 1.0))
@@ -2663,7 +2768,9 @@ class SectionLocator:
             # Si end_page deja defini (override, TDM, etc.), appliquer quand meme
             # les contraintes de longueur avant de continuer.
             if section.end_page is not None:
-                self._apply_section_length_constraints(section, total_pages, source="predefined")
+                self._apply_section_length_constraints(
+                    section, total_pages, source="predefined"
+                )
                 continue
 
             constraints = self._get_section_length_constraints(section.section_type)
@@ -2701,7 +2808,9 @@ class SectionLocator:
             if section.section_type in {"gestion_capital", "gestion_risques"}:
                 section = self._refine_bounds_with_subsections(section, text_by_page)
 
-            self._apply_section_length_constraints(section, total_pages, source="determine_end")
+            self._apply_section_length_constraints(
+                section, total_pages, source="determine_end"
+            )
 
         return sections
 
@@ -2793,7 +2902,9 @@ class SectionLocator:
 
         return section
 
-    def _extract_section_text(self, section: LocatedSection, text_by_page: dict[int, str]) -> str:
+    def _extract_section_text(
+        self, section: LocatedSection, text_by_page: dict[int, str]
+    ) -> str:
         """
         Extraire le texte complet d'une section.
 
@@ -2857,14 +2968,18 @@ class SectionLocator:
         section_text_lower = section_text.lower()
 
         # Mots-cles attendus pour cette section
-        expected_keywords = self.compiled_patterns.get(section.section_type, {}).get("keywords", [])
+        expected_keywords = self.compiled_patterns.get(section.section_type, {}).get(
+            "keywords", []
+        )
 
         if not expected_keywords:
             # Pas de mots-cles configures, validation basee uniquement sur l'absence de conflits
             keyword_ratio = 0.5
         else:
             # Compter les mots-cles trouves (insensible a la casse)
-            found_keywords = sum(1 for kw in expected_keywords if kw.lower() in section_text_lower)
+            found_keywords = sum(
+                1 for kw in expected_keywords if kw.lower() in section_text_lower
+            )
 
             # Ratio de mots-cles trouves
             # On considere que 30% des mots-cles est suffisant (sections variees)
@@ -2872,20 +2987,28 @@ class SectionLocator:
 
         # Verifier l'absence de mots-cles d'autres sections
         other_section_type = (
-            "gestion_risques" if section.section_type == "gestion_capital" else "gestion_capital"
+            "gestion_risques"
+            if section.section_type == "gestion_capital"
+            else "gestion_capital"
         )
-        other_keywords = self.compiled_patterns.get(other_section_type, {}).get("keywords", [])
+        other_keywords = self.compiled_patterns.get(other_section_type, {}).get(
+            "keywords", []
+        )
 
         conflicting_keywords = 0
         if other_keywords:
             # Analyser seulement le debut de la section pour eviter les faux positifs
             section_start = section_text_lower[:2000]  # Premiers 2000 caracteres
-            conflicting_keywords = sum(1 for kw in other_keywords if kw.lower() in section_start)
+            conflicting_keywords = sum(
+                1 for kw in other_keywords if kw.lower() in section_start
+            )
 
         # Score de validation
         # 70% basé sur la présence de mots-clés attendus
         # 30% pénalité pour les mots-clés conflictuels
-        validation_score = keyword_ratio * 0.7 - min(conflicting_keywords / 10, 0.3) * 0.3
+        validation_score = (
+            keyword_ratio * 0.7 - min(conflicting_keywords / 10, 0.3) * 0.3
+        )
 
         # Normaliser entre 0 et 1
         validation_score = max(0.0, min(1.0, validation_score))
@@ -2976,9 +3099,14 @@ class SectionLocator:
 
             if total_weight > 0:
                 # Calculer la variance ponderee (plus la variance est faible, plus le consensus est eleve)
-                weighted_mean = sum(page * weight for page, weight in sorted_starts) / total_weight
+                weighted_mean = (
+                    sum(page * weight for page, weight in sorted_starts) / total_weight
+                )
                 variance = (
-                    sum(weight * (page - weighted_mean) ** 2 for page, weight in sorted_starts)
+                    sum(
+                        weight * (page - weighted_mean) ** 2
+                        for page, weight in sorted_starts
+                    )
                     / total_weight
                 )
 
@@ -2993,9 +3121,14 @@ class SectionLocator:
             total_weight = sum(w for _, w in sorted_ends)
 
             if total_weight > 0:
-                weighted_mean = sum(page * weight for page, weight in sorted_ends) / total_weight
+                weighted_mean = (
+                    sum(page * weight for page, weight in sorted_ends) / total_weight
+                )
                 variance = (
-                    sum(weight * (page - weighted_mean) ** 2 for page, weight in sorted_ends)
+                    sum(
+                        weight * (page - weighted_mean) ** 2
+                        for page, weight in sorted_ends
+                    )
                     / total_weight
                 )
                 consensus_end = max(0.0, 1.0 - min(variance / 10.0, 0.5))
@@ -3141,7 +3274,9 @@ class SectionLocator:
         for section in sections:
             # Collecter toutes les detections pour cette section
             toc_detections = [
-                e for e in toc_entries if self._matches_section(e.title, section.section_type)
+                e
+                for e in toc_entries
+                if self._matches_section(e.title, section.section_type)
             ]
 
             scan_detections = [
@@ -3149,10 +3284,14 @@ class SectionLocator:
             ]
 
             # Calculer le score de consensus
-            consensus_score = self._calculate_consensus(section, toc_detections, scan_detections)
+            consensus_score = self._calculate_consensus(
+                section, toc_detections, scan_detections
+            )
 
             # Valider le contenu contextuel (Amélioration 2)
-            is_valid_content, content_score = self._validate_section_content(section, text_by_page)
+            is_valid_content, content_score = self._validate_section_content(
+                section, text_by_page
+            )
 
             # Ajuster la confiance selon le consensus et la validation du contenu
             original_confidence = section.confidence
@@ -3165,7 +3304,9 @@ class SectionLocator:
                 section.confidence = max(0.0, section.confidence - 0.3)
 
                 # Essayer de corriger
-                corrected = self._correct_section_bounds(section, toc_detections, scan_detections)
+                corrected = self._correct_section_bounds(
+                    section, toc_detections, scan_detections
+                )
                 if corrected:
                     section = corrected
                     # Restaurer partiellement la confiance apres correction
@@ -3217,7 +3358,9 @@ class SectionLocator:
 
         # Obtenir les sections suivantes configurees
         config_name = (
-            "capital_management" if section_type == "gestion_capital" else "risk_management"
+            "capital_management"
+            if section_type == "gestion_capital"
+            else "risk_management"
         )
         bank_data = self.bank_config.get("banks", {}).get(self.bank_code, {})
         sections = bank_data.get("sections", {})
@@ -3226,14 +3369,18 @@ class SectionLocator:
 
         # Obtenir aussi les noms de l'autre section cible
         other_config_name = (
-            "risk_management" if section_type == "gestion_capital" else "capital_management"
+            "risk_management"
+            if section_type == "gestion_capital"
+            else "capital_management"
         )
         other_section_config = sections.get(other_config_name, {})
         other_section_names = other_section_config.get("names", [])
 
         # Combiner les patterns a chercher
         patterns_to_search = list(followed_by)  # D'abord les patterns 'followed_by'
-        patterns_to_search.extend(other_section_names)  # Puis les autres sections cibles
+        patterns_to_search.extend(
+            other_section_names
+        )  # Puis les autres sections cibles
 
         if not patterns_to_search:
             return None
@@ -3262,7 +3409,8 @@ class SectionLocator:
                 if (
                     pattern_normalized in entry_title_normalized
                     or entry_title_normalized in pattern_normalized
-                    or self._text_similarity(entry_title_normalized, pattern_normalized) > 0.7
+                    or self._text_similarity(entry_title_normalized, pattern_normalized)
+                    > 0.7
                 ):
                     # Determiner la source du match pour le log
                     if pattern_name in followed_by:
@@ -3306,7 +3454,9 @@ class SectionLocator:
         )
 
         if not entries_after:
-            logger.debug(f"_find_end_from_toc: Aucune entree TDM apres page {min_end_page}")
+            logger.debug(
+                f"_find_end_from_toc: Aucune entree TDM apres page {min_end_page}"
+            )
             return None, ""
 
         # Etape 1: Chercher une section principale (level 0) qui suit
@@ -3329,7 +3479,9 @@ class SectionLocator:
             "_find_end_from_toc: Aucune section principale trouvee, "
             "recherche par pattern 'followed_by'"
         )
-        next_section = self._find_next_section_by_pattern(section_type, start_page, toc_entries)
+        next_section = self._find_next_section_by_pattern(
+            section_type, start_page, toc_entries
+        )
         if next_section:
             end_page = next_section[0] - 1
             logger.debug(
@@ -3342,7 +3494,11 @@ class SectionLocator:
         return None, ""
 
     def _detect_section_end(
-        self, section_type: str, start_page: int, text_by_page: dict[int, str], total_pages: int
+        self,
+        section_type: str,
+        start_page: int,
+        text_by_page: dict[int, str],
+        total_pages: int,
     ) -> tuple[int | None, str]:
         """
         Detecter la fin d'une section en scannant le PDF.
@@ -3423,9 +3579,13 @@ class SectionLocator:
                     section.end_detection_method = "next_section"
                 else:
                     # Derniere section: estimer la fin
-                    constraints = self._get_section_length_constraints(section.section_type)
+                    constraints = self._get_section_length_constraints(
+                        section.section_type
+                    )
                     estimated_length = constraints["default_length"]
-                    section.end_page = min(section.start_page + estimated_length - 1, total_pages)
+                    section.end_page = min(
+                        section.start_page + estimated_length - 1, total_pages
+                    )
                     section.end_detection_method = "estimation"
 
                 self._apply_section_length_constraints(

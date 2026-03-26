@@ -295,18 +295,59 @@ def build_proofs_section(
     img_t1_b64: str | None,
     img_t2_b64: str | None,
     proof_display_mode: str = "crop",
+    proof_result_t1: dict | None = None,
+    proof_result_t2: dict | None = None,
 ) -> html.Div:
     """Build proof images section; depends only on table-level data."""
     flag_state = compute_flag_state(item)
-    mode_full = (proof_display_mode or "crop").strip().lower() == "full"
+    normalized_mode = (proof_display_mode or "crop").strip().lower()
+    mode_label_map = {
+        "crop": "Mode focus tableau",
+        "full": "Mode page complète + bbox",
+        "footnote": "Mode note de bas de tableau",
+        "full_without_bbox": "Mode page complète sans bbox",
+    }
 
-    def _img_card(b64, label, placeholder=None, bbox_norm=None, side: str = "t1"):
+    def _mode_label(mode_value: str | None) -> str:
+        return mode_label_map.get(
+            (mode_value or normalized_mode).strip().lower(),
+            "Mode focus tableau",
+        )
+
+    def _proof_caption(
+        base_label: str, page: int | None, mode_value: str | None
+    ) -> str:
+        page_label = f"Page {page}" if page is not None else "Page indisponible"
+        return f"{base_label} · {page_label} · {_mode_label(mode_value)}"
+
+    def _proof_placeholder(
+        placeholder: str | None, render_result: dict | None, mode_value: str
+    ) -> str:
+        if placeholder:
+            return placeholder
+        status = str((render_result or {}).get("status") or "").strip().lower()
+        if status == "bbox_missing":
+            if mode_value == "footnote":
+                return "Zone footnote indisponible: bbox absente pour ce tableau."
+            return "Crop indisponible: bbox absente pour ce tableau."
+        if status == "page_missing":
+            return "Page indisponible pour cette preuve."
+        if status == "render_failed":
+            return "Rendu impossible pour cette preuve."
+        return t("image_unavailable", "Image non disponible")
+
+    def _img_card(
+        b64,
+        label,
+        *,
+        mode_value: str,
+        placeholder=None,
+        bbox_norm=None,
+        render_result=None,
+        side: str = "t1",
+    ):
         if not b64:
-            msg = (
-                placeholder
-                if placeholder
-                else t("image_unavailable", "Image non disponible")
-            )
+            msg = _proof_placeholder(placeholder, render_result, mode_value)
             return dbc.Card(
                 dbc.CardBody(html.P(msg, className="text-muted text-center small")),
                 className="h-100 bg-light border-0",
@@ -318,7 +359,7 @@ def build_proofs_section(
             "height": "auto",
         }
         img_el = html.Img(src=f"data:image/png;base64,{b64}", style=img_style)
-        if mode_full and bbox_norm:
+        if mode_value == "full" and bbox_norm:
             l_, top, r, bottom = bbox_norm
             overlay_style = {
                 "position": "absolute",
@@ -369,43 +410,69 @@ def build_proofs_section(
         return html.Div([badge, card], className=card_class)
 
     change_type = item.get("change_type", "")
+    mode_t1 = str((proof_result_t1 or {}).get("mode_effective") or normalized_mode)
+    mode_t2 = str((proof_result_t2 or {}).get("mode_effective") or normalized_mode)
     bbox_t1_norm = (
-        _bbox_normalized_for_overlay(item.get("bbox_t1")) if mode_full else None
+        _bbox_normalized_for_overlay(item.get("bbox_t1")) if mode_t1 == "full" else None
     )
     bbox_t2_norm = (
-        _bbox_normalized_for_overlay(item.get("bbox_t2")) if mode_full else None
+        _bbox_normalized_for_overlay(item.get("bbox_t2")) if mode_t2 == "full" else None
     )
 
     if change_type == CHANGE_TYPE_TABLE_ADDED:
         card_t1 = _img_card(
             None,
-            "Trimestre précédent",
+            _proof_caption("Trimestre précédent", item.get("page_t1"), mode_t1),
+            mode_value=mode_t1,
             placeholder=t(
                 "no_table_added_t2",
                 "Aucun tableau au trimestre précédent (ajout au trimestre courant)",
             ),
+            render_result=proof_result_t1,
         )
         card_t2 = _img_card(
-            img_t2_b64, "Trimestre courant", bbox_norm=bbox_t2_norm, side="t2"
+            img_t2_b64,
+            _proof_caption("Trimestre courant", item.get("page_t2"), mode_t2),
+            mode_value=mode_t2,
+            bbox_norm=bbox_t2_norm,
+            render_result=proof_result_t2,
+            side="t2",
         )
     elif change_type == CHANGE_TYPE_TABLE_REMOVED:
         card_t1 = _img_card(
-            img_t1_b64, "Trimestre précédent", bbox_norm=bbox_t1_norm, side="t1"
+            img_t1_b64,
+            _proof_caption("Trimestre précédent", item.get("page_t1"), mode_t1),
+            mode_value=mode_t1,
+            bbox_norm=bbox_t1_norm,
+            render_result=proof_result_t1,
+            side="t1",
         )
         card_t2 = _img_card(
             None,
-            "Trimestre courant",
+            _proof_caption("Trimestre courant", item.get("page_t2"), mode_t2),
+            mode_value=mode_t2,
             placeholder=t(
                 "no_table_removed_t2",
                 "Aucun tableau au trimestre courant (supprimé depuis le trimestre précédent)",
             ),
+            render_result=proof_result_t2,
         )
     else:
         card_t1 = _img_card(
-            img_t1_b64, "Trimestre précédent", bbox_norm=bbox_t1_norm, side="t1"
+            img_t1_b64,
+            _proof_caption("Trimestre précédent", item.get("page_t1"), mode_t1),
+            mode_value=mode_t1,
+            bbox_norm=bbox_t1_norm,
+            render_result=proof_result_t1,
+            side="t1",
         )
         card_t2 = _img_card(
-            img_t2_b64, "Trimestre courant", bbox_norm=bbox_t2_norm, side="t2"
+            img_t2_b64,
+            _proof_caption("Trimestre courant", item.get("page_t2"), mode_t2),
+            mode_value=mode_t2,
+            bbox_norm=bbox_t2_norm,
+            render_result=proof_result_t2,
+            side="t2",
         )
 
     col_t1 = dbc.Col(
@@ -453,7 +520,17 @@ def build_proofs_section(
         style={"height": "50vh", "minHeight": "400px"},
     )
 
-    return html.Div([proof_mode_toggle, proofs_row])
+    header = html.Div(
+        [
+            html.H6("Preuves visuelles T1/T2", className="mb-1"),
+            html.P(
+                "Référence visuelle pour valider rapidement le changement courant.",
+                className="text-muted small mb-2",
+            ),
+        ]
+    )
+
+    return html.Div([header, proof_mode_toggle, proofs_row])
 
 
 # ---------------------------------------------------------------------------
@@ -561,9 +638,7 @@ def render_table_only_view(
     else:
         page_t1_str = str(page_t1) if page_t1 is not None else "-"
         page_t2_str = str(page_t2) if page_t2 is not None else "-"
-        page_text = (
-            f"Pages: précédent p.{page_t1_str}, courant p.{page_t2_str}"
-        )
+        page_text = f"Pages: précédent p.{page_t1_str}, courant p.{page_t2_str}"
     confidence = item.get("confidence", 0.0)
     review_status = item.get("review_status", REVIEW_STATUS_PENDING)
 
@@ -685,9 +760,7 @@ def render_indicator_diff_view(
     else:
         page_t1_str = str(page_t1) if page_t1 is not None else "-"
         page_t2_str = str(page_t2) if page_t2 is not None else "-"
-        page_text = (
-            f"Pages: précédent p.{page_t1_str}, courant p.{page_t2_str}"
-        )
+        page_text = f"Pages: précédent p.{page_t1_str}, courant p.{page_t2_str}"
     confidence = item.get("confidence", 0.0)
     comment = item.get("comment", "")
     indicators = item.get("indicators", [])
@@ -857,9 +930,7 @@ def render_indicator_diff_view(
                 detail_children.append(
                     html.Div(
                         [
-                            html.Small(
-                                "Précédent: ", className="fw-bold text-danger"
-                            ),
+                            html.Small("Précédent: ", className="fw-bold text-danger"),
                             html.Small(old_text[:300]),
                         ],
                         className="ms-3 mb-1 bg-light p-1 rounded",
