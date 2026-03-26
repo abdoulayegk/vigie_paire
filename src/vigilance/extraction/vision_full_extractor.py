@@ -1168,6 +1168,58 @@ def _is_viable_result(result: VisionFullResult | None) -> bool:
     )
 
 
+def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
+    import re
+    if result is None:
+        return []
+        
+    critiques: list[str] = []
+    indicators: list[Any] = result.indicators or []
+    footnotes: list[Any] = result.footnotes_content or []
+    
+    # 1. Flat Indentation Check
+    if len(indicators) > 10:
+        has_indent = any(str(ind).startswith(" ") for ind in indicators if isinstance(ind, str))
+        if not has_indent:
+            critiques.append(
+                "Vous avez complètement perdu la hiérarchie et l'indentation. "
+                "Chaque sous-catégorie DOIT obligatoirement commencer par des espaces de tête (ex: '  Hypothèques résidentielles'). "
+                "Ne mettez jamais tous les indicateurs à niveau."
+            )
+            
+    # 2. Orphaned Footnote Marker Check
+    found_footnote_ids = {
+        str(fn.get("id")).strip() for fn in footnotes if isinstance(fn, dict) and str(fn.get("id", "")).strip()
+    }
+    
+    referenced_markers = set()
+    for ind in indicators:
+        if isinstance(ind, str):
+            matches = re.findall(r'\(([a-zA-Z0-9]{1,2})\)', ind)
+            for m in matches:
+                referenced_markers.add(m.strip())
+                
+    missing_footnotes = referenced_markers - found_footnote_ids
+    if missing_footnotes and len(missing_footnotes) <= 4:
+        missing_str = ", ".join(f"({m})" for m in missing_footnotes)
+        critiques.append(
+            f"Vous avez extrait des renvois de notes de bas de page dans les indicateurs [{missing_str}], "
+            "mais vous avez OUBLIÉ d'inclure le texte de ces notes dans le champ 'footnotes_content'. "
+            "Lisez le bas du tableau et ajoutez obligatoirement ces notes manquantes."
+        )
+        
+    # 3. Missing Headers Check
+    if len(result.headers or []) == 0 and len(indicators) > 3:
+        title = str(result.table_title or "").lower()
+        if "au 31" in title or "trimestre" in title or "202" in title:
+             critiques.append(
+                 "Ce tableau semble contenir des colonnes de dates ou de périodes, mais le champ 'headers' est vide. "
+                 "Vous devez absolument renseigner les en-têtes de colonnes."
+             )
+             
+    return critiques
+
+
 def _collect_incompleteness_reasons(
     result: VisionFullResult | None,
     *,
@@ -1776,42 +1828,224 @@ class VisionFullExtractor:
 
         failure_causes: list[str] = []
 
-        issued = _issue_request(
-            prompt,
-            structured=True,
-            max_completion_tokens=max_completion_tokens,
-            label="full",
-        )
-        if issued is None:
-            return None
+        current_prompt = prompt
+        max_self_healing_attempts = 2
 
-        (
-            raw_content,
-            finish_reason,
-            used_structured,
-            effective_max_completion_tokens,
-            prompt_tokens,
-            completion_tokens,
-            total_tokens,
-        ) = issued
-
-        if finish_reason == "length":
-            failure_causes.append("vision_truncated")
-            logger.warning(
-                "Vision full: response truncated (raw_len=%d)",
-                len(raw_content),
+        for attempt in range(max_self_healing_attempts):
+            issued = _issue_request(
+                current_prompt,
+                structured=True,
+                max_completion_tokens=max_completion_tokens,
+                label=f"full_pass_attempt_{attempt + 1}",
             )
-            partial_result = _try_parse_truncated_result(raw_content)
-            if partial_result is not None:
-                return _with_attempt_metadata(
-                    partial_result,
+            if issued is None:
+                return None
+
+            (
+                raw_content,
+                finish_reason,
+                used_structured,
+                effective_max_completion_tokens,
+                prompt_tokens,
+                completion_tokens,
+                total_tokens,
+            ) = issued
+
+            if finish_reason == "length":
+                failure_causes.append("vision_truncated")
+                logger.warning(
+                    "Vision full: response truncated (raw_len=%d)",
+                    len(raw_content),
+                )
+                partial_result = _try_parse_truncated_result(raw_content)
+                if partial_result is not None:
+                    return _with_attempt_metadata(
+                        partial_result,
+                        requested_max_completion_tokens=effective_max_completion_tokens,
+                        finish_reason=finish_reason,
+                        prompt_tokens=prompt_tokens,
+                        completion_tokens=completion_tokens,
+                        total_tokens=total_tokens,
+                    )
+                return _make_truncated_placeholder_result(
                     requested_max_completion_tokens=effective_max_completion_tokens,
                     finish_reason=finish_reason,
                     prompt_tokens=prompt_tokens,
                     completion_tokens=completion_tokens,
                     total_tokens=total_tokens,
                 )
-            return _make_truncated_placeholder_result(
+
+            data = _parse_json_response(raw_content)
+            if data is None:
+                failure_causes.append("vision_invalid_json")
+                logger.info(
+                    "Vision full: JSON parse failed (raw_len=%d, preview=%r)",
+                    len(raw_content),
+                    _preview_response_text(raw_content),
+                )
+                if self._max_retries_json >= 1:
+                    repair_prompt = _build_repair_prompt(current_prompt, raw_content)
+                    retry_issued = _issue_request(
+                        repair_prompt,
+                        structured=False,
+                        max_completion_tokens=max_completion_tokens,
+                        label="retry-json",
+                    )
+                    if retry_issued is not None:
+                        (
+                            retry_raw,
+                            retry_reason,
+                            _,
+                            retry_effective_max_completion_tokens,
+                            retry_prompt_tokens,
+                            retry_completion_tokens,
+                            retry_total_tokens,
+                        ) = retry_issued
+                        if retry_reason != "length":
+                            retry_data = _parse_json_response(retry_raw)
+                            if retry_data is not None:
+                                result = _parse_vision_result(retry_data)
+                                if result is not None:
+                                    critiques = _grade_extraction_quality(result)
+                                    if critiques and attempt < max_self_healing_attempts - 1:
+                                        logger.warning("Vision full: self-healing triggered after json-retry: %s", critiques)
+                                        current_prompt = prompt + "\n\n### CRÉTIQUES DE LA TENTATIVE PRÉCÉDENTE, CORRIGEZ ###\n- " + "\n- ".join(critiques)
+                                        continue
+
+                                    result = replace(
+                                        result,
+                                        vision_status="partial",
+                                        warnings=list(
+                                            dict.fromkeys(
+                                                failure_causes
+                                                + ["vision_structured_output_fallback"]
+                                                + (["self_healing_failed"] if critiques else [])
+                                            )
+                                        ),
+                                    )
+                                    result = _with_attempt_metadata(
+                                        result,
+                                        requested_max_completion_tokens=(
+                                            retry_effective_max_completion_tokens
+                                        ),
+                                        finish_reason=retry_reason,
+                                        prompt_tokens=retry_prompt_tokens,
+                                        completion_tokens=retry_completion_tokens,
+                                        total_tokens=retry_total_tokens,
+                                    )
+                                    if self._use_cache and cache_key:
+                                        cache_dir = get_vision_cache_dir()
+                                        cache_put(
+                                            cache_dir,
+                                            cache_key,
+                                            _cache_payload_from_result(result),
+                                        )
+                                    return result
+                logger.warning(
+                    "Vision full extraction: invalid content after retry (%s)",
+                    ", ".join(dict.fromkeys(failure_causes + ["vision_retry_exhausted"])),
+                )
+                return None
+
+            result = _parse_vision_result(data)
+            if result is None:
+                failure_causes.append("vision_schema_validation_failed")
+                logger.info(
+                    "Vision full: schema validation failed (raw_len=%d, keys=%s)",
+                    len(raw_content),
+                    sorted(data.keys()),
+                )
+                if self._max_retries_json >= 1:
+                    repair_prompt = _build_repair_prompt(current_prompt, raw_content)
+                    retry_issued = _issue_request(
+                        repair_prompt,
+                        structured=False,
+                        max_completion_tokens=max_completion_tokens,
+                        label="retry-json",
+                    )
+                    if retry_issued is not None:
+                        (
+                            retry_raw,
+                            retry_reason,
+                            _,
+                            retry_effective_max_completion_tokens,
+                            retry_prompt_tokens,
+                            retry_completion_tokens,
+                            retry_total_tokens,
+                        ) = retry_issued
+                        if retry_reason != "length":
+                            retry_data = _parse_json_response(retry_raw)
+                            if retry_data is not None:
+                                result = _parse_vision_result(retry_data)
+                                if result is not None:
+                                    critiques = _grade_extraction_quality(result)
+                                    if critiques and attempt < max_self_healing_attempts - 1:
+                                        logger.warning("Vision full: self-healing triggered after json-retry: %s", critiques)
+                                        current_prompt = prompt + "\n\n### CRÉTIQUES DE LA TENTATIVE PRÉCÉDENTE, CORRIGEZ ###\n- " + "\n- ".join(critiques)
+                                        continue
+
+                                    result = replace(
+                                        result,
+                                        vision_status="partial",
+                                        warnings=list(
+                                            dict.fromkeys(
+                                                failure_causes
+                                                + ["vision_structured_output_fallback"]
+                                                + (["self_healing_failed"] if critiques else [])
+                                            )
+                                        ),
+                                    )
+                                    result = _with_attempt_metadata(
+                                        result,
+                                        requested_max_completion_tokens=(
+                                            retry_effective_max_completion_tokens
+                                        ),
+                                        finish_reason=retry_reason,
+                                        prompt_tokens=retry_prompt_tokens,
+                                        completion_tokens=retry_completion_tokens,
+                                        total_tokens=retry_total_tokens,
+                                    )
+                                    if self._use_cache and cache_key:
+                                        cache_dir = get_vision_cache_dir()
+                                        cache_put(
+                                            cache_dir,
+                                            cache_key,
+                                            _cache_payload_from_result(result),
+                                        )
+                                    return result
+                logger.warning(
+                    "Vision full extraction: invalid content after retry (%s)",
+                    ", ".join(dict.fromkeys(failure_causes + ["vision_retry_exhausted"])),
+                )
+                return None
+
+            # --- Self-Healing Check ---
+            critiques = _grade_extraction_quality(result)
+            if critiques and attempt < max_self_healing_attempts - 1:
+                logger.warning("Vision full: self-healing triggered: %s", critiques)
+                current_prompt = prompt + "\n\n### CRÉTIQUES DE LA TENTATIVE PRÉCÉDENTE, CORRIGEZ ###\n- " + "\n- ".join(critiques)
+                continue
+                
+            if critiques:
+                failure_causes.append("self_healing_failed")
+
+            if used_structured is False:
+                failure_causes.append("vision_structured_output_fallback")
+            retry_reasons = list(result.retry_reasons or [])
+            if (
+                "vision_truncated" in failure_causes
+                and "output_budget_truncated" not in retry_reasons
+            ):
+                retry_reasons.append("output_budget_truncated")
+            if retry_reasons or failure_causes:
+                result = replace(result, vision_status="partial")
+            result = replace(
+                result,
+                warnings=list(dict.fromkeys(failure_causes)),
+                retry_reasons=list(dict.fromkeys(retry_reasons)),
+            )
+            result = _with_attempt_metadata(
+                result,
                 requested_max_completion_tokens=effective_max_completion_tokens,
                 finish_reason=finish_reason,
                 prompt_tokens=prompt_tokens,
@@ -1819,168 +2053,16 @@ class VisionFullExtractor:
                 total_tokens=total_tokens,
             )
 
-        data = _parse_json_response(raw_content)
-        if data is None:
-            failure_causes.append("vision_invalid_json")
-            logger.info(
-                "Vision full: JSON parse failed (raw_len=%d, preview=%r)",
-                len(raw_content),
-                _preview_response_text(raw_content),
-            )
-            if self._max_retries_json >= 1:
-                repair_prompt = _build_repair_prompt(prompt, raw_content)
-                retry_issued = _issue_request(
-                    repair_prompt,
-                    structured=False,
-                    max_completion_tokens=max_completion_tokens,
-                    label="retry-json",
+            if self._use_cache and cache_key:
+                cache_dir = get_vision_cache_dir()
+                cache_put(
+                    cache_dir,
+                    cache_key,
+                    _cache_payload_from_result(result),
                 )
-                if retry_issued is not None:
-                    (
-                        retry_raw,
-                        retry_reason,
-                        _,
-                        retry_effective_max_completion_tokens,
-                        retry_prompt_tokens,
-                        retry_completion_tokens,
-                        retry_total_tokens,
-                    ) = retry_issued
-                    if retry_reason != "length":
-                        retry_data = _parse_json_response(retry_raw)
-                        if retry_data is not None:
-                            result = _parse_vision_result(retry_data)
-                            if result is not None:
-                                result = replace(
-                                    result,
-                                    vision_status="partial",
-                                    warnings=list(
-                                        dict.fromkeys(
-                                            failure_causes
-                                            + ["vision_structured_output_fallback"]
-                                        )
-                                    ),
-                                )
-                                result = _with_attempt_metadata(
-                                    result,
-                                    requested_max_completion_tokens=(
-                                        retry_effective_max_completion_tokens
-                                    ),
-                                    finish_reason=retry_reason,
-                                    prompt_tokens=retry_prompt_tokens,
-                                    completion_tokens=retry_completion_tokens,
-                                    total_tokens=retry_total_tokens,
-                                )
-                                if self._use_cache and cache_key:
-                                    cache_dir = get_vision_cache_dir()
-                                    cache_put(
-                                        cache_dir,
-                                        cache_key,
-                                        _cache_payload_from_result(result),
-                                    )
-                                return result
-            logger.warning(
-                "Vision full extraction: invalid content after retry (%s)",
-                ", ".join(dict.fromkeys(failure_causes + ["vision_retry_exhausted"])),
-            )
-            return None
+            return result
 
-        result = _parse_vision_result(data)
-        if result is None:
-            failure_causes.append("vision_schema_validation_failed")
-            logger.info(
-                "Vision full: schema validation failed (raw_len=%d, keys=%s)",
-                len(raw_content),
-                sorted(data.keys()),
-            )
-            if self._max_retries_json >= 1:
-                repair_prompt = _build_repair_prompt(prompt, raw_content)
-                retry_issued = _issue_request(
-                    repair_prompt,
-                    structured=False,
-                    max_completion_tokens=max_completion_tokens,
-                    label="retry-json",
-                )
-                if retry_issued is not None:
-                    (
-                        retry_raw,
-                        retry_reason,
-                        _,
-                        retry_effective_max_completion_tokens,
-                        retry_prompt_tokens,
-                        retry_completion_tokens,
-                        retry_total_tokens,
-                    ) = retry_issued
-                    if retry_reason != "length":
-                        retry_data = _parse_json_response(retry_raw)
-                        if retry_data is not None:
-                            result = _parse_vision_result(retry_data)
-                            if result is not None:
-                                result = replace(
-                                    result,
-                                    vision_status="partial",
-                                    warnings=list(
-                                        dict.fromkeys(
-                                            failure_causes
-                                            + ["vision_structured_output_fallback"]
-                                        )
-                                    ),
-                                )
-                                result = _with_attempt_metadata(
-                                    result,
-                                    requested_max_completion_tokens=(
-                                        retry_effective_max_completion_tokens
-                                    ),
-                                    finish_reason=retry_reason,
-                                    prompt_tokens=retry_prompt_tokens,
-                                    completion_tokens=retry_completion_tokens,
-                                    total_tokens=retry_total_tokens,
-                                )
-                                if self._use_cache and cache_key:
-                                    cache_dir = get_vision_cache_dir()
-                                    cache_put(
-                                        cache_dir,
-                                        cache_key,
-                                        _cache_payload_from_result(result),
-                                    )
-                                return result
-            logger.warning(
-                "Vision full extraction: invalid content after retry (%s)",
-                ", ".join(dict.fromkeys(failure_causes + ["vision_retry_exhausted"])),
-            )
-            return None
-
-        if used_structured is False:
-            failure_causes.append("vision_structured_output_fallback")
-        retry_reasons = list(result.retry_reasons or [])
-        if (
-            "vision_truncated" in failure_causes
-            and "output_budget_truncated" not in retry_reasons
-        ):
-            retry_reasons.append("output_budget_truncated")
-        if retry_reasons or failure_causes:
-            result = replace(result, vision_status="partial")
-        result = replace(
-            result,
-            warnings=list(dict.fromkeys(failure_causes)),
-            retry_reasons=list(dict.fromkeys(retry_reasons)),
-        )
-        result = _with_attempt_metadata(
-            result,
-            requested_max_completion_tokens=effective_max_completion_tokens,
-            finish_reason=finish_reason,
-            prompt_tokens=prompt_tokens,
-            completion_tokens=completion_tokens,
-            total_tokens=total_tokens,
-        )
-
-        if self._use_cache and cache_key:
-            cache_dir = get_vision_cache_dir()
-            cache_put(
-                cache_dir,
-                cache_key,
-                _cache_payload_from_result(result),
-            )
-        return result
+        return None
 
     def extract_with_quality_pass(
         self,
