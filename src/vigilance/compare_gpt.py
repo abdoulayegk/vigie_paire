@@ -22,9 +22,9 @@ logger = logging.getLogger(__name__)
 MATCH_PROMPT_VERSION = "table_match_v8"
 DIFF_PROMPT_VERSION = "table_diff_v4"
 COMPARISON_SCHEMA_VERSION = 2
-_BUSINESS_EXTRACTION_STATUSES = frozenset({"ok", "rescued"})
+_BUSINESS_EXTRACTION_STATUSES = frozenset({"ok", "rescued", "suspect_unresolved"})
 _ARTIFACT_EXTRACTION_STATUSES = frozenset({"confirmed_no_table"})
-_SUSPECT_EXTRACTION_STATUSES = frozenset({"suspect_unresolved"})
+_SUSPECT_EXTRACTION_STATUSES = frozenset()  # No longer excluding any tables from matching
 
 PRIMARY_MATCH_SYSTEM_PROMPT = """
 You are a brutal, ultra-strict financial table matcher for Canadian bank reports.
@@ -350,10 +350,51 @@ def _partition_tables_by_status(
             suspects.append(
                 {
                     "table_id": table_id,
-                    "reason": "Excluded from business matching by extraction_status=suspect_unresolved.",
+                    "reason": (
+                        "Excluded from business matching: extraction_status not classified "
+                        "as business or artifact (unexpected)."
+                    ),
                 }
             )
     return business, artifacts, suspects
+
+
+def _merge_extraction_suspect_side(
+    tables: list[dict[str, Any]],
+    partition_suspect_refs: list[dict[str, str]],
+    snapshots: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Build review-queue rows for extraction suspects: partition edge cases plus
+    all tables with extraction_status suspect_unresolved (still matched).
+    """
+    by_id: dict[str, dict[str, str]] = {}
+    for item in partition_suspect_refs:
+        tid = str(item.get("table_id", "") or "").strip()
+        if tid:
+            by_id[tid] = {
+                "table_id": tid,
+                "reason": str(item.get("reason", "") or ""),
+            }
+    suspect_reason = (
+        "extraction_status=suspect_unresolved; table included in matching and "
+        "flagged for extraction review."
+    )
+    for entry in tables:
+        if not isinstance(entry, dict):
+            continue
+        tid = str(entry.get("table_id", "") or "").strip()
+        if not tid:
+            continue
+        if _normalize_extraction_status(entry.get("extraction_status")) != "suspect_unresolved":
+            continue
+        by_id.setdefault(
+            tid,
+            {"table_id": tid, "reason": suspect_reason},
+        )
+    return [
+        {**by_id[tid], **(snapshots.get(tid) or {})}
+        for tid in sorted(by_id.keys())
+    ]
 
 
 def _make_run_id() -> str:
@@ -1320,15 +1361,16 @@ def compare_reports_gpt4o(
         table_id = item["table_id"]
         artifacts_confirmed_current.append({**item, **current_snapshots[table_id]})
 
-    extraction_suspects_previous: list[dict[str, Any]] = []
-    for item in previous_suspect_refs:
-        table_id = item["table_id"]
-        extraction_suspects_previous.append({**item, **previous_snapshots[table_id]})
-
-    extraction_suspects_current: list[dict[str, Any]] = []
-    for item in current_suspect_refs:
-        table_id = item["table_id"]
-        extraction_suspects_current.append({**item, **current_snapshots[table_id]})
+    extraction_suspects_previous = _merge_extraction_suspect_side(
+        previous_tables,
+        previous_suspect_refs,
+        previous_snapshots,
+    )
+    extraction_suspects_current = _merge_extraction_suspect_side(
+        current_tables,
+        current_suspect_refs,
+        current_snapshots,
+    )
 
     pair_comparisons: list[dict[str, Any]] = []
     diff_calls_total = 0

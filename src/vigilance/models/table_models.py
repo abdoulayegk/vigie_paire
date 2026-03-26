@@ -75,17 +75,19 @@ def derive_comparison_blockers(
     *,
     extraction_status: str,
 ) -> list[str]:
-    """Derive comparison blocker codes from canonical extraction_status only.
+    """Derive matching-path blocker codes from canonical extraction_status only.
+
+    Only ``confirmed_no_table`` blocks inclusion in GPT table matching.
+    ``suspect_unresolved`` is not a blocker here; quality is signaled via
+    ``extraction_status`` and the extraction quality gate.
 
     Args:
         extraction_status: Canonical extraction status value.
 
     Returns:
-        List of blocker codes derived only from extraction_status.
+        Non-empty list only for ``confirmed_no_table``; otherwise empty.
     """
     status = normalize_extraction_status(extraction_status)
-    if status == TABLE_EXTRACTION_STATUS_SUSPECT_UNRESOLVED:
-        return [TABLE_EXTRACTION_STATUS_SUSPECT_UNRESOLVED]
     if status == TABLE_EXTRACTION_STATUS_CONFIRMED_NO_TABLE:
         return [TABLE_EXTRACTION_STATUS_CONFIRMED_NO_TABLE]
     return []
@@ -94,19 +96,20 @@ def derive_comparison_blockers(
 def is_comparison_eligible(
     extraction_status: str,
 ) -> bool:
-    """Check whether a table is eligible for comparison from extraction_status.
+    """Whether the table is eligible for the report matching path (GPT cards).
+
+    Eligible for all statuses except ``confirmed_no_table`` (``ok``, ``rescued``,
+    and ``suspect_unresolved``). Suspect tables still participate in matching;
+    ``extraction_status`` remains the quality flag for review and certification.
 
     Args:
         extraction_status: Canonical extraction status value.
 
     Returns:
-        True if status is ``ok`` or ``rescued``.
+        False only for ``confirmed_no_table`` after normalization.
     """
     status = normalize_extraction_status(extraction_status)
-    return status in {
-        TABLE_EXTRACTION_STATUS_OK,
-        TABLE_EXTRACTION_STATUS_RESCUED,
-    }
+    return status != TABLE_EXTRACTION_STATUS_CONFIRMED_NO_TABLE
 
 
 def get_vision_raw_indicators(table: Any) -> list[str]:
@@ -314,9 +317,9 @@ class TableArtifact:
         fragment_near_merge_hint: Hints for fragment merging.
         debug_metrics: Extraction metrics and quality flags.
         content_source: Content source (vision_gpt4o or unknown).
-    comparison_eligible: Whether table is eligible for comparison.
-    comparison_blockers: List of blocker codes if not eligible.
-        extraction_status: Rescue-state classification for the extracted table.
+    comparison_eligible: Eligible for GPT table matching (all except confirmed_no_table).
+    comparison_blockers: Non-empty only when not a business table (confirmed_no_table).
+        extraction_status: Rescue-state classification; suspect_unresolved flags quality.
     """
 
     bank_code: str

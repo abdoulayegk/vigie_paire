@@ -98,7 +98,7 @@ You receive one CROPPED image that may contain:
 - footnotes below the table.
 
 TASK
-Extract ONLY these fields from the visible image:
+Analyse the image and extract ONLY these fields from the visible image:
 - indicators (first-column row labels)
 - footnotes_content (footnotes below the table)
 - headers (column headers)
@@ -112,11 +112,11 @@ OUTPUT SCHEMA
 {
   "indicators": ["string"],
   "table_title": "string",
-  "table_summary": "string",
   "headers": ["string"],
   "footnotes_content": [
     {"id": "string", "text": "string"}
   ],
+  "table_summary": "string",
   "no_table_detected": false
 }
 
@@ -1168,37 +1168,71 @@ def _is_viable_result(result: VisionFullResult | None) -> bool:
     )
 
 
+_DATE_RE = re.compile(
+    r"^\s*(au\s+\d{1,2}\s+\w+\s+\d{4}|\d{1,2}\s+\w+\s+\d{4}|\d{4}[-/]\d{2}[-/]\d{2}|[tTqQ][1-4]\s*\d{4}|\d{1,2}\s*(?:janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\s*\d{4})\s*$",
+    re.IGNORECASE,
+)
+_NUMBER_RE = re.compile(
+    r"^\s*[\(\-]?[\d\s.,]+[\)%]?\s*$"
+)
+
+
+def _count_real_indicators(indicators: list[Any]) -> int:
+    """Count indicators that are real business labels (not dates, numbers, or blanks)."""
+    count = 0
+    for ind in indicators:
+        text = str(ind).strip() if isinstance(ind, str) else str(ind).strip()
+        if not text:
+            continue
+        if _DATE_RE.match(text):
+            continue
+        if _NUMBER_RE.match(text):
+            continue
+        count += 1
+    return count
+
+
 def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
     import re
+
     if result is None:
         return []
-        
+
     critiques: list[str] = []
     indicators: list[Any] = result.indicators or []
     footnotes: list[Any] = result.footnotes_content or []
-    
+
     # 1. Flat Indentation Check
-    if len(indicators) > 10:
-        has_indent = any(str(ind).startswith(" ") for ind in indicators if isinstance(ind, str))
-        if not has_indent:
+    # Only fire when the table is large enough AND contains "Total" lines
+    # (which strongly imply a parent-child hierarchy that was flattened).
+    if len(indicators) > 15:
+        has_indent = any(
+            str(ind).startswith(" ") for ind in indicators if isinstance(ind, str)
+        )
+        has_total_lines = any(
+            "total" in str(ind).lower() for ind in indicators if isinstance(ind, str)
+        )
+        if not has_indent and has_total_lines:
             critiques.append(
                 "Vous avez complètement perdu la hiérarchie et l'indentation. "
                 "Chaque sous-catégorie DOIT obligatoirement commencer par des espaces de tête (ex: '  Hypothèques résidentielles'). "
                 "Ne mettez jamais tous les indicateurs à niveau."
             )
-            
+
     # 2. Orphaned Footnote Marker Check
     found_footnote_ids = {
-        str(fn.get("id")).strip() for fn in footnotes if isinstance(fn, dict) and str(fn.get("id", "")).strip()
+        str(fn.get("id")).strip()
+        for fn in footnotes
+        if isinstance(fn, dict) and str(fn.get("id", "")).strip()
     }
-    
+
     referenced_markers = set()
     for ind in indicators:
         if isinstance(ind, str):
-            matches = re.findall(r'\(([a-zA-Z0-9]{1,2})\)', ind)
+            matches = re.findall(r"\(([a-zA-Z0-9]{1,2})\)", ind)
             for m in matches:
                 referenced_markers.add(m.strip())
-                
+
     missing_footnotes = referenced_markers - found_footnote_ids
     if missing_footnotes and len(missing_footnotes) <= 4:
         missing_str = ", ".join(f"({m})" for m in missing_footnotes)
@@ -1207,16 +1241,27 @@ def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
             "mais vous avez OUBLIÉ d'inclure le texte de ces notes dans le champ 'footnotes_content'. "
             "Lisez le bas du tableau et ajoutez obligatoirement ces notes manquantes."
         )
-        
+
     # 3. Missing Headers Check
     if len(result.headers or []) == 0 and len(indicators) > 3:
         title = str(result.table_title or "").lower()
         if "au 31" in title or "trimestre" in title or "202" in title:
-             critiques.append(
-                 "Ce tableau semble contenir des colonnes de dates ou de périodes, mais le champ 'headers' est vide. "
-                 "Vous devez absolument renseigner les en-têtes de colonnes."
-             )
-             
+            critiques.append(
+                "Ce tableau semble contenir des colonnes de dates ou de périodes, mais le champ 'headers' est vide. "
+                "Vous devez absolument renseigner les en-têtes de colonnes."
+            )
+
+    # 4. Truncated Extraction Check (many headers, few real indicators)
+    headers = result.headers or []
+    real_indicator_count = _count_real_indicators(indicators)
+    if len(headers) >= 3 and real_indicator_count <= 2:
+        critiques.append(
+            f"Vous avez extrait {len(headers)} headers de colonnes mais seulement "
+            f"{real_indicator_count} indicateur(s) réel(s). Un tableau avec {len(headers)} colonnes "
+            "a forcément beaucoup plus de lignes de données. "
+            "Relisez l'image ENTIÈREMENT du haut vers le bas et extrayez TOUTES les lignes."
+        )
+
     return critiques
 
 
@@ -1830,6 +1875,7 @@ class VisionFullExtractor:
 
         current_prompt = prompt
         max_self_healing_attempts = 2
+        prev_real_indicator_count: int | None = None  # Quorum tracking
 
         for attempt in range(max_self_healing_attempts):
             issued = _issue_request(
@@ -1907,9 +1953,19 @@ class VisionFullExtractor:
                                 result = _parse_vision_result(retry_data)
                                 if result is not None:
                                     critiques = _grade_extraction_quality(result)
-                                    if critiques and attempt < max_self_healing_attempts - 1:
-                                        logger.warning("Vision full: self-healing triggered after json-retry: %s", critiques)
-                                        current_prompt = prompt + "\n\n### CRÉTIQUES DE LA TENTATIVE PRÉCÉDENTE, CORRIGEZ ###\n- " + "\n- ".join(critiques)
+                                    if (
+                                        critiques
+                                        and attempt < max_self_healing_attempts - 1
+                                    ):
+                                        logger.warning(
+                                            "Vision full: self-healing triggered after json-retry: %s",
+                                            critiques,
+                                        )
+                                        current_prompt = (
+                                            prompt
+                                            + "\n\n### CRÉTIQUES DE LA TENTATIVE PRÉCÉDENTE, CORRIGEZ ###\n- "
+                                            + "\n- ".join(critiques)
+                                        )
                                         continue
 
                                     result = replace(
@@ -1919,7 +1975,11 @@ class VisionFullExtractor:
                                             dict.fromkeys(
                                                 failure_causes
                                                 + ["vision_structured_output_fallback"]
-                                                + (["self_healing_failed"] if critiques else [])
+                                                + (
+                                                    ["self_healing_failed"]
+                                                    if critiques
+                                                    else []
+                                                )
                                             )
                                         ),
                                     )
@@ -1943,7 +2003,9 @@ class VisionFullExtractor:
                                     return result
                 logger.warning(
                     "Vision full extraction: invalid content after retry (%s)",
-                    ", ".join(dict.fromkeys(failure_causes + ["vision_retry_exhausted"])),
+                    ", ".join(
+                        dict.fromkeys(failure_causes + ["vision_retry_exhausted"])
+                    ),
                 )
                 return None
 
@@ -1979,9 +2041,19 @@ class VisionFullExtractor:
                                 result = _parse_vision_result(retry_data)
                                 if result is not None:
                                     critiques = _grade_extraction_quality(result)
-                                    if critiques and attempt < max_self_healing_attempts - 1:
-                                        logger.warning("Vision full: self-healing triggered after json-retry: %s", critiques)
-                                        current_prompt = prompt + "\n\n### CRÉTIQUES DE LA TENTATIVE PRÉCÉDENTE, CORRIGEZ ###\n- " + "\n- ".join(critiques)
+                                    if (
+                                        critiques
+                                        and attempt < max_self_healing_attempts - 1
+                                    ):
+                                        logger.warning(
+                                            "Vision full: self-healing triggered after json-retry: %s",
+                                            critiques,
+                                        )
+                                        current_prompt = (
+                                            prompt
+                                            + "\n\n### CRÉTIQUES DE LA TENTATIVE PRÉCÉDENTE, CORRIGEZ ###\n- "
+                                            + "\n- ".join(critiques)
+                                        )
                                         continue
 
                                     result = replace(
@@ -1991,7 +2063,11 @@ class VisionFullExtractor:
                                             dict.fromkeys(
                                                 failure_causes
                                                 + ["vision_structured_output_fallback"]
-                                                + (["self_healing_failed"] if critiques else [])
+                                                + (
+                                                    ["self_healing_failed"]
+                                                    if critiques
+                                                    else []
+                                                )
                                             )
                                         ),
                                     )
@@ -2015,17 +2091,33 @@ class VisionFullExtractor:
                                     return result
                 logger.warning(
                     "Vision full extraction: invalid content after retry (%s)",
-                    ", ".join(dict.fromkeys(failure_causes + ["vision_retry_exhausted"])),
+                    ", ".join(
+                        dict.fromkeys(failure_causes + ["vision_retry_exhausted"])
+                    ),
                 )
                 return None
 
             # --- Self-Healing Check ---
             critiques = _grade_extraction_quality(result)
             if critiques and attempt < max_self_healing_attempts - 1:
-                logger.warning("Vision full: self-healing triggered: %s", critiques)
-                current_prompt = prompt + "\n\n### CRÉTIQUES DE LA TENTATIVE PRÉCÉDENTE, CORRIGEZ ###\n- " + "\n- ".join(critiques)
-                continue
-                
+                # --- Quorum: if same indicator count as previous attempt, accept ---
+                current_real_count = _count_real_indicators(result.indicators or [])
+                if prev_real_indicator_count is not None and abs(current_real_count - prev_real_indicator_count) <= 1:
+                    logger.info(
+                        "Vision full: Quorum reached (attempt %d: %d real inds ≈ prev %d). "
+                        "Accepting result despite critiques: %s",
+                        attempt + 1, current_real_count, prev_real_indicator_count, critiques,
+                    )
+                else:
+                    prev_real_indicator_count = current_real_count
+                    logger.warning("Vision full: self-healing triggered: %s", critiques)
+                    current_prompt = (
+                        prompt
+                        + "\n\n### CRÉTIQUES DE LA TENTATIVE PRÉCÉDENTE, CORRIGEZ ###\n- "
+                        + "\n- ".join(critiques)
+                    )
+                    continue
+
             if critiques:
                 failure_causes.append("self_healing_failed")
 
