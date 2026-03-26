@@ -20,6 +20,7 @@ Rules:
 - The table pair is already matched. Do not question the pairing.
 - Compare only indicator meaning and role in the table.
 - Ignore numeric values, dates, periods, formatting, OCR noise, row order changes, and line wrapping.
+- IGNORE footnote marker changes: if two indicators differ ONLY by a footnote reference like (1), (2), (3), (4) being added, removed, or changed, they are THE SAME indicator. Do NOT classify this as renamed. Example: 'catégorie 1 (4)' and 'catégorie 1' are identical — ignore this.
 - Indicator present only in current = indicators_added.
 - Indicator present only in previous = indicators_removed.
 - Classify indicators_renamed only when the previous and current indicators clearly represent the exact same business concept with the same scope and the same role in the table.
@@ -48,6 +49,8 @@ Rules:
 - Compare only semantic footnote meaning, not numbering or formatting.
 - Ignore pure footnote renumbering when the meaning is unchanged.
 - Ignore changes caused only by dates, quarter references, formatting, punctuation, or minor drafting changes that do not alter meaning.
+- IGNORE page number changes: if two footnotes differ ONLY by page references (e.g. 'pages 6 à 10' vs 'pages 6 à 12'), they are THE SAME footnote. Do NOT classify this as renamed.
+- IGNORE quarter/date reference updates: if a footnote text changes only the quarter or date reference (e.g. '31 janvier 2025' vs '30 avril 2025'), this is NOT a meaningful change.
 - Footnote present only in current = footnotes_added.
 - Footnote present only in previous = footnotes_removed.
 - Footnote with the same semantic meaning but materially revised wording = footnotes_renamed.

@@ -24,7 +24,9 @@ DIFF_PROMPT_VERSION = "table_diff_v4"
 COMPARISON_SCHEMA_VERSION = 2
 _BUSINESS_EXTRACTION_STATUSES = frozenset({"ok", "rescued", "suspect_unresolved"})
 _ARTIFACT_EXTRACTION_STATUSES = frozenset({"confirmed_no_table"})
-_SUSPECT_EXTRACTION_STATUSES = frozenset()  # No longer excluding any tables from matching
+_SUSPECT_EXTRACTION_STATUSES = (
+    frozenset()
+)  # No longer excluding any tables from matching
 
 
 def _is_ghost_table(entry: dict[str, Any]) -> bool:
@@ -47,10 +49,12 @@ RULES OF ENGAGEMENT:
 3. NEVER guess. If you are not 99% certain two tables are the exact same business entity, return `unresolved`.
 
 THE EVIDENCE HIERARCHY (Follow strictly):
+[0] TABLE ORIENTATION — ABSOLUTE DISQUALIFIER: Check the `first_indicator` field. If one table's first_indicator is "Actif" (or starts with "Actif") and the other's is "Passif" (or "Passif et capitaux propres"), they are FUNDAMENTALLY DIFFERENT business entities — even if they share the same theme (e.g., both are about "échéances" or "maturities"). Return `unresolved` IMMEDIATELY. This also applies to other opposed pairs: "Revenus" vs "Dépenses", "Brut" vs "Provisions", "Prêts" vs "Dépôts" as primary focus.
 [1] INDICATOR SIGNATURE (CRITICAL): This is the absolute source of truth. The row labels (indicators) must align semantically. A few missing/added rows are normal, but the core structure MUST match.
 [2] COLUMN HEADERS (STRONG): The header structure must align (treating shifted dates/quarters as matches).
 [3] ROW COUNT (MODERATE): `row_count` difference > 3 is a massive red flag. If difference > 3, return `unresolved` unless the indicator signature is undeniably identical.
-[4] TABLE SUMMARY (MODERATE): Use to confirm business purpose.
+[3.5] FOOTNOTE COUNT DISPARITY (MODERATE-STRONG): Check the `footnote_count` field. If |footnote_count_PQ - footnote_count_CQ| >= 5, this is a STRONG red flag. The same business table across quarters maintains near-identical footnote counts due to regulatory consistency. A large disparity (e.g., 10 vs 1) strongly suggests these are DIFFERENT tables. Return `unresolved` unless indicator signature is undeniably identical.
+[4] TABLE SUMMARY (MODERATE): Use to confirm business purpose. Pay close attention to keywords like "actifs" vs "passifs" — tables about "Échéances des actifs" and "Échéances des passifs" are DIFFERENT tables despite sharing the "échéances" theme.
 [5] TITLE (STRONG WHEN NORMALIZED, BUT BEWARE OF DUPLICATES): Banks often keep the exact same title across quarters for the same table. If the title is an exact or near-exact match, it is VERY STRONG evidence, especially when indicators are noisy. **HOWEVER**, beware that multiple DIFFERENT tables in the same report might share the exact same generic title (e.g., "Prêts et acceptations"). Only trust the title if there isn't another better-matching table competing for it.
 [6] SECTION (FILTER): If sections do not match logically (e.g., "Bilan" vs "Gestion des risques"), do NOT match them unless indicator overlap is >90%.
 
@@ -58,6 +62,8 @@ ANTI-PATTERNS (DO NOT DO THIS):
 - Do NOT match two tables just because they have the same generic title. Look at the rows.
 - Do NOT attempt to "split" or "merge" tables. 1 ID maps to exactly 1 ID.
 - Do NOT match a small table (8 rows) to a massive table (25 rows) just because they share 3 or 5 top-level categories.
+- Do NOT match tables with large footnote_count disparity (|delta| >= 5). This almost always means different tables.
+- SÉMANTIQUE STRICTE (ABSOLUTE): Do NOT match tables representing structurally opposed or orthogonal financial concepts. If first_indicator of one table is "Actif" and the other is "Passif et capitaux propres", they are DIFFERENT tables even if they share a few generic indicators like "Instruments financiers dérivés" or "Créances sur cartes de crédit". Score them "unresolved" immediately.
 
 Examples of good `matched` decisions:
 {
@@ -103,12 +109,20 @@ RULES:
 LATE-STAGE EVIDENCE:
 - Footnotes: If both tables contain identical or highly similar footnote text (ignore the markers ¹²³), this is very strong evidence of a match, even if the title changed.
 - Headers: Exact or highly similar column headers uniquely shared between a PQ and CQ table provide very strong structural evidence for a match.
-- Table Summary: If the semantic `table_summary` is highly similar between two tables, treat this as a very strong indicator of a match in this rescue phase.
+- Table Summary: If the semantic `table_summary` is highly similar between two tables, treat this as a very strong indicator of a match in this rescue phase. BUT beware: "Échéances des actifs" ≠ "Échéances des passifs" — these are DIFFERENT tables despite sharing the "échéances" theme.
 - Normalized Titles: If a leftover PQ table and a leftover CQ table share an exact or highly similar normalized title, and the row counts are roughly similar, use the title to anchor the match.
 - Distinctive Indicators: If a table contains highly unique or specific row labels (e.g., "Valeur en équivalent de base"), use that to anchor the match.
+- Footnote Count: Check `footnote_count`. If |PQ_count - CQ_count| >= 5, this is a STRONG signal they are different tables. Same table across quarters has near-identical footnote counts.
+
+ABSOLUTE DISQUALIFIERS (check BEFORE any match decision):
+- TABLE ORIENTATION: Check `first_indicator`. If one table starts with "Actif" and the other with "Passif" (or "Passif et capitaux propres"), they are DIFFERENT business entities. Mark CQ as `added`. This applies even if they share a few generic indicators (e.g., "Instruments financiers dérivés", "Créances sur cartes de crédit").
+- FOOTNOTE COUNT DISPARITY: If |footnote_count_PQ - footnote_count_CQ| >= 5, do NOT match them unless indicator signature is undeniably identical.
 
 WARNING AGAINST FORCED MATCHES:
 If you have a leftover PQ table and a leftover CQ table, and they are both in the "Risque de crédit" section, DO NOT match them just to clean up the leftovers. If their indicators show different data structures, the PQ table was `removed` and the CQ table was `added`. Mark the CQ table as `added`.
+
+ORTHOGONAL CONCEPTS STRICT BAN:
+DO NOT match tables representing structurally opposed financial concepts (e.g., "Actif" / Assets vs "Passif" / Liabilities, or "Revenus" vs "Dépenses"). If PQ table is about 'Actif' and CQ table is about 'Passif', they are NOT the same business entity. The PQ table was `removed` and the CQ table was `added`. Mark the CQ table as `added`.
 
 Examples:
 
@@ -273,6 +287,8 @@ def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
     except (TypeError, ValueError):
         page = None
 
+    footnotes = _normalize_footnotes(entry.get("footnotes", []))
+
     return {
         "table_id": str(entry.get("table_id", "") or ""),
         "section": str(entry.get("section", "") or "unknown_section"),
@@ -280,9 +296,11 @@ def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
         "table_summary": str(entry.get("table_summary", "") or ""),
         "page": page,
         "row_count": row_count,
+        "first_indicator": indicators[0] if indicators else "",
+        "footnote_count": len(footnotes),
         "headers": headers,
         "indicators": indicators,
-        "footnotes": _normalize_footnotes(entry.get("footnotes", [])),
+        "footnotes": footnotes,
     }
 
 
@@ -406,33 +424,22 @@ def _merge_extraction_suspect_side(
         tid = str(entry.get("table_id", "") or "").strip()
         if not tid:
             continue
-        if _normalize_extraction_status(entry.get("extraction_status")) != "suspect_unresolved":
+        if (
+            _normalize_extraction_status(entry.get("extraction_status"))
+            != "suspect_unresolved"
+        ):
             continue
         by_id.setdefault(
             tid,
             {"table_id": tid, "reason": suspect_reason},
         )
     return [
-        {**by_id[tid], **(snapshots.get(tid) or {})}
-        for tid in sorted(by_id.keys())
+        {**by_id[tid], **(snapshots.get(tid) or {})} for tid in sorted(by_id.keys())
     ]
 
 
 def _make_run_id() -> str:
     return datetime.now().strftime("%Y%m%d_%H%M%S")
-
-
-def _unique_run_dir(base_dir: Path, run_id: str) -> tuple[str, Path]:
-    candidate = base_dir / run_id
-    if not candidate.exists():
-        return run_id, candidate
-    counter = 2
-    while True:
-        suffix_id = f"{run_id}_{counter:02d}"
-        candidate = base_dir / suffix_id
-        if not candidate.exists():
-            return suffix_id, candidate
-        counter += 1
 
 
 def _archive_pdf(source_path: str | None, out_dir: Path, filename: str) -> str:
@@ -446,7 +453,9 @@ def _archive_pdf(source_path: str | None, out_dir: Path, filename: str) -> str:
     target = out_dir / filename
     try:
         if source.resolve() != target.resolve():
-            shutil.copy2(source, target)
+            # Ne pas écraser si le fichier existe déjà (on garde le PDF original validé)
+            if not target.exists():
+                shutil.copy2(source, target)
         return str(target)
     except OSError:
         return ""
@@ -1218,6 +1227,11 @@ Your mission:
 - If two tables share even a few matching indicator labels, column headers, or footnotes, they are likely the same table with a truncated extraction.
 - For low-confidence pairs: confirm or contest them. If you agree, say "confirmed". If you disagree, say "contested".
 
+ABSOLUTE DISQUALIFIERS (check BEFORE proposing any new match):
+- TABLE ORIENTATION: Check `first_indicator`. NEVER propose a match between a table whose first_indicator is "Actif" (or starts with "Actif") and one whose first_indicator is "Passif" (or "Passif et capitaux propres"). These are fundamentally different business entities even if they share a few generic indicators (e.g., "Instruments financiers dérivés", "Créances sur cartes de crédit") or a similar theme (e.g., both about "échéances").
+- FOOTNOTE COUNT: NEVER propose a match if `footnote_count` differs by >= 5 between PQ and CQ. Tables about the same business entity maintain near-identical footnote counts across quarters. A gap of 10 vs 1 means different tables.
+- SHARED GENERIC INDICATORS ARE NOT ENOUGH: Indicators like "Autres", "Provisions", "Instruments financiers dérivés" appear in many unrelated tables. A match requires the CORE indicator structure to align, not just 2-3 generic rows.
+
 OUTPUT FORMAT (JSON):
 {
   "new_matches": [
@@ -1251,8 +1265,14 @@ def _devil_advocate_review(
 ) -> dict[str, Any]:
     """Run a second-opinion review on unmatched and low-confidence tables."""
     if not tables_added_cards and not tables_removed_cards and not low_confidence_pairs:
-        logger.info("Devil's Advocate: nothing to review (all matched with high confidence)")
-        return {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []}
+        logger.info(
+            "Devil's Advocate: nothing to review (all matched with high confidence)"
+        )
+        return {
+            "new_matches": [],
+            "confirmed_low_confidence": [],
+            "contested_pairs": [],
+        }
 
     user_payload = {
         "unmatched_previous_tables": tables_removed_cards,
@@ -1272,7 +1292,10 @@ def _devil_advocate_review(
             model=model,
             messages=[
                 {"role": "system", "content": DEVIL_ADVOCATE_SYSTEM_PROMPT},
-                {"role": "user", "content": json.dumps(user_payload, ensure_ascii=False)},
+                {
+                    "role": "user",
+                    "content": json.dumps(user_payload, ensure_ascii=False),
+                },
             ],
             max_completion_tokens=4000,
             temperature=0.0,
@@ -1281,7 +1304,11 @@ def _devil_advocate_review(
         )
     except Exception as exc:
         logger.warning("Devil's Advocate: API call failed: %s", exc)
-        return {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []}
+        return {
+            "new_matches": [],
+            "confirmed_low_confidence": [],
+            "contested_pairs": [],
+        }
 
     new_matches = list(result.get("new_matches", []) or [])
     confirmed = list(result.get("confirmed_low_confidence", []) or [])
@@ -1471,18 +1498,21 @@ def compare_reports_gpt4o(
 
     # --- Devil's Advocate: second-opinion review on unmatched / low-confidence ---
     low_confidence_pairs = [
-        p for p in match_result.get("matched_pairs", [])
+        p
+        for p in match_result.get("matched_pairs", [])
         if float(p.get("match_confidence", 1.0)) < 0.90
     ]
     da_added_cards = [
-        _table_card(entry) for entry in current_business_tables
+        _table_card(entry)
+        for entry in current_business_tables
         if any(
             a.get("table_id") == entry.get("table_id")
             for a in match_result.get("tables_added", [])
         )
     ]
     da_removed_cards = [
-        _table_card(entry) for entry in previous_business_tables
+        _table_card(entry)
+        for entry in previous_business_tables
         if any(
             r.get("table_id") == entry.get("table_id")
             for r in match_result.get("tables_removed", [])
@@ -1507,19 +1537,23 @@ def compare_reports_gpt4o(
             )
             continue
         # Add to matched_pairs
-        match_result["matched_pairs"].append({
-            "previous_table_id": prev_id,
-            "current_table_id": cur_id,
-            "match_confidence": float(new_match.get("match_confidence", 0.75)),
-            "reason": str(new_match.get("reason", "")),
-            "source": "devil_advocate",
-        })
+        match_result["matched_pairs"].append(
+            {
+                "previous_table_id": prev_id,
+                "current_table_id": cur_id,
+                "match_confidence": float(new_match.get("match_confidence", 0.75)),
+                "reason": str(new_match.get("reason", "")),
+                "source": "devil_advocate",
+            }
+        )
         # Remove from tables_added / tables_removed
         tables_added = [t for t in tables_added if t.get("table_id") != cur_id]
         tables_removed = [t for t in tables_removed if t.get("table_id") != prev_id]
         logger.info(
             "Devil's Advocate promoted match: %s <-> %s (conf=%.2f)",
-            prev_id, cur_id, float(new_match.get("match_confidence", 0.75)),
+            prev_id,
+            cur_id,
+            float(new_match.get("match_confidence", 0.75)),
         )
     # Mark contested pairs for review
     for contested in da_result.get("contested_pairs", []):
@@ -1535,7 +1569,6 @@ def compare_reports_gpt4o(
                 logger.info(
                     "Devil's Advocate contested pair: %s <-> %s", prev_id, cur_id
                 )
-
 
     artifacts_confirmed_previous: list[dict[str, Any]] = []
     for item in previous_artifact_refs:
@@ -1558,6 +1591,56 @@ def compare_reports_gpt4o(
         current_snapshots,
     )
 
+    # --- Post-filter: remove noise from technical diffs ---
+    _FOOTNOTE_MARKER_RE = re.compile(r"\s*\(\d{1,2}\)\s*")
+    _PAGE_REF_RE = re.compile(r"pages?\s+\d+\s*[àa]\s*\d+", re.IGNORECASE)
+    _DATE_REF_RE = re.compile(
+        r"\d{1,2}\s*(?:janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\s*\d{4}",
+        re.IGNORECASE,
+    )
+
+    def _strip_footnote_markers(text: str) -> str:
+        return _FOOTNOTE_MARKER_RE.sub("", text).strip()
+
+    def _strip_page_and_date_refs(text: str) -> str:
+        text = _PAGE_REF_RE.sub("__PAGE__", text)
+        text = _DATE_REF_RE.sub("__DATE__", text)
+        return text.strip()
+
+    def _filter_noise_from_diff(technical_diff: dict[str, Any]) -> dict[str, Any]:
+        """Remove cosmetic renames (footnote markers, page numbers) from diff."""
+        # Filter indicator renames where only footnote marker differs
+        clean_ind_renamed = []
+        for item in technical_diff.get("indicators_renamed", []):
+            prev = str(item.get("previous", item.get("from", "")) or "")
+            cur = str(item.get("current", item.get("to", "")) or "")
+            if _strip_footnote_markers(prev) == _strip_footnote_markers(cur):
+                logger.debug(
+                    "Filtered noise: indicator rename '%s' -> '%s' (footnote marker only)",
+                    prev,
+                    cur,
+                )
+                continue
+            clean_ind_renamed.append(item)
+
+        # Filter footnote renames where only page/date references differ
+        clean_fn_renamed = []
+        for item in technical_diff.get("footnotes_renamed", []):
+            prev_text = str(item.get("previous_text", "") or "")
+            cur_text = str(item.get("current_text", "") or "")
+            if _strip_page_and_date_refs(prev_text) == _strip_page_and_date_refs(
+                cur_text
+            ):
+                logger.debug("Filtered noise: footnote rename (page/date ref only)")
+                continue
+            clean_fn_renamed.append(item)
+
+        return {
+            **technical_diff,
+            "indicators_renamed": clean_ind_renamed,
+            "footnotes_renamed": clean_fn_renamed,
+        }
+
     pair_comparisons: list[dict[str, Any]] = []
     diff_calls_total = 0
     for pair in match_result["matched_pairs"]:
@@ -1572,6 +1655,7 @@ def compare_reports_gpt4o(
             max_validation_attempts=_MATCHING_VALIDATION_ATTEMPTS,
         )
         diff_calls_total += _coerce_int(diff.get("diff_calls_total"))
+        filtered_diff = _filter_noise_from_diff(diff["technical_diff"])
         pair_comparisons.append(
             {
                 "previous_table_id": previous_table_id,
@@ -1581,10 +1665,10 @@ def compare_reports_gpt4o(
                 "diff_mode": str(diff.get("diff_mode", "") or ""),
                 "previous_table": previous_snapshots[previous_table_id],
                 "current_table": current_snapshots[current_table_id],
-                "technical_diff": diff["technical_diff"],
+                "technical_diff": filtered_diff,
                 "analyst_assessment": build_analyst_assessment(
                     table_context=current_lookup[current_table_id],
-                    technical_diff=diff["technical_diff"],
+                    technical_diff=filtered_diff,
                     change_kind="modifie",
                 ),
                 "reason": diff["reason"],
@@ -1706,12 +1790,13 @@ def compare_reports_gpt4o(
         "comparison": comparison_metrics,
     }
 
-    base_out_dir = (
+    out_dir = (
         out_root_path
         / bank_code
         / f"{year_current}_{quarter_current}_vs_{year_previous}_{quarter_previous}"
     )
-    run_id, out_dir = _unique_run_dir(base_out_dir, _make_run_id())
+    out_dir.mkdir(parents=True, exist_ok=True)
+    run_id = _make_run_id()
     archived_pdf_previous = _archive_pdf(
         source_pdf_previous,
         out_dir,

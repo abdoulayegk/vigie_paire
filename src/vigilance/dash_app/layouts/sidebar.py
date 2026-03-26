@@ -15,10 +15,10 @@ def build_sidebar() -> dbc.Col:
         {"label": f"{k.upper()} - {v}", "value": k} for k, v in AVAILABLE_BANKS.items()
     ]
 
-    # Generate years from the current year through 2040.
+    # Generate years from the current year through 2050.
     current_year = 2025
     year_options = [
-        {"label": str(y), "value": str(y)} for y in range(2040, current_year - 1, -1)
+        {"label": str(y), "value": str(y)} for y in range(2050, 2020, -1)
     ]
 
     quarter_options = [
@@ -94,83 +94,7 @@ def build_sidebar() -> dbc.Col:
                         ],
                         className="mb-3 g-2",
                     ),
-                    # 3. Source Selection
-                    html.Label("Source des Données", className="fw-bold small mt-2"),
-                    dbc.RadioItems(
-                        id="data-source-type",
-                        options=[
-                            {"label": "Upload PDF", "value": "upload"},
-                            {
-                                "label": "Base de Données",
-                                "value": "db",
-                                "disabled": True,
-                            },
-                        ],
-                        value="upload",
-                        className="mb-3 small",
-                    ),
-                    html.Hr(),
-                    # 4. Upload Zones
-                    html.H5("Rapports PDF", className="mb-2 fs-6"),
-                    html.Label(
-                        "Rapport trimestre courant",
-                        id="upload-current-label",
-                        className="small text-muted",
-                    ),
-                    dcc.Upload(
-                        id="upload-t2",
-                        children=html.Div(
-                            [
-                                html.I(className="bi bi-file-earmark-pdf me-2"),
-                                html.Span("Glisser ou cliquer", className="small"),
-                            ],
-                            className="d-flex align-items-center justify-content-center",
-                        ),
-                        style={
-                            "borderWidth": "1px",
-                            "borderStyle": "dashed",
-                            "borderRadius": "5px",
-                            "textAlign": "center",
-                            "padding": "10px",
-                            "borderColor": "#dee2e6",
-                        },
-                        multiple=False,
-                        className="mb-1",
-                    ),
-                    html.Div(
-                        id="upload-t2-name",
-                        className="small text-success mb-2 fst-italic",
-                    ),
-                    html.Label(
-                        "Rapport trimestre precedent",
-                        id="upload-previous-label",
-                        className="small text-muted",
-                    ),
-                    dcc.Upload(
-                        id="upload-t1",
-                        children=html.Div(
-                            [
-                                html.I(className="bi bi-file-earmark-pdf me-2"),
-                                html.Span("Glisser ou cliquer", className="small"),
-                            ],
-                            className="d-flex align-items-center justify-content-center",
-                        ),
-                        style={
-                            "borderWidth": "1px",
-                            "borderStyle": "dashed",
-                            "borderRadius": "5px",
-                            "textAlign": "center",
-                            "padding": "10px",
-                            "borderColor": "#dee2e6",
-                        },
-                        multiple=False,
-                        className="mb-1",
-                    ),
-                    html.Div(
-                        id="upload-t1-name",
-                        className="small text-success mb-2 fst-italic",
-                    ),
-                    # 5. Quarter Selection for Comparison
+                    # 3. Quarter Selection for Comparison (Global)
                     html.Label(
                         "Trimestre courant sélectionné", className="fw-bold small"
                     ),
@@ -193,12 +117,116 @@ def build_sidebar() -> dbc.Col:
                         className="small text-muted mb-3",
                     ),
                     html.Hr(),
-                    # 6. Action Button
-                    dbc.Button(
-                        [html.I(className="bi bi-search me-2"), "Lancer l'Analyse"],
-                        id="btn-detect",
-                        color="primary",
-                        className="w-100 mb-3 shadow-sm",
+                    # 4. Source Selection
+                    html.Label("Source des Données", className="fw-bold small mt-2"),
+                    dbc.RadioItems(
+                        id="data-source-type",
+                        options=[
+                            {"label": "Upload PDF", "value": "upload"},
+                            {"label": "Base de Données", "value": "db"},
+                        ],
+                        value="upload",
+                        className="mb-3 small",
+                    ),
+                    # 4b. DB Run Selector (hidden by default)
+                    html.Div(
+                        [
+                            html.Label(
+                                "Comparaison disponible",
+                                className="fw-bold small",
+                            ),
+                            dcc.Dropdown(
+                                id="db-run-selector",
+                                options=[],
+                                placeholder="Sélectionner un run...",
+                                className="small mb-2",
+                            ),
+                            dbc.Button(
+                                [
+                                    html.I(className="bi bi-database me-2"),
+                                    "Charger depuis DB",
+                                ],
+                                id="btn-load-db",
+                                color="success",
+                                className="w-100 mb-3 shadow-sm",
+                            ),
+                        ],
+                        id="db-source-container",
+                        style={"display": "none"},
+                    ),
+                    html.Hr(),
+                    # 4. Upload Zones (togglable)
+                    html.Div(
+                        [
+                            html.H5("Rapports PDF", className="mb-2 fs-6"),
+                            html.Label(
+                                "Rapport trimestre courant",
+                                id="upload-current-label",
+                                className="small text-muted",
+                            ),
+                            dcc.Upload(
+                                id="upload-t2",
+                                children=html.Div(
+                                    [
+                                        html.I(className="bi bi-file-earmark-pdf me-2"),
+                                        html.Span("Glisser ou cliquer", className="small"),
+                                    ],
+                                    className="d-flex align-items-center justify-content-center",
+                                ),
+                                style={
+                                    "borderWidth": "1px",
+                                    "borderStyle": "dashed",
+                                    "borderRadius": "5px",
+                                    "textAlign": "center",
+                                    "padding": "10px",
+                                    "borderColor": "#dee2e6",
+                                },
+                                multiple=False,
+                                className="mb-1",
+                            ),
+                            html.Div(
+                                id="upload-t2-name",
+                                className="small text-success mb-2 fst-italic",
+                            ),
+                            html.Label(
+                                "Rapport trimestre precedent",
+                                id="upload-previous-label",
+                                className="small text-muted",
+                            ),
+                            dcc.Upload(
+                                id="upload-t1",
+                                children=html.Div(
+                                    [
+                                        html.I(className="bi bi-file-earmark-pdf me-2"),
+                                        html.Span("Glisser ou cliquer", className="small"),
+                                    ],
+                                    className="d-flex align-items-center justify-content-center",
+                                ),
+                                style={
+                                    "borderWidth": "1px",
+                                    "borderStyle": "dashed",
+                                    "borderRadius": "5px",
+                                    "textAlign": "center",
+                                    "padding": "10px",
+                                    "borderColor": "#dee2e6",
+                                },
+                                multiple=False,
+                                className="mb-1",
+                            ),
+                            html.Div(
+                                id="upload-t1-name",
+                                className="small text-success mb-2 fst-italic",
+                            ),
+                            html.Hr(),
+                            # 6. Action Button
+                            dbc.Button(
+                                [html.I(className="bi bi-search me-2"), "Lancer l'Analyse"],
+                                id="btn-detect",
+                                color="primary",
+                                className="w-100 mb-3 shadow-sm",
+                            ),
+                        ],
+                        id="upload-source-container",
                     ),
                     # 7. Options (Collapsed)
                     dbc.Button(

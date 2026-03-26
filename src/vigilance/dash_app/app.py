@@ -76,22 +76,6 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 import dash_bootstrap_components as dbc
-from dash import (
-    ALL,
-    MATCH,
-    Dash,
-    Input,
-    Output,
-    State,
-    callback,
-    clientside_callback,
-    ctx,
-    dcc,
-    html,
-    no_update,
-)
-from dash.exceptions import PreventUpdate
-
 from app.comparison_canonical import (
     get_meta_value,
     is_canonical_comparison,
@@ -157,6 +141,21 @@ from app.ui_io import (
     load_comparison_result,
     save_pdfs_to_temp,
 )
+from dash import (
+    ALL,
+    MATCH,
+    Dash,
+    Input,
+    Output,
+    State,
+    callback,
+    clientside_callback,
+    ctx,
+    dcc,
+    html,
+    no_update,
+)
+from dash.exceptions import PreventUpdate
 from vigilance.dash_app.components.review_detail_v2 import build_review_detail_v2
 
 
@@ -616,6 +615,320 @@ def on_upload_t2(content, filename):
         "content": content,
         "filename": filename or "current.pdf",
     }, f"Courant: {filename or 'current.pdf'}"
+
+
+@callback(
+    Output("upload-source-container", "style"),
+    Output("db-source-container", "style"),
+    Input("data-source-type", "value"),
+)
+def toggle_data_source(source_type):
+    """Affiche soit la section d'upload, soit la section de sélection locale (BDD)."""
+    if source_type == "db":
+        return {"display": "none"}, {"display": "block"}
+    return {"display": "block"}, {"display": "none"}
+
+
+@callback(
+    Output("db-run-selector", "options"),
+    Output("db-run-selector", "value"),
+    Input("data-source-type", "value"),
+    Input("bank-code", "value"),
+    Input("analysis-year", "value"),
+    Input("current-quarter", "value"),
+)
+def populate_db_runs(source_type, bank_code, year, current_quarter):
+    """Remplit le menu déroulant des exécutions (runs) de la base de données locales."""
+    if source_type != "db" or not bank_code or not year or not current_quarter:
+        return [], None
+
+    from app.quarter_utils import build_quarter_context
+
+    try:
+        ctx = build_quarter_context(current_quarter, year=year)
+        curr_y = ctx["current"]["year"]
+        curr_q_t = ctx["current"]["code"]
+        prev_y = ctx["previous"]["year"]
+        prev_q_t = ctx["previous"]["code"]
+    except Exception:
+        # Fallback pour éviter tout crash
+        curr_y, curr_q_t = year, "t2"
+        prev_y, prev_q_t = year, "t1"
+
+    # Prefix exact par exemple: bnc/2025_t2_vs_2025_t1
+    expected_dir = f"{bank_code}/{curr_y}_{curr_q_t}_vs_{prev_y}_{prev_q_t}"
+
+    options = get_available_indicator_comparison_options()
+    filtered_options = []
+
+    for opt in options:
+        val = opt["value"]
+        if val.startswith(expected_dir):
+            # Format nicely: bnc/2025_t2_vs_2025_t1/comparison.json
+            parts = val.split("/")
+            if len(parts) >= 2:
+                folder = parts[1]  # e.g. 2025_t2_vs_2025_t1
+
+                # Try to read generated timestamp from the DB file itself if possible,
+                # but fallback to simple label.
+                ts_formatted = "Dernière analyse"
+
+                import json
+
+                run_dir = INDICATOR_COMPARISON_DIR / bank_code / folder
+                try:
+                    with open(run_dir / "comparison.json", "r") as f:
+                        data = json.load(f)
+                        ts = data.get("created_at", "")
+                        # e.g. 2026-03-26T13:55:27
+                        if ts and "T" in ts:
+                            date_part, time_part = ts.split("T")
+                            time_part = time_part[:5]  # HH:MM
+                            parts_date = date_part.split("-")
+                            if len(parts_date) == 3:
+                                ts_formatted = (
+                                    f"Le {parts_date[2]}/{parts_date[1]} à {time_part}"
+                                )
+                except Exception:
+                    pass
+
+                # Check if archived PDFs exist for this run
+                has_pdfs = (run_dir / "previous_report.pdf").exists() and (
+                    run_dir / "current_report.pdf"
+                ).exists()
+                pdf_icon = "✅" if has_pdfs else "⚠️"
+
+                label = f"{pdf_icon} {bank_code.upper()} - {folder.replace('_', ' ').replace('vs', ' vs ')} ({ts_formatted})"
+                filtered_options.append({"label": label, "value": opt["value"]})
+
+    if not filtered_options:
+        return [
+            {
+                "label": "Aucune comparaison trouvée pour cette sélection",
+                "value": "",
+                "disabled": True,
+            }
+        ], None
+
+    # Triez par date récente
+    filtered_options.sort(key=lambda x: x["value"], reverse=True)
+    return filtered_options, filtered_options[0]["value"]
+
+
+def _pdf_paths_from_comparison_meta(indicator_meta, indicator_result):
+    """Extrait les chemins PDF depuis les metadatas avec fallbacks intelligents."""
+    import os
+
+    # Stratégie 1: chercher explicitement "paths"
+    paths = indicator_result.get("paths", {})
+    t1 = paths.get("t1")
+    t2 = paths.get("t2")
+    if t1 and t2 and os.path.exists(t1) and os.path.exists(t2):
+        return {"t1": t1, "t2": t2}
+
+    # Stratégie 2: regarder meta "input_pdfs" produit par le pipeline v2
+    ip = indicator_meta.get("input_pdfs", {})
+    t1 = ip.get("t1")
+    t2 = ip.get("t2")
+    if t1 and t2 and os.path.exists(t1) and os.path.exists(t2):
+        return {"t1": t1, "t2": t2}
+
+    # Stratégie 3: regarder meta "pdf_paths" (format canonical)
+    pp = indicator_meta.get("pdf_paths", {})
+    t1 = pp.get("pdf_t1") or pp.get("pdf_previous", "")
+    t2 = pp.get("pdf_t2") or pp.get("pdf_current", "")
+    if t1 and t2 and os.path.exists(t1) and os.path.exists(t2):
+        return {"t1": t1, "t2": t2}
+
+    # Stratégie 4: regarder archived_pdf dans meta
+    t1 = str(indicator_meta.get("archived_pdf_previous", "") or "").strip()
+    t2 = str(indicator_meta.get("archived_pdf_current", "") or "").strip()
+    if t1 and t2 and os.path.exists(t1) and os.path.exists(t2):
+        return {"t1": t1, "t2": t2}
+
+    # Stratégie 5: chercher les PDFs archivés dans le dossier de comparaison racine
+    # Avec la nouvelle structure (bnc/2025_t2_vs_2025_t1/comparison.json),
+    # le dossier parent contient directement les PDFs.
+    compare_path = str(indicator_meta.get("compare_path", "") or "")
+    if compare_path:
+        from pathlib import Path
+
+        run_dir = Path(compare_path).parent  # e.g. .../2025_t2_vs_2025_t1
+        if run_dir.exists():
+            prev_pdf = run_dir / "previous_report.pdf"
+            curr_pdf = run_dir / "current_report.pdf"
+            if prev_pdf.exists() and curr_pdf.exists():
+                return {"t1": str(prev_pdf), "t2": str(curr_pdf)}
+
+            # Fallback legacy si l'ancienne structure est lue (avec dossier timestamp)
+            comparison_dir = run_dir.parent
+            if comparison_dir.exists() and comparison_dir.name != bank_code:
+                # Search sibling runs for PDFs
+                for sibling in sorted(comparison_dir.iterdir(), reverse=True):
+                    if not sibling.is_dir():
+                        continue
+                    sprev_pdf = sibling / "previous_report.pdf"
+                    scurr_pdf = sibling / "current_report.pdf"
+                    if sprev_pdf.exists() and scurr_pdf.exists():
+                        return {"t1": str(sprev_pdf), "t2": str(scurr_pdf)}
+
+    # Stratégie 6: fallback vide
+    return {"t1": "", "t2": ""}
+
+
+def _missing_pdf_warning(paths):
+    """Vérifie si les PDFs référencés existent et génère un avertissement."""
+    from pathlib import Path
+
+    missing = []
+    if paths.get("t1") and not Path(paths["t1"]).exists():
+        missing.append("T1 (précédent)")
+    if paths.get("t2") and not Path(paths["t2"]).exists():
+        missing.append("T2 (courant)")
+
+    if missing:
+        return f"Attention: les PDFs originaux ({', '.join(missing)}) n'ont pas été trouvés sur le disque. Les aperçus ne s'afficheront pas correctement."
+    return None
+
+
+@callback(
+    Output("store-comparison-result", "data", allow_duplicate=True),
+    Output("store-indicator-result", "data", allow_duplicate=True),
+    Output("store-indicator-meta", "data", allow_duplicate=True),
+    Output("store-pdf-paths", "data", allow_duplicate=True),
+    Output("store-review-items", "data", allow_duplicate=True),
+    Output("store-review-queue", "data", allow_duplicate=True),
+    Output("store-show-results-page", "data", allow_duplicate=True),
+    Output("main-content", "children", allow_duplicate=True),
+    Output("notification", "children", allow_duplicate=True),
+    Input("btn-load-db", "n_clicks"),
+    State("db-run-selector", "value"),
+    prevent_initial_call=True,
+)
+def load_from_db(n_clicks, run_file):
+    """Charge un run généré précédemment depuis la base (fichiers locaux)."""
+    if not n_clicks or not run_file:
+        raise PreventUpdate
+
+    target_path = INDICATOR_COMPARISON_DIR / run_file
+    if not target_path.exists():
+        return (
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            dbc.Alert("Fichier introuvable.", color="danger"),
+        )
+
+    try:
+        raw_data = load_comparison_result(target_path)
+        if not raw_data:
+            raise ValueError("Le fichier JSON est vide ou corrompu.")
+
+        # CRITICAL: Convert the v2 JSON (pair_comparisons) to the canonical
+        # UI format (table_comparisons) that the entire Dash UI expects.
+        data = to_canonical_payload(raw_data)
+
+        meta = data.get("meta", {})
+        meta["compare_path"] = str(target_path)
+
+        # Extraire les PDF paths originaux configurés lors de l'extraction
+        paths = _pdf_paths_from_comparison_meta(
+            indicator_meta=meta, indicator_result=data
+        )
+        missing_msg = _missing_pdf_warning(paths)
+
+        # Récupérer / regénérer les Review Items
+        # On initialise d'abords en vide et on compte sur un chargement d'état potentiellement défini
+        # L'état sauvegardé de la review s'il existe prime, sinon on crée
+        state = load_review_state(target_path)
+        review_items = state.get("review_items") if state else None
+
+        if not review_items:
+            # Fallbacks for quarter logic based on conventional structure
+            q_t1 = meta.get("quarter_t1") or "Q1"
+            q_t2 = meta.get("quarter_t2") or "Q2"
+            bank = meta.get("bank_code") or "bnc"
+            review_items = build_review_items_from_indicator_result(
+                data,
+                bank_code=bank,
+                quarter_from=q_t1,
+                quarter_to=q_t2,
+                pdf_path_t1=str(paths.get("t1", "")),
+                pdf_path_t2=str(paths.get("t2", "")),
+            )
+
+        review_queue = state.get("review_queue") if state else None
+
+        if not review_queue:
+            # review_items may be ReviewItem objects; normalizer expects dicts
+            raw_items_for_queue = [
+                item.to_dict() if hasattr(item, "to_dict") else item
+                for item in review_items
+            ]
+            review_queue = build_normalized_review_queue(
+                indicator_result=data,
+                raw_items=raw_items_for_queue,
+                pdf_path_t1=str(paths.get("t1", "")),
+                pdf_path_t2=str(paths.get("t2", "")),
+            )
+
+        alert = dbc.Alert(
+            "Comparaison chargée avec succès de la base de données.",
+            color="success",
+            duration=3000,
+        )
+        if missing_msg:
+            alert = dbc.Alert(missing_msg, color="warning")
+
+        # Serialize to JSON-compatible dicts for Dash stores
+        review_items_serialized = [
+            item.to_dict() if hasattr(item, "to_dict") else item
+            for item in review_items
+        ]
+        review_queue_serialized = [
+            item.to_dict() if hasattr(item, "to_dict") else item
+            for item in review_queue
+        ]
+
+        # Sauvegarde d'initialisation
+        _persist_review_state(
+            indicator_meta=meta,
+            indicator_result=data,
+            review_items=review_items_serialized,
+            review_queue=review_queue_serialized,
+            source="load_from_db",
+        )
+
+        return (
+            data,
+            data,
+            meta,
+            paths,
+            review_items_serialized,
+            review_queue_serialized,
+            True,
+            build_page_results(),
+            alert,
+        )
+
+    except Exception as e:
+        logger.exception("Erreur lors du chargement de la base de données : %s", e)
+        return (
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            dbc.Alert(f"Erreur technique : {e}", color="danger"),
+        )
 
 
 @callback(

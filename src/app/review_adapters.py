@@ -66,6 +66,18 @@ def build_review_items_from_indicator_result(
         renamed_raw = comp.get("renamed_indicators_raw", []) or []
         table_status_raw = str(comp.get("table_status", "") or "").strip().lower()
 
+        # Skip completely stable tables with zero changes
+        footnotes_counts = comp.get("footnotes_counts") or {}
+        has_footnote_changes = any(footnotes_counts.values()) if footnotes_counts else False
+        if (
+            table_status_raw in ("inchange", "stable", "")
+            and not added
+            and not removed
+            and not renamed
+            and not has_footnote_changes
+        ):
+            continue
+
         if not added and not removed and not renamed:
             # Table avec changement sans détail indicateurs => ReviewItem "tableau"
             _status_without_indicators = frozenset(
@@ -455,102 +467,11 @@ def build_review_items_from_indicator_result(
         )
         seq += 1
 
-    tables_added_pending_review = (
-        indicator_result.get("tables_added_pending_review", []) or []
-    )
-    for table in tables_added_pending_review:
-        if not isinstance(table, dict):
-            continue
+    # NOTE: Extraction suspects (tables_added/removed_pending_review) are excluded
+    # from the review queue. They are unverified items that inflate the queue
+    # with false positives. They remain visible in the stats section as a separate
+    # category for reference only.
 
-        table_name = str(table.get("title") or table.get("table_id", ""))
-        section = str(table.get("section", ""))
-        page_t2 = table.get("page")
-        table_id_t2 = str(table.get("table_id", ""))
-        table_number = str(table.get("table_number") or "")
 
-        match_meta_pending_added: dict[str, Any] = {
-            "review_kind": "extraction_suspect",
-            "pending_review": True,
-            "extraction_status": str(
-                table.get("extraction_status", "suspect_unresolved") or "suspect_unresolved"
-            ),
-        }
-
-        items.append(
-            ReviewItem(
-                change_id=_make_change_id("tbl_add_pending", seq),
-                change_type=CHANGE_TYPE_TABLE_ADDED,
-                indicator=t("needs_review"),
-                section=section,
-                table_name=table_name,
-                table_number=table_number,
-                table_id_t2=table_id_t2,
-                page_t2=page_t2,
-                source_ref_t2=_source_ref(table, "t2"),
-                confidence=float(table.get("match_confidence", 0.0) or 0.0),
-                table_title_raw=table_name,
-                table_status="ajoute_pending_review",
-                indicators=[],
-                all_indicators_t1=table.get("all_indicators_t1") or [],
-                all_indicators_t2=table.get("all_indicators_t2") or [],
-                bbox_t1=table.get("bbox_t1"),
-                bbox_t2=table.get("bbox_t2"),
-                added_indicators=[],
-                removed_indicators=[],
-                genai_analysis=table.get("genai_analysis") or {},
-                match_metadata=match_meta_pending_added,
-                event_type=EVENT_TYPE_TABLE_ADDED,
-            )
-        )
-        seq += 1
-
-    tables_removed_pending_review = (
-        indicator_result.get("tables_removed_pending_review", []) or []
-    )
-    for table in tables_removed_pending_review:
-        if not isinstance(table, dict):
-            continue
-
-        table_name = str(table.get("title") or table.get("table_id", ""))
-        section = str(table.get("section", ""))
-        page_t1 = table.get("page")
-        table_id_t1 = str(table.get("table_id", ""))
-        table_number = str(table.get("table_number") or "")
-
-        match_meta_pending_removed: dict[str, Any] = {
-            "review_kind": "extraction_suspect",
-            "pending_review": True,
-            "extraction_status": str(
-                table.get("extraction_status", "suspect_unresolved") or "suspect_unresolved"
-            ),
-        }
-
-        items.append(
-            ReviewItem(
-                change_id=_make_change_id("tbl_rem_pending", seq),
-                change_type=CHANGE_TYPE_TABLE_REMOVED,
-                indicator=t("needs_review"),
-                section=section,
-                table_name=table_name,
-                table_number=table_number,
-                table_id_t1=table_id_t1,
-                page_t1=page_t1,
-                source_ref_t1=_source_ref(table, "t1"),
-                confidence=float(table.get("match_confidence", 0.0) or 0.0),
-                table_title_raw=table_name,
-                table_status="supprime_pending_review",
-                indicators=[],
-                all_indicators_t1=table.get("all_indicators_t1") or [],
-                all_indicators_t2=table.get("all_indicators_t2") or [],
-                bbox_t1=table.get("bbox_t1"),
-                bbox_t2=table.get("bbox_t2"),
-                added_indicators=[],
-                removed_indicators=[],
-                genai_analysis=table.get("genai_analysis") or {},
-                match_metadata=match_meta_pending_removed,
-                event_type=EVENT_TYPE_TABLE_REMOVED,
-            )
-        )
-        seq += 1
 
     return items
