@@ -88,219 +88,242 @@ _NARRATIVE_INDICATOR_PHRASES = (
 )
 
 _PROMPT_BASE = """
-Tu es un expert en extraction de données financières à partir de rapports bancaires canadiens.
 
-TÂCHE
-On te fournit l'image RECADRÉE d'un tableau financier extrait d'un rapport bancaire canadien.
-L'image montre le tableau ciblé et peut inclure un petit contexte au-dessus (titre) et en dessous (notes de bas de page).
+You are a precision-first financial table extraction engine for Canadian bank quarterly reports (French language).
 
-Ta mission :
-1. Extrais uniquement les champs suivants s'ils sont visibles :
-   - `table_title`
-   - `table_summary`
-   - `headers`
-   - `indicators`
-   - `footnotes_content`
-   - `no_table_detected`
-2. N'invente jamais d'information absente.
-3. La précision est critique : un seul libellé incorrect ou manquant provoque des faux positifs dans le pipeline de comparaison.
+INPUT
+You receive one CROPPED image that may contain:
+- the table title above,
+- the table itself (headers + data rows),
+- footnotes below the table.
 
-1. TITRE ET RÉSUMÉ
+TASK
+Extract ONLY these fields from the visible image:
+- indicators (first-column row labels)
+- footnotes_content (footnotes below the table)
+- headers (column headers)
+- table_title (title of the table)
+- table_summary (short business subject)
+- no_table_detected (boolean)
 
-- `table_title` : inclure le numéro du tableau et le titre complet s'ils sont visibles.
-- `table_summary` : phrase nominale de 15 mots maximum décrivant uniquement le sujet métier du tableau.
-- ne pas inventer de chiffres, de variations, de conclusions, ni d'analyse trimestrielle.
+Return VALID JSON ONLY. No markdown, no comments, no extra keys.
 
-2. INDICATEURS (première colonne du tableau)
+OUTPUT SCHEMA
+{
+  "indicators": ["string"],
+  "table_title": "string",
+  "table_summary": "string",
+  "headers": ["string"],
+  "footnotes_content": [
+    {"id": "string", "text": "string"}
+  ],
+  "no_table_detected": false
+}
 
-Extraire tous les libellés de la première colonne du tableau dans l'ordre visuel strict (de haut en bas).
-L'unité correcte d'extraction est l'INDICATEUR LOGIQUE, pas la ligne visuelle brute.
+DECISION RULE
+- If no real tabular structure is visible (only narrative text, charts, or blank space), return:
+  {
+    "indicators": [],
+    "table_title": "",
+    "table_summary": "",
+    "headers": [],
+    "footnotes_content": [],
+    "no_table_detected": true
+  }
+- Otherwise extract all visible fields and set "no_table_detected": false.
 
-RÈGLE SPÉCIALE : Si la première colonne ne contient que des index numériques (1, 2, 3...), prends le libellé de la deuxième colonne comme indicateur.
+═══════════════════════════════════════════
+FIELD 1: indicators (HIGHEST PRIORITY)
+═══════════════════════════════════════════
 
-LISTE NOIRE (ne JAMAIS extraire comme indicateur) :
-- "Indicateur", "Indicator"
-- "Année", "Year", "Exercice"
-- "Trimestre", "Quarter", "T1", "T2", "T3", "T4", "Q1", "Q2", "Q3", "Q4"
-- "Montant", "Amount", "Solde", "Balance"
-- "Total" seul en en-tête de colonne
-- Dates au format YYYY ou DD/MM/YYYY
+Extract ALL logical row labels from the FIRST COLUMN of the table, in strict visual order top → bottom.
 
-Inclure :
+An indicator is any text that functions as a row label:
+- normal row label
+- indented sub-row
+- group heading / section heading within the table
+- subtotal or total row
+- maturity bucket or period bucket used as a row label
+- a label with an attached footnote marker such as (1), *, †, ¹
 
-- lignes d'indicateurs réelles
-- sous-lignes indentées (conserver les espaces d'indentation pour représenter la hiérarchie)
-- lignes de groupe et sous-groupes si elles servent de libellés de ligne
-- sous-totaux
-- totaux
-- dates, périodes et buckets de maturité quand ils servent de libellés de ligne
-- lignes contenant des références de notes comme (1), (2),(1)(2), *, †
+PRESERVE:
+- exact wording (French accents, hyphens, special characters)
+- attached footnote markers that are part of the label
+- visual top-to-bottom order
 
-Exclure :
+DO NOT:
+- translate, normalize, summarize, correct spelling, or reorder
+- include column headers (these go in the "headers" field)
+- include pure numeric values, units-only cells, or isolated footnote markers
+- include narrative paragraphs or explanatory text blocks
+- include free text below the table (these may be footnotes)
 
-- marqueurs de notes isolés (ex: (1), *, 1, 2,¹, ², ³) s'ils ne sont pas rattachés à un libellé textuel
-- symboles monétaires seuls (ex: $)
-- titres du tableau
-- en-têtes de colonnes
-- unités (ex : %, en millions, en milliards)
-- valeurs numériques
-- notes de bas de page
+CRITICAL: MULTI-LINE MERGE RULE
+If one indicator wraps onto multiple visual lines in the first column, merge them into ONE indicator string.
+Merge ONLY when:
+- same left alignment and indentation level
+- the next line clearly continues the same business label
+- the next line does NOT begin a new row with its own data values
+- the merged text forms one natural row label
 
-Règles importantes :
+Do NOT merge when:
+- the second line is a new row with its own values in other columns
+- the second line is a subtotal, total, or new category
+- the first line is a group heading and the next line is a distinct sub-row
 
-- conserver EXACTEMENT le texte visible
-- conserver l'indentation si visible
-- ne jamais modifier ou interpréter le texte
-- respecter strictement l'ordre visuel
-- ne jamais inventer d'indicateur
+CRITICAL: DISAMBIGUATION RULE FOR REPEATED LABELS
+When the EXACT SAME label text appears in multiple rows of the same table (because the table has repeating sub-sections), you MUST disambiguate by prepending the nearest visible GROUP HEADING or SECTION HEADING:
+- Format: "Group Heading – repeated_label"
+- Example: a table has section "Fonds propres CET1" containing "Solde au début" AND section "Fonds propres catégorie 1" also containing "Solde au début".
+  Output: ["Fonds propres CET1 – Solde au début", ..., "Fonds propres catégorie 1 – Solde au début"]
+- If no group heading exists above the repeated label, keep the original label unchanged.
+- Apply this ONLY to labels that would otherwise appear as exact duplicates in the output list.
+- Every indicator in the final output list MUST be unique.
+  If disambiguation via group heading is not possible, append a position marker: " (bloc 2)" to the second occurrence.
 
-RÈGLE DE FUSION DES LIBELLÉS MULTILIGNES (CRITIQUE) :
-- Un même indicateur peut occuper 1, 2 ou 3 lignes visuelles dans la première colonne.
-- Si un libellé est renvoyé à la ligne à cause de la largeur de colonne, de la mise en page ou d'un retour automatique, fusionne ces lignes en UN SEUL indicateur logique.
-- Retourne le libellé final concaténé dans l'ordre naturel de lecture, sans inventer, résumer ou réécrire le texte.
+CRITICAL: EXCLUDE DATE/PERIOD IDENTIFIERS
+Do NOT extract as indicators:
+- date identifiers that function as row-group delimiters or column sub-headers:
+  "Au 30 avril 2025", "Au 31 janvier 2025", "Au 31 octobre 2024"
+- period identifiers:
+  "Trimestre clos le ...", "Pour l'exercice clos le ...", "Exercice terminé le ...",
+  "Semestre terminé le ..."
+- unit descriptors spanning the table width:
+  "En millions de dollars", "En milliers de dollars", "(en millions de dollars)"
+- quarter labels used as sub-headers: "T1 2025", "Q1 2025", "2024", "2025"
+These are temporal/unit metadata, NOT business indicators.
 
-Fusionner plusieurs lignes visuelles en un seul indicateur si la plupart des signaux suivants sont présents :
-- même alignement horizontal dans la première colonne
-- même niveau d'indentation
-- la ligne suivante complète grammaticalement ou sémantiquement la précédente
-- la ligne suivante ne porte pas une nouvelle série de valeurs indépendante
-- le texte combiné forme un libellé métier cohérent
+HIERARCHY PRESERVATION
+Use leading spaces to indicate the nesting depth as visible in the table:
+- Top-level labels: no leading spaces
+- First-level sub-items (visually indented once): prefix with "  " (2 spaces)
+- Second-level sub-items (indented twice): prefix with "    " (4 spaces)
+Reflect the visual hierarchy faithfully. This is essential for downstream accuracy.
 
-Ne PAS fusionner si :
-- chaque ligne correspond à un indicateur métier distinct
-- la deuxième ligne introduit un nouvel item, un sous-total, un total ou une nouvelle catégorie
-- la première ligne est un titre de groupe sans valeurs et la suivante est un sous-item distinct
-- chaque ligne a ses propres valeurs associées
+═══════════════════════════════════════════
+FIELD 2: footnotes_content (SECOND PRIORITY)
+═══════════════════════════════════════════
 
-Ordre de décision en cas d'ambiguïté :
-- d'abord vérifier si chaque ligne a ses propres valeurs
-- ensuite utiliser l'alignement et l'indentation
-- ensuite vérifier la continuité grammaticale
-- enfin vérifier si le texte fusionné forme un libellé métier naturel
+Extract ONLY footnotes located BELOW the table body, inside the cropped image.
 
-Exemples à FUSIONNER :
-- "Actions émises dans le cadre des régimes de" + "rémunération fondée sur des actions (1)"
-- "Émission de billets de capital à recours limité (LRCN) de" + "série 5 (2), (3), (4)"
-- "Rachat de débentures subordonnées échéant le" + "23 décembre 2029 (2), (3)"
+For each footnote return:
+- id: normalized marker → "1", "2", "3", "*", "†", "a" (strip parentheses: "(1)" → "1")
+- text: exact full footnote text
 
-Exemples à NE PAS fusionner :
-- "Fonds propres de première catégorie" + "Actions émises dans le cadre des régimes..."
-- "Actifs liquides de haute qualité" + "Total des actifs liquides de haute qualité"
+Detect ALL marker styles:
+- superscript digits: ¹ ² ³ → normalize to "1", "2", "3"
+- parenthetical: (1) (2) (3) → normalize to "1", "2", "3"
+- symbols: *, †, ‡ → keep as-is
 
-EXCLUSION DES PARAGRAPHES NARRATIFS :
-- Ne pas extraire les blocs de texte explicatif (phrases complètes qui traversent plusieurs colonnes).
-- Les paragraphes descriptifs ou les notes intégrées au milieu du tableau ne sont PAS des indicateurs.
-- Un indicateur est typiquement un libellé aligné dans la première colonne ; il peut être court ou long et peut s'étendre sur plusieurs lignes visuelles.
+Rules:
+- preserve exact wording of each footnote
+- preserve visual top-to-bottom order (do NOT sort by id)
+- do not merge two separate footnotes into one
+- do not invent missing text
+- do not extract narrative paragraphs, body text, or discussion as footnotes
+- if no footnotes are visible below the table, return []
 
----
+═══════════════════════════════════════════
+FIELD 3: headers (THIRD PRIORITY)
+═══════════════════════════════════════════
 
-3. EN-TÊTES DE COLONNES
+Return the visible column headers in left-to-right order.
+- If a header spans multiple visual lines, merge into one string.
+- Do NOT include row labels from the first column unless the first column has its own explicit header text.
+- Do NOT include empty strings in the list.
+- If no column headers are visible, return [].
 
-- `headers` : retourne les en-têtes visibles dans l'ordre.
-- si aucun en-tête n'est visible, retourne une liste vide.
+═══════════════════════════════════════════
+FIELD 4: table_title
+═══════════════════════════════════════════
 
-4. NOTES DE BAS DE TABLEAU (FOOTNOTES)
+Return the full visible title of the table, including the table number if present (e.g., "Tableau 12 – Titre du tableau").
 
----
+TITLE RULES:
+- A table title is a heading DIRECTLY ABOVE the table's header row or first data row.
+- It typically starts with "Tableau XX", "Table XX", or "TABLEAU XX", or is bold/larger text.
+- Do NOT use page running headers, section headings, or chapter titles as table_title.
+  Examples of page furniture to IGNORE: "Rapport de gestion", "Management's Discussion and Analysis", "Rapport aux actionnaires", "Rapport annuel"
+- If the title is partially cut off at the crop boundary, extract the visible portion.
+- If no real table title is visible directly above the table, return "".
+- NEVER invent or guess a title.
 
-Extraire toutes les notes situées en bas de l'image recadrée du tableau (jusqu'au bas de l'image).
+═══════════════════════════════════════════
+FIELD 5: table_summary
+═══════════════════════════════════════════
 
-Formats possibles des marqueurs :
+Return a short noun phrase (max 15 words) describing the business subject of the table.
+- Base it ONLY on the visible title and content.
+- Do NOT add analysis, numbers, trends, or conclusions.
+- If the image is a continuation of a table from a previous page (no title, indicators continue mid-sequence), prefix with "Suite: " then the subject.
+- If unclear, return "".
 
-- (1) (2) (3)(4)
-- ¹ ² ³
-- 1 2 3
-- * † ‡
-- a) b)
+═══════════════════════════════════════════
+FIELD 6: no_table_detected
+═══════════════════════════════════════════
 
-IMPORTANT :
+Set to true ONLY if NO real tabular structure (rows + columns with data) is visible in the crop.
+If even a partial table is visible, set to false.
 
-Les notes doivent être retournées dans leur ordre visuel exact (de haut en bas).
-Ne jamais trier les notes par identifiant.
+═══════════════════════════════════════════
+GENERAL PRIORITY RULES
+═══════════════════════════════════════════
 
-Pour chaque note retourner :
+1. PRECISION over recall. Never invent content.
+2. Extract ONLY what is visible in the cropped image.
+3. Keep row order and footnote order exactly as visually seen.
+4. If uncertain whether text is an indicator or narrative → EXCLUDE from indicators.
+5. If uncertain whether bottom text is a footnote → EXCLUDE from footnotes_content.
+6. If uncertain whether there is a real table → set no_table_detected to true.
 
-- id : identifiant normalisé (ex : "1", "2", "*")
-- text : texte complet de la note
-
-Règles :
-
-- conserver le texte EXACT
-- ne pas fusionner plusieurs notes
-- ne pas inventer de notes
-- respecter l'ordre visuel
-- si aucune note n'est visible retourner une liste vide
-
----
-
-REGLES GENERALES
-
-- Transcrire uniquement ce qui est visible dans l'image
-- Ne jamais inventer d'information
-- Respecter l'ordre visuel
-- Ne jamais corriger, traduire, normaliser ni dédupliquer le texte visible
+FINAL REQUIREMENT
+Return one JSON object only, with exactly these 6 keys:
+indicators, footnotes_content, table_title, headers, table_summary, no_table_detected
 """
 
 _PROMPT_JSON_STRICT = """
-REPONSE JSON STRICTE.
-Retourner uniquement du JSON valide.
-Aucun texte avant ou après.
+STRICT JSON RESPONSE.
+Return valid JSON only. No text before or after.
 
-L'objet JSON doit rigoureusement suivre cette structure:
+The JSON object must strictly follow this structure:
 
 {
-"table_title": "Tableau 1 - Titre complet ou chaine vide si absent",
-"table_summary": "Sujet métier du tableau en 15 mots maximum",
-"headers": ["Colonne 1", "Colonne 2", "Colonne 3"],
-"indicators": ["Libelle 1", " Sous-libelle", "Total"],
+"indicators": ["Group A – Label 1", "  Sub-label", "Group A – Total", "Group B – Label 1"],
 "footnotes_content": [
-  {"id": "1", "text": "texte note 1"},
-  {"id": "2", "text": "texte note 2"}
+  {"id": "1", "text": "footnote text 1"},
+  {"id": "2", "text": "footnote text 2"}
 ],
+"headers": ["Column 1", "Column 2", "Column 3"],
+"table_summary": "Business subject of the table in 15 words maximum",
+"table_title": "Tableau 1 – Full title as visible above the table",
 "no_table_detected": false
 }
 
-REGLES DE VALIDATION
-
-- table_title : inclure le numéro ("Tableau XX") ET le titre s'ils sont présents en haut de l'image. Chaine vide si aucun titre visible (NE JAMAIS inventer).
-- table_summary : phrase nominale unique de 15 mots maximum, décrivant le sujet métier du tableau
-- headers : liste vide si aucun en-tete visible
-- indicators doit respecter l'ordre visuel du tableau et contenir UN seul élément par indicateur logique, même si le libellé visible occupe plusieurs lignes visuelles
-- footnotes_content doit respecter l'ordre visuel des notes (haut → bas)
-- ne jamais trier les notes par identifiant
-- no_table_detected = true uniquement si aucune vraie structure tabulaire n'est visible dans le crop
-- si aucune note n'est visible :
-  footnotes_content = []
-
-DEFINITIONS
-
-table_title
-Titre complet et visible du tableau, incluant le numéro (ex: "Tableau 1") s'il est présent sur la même ligne ou la ligne juste au-dessus. "" si absent.
-
-table_summary
-Résumé métier du tableau. 15 mots maximum. Décrire seulement le sujet du tableau.
-
-headers
-Liste des en-tetes de colonnes.
-
-indicators
-Liste des libellés logiques extraits de la première colonne. Si un même libellé est visible sur plusieurs lignes visuelles, le fusionner en un seul élément.
-
-footnotes_content
-Liste ORDONNEE des notes (ordre visuel strict, haut → bas).
-
-no_table_detected
-Booléen strict. true seulement si l'image ne contient pas de vrai tableau exploitable.
+VALIDATION CHECKLIST (apply before returning):
+1. indicators: every element is UNIQUE — if duplicates exist, disambiguate with group heading prefix ("Group – label")
+2. indicators: no date/period identifiers ("Au 30 avril 2025", "Trimestre clos le...", "En millions de dollars")
+3. indicators: no pure numeric values, no column headers, no narrative paragraphs
+4. indicators: multi-line labels merged into single strings
+5. indicators: hierarchy preserved via leading spaces (2-space increments per nesting level)
+6. footnotes_content: visual order preserved (top → bottom), NOT sorted by id
+7. footnotes_content: marker ids normalized (strip parentheses, convert superscripts to digits)
+8. headers: no empty strings, left-to-right order
+9. table_title: not a page running header or section heading — must be directly above the table
+10. table_summary: ≤ 15 words, noun phrase only, prefix "Suite: " for continuation tables
+11. no_table_detected: true ONLY if zero tabular structure is visible
 """
-
 _PROMPT_RESCUE_SUFFIX = """
 
-MODE RESCUE
-- L'extraction précédente était vide, partielle ou probablement contaminée par du mobilier de page.
-- Ignore les titres de page, en-têtes de section, libellés narratifs et mobilier non tabulaire.
-- Si un vrai tableau est visible dans le crop, extrais-le complètement.
-- Si le crop contient à la fois un titre de page et un vrai tableau, le titre de page ne doit PAS devenir table_title.
-- Utilise `no_table_detected=true` uniquement si aucune vraie structure tabulaire exploitable n'est visible.
+RESCUE MODE — The previous extraction was empty, partial, or contaminated.
+Apply these overrides:
+- IGNORE page titles, running headers, section headings, and any non-tabular page furniture.
+- Focus ONLY on the real table visible in the crop.
+- If both a page title and a real table are visible, the page title must NOT be used as table_title.
+- If a real table is visible, extract it as completely and precisely as possible.
+- Apply the disambiguation rule for repeated labels (prepend group heading).
+- Apply the date/period exclusion rule.
+- Apply hierarchy preservation via leading spaces.
+- Use no_table_detected = true only if absolutely no tabular structure is visible.
 """
 
 
@@ -353,17 +376,21 @@ class VisionResponseCommonSchema(BaseModel):
     @field_validator("indicators", mode="before")
     @classmethod
     def _coerce_indicators(cls, v: Any) -> list[str]:
-        """Accept both string and legacy object indicator formats."""
+        """Accept both string and legacy object indicator formats.
+
+        Uses ``.rstrip()`` instead of ``.strip()`` so that leading whitespace
+        encoding visual indentation (hierarchy depth) is preserved.
+        """
         if not isinstance(v, list):
             return []
         result: list[str] = []
         for item in v:
             if isinstance(item, str):
-                text = item.strip()
+                text = item.rstrip()
                 if text:
                     result.append(text)
             elif isinstance(item, dict):
-                text = str(item.get("text") or "").strip()
+                text = str(item.get("text") or "").rstrip()
                 if text:
                     result.append(text)
         return result
@@ -405,6 +432,7 @@ class VisionResponseCommonSchema(BaseModel):
                     out.append({"id": marker, "text": text})
             return out
         return []
+
 
 class VisionFullResponseSchema(VisionResponseCommonSchema):
     """Strict schema for normal Vision extraction output."""
@@ -876,7 +904,9 @@ def _parse_vision_result(
         for item in validated.footnotes_content
         if str(item.id).strip() and str(item.text).strip()
     ]
-    indicators_ordered = [str(item).strip() for item in validated.indicators if str(item).strip()]
+    indicators_ordered = [
+        str(item).rstrip() for item in validated.indicators if str(item).rstrip()
+    ]
 
     return VisionFullResult(
         table_title=validated.table_title or "",
@@ -902,9 +932,7 @@ def _try_parse_truncated_result(raw_content: str) -> VisionFullResult | None:
     if not isinstance(indicators_raw, list):
         return None
     indicators_ordered: list[str] = [
-        str(item).strip()
-        for item in indicators_raw
-        if str(item).strip()
+        str(item).strip() for item in indicators_raw if str(item).strip()
     ]
     footnotes_content: list[dict[str, str]] = []
     try:
@@ -966,7 +994,9 @@ def _is_trivial_result(
 ) -> bool:
     if result is None:
         return True
-    indicators = [str(v).strip() for v in list(result.indicators or []) if str(v).strip()]
+    indicators = [
+        str(v).strip() for v in list(result.indicators or []) if str(v).strip()
+    ]
     headers = [str(v).strip() for v in list(result.headers or []) if str(v).strip()]
     summary = str(result.table_summary or "").strip()
     title = str(result.table_title or "").strip()
@@ -1003,7 +1033,9 @@ def _is_weak_indicator(text: str) -> bool:
     if normalized in _WEAK_INDICATOR_EXACT:
         return True
     tokens = normalized.split()
-    if 0 < len(tokens) <= 3 and all(token in _WEAK_INDICATOR_TOKENS for token in tokens):
+    if 0 < len(tokens) <= 3 and all(
+        token in _WEAK_INDICATOR_TOKENS for token in tokens
+    ):
         return True
     if _is_period_like_indicator(normalized):
         return True
@@ -1061,8 +1093,7 @@ def _narrative_indicator_count(result: VisionFullResult | None) -> int:
     return sum(
         1
         for raw in list(result.indicators or [])
-        if str(raw or "").strip()
-        and _looks_narrative_indicator(str(raw or "").strip())
+        if str(raw or "").strip() and _looks_narrative_indicator(str(raw or "").strip())
     )
 
 
@@ -1097,9 +1128,7 @@ def _has_generic_title_without_support(result: VisionFullResult | None) -> bool:
         item
         for item in list(result.footnotes_content or [])
         if isinstance(item, dict)
-        and (
-            str(item.get("id") or "").strip() or str(item.get("text") or "").strip()
-        )
+        and (str(item.get("id") or "").strip() or str(item.get("text") or "").strip())
     ]
     return len(headers) < 2 and not footnotes
 
@@ -1115,9 +1144,7 @@ def _has_strong_non_summary_signals(result: VisionFullResult | None) -> bool:
         item
         for item in list(result.footnotes_content or [])
         if isinstance(item, dict)
-        and (
-            str(item.get("id") or "").strip() or str(item.get("text") or "").strip()
-        )
+        and (str(item.get("id") or "").strip() or str(item.get("text") or "").strip())
     ]
     title = str(result.table_title or "").strip()
     if viable_indicators >= 3:
@@ -1136,7 +1163,9 @@ def _is_viable_result(result: VisionFullResult | None) -> bool:
         return False
     if result.no_table_detected:
         return False
-    return _viable_indicator_count(result) > 0 and not _has_dominant_contamination(result)
+    return _viable_indicator_count(result) > 0 and not _has_dominant_contamination(
+        result
+    )
 
 
 def _collect_incompleteness_reasons(
@@ -1168,19 +1197,9 @@ def _collect_incompleteness_reasons(
         reasons.append("weak_indicator_only")
     if _has_dominant_contamination(result):
         reasons.append("dominant_contamination")
-    if (
-        bbox_norm
-        and len(bbox_norm) >= 4
-        and bbox_norm[1] < 0.15
-        and not title
-    ):
+    if bbox_norm and len(bbox_norm) >= 4 and bbox_norm[1] < 0.15 and not title:
         reasons.append("top_context_missing_title")
-    if (
-        bbox_norm
-        and len(bbox_norm) >= 4
-        and bbox_norm[3] < 0.92
-        and expected_ids
-    ):
+    if bbox_norm and len(bbox_norm) >= 4 and bbox_norm[3] < 0.92 and expected_ids:
         found_ids = {
             str(item.get("id") or "").strip()
             for item in list(result.footnotes_content or [])
@@ -1245,9 +1264,7 @@ def _finalize_selected_candidate(
         item
         for item in list(selected.footnotes_content or [])
         if isinstance(item, dict)
-        and (
-            str(item.get("id") or "").strip() or str(item.get("text") or "").strip()
-        )
+        and (str(item.get("id") or "").strip() or str(item.get("text") or "").strip())
     ]
     if _has_generic_title_without_support(selected):
         combined_rejection_reasons = list(
@@ -1530,7 +1547,9 @@ class VisionFullExtractor:
                             ]
                             fn_content = [
                                 {
-                                    "id": str(item.get("id") or item.get("marker") or "").strip(),
+                                    "id": str(
+                                        item.get("id") or item.get("marker") or ""
+                                    ).strip(),
                                     "text": str(item.get("text", "")).strip(),
                                 }
                                 for item in fn_content
@@ -1592,7 +1611,9 @@ class VisionFullExtractor:
                             ),
                             rejection_reasons=[
                                 str(value).strip()
-                                for value in list(cached.get("rejection_reasons", []) or [])
+                                for value in list(
+                                    cached.get("rejection_reasons", []) or []
+                                )
                                 if str(value).strip()
                             ],
                             selected_candidate_name=(
@@ -1607,7 +1628,9 @@ class VisionFullExtractor:
                             indicator_count=int(cached.get("indicator_count") or 0),
                             candidate_quality_rank=[
                                 int(value)
-                                for value in list(cached.get("candidate_quality_rank", []) or [])
+                                for value in list(
+                                    cached.get("candidate_quality_rank", []) or []
+                                )
                                 if isinstance(value, (int, float))
                             ],
                         )
@@ -1929,7 +1952,10 @@ class VisionFullExtractor:
         if used_structured is False:
             failure_causes.append("vision_structured_output_fallback")
         retry_reasons = list(result.retry_reasons or [])
-        if "vision_truncated" in failure_causes and "output_budget_truncated" not in retry_reasons:
+        if (
+            "vision_truncated" in failure_causes
+            and "output_budget_truncated" not in retry_reasons
+        ):
             retry_reasons.append("output_budget_truncated")
         if retry_reasons or failure_causes:
             result = replace(result, vision_status="partial")
@@ -2106,8 +2132,10 @@ class VisionFullExtractor:
 
         candidates: list[tuple[str, VisionFullResult | None]] = [("initial", first)]
         no_table_evidence = 0
-        if first is not None and first.no_table_detected and _is_trivial_result(
-            first, bbox_norm=bbox_norm
+        if (
+            first is not None
+            and first.no_table_detected
+            and _is_trivial_result(first, bbox_norm=bbox_norm)
         ):
             no_table_evidence += 1
 
@@ -2117,8 +2145,10 @@ class VisionFullExtractor:
             rescue_mode=True,
         )
         candidates.append(("same_crop_rescue", same_crop_rescue))
-        if same_crop_rescue is not None and same_crop_rescue.no_table_detected and _is_trivial_result(
-            same_crop_rescue, bbox_norm=bbox_norm
+        if (
+            same_crop_rescue is not None
+            and same_crop_rescue.no_table_detected
+            and _is_trivial_result(same_crop_rescue, bbox_norm=bbox_norm)
         ):
             no_table_evidence += 1
 
@@ -2138,8 +2168,10 @@ class VisionFullExtractor:
                 rescue_mode=True,
             )
             candidates.append((name, result))
-            if result is not None and result.no_table_detected and _is_trivial_result(
-                result, bbox_norm=candidate_bbox or bbox_norm
+            if (
+                result is not None
+                and result.no_table_detected
+                and _is_trivial_result(result, bbox_norm=candidate_bbox or bbox_norm)
             ):
                 no_table_evidence += 1
 
@@ -2235,13 +2267,17 @@ class VisionFullExtractor:
                 return finalized
 
         if no_table_evidence >= 2:
-            fallback = same_crop_rescue or first or VisionFullResult(
-                table_title="",
-                table_summary="",
-                headers=[],
-                indicators=[],
-                footnotes_content=[],
-                no_table_detected=True,
+            fallback = (
+                same_crop_rescue
+                or first
+                or VisionFullResult(
+                    table_title="",
+                    table_summary="",
+                    headers=[],
+                    indicators=[],
+                    footnotes_content=[],
+                    no_table_detected=True,
+                )
             )
             return _build_result_debug_metadata(
                 replace(
@@ -2254,7 +2290,9 @@ class VisionFullExtractor:
                 ),
                 acceptance_reason="confirmed_no_table_after_repeated_no_table_evidence",
                 rejection_reasons=initial_rejection_reasons or ["no_table_evidence"],
-                selected_candidate_name="same_crop_rescue" if same_crop_rescue else "initial",
+                selected_candidate_name="same_crop_rescue"
+                if same_crop_rescue
+                else "initial",
                 no_table_evidence_count=no_table_evidence,
                 bbox_norm=bbox_norm,
                 expected_footnote_ids=expected_set,
@@ -2289,7 +2327,9 @@ class VisionFullExtractor:
             ),
             acceptance_reason="suspect_unresolved_after_rescue_exhaustion",
             rejection_reasons=fallback_rejection_reasons or ["rescue_exhausted"],
-            selected_candidate_name="same_crop_rescue" if same_crop_rescue else "initial",
+            selected_candidate_name="same_crop_rescue"
+            if same_crop_rescue
+            else "initial",
             no_table_evidence_count=no_table_evidence,
             bbox_norm=bbox_norm,
             expected_footnote_ids=expected_set,

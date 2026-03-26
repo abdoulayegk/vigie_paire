@@ -68,7 +68,6 @@ from typing import Any
 import fitz  # Import PyMuPDF (fitz)
 
 from ..utils.footnotes_utils import normalize_footnotes_to_canonical
-from ..utils.genai import get_openai_api_key
 from ..utils.indicator_cleaner import (
     normalize_indicator_for_comparison,
 )
@@ -78,15 +77,13 @@ from ..utils.matching_normalizer import (
 from ..utils.pymupdf_utils import configure_mupdf_runtime
 from ..utils.rbc_table_signals import (
     classify_rbc_title_reliability,
-    is_rbc_bank,
-    is_unreliable_rbc_title,
 )
 from ..utils.table_page_structure import derive_page_local_structure
 from .docling_normalization import (
     _extract_table_context_split,
     # _is_footnote_row and _merge_fragmented_cells removed: Docling content no longer extracted.
 )
-from .page_title_assistant import PageTitleAssistant, PageTitleResult
+
 from .table_title_resolver import (
     extract_table_number_and_inline_title,
     is_table_number_line,
@@ -1829,244 +1826,6 @@ class DoclingProcessor:
             bank_code=self.bank_code_for_patterns,
             first_row_cells=first_row_cells,
         )
-
-    def _page_level_title_assist(
-        self,
-        tables: list[ExtractedTable],
-        pdf_path: Path,
-        bank_code: str,
-        vision_extraction_cfg: dict[str, Any],
-    ) -> list[ExtractedTable]:
-        """Apply page-level title assist to fill missing/weak titles.
-
-        A lightweight GPT-4o pass on the full page image extracts candidate titles.
-        Only replaces a table's title if:
-        - The current title is empty or has a low quality score
-        - The candidate confidence meets the threshold
-        """
-        assist_cfg = vision_extraction_cfg.get("page_level_title_assist", {})
-        if not isinstance(assist_cfg, dict):
-            assist_cfg = {}
-        if not assist_cfg.get("enabled", False):
-            return tables
-
-        min_confidence = float(assist_cfg.get("min_confidence", 0.7))
-        max_candidates = int(assist_cfg.get("max_candidates", 10))
-        weak_title_threshold = int(assist_cfg.get("weak_title_threshold", 3))
-        allow_positional_fallback = bool(
-            assist_cfg.get("allow_positional_fallback", False)
-        )
-        max_pages_per_run = int(assist_cfg.get("max_pages_per_run", 50))
-
-        bank_is_rbc = is_rbc_bank(bank_code)
-
-        # Identify pages with at least one weak/missing title
-        pages_needing_assist: dict[int, list[ExtractedTable]] = {}
-        for table in tables:
-            score = self._title_quality_score(table.title)
-            needs_assist = score < weak_title_threshold
-            if bank_is_rbc and is_unreliable_rbc_title(
-                table.title, bank_code=bank_code
-            ):
-                needs_assist = True
-            if needs_assist:
-                pages_needing_assist.setdefault(table.page_number, []).append(table)
-
-        if not pages_needing_assist:
-            return tables
-
-        logger.info(
-            "page_level_title_assist starting pages_count=%s",
-            len(pages_needing_assist),
-        )
-
-        # Limit pages to process (budget)
-        page_nums_sorted = sorted(pages_needing_assist.keys())[:max_pages_per_run]
-        if len(page_nums_sorted) < len(pages_needing_assist):
-            logger.debug(
-                "Page-level title assist: limiting to %s pages (budget %s)",
-                max_pages_per_run,
-                len(pages_needing_assist),
-            )
-
-        try:
-            api_key = self.openai_api_key or get_openai_api_key()
-            if not api_key:
-                logger.debug("Page-level title assist: no API key, skipping")
-                return tables
-            api_retry_max = int(vision_extraction_cfg.get("api_retry_max", 3))
-            api_retry_backoff_ms = float(
-                vision_extraction_cfg.get("api_retry_backoff_ms", 1000)
-            )
-            assistant = PageTitleAssistant(
-                api_key=api_key,
-                min_confidence=min_confidence,
-                max_candidates=max_candidates,
-                api_retry_max=api_retry_max,
-                api_retry_backoff_ms=api_retry_backoff_ms,
-            )
-        except Exception as e:
-            logger.debug("Page-level title assist init failed: %s", e)
-            return tables
-
-        for page_num in page_nums_sorted:
-            page_tables = pages_needing_assist[page_num]
-            try:
-                from .pdf_preview import render_pdf_page
-
-                page_bytes = render_pdf_page(
-                    str(pdf_path), page_num, scale=2.0, format="png"
-                )
-                if not page_bytes:
-                    continue
-
-                result = assistant.extract_page_titles(page_bytes, page_num)
-                if not result or not result.candidates:
-                    continue
-
-                self._apply_page_title_candidates(
-                    page_tables,
-                    result,
-                    weak_title_threshold,
-                    allow_positional_fallback,
-                )
-            except Exception as e:
-                logger.debug(
-                    "Page-level title assist failed for page %s: %s", page_num, e
-                )
-
-        return tables
-
-    def _apply_page_title_candidates(
-        self,
-        page_tables: list[ExtractedTable],
-        result: PageTitleResult,
-        weak_title_threshold: int,
-        allow_positional_fallback: bool = False,
-    ) -> None:
-        """Map page-level title candidates to tables and apply when appropriate.
-
-        Only applies title when matched by exact table_number or bbox proximity,
-        unless allow_positional_fallback is True (not recommended for multi-table pages).
-        """
-        used_candidates: set[int] = set()
-        bank_code = self.bank_code_for_patterns
-
-        for table in page_tables:
-            current_score = self._title_quality_score(table.title)
-            current_reliability = classify_rbc_title_reliability(
-                table.title,
-                bank_code=bank_code,
-            )
-            if (
-                current_score >= weak_title_threshold
-                and current_reliability == "reliable"
-            ):
-                continue
-
-            candidate: dict[str, Any] | None = None
-            candidate_idx: int | None = None
-            match_method: str = ""
-
-            # 1) Match by table_number
-            table_num = str(table.table_number or "").strip()
-            if table_num:
-                for idx, c in enumerate(result.candidates):
-                    if idx in used_candidates:
-                        continue
-                    if str(c.get("table_number", "")).strip() == table_num:
-                        candidate = c
-                        candidate_idx = idx
-                        match_method = "table_number"
-                        break
-
-            # 2) Match by bbox proximity (title above table)
-            if candidate is None and table.bbox:
-                other_bboxes = [
-                    t.bbox
-                    for t in page_tables
-                    if t is not table
-                    and getattr(t, "bbox", None)
-                    and len(getattr(t, "bbox", [])) >= 4
-                ]
-                candidate = result.get_candidate_by_bbox_proximity(
-                    table.bbox,
-                    other_table_bboxes=other_bboxes if len(page_tables) > 1 else None,
-                )
-                if candidate is not None:
-                    for idx, c in enumerate(result.candidates):
-                        if c is candidate and idx not in used_candidates:
-                            candidate_idx = idx
-                            match_method = "bbox_proximity"
-                            break
-                    else:
-                        candidate = None
-                        candidate_idx = None
-
-            # 3) Positional fallback (first unused candidate) only when allowed
-            if candidate is None and allow_positional_fallback:
-                for idx, c in enumerate(result.candidates):
-                    if idx not in used_candidates:
-                        candidate = c
-                        candidate_idx = idx
-                        match_method = "fallback"
-                        break
-
-            if candidate is None or candidate_idx is None:
-                continue
-
-            # Verify candidate quality is better than current
-            candidate_title = str(
-                candidate.get("title_semantic") or candidate.get("title_full") or ""
-            ).strip()
-            candidate_score = self._title_quality_score(candidate_title)
-            candidate_reliability = classify_rbc_title_reliability(
-                candidate_title,
-                bank_code=bank_code,
-            )
-            better_candidate = candidate_score > current_score
-            if is_rbc_bank(bank_code):
-                better_candidate = better_candidate or (
-                    current_reliability != "reliable"
-                    and candidate_reliability == "reliable"
-                )
-            if not better_candidate:
-                continue
-
-            # Apply the candidate
-            used_candidates.add(candidate_idx)
-            table.title = candidate_title or table.title
-            table.title_clean = candidate_title or table.title_clean
-            table.title_raw = (
-                str(candidate.get("title_full") or candidate_title).strip()
-                or table.title_raw
-            )
-
-            candidate_number = str(candidate.get("table_number", "")).strip()
-            if candidate_number and not table.table_number:
-                table.table_number = candidate_number
-
-            table.title_reliability = candidate_reliability
-
-            table.title_resolution_method = (
-                f"page_level_assist (conf={candidate.get('confidence', 0):.2f})"
-            )
-
-            if not table.debug_metrics:
-                table.debug_metrics = {}
-            table.debug_metrics["page_title_assist_used"] = True
-            table.debug_metrics["page_title_assist_match_method"] = match_method
-            if match_method == "bbox_proximity" and len(page_tables) > 1:
-                table.debug_metrics["page_title_assist_multi_table_guard"] = True
-
-            logger.info(
-                "Page-level title assist: table %s p%s -> '%s' (conf=%.2f)",
-                table.table_id,
-                table.page_number,
-                candidate_title[:60],
-                candidate.get("confidence", 0),
-            )
-
     def _title_quality_score(self, title: str | None) -> int:
         """
         Evaluer la qualite d'un titre.

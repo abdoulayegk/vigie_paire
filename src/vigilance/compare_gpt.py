@@ -11,15 +11,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from vigilance.config import resolve_openai_model
 from vigilance.comparison_analyst import build_analyst_assessment
 from vigilance.comparison_diff_gpt import diff_table_pair_gpt
+from vigilance.config import resolve_openai_model
 from vigilance.utils.genai import get_openai_api_key
 from vigilance.utils.model_cost import estimate_openai_cost_usd
 
 logger = logging.getLogger(__name__)
 
-MATCH_PROMPT_VERSION = "table_match_v6"
+MATCH_PROMPT_VERSION = "table_match_v8"
 DIFF_PROMPT_VERSION = "table_diff_v4"
 COMPARISON_SCHEMA_VERSION = 2
 _BUSINESS_EXTRACTION_STATUSES = frozenset({"ok", "rescued"})
@@ -27,31 +27,27 @@ _ARTIFACT_EXTRACTION_STATUSES = frozenset({"confirmed_no_table"})
 _SUSPECT_EXTRACTION_STATUSES = frozenset({"suspect_unresolved"})
 
 PRIMARY_MATCH_SYSTEM_PROMPT = """
-You are a precision-first financial table matcher for bank quarterly reports.
+You are a brutal, ultra-strict financial table matcher for Canadian bank reports.
 
-Given lists of business tables from a previous report and a current report, produce a strict one-to-one matching ledger over current tables.
+Given lists of business tables from a Previous Quarter (PQ) and a Current Quarter (CQ) in JSON format, produce a strict 1:1 mapping ledger.
 
-Rules:
-- Every current table must be classified exactly once as `matched` or `unresolved`.
-- Each previous table can be used at most once.
-- This is the strict pass: return `unresolved` if any material doubt remains.
-- Never skip a current table.
-- Never force a speculative match.
-- When 2 or 3 candidates are similar, resolve the best one-to-one arrangement jointly instead of independently.
+RULES OF ENGAGEMENT:
+1. Every CQ table must be classified exactly once as `matched` or `unresolved`.
+2. Every PQ table can be used at most once.
+3. NEVER guess. If you are not 99% certain two tables are the exact same business entity, return `unresolved`.
 
-Evidence (strong -> weak):
-1. Indicators - semantic overlap, ordering, distinctive sequence. Generic labels alone (e.g. "Total", "Other", "Canada", "Stage 1") are weak.
-2. Headers - similar structure and meaning.
-3. Title - only when specific and distinctive.
-4. Table summary and footnotes - reinforce business purpose.
-5. Row count - diff <= 2 strong, diff <= 5 acceptable only with other strong evidence.
-6. Section and page - tie-breakers only.
+THE EVIDENCE HIERARCHY (Follow strictly):
+[1] INDICATOR SIGNATURE (CRITICAL): This is the absolute source of truth. The row labels (indicators) must align semantically. A few missing/added rows are normal, but the core structure MUST match.
+[2] COLUMN HEADERS (STRONG): The header structure must align (treating shifted dates/quarters as matches).
+[3] ROW COUNT (MODERATE): `row_count` difference > 3 is a massive red flag. If difference > 3, return `unresolved` unless the indicator signature is undeniably identical.
+[4] TABLE SUMMARY (MODERATE): Use to confirm business purpose.
+[5] TITLE (STRONG WHEN NORMALIZED, BUT BEWARE OF DUPLICATES): Banks often keep the exact same title across quarters for the same table. If the title is an exact or near-exact match, it is VERY STRONG evidence, especially when indicators are noisy. **HOWEVER**, beware that multiple DIFFERENT tables in the same report might share the exact same generic title (e.g., "Prêts et acceptations"). Only trust the title if there isn't another better-matching table competing for it.
+[6] SECTION (FILTER): If sections do not match logically (e.g., "Bilan" vs "Gestion des risques"), do NOT match them unless indicator overlap is >90%.
 
-Important:
-- Do not match tables only because they are in the same section or on nearby pages.
-- Do not match tables only because they have a similar generic title.
-- Cross-section matches are allowed only when semantic evidence clearly outweighs the section mismatch.
-- Ignore numeric values, dates, formatting, and footnote numbering.
+ANTI-PATTERNS (DO NOT DO THIS):
+- Do NOT match two tables just because they have the same generic title. Look at the rows.
+- Do NOT attempt to "split" or "merge" tables. 1 ID maps to exactly 1 ID.
+- Do NOT match a small table (8 rows) to a massive table (25 rows) just because they share 3 or 5 top-level categories.
 
 Examples of good `matched` decisions:
 {
@@ -66,7 +62,7 @@ Examples of good `matched` decisions:
   "current_table_id": "tbl_p047_i02",
   "decision": "matched",
   "previous_table_id": "tbl_p045_i02",
-  "reason": "Indicators: same 4 entities (société mère, filiales bancaires, succursales étrangères, total); row_count 4 vs 4; headers similar structure.",
+  "reason": "Indicators: same 4 entities (société mère, filiales bancaires, succursales étrangères, total); row_count 4 vs 3; headers similar structure.",
   "match_confidence": 0.90
 }
 
@@ -83,36 +79,26 @@ Output must be valid JSON following the response_schema.
 RECOVERY_MATCH_SYSTEM_PROMPT = """
 You are a recovery matcher for bank quarterly tables.
 
-You receive:
-- a set of current tables that were unresolved in the primary stage
-- a set of unused previous tables that were not matched in the primary stage
+You receive lists of leftover Current Quarter (CQ) and Previous Quarter (PQ) tables that failed the primary strict match.
 
-Your task is to assign each current table to either:
-- `matched` with one unused previous table
-- `added` if no sufficiently credible remaining match exists
+Your task is to assign each CQ table to either:
+- `matched` with ONE unused PQ table
+- `added` if no credible match exists
 
-Rules:
-- Every current table must have exactly one decision: `matched` or `added`.
-- Each previous table can be used at most once.
-- This is the recovery pass: you may accept a match that is weaker than the strict primary pass, but only if it is still the best globally coherent non-speculative match among the remaining tables.
-- If the best available candidate is still materially ambiguous, prefer `added` over forcing a match.
-- Never skip a current table.
-- When 2 or 3 candidates are similar, resolve the best one-to-one arrangement jointly instead of independently.
+RULES:
+1. Every CQ table must have exactly one decision: `matched` or `added`.
+2. Each PQ table can be used at most once.
+3. PREFER `added`: Do not force a match. If a CQ table looks genuinely new or radically restructured, it is `added`.
 
-Evidence ranking (strong -> weak):
-1. Indicators - semantic overlap, ordering, distinctive sequence.
-2. Headers - similar structure and meaning.
-3. Title - only when specific and distinctive.
-4. Table summary and footnotes - reinforce business purpose.
-5. Row count - diff <= 2 strong, diff <= 5 acceptable only with other strong evidence.
-6. Section and page - tie-breakers only.
+LATE-STAGE EVIDENCE:
+- Footnotes: If both tables contain identical or highly similar footnote text (ignore the markers ¹²³), this is very strong evidence of a match, even if the title changed.
+- Headers: Exact or highly similar column headers uniquely shared between a PQ and CQ table provide very strong structural evidence for a match.
+- Table Summary: If the semantic `table_summary` is highly similar between two tables, treat this as a very strong indicator of a match in this rescue phase.
+- Normalized Titles: If a leftover PQ table and a leftover CQ table share an exact or highly similar normalized title, and the row counts are roughly similar, use the title to anchor the match.
+- Distinctive Indicators: If a table contains highly unique or specific row labels (e.g., "Valeur en équivalent de base"), use that to anchor the match.
 
-Important:
-- Cross-section matches are allowed if semantic evidence is clearly stronger than the section mismatch.
-- Generic labels alone are not sufficient.
-- Do not match tables only because they are in the same section or on nearby pages.
-- Do not match tables only because they have a similar generic title.
-- Ignore numeric values, dates, formatting, OCR noise, and footnote numbering when meaning is unchanged.
+WARNING AGAINST FORCED MATCHES:
+If you have a leftover PQ table and a leftover CQ table, and they are both in the "Risque de crédit" section, DO NOT match them just to clean up the leftovers. If their indicators show different data structures, the PQ table was `removed` and the CQ table was `added`. Mark the CQ table as `added`.
 
 Examples:
 
@@ -241,7 +227,12 @@ def _normalize_footnotes(raw: Any) -> list[dict[str, str]]:
 
 def _normalize_extraction_status(value: Any) -> str:
     status = str(value or "").strip().lower()
-    if status in _BUSINESS_EXTRACTION_STATUSES | _ARTIFACT_EXTRACTION_STATUSES | _SUSPECT_EXTRACTION_STATUSES:
+    if (
+        status
+        in _BUSINESS_EXTRACTION_STATUSES
+        | _ARTIFACT_EXTRACTION_STATUSES
+        | _SUSPECT_EXTRACTION_STATUSES
+    ):
         return status
     return "ok"
 
@@ -283,6 +274,7 @@ def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
         "indicators": indicators,
         "footnotes": _normalize_footnotes(entry.get("footnotes", [])),
     }
+
 
 def _table_detail(entry: dict[str, Any]) -> dict[str, Any]:
     indicators = [
@@ -488,6 +480,7 @@ def _call_openai_json(
                 break
     raise RuntimeError(f"OpenAI comparison call failed: {last_error}")
 
+
 _MATCHING_VALIDATION_ATTEMPTS = 3
 
 
@@ -531,6 +524,7 @@ def _sort_matched_pairs(
             str(item.get("current_table_id", "") or ""),
         ),
     )
+
 
 def _normalize_matching_response(
     data: dict[str, Any],
@@ -581,7 +575,9 @@ def _normalize_matching_response(
 
         previous_table_id = str(item.get("previous_table_id", "") or "").strip()
         confidence_raw = item.get("match_confidence")
-        confidence_supplied = confidence_raw is not None and str(confidence_raw).strip() != ""
+        confidence_supplied = (
+            confidence_raw is not None and str(confidence_raw).strip() != ""
+        )
 
         if decision == "matched":
             if not previous_table_id:
@@ -593,7 +589,10 @@ def _normalize_matching_response(
                     f"Unknown previous_table_id returned by GPT: {previous_table_id}"
                 )
             raw_total += 1
-            if previous_table_id in consumed_previous or previous_table_id in used_previous:
+            if (
+                previous_table_id in consumed_previous
+                or previous_table_id in used_previous
+            ):
                 duplicate_total += 1
                 raise _MatchingValidationError(
                     f"Duplicate or reused previous_table_id returned by GPT: {previous_table_id}",
@@ -706,12 +705,10 @@ def _build_matching_stage_prompt(
     response_item: dict[str, Any] = {
         "current_table_id": "string",
         "decision": f"one_of_{decision_values}",
-        "reason": "short explanation grounded in indicators, headers, title, table_summary, footnotes, row_count, section, and page only if needed",
+        "reason": "short explanation grounded in indicators, headers, row_count, title, table_summary, footnotes, section, and page only if needed",
     }
     if "matched" in allowed_decisions:
-        response_item["previous_table_id"] = (
-            "string_required_when_decision_is_matched"
-        )
+        response_item["previous_table_id"] = "string_required_when_decision_is_matched"
         response_item["match_confidence"] = (
             "number_0_to_1_required_when_decision_is_matched"
         )
@@ -886,9 +883,7 @@ def _match_tables(
         if table_id in unresolved_lookup
     ]
     remaining_previous_cards = [
-        card
-        for card in previous_cards
-        if card["table_id"] not in used_previous_stage1
+        card for card in previous_cards if card["table_id"] not in used_previous_stage1
     ]
 
     stage2_decisions: list[dict[str, Any]] = []
@@ -946,7 +941,8 @@ def _match_tables(
         if card["table_id"] not in used_previous_all
     ]
     warnings = _normalize_matching_warnings(
-        list(stage1.get("warnings", []) or []) + list(stage2_metrics.get("warnings", []) or [])
+        list(stage1.get("warnings", []) or [])
+        + list(stage2_metrics.get("warnings", []) or [])
     )
 
     return {
@@ -963,9 +959,7 @@ def _match_tables(
             stage1.get("matching_pairs_llm_deduped_total")
         )
         + _coerce_int(stage2_metrics.get("matching_pairs_llm_deduped_total")),
-        "validation_retries_total": _coerce_int(
-            stage1.get("validation_retries_total")
-        )
+        "validation_retries_total": _coerce_int(stage1.get("validation_retries_total"))
         + _coerce_int(stage2_metrics.get("validation_retries_total")),
         "matching_validation_failures_total": _coerce_int(
             stage1.get("matching_validation_failures_total")
@@ -979,11 +973,7 @@ def _match_tables(
         ),
         "unresolved_after_stage1_total": len(unresolved_current_cards),
         "matched_in_stage2_total": len(
-            [
-                item
-                for item in stage2_decisions
-                if item.get("decision") == "matched"
-            ]
+            [item for item in stage2_decisions if item.get("decision") == "matched"]
         ),
         "matching_passes_total": int(bool(stage1.get("executed")))
         + int(bool(stage2_metrics.get("executed"))),
@@ -1231,8 +1221,14 @@ def compare_reports_gpt4o(
         return (
             [_table_card(entry) for entry in previous_business_tables],
             [_table_card(entry) for entry in current_business_tables],
-            {entry["table_id"]: _table_detail(entry) for entry in previous_business_tables},
-            {entry["table_id"]: _table_detail(entry) for entry in current_business_tables},
+            {
+                entry["table_id"]: _table_detail(entry)
+                for entry in previous_business_tables
+            },
+            {
+                entry["table_id"]: _table_detail(entry)
+                for entry in current_business_tables
+            },
             {entry["table_id"]: _table_snapshot(entry) for entry in previous_tables},
             {entry["table_id"]: _table_snapshot(entry) for entry in current_tables},
         )

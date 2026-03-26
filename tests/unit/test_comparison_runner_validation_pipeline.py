@@ -11,7 +11,7 @@ from app import comparison_runner as cr
 def _write_report_comparison(
     path: Path,
     *,
-    prompt_version_match: str = "table_match_v6",
+    prompt_version_match: str = "table_match_v8",
     prompt_version_diff: str = "table_diff_v4",
     model_version: str = "gpt-5.4",
     run_metrics: dict | None = None,
@@ -128,7 +128,7 @@ def test_run_comparison_with_sections_propagates_prompt_versions_to_dash_meta(
 
     assert result["meta"]["source_format"] == "report_comparison"
     assert result["meta"]["model_version"] == "gpt-5.4"
-    assert result["meta"]["prompt_version_match"] == "table_match_v6"
+    assert result["meta"]["prompt_version_match"] == "table_match_v8"
     assert result["meta"]["prompt_version_diff"] == "table_diff_v4"
 
 

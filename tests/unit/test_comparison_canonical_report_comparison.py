@@ -22,7 +22,7 @@ def _raw_report_comparison() -> dict:
         "archived_pdf_previous": "/archive/run/previous_report.pdf",
         "archived_pdf_current": "/archive/run/current_report.pdf",
         "model_version": "gpt-5.4",
-        "prompt_version_match": "table_match_v6",
+        "prompt_version_match": "table_match_v8",
         "prompt_version_diff": "table_diff_v4",
         "reference_resolution": {
             "mode": "automatique",
@@ -149,7 +149,7 @@ def test_to_canonical_payload_supports_report_comparison_without_extraction_look
     assert canonical["meta"]["reference_resolution"]["quarter_previous"] == "t3"
     assert canonical["meta"]["run_id"] == "20260323_143015"
     assert canonical["meta"]["model_version"] == "gpt-5.4"
-    assert canonical["meta"]["prompt_version_match"] == "table_match_v6"
+    assert canonical["meta"]["prompt_version_match"] == "table_match_v8"
     assert canonical["meta"]["prompt_version_diff"] == "table_diff_v4"
     assert canonical["meta"]["pdf_paths"]["pdf_previous"] == "/archive/run/previous_report.pdf"
     assert canonical["meta"]["pdf_paths"]["pdf_current"] == "/archive/run/current_report.pdf"
