@@ -607,6 +607,7 @@ class VisionFullResult:
     summary_present: bool = False
     indicator_count: int = 0
     candidate_quality_rank: list[int] = field(default_factory=list)
+    qa_inspected: bool = False
 
     def to_footnotes_list(self) -> list[dict[str, str]]:
         return list(self.footnotes_content)
@@ -2336,10 +2337,32 @@ class VisionFullExtractor:
             bbox_norm=bbox_norm,
             expected_footnote_ids=expected_set,
         )
+        
+        # --- Dual LLM QA Inspector (Priority 1) ---
+        qa_missing_str = ""
+        passed_qa = False
+        if first is not None and not initial_is_suspect and not initial_rejection_reasons:
+            try:
+                from vigilance.extraction.vision_qa_inspector import VisionTableInspector
+                import dataclasses
+                first_dict = dataclasses.asdict(first)
+                
+                inspector = VisionTableInspector(model="gpt-4o")
+                qa_result = inspector.inspect_extraction(crop_bytes, first_dict)
+                
+                if not qa_result.is_perfect:
+                    initial_rejection_reasons.append("qa_inspector_failed")
+                    qa_missing_str = ", ".join(qa_result.missing_elements)
+                else:
+                    passed_qa = True
+            except Exception as e:
+                logger.error("Failed to execute VisionTableInspector: %s", e)
+        # ------------------------------------------
+
         if not initial_is_suspect and not initial_rejection_reasons:
             assert first is not None
             return _build_result_debug_metadata(
-                replace(first, extraction_status="ok"),
+                replace(first, extraction_status="ok", qa_inspected=passed_qa),
                 acceptance_reason="initial_complete",
                 rejection_reasons=[],
                 selected_candidate_name="initial",
@@ -2358,7 +2381,12 @@ class VisionFullExtractor:
             no_table_evidence += 1
 
         base_rescue_instruction = ""
-        if "low_density_vertical" in initial_rejection_reasons:
+        if "qa_inspector_failed" in initial_rejection_reasons:
+            base_rescue_instruction = (
+                f"CRITICAL WARNING: The rigid QA Inspector found you completely missed the following visual elements in the image: [{qa_missing_str}].\n"
+                "You MUST execute the extraction again and GUARANTEE these elements are included. Reread carefully line-by-line."
+            )
+        elif "low_density_vertical" in initial_rejection_reasons:
             base_rescue_instruction = "WARNING: You failed to extract the full table height in the previous pass. You summarized aggressively. Reread the entire image, line-by-line, and extract EVERY row including heavily indented sub-items."
 
         same_crop_rescue = _run_pass(
