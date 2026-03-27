@@ -41,6 +41,10 @@ Inputs/
 uv run python run_pipeline.py --bank BNC --year 2025 --quarter T2
 ```
 
+```bash
+uv run python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
+```
+
 Le pipeline trouvera automatiquement :
 - **Courant :**  `Inputs/BNC/2025/BNC_2025_T2.pdf`
 - **Précédent :** `Inputs/BNC/2025/BNC_2025_T1.pdf` (déduit automatiquement)
