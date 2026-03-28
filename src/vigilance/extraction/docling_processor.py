@@ -1075,8 +1075,6 @@ class DoclingProcessor:
         bottom_extension_footnotes = shared["bottom_extension_footnotes"]
         top_extension_title = shared["top_extension_title"]
         horizontal_padding = shared["horizontal_padding"]
-        adaptive_bottom_enabled = shared["adaptive_bottom_extension_enabled"]
-        adaptive_bottom_increment = shared["adaptive_bottom_extension_increment"]
         vision_extractor = shared["vision_extractor"]
         schema_failure_flag = shared["schema_failure_flag"]
         vision_schema_error_cls = shared["vision_schema_error_cls"]
@@ -1132,18 +1130,20 @@ class DoclingProcessor:
                             f"bbox sanity gate: {crop_reject_reason or 'rejected'}; Vision skipped"
                         ]
                     else:
-                        # Adaptive bottom: larger extension when table bbox is far from page bottom (footnotes likely)
-                        initial_bottom_ext = bottom_extension_footnotes
-                        if (
-                            adaptive_bottom_enabled
-                            and table_bbox
-                            and len(table_bbox) >= 4
-                            and table_bbox[3] < 0.85
-                        ):
-                            initial_bottom_ext = min(
-                                1.0 - table_bbox[3],
-                                bottom_extension_footnotes + adaptive_bottom_increment,
-                            )
+                        # Dynamic crop extensions based on page layout context
+                        from ..utils.page_layout_context import compute_dynamic_extensions
+
+                        page_table_map = shared.get("page_table_map", {})
+                        dyn_top, dyn_bottom = compute_dynamic_extensions(
+                            table_idx=idx,
+                            page_num=page_num,
+                            table_bbox=table_bbox,
+                            page_table_map=page_table_map,
+                            default_bottom=bottom_extension_footnotes,
+                            default_top=top_extension_title,
+                        )
+                        initial_bottom_ext = dyn_bottom
+                        top_extension_title = dyn_top
 
                         def _recrop(ext: float) -> bytes:
                             return crop_table_region_to_bytes(
@@ -1436,8 +1436,6 @@ class DoclingProcessor:
             bottom_extension_footnotes = 0.0
             top_extension_title = 0.03
             horizontal_padding = 0.02
-            adaptive_bottom_extension_enabled = False
-            adaptive_bottom_extension_increment = 0.06
             # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
             schema_failure_policy = "fail_fast"
             vision_extractor = None
@@ -1457,16 +1455,6 @@ class DoclingProcessor:
                     )
                     horizontal_padding = float(
                         vision_extraction_cfg.get("horizontal_padding", 0.02)
-                    )
-                    adaptive_bottom_extension_enabled = bool(
-                        vision_extraction_cfg.get(
-                            "adaptive_bottom_extension_enabled", False
-                        )
-                    )
-                    adaptive_bottom_extension_increment = float(
-                        vision_extraction_cfg.get(
-                            "adaptive_bottom_extension_increment", 0.06
-                        )
                     )
                     # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
                     schema_failure_policy = (
@@ -1627,6 +1615,11 @@ class DoclingProcessor:
                     dict(sorted(tables_per_page.items())),
                 )
 
+            # Build page-level layout context for dynamic crop extensions
+            from ..utils.page_layout_context import build_page_table_map
+
+            page_table_map = build_page_table_map(vision_items)
+
             all_tables = []
             tables_by_page: dict[int, int] = {}
             if vision_items:
@@ -1641,8 +1634,6 @@ class DoclingProcessor:
                     "bottom_extension_footnotes": bottom_extension_footnotes,
                     "top_extension_title": top_extension_title,
                     "horizontal_padding": horizontal_padding,
-                    "adaptive_bottom_extension_enabled": adaptive_bottom_extension_enabled,
-                    "adaptive_bottom_extension_increment": adaptive_bottom_extension_increment,
                     "vision_extractor": vision_extractor,
                     "schema_failure_flag": schema_failure_flag,
                     "vision_schema_error_cls": vision_schema_error_cls,
@@ -1655,6 +1646,7 @@ class DoclingProcessor:
                         "vision_preprocess", True
                     ),
                     "vision_model_name": vision_model_name,
+                    "page_table_map": page_table_map,
                 }
                 if vision_extractor:
                     try:

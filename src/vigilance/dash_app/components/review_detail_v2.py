@@ -492,6 +492,20 @@ def build_review_detail_v2(
     page_t2 = table.get("page_t2")
     table_status = table.get("table_status", "pending")
     summary = table.get("summary", {})
+    match_meta = table.get("match_metadata") or {}
+
+    alert_badges = []
+    if match_meta.get("drastic_row_drop"):
+        alert_badges.append(
+            dbc.Alert(
+                [
+                    html.I(className="bi bi-exclamation-triangle-fill me-2"),
+                    "ALERTE CRITIQUE : Baisse drastique du nombre de lignes détectée. Vérifiez manuellement une potentielle troncature du modèle.",
+                ],
+                color="danger",
+                className="py-2 mb-3 fw-bold",
+            )
+        )
 
     # Header with table info
     header = html.Div(
@@ -718,6 +732,7 @@ def build_review_detail_v2(
     return html.Div(
         [
             header,
+            html.Div(alert_badges) if alert_badges else None,
             summary_badges,
             html.Hr(),
             proof_section,

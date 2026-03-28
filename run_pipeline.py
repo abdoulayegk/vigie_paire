@@ -92,7 +92,7 @@ def _step_extract(
     year: int,
     quarter: str,
     config: str,
-    out_dir: Path,
+    extraction_root: Path,
 ) -> Path:
     """Step 1: Run extraction on a single PDF and return the tables.json path."""
     from vigilance.cli.run_extract_report import main as extract_main
@@ -103,11 +103,11 @@ def _step_extract(
         "--year", str(year),
         "--quarter", quarter,
         "--config", config,
-        "--out-root", str(out_dir.parent.parent),  # extraction writes {root}/{bank}/{year}/{quarter}/
+        "--out-root", str(extraction_root),  # extraction writes {root}/{bank}/{year}/{quarter}/
     ])
 
     # The extraction writes into {out_root}/{bank}/{year}/{quarter}/
-    extraction_dir = out_dir.parent.parent / bank.lower() / str(year) / quarter
+    extraction_dir = extraction_root / bank.lower() / str(year) / quarter
     tables_json = extraction_dir / "tables.json"
     if not tables_json.exists():
         raise FileNotFoundError(f"Extraction terminée mais tables.json introuvable: {tables_json}")
@@ -207,13 +207,13 @@ def main(argv: list[str] | None = None) -> int:
 
         t0 = time.time()
         print(f"\n   Extraction du rapport courant ({q_current.upper()}-{year_current})…")
-        cur_tables = _step_extract(current_pdf, bank.lower(), year_current, q_current, config, cur_sub)
+        cur_tables = _step_extract(current_pdf, bank.lower(), year_current, q_current, config, extraction_root)
         shutil.copy2(cur_tables, cur_sub / "tables.json")
         split_audit_files(cur_tables, cur_sub)
         print(f"   ✓ tables.json, indicators.json, footnotes.json → {cur_sub}")
 
         print(f"\n   Extraction du rapport précédent ({q_previous.upper()}-{year_previous})…")
-        prev_tables = _step_extract(previous_pdf, bank.lower(), year_previous, q_previous, config, prev_sub)
+        prev_tables = _step_extract(previous_pdf, bank.lower(), year_previous, q_previous, config, extraction_root)
         shutil.copy2(prev_tables, prev_sub / "tables.json")
         split_audit_files(prev_tables, prev_sub)
         print(f"   ✓ tables.json, indicators.json, footnotes.json → {prev_sub}")

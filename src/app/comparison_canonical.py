@@ -388,6 +388,16 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
             and str(entry.get("current", "") or "").strip()
         ]
         match_info = matched_lookup.get(previous_table_id, {})
+        
+        all_inds_t1 = list(previous_table.get("indicators", []) or [])
+        all_inds_t2 = list(current_table.get("indicators", []) or [])
+        drastic_row_drop = False
+        if len(all_inds_t1) > 0:
+            drop_ratio = (len(all_inds_t1) - len(all_inds_t2)) / len(all_inds_t1)
+            # If the row count dropped by >= 80% and the absolute drop is > 5 rows
+            if drop_ratio >= 0.8 and (len(all_inds_t1) - len(all_inds_t2)) > 5:
+                drastic_row_drop = True
+
         table_comparisons.append(
             {
                 "table_id_t1": previous_table_id,
@@ -435,6 +445,7 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 "uncertain_diff": False,
                 "genai_analysis": dict(item.get("analyst_assessment") or {}),
                 "match_metadata": {
+                    "drastic_row_drop": drastic_row_drop,
                     "theme": str(
                         (item.get("analyst_assessment") or {}).get("theme") or ""
                     ),

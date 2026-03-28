@@ -158,6 +158,11 @@ DO NOT:
 - include narrative paragraphs or explanatory text blocks
 - include free text below the table (these may be footnotes)
 
+CRITICAL: FORCED EXHAUSTIVENESS (ANTI-SUMMARIZATION)
+You MUST extract EVERY SINGLE ROW containing financial data. Do NOT summarize or group rows.
+- Highly indented sub-items and child rows are VALID indicators. Extract them all.
+- Never drop a row just because it looks like a subordinate breakdown. Read the table line-by-line and extract everything.
+
 CRITICAL: MULTI-LINE MERGE RULE
 If one indicator wraps onto multiple visual lines in the first column, merge them into ONE indicator string.
 Merge ONLY when:
@@ -602,6 +607,7 @@ class VisionFullResult:
     summary_present: bool = False
     indicator_count: int = 0
     candidate_quality_rank: list[int] = field(default_factory=list)
+    qa_inspected: bool = False
 
     def to_footnotes_list(self) -> list[dict[str, str]]:
         return list(self.footnotes_content)
@@ -1296,13 +1302,20 @@ def _collect_incompleteness_reasons(
         reasons.append("dominant_contamination")
     if bbox_norm and len(bbox_norm) >= 4 and bbox_norm[1] < 0.15 and not title:
         reasons.append("top_context_missing_title")
+        
+    if bbox_norm and len(bbox_norm) >= 4:
+        bbox_height = max(0.0, float(bbox_norm[3]) - float(bbox_norm[1]))
+        viable = _viable_indicator_count(result)
+        if bbox_height > 0.25 and viable <= 2:
+            reasons.append("low_density_vertical")
+
     if bbox_norm and len(bbox_norm) >= 4 and bbox_norm[3] < 0.92 and expected_ids:
         found_ids = {
             str(item.get("id") or "").strip()
             for item in list(result.footnotes_content or [])
             if isinstance(item, dict) and str(item.get("id") or "").strip()
         }
-        if not (found_ids & expected_ids):
+        if not expected_ids.issubset(found_ids):
             reasons.append("missing_expected_footnotes")
     return reasons
 
@@ -1547,6 +1560,7 @@ class VisionFullExtractor:
         reference_text: str | None = None,
         max_completion_tokens_override: int | None = None,
         rescue_mode: bool = False,
+        rescue_instruction: str = "",
     ) -> VisionFullResult | None:
         """
         Extract indicators and footnotes from a table crop.
@@ -2224,6 +2238,27 @@ class VisionFullExtractor:
                 if isinstance(item, dict) and str(item.get("id") or "").strip()
             }
 
+        def _extract_markers_from_indicators(indicators: list[str]) -> set[str]:
+            import re
+            markers = set()
+            for text in indicators:
+                text_lower = text.lower()
+                for m in re.finditer(r'[²³*†‡]', text):
+                    val = m.group(0)
+                    if val == '²':
+                        markers.add('2')
+                    elif val == '³':
+                        markers.add('3')
+                    else:
+                        markers.add(val)
+                for m in re.finditer(r'\(\s*([0-9a-z])\s*\)', text_lower):
+                    if m.start() <= 1:
+                        prefix = text[:m.start()]
+                        if not any(c.isalnum() for c in prefix):
+                            continue
+                    markers.add(m.group(1))
+            return markers
+
         def _needs_recrop(result: VisionFullResult | None) -> bool:
             return bool(
                 _collect_incompleteness_reasons(
@@ -2247,6 +2282,7 @@ class VisionFullExtractor:
             crop_bytes_for_pass: bytes,
             bottom_extension_used: float,
             rescue_mode: bool = False,
+            rescue_instruction: str = "",
         ) -> VisionFullResult | None:
             primary = self.extract(
                 crop_bytes=crop_bytes_for_pass,
@@ -2259,6 +2295,7 @@ class VisionFullExtractor:
                 reference_text=reference_text,
                 max_completion_tokens_override=base_max_completion_tokens,
                 rescue_mode=rescue_mode,
+                rescue_instruction=rescue_instruction,
             )
             if (
                 rescue_enabled
@@ -2276,6 +2313,7 @@ class VisionFullExtractor:
                     reference_text=reference_text,
                     max_completion_tokens_override=rescue_max_completion_tokens,
                     rescue_mode=rescue_mode,
+                    rescue_instruction=rescue_instruction,
                 )
                 if rescue is not None:
                     return replace(rescue, rescue_used=True)
@@ -2286,16 +2324,45 @@ class VisionFullExtractor:
             bottom_extension_used=initial_bottom_extension,
         )
 
+        if first is not None and first.indicators:
+            found_markers = _extract_markers_from_indicators(
+                [str(item).strip() for item in list(first.indicators)]
+            )
+            if found_markers:
+                expected_set.update(found_markers)
+
         initial_is_suspect = _is_trivial_result(first, bbox_norm=bbox_norm)
         initial_rejection_reasons = _collect_incompleteness_reasons(
             first,
             bbox_norm=bbox_norm,
             expected_footnote_ids=expected_set,
         )
+        
+        # --- Dual LLM QA Inspector (Priority 1) ---
+        qa_missing_str = ""
+        passed_qa = False
+        if first is not None and not initial_is_suspect and not initial_rejection_reasons:
+            try:
+                from vigilance.extraction.vision_qa_inspector import VisionTableInspector
+                import dataclasses
+                first_dict = dataclasses.asdict(first)
+                
+                inspector = VisionTableInspector(model="gpt-4o")
+                qa_result = inspector.inspect_extraction(crop_bytes, first_dict)
+                
+                if not qa_result.is_perfect:
+                    initial_rejection_reasons.append("qa_inspector_failed")
+                    qa_missing_str = ", ".join(qa_result.missing_elements)
+                else:
+                    passed_qa = True
+            except Exception as e:
+                logger.error("Failed to execute VisionTableInspector: %s", e)
+        # ------------------------------------------
+
         if not initial_is_suspect and not initial_rejection_reasons:
             assert first is not None
             return _build_result_debug_metadata(
-                replace(first, extraction_status="ok"),
+                replace(first, extraction_status="ok", qa_inspected=passed_qa),
                 acceptance_reason="initial_complete",
                 rejection_reasons=[],
                 selected_candidate_name="initial",
@@ -2313,10 +2380,20 @@ class VisionFullExtractor:
         ):
             no_table_evidence += 1
 
+        base_rescue_instruction = ""
+        if "qa_inspector_failed" in initial_rejection_reasons:
+            base_rescue_instruction = (
+                f"CRITICAL WARNING: The rigid QA Inspector found you completely missed the following visual elements in the image: [{qa_missing_str}].\n"
+                "You MUST execute the extraction again and GUARANTEE these elements are included. Reread carefully line-by-line."
+            )
+        elif "low_density_vertical" in initial_rejection_reasons:
+            base_rescue_instruction = "WARNING: You failed to extract the full table height in the previous pass. You summarized aggressively. Reread the entire image, line-by-line, and extract EVERY row including heavily indented sub-items."
+
         same_crop_rescue = _run_pass(
             crop_bytes_for_pass=crop_bytes,
             bottom_extension_used=initial_bottom_extension,
             rescue_mode=True,
+            rescue_instruction=base_rescue_instruction,
         )
         candidates.append(("same_crop_rescue", same_crop_rescue))
         if (
@@ -2332,6 +2409,7 @@ class VisionFullExtractor:
             *,
             bottom_extension_used: float,
             candidate_bbox: list[float] | None = None,
+            custom_rescue_instr: str | None = None,
         ) -> None:
             nonlocal no_table_evidence
             if not crop_bytes_for_pass:
@@ -2340,6 +2418,7 @@ class VisionFullExtractor:
                 crop_bytes_for_pass=crop_bytes_for_pass,
                 bottom_extension_used=bottom_extension_used,
                 rescue_mode=True,
+                rescue_instruction=custom_rescue_instr if custom_rescue_instr is not None else base_rescue_instruction,
             )
             candidates.append((name, result))
             if (
