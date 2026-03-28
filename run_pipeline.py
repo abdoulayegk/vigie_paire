@@ -9,7 +9,7 @@ This single command will:
 
 1. Deduce the previous quarter automatically (T2→T1, T1→T3 N-1, …).
 2. Locate the two PDF reports.
-3. Extract tables from both reports (Vision + Self-Healing).
+3. Extract tables from both reports (Docling for layout, GPT-4o Vision for table content).
 4. Compare the two sets of tables semantically (GPT-4o).
 5. Generate all output files (comparison.json, indicators.json, …).
 """

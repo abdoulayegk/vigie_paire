@@ -25,6 +25,13 @@ Rules:
 - Compare only indicator meaning and role in the table.
 - Ignore numeric values, dates, periods, formatting, OCR noise, row order changes, and line wrapping.
 - IGNORE footnote marker changes: if two indicators differ ONLY by a footnote reference like (1), (2), (3), (4) being added, removed, or changed, they are THE SAME indicator. Do NOT classify this as renamed. Example: 'catégorie 1 (4)' and 'catégorie 1' are identical — ignore this.
+- IGNORE extraction disambiguation labels: tables with repeated sub-sections may be extracted with
+  disambiguation tags like '(bloc 2)', '(bloc 3)' appended, or date prefixes like '31 octobre 2025 – '
+  prepended. These are NOT part of the real indicator name. When matching, strip these prefixes/suffixes
+  and compare the core business name. Examples:
+    • 'Total (bloc 2)' and '31 octobre 2025 – Total' → SAME indicator (core = 'Total').
+    • 'Total (libellé en dollars canadiens) (bloc 2)' and '31 octobre 2025 – Total (libellé en dollars canadiens)' → SAME.
+  Treat these as UNCHANGED — do not report them as added, removed, or renamed.
 - Indicator present only in current = indicators_added.
 - Indicator present only in previous = indicators_removed.
 - Classify indicators_renamed only when the previous and current indicators clearly represent the exact same business concept with the same scope and the same role in the table.
@@ -68,6 +75,67 @@ Rules:
 - The 'analyst_assessment' MUST include:
   1. A 'relevance_level' (integer: 1 for Critical/Regulatory, 2 for High/Structural, 3 for Low/Cosmetic).
   2. A 'justification' (A clear, articulate, and complete descriptive sentence explaining the business impact and exactly WHY this change matters to guide the analyst).
+
+Output must be valid JSON following the response_schema.
+"""
+
+
+INSPECTOR_SYSTEM_PROMPT = """
+You are a Senior Risk Analyst quality-control inspector for a banking table diff pipeline.
+
+You receive a diff produced by a first-pass GPT model that compared two already-matched
+canonical banking tables from adjacent quarterly reports. Your ONLY job is to classify
+each indicator flagged as "added" or "removed" as either a REAL semantic change or an
+extraction ARTIFACT that should be suppressed.
+
+CRITICAL PRINCIPLE — artifact vs real:
+An indicator should ONLY be classified as "artifact" when you can clearly identify its
+counterpart on the opposite side (added↔removed) and the ONLY difference between them
+is extraction noise (footnote markers, unicode, OCR, whitespace). If a removed indicator
+has NO plausible counterpart among added indicators (and vice versa), it MUST be "real".
+
+Common artifact patterns you MUST catch:
+1. Footnote marker variance: 'Goodwill³' vs 'Goodwill', 'catégorie 1 (4)' vs 'catégorie 1'.
+2. Footnote reference shift on the SAME business concept: 'Série 3⁶' vs 'Série 3⁴' — same
+   indicator name, only the superscript reference number changed. But 'Série 5' vs 'Série 7'
+   are DIFFERENT business entities — never pair them.
+3. Disambiguation label / date-prefix / bloc-suffix variance (CRITICAL):
+   Tables with repeated sub-sections are often extracted with disambiguation tags.
+   One quarter may use '(bloc 2)', '(bloc 3)' suffixes; another may use date prefixes
+   like '31 octobre 2025 – ', '31 janvier 2025 – ', etc. To detect these artifacts:
+     a) Strip any leading date pattern (e.g. '31 octobre 2025 – ', '30 avril 2025 – ').
+     b) Strip any trailing '(bloc N)' tag.
+     c) Compare the remaining core indicator name.
+   If the core names match, mark BOTH as artifact and pair them.
+   Examples:
+     • removed='Total (bloc 2)' + added='31 octobre 2025 – Total' → artifact pair (core='Total').
+     • removed='Total (libellé en dollars canadiens) (bloc 2)' +
+       added='31 octobre 2025 – Total (libellé en dollars canadiens)' → artifact pair.
+     • removed='Total (non libellé en dollars canadiens) (bloc 2)' +
+       added='31 octobre 2025 – Total (non libellé en dollars canadiens)' → artifact pair.
+4. Unicode apostrophe / quote variance: '\u2019' (U+2019) vs "'" (U+0027), « » vs ".
+5. Minor OCR / whitespace / punctuation noise: trailing dots, extra spaces, accented char variance.
+
+Rules:
+- For each indicator in added_indicators and removed_indicators, output a verdict.
+- verdict MUST be one of: "real" or "artifact".
+- An indicator can ONLY be "artifact" if it has a clear extraction-noise counterpart on the
+  other side. A removed indicator with no matching added indicator is ALWAYS "real".
+  An added indicator with no matching removed indicator is ALWAYS "real".
+- If an added indicator and a removed indicator are the SAME business concept (just extraction noise),
+  mark BOTH as "artifact" and pair them in artifact_pairs.
+- DATE-PREFIXED INDICATORS: When an indicator starts with a date in any format
+  (e.g. '31 octobre 2025 – ...', '2025-01-31 – ...', 'October 31 2025 – ...'),
+  always look for a counterpart without the date prefix (or with a '(bloc N)' suffix instead).
+  The date prefix is extraction noise, not part of the real indicator name.
+- CONTEXTUAL CROSS-CHECK: When unsure whether an added/removed pair are the same indicator,
+  look at their NEIGHBORS in the previous_table and current_table indicator lists. If the
+  indicators directly above and below are the same on both sides, it strongly confirms
+  the flagged indicators occupy the same structural position and are the same business concept.
+- When in doubt, mark as "real". Missing a genuine change is worse than surfacing a false positive.
+- Do NOT re-assess renamed indicators — they are already handled.
+- Cross-check against the provided previous_table and current_table indicator lists. If an
+  indicator genuinely does not appear in the other quarter's list, it is "real".
 
 Output must be valid JSON following the response_schema.
 """
@@ -799,175 +867,151 @@ def diff_footnotes_pair_gpt(
 
 
 # ---------------------------------------------------------------------------
-# Post-GPT deterministic guard
+# Post-diff GPT Inspector (artifact filter)
 # ---------------------------------------------------------------------------
 
-_GUARD_ASSESSMENT = {
-    "relevance_level": 2,
-    "justification": "Détecté par le filet de sécurité déterministe — absent du résultat GPT.",
-}
 
-
-def _is_covered_by_gpt_indicators(
-    needle: str,
-    gpt_added: list[dict[str, Any]],
-    gpt_removed: list[dict[str, Any]],
-    gpt_renamed: list[dict[str, Any]],
-) -> bool:
-    """Check if a normalised indicator is already accounted for in GPT output."""
-    norm = _normalize_indicator_text(needle)
-    for item in gpt_removed:
-        if _normalize_indicator_text(item.get("value", "")) == norm:
-            return True
-    for item in gpt_added:
-        if _normalize_indicator_text(item.get("value", "")) == norm:
-            return True
-    for item in gpt_renamed:
-        if _normalize_indicator_text(item.get("previous", "")) == norm:
-            return True
-        if _normalize_indicator_text(item.get("current", "")) == norm:
-            return True
-    return False
-
-
-def _apply_indicator_guard(
+def _inspect_diff_artifacts_gpt(
     indicator_diff: dict[str, Any],
-    prev_indicators: list[str],
-    curr_indicators: list[str],
+    previous_table: dict[str, Any],
+    current_table: dict[str, Any],
+    *,
+    model: str,
+    call_openai_json: Callable[..., dict[str, Any]],
+    usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Inject indicators missed by GPT but found by deterministic set diff."""
-    det = _deterministic_indicator_diff(prev_indicators, curr_indicators)
-    gpt_added = list(indicator_diff.get("indicators_added", []) or [])
-    gpt_removed = list(indicator_diff.get("indicators_removed", []) or [])
-    gpt_renamed = list(indicator_diff.get("indicators_renamed", []) or [])
+    """Use a GPT Inspector call to filter extraction artifacts from indicator diff.
 
-    injected = 0
-    for val in det["det_removed"]:
-        if not _is_covered_by_gpt_indicators(val, gpt_added, gpt_removed, gpt_renamed):
-            gpt_removed.append(
+    Returns a cleaned indicator_diff with artifacts removed and artifact pairs
+    optionally promoted to renames.
+    """
+    added = list(indicator_diff.get("indicators_added", []) or [])
+    removed = list(indicator_diff.get("indicators_removed", []) or [])
+
+    # Nothing to inspect — skip the call entirely
+    if not added and not removed:
+        return indicator_diff
+
+    prev_ctx = _table_context(previous_table)
+    curr_ctx = _table_context(current_table)
+
+    prompt: dict[str, Any] = {
+        "task": (
+            "Inspect each added/removed indicator from a first-pass diff and classify "
+            "it as a REAL semantic change or an extraction ARTIFACT."
+        ),
+        "rules": [
+            "Return JSON only and strictly follow the response_schema.",
+            "For each entry in added_indicators and removed_indicators, provide a verdict: 'real' or 'artifact'.",
+            "If an added and a removed indicator refer to the same business concept (extraction noise), "
+            "mark BOTH as 'artifact' and list them in artifact_pairs.",
+            "Be strict: when in doubt, prefer 'artifact'. False positives are worse than missing a real change.",
+        ],
+        "response_schema": {
+            "added_verdicts": [
                 {
-                    "value": val,
-                    "reason": "Filet déterministe : indicateur absent du tableau courant, non signalé par GPT.",
-                    "analyst_assessment": dict(_GUARD_ASSESSMENT),
-                    "source": "deterministic_guard",
+                    "value": "string",
+                    "verdict": "'real' or 'artifact'",
+                    "reason": "string",
                 }
-            )
-            injected += 1
-
-    for val in det["det_added"]:
-        if not _is_covered_by_gpt_indicators(val, gpt_added, gpt_removed, gpt_renamed):
-            gpt_added.append(
+            ],
+            "removed_verdicts": [
                 {
-                    "value": val,
-                    "reason": "Filet déterministe : indicateur absent du tableau précédent, non signalé par GPT.",
-                    "analyst_assessment": dict(_GUARD_ASSESSMENT),
-                    "source": "deterministic_guard",
+                    "value": "string",
+                    "verdict": "'real' or 'artifact'",
+                    "reason": "string",
                 }
-            )
-            injected += 1
+            ],
+            "artifact_pairs": [
+                {"removed": "string", "added": "string", "reason": "string"}
+            ],
+        },
+        "added_indicators": [item.get("value", "") for item in added],
+        "removed_indicators": [item.get("value", "") for item in removed],
+        "previous_table": {
+            "title": prev_ctx["title"],
+            "indicators": prev_ctx["indicators"],
+        },
+        "current_table": {
+            "title": curr_ctx["title"],
+            "indicators": curr_ctx["indicators"],
+        },
+    }
 
-    if injected:
-        logger.info("Deterministic guard injected %d indicator change(s).", injected)
+    # Also pass existing renames for context
+    renamed = list(indicator_diff.get("indicators_renamed", []) or [])
+    if renamed:
+        prompt["already_renamed"] = [
+            {"previous": r.get("previous", ""), "current": r.get("current", "")}
+            for r in renamed
+        ]
+
+    data = call_openai_json(
+        model=model,
+        messages=[
+            {"role": "system", "content": INSPECTOR_SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": json.dumps(prompt, ensure_ascii=False),
+            },
+        ],
+        usage_recorder=usage_recorder,
+        call_kind="inspect_artifacts",
+    )
+
+    # --- Parse verdicts and filter ---
+    added_verdicts = (
+        data.get("added_verdicts", [])
+        if isinstance(data.get("added_verdicts"), list)
+        else []
+    )
+    removed_verdicts = (
+        data.get("removed_verdicts", [])
+        if isinstance(data.get("removed_verdicts"), list)
+        else []
+    )
+
+    # Build sets of artifact values for fast lookup
+    artifact_added: set[str] = set()
+    for v in added_verdicts:
+        if (
+            isinstance(v, dict)
+            and str(v.get("verdict", "")).strip().lower() == "artifact"
+        ):
+            artifact_added.add(str(v.get("value", "")).strip())
+
+    artifact_removed: set[str] = set()
+    for v in removed_verdicts:
+        if (
+            isinstance(v, dict)
+            and str(v.get("verdict", "")).strip().lower() == "artifact"
+        ):
+            artifact_removed.add(str(v.get("value", "")).strip())
+
+    filtered_added = [
+        item
+        for item in added
+        if str(item.get("value", "")).strip() not in artifact_added
+    ]
+    filtered_removed = [
+        item
+        for item in removed
+        if str(item.get("value", "")).strip() not in artifact_removed
+    ]
+
+    n_filtered = (len(added) - len(filtered_added)) + (
+        len(removed) - len(filtered_removed)
+    )
+    if n_filtered:
+        logger.info(
+            "Inspector filtered %d artifact(s) from indicator diff.",
+            n_filtered,
+        )
 
     return {
         **indicator_diff,
-        "indicators_added": gpt_added,
-        "indicators_removed": gpt_removed,
-        "indicators_renamed": gpt_renamed,
-    }
-
-
-def _is_covered_by_gpt_footnotes(
-    fn_id: str,
-    gpt_added: list[dict[str, Any]],
-    gpt_removed: list[dict[str, Any]],
-    gpt_renamed: list[dict[str, Any]],
-) -> bool:
-    """Check if a footnote ID is already accounted for in GPT output."""
-    for item in gpt_added:
-        if str(item.get("id", "")).strip() == fn_id:
-            return True
-    for item in gpt_removed:
-        if str(item.get("id", "")).strip() == fn_id:
-            return True
-    for item in gpt_renamed:
-        if str(item.get("previous_id", "")).strip() == fn_id:
-            return True
-        if str(item.get("current_id", "")).strip() == fn_id:
-            return True
-    return False
-
-
-def _apply_footnote_guard(
-    footnote_diff: dict[str, Any],
-    prev_footnotes: list[dict[str, str]],
-    curr_footnotes: list[dict[str, str]],
-) -> dict[str, Any]:
-    """Inject footnote changes missed by GPT but found by deterministic diff."""
-    det = _deterministic_footnote_diff(prev_footnotes, curr_footnotes)
-    gpt_added = list(footnote_diff.get("footnotes_added", []) or [])
-    gpt_removed = list(footnote_diff.get("footnotes_removed", []) or [])
-    gpt_renamed = list(footnote_diff.get("footnotes_renamed", []) or [])
-
-    injected = 0
-    for fn in det["det_removed"]:
-        fid = str(fn.get("id", "")).strip()
-        if fid and not _is_covered_by_gpt_footnotes(
-            fid, gpt_added, gpt_removed, gpt_renamed
-        ):
-            gpt_removed.append(
-                {
-                    "id": fid,
-                    "text": fn.get("text", ""),
-                    "reason": "Filet déterministe : note absente du tableau courant, non signalée par GPT.",
-                    "analyst_assessment": dict(_GUARD_ASSESSMENT),
-                    "source": "deterministic_guard",
-                }
-            )
-            injected += 1
-
-    for fn in det["det_added"]:
-        fid = str(fn.get("id", "")).strip()
-        if fid and not _is_covered_by_gpt_footnotes(
-            fid, gpt_added, gpt_removed, gpt_renamed
-        ):
-            gpt_added.append(
-                {
-                    "id": fid,
-                    "text": fn.get("text", ""),
-                    "reason": "Filet déterministe : note absente du tableau précédent, non signalée par GPT.",
-                    "analyst_assessment": dict(_GUARD_ASSESSMENT),
-                    "source": "deterministic_guard",
-                }
-            )
-            injected += 1
-
-    for fn in det["det_modified"]:
-        fid = str(fn.get("previous_id", "")).strip()
-        if fid and not _is_covered_by_gpt_footnotes(
-            fid, gpt_added, gpt_removed, gpt_renamed
-        ):
-            gpt_renamed.append(
-                {
-                    "previous_id": fid,
-                    "current_id": str(fn.get("current_id", "")).strip(),
-                    "previous_text": fn.get("previous_text", ""),
-                    "current_text": fn.get("current_text", ""),
-                    "reason": "Filet déterministe : texte de note modifié matériellement, non signalé par GPT.",
-                    "analyst_assessment": dict(_GUARD_ASSESSMENT),
-                    "source": "deterministic_guard",
-                }
-            )
-            injected += 1
-
-    if injected:
-        logger.info("Deterministic guard injected %d footnote change(s).", injected)
-
-    return {
-        **footnote_diff,
-        "footnotes_added": gpt_added,
-        "footnotes_removed": gpt_removed,
-        "footnotes_renamed": gpt_renamed,
+        "indicators_added": filtered_added,
+        "indicators_removed": filtered_removed,
     }
 
 
@@ -1027,23 +1071,22 @@ def diff_table_pair_gpt(
         max_validation_attempts=max_validation_attempts,
     )
 
-    # --- Post-GPT deterministic guard ---
-    prev_ctx = _table_context(previous_table)
-    curr_ctx = _table_context(current_table)
-    indicator_diff = _apply_indicator_guard(
+    # --- Post-diff GPT Inspector (artifact filter) ---
+    pre_inspect_adds = list(indicator_diff.get("indicators_added", []) or [])
+    pre_inspect_removes = list(indicator_diff.get("indicators_removed", []) or [])
+    inspector_called = bool(pre_inspect_adds or pre_inspect_removes)
+    indicator_diff = _inspect_diff_artifacts_gpt(
         indicator_diff,
-        prev_ctx["indicators"],
-        curr_ctx["indicators"],
+        previous_table,
+        current_table,
+        model=model,
+        call_openai_json=call_openai_json,
+        usage_recorder=usage_recorder,
     )
 
     previous_footnotes = _normalize_footnotes(previous_table.get("footnotes", []))
     current_footnotes = _normalize_footnotes(current_table.get("footnotes", []))
     footnote_gpt_called = bool(previous_footnotes and current_footnotes)
-    footnote_diff = _apply_footnote_guard(
-        footnote_diff,
-        previous_footnotes,
-        current_footnotes,
-    )
 
     technical_diff: dict[str, Any] = {
         "indicators_added": list(indicator_diff.get("indicators_added", []) or []),
@@ -1079,5 +1122,7 @@ def diff_table_pair_gpt(
         "technical_diff": technical_diff,
         "reason": reason,
         "diff_mode": "gpt",
-        "diff_calls_total": 2 if footnote_gpt_called else 1,
+        "diff_calls_total": (
+            (2 if footnote_gpt_called else 1) + (1 if inspector_called else 0)
+        ),
     }

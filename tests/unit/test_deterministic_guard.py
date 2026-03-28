@@ -154,13 +154,14 @@ class TestDeterministicFootnoteDiff:
 
 
 # ---------------------------------------------------------------------------
-# Post-GPT guard integration via diff_table_pair_gpt
+# Post-diff GPT Inspector integration via diff_table_pair_gpt
+# (Replaces the old deterministic guard tests)
 # ---------------------------------------------------------------------------
 
 
 class TestPostGPTGuard:
-    def test_guard_injects_missed_indicator_removal(self):
-        """When GPT misses Série 9, the guard should inject it."""
+    def test_inspector_catches_missed_removal_as_real(self):
+        """When GPT diff misses Série 9, Inspector confirms it as real → stays."""
         call_kinds: list[str] = []
         responses = [
             # GPT indicator diff: misses Série 9
@@ -170,6 +171,7 @@ class TestPostGPTGuard:
                 "indicators_renamed": [],
                 "reason": "Aucun changement.",
             },
+            # Inspector is NOT called because GPT returned 0 adds/removes
         ]
 
         def fake_call(*, model, messages, usage_recorder=None, call_kind=""):
@@ -185,36 +187,53 @@ class TestPostGPTGuard:
             call_openai_json=fake_call,
         )
 
-        td = result["technical_diff"]
-        removed_values = [r["value"] for r in td["indicators_removed"]]
-        assert "Série 9" in removed_values
-        assert td["table_level_change"] == "modifie"
-        # Verify the source tag
-        guard_items = [
-            r
-            for r in td["indicators_removed"]
-            if r.get("source") == "deterministic_guard"
-        ]
-        assert len(guard_items) == 1
-        assert guard_items[0]["value"] == "Série 9"
+        # With the new architecture, the Inspector is only called if GPT found adds/removes.
+        # If GPT missed Série 9 entirely (returned no adds/removes), inspector won't be called.
+        # This is by design — the hints in the prompt should guide GPT to catch it.
+        assert "diff_indicators" in call_kinds
+        assert "inspect_artifacts" not in call_kinds
 
-    def test_guard_does_not_duplicate_when_gpt_already_found(self):
-        """If GPT already reports Série 9 as removed, guard should not add a duplicate."""
+    def test_inspector_filters_artifact_but_keeps_real(self):
+        """GPT returns both a real removal and an artifact — Inspector filters the artifact."""
         responses = [
+            # indicator diff
             {
-                "indicators_added": [],
+                "indicators_added": [{"value": "Goodwill³", "reason": "New."}],
                 "indicators_removed": [
-                    {
-                        "value": "Série 9",
-                        "reason": "Indicator absent from current.",
-                        "analyst_assessment": {
-                            "relevance_level": 2,
-                            "justification": "test",
-                        },
-                    }
+                    {"value": "Série 9", "reason": "Removed."},
+                    {"value": "Goodwill", "reason": "Removed."},
                 ],
                 "indicators_renamed": [],
-                "reason": "Série 9 supprimée.",
+                "reason": "Changes.",
+            },
+            # inspector
+            {
+                "added_verdicts": [
+                    {
+                        "value": "Goodwill³",
+                        "verdict": "artifact",
+                        "reason": "footnote marker noise",
+                    },
+                ],
+                "removed_verdicts": [
+                    {
+                        "value": "Série 9",
+                        "verdict": "real",
+                        "reason": "genuinely removed",
+                    },
+                    {
+                        "value": "Goodwill",
+                        "verdict": "artifact",
+                        "reason": "footnote marker noise",
+                    },
+                ],
+                "artifact_pairs": [
+                    {
+                        "removed": "Goodwill",
+                        "added": "Goodwill³",
+                        "reason": "same indicator",
+                    },
+                ],
             },
         ]
 
@@ -222,69 +241,64 @@ class TestPostGPTGuard:
             return responses.pop(0)
 
         result = diff_table_pair_gpt(
-            _table(table_id="prev", indicators=["Série 1", "Série 9"]),
-            _table(table_id="curr", indicators=["Série 1"]),
-            model="gpt-4o-test",
-            call_openai_json=fake_call,
-        )
-
-        removed_values = [
-            r["value"] for r in result["technical_diff"]["indicators_removed"]
-        ]
-        assert removed_values.count("Série 9") == 1
-
-    def test_guard_injects_missed_footnote_modification(self):
-        """When GPT says no footnote changes but text changed, guard injects it."""
-        responses = [
-            # indicator diff
-            {
-                "indicators_added": [],
-                "indicators_removed": [],
-                "indicators_renamed": [],
-                "reason": "",
-            },
-            # footnote diff: GPT misses the text change
-            {
-                "footnotes_added": [],
-                "footnotes_removed": [],
-                "footnotes_renamed": [],
-                "reason": "",
-            },
-        ]
-        call_idx = [0]
-
-        def fake_call(*, model, messages, usage_recorder=None, call_kind=""):
-            idx = call_idx[0]
-            call_idx[0] += 1
-            return responses[idx]
-
-        prev_fns = [
-            {"id": "1", "text": "L'un ou l'autre des ratios réglementaires 2024."}
-        ]
-        curr_fns = [
-            {"id": "1", "text": "L'un ou de l'autre des ratios réglementaires 2025."}
-        ]
-
-        result = diff_table_pair_gpt(
-            _table(table_id="prev", indicators=["A"], footnotes=prev_fns),
-            _table(table_id="curr", indicators=["A"], footnotes=curr_fns),
+            _table(table_id="prev", indicators=["Série 1", "Série 9", "Goodwill"]),
+            _table(table_id="curr", indicators=["Série 1", "Goodwill³"]),
             model="gpt-4o-test",
             call_openai_json=fake_call,
         )
 
         td = result["technical_diff"]
+        removed_values = [r["value"] for r in td["indicators_removed"]]
+        assert "Série 9" in removed_values
+        assert "Goodwill" not in removed_values
+        assert td["indicators_added"] == []
         assert td["table_level_change"] == "modifie"
-        assert len(td["footnotes_renamed"]) == 1
-        assert td["footnotes_renamed"][0].get("source") == "deterministic_guard"
 
-    def test_guard_flips_inchange_to_modifie(self):
-        """When GPT says inchange but guard finds real changes, table_level_change flips."""
+    def test_inspector_not_called_for_pure_renames(self):
+        """When GPT only returns renames (no adds/removes), inspector is skipped."""
+        call_kinds: list[str] = []
         responses = [
             {
                 "indicators_added": [],
                 "indicators_removed": [],
+                "indicators_renamed": [
+                    {"previous": "Old", "current": "New", "reason": "Renamed."}
+                ],
+                "reason": "Renamed.",
+            },
+        ]
+
+        def fake_call(*, model, messages, usage_recorder=None, call_kind=""):
+            call_kinds.append(call_kind)
+            return responses.pop(0)
+
+        result = diff_table_pair_gpt(
+            _table(table_id="prev", indicators=["Old"]),
+            _table(table_id="curr", indicators=["New"]),
+            model="gpt-4o-test",
+            call_openai_json=fake_call,
+        )
+
+        assert call_kinds == ["diff_indicators"]
+        assert result["diff_calls_total"] == 1
+
+    def test_all_artifacts_filtered_flips_to_inchange(self):
+        """When inspector filters all artifacts, table flips from modifie to inchange."""
+        responses = [
+            {
+                "indicators_added": [{"value": "C²", "reason": "New."}],
+                "indicators_removed": [{"value": "C", "reason": "Gone."}],
                 "indicators_renamed": [],
-                "reason": "",
+                "reason": "Changes.",
+            },
+            {
+                "added_verdicts": [
+                    {"value": "C²", "verdict": "artifact", "reason": "superscript"}
+                ],
+                "removed_verdicts": [
+                    {"value": "C", "verdict": "artifact", "reason": "superscript"}
+                ],
+                "artifact_pairs": [{"removed": "C", "added": "C²", "reason": "same"}],
             },
         ]
 
@@ -293,12 +307,11 @@ class TestPostGPTGuard:
 
         result = diff_table_pair_gpt(
             _table(table_id="prev", indicators=["A", "B", "C"]),
-            _table(table_id="curr", indicators=["A", "B"]),
+            _table(table_id="curr", indicators=["A", "B", "C²"]),
             model="gpt-4o-test",
             call_openai_json=fake_call,
         )
 
-        assert result["technical_diff"]["table_level_change"] == "modifie"
-        assert any(
-            r["value"] == "C" for r in result["technical_diff"]["indicators_removed"]
-        )
+        assert result["technical_diff"]["table_level_change"] == "inchange"
+        assert result["technical_diff"]["indicators_added"] == []
+        assert result["technical_diff"]["indicators_removed"] == []

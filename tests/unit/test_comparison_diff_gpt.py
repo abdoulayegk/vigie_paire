@@ -121,6 +121,18 @@ def test_diff_table_pair_gpt_calls_both_gpt_specialists_when_footnotes_exist_on_
             ],
             "reason": "Note modifiée matériellement.",
         },
+        # Inspector: confirms the added indicator is real
+        {
+            "added_verdicts": [
+                {
+                    "value": "Ratio de levier",
+                    "verdict": "real",
+                    "reason": "genuinely new",
+                },
+            ],
+            "removed_verdicts": [],
+            "artifact_pairs": [],
+        },
     ]
 
     def fake_call_openai_json(**kwargs):
@@ -142,7 +154,7 @@ def test_diff_table_pair_gpt_calls_both_gpt_specialists_when_footnotes_exist_on_
         call_openai_json=fake_call_openai_json,
     )
 
-    assert call_kinds == ["diff_indicators", "diff_footnotes"]
+    assert call_kinds == ["diff_indicators", "diff_footnotes", "inspect_artifacts"]
     ind_added = result["technical_diff"]["indicators_added"]
     assert len(ind_added) == 1
     assert ind_added[0]["value"] == "Ratio de levier"
