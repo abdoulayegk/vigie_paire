@@ -76,6 +76,22 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 import dash_bootstrap_components as dbc
+from dash import (
+    ALL,
+    MATCH,
+    Dash,
+    Input,
+    Output,
+    State,
+    callback,
+    clientside_callback,
+    ctx,
+    dcc,
+    html,
+    no_update,
+)
+from dash.exceptions import PreventUpdate
+
 from app.comparison_canonical import (
     get_meta_value,
     is_canonical_comparison,
@@ -128,7 +144,11 @@ from app.review_queue_normalizer import (
     build_normalized_review_queue,
 )
 from app.review_state import set_review_status
-from app.review_storage import load_review_state, save_review_state
+from app.review_storage import (
+    is_review_state_stale,
+    load_review_state,
+    save_review_state,
+)
 from app.ui_config import INDICATOR_COMPARISON_DIR
 from app.ui_detection import (
     _detect_sections_core,
@@ -141,21 +161,6 @@ from app.ui_io import (
     load_comparison_result,
     save_pdfs_to_temp,
 )
-from dash import (
-    ALL,
-    MATCH,
-    Dash,
-    Input,
-    Output,
-    State,
-    callback,
-    clientside_callback,
-    ctx,
-    dcc,
-    html,
-    no_update,
-)
-from dash.exceptions import PreventUpdate
 from vigilance.dash_app.components.review_detail_v2 import build_review_detail_v2
 
 
@@ -190,6 +195,10 @@ def _persist_review_state(
     compare_path = _comparison_path_from_meta(indicator_meta, indicator_result)
     if not compare_path:
         return
+    # Extract run_id from meta so the state can be invalidated on re-run.
+    run_id = ""
+    if indicator_meta:
+        run_id = str(indicator_meta.get("run_id", ""))
     save_review_state(
         compare_path,
         review_items=review_items,
@@ -200,6 +209,7 @@ def _persist_review_state(
         current_indicator_idx=current_indicator_idx,
         preferred_store=preferred_store,
         source=source,
+        comparison_run_id=run_id,
     )
 
 
@@ -843,9 +853,17 @@ def load_from_db(n_clicks, run_file):
         missing_msg = _missing_pdf_warning(paths)
 
         # Récupérer / regénérer les Review Items
-        # On initialise d'abords en vide et on compte sur un chargement d'état potentiellement défini
-        # L'état sauvegardé de la review s'il existe prime, sinon on crée
+        # L'état sauvegardé de la review prime, SAUF si le comparison.json
+        # a été re-généré (run_id différent) — dans ce cas on repart à zéro.
         state = load_review_state(target_path)
+        current_run_id = meta.get("run_id", "")
+        if state and is_review_state_stale(state, current_run_id):
+            logger.info(
+                "Review state is stale (stored run_id=%s vs current=%s) — discarding.",
+                state.get("comparison_run_id", ""),
+                current_run_id,
+            )
+            state = None
         review_items = state.get("review_items") if state else None
 
         if not review_items:

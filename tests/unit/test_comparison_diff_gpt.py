@@ -22,7 +22,9 @@ def _table(
     }
 
 
-def test_diff_table_pair_gpt_skips_footnote_call_when_both_tables_have_no_footnotes() -> None:
+def test_diff_table_pair_gpt_skips_footnote_call_when_both_tables_have_no_footnotes() -> (
+    None
+):
     call_kinds: list[str] = []
     responses = [
         {
@@ -53,7 +55,9 @@ def test_diff_table_pair_gpt_skips_footnote_call_when_both_tables_have_no_footno
     assert result["technical_diff"]["table_level_change"] == "inchange"
 
 
-def test_diff_table_pair_gpt_structurally_classifies_one_sided_footnotes_without_gpt_call() -> None:
+def test_diff_table_pair_gpt_structurally_classifies_one_sided_footnotes_without_gpt_call() -> (
+    None
+):
     call_kinds: list[str] = []
     responses = [
         {
@@ -82,19 +86,19 @@ def test_diff_table_pair_gpt_structurally_classifies_one_sided_footnotes_without
     assert call_kinds == ["diff_indicators"]
     assert result["diff_mode"] == "gpt"
     assert result["diff_calls_total"] == 1
-    assert result["technical_diff"]["footnotes_added"] == [
-        {
-            "id": "1",
-            "text": "Nouvelle note",
-            "reason": "Footnote present only in current table.",
-        }
-    ]
+    fn_added = result["technical_diff"]["footnotes_added"]
+    assert len(fn_added) == 1
+    assert fn_added[0]["id"] == "1"
+    assert fn_added[0]["text"] == "Nouvelle note"
+    assert fn_added[0]["reason"] == "Footnote present only in current table."
     assert result["technical_diff"]["footnotes_removed"] == []
     assert result["technical_diff"]["footnotes_renamed"] == []
     assert result["technical_diff"]["table_level_change"] == "modifie"
 
 
-def test_diff_table_pair_gpt_calls_both_gpt_specialists_when_footnotes_exist_on_both_sides() -> None:
+def test_diff_table_pair_gpt_calls_both_gpt_specialists_when_footnotes_exist_on_both_sides() -> (
+    None
+):
     call_kinds: list[str] = []
     responses = [
         {
@@ -139,18 +143,16 @@ def test_diff_table_pair_gpt_calls_both_gpt_specialists_when_footnotes_exist_on_
     )
 
     assert call_kinds == ["diff_indicators", "diff_footnotes"]
-    assert result["technical_diff"]["indicators_added"] == [
-        {"value": "Ratio de levier", "reason": "Nouveau."}
-    ]
-    assert result["technical_diff"]["footnotes_renamed"] == [
-        {
-            "previous_id": "1",
-            "current_id": "2",
-            "previous_text": "Note A",
-            "current_text": "Note A mise à jour",
-            "reason": "Même note, wording mis à jour.",
-        }
-    ]
+    ind_added = result["technical_diff"]["indicators_added"]
+    assert len(ind_added) == 1
+    assert ind_added[0]["value"] == "Ratio de levier"
+    assert ind_added[0]["reason"] == "Nouveau."
+    fn_renamed = result["technical_diff"]["footnotes_renamed"]
+    assert len(fn_renamed) == 1
+    assert fn_renamed[0]["previous_id"] == "1"
+    assert fn_renamed[0]["current_id"] == "2"
+    assert fn_renamed[0]["previous_text"] == "Note A"
+    assert fn_renamed[0]["current_text"] == "Note A mise à jour"
 
 
 def test_diff_table_pair_gpt_retries_malformed_indicator_response() -> None:

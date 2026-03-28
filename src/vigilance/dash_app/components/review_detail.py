@@ -764,6 +764,15 @@ def render_indicator_diff_view(
     confidence = item.get("confidence", 0.0)
     comment = item.get("comment", "")
     indicators = item.get("indicators", [])
+
+    def _ind_sort_key(ind: dict) -> int:
+        assessment = ind.get("analyst_assessment", {})
+        level = assessment.get("relevance_level") if isinstance(assessment, dict) else None
+        if isinstance(level, int):
+            return level
+        return 999
+
+    indicators = sorted(indicators, key=_ind_sort_key)
     n_indicators = len(indicators)
 
     n_decided = sum(
@@ -826,6 +835,32 @@ def render_indicator_diff_view(
         className="mb-3",
     )
 
+    def _render_assessment(ind_dict: dict) -> html.Div:
+        assessment = ind_dict.get("analyst_assessment", {})
+        if not assessment:
+            return html.Div()
+        level = assessment.get("relevance_level")
+        just = str(assessment.get("justification", "")).strip()
+        if not level and not just:
+            return html.Div()
+        
+        badge_color = "secondary"
+        badge_label = "Info"
+        if level == 1:
+            badge_color = "danger"
+            badge_label = "Critique"
+        elif level == 2:
+            badge_color = "warning"
+            badge_label = "Élevé"
+        elif level == 3:
+            badge_color = "info"
+            badge_label = "Faible"
+            
+        return html.Div([
+            dbc.Badge(badge_label, color=badge_color, className="me-2"),
+            html.Small(just, className="text-muted fst-italic")
+        ], className="mt-1 p-1 bg-white rounded border d-flex align-items-center w-100", style={"marginLeft": "32px"})
+
     indicator_rows = []
     for i, ind in enumerate(indicators):
         name = ind.get("name", "")
@@ -833,7 +868,7 @@ def render_indicator_diff_view(
         ind_status = ind.get("review_status", "pending")
         is_current = i == indicator_idx
 
-        row_class = "d-flex align-items-center py-1 border-bottom px-2 rounded"
+        row_class = "d-flex flex-column py-2 border-bottom px-2 rounded align-items-start"
         if is_current:
             row_class += " bg-primary bg-opacity-10 border border-primary"
 
@@ -841,12 +876,18 @@ def render_indicator_diff_view(
         indicator_rows.append(
             html.Div(
                 [
-                    _indicator_status_icon(ind_status),
-                    _indicator_badge(change_type),
-                    row_content,
-                    html.I(className="bi bi-chevron-right text-primary")
-                    if is_current
-                    else html.Span(),
+                    html.Div(
+                        [
+                            _indicator_status_icon(ind_status),
+                            _indicator_badge(change_type),
+                            row_content,
+                            html.I(className="bi bi-chevron-right text-primary")
+                            if is_current
+                            else html.Span(),
+                        ],
+                        className="d-flex align-items-center w-100"
+                    ),
+                    _render_assessment(ind)
                 ],
                 id={"type": "indicator-item", "index": i},
                 className=row_class,
@@ -893,7 +934,18 @@ def render_indicator_diff_view(
 
     footnote_detail_rows = []
     if item_type == "footnote":
-        for fc in item.get("footnote_changes", []):
+        footnote_changes = item.get("footnote_changes", [])
+        
+        def _fn_sort_key(fc: dict) -> int:
+            assessment = fc.get("analyst_assessment", {})
+            level = assessment.get("relevance_level") if isinstance(assessment, dict) else None
+            if isinstance(level, int):
+                return level
+            return 999
+            
+        footnote_changes = sorted(footnote_changes, key=_fn_sort_key)
+
+        for fc in footnote_changes:
             ref = fc.get("footnote_ref", "")
             ctype = fc.get("change_type", "")
             old_text = fc.get("old_text") or ""
@@ -946,6 +998,30 @@ def render_indicator_diff_view(
                         className="ms-3 mb-1 bg-light p-1 rounded",
                     )
                 )
+            assessment = fc.get("analyst_assessment", {})
+            if assessment:
+                level = assessment.get("relevance_level")
+                just = str(assessment.get("justification", "")).strip()
+                if level or just:
+                    if level == 1:
+                        badge_color = "danger"
+                        badge_label = "Critique"
+                    elif level == 2:
+                        badge_color = "warning"
+                        badge_label = "Élevé"
+                    elif level == 3:
+                        badge_color = "info"
+                        badge_label = "Faible"
+                    else:
+                        badge_color = "secondary"
+                        badge_label = "Info"
+                    detail_children.append(
+                        html.Div([
+                            dbc.Badge(badge_label, color=badge_color, className="me-2"),
+                            html.Small(just, className="text-muted fst-italic")
+                        ], className="ms-3 mb-1 mt-1 p-1 bg-white border rounded d-flex align-items-center")
+                    )
+
             footnote_detail_rows.append(
                 html.Div(detail_children, className="py-2 border-bottom")
             )

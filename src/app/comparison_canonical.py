@@ -246,6 +246,7 @@ def _build_footnotes_diff(
             "new_text": str(item.get("text", "") or ""),
             "change_type": "new",
             "reason": str(item.get("reason", "") or ""),
+            "analyst_assessment": dict(item.get("analyst_assessment") or {}) if isinstance(item.get("analyst_assessment"), dict) else {},
         }
         for item in list(technical_diff.get("footnotes_added", []) or [])
         if isinstance(item, dict)
@@ -257,6 +258,7 @@ def _build_footnotes_diff(
             "new_text": "",
             "change_type": "removed",
             "reason": str(item.get("reason", "") or ""),
+            "analyst_assessment": dict(item.get("analyst_assessment") or {}) if isinstance(item.get("analyst_assessment"), dict) else {},
         }
         for item in list(technical_diff.get("footnotes_removed", []) or [])
         if isinstance(item, dict)
@@ -270,6 +272,7 @@ def _build_footnotes_diff(
             "new_text": str(item.get("current_text", "") or ""),
             "change_type": "modified",
             "reason": str(item.get("reason", "") or ""),
+            "analyst_assessment": dict(item.get("analyst_assessment") or {}) if isinstance(item.get("analyst_assessment"), dict) else {},
         }
         for item in list(technical_diff.get("footnotes_renamed", []) or [])
         if isinstance(item, dict)
@@ -367,25 +370,31 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
             current_table=current_table,
         )
         footnotes_diff, footnotes_counts = _build_footnotes_diff(technical_diff)
-        added = [
-            str(entry.get("value", "") or "").strip()
+        added_raw = [
+            entry
             for entry in list(technical_diff.get("indicators_added", []) or [])
             if isinstance(entry, dict) and str(entry.get("value", "") or "").strip()
         ]
-        removed = [
-            str(entry.get("value", "") or "").strip()
+        removed_raw = [
+            entry
             for entry in list(technical_diff.get("indicators_removed", []) or [])
             if isinstance(entry, dict) and str(entry.get("value", "") or "").strip()
         ]
+        renamed_raw = [
+            entry
+            for entry in list(technical_diff.get("indicators_renamed", []) or [])
+            if isinstance(entry, dict)
+            and str(entry.get("previous", "") or "").strip()
+            and str(entry.get("current", "") or "").strip()
+        ]
+        added = [str(entry.get("value", "") or "").strip() for entry in added_raw]
+        removed = [str(entry.get("value", "") or "").strip() for entry in removed_raw]
         renamed = [
             {
                 "from": str(entry.get("previous", "") or "").strip(),
                 "to": str(entry.get("current", "") or "").strip(),
             }
-            for entry in list(technical_diff.get("indicators_renamed", []) or [])
-            if isinstance(entry, dict)
-            and str(entry.get("previous", "") or "").strip()
-            and str(entry.get("current", "") or "").strip()
+            for entry in renamed_raw
         ]
         match_info = matched_lookup.get(previous_table_id, {})
         
@@ -429,9 +438,9 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 "added_indicators": added,
                 "removed_indicators": removed,
                 "renamed_indicators": renamed,
-                "added_indicators_raw": list(added),
-                "removed_indicators_raw": list(removed),
-                "renamed_indicators_raw": [dict(entry) for entry in renamed],
+                "added_indicators_raw": added_raw,
+                "removed_indicators_raw": removed_raw,
+                "renamed_indicators_raw": renamed_raw,
                 "all_indicators_t1": list(previous_table.get("indicators", []) or []),
                 "all_indicators_t2": list(current_table.get("indicators", []) or []),
                 "counts": {

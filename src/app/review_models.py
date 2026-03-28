@@ -73,7 +73,7 @@ class ReviewItem:
     title_resolution_method_t2: str = ""
     table_title_raw: str = ""
     table_status: str = ""
-    indicators: list[dict[str, str]] = field(default_factory=list)
+    indicators: list[dict[str, Any]] = field(default_factory=list)
     match_method: str = ""
     all_indicators_t1: list[str] = field(default_factory=list)
     all_indicators_t2: list[str] = field(default_factory=list)

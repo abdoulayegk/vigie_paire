@@ -36,6 +36,20 @@ def load_review_state(compare_path: str | Path | None) -> dict[str, Any] | None:
     return payload
 
 
+def is_review_state_stale(
+    state: dict[str, Any] | None,
+    current_run_id: str,
+) -> bool:
+    """Return True if the persisted state does not match the current run_id."""
+    if not state or not current_run_id:
+        return False
+    stored_run_id = state.get("comparison_run_id", "")
+    if not stored_run_id:
+        # Legacy state without run_id — treat as stale to force refresh.
+        return True
+    return stored_run_id != current_run_id
+
+
 def save_review_state(
     compare_path: str | Path | None,
     *,
@@ -47,6 +61,7 @@ def save_review_state(
     current_indicator_idx: int | None = None,
     preferred_store: str = "review_queue",
     source: str = "dash",
+    comparison_run_id: str = "",
 ) -> Path | None:
     """Persist the current analyst review state next to the comparison JSON."""
     state_path = get_review_state_path(compare_path)
@@ -56,6 +71,7 @@ def save_review_state(
     payload: dict[str, Any] = {
         "schema_version": REVIEW_STATE_SCHEMA_VERSION,
         "compare_path": str(compare_path),
+        "comparison_run_id": str(comparison_run_id or ""),
         "saved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "source": str(source or "dash"),
         "preferred_store": str(preferred_store or "review_queue"),

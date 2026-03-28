@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import json
+import logging
+import re
 from typing import Any, Callable
+
+logger = logging.getLogger(__name__)
 
 
 INDICATOR_DIFF_SYSTEM_PROMPT = """
@@ -29,6 +33,10 @@ Rules:
 - If one previous indicator appears split into multiple current indicators, treat the new rows as additions rather than rename.
 - If multiple previous indicators appear merged into one current indicator, do not classify as rename unless the scope is clearly identical.
 - Be conservative and report only clear semantic differences.
+- For each change (added, removed, renamed), you MUST act as a Senior Risk Analyst and provide an 'analyst_assessment'.
+- The 'analyst_assessment' MUST include:
+  1. A 'relevance_level' (integer: 1 for Critical/Regulatory, 2 for High/Structural, 3 for Low/Cosmetic).
+  2. A 'justification' (A clear, articulate, and complete descriptive sentence explaining the business impact and exactly WHY this change matters to guide the analyst).
 
 Output must be valid JSON following the response_schema.
 """
@@ -56,6 +64,10 @@ Rules:
 - Footnote with the same semantic meaning but materially revised wording = footnotes_renamed.
 - Compare footnotes within the logical scope of the same table and in the context of the already-matched pair.
 - Be conservative and report only clear semantic differences.
+- For each change (added, removed, renamed), you MUST act as a Senior Risk Analyst and provide an 'analyst_assessment'.
+- The 'analyst_assessment' MUST include:
+  1. A 'relevance_level' (integer: 1 for Critical/Regulatory, 2 for High/Structural, 3 for Low/Cosmetic).
+  2. A 'justification' (A clear, articulate, and complete descriptive sentence explaining the business impact and exactly WHY this change matters to guide the analyst).
 
 Output must be valid JSON following the response_schema.
 """
@@ -80,10 +92,10 @@ def _normalize_reasoned_values(
     items: Any,
     *,
     value_key: str,
-) -> list[dict[str, str]]:
+) -> list[dict[str, Any]]:
     if not isinstance(items, list):
         return []
-    out: list[dict[str, str]] = []
+    out: list[dict[str, Any]] = []
     for item in items:
         if not isinstance(item, dict):
             continue
@@ -91,14 +103,23 @@ def _normalize_reasoned_values(
         reason = str(item.get("reason", "") or "").strip()
         if not value:
             continue
-        out.append({value_key: value, "reason": reason})
+        assessment = item.get("analyst_assessment")
+        out.append(
+            {
+                value_key: value,
+                "reason": reason,
+                "analyst_assessment": dict(assessment)
+                if isinstance(assessment, dict)
+                else {},
+            }
+        )
     return out
 
 
-def _normalize_indicator_renames(items: Any) -> list[dict[str, str]]:
+def _normalize_indicator_renames(items: Any) -> list[dict[str, Any]]:
     if not isinstance(items, list):
         return []
-    out: list[dict[str, str]] = []
+    out: list[dict[str, Any]] = []
     for item in items:
         if not isinstance(item, dict):
             continue
@@ -107,14 +128,24 @@ def _normalize_indicator_renames(items: Any) -> list[dict[str, str]]:
         reason = str(item.get("reason", "") or "").strip()
         if not previous or not current:
             continue
-        out.append({"previous": previous, "current": current, "reason": reason})
+        assessment = item.get("analyst_assessment")
+        out.append(
+            {
+                "previous": previous,
+                "current": current,
+                "reason": reason,
+                "analyst_assessment": dict(assessment)
+                if isinstance(assessment, dict)
+                else {},
+            }
+        )
     return out
 
 
-def _normalize_footnote_reasoned_values(items: Any) -> list[dict[str, str]]:
+def _normalize_footnote_reasoned_values(items: Any) -> list[dict[str, Any]]:
     if not isinstance(items, list):
         return []
-    out: list[dict[str, str]] = []
+    out: list[dict[str, Any]] = []
     for item in items:
         if not isinstance(item, dict):
             continue
@@ -123,14 +154,24 @@ def _normalize_footnote_reasoned_values(items: Any) -> list[dict[str, str]]:
         reason = str(item.get("reason", "") or "").strip()
         if not fid and not text:
             continue
-        out.append({"id": fid, "text": text, "reason": reason})
+        assessment = item.get("analyst_assessment")
+        out.append(
+            {
+                "id": fid,
+                "text": text,
+                "reason": reason,
+                "analyst_assessment": dict(assessment)
+                if isinstance(assessment, dict)
+                else {},
+            }
+        )
     return out
 
 
-def _normalize_footnote_renames(items: Any) -> list[dict[str, str]]:
+def _normalize_footnote_renames(items: Any) -> list[dict[str, Any]]:
     if not isinstance(items, list):
         return []
-    out: list[dict[str, str]] = []
+    out: list[dict[str, Any]] = []
     for item in items:
         if not isinstance(item, dict):
             continue
@@ -146,6 +187,7 @@ def _normalize_footnote_renames(items: Any) -> list[dict[str, str]]:
             and not current_text
         ):
             continue
+        assessment = item.get("analyst_assessment")
         out.append(
             {
                 "previous_id": previous_id,
@@ -153,9 +195,176 @@ def _normalize_footnote_renames(items: Any) -> list[dict[str, str]]:
                 "previous_text": previous_text,
                 "current_text": current_text,
                 "reason": reason,
+                "analyst_assessment": dict(assessment)
+                if isinstance(assessment, dict)
+                else {},
             }
         )
     return out
+
+
+# ---------------------------------------------------------------------------
+# Deterministic diff helpers (safety net)
+# ---------------------------------------------------------------------------
+
+_FOOTNOTE_MARKER_RE = re.compile(r"\s*[\(\[]\d{1,2}[\)\]]\s*")
+_SUPERSCRIPT_DIGITS = str.maketrans(
+    "", "", "\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079\u2070"
+)
+
+
+def _normalize_indicator_text(name: str) -> str:
+    """Normalise an indicator name for deterministic set comparison."""
+    text = str(name or "").strip()
+    text = _FOOTNOTE_MARKER_RE.sub("", text)
+    text = text.translate(_SUPERSCRIPT_DIGITS)
+    text = re.sub(r"\s+", " ", text).strip().lower()
+    return text
+
+
+def _token_overlap_ratio(a: str, b: str) -> float:
+    """Return Jaccard-like token overlap ratio between two normalised strings."""
+    tokens_a = set(a.split())
+    tokens_b = set(b.split())
+    if not tokens_a or not tokens_b:
+        return 0.0
+    intersection = tokens_a & tokens_b
+    union = tokens_a | tokens_b
+    return len(intersection) / len(union) if union else 0.0
+
+
+def _deterministic_indicator_diff(
+    prev_indicators: list[str],
+    curr_indicators: list[str],
+    *,
+    fuzzy_threshold: float = 0.80,
+) -> dict[str, Any]:
+    """Compute set-based indicator diff before GPT call."""
+    prev_norm = {_normalize_indicator_text(ind): ind for ind in prev_indicators}
+    curr_norm = {_normalize_indicator_text(ind): ind for ind in curr_indicators}
+
+    prev_keys = set(prev_norm.keys())
+    curr_keys = set(curr_norm.keys())
+
+    only_prev = prev_keys - curr_keys
+    only_curr = curr_keys - prev_keys
+
+    # Attempt fuzzy matching between the unmatched sets
+    det_renamed: list[dict[str, str]] = []
+    matched_prev: set[str] = set()
+    matched_curr: set[str] = set()
+    for pkey in sorted(only_prev):
+        best_score = 0.0
+        best_ckey = ""
+        for ckey in sorted(only_curr):
+            if ckey in matched_curr:
+                continue
+            score = _token_overlap_ratio(pkey, ckey)
+            if score > best_score:
+                best_score = score
+                best_ckey = ckey
+        if best_score >= fuzzy_threshold and best_ckey:
+            det_renamed.append(
+                {"previous": prev_norm[pkey], "current": curr_norm[best_ckey]}
+            )
+            matched_prev.add(pkey)
+            matched_curr.add(best_ckey)
+
+    det_removed = [prev_norm[k] for k in sorted(only_prev - matched_prev)]
+    det_added = [curr_norm[k] for k in sorted(only_curr - matched_curr)]
+
+    return {
+        "det_added": det_added,
+        "det_removed": det_removed,
+        "det_renamed": det_renamed,
+    }
+
+
+_DATE_QUARTER_RE = re.compile(
+    r"\d{1,2}\s*(?:janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\s*\d{4}"
+    r"|T[1-4]\s*[-–]?\s*\d{4}"
+    r"|\d{4}\s*[-–]?\s*T[1-4]"
+    r"|(?:premier|deuxième|troisième|quatrième)\s+trimestre\s+\d{4}",
+    re.IGNORECASE,
+)
+_PAGE_REF_RE_DET = re.compile(r"pages?\s+\d+\s*[àa]\s*\d+", re.IGNORECASE)
+
+
+def _normalize_footnote_text(text: str) -> str:
+    """Normalise footnote text for deterministic comparison (strip dates/pages/whitespace)."""
+    text = str(text or "").strip()
+    text = _DATE_QUARTER_RE.sub("__DATE__", text)
+    text = _PAGE_REF_RE_DET.sub("__PAGE__", text)
+    text = re.sub(r"\s+", " ", text).strip().lower()
+    return text
+
+
+def _deterministic_footnote_diff(
+    prev_footnotes: list[dict[str, str]],
+    curr_footnotes: list[dict[str, str]],
+) -> dict[str, Any]:
+    """Compute set-based footnote diff before GPT call."""
+    prev_by_id: dict[str, dict[str, str]] = {}
+    for fn in prev_footnotes:
+        fid = str(fn.get("id", "") or "").strip()
+        if fid:
+            prev_by_id[fid] = fn
+
+    curr_by_id: dict[str, dict[str, str]] = {}
+    for fn in curr_footnotes:
+        fid = str(fn.get("id", "") or "").strip()
+        if fid:
+            curr_by_id[fid] = fn
+
+    prev_ids = set(prev_by_id.keys())
+    curr_ids = set(curr_by_id.keys())
+
+    det_added = [curr_by_id[fid] for fid in sorted(curr_ids - prev_ids)]
+    det_removed = [prev_by_id[fid] for fid in sorted(prev_ids - curr_ids)]
+
+    # For IDs present in both, check if text changed materially
+    det_modified: list[dict[str, Any]] = []
+    for fid in sorted(prev_ids & curr_ids):
+        prev_text = _normalize_footnote_text(prev_by_id[fid].get("text", ""))
+        curr_text = _normalize_footnote_text(curr_by_id[fid].get("text", ""))
+        if prev_text != curr_text:
+            det_modified.append(
+                {
+                    "previous_id": fid,
+                    "current_id": fid,
+                    "previous_text": prev_by_id[fid].get("text", ""),
+                    "current_text": curr_by_id[fid].get("text", ""),
+                }
+            )
+
+    # Cross-match removed/added by text similarity (re-numbered footnotes)
+    unmatched_removed = list(det_removed)
+    unmatched_added = list(det_added)
+    cross_renamed: list[dict[str, Any]] = []
+    still_removed: list[dict[str, str]] = []
+    for rfn in unmatched_removed:
+        r_text = _normalize_footnote_text(rfn.get("text", ""))
+        best_idx = -1
+        best_match = False
+        for idx, afn in enumerate(unmatched_added):
+            a_text = _normalize_footnote_text(afn.get("text", ""))
+            if r_text == a_text:
+                best_idx = idx
+                best_match = True
+                break
+        if best_match:
+            afn = unmatched_added.pop(best_idx)
+            # Same text, different ID → pure renumbering, not a real change
+        else:
+            still_removed.append(rfn)
+    det_removed = still_removed
+    det_added = unmatched_added
+
+    return {
+        "det_added": det_added,
+        "det_removed": det_removed,
+        "det_modified": det_modified,
+    }
 
 
 def _table_context(entry: dict[str, Any]) -> dict[str, Any]:
@@ -167,8 +376,14 @@ def _table_context(entry: dict[str, Any]) -> dict[str, Any]:
         "table_summary": str(entry.get("table_summary", "") or ""),
         "page": entry.get("page"),
         "row_count": int(entry.get("row_count", len(indicators)) or 0),
-        "headers": [str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
-        "indicators": [str(value).strip() for value in indicators if str(value).strip()],
+        "headers": [
+            str(value).strip()
+            for value in list(entry.get("headers", []) or [])
+            if str(value).strip()
+        ],
+        "indicators": [
+            str(value).strip() for value in indicators if str(value).strip()
+        ],
         "footnotes": _normalize_footnotes(entry.get("footnotes", [])),
     }
 
@@ -197,7 +412,10 @@ def _call_validated_diff_json(
             model=model,
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(request_prompt, ensure_ascii=False)},
+                {
+                    "role": "user",
+                    "content": json.dumps(request_prompt, ensure_ascii=False),
+                },
             ],
             usage_recorder=usage_recorder,
             call_kind=call_kind,
@@ -224,40 +442,94 @@ def diff_indicators_pair_gpt(
     usage_recorder: list[dict[str, Any]] | None = None,
     max_validation_attempts: int = 3,
 ) -> dict[str, Any]:
-    prompt = {
+    prev_ctx = _table_context(previous_table)
+    curr_ctx = _table_context(current_table)
+
+    # --- Deterministic pre-diff (safety net) ---
+    det_diff = _deterministic_indicator_diff(
+        prev_ctx["indicators"],
+        curr_ctx["indicators"],
+    )
+    det_hints: dict[str, Any] = {}
+    if det_diff["det_removed"] or det_diff["det_added"] or det_diff["det_renamed"]:
+        det_hints = {
+            "deterministic_analysis": {
+                "mechanically_absent_from_current": det_diff["det_removed"],
+                "mechanically_absent_from_previous": det_diff["det_added"],
+                "potential_renames_by_similarity": [
+                    {"previous": r["previous"], "current": r["current"]}
+                    for r in det_diff["det_renamed"]
+                ],
+            }
+        }
+
+    rules = [
+        "Return JSON only and strictly follow the response_schema.",
+        "The two tables are already matched. Do not question the pairing.",
+        "Compare only the canonical indicators.",
+        "Ignore numeric values, dates, periods, formatting differences, OCR noise, row order changes, and line wrapping.",
+        "Indicator present only in current = indicators_added.",
+        "Indicator present only in previous = indicators_removed.",
+        "Classify indicators_renamed only when the concept, scope, and role are clearly identical.",
+        "When unsure between rename and add/remove, prefer add/remove.",
+        "Do not treat row splits or row merges as renamed indicators unless the scope is clearly identical.",
+    ]
+    if det_hints:
+        rules.append(
+            "A deterministic set analysis is provided in 'deterministic_analysis'. "
+            "You MUST account for every indicator listed there: classify each as truly "
+            "added/removed/renamed, or explain why it is OCR noise / footnote marker difference."
+        )
+
+    prompt: dict[str, Any] = {
         "task": (
             "Compare two already-matched banking tables and report only meaningful semantic indicator changes."
         ),
-        "rules": [
-            "Return JSON only and strictly follow the response_schema.",
-            "The two tables are already matched. Do not question the pairing.",
-            "Compare only the canonical indicators.",
-            "Ignore numeric values, dates, periods, formatting differences, OCR noise, row order changes, and line wrapping.",
-            "Indicator present only in current = indicators_added.",
-            "Indicator present only in previous = indicators_removed.",
-            "Classify indicators_renamed only when the concept, scope, and role are clearly identical.",
-            "When unsure between rename and add/remove, prefer add/remove.",
-            "Do not treat row splits or row merges as renamed indicators unless the scope is clearly identical.",
-        ],
+        "rules": rules,
         "response_schema": {
-            "indicators_added": [{"value": "string", "reason": "string"}],
-            "indicators_removed": [{"value": "string", "reason": "string"}],
+            "indicators_added": [
+                {
+                    "value": "string",
+                    "reason": "string",
+                    "analyst_assessment": {
+                        "relevance_level": "integer",
+                        "justification": "string",
+                    },
+                }
+            ],
+            "indicators_removed": [
+                {
+                    "value": "string",
+                    "reason": "string",
+                    "analyst_assessment": {
+                        "relevance_level": "integer",
+                        "justification": "string",
+                    },
+                }
+            ],
             "indicators_renamed": [
-                {"previous": "string", "current": "string", "reason": "string"}
+                {
+                    "previous": "string",
+                    "current": "string",
+                    "reason": "string",
+                    "analyst_assessment": {
+                        "relevance_level": "integer",
+                        "justification": "string",
+                    },
+                }
             ],
             "reason": "string",
         },
         "previous_table": {
-            key: value
-            for key, value in _table_context(previous_table).items()
-            if key != "footnotes"
+            key: value for key, value in prev_ctx.items() if key != "footnotes"
         },
         "current_table": {
-            key: value
-            for key, value in _table_context(current_table).items()
-            if key != "footnotes"
+            key: value for key, value in curr_ctx.items() if key != "footnotes"
         },
     }
+    if det_hints:
+        prompt.update(det_hints)
+
     data = _call_validated_diff_json(
         system_prompt=INDICATOR_DIFF_SYSTEM_PROMPT,
         prompt=prompt,
@@ -314,6 +586,10 @@ def diff_footnotes_pair_gpt(
                     "id": item["id"],
                     "text": item["text"],
                     "reason": "Footnote present only in current table.",
+                    "analyst_assessment": {
+                        "relevance_level": 3,
+                        "justification": "L'ajout d'une nouvelle note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact.",
+                    },
                 }
                 for item in current_footnotes
             ],
@@ -330,6 +606,10 @@ def diff_footnotes_pair_gpt(
                     "id": item["id"],
                     "text": item["text"],
                     "reason": "Footnote present only in previous table.",
+                    "analyst_assessment": {
+                        "relevance_level": 3,
+                        "justification": "La suppression d'une ancienne note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact.",
+                    },
                 }
                 for item in previous_footnotes
             ],
@@ -337,23 +617,80 @@ def diff_footnotes_pair_gpt(
             "reason": "Previous table contains footnotes while current table has none.",
         }
 
-    prompt = {
+    # --- Deterministic footnote pre-diff (safety net) ---
+    det_fn_diff = _deterministic_footnote_diff(previous_footnotes, current_footnotes)
+    det_fn_hints: dict[str, Any] = {}
+    if (
+        det_fn_diff["det_added"]
+        or det_fn_diff["det_removed"]
+        or det_fn_diff["det_modified"]
+    ):
+        det_fn_hints = {
+            "deterministic_footnote_analysis": {
+                "footnotes_only_in_current": [
+                    {"id": fn.get("id", ""), "text": fn.get("text", "")}
+                    for fn in det_fn_diff["det_added"]
+                ],
+                "footnotes_only_in_previous": [
+                    {"id": fn.get("id", ""), "text": fn.get("text", "")}
+                    for fn in det_fn_diff["det_removed"]
+                ],
+                "footnotes_with_text_changes": [
+                    {
+                        "id": fn["previous_id"],
+                        "previous_text": fn["previous_text"],
+                        "current_text": fn["current_text"],
+                    }
+                    for fn in det_fn_diff["det_modified"]
+                ],
+            }
+        }
+
+    fn_rules = [
+        "Return JSON only and strictly follow the response_schema.",
+        "The two tables are already matched. Do not question the pairing.",
+        "Ignore pure footnote renumbering when meaning is unchanged.",
+        "Ignore changes caused only by dates, quarter references, formatting, punctuation, or minor drafting changes that do not alter meaning.",
+        "Footnote present only in current = footnotes_added.",
+        "Footnote present only in previous = footnotes_removed.",
+        "Same semantic note with materially revised wording = footnotes_renamed.",
+        "Be conservative and report only clear semantic differences.",
+    ]
+    if det_fn_hints:
+        fn_rules.append(
+            "A deterministic footnote analysis is provided in 'deterministic_footnote_analysis'. "
+            "You MUST account for every footnote listed there: classify each change as truly "
+            "added/removed/renamed, or explain why it is pure renumbering / date-only change."
+        )
+
+    prompt: dict[str, Any] = {
         "task": (
             "Compare footnotes for two already-matched banking tables and report only meaningful semantic footnote changes."
         ),
-        "rules": [
-            "Return JSON only and strictly follow the response_schema.",
-            "The two tables are already matched. Do not question the pairing.",
-            "Ignore pure footnote renumbering when meaning is unchanged.",
-            "Ignore changes caused only by dates, quarter references, formatting, punctuation, or minor drafting changes that do not alter meaning.",
-            "Footnote present only in current = footnotes_added.",
-            "Footnote present only in previous = footnotes_removed.",
-            "Same semantic note with materially revised wording = footnotes_renamed.",
-            "Be conservative and report only clear semantic differences.",
-        ],
+        "rules": fn_rules,
         "response_schema": {
-            "footnotes_added": [{"id": "string", "text": "string", "reason": "string"}],
-            "footnotes_removed": [{"id": "string", "text": "string", "reason": "string"}],
+            "footnotes_added": [
+                {
+                    "id": "string",
+                    "text": "string",
+                    "reason": "string",
+                    "analyst_assessment": {
+                        "relevance_level": "integer",
+                        "justification": "string",
+                    },
+                }
+            ],
+            "footnotes_removed": [
+                {
+                    "id": "string",
+                    "text": "string",
+                    "reason": "string",
+                    "analyst_assessment": {
+                        "relevance_level": "integer",
+                        "justification": "string",
+                    },
+                }
+            ],
             "footnotes_renamed": [
                 {
                     "previous_id": "string",
@@ -361,6 +698,10 @@ def diff_footnotes_pair_gpt(
                     "previous_text": "string",
                     "current_text": "string",
                     "reason": "string",
+                    "analyst_assessment": {
+                        "relevance_level": "integer",
+                        "justification": "string",
+                    },
                 }
             ],
             "reason": "string",
@@ -401,6 +742,10 @@ def diff_footnotes_pair_gpt(
                             "previous_text": "Comprennent les engagements de la Banque.",
                             "current_text": "Comprennent aussi les engagements de la Banque.",
                             "reason": "Same note with materially revised wording.",
+                            "analyst_assessment": {
+                                "relevance_level": 2,
+                                "justification": "La clarification de la portée des engagements élargit le périmètre d'inclusion comptable, ce qui justifie une révision analytique.",
+                            },
                         }
                     ],
                 },
@@ -410,12 +755,21 @@ def diff_footnotes_pair_gpt(
             "previous_table": _table_context(previous_table),
             "current_table": _table_context(current_table),
             "indicator_diff": {
-                "indicators_added": list(indicator_diff.get("indicators_added", []) or []),
-                "indicators_removed": list(indicator_diff.get("indicators_removed", []) or []),
-                "indicators_renamed": list(indicator_diff.get("indicators_renamed", []) or []),
+                "indicators_added": list(
+                    indicator_diff.get("indicators_added", []) or []
+                ),
+                "indicators_removed": list(
+                    indicator_diff.get("indicators_removed", []) or []
+                ),
+                "indicators_renamed": list(
+                    indicator_diff.get("indicators_renamed", []) or []
+                ),
             },
         },
     }
+    if det_fn_hints:
+        prompt.update(det_fn_hints)
+
     data = _call_validated_diff_json(
         system_prompt=FOOTNOTE_DIFF_SYSTEM_PROMPT,
         prompt=prompt,
@@ -444,6 +798,179 @@ def diff_footnotes_pair_gpt(
     }
 
 
+# ---------------------------------------------------------------------------
+# Post-GPT deterministic guard
+# ---------------------------------------------------------------------------
+
+_GUARD_ASSESSMENT = {
+    "relevance_level": 2,
+    "justification": "Détecté par le filet de sécurité déterministe — absent du résultat GPT.",
+}
+
+
+def _is_covered_by_gpt_indicators(
+    needle: str,
+    gpt_added: list[dict[str, Any]],
+    gpt_removed: list[dict[str, Any]],
+    gpt_renamed: list[dict[str, Any]],
+) -> bool:
+    """Check if a normalised indicator is already accounted for in GPT output."""
+    norm = _normalize_indicator_text(needle)
+    for item in gpt_removed:
+        if _normalize_indicator_text(item.get("value", "")) == norm:
+            return True
+    for item in gpt_added:
+        if _normalize_indicator_text(item.get("value", "")) == norm:
+            return True
+    for item in gpt_renamed:
+        if _normalize_indicator_text(item.get("previous", "")) == norm:
+            return True
+        if _normalize_indicator_text(item.get("current", "")) == norm:
+            return True
+    return False
+
+
+def _apply_indicator_guard(
+    indicator_diff: dict[str, Any],
+    prev_indicators: list[str],
+    curr_indicators: list[str],
+) -> dict[str, Any]:
+    """Inject indicators missed by GPT but found by deterministic set diff."""
+    det = _deterministic_indicator_diff(prev_indicators, curr_indicators)
+    gpt_added = list(indicator_diff.get("indicators_added", []) or [])
+    gpt_removed = list(indicator_diff.get("indicators_removed", []) or [])
+    gpt_renamed = list(indicator_diff.get("indicators_renamed", []) or [])
+
+    injected = 0
+    for val in det["det_removed"]:
+        if not _is_covered_by_gpt_indicators(val, gpt_added, gpt_removed, gpt_renamed):
+            gpt_removed.append(
+                {
+                    "value": val,
+                    "reason": "Filet déterministe : indicateur absent du tableau courant, non signalé par GPT.",
+                    "analyst_assessment": dict(_GUARD_ASSESSMENT),
+                    "source": "deterministic_guard",
+                }
+            )
+            injected += 1
+
+    for val in det["det_added"]:
+        if not _is_covered_by_gpt_indicators(val, gpt_added, gpt_removed, gpt_renamed):
+            gpt_added.append(
+                {
+                    "value": val,
+                    "reason": "Filet déterministe : indicateur absent du tableau précédent, non signalé par GPT.",
+                    "analyst_assessment": dict(_GUARD_ASSESSMENT),
+                    "source": "deterministic_guard",
+                }
+            )
+            injected += 1
+
+    if injected:
+        logger.info("Deterministic guard injected %d indicator change(s).", injected)
+
+    return {
+        **indicator_diff,
+        "indicators_added": gpt_added,
+        "indicators_removed": gpt_removed,
+        "indicators_renamed": gpt_renamed,
+    }
+
+
+def _is_covered_by_gpt_footnotes(
+    fn_id: str,
+    gpt_added: list[dict[str, Any]],
+    gpt_removed: list[dict[str, Any]],
+    gpt_renamed: list[dict[str, Any]],
+) -> bool:
+    """Check if a footnote ID is already accounted for in GPT output."""
+    for item in gpt_added:
+        if str(item.get("id", "")).strip() == fn_id:
+            return True
+    for item in gpt_removed:
+        if str(item.get("id", "")).strip() == fn_id:
+            return True
+    for item in gpt_renamed:
+        if str(item.get("previous_id", "")).strip() == fn_id:
+            return True
+        if str(item.get("current_id", "")).strip() == fn_id:
+            return True
+    return False
+
+
+def _apply_footnote_guard(
+    footnote_diff: dict[str, Any],
+    prev_footnotes: list[dict[str, str]],
+    curr_footnotes: list[dict[str, str]],
+) -> dict[str, Any]:
+    """Inject footnote changes missed by GPT but found by deterministic diff."""
+    det = _deterministic_footnote_diff(prev_footnotes, curr_footnotes)
+    gpt_added = list(footnote_diff.get("footnotes_added", []) or [])
+    gpt_removed = list(footnote_diff.get("footnotes_removed", []) or [])
+    gpt_renamed = list(footnote_diff.get("footnotes_renamed", []) or [])
+
+    injected = 0
+    for fn in det["det_removed"]:
+        fid = str(fn.get("id", "")).strip()
+        if fid and not _is_covered_by_gpt_footnotes(
+            fid, gpt_added, gpt_removed, gpt_renamed
+        ):
+            gpt_removed.append(
+                {
+                    "id": fid,
+                    "text": fn.get("text", ""),
+                    "reason": "Filet déterministe : note absente du tableau courant, non signalée par GPT.",
+                    "analyst_assessment": dict(_GUARD_ASSESSMENT),
+                    "source": "deterministic_guard",
+                }
+            )
+            injected += 1
+
+    for fn in det["det_added"]:
+        fid = str(fn.get("id", "")).strip()
+        if fid and not _is_covered_by_gpt_footnotes(
+            fid, gpt_added, gpt_removed, gpt_renamed
+        ):
+            gpt_added.append(
+                {
+                    "id": fid,
+                    "text": fn.get("text", ""),
+                    "reason": "Filet déterministe : note absente du tableau précédent, non signalée par GPT.",
+                    "analyst_assessment": dict(_GUARD_ASSESSMENT),
+                    "source": "deterministic_guard",
+                }
+            )
+            injected += 1
+
+    for fn in det["det_modified"]:
+        fid = str(fn.get("previous_id", "")).strip()
+        if fid and not _is_covered_by_gpt_footnotes(
+            fid, gpt_added, gpt_removed, gpt_renamed
+        ):
+            gpt_renamed.append(
+                {
+                    "previous_id": fid,
+                    "current_id": str(fn.get("current_id", "")).strip(),
+                    "previous_text": fn.get("previous_text", ""),
+                    "current_text": fn.get("current_text", ""),
+                    "reason": "Filet déterministe : texte de note modifié matériellement, non signalé par GPT.",
+                    "analyst_assessment": dict(_GUARD_ASSESSMENT),
+                    "source": "deterministic_guard",
+                }
+            )
+            injected += 1
+
+    if injected:
+        logger.info("Deterministic guard injected %d footnote change(s).", injected)
+
+    return {
+        **footnote_diff,
+        "footnotes_added": gpt_added,
+        "footnotes_removed": gpt_removed,
+        "footnotes_renamed": gpt_renamed,
+    }
+
+
 def _compose_pair_reason(
     *,
     indicator_reason: str,
@@ -461,9 +988,15 @@ def _compose_pair_reason(
             return " ".join(parts)
         return "Des changements sémantiques ont été détectés sur les indicateurs et les notes de bas de page."
     if has_indicator_changes:
-        return indicator_reason or "Des changements sémantiques ont été détectés sur les indicateurs."
+        return (
+            indicator_reason
+            or "Des changements sémantiques ont été détectés sur les indicateurs."
+        )
     if has_footnote_changes:
-        return footnote_reason or "Des changements sémantiques ont été détectés sur les notes de bas de page."
+        return (
+            footnote_reason
+            or "Des changements sémantiques ont été détectés sur les notes de bas de page."
+        )
     return indicator_reason or footnote_reason or "Aucun changement sémantique détecté."
 
 
@@ -493,11 +1026,26 @@ def diff_table_pair_gpt(
         usage_recorder=usage_recorder,
         max_validation_attempts=max_validation_attempts,
     )
+
+    # --- Post-GPT deterministic guard ---
+    prev_ctx = _table_context(previous_table)
+    curr_ctx = _table_context(current_table)
+    indicator_diff = _apply_indicator_guard(
+        indicator_diff,
+        prev_ctx["indicators"],
+        curr_ctx["indicators"],
+    )
+
     previous_footnotes = _normalize_footnotes(previous_table.get("footnotes", []))
     current_footnotes = _normalize_footnotes(current_table.get("footnotes", []))
     footnote_gpt_called = bool(previous_footnotes and current_footnotes)
+    footnote_diff = _apply_footnote_guard(
+        footnote_diff,
+        previous_footnotes,
+        current_footnotes,
+    )
 
-    technical_diff = {
+    technical_diff: dict[str, Any] = {
         "indicators_added": list(indicator_diff.get("indicators_added", []) or []),
         "indicators_removed": list(indicator_diff.get("indicators_removed", []) or []),
         "indicators_renamed": list(indicator_diff.get("indicators_renamed", []) or []),
