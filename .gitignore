@@ -75,4 +75,7 @@ logs/
 .cursor/
 .cursorrules
 
+# Input PDFs
+Inputs/
+
 # Project-specific (add paths for large/sensitive files if needed)

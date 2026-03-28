@@ -264,6 +264,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     print(f"   ✓ manifest.json → {run_dir / 'manifest.json'}")
 
+    # ── Step 4: Deploy to Dash ───────────────────────────────────────────
+    print("\n" + "─" * 70)
+    print("🚀 ÉTAPE 4 — Déploiement vers le Dashboard (Dash)")
+    print("─" * 70)
+    if not args.skip_comparison and 'final_comparison' in locals() and final_comparison.exists():
+        dash_target_dir = project_root / "outputs" / "comparisons" / bank.lower() / f"{year_current}_{q_current.lower()}_vs_{year_previous}_{q_previous.lower()}"
+        dash_target_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(final_comparison, dash_target_dir / "comparison.json")
+        if current_pdf and current_pdf.exists():
+            shutil.copy2(current_pdf, dash_target_dir / "current_report.pdf")
+        if previous_pdf and previous_pdf.exists():
+            shutil.copy2(previous_pdf, dash_target_dir / "previous_report.pdf")
+        print(f"   ✓ Données déployées et prêtes pour Dash dans: {dash_target_dir.relative_to(project_root)}")
+
     # ── Final Summary ────────────────────────────────────────────────────
     print("\n" + "=" * 70)
     print("✅ PIPELINE TERMINÉ AVEC SUCCÈS")
