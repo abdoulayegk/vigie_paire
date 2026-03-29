@@ -13,14 +13,14 @@ def build_page_load(options: list[dict]) -> html.Div:
         children=[
             html.H4("Charger une comparaison existante"),
             html.P(
-                "Selectionnez un fichier JSON de comparaison.", className="text-muted"
+                "Sélectionnez un fichier JSON de comparaison.", className="text-muted"
             ),
             html.Hr(),
             dcc.Dropdown(
                 id="load-comparison-dropdown",
                 options=options,
                 value=None,
-                placeholder="Selectionner...",
+                placeholder="Sélectionner...",
                 className="mb-3",
             ),
             dbc.Button(

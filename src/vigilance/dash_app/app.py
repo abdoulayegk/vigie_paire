@@ -14,6 +14,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +146,7 @@ from app.review_queue_normalizer import (
 )
 from app.review_state import set_review_status
 from app.review_storage import (
+    is_review_state_compatible,
     is_review_state_stale,
     load_review_state,
     save_review_state,
@@ -214,6 +216,23 @@ def _persist_review_state(
 
 
 from vigilance.dash_app.components.review_queue_v2 import build_review_queue_v2
+
+
+def _stored_review_items_from_state(state: dict | None) -> list[dict] | None:
+    """Return persisted review items, rebuilding them from a saved queue if needed."""
+    if not isinstance(state, dict):
+        return None
+
+    stored_items = state.get("review_items")
+    if isinstance(stored_items, list) and stored_items:
+        return stored_items
+
+    stored_queue = state.get("review_queue")
+    if isinstance(stored_queue, list) and stored_queue:
+        return [it.to_dict() for it in _review_items_from_v2_queue(stored_queue)]
+    return None
+
+
 from vigilance.extraction.table_annotator import annotate_table_with_changes
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
@@ -239,7 +258,7 @@ stores = [
     dcc.Store(id="store-upload-t2", data=None),
     dcc.Store(
         id="store-quarter-context",
-        data=build_quarter_context("Q2", year=2025),
+        data=build_quarter_context("T2", year=2025),
     ),
     dcc.Store(id="store-pdf-paths", data=None),
     dcc.Store(id="store-temp-dir", data=None),
@@ -278,7 +297,7 @@ def _quarter_context_from_store(data: dict | None) -> dict:
         previous = data.get("previous")
         if isinstance(current, dict) and isinstance(previous, dict):
             return data
-    return build_quarter_context("Q2", year=2025)
+    return build_quarter_context("T2", year=2025)
 
 
 def _pdf_paths_from_comparison_meta(
@@ -326,6 +345,19 @@ def _pdf_paths_from_comparison_meta(
             or top_level.get("source_pdf_current")
             or ""
         ).strip()
+
+    compare_path_raw = str(
+        meta.get("compare_path") or top_level.get("compare_path") or ""
+    ).strip()
+    if compare_path_raw and (not previous or not current):
+        compare_path = Path(compare_path_raw)
+        run_dir = compare_path.parent if compare_path.suffix else compare_path
+        sibling_previous = run_dir / "previous_report.pdf"
+        sibling_current = run_dir / "current_report.pdf"
+        if not previous and sibling_previous.exists():
+            previous = str(sibling_previous)
+        if not current and sibling_current.exists():
+            current = str(sibling_current)
 
     return {
         "pdf_t1": previous,
@@ -583,7 +615,7 @@ def sync_sidebar_layout(is_collapsed):
 )
 def sync_quarter_context(year_value, current_quarter):
     """Derive the previous quarter from the selected current quarter."""
-    ctx = build_quarter_context(current_quarter or "Q2", year=year_value or 2025)
+    ctx = build_quarter_context(current_quarter or "T2", year=year_value or 2025)
     previous_label = str(ctx["previous"]["label"])
     current_label = str(ctx["current"]["label"])
     return (
@@ -605,10 +637,11 @@ def on_upload_t1(content, filename):
     """Stocker l'upload T1."""
     if not content:
         return None, ""
+    default_name = "rapport_precedent.pdf"
     return {
         "content": content,
-        "filename": filename or "previous.pdf",
-    }, f"Précédent: {filename or 'previous.pdf'}"
+        "filename": filename or default_name,
+    }, f"Précédent : {filename or default_name}"
 
 
 @callback(
@@ -621,10 +654,11 @@ def on_upload_t2(content, filename):
     """Stocker l'upload T2."""
     if not content:
         return None, ""
+    default_name = "rapport_courant.pdf"
     return {
         "content": content,
-        "filename": filename or "current.pdf",
-    }, f"Courant: {filename or 'current.pdf'}"
+        "filename": filename or default_name,
+    }, f"Courant : {filename or default_name}"
 
 
 @callback(
@@ -725,82 +759,6 @@ def populate_db_runs(source_type, bank_code, year, current_quarter):
     return filtered_options, filtered_options[0]["value"]
 
 
-def _pdf_paths_from_comparison_meta(indicator_meta, indicator_result):
-    """Extrait les chemins PDF depuis les metadatas avec fallbacks intelligents."""
-    import os
-
-    # Stratégie 1: chercher explicitement "paths"
-    paths = indicator_result.get("paths", {})
-    t1 = paths.get("t1")
-    t2 = paths.get("t2")
-    if t1 and t2 and os.path.exists(t1) and os.path.exists(t2):
-        return {"t1": t1, "t2": t2}
-
-    # Stratégie 2: regarder meta "input_pdfs" produit par le pipeline v2
-    ip = indicator_meta.get("input_pdfs", {})
-    t1 = ip.get("t1")
-    t2 = ip.get("t2")
-    if t1 and t2 and os.path.exists(t1) and os.path.exists(t2):
-        return {"t1": t1, "t2": t2}
-
-    # Stratégie 3: regarder meta "pdf_paths" (format canonical)
-    pp = indicator_meta.get("pdf_paths", {})
-    t1 = pp.get("pdf_t1") or pp.get("pdf_previous", "")
-    t2 = pp.get("pdf_t2") or pp.get("pdf_current", "")
-    if t1 and t2 and os.path.exists(t1) and os.path.exists(t2):
-        return {"t1": t1, "t2": t2}
-
-    # Stratégie 4: regarder archived_pdf dans meta
-    t1 = str(indicator_meta.get("archived_pdf_previous", "") or "").strip()
-    t2 = str(indicator_meta.get("archived_pdf_current", "") or "").strip()
-    if t1 and t2 and os.path.exists(t1) and os.path.exists(t2):
-        return {"t1": t1, "t2": t2}
-
-    # Stratégie 5: chercher les PDFs archivés dans le dossier de comparaison racine
-    # Avec la nouvelle structure (bnc/2025_t2_vs_2025_t1/comparison.json),
-    # le dossier parent contient directement les PDFs.
-    compare_path = str(indicator_meta.get("compare_path", "") or "")
-    if compare_path:
-        from pathlib import Path
-
-        run_dir = Path(compare_path).parent  # e.g. .../2025_t2_vs_2025_t1
-        if run_dir.exists():
-            prev_pdf = run_dir / "previous_report.pdf"
-            curr_pdf = run_dir / "current_report.pdf"
-            if prev_pdf.exists() and curr_pdf.exists():
-                return {"t1": str(prev_pdf), "t2": str(curr_pdf)}
-
-            # Fallback legacy si l'ancienne structure est lue (avec dossier timestamp)
-            comparison_dir = run_dir.parent
-            if comparison_dir.exists() and comparison_dir.name != bank_code:
-                # Search sibling runs for PDFs
-                for sibling in sorted(comparison_dir.iterdir(), reverse=True):
-                    if not sibling.is_dir():
-                        continue
-                    sprev_pdf = sibling / "previous_report.pdf"
-                    scurr_pdf = sibling / "current_report.pdf"
-                    if sprev_pdf.exists() and scurr_pdf.exists():
-                        return {"t1": str(sprev_pdf), "t2": str(scurr_pdf)}
-
-    # Stratégie 6: fallback vide
-    return {"t1": "", "t2": ""}
-
-
-def _missing_pdf_warning(paths):
-    """Vérifie si les PDFs référencés existent et génère un avertissement."""
-    from pathlib import Path
-
-    missing = []
-    if paths.get("t1") and not Path(paths["t1"]).exists():
-        missing.append("T1 (précédent)")
-    if paths.get("t2") and not Path(paths["t2"]).exists():
-        missing.append("T2 (courant)")
-
-    if missing:
-        return f"Attention: les PDFs originaux ({', '.join(missing)}) n'ont pas été trouvés sur le disque. Les aperçus ne s'afficheront pas correctement."
-    return None
-
-
 @callback(
     Output("store-comparison-result", "data", allow_duplicate=True),
     Output("store-indicator-result", "data", allow_duplicate=True),
@@ -852,9 +810,22 @@ def load_from_db(n_clicks, run_file):
         )
         missing_msg = _missing_pdf_warning(paths)
 
-        # Récupérer / regénérer les Review Items
-        # L'état sauvegardé de la review prime, SAUF si le comparison.json
-        # a été re-généré (run_id différent) — dans ce cas on repart à zéro.
+        fresh_review_items = build_review_items_from_indicator_result(
+            data,
+            bank_code=meta.get("bank_code") or "bnc",
+            quarter_from=quarter_label_from_payload(data, "previous"),
+            quarter_to=quarter_label_from_payload(data, "current"),
+            pdf_path_t1=str(paths.get("t1", "")),
+            pdf_path_t2=str(paths.get("t2", "")),
+        )
+        fresh_review_items_serialized = [
+            item.to_dict() if hasattr(item, "to_dict") else item
+            for item in fresh_review_items
+        ]
+
+        # Récupérer / regénérer les Review Items.
+        # L'état sauvegardé ne prime que s'il reste compatible avec le
+        # comparison.json courant; sinon on repart de la reconstruction fraîche.
         state = load_review_state(target_path)
         current_run_id = meta.get("run_id", "")
         if state and is_review_state_stale(state, current_run_id):
@@ -864,36 +835,34 @@ def load_from_db(n_clicks, run_file):
                 current_run_id,
             )
             state = None
-        review_items = state.get("review_items") if state else None
+        stored_review_items = _stored_review_items_from_state(state)
+        if state and not is_review_state_compatible(
+            state,
+            review_items=fresh_review_items_serialized,
+            stored_review_items=stored_review_items,
+        ):
+            logger.info(
+                "Review state is incompatible with current comparison payload — discarding."
+            )
+            state = None
+
+        review_items = stored_review_items if state else None
 
         if not review_items:
-            # Fallbacks for quarter logic based on conventional structure
-            q_t1 = meta.get("quarter_t1") or "Q1"
-            q_t2 = meta.get("quarter_t2") or "Q2"
-            bank = meta.get("bank_code") or "bnc"
-            review_items = build_review_items_from_indicator_result(
-                data,
-                bank_code=bank,
-                quarter_from=q_t1,
-                quarter_to=q_t2,
-                pdf_path_t1=str(paths.get("t1", "")),
-                pdf_path_t2=str(paths.get("t2", "")),
-            )
+            review_items = fresh_review_items
 
-        review_queue = state.get("review_queue") if state else None
-
-        if not review_queue:
-            # review_items may be ReviewItem objects; normalizer expects dicts
-            raw_items_for_queue = [
-                item.to_dict() if hasattr(item, "to_dict") else item
-                for item in review_items
-            ]
-            review_queue = build_normalized_review_queue(
-                indicator_result=data,
-                raw_items=raw_items_for_queue,
-                pdf_path_t1=str(paths.get("t1", "")),
-                pdf_path_t2=str(paths.get("t2", "")),
-            )
+        # Rebuild the review queue from the active review_items every time.
+        # Persisted queues can drift when the review-item shaping logic evolves.
+        raw_items_for_queue = [
+            item.to_dict() if hasattr(item, "to_dict") else item
+            for item in review_items
+        ]
+        review_queue = build_normalized_review_queue(
+            indicator_result=data,
+            raw_items=raw_items_for_queue,
+            pdf_path_t1=str(paths.get("t1", "")),
+            pdf_path_t2=str(paths.get("t2", "")),
+        )
 
         alert = dbc.Alert(
             "Comparaison chargée avec succès de la base de données.",
@@ -985,7 +954,7 @@ def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
             False,
             build_page_upload(),
             dbc.Alert(
-                f"Veuillez uploader les rapports {previous_label} et {current_label}.",
+                f"Veuillez téléverser les rapports {previous_label} et {current_label}.",
                 color="warning",
             ),
             None,
@@ -1032,7 +1001,7 @@ def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
             None,
             False,
             build_page_upload(),
-            dbc.Alert(f"Erreur detection: {e}", color="danger"),
+            dbc.Alert(f"Erreur de détection : {e}", color="danger"),
             None,
             False,
         )
@@ -1069,7 +1038,7 @@ def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
 def render_validation_sections(detection, paths, adjusted_sections):
     """Afficher les sections detectees avec inputs d'ajustement et preview PDF."""
     if not detection:
-        return html.Div("Aucune detection.")
+        return html.Div("Aucune détection.")
 
     t1 = detection.get("detection_t1", {})
     t2 = detection.get("detection_t2", {})
@@ -1115,7 +1084,7 @@ def render_validation_sections(detection, paths, adjusted_sections):
                     preview_imgs = pdf_images_from_base64(imgs, captions[: len(imgs)])
                 except Exception:
                     preview_imgs = html.Div(
-                        "Preview indisponible", className="text-muted"
+                        "Aperçu indisponible", className="text-muted"
                     )
             else:
                 preview_imgs = html.Div("Chemin PDF manquant", className="text-muted")
@@ -1148,7 +1117,7 @@ def render_validation_sections(detection, paths, adjusted_sections):
                         is_open=False,
                     ),
                     dbc.Button(
-                        "Voir preview",
+                        "Voir l'aperçu",
                         id={
                             "type": "section-preview-btn",
                             "index": idx,
@@ -1204,7 +1173,7 @@ def update_adjusted_indicator(adjusted_sections, detection):
     if count == 0:
         return None
     return html.Span(
-        f"{count} section(s) ajustee(s)",
+        f"{count} section(s) ajustée(s)",
         className="badge bg-secondary",
     )
 
@@ -1592,7 +1561,7 @@ def on_filter_section(n_clicks, current_filters):
 )
 def on_queue_item_click(n_clicks, queue, current_selection, filters):
     """Handle click on a table item in the V2 queue."""
-    if REVIEW_QUEUE_V2_ACTIVE:
+    if not REVIEW_QUEUE_V2_ACTIVE:
         raise PreventUpdate
     if not ctx.triggered:
         raise PreventUpdate
@@ -1650,7 +1619,7 @@ def update_review_proofs(
         raise PreventUpdate
     if not review_queue_data:
         return html.Div(
-            "Veuillez lancer une analyse pour voir les details.",
+            "Veuillez lancer une analyse pour voir les détails.",
             className="text-center text-muted mt-5",
         )
 
@@ -1671,9 +1640,11 @@ def update_review_proofs(
         )
 
     item = _table_to_proof_item(table, resolved_selection)
-    mode = (proof_display_mode or "crop").strip().lower()
-    if mode not in ("crop", "full", "footnote"):
-        mode = "crop"
+    mode = _effective_proof_display_mode(
+        table,
+        resolved_selection,
+        proof_display_mode,
+    )
 
     proof_t1 = _get_proof_render_result_for_item(
         item, "t1", paths or {}, proof_display_mode=mode
@@ -1706,7 +1677,7 @@ def update_review_meta(review_queue_data, selection, show_results):
         raise PreventUpdate
     if not review_queue_data:
         return html.Div(
-            "Veuillez lancer une analyse pour voir les details.",
+            "Veuillez lancer une analyse pour voir les détails.",
             className="text-center text-muted mt-5",
         )
 
@@ -2029,6 +2000,57 @@ def update_validation_time_footer(duration_sec, show_results):
     return f"{t('validation_time')}: {_format_duration(duration_sec)}"
 
 
+def _indicator_change_total(comp: dict) -> int:
+    return (
+        len(comp.get("added_indicators", []) or [])
+        + len(comp.get("removed_indicators", []) or [])
+        + len(comp.get("renamed_indicators", []) or [])
+    )
+
+
+def _footnote_change_total(comp: dict) -> int:
+    footnotes = comp.get("footnotes_counts", {}) or {}
+    return sum(
+        int(footnotes.get(key, 0) or 0) for key in ("added", "removed", "modified")
+    )
+
+
+def _comparison_change_total(comp: dict) -> int:
+    return _indicator_change_total(comp) + _footnote_change_total(comp)
+
+
+def _comparison_has_changes(comp: dict) -> bool:
+    return _comparison_change_total(comp) > 0
+
+
+def _review_priority_of(item: dict) -> str:
+    match_meta = item.get("match_metadata", {}) or {}
+    genai = item.get("genai_analysis", {}) or {}
+    return (
+        str(match_meta.get("review_priority") or genai.get("review_priority") or "")
+        .strip()
+        .lower()
+    )
+
+
+def _is_high_priority_item(item: dict) -> bool:
+    return _review_priority_of(item) in {"critique", "prioritaire"}
+
+
+def _is_low_confidence_comparison(comp: dict) -> bool:
+    try:
+        match_score = float(comp.get("match_score", 0.0) or 0.0)
+    except (TypeError, ValueError):
+        match_score = 0.0
+    table_status = str(comp.get("table_status", "") or "").strip().lower()
+    match_meta = comp.get("match_metadata", {}) or {}
+    return (
+        match_score < 0.85
+        or table_status in {"incertain", "needs_review"}
+        or bool(match_meta.get("drastic_row_drop", False))
+    )
+
+
 # =============================================================================
 # Legacy / Existing Callbacks (Kept for compatibility where needed)
 # =============================================================================
@@ -2143,10 +2165,11 @@ def render_results(comparison, indicator, show_results):
                 for s, n in sorted(section_counts.items())
             )
             parts.append(f"Sections impactees : {sections_str}. ")
+
         if notes_total:
-            parts.append(f"{notes_total} note(s) de bas de tableau modifiees.")
+            parts.append(f"{notes_total} note(s) de bas de tableau modifiées.")
         else:
-            parts.append("Aucune note de bas de tableau modifiee.")
+            parts.append("Aucune note de bas de tableau modifiée.")
         if (
             tables_t1
             and tables_t2
@@ -2155,13 +2178,13 @@ def render_results(comparison, indicator, show_results):
         ):
             parts.append(
                 " Aucun tableau comparable: l'extraction Vision de ce run n'a "
-                "renvoye aucun indicateur exploitable."
+                "renvoyé aucun indicateur exploitable."
             )
         if vision_rescued_pairs:
-            parts.append(f" {vision_rescued_pairs} tableau(x) recuperes par Vision.")
+            parts.append(f" {vision_rescued_pairs} tableau(x) récupérés par Vision.")
         if cross_section_rescued_pairs:
             parts.append(
-                f" {cross_section_rescued_pairs} tableau(x) recuperes par rescue cross-section."
+                f" {cross_section_rescued_pairs} tableau(x) récupérés par appariement inter-sections."
             )
 
         summary_text = "".join(parts)
@@ -2180,7 +2203,7 @@ def render_results(comparison, indicator, show_results):
                         [
                             dbc.AccordionItem(
                                 html.P(genai_text, className="mb-0 small text-muted"),
-                                title="Résumé GenAI (cliquer pour dérouler)",
+                                title="Résumé IA générative (cliquer pour dérouler)",
                             )
                         ],
                         start_collapsed=True,
@@ -2192,363 +2215,97 @@ def render_results(comparison, indicator, show_results):
     kpis = []
     if indicator:
         kpi = indicator.get("summary", indicator.get("kpi_metier", {}))
-        status_counts = kpi.get("status_counts", {}) or {}
-        structure_change = status_counts.get("structure_change", 0)
-        changed_t1 = kpi.get("tables_changed_t1", 0)
-        changed_t2 = kpi.get("tables_changed_t2", 0)
-        ambiguous_tables = int(kpi.get("ambiguous_tables", 0) or 0)
-        ambiguous_pairs = int(kpi.get("ambiguous_pairs", 0) or 0)
-        vision_rescued_pairs = int(kpi.get("vision_rescued_pairs", 0) or 0)
-        cross_section_rescued_pairs = int(
-            kpi.get("cross_section_rescued_pairs", 0) or 0
-        )
-        tables_comparable_t1 = int(kpi.get("tables_comparable_t1", 0) or 0)
-        tables_comparable_t2 = int(kpi.get("tables_comparable_t2", 0) or 0)
-        pairing_coverage = float(kpi.get("pairing_coverage", 0.0) or 0.0)
-        pairing_low_confidence = bool(
-            kpi.get("pairing_low_confidence", False)
-            or pairing_coverage < 0.75
-            or ambiguous_tables > 0
-            or ambiguous_pairs > 0
-        )
-        tables_added_confirmed = int(kpi.get("tables_added_confirmed", 0) or 0)
-        tables_removed_confirmed = int(kpi.get("tables_removed_confirmed", 0) or 0)
-        cols = [
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P(
-                                f"{t('tables')} ({previous_label})",
-                                className="small text-muted mb-0",
-                            ),
-                            html.H4(
-                                str(kpi.get("tables_t1", 0)), className="mb-0 fw-bold"
-                            ),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=2,
-            ),
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P(
-                                f"{t('tables')} ({current_label})",
-                                className="small text-muted mb-0",
-                            ),
-                            html.H4(
-                                str(kpi.get("tables_t2", 0)), className="mb-0 fw-bold"
-                            ),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=2,
-            ),
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P(t("matched"), className="small text-muted mb-0"),
-                            html.H4(
-                                str(kpi.get("tables_matched", 0)),
-                                className="mb-0 fw-bold",
-                            ),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=2,
-            ),
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P(
-                                t("fusion_split"), className="small text-muted mb-0"
-                            ),
-                            html.H4(str(structure_change), className="mb-0 fw-bold"),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=2,
-            ),
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P(
-                                t("kpi_changed_t1"),
-                                className="small text-muted mb-0",
-                            ),
-                            html.H4(str(changed_t1), className="mb-0 fw-bold"),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=2,
-            ),
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P(
-                                t("kpi_changed_t2"),
-                                className="small text-muted mb-0",
-                            ),
-                            html.H4(str(changed_t2), className="mb-0 fw-bold"),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=2,
-            ),
-        ]
-        kpis.append(dbc.Row(cols, className="mb-3"))
-        resolution_cols = [
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P(
-                                "Récupérés par Vision",
-                                className="small text-muted mb-0",
-                            ),
-                            html.H4(
-                                str(vision_rescued_pairs), className="mb-0 fw-bold"
-                            ),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=3,
-            ),
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P(
-                                "Cross-section",
-                                className="small text-muted mb-0",
-                            ),
-                            html.H4(
-                                str(cross_section_rescued_pairs),
-                                className="mb-0 fw-bold",
-                            ),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=3,
-            ),
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P("Ambigus", className="small text-muted mb-0"),
-                            html.H4(str(ambiguous_tables), className="mb-0 fw-bold"),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=3,
-            ),
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P(
-                                "Ajoutes confirms"
-                                if not pairing_low_confidence
-                                else "Ajoutes non apparies",
-                                className="small text-muted mb-0",
-                            ),
-                            html.H4(
-                                str(tables_added_confirmed),
-                                className="mb-0 fw-bold",
-                            ),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=3,
-            ),
-            dbc.Col(
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P(
-                                "Supprimes confirms"
-                                if not pairing_low_confidence
-                                else "Supprimes non apparies",
-                                className="small text-muted mb-0",
-                            ),
-                            html.H4(
-                                str(tables_removed_confirmed),
-                                className="mb-0 fw-bold",
-                            ),
-                        ],
-                        className="p-2 text-center",
-                    ),
-                    className="shadow-sm border-0",
-                ),
-                width=3,
-            ),
-        ]
-        kpis.append(dbc.Row(resolution_cols, className="mb-3"))
+        comparisons = indicator.get("table_comparisons", []) or []
+        tables_removed = indicator.get("tables_removed", []) or []
+        tables_added = indicator.get("tables_added", []) or []
 
-        pairing_context = (
-            f"Comparables: {tables_comparable_t1} ({previous_label}) / "
-            f"{tables_comparable_t2} ({current_label})"
-            f" | Couverture pairing: {pairing_coverage * 100:.0f}%"
+        notes_total = sum(_footnote_change_total(comp) for comp in comparisons)
+        high_priority_tables = sum(
+            1
+            for comp in comparisons
+            if _comparison_has_changes(comp) and _is_high_priority_item(comp)
+        ) + sum(
+            1
+            for table in [*tables_added, *tables_removed]
+            if _is_high_priority_item(table)
         )
-        if tables_comparable_t1 == 0 and tables_comparable_t2 == 0:
-            pairing_context += (
-                " | Extraction vide: Vision n'a produit aucun indicateur comparable."
-            )
-        if pairing_low_confidence:
-            pairing_context += (
-                " | Pairing faible: les tableaux non apparies restent a confirmer."
-            )
-        kpis.append(
-            dbc.Alert(
-                pairing_context,
-                color="light",
-                className="mb-3 small shadow-sm border-0",
-            )
+        low_confidence_tables = sum(
+            1
+            for comp in comparisons
+            if _comparison_has_changes(comp) and _is_low_confidence_comparison(comp)
         )
 
-        meta = indicator.get("meta", {}) or {}
-        validation_summary = (
-            meta.get("validation_summary", {}) if isinstance(meta, dict) else {}
-        )
-        if isinstance(validation_summary, dict):
-            vp = validation_summary.get("vision_pair", {}) or {}
-            vur = validation_summary.get("vision_unmatched_rescue", {}) or {}
-            rv = validation_summary.get("rename_validator", {}) or {}
-            atv = validation_summary.get("added_table_validator", {}) or {}
-            iv = validation_summary.get("indicator_validator", {}) or {}
-            if any(
-                bool(block.get("enabled", False))
-                for block in (vp, vur, rv, atv, iv)
-                if isinstance(block, dict)
-            ):
-                validation_cols = [
-                    dbc.Col(
-                        dbc.Card(
-                            dbc.CardBody(
-                                [
-                                    html.P(
-                                        "Validation paires (Vision)",
-                                        className="small text-muted mb-0",
-                                    ),
-                                    html.H5(
-                                        f"{int(vp.get('accepted', 0))}/{int(vp.get('rejected', 0))}",
-                                        className="mb-0 fw-bold",
-                                    ),
-                                    html.Small(
-                                        (
-                                            f"calls={int(vp.get('calls', 0))} "
-                                            f"rescue={int(vur.get('rescued_pairs', 0))} "
-                                            f"err={int(vp.get('errors', 0)) + int(vur.get('errors', 0))}"
-                                        ),
-                                        className="text-muted",
-                                    ),
-                                ],
-                                className="p-2 text-center",
-                            ),
-                            className="shadow-sm border-0",
-                        ),
-                        width=3,
-                    ),
-                    dbc.Col(
-                        dbc.Card(
-                            dbc.CardBody(
-                                [
-                                    html.P(
-                                        "Validation renommages",
-                                        className="small text-muted mb-0",
-                                    ),
-                                    html.H5(
-                                        f"{int(rv.get('accepted', 0))}/{int(rv.get('rejected', 0))}",
-                                        className="mb-0 fw-bold",
-                                    ),
-                                    html.Small(
-                                        (
-                                            f"band={int(rv.get('candidates_in_band', 0))} "
-                                            f"skip={int(rv.get('auto_accepted_out_of_band', 0))}"
-                                        ),
-                                        className="text-muted",
-                                    ),
-                                ],
-                                className="p-2 text-center",
-                            ),
-                            className="shadow-sm border-0",
-                        ),
-                        width=3,
-                    ),
-                    dbc.Col(
-                        dbc.Card(
-                            dbc.CardBody(
-                                [
-                                    html.P(
-                                        "Validation tableaux ajoutés",
-                                        className="small text-muted mb-0",
-                                    ),
-                                    html.H5(
-                                        f"{int(atv.get('accepted', 0))}/{int(atv.get('rejected', 0))}",
-                                        className="mb-0 fw-bold",
-                                    ),
-                                    html.Small(
-                                        f"calls={int(atv.get('calls', 0))} err={int(atv.get('errors', 0))}",
-                                        className="text-muted",
-                                    ),
-                                ],
-                                className="p-2 text-center",
-                            ),
-                            className="shadow-sm border-0",
-                        ),
-                        width=3,
-                    ),
-                    dbc.Col(
-                        dbc.Card(
-                            dbc.CardBody(
-                                [
-                                    html.P(
-                                        "Validation indicateurs",
-                                        className="small text-muted mb-0",
-                                    ),
-                                    html.H5(
-                                        f"-{int(iv.get('filtered_added', 0))}/-{int(iv.get('filtered_removed', 0))}",
-                                        className="mb-0 fw-bold",
-                                    ),
-                                    html.Small(
-                                        f"calls={int(iv.get('calls', 0))} err={int(iv.get('errors', 0))}",
-                                        className="text-muted",
-                                    ),
-                                ],
-                                className="p-2 text-center",
-                            ),
-                            className="shadow-sm border-0",
-                        ),
-                        width=3,
-                    ),
-                ]
-                kpis.append(dbc.Row(validation_cols, className="mb-3"))
+        top_kpi_cards = [
+            dbc.Col(
+                build_analyst_kpi_card(
+                    t("kpi_compared_pairs"),
+                    int(kpi.get("tables_matched", 0) or 0),
+                    color="white",
+                    helper_text="Tableaux apparies entre les deux trimestres",
+                ),
+                xl=2,
+                md=4,
+                className="mb-3",
+            ),
+            dbc.Col(
+                build_analyst_kpi_card(
+                    t("kpi_removed_tables"),
+                    len(tables_removed),
+                    color="white",
+                    helper_text="Tableaux presents avant, absents maintenant",
+                ),
+                xl=2,
+                md=4,
+                className="mb-3",
+            ),
+            dbc.Col(
+                build_analyst_kpi_card(
+                    t("kpi_added"),
+                    int(kpi.get("total_added_indicators", 0) or 0)
+                    + int(kpi.get("total_removed_indicators", 0) or 0)
+                    + int(kpi.get("total_renamed_indicators", 0) or 0),
+                    color="white",
+                    helper_text="Ajouts, suppressions et renommages d'indicateurs",
+                ),
+                xl=2,
+                md=4,
+                className="mb-3",
+            ),
+            dbc.Col(
+                build_analyst_kpi_card(
+                    t("kpi_notes_modified"),
+                    notes_total,
+                    color="white",
+                    helper_text="Toutes les notes de bas de tableau qui changent",
+                ),
+                xl=2,
+                md=4,
+                className="mb-3",
+            ),
+            dbc.Col(
+                build_analyst_kpi_card(
+                    t("kpi_priority_tables"),
+                    high_priority_tables,
+                    color="white",
+                    helper_text="Cas a traiter en premier par l'analyste",
+                ),
+                xl=2,
+                md=4,
+                className="mb-3",
+            ),
+            dbc.Col(
+                build_analyst_kpi_card(
+                    t("kpi_low_confidence_tables"),
+                    low_confidence_tables,
+                    color="white",
+                    helper_text="Appariements ou diffs a relire avec prudence",
+                ),
+                xl=2,
+                md=4,
+                className="mb-3",
+            ),
+        ]
+        kpis.append(dbc.Row(top_kpi_cards, className="g-3 mb-2"))
     elif comparison:
         summary = comparison.get("summary", {})
         total_changes = summary.get("total_changes")
@@ -2713,16 +2470,37 @@ def _legacy_change_type_from_v2(change_type: str) -> str:
     return CHANGE_TYPE_MODIFIED
 
 
-def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
+def _selected_change_from_table(table: dict, selection: dict | None) -> dict | None:
     changes = table.get("changes", []) or []
     selected_change_id = str((selection or {}).get("change_id") or "")
-    selected_change = None
     for change in changes:
         if str(change.get("change_id", "")) == selected_change_id:
-            selected_change = change
-            break
-    if selected_change is None and changes:
-        selected_change = changes[0]
+            return change
+    return changes[0] if changes else None
+
+
+def _effective_proof_display_mode(
+    table: dict,
+    selection: dict | None,
+    requested_mode: str | None,
+) -> str:
+    mode = (requested_mode or "crop").strip().lower()
+    if mode not in {"crop", "full", "footnote"}:
+        mode = "crop"
+
+    selected_change = _selected_change_from_table(table, selection)
+    change_type = str((selected_change or {}).get("change_type") or "").strip().lower()
+
+    if "footnote" in change_type and mode == "crop":
+        return "footnote"
+    if "footnote" not in change_type and mode == "footnote":
+        return "crop"
+    return mode
+
+
+def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
+    changes = table.get("changes", []) or []
+    selected_change = _selected_change_from_table(table, selection)
     selected_change_type = (
         selected_change.get("change_type", "")
         if isinstance(selected_change, dict)
@@ -2748,6 +2526,12 @@ def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
 
     return {
         "change_type": primary_type,
+        "selected_change_type": selected_change_type,
+        "selected_change_payload": (
+            selected_change.get("payload", {})
+            if isinstance(selected_change, dict)
+            else {}
+        ),
         "table_name": table.get("table_name", ""),
         "table_title_raw": table.get("table_title", "") or table.get("table_name", ""),
         "table_number": table.get("table_number", ""),
@@ -2756,6 +2540,7 @@ def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
         "page_t2": table.get("page_t2"),
         "bbox_t1": table.get("bbox_t1"),
         "bbox_t2": table.get("bbox_t2"),
+        "table_status": table.get("table_status", ""),
         "source_ref_t1": table.get("source_pdf_t1", ""),
         "source_ref_t2": table.get("source_pdf_t2", ""),
         "confidence": float(table.get("confidence", 0.0) or 0.0),
@@ -3157,7 +2942,36 @@ def init_review_items(indicator_result, paths, indicator_meta):
     )
     serialized = sort_review_items_by_priority([it.to_dict() for it in items])
 
-    # V2: Build deduplicated review queue
+    compare_path = _comparison_path_from_meta(indicator_meta, indicator_result)
+    persisted_state = load_review_state(compare_path)
+    stored_items = _stored_review_items_from_state(persisted_state)
+    if persisted_state:
+        if not is_review_state_compatible(
+            persisted_state,
+            review_items=serialized,
+            stored_review_items=stored_items,
+        ):
+            logger.info(
+                "Persisted review state is incompatible with current comparison payload — ignoring saved review items."
+            )
+            persisted_state = None
+            stored_items = None
+
+    if persisted_state:
+        preferred_store = str(
+            persisted_state.get("preferred_store") or "review_queue"
+        ).strip()
+
+        if (
+            preferred_store in {"review_items", "review_queue"}
+            and isinstance(stored_items, list)
+            and stored_items
+        ):
+            serialized = stored_items
+        elif isinstance(stored_items, list) and stored_items:
+            serialized = stored_items
+
+    # V2: Build deduplicated review queue from the active review-items only.
     grouped_tables = build_normalized_review_queue(
         indicator_result,
         serialized,
@@ -3165,43 +2979,6 @@ def init_review_items(indicator_result, paths, indicator_meta):
         pdf_path_t2=path_t2,
     )
     serialized_v2 = [t.to_dict() for t in grouped_tables]
-
-    compare_path = _comparison_path_from_meta(indicator_meta, indicator_result)
-    persisted_state = load_review_state(compare_path)
-    if persisted_state:
-        preferred_store = str(
-            persisted_state.get("preferred_store") or "review_queue"
-        ).strip()
-        stored_items = persisted_state.get("review_items")
-        stored_queue = persisted_state.get("review_queue")
-
-        if (
-            preferred_store == "review_items"
-            and isinstance(stored_items, list)
-            and stored_items
-        ):
-            serialized = stored_items
-            grouped_tables = build_normalized_review_queue(
-                indicator_result,
-                serialized,
-                pdf_path_t1=path_t1,
-                pdf_path_t2=path_t2,
-            )
-            serialized_v2 = [t.to_dict() for t in grouped_tables]
-        elif isinstance(stored_queue, list) and stored_queue:
-            serialized_v2 = stored_queue
-            serialized = [
-                it.to_dict() for it in _review_items_from_v2_queue(stored_queue)
-            ]
-        elif isinstance(stored_items, list) and stored_items:
-            serialized = stored_items
-            grouped_tables = build_normalized_review_queue(
-                indicator_result,
-                serialized,
-                pdf_path_t1=path_t1,
-                pdf_path_t2=path_t2,
-            )
-            serialized_v2 = [t.to_dict() for t in grouped_tables]
 
     total = len(serialized)
     total_v2 = len(serialized_v2)
@@ -3603,7 +3380,7 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
         return html.Div(
             [
                 html.P(label, className="small text-muted"),
-                html.P("Preview non disponible", className="text-muted"),
+                html.P("Aperçu non disponible", className="text-muted"),
             ]
         )
 
@@ -3640,7 +3417,7 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
     if proof_image_path:
         meta_lines.append(
             html.P(
-                f"Preuve image: {proof_image_path}",
+                f"Chemin de la preuve image : {proof_image_path}",
                 className="small text-muted mb-1",
             )
         )
@@ -3671,7 +3448,7 @@ def render_review_tab(review_items_data, current_idx, paths, show_results):
                 [
                     dbc.Col(
                         dbc.Button(
-                            "Precedent",
+                            "Précédent",
                             id="btn-review-prev",
                             color="secondary",
                             size="sm",
@@ -4326,7 +4103,7 @@ def on_load_comparison(n_clicks, filename):
 
     if data.get("result_type") == "metier_tableaux":
         pdf_paths = _normalize_pdf_paths_store(
-            _pdf_paths_from_comparison_meta({}, data)
+            _pdf_paths_from_comparison_meta({"compare_path": str(filepath)}, data)
         )
         warning = _missing_pdf_warning(pdf_paths)
         return (
@@ -4349,6 +4126,7 @@ def on_load_comparison(n_clicks, filename):
     canonical_meta = (
         dict(canonical.get("meta", {})) if isinstance(canonical, dict) else {}
     )
+    canonical_meta["compare_path"] = str(filepath)
     pdf_paths = _normalize_pdf_paths_store(
         _pdf_paths_from_comparison_meta(canonical_meta, canonical)
     )

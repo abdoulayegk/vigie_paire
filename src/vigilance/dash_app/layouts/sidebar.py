@@ -17,14 +17,12 @@ def build_sidebar() -> dbc.Col:
 
     # Generate years from the current year through 2050.
     current_year = 2025
-    year_options = [
-        {"label": str(y), "value": str(y)} for y in range(2050, 2020, -1)
-    ]
+    year_options = [{"label": str(y), "value": str(y)} for y in range(2050, 2020, -1)]
 
     quarter_options = [
-        {"label": "Q1", "value": "Q1"},
-        {"label": "Q2", "value": "Q2"},
-        {"label": "Q3", "value": "Q3"},
+        {"label": "T1", "value": "T1"},
+        {"label": "T2", "value": "T2"},
+        {"label": "T3", "value": "T3"},
     ]
 
     return dbc.Col(
@@ -101,7 +99,7 @@ def build_sidebar() -> dbc.Col:
                     dcc.Dropdown(
                         id="current-quarter",
                         options=quarter_options,
-                        value="Q2",
+                        value="T2",
                         clearable=False,
                         className="small mb-2",
                     ),
@@ -118,12 +116,15 @@ def build_sidebar() -> dbc.Col:
                     ),
                     html.Hr(),
                     # 4. Source Selection
-                    html.Label("Source des Données", className="fw-bold small mt-2"),
+                    html.Label("Source des données", className="fw-bold small mt-2"),
                     dbc.RadioItems(
                         id="data-source-type",
                         options=[
-                            {"label": "Upload PDF", "value": "upload"},
-                            {"label": "Base de Données", "value": "db"},
+                            {"label": "Téléverser les PDF", "value": "upload"},
+                            {
+                                "label": "Charger une comparaison existante",
+                                "value": "db",
+                            },
                         ],
                         value="upload",
                         className="mb-3 small",
@@ -138,13 +139,13 @@ def build_sidebar() -> dbc.Col:
                             dcc.Dropdown(
                                 id="db-run-selector",
                                 options=[],
-                                placeholder="Sélectionner un run...",
+                                placeholder="Sélectionner une comparaison...",
                                 className="small mb-2",
                             ),
                             dbc.Button(
                                 [
                                     html.I(className="bi bi-database me-2"),
-                                    "Charger depuis DB",
+                                    "Charger la comparaison",
                                 ],
                                 id="btn-load-db",
                                 color="success",
@@ -169,7 +170,9 @@ def build_sidebar() -> dbc.Col:
                                 children=html.Div(
                                     [
                                         html.I(className="bi bi-file-earmark-pdf me-2"),
-                                        html.Span("Glisser ou cliquer", className="small"),
+                                        html.Span(
+                                            "Glisser ou cliquer", className="small"
+                                        ),
                                     ],
                                     className="d-flex align-items-center justify-content-center",
                                 ),
@@ -189,7 +192,7 @@ def build_sidebar() -> dbc.Col:
                                 className="small text-success mb-2 fst-italic",
                             ),
                             html.Label(
-                                "Rapport trimestre precedent",
+                                "Rapport trimestre précédent",
                                 id="upload-previous-label",
                                 className="small text-muted",
                             ),
@@ -198,7 +201,9 @@ def build_sidebar() -> dbc.Col:
                                 children=html.Div(
                                     [
                                         html.I(className="bi bi-file-earmark-pdf me-2"),
-                                        html.Span("Glisser ou cliquer", className="small"),
+                                        html.Span(
+                                            "Glisser ou cliquer", className="small"
+                                        ),
                                     ],
                                     className="d-flex align-items-center justify-content-center",
                                 ),
@@ -220,7 +225,10 @@ def build_sidebar() -> dbc.Col:
                             html.Hr(),
                             # 6. Action Button
                             dbc.Button(
-                                [html.I(className="bi bi-search me-2"), "Lancer l'Analyse"],
+                                [
+                                    html.I(className="bi bi-search me-2"),
+                                    "Lancer l'Analyse",
+                                ],
                                 id="btn-detect",
                                 color="primary",
                                 className="w-100 mb-3 shadow-sm",
@@ -230,7 +238,7 @@ def build_sidebar() -> dbc.Col:
                     ),
                     # 7. Options (Collapsed)
                     dbc.Button(
-                        "Options Avancées",
+                        "Options avancées",
                         id="btn-toggle-options",
                         color="link",
                         size="sm",
@@ -242,7 +250,7 @@ def build_sidebar() -> dbc.Col:
                                 id="option-footnotes",
                                 options=[
                                     {
-                                        "label": "Notes de bas de tableau (footnotes)",
+                                        "label": "Notes de bas de tableau",
                                         "value": "footnotes",
                                     }
                                 ],
@@ -254,7 +262,7 @@ def build_sidebar() -> dbc.Col:
                                 id="option-genai-classification",
                                 options=[
                                     {
-                                        "label": "Classifier les changements avec GenAI (GPT-4o)",
+                                        "label": "Classer les changements avec l'IA générative (GPT-4o)",
                                         "value": "classify",
                                     }
                                 ],

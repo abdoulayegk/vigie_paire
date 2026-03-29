@@ -10,12 +10,12 @@ preferred names in this module explicitly mention the UI payload role.
 
 from __future__ import annotations
 
+import logging
 from copy import deepcopy
 from datetime import datetime
-import logging
 from typing import Any
 
-from app.quarter_utils import get_payload_quarter_context
+from app.quarter_utils import format_quarter_label, get_payload_quarter_context
 
 UI_COMPARISON_PAYLOAD_SCHEMA_VERSION = "comparison_canonical_v1"
 
@@ -205,10 +205,7 @@ def new_empty_ui_comparison_payload() -> dict[str, Any]:
 
 
 def _quarter_label(quarter: str, year: int) -> str:
-    text = str(quarter or "").strip().lower()
-    if text.startswith("t") and len(text) >= 2 and text[1].isdigit():
-        return f"Q{text[1]}-{year}"
-    return f"{quarter}-{year}" if quarter else str(year)
+    return format_quarter_label(quarter, year)
 
 
 def _build_report_comparison_summary_text(
@@ -227,7 +224,7 @@ def _build_report_comparison_summary_text(
     ]
     parts.append(f" {tables_added} tableau(x) ajouté(s), {tables_removed} supprimé(s).")
     parts.append(
-        f" {indicator_changes} changement(s) d'indicateur et {footnote_changes} changement(s) de footnote détecté(s)."
+        f" {indicator_changes} changement(s) d'indicateur et {footnote_changes} changement(s) de note de bas de tableau détecté(s)."
     )
     if high_priority_items:
         parts.append(f" {high_priority_items} élément(s) prioritaire(s) à réviser.")
@@ -246,7 +243,9 @@ def _build_footnotes_diff(
             "new_text": str(item.get("text", "") or ""),
             "change_type": "new",
             "reason": str(item.get("reason", "") or ""),
-            "analyst_assessment": dict(item.get("analyst_assessment") or {}) if isinstance(item.get("analyst_assessment"), dict) else {},
+            "analyst_assessment": dict(item.get("analyst_assessment") or {})
+            if isinstance(item.get("analyst_assessment"), dict)
+            else {},
         }
         for item in list(technical_diff.get("footnotes_added", []) or [])
         if isinstance(item, dict)
@@ -258,7 +257,9 @@ def _build_footnotes_diff(
             "new_text": "",
             "change_type": "removed",
             "reason": str(item.get("reason", "") or ""),
-            "analyst_assessment": dict(item.get("analyst_assessment") or {}) if isinstance(item.get("analyst_assessment"), dict) else {},
+            "analyst_assessment": dict(item.get("analyst_assessment") or {})
+            if isinstance(item.get("analyst_assessment"), dict)
+            else {},
         }
         for item in list(technical_diff.get("footnotes_removed", []) or [])
         if isinstance(item, dict)
@@ -272,7 +273,9 @@ def _build_footnotes_diff(
             "new_text": str(item.get("current_text", "") or ""),
             "change_type": "modified",
             "reason": str(item.get("reason", "") or ""),
-            "analyst_assessment": dict(item.get("analyst_assessment") or {}) if isinstance(item.get("analyst_assessment"), dict) else {},
+            "analyst_assessment": dict(item.get("analyst_assessment") or {})
+            if isinstance(item.get("analyst_assessment"), dict)
+            else {},
         }
         for item in list(technical_diff.get("footnotes_renamed", []) or [])
         if isinstance(item, dict)
@@ -397,7 +400,7 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
             for entry in renamed_raw
         ]
         match_info = matched_lookup.get(previous_table_id, {})
-        
+
         all_inds_t1 = list(previous_table.get("indicators", []) or [])
         all_inds_t2 = list(current_table.get("indicators", []) or [])
         drastic_row_drop = False
@@ -498,7 +501,9 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                     "all_indicators_t2": list(item.get("indicators", []) or [])
                     if side == "current"
                     else [],
-                    "first_column_indicators_raw": list(item.get("indicators", []) or []),
+                    "first_column_indicators_raw": list(
+                        item.get("indicators", []) or []
+                    ),
                     "first_column_indicators": list(item.get("indicators", []) or []),
                     "genai_analysis": dict(item.get("analyst_assessment") or {}),
                     "semantic_judge": str(item.get("reason", "") or ""),
@@ -540,9 +545,9 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
     ui_payload["tables_removed_pending_review"] = list(
         ui_payload["extraction_suspects_previous"]
     )
-    ui_payload["review_candidates"] = list(ui_payload["extraction_suspects_current"]) + list(
-        ui_payload["extraction_suspects_previous"]
-    )
+    ui_payload["review_candidates"] = list(
+        ui_payload["extraction_suspects_current"]
+    ) + list(ui_payload["extraction_suspects_previous"])
 
     indicator_change_pairs = sum(
         1

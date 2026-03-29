@@ -93,7 +93,7 @@ def build_review_queue_v2(
         return html.Div(
             [
                 html.H5(t("file_review")),
-                html.P("Aucun element a reviser.", className="text-muted"),
+                html.P("Aucun élément à réviser.", className="text-muted"),
             ]
         )
 

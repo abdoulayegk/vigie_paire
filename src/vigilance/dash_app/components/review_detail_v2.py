@@ -151,28 +151,28 @@ def _build_fallback_genai_message(table: dict) -> str:
         final_decision = str(semantic_judge.get("final_decision", "") or "").strip()
         guard_action = str(semantic_judge.get("guard_action", "") or "").strip()
         if final_decision and guard_action:
-            semantic_hint = f" Controle semantique: {final_decision} ({guard_action})."
+            semantic_hint = f" Contrôle sémantique : {final_decision} ({guard_action})."
 
     if change_types.intersection({ChangeType.TABLE_REMOVED.value, "table_removed"}):
         return (
-            "Explication automatique: ce tableau est present au trimestre precedent "
-            "et absent au trimestre courant. Verifier si le contenu a ete renomme, "
-            "fusionne ou deplace dans une autre section."
+            "Explication automatique : ce tableau est présent au trimestre précédent "
+            "et absent au trimestre courant. Vérifier si le contenu a été renommé, "
+            "fusionné ou déplacé dans une autre section."
             f"{semantic_hint}"
         )
 
     if change_types.intersection({ChangeType.TABLE_ADDED.value, "table_added"}):
         return (
-            "Explication automatique: ce tableau est absent au trimestre precedent "
-            "et present au trimestre courant. Verifier s'il s'agit d'une nouvelle "
-            "divulgation ou d'une table decomposee depuis un ancien tableau."
+            "Explication automatique : ce tableau est absent au trimestre précédent "
+            "et présent au trimestre courant. Vérifier s'il s'agit d'une nouvelle "
+            "divulgation ou d'une table décomposée depuis un ancien tableau."
             f"{semantic_hint}"
         )
 
     return (
-        "Classification GenAI non disponible pour cet element. Activez "
-        "'Classifier les changements avec GenAI' puis relancez l'analyse pour "
-        "obtenir une justification detaillee."
+        "Classification IA générative non disponible pour cet élément. Activez "
+        "'Classer les changements avec l'IA générative (GPT-4o)' puis relancez l'analyse pour "
+        "obtenir une justification détaillée."
     )
 
 
@@ -188,7 +188,7 @@ def _build_genai_section(table: dict) -> html.Div:
         fallback_msg = _build_fallback_genai_message(table)
         return html.Div(
             [
-                html.H6("Explication GenAI", className="mb-2"),
+                html.H6("Explication IA générative", className="mb-2"),
                 html.P(fallback_msg, className="text-muted mb-0"),
             ],
             className="mb-4",
@@ -215,7 +215,7 @@ def _build_genai_section(table: dict) -> html.Div:
 
     return html.Div(
         [
-            html.H6("Explication GenAI", className="mb-2"),
+            html.H6("Explication IA générative", className="mb-2"),
             html.Div(chips, className="mb-2"),
             html.P(justification or "Explication non fournie.", className="mb-0"),
         ],
@@ -478,9 +478,9 @@ def build_review_detail_v2(
     if not table:
         return html.Div(
             [
-                html.H5("Aucun element selectionne"),
+                html.H5("Aucun élément sélectionné"),
                 html.P(
-                    "Selectionnez un tableau dans la file de revue.",
+                    "Sélectionnez un tableau dans la file de revue.",
                     className="text-muted",
                 ),
             ]
@@ -515,9 +515,9 @@ def build_review_detail_v2(
                     html.H5(table_name, className="mb-1"),
                     html.Small(
                         [
-                            f"Section: {section}",
+                            f"Section : {section}",
                             html.Span(" | ", className="text-muted"),
-                            f"Pages: précédent p.{page_t1 or '?'} / courant p.{page_t2 or '?'}",
+                            f"Pages : précédent p.{page_t1 or '?'} / courant p.{page_t2 or '?'}",
                         ],
                         className="text-muted",
                     ),
@@ -569,7 +569,7 @@ def build_review_detail_v2(
             if summary.get("footnotes_changed", 0)
             else None,
             html.Span(
-                f"Validé: {summary.get('validated', 0)}/{summary.get('total_changes', 0)}",
+                f"Validé : {summary.get('validated', 0)}/{summary.get('total_changes', 0)}",
                 className="ms-2 text-muted small",
             ),
         ],

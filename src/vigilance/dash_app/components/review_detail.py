@@ -562,12 +562,12 @@ def _build_genai_analysis_section(item: dict) -> html.Div:
     ga = item.get("genai_analysis") or {}
     if not ga.get("relevance"):
         placeholder = (
-            "Classification non executee. Activez l'option "
-            "'Classifier les changements avec GenAI' dans les options et relancez l'analyse."
+            "Classification non exécutée. Activez l'option "
+            "'Classer les changements avec l'IA générative (GPT-4o)' dans les options et relancez l'analyse."
         )
         return html.Div(
             [
-                html.H6("Analyse GenAI", className="text-muted small mb-2"),
+                html.H6("Analyse IA générative", className="text-muted small mb-2"),
                 html.Div(
                     html.Small(placeholder, className="text-muted fst-italic"),
                     className="p-2 bg-light rounded",
@@ -583,7 +583,7 @@ def _build_genai_analysis_section(item: dict) -> html.Div:
     risk_label = _RISK_DISPLAY.get(risk, risk)
     return html.Div(
         [
-            html.H6("Analyse GenAI", className="text-muted small mb-2"),
+            html.H6("Analyse IA générative", className="text-muted small mb-2"),
             html.Div(
                 [
                     dbc.Badge(
@@ -767,7 +767,9 @@ def render_indicator_diff_view(
 
     def _ind_sort_key(ind: dict) -> int:
         assessment = ind.get("analyst_assessment", {})
-        level = assessment.get("relevance_level") if isinstance(assessment, dict) else None
+        level = (
+            assessment.get("relevance_level") if isinstance(assessment, dict) else None
+        )
         if isinstance(level, int):
             return level
         return 999
@@ -843,7 +845,7 @@ def render_indicator_diff_view(
         just = str(assessment.get("justification", "")).strip()
         if not level and not just:
             return html.Div()
-        
+
         badge_color = "secondary"
         badge_label = "Info"
         if level == 1:
@@ -855,11 +857,15 @@ def render_indicator_diff_view(
         elif level == 3:
             badge_color = "info"
             badge_label = "Faible"
-            
-        return html.Div([
-            dbc.Badge(badge_label, color=badge_color, className="me-2"),
-            html.Small(just, className="text-muted fst-italic")
-        ], className="mt-1 p-1 bg-white rounded border d-flex align-items-center w-100", style={"marginLeft": "32px"})
+
+        return html.Div(
+            [
+                dbc.Badge(badge_label, color=badge_color, className="me-2"),
+                html.Small(just, className="text-muted fst-italic"),
+            ],
+            className="mt-1 p-1 bg-white rounded border d-flex align-items-center w-100",
+            style={"marginLeft": "32px"},
+        )
 
     indicator_rows = []
     for i, ind in enumerate(indicators):
@@ -868,7 +874,9 @@ def render_indicator_diff_view(
         ind_status = ind.get("review_status", "pending")
         is_current = i == indicator_idx
 
-        row_class = "d-flex flex-column py-2 border-bottom px-2 rounded align-items-start"
+        row_class = (
+            "d-flex flex-column py-2 border-bottom px-2 rounded align-items-start"
+        )
         if is_current:
             row_class += " bg-primary bg-opacity-10 border border-primary"
 
@@ -885,9 +893,9 @@ def render_indicator_diff_view(
                             if is_current
                             else html.Span(),
                         ],
-                        className="d-flex align-items-center w-100"
+                        className="d-flex align-items-center w-100",
                     ),
-                    _render_assessment(ind)
+                    _render_assessment(ind),
                 ],
                 id={"type": "indicator-item", "index": i},
                 className=row_class,
@@ -935,14 +943,18 @@ def render_indicator_diff_view(
     footnote_detail_rows = []
     if item_type == "footnote":
         footnote_changes = item.get("footnote_changes", [])
-        
+
         def _fn_sort_key(fc: dict) -> int:
             assessment = fc.get("analyst_assessment", {})
-            level = assessment.get("relevance_level") if isinstance(assessment, dict) else None
+            level = (
+                assessment.get("relevance_level")
+                if isinstance(assessment, dict)
+                else None
+            )
             if isinstance(level, int):
                 return level
             return 999
-            
+
         footnote_changes = sorted(footnote_changes, key=_fn_sort_key)
 
         for fc in footnote_changes:
@@ -1016,10 +1028,15 @@ def render_indicator_diff_view(
                         badge_color = "secondary"
                         badge_label = "Info"
                     detail_children.append(
-                        html.Div([
-                            dbc.Badge(badge_label, color=badge_color, className="me-2"),
-                            html.Small(just, className="text-muted fst-italic")
-                        ], className="ms-3 mb-1 mt-1 p-1 bg-white border rounded d-flex align-items-center")
+                        html.Div(
+                            [
+                                dbc.Badge(
+                                    badge_label, color=badge_color, className="me-2"
+                                ),
+                                html.Small(just, className="text-muted fst-italic"),
+                            ],
+                            className="ms-3 mb-1 mt-1 p-1 bg-white border rounded d-flex align-items-center",
+                        )
                     )
 
             footnote_detail_rows.append(
@@ -1029,7 +1046,7 @@ def render_indicator_diff_view(
     footnote_detail_section = (
         html.Div(
             [
-                html.H6("Detail des notes", className="text-muted small mb-2"),
+                html.H6("Détail des notes", className="text-muted small mb-2"),
                 html.Div(
                     footnote_detail_rows,
                     style={"maxHeight": "200px", "overflowY": "auto"},
