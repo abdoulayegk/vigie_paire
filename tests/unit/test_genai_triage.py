@@ -1,0 +1,301 @@
+"""Tests for the GenAI batch triage module (vigilance.genai_triage)."""
+
+from __future__ import annotations
+
+import json
+from unittest.mock import patch
+
+from vigilance.genai_triage import (
+    _build_change_prompt,
+    _fallback_enrich,
+    _has_meaningful_diff,
+    _validate_summary_response,
+    _validate_triage_response,
+    enrich_comparison_with_genai_triage,
+)
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+
+def _make_pair(
+    *, added=None, removed=None, renamed=None, fn_added=None, status="modifie"
+):
+    return {
+        "previous_table_id": "tbl_001",
+        "current_table_id": "tbl_002",
+        "previous_table": {"title": "Gestion du capital", "section": "gestion_capital"},
+        "current_table": {"title": "Gestion du capital", "section": "gestion_capital"},
+        "technical_diff": {
+            "table_level_change": status,
+            "indicators_added": added or [],
+            "indicators_removed": removed or [],
+            "indicators_renamed": renamed or [],
+            "footnotes_added": fn_added or [],
+            "footnotes_removed": [],
+            "footnotes_renamed": [],
+        },
+    }
+
+
+def _make_comparison(pairs=None, added=None, removed=None):
+    return {
+        "schema_version": 2,
+        "pair_comparisons": pairs or [],
+        "matching": {
+            "tables_added": added or [],
+            "tables_removed": removed or [],
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# _has_meaningful_diff
+# ---------------------------------------------------------------------------
+
+
+class TestHasMeaningfulDiff:
+    def test_stable_no_changes(self):
+        pair = _make_pair(status="inchange")
+        assert _has_meaningful_diff(pair) is False
+
+    def test_modified_status(self):
+        pair = _make_pair(status="modifie")
+        assert _has_meaningful_diff(pair) is True
+
+    def test_stable_with_added_indicators(self):
+        pair = _make_pair(
+            status="inchange",
+            added=[{"value": "CET1"}],
+        )
+        assert _has_meaningful_diff(pair) is True
+
+
+# ---------------------------------------------------------------------------
+# _validate_triage_response
+# ---------------------------------------------------------------------------
+
+
+class TestValidateTriageResponse:
+    def test_valid_response(self):
+        data = {
+            "is_relevant": True,
+            "category": "REGLEMENTAIRE",
+            "relevance_score": "ELEVEE",
+            "risk_level": "ELEVE",
+            "confidence": 0.92,
+            "explanation": "Ajout lié à Bâle III.",
+            "impact_type": "contenu",
+            "project_phase": "pilier_3",
+            "action_requise": "escalade",
+            "reference_reglementaire": "Bâle III — CET1",
+            "impact_description": "Nouveau ratio prudentiel ajouté.",
+        }
+        result = _validate_triage_response(data)
+        assert result["is_relevant"] is True
+        assert result["category"] == "REGLEMENTAIRE"
+        assert result["relevance_score"] == "ELEVEE"
+        assert result["risk_level"] == "ELEVE"
+        assert result["confidence"] == 0.92
+        assert result["impact_type"] == "contenu"
+        assert result["project_phase"] == "pilier_3"
+        assert result["action_requise"] == "escalade"
+        assert result["reference_reglementaire"] == "Bâle III — CET1"
+        assert result["impact_description"] == "Nouveau ratio prudentiel ajouté."
+        assert result["source"] == "llm"
+
+    def test_none_response(self):
+        result = _validate_triage_response(None)
+        assert result["is_relevant"] is False
+        assert result["source"] == "heuristic"
+        assert result["risk_level"] == "FAIBLE"
+        assert result["confidence"] == 0.0
+        assert result["impact_type"] == "cosmetique"
+        assert result["project_phase"] == "autre"
+        assert result["action_requise"] == "aucune"
+        assert result["reference_reglementaire"] == ""
+        assert result["impact_description"] == ""
+
+    def test_invalid_category_defaults(self):
+        result = _validate_triage_response({"category": "FAKE"})
+        assert result["category"] == "INCONNU"
+
+    def test_invalid_relevance_defaults(self):
+        result = _validate_triage_response({"relevance_score": "SUPER"})
+        assert result["relevance_score"] == "FAIBLE"
+
+    def test_invalid_risk_level_defaults(self):
+        result = _validate_triage_response({"risk_level": "CRITIQUE"})
+        assert result["risk_level"] == "FAIBLE"
+
+    def test_confidence_clamped(self):
+        result = _validate_triage_response({"confidence": 2.5})
+        assert result["confidence"] == 1.0
+        result2 = _validate_triage_response({"confidence": -1.0})
+        assert result2["confidence"] == 0.0
+
+    def test_invalid_impact_type_defaults(self):
+        result = _validate_triage_response({"impact_type": "FAKE"})
+        assert result["impact_type"] == "cosmetique"
+
+    def test_invalid_project_phase_defaults(self):
+        result = _validate_triage_response({"project_phase": "FAKE"})
+        assert result["project_phase"] == "autre"
+
+    def test_invalid_action_defaults(self):
+        result = _validate_triage_response({"action_requise": "FAKE"})
+        assert result["action_requise"] == "aucune"
+
+
+# ---------------------------------------------------------------------------
+# _validate_summary_response
+# ---------------------------------------------------------------------------
+
+
+class TestValidateSummaryResponse:
+    def test_valid(self):
+        data = {
+            "executive_overview": "Résumé du trimestre.",
+            "key_highlights": ["Point 1", "Point 2"],
+            "pertinence_globale": "ELEVEE",
+            "par_phase": {
+                "rapport_gestion": {"count": 3, "resume": "Capital changes"},
+                "pilier_3": {"count": 1, "resume": "New table"},
+                "ifc": {"count": 0, "resume": ""},
+                "autre": {"count": 0, "resume": ""},
+            },
+            "par_action": {
+                "escalade": 1,
+                "investigation": 2,
+                "confirmation": 1,
+                "information": 0,
+                "aucune": 0,
+            },
+        }
+        result = _validate_summary_response(data)
+        assert result["executive_overview"] == "Résumé du trimestre."
+        assert len(result["key_highlights"]) == 2
+        assert result["source"] == "llm"
+        assert result["par_phase"]["rapport_gestion"]["count"] == 3
+        assert result["par_action"]["escalade"] == 1
+
+    def test_none_returns_defaults(self):
+        result = _validate_summary_response(None)
+        assert result["executive_overview"] == ""
+        assert result["pertinence_globale"] == "FAIBLE"
+        assert result["source"] == "heuristic"
+        assert result["par_phase"] == {}
+        assert result["par_action"] == {}
+
+    def test_invalid_par_phase_ignored(self):
+        data = {
+            "executive_overview": "Test",
+            "pertinence_globale": "MOYENNE",
+            "par_phase": "not_a_dict",
+            "par_action": {"escalade": "not_int"},
+        }
+        result = _validate_summary_response(data)
+        assert result["par_phase"] == {}
+        assert result["par_action"]["escalade"] == 0
+
+
+# ---------------------------------------------------------------------------
+# _build_change_prompt
+# ---------------------------------------------------------------------------
+
+
+class TestBuildChangePrompt:
+    def test_pair_prompt_includes_section(self):
+        pair = _make_pair(added=[{"value": "Ratio CET1"}])
+        prompt = _build_change_prompt(pair, "pair")
+        assert "gestion_capital" in prompt
+        assert "Ratio CET1" in prompt
+
+    def test_added_table_prompt(self):
+        tbl = {
+            "title": "Nouveau Risque",
+            "section": "risque",
+            "indicators": [{"value": "LCR"}],
+        }
+        prompt = _build_change_prompt(tbl, "added")
+        assert "NOUVEAU TABLEAU" in prompt
+        assert "LCR" in prompt
+
+    def test_removed_table_prompt(self):
+        tbl = {"title": "Ancien Tableau", "section": "capital", "indicators": []}
+        prompt = _build_change_prompt(tbl, "removed")
+        assert "SUPPRIMÉ" in prompt
+
+
+# ---------------------------------------------------------------------------
+# _fallback_enrich
+# ---------------------------------------------------------------------------
+
+
+class TestFallbackEnrich:
+    def test_enriches_all_entries(self):
+        comparison = _make_comparison(
+            pairs=[_make_pair(added=[{"value": "X"}])],
+            added=[{"title": "New", "section": "risque"}],
+            removed=[{"title": "Old", "section": "capital"}],
+        )
+        result = _fallback_enrich(comparison)
+        pair_triage = result["pair_comparisons"][0]["genai_triage"]
+        assert pair_triage["source"] == "heuristic"
+        assert pair_triage["risk_level"] == "MODERE"
+        assert pair_triage["confidence"] == 0.0
+        assert pair_triage["impact_type"] == "cosmetique"
+        assert pair_triage["action_requise"] == "aucune"
+        assert pair_triage["reference_reglementaire"] == ""
+
+        added_triage = result["matching"]["tables_added"][0]["genai_triage"]
+        assert added_triage["is_relevant"] is True
+        assert added_triage["impact_type"] == "structurel"
+        assert added_triage["action_requise"] == "investigation"
+
+        removed_triage = result["matching"]["tables_removed"][0]["genai_triage"]
+        assert removed_triage["is_relevant"] is True
+        assert removed_triage["impact_type"] == "structurel"
+        assert removed_triage["action_requise"] == "investigation"
+
+        assert result["global_summary"]["source"] == "heuristic"
+        assert result["global_summary"]["par_phase"] == {}
+        assert result["global_summary"]["par_action"] == {}
+
+
+# ---------------------------------------------------------------------------
+# enrich_comparison_with_genai_triage (integration, mocked LLM)
+# ---------------------------------------------------------------------------
+
+
+class TestEnrichComparison:
+    def test_fallback_when_no_api_key(self, tmp_path):
+        comparison = _make_comparison(
+            pairs=[_make_pair(added=[{"value": "CET1"}])],
+        )
+        path = tmp_path / "comparison.json"
+        path.write_text(json.dumps(comparison), encoding="utf-8")
+
+        with patch("vigilance.utils.genai.get_openai_api_key", return_value=None):
+            result_path = enrich_comparison_with_genai_triage(path)
+
+        enriched = json.loads(result_path.read_text(encoding="utf-8"))
+        assert "global_summary" in enriched
+        assert enriched["pair_comparisons"][0]["genai_triage"]["source"] == "heuristic"
+
+    def test_skips_unchanged_pairs(self, tmp_path):
+        comparison = _make_comparison(
+            pairs=[_make_pair(status="inchange")],
+        )
+        path = tmp_path / "comparison.json"
+        path.write_text(json.dumps(comparison), encoding="utf-8")
+
+        with patch("vigilance.utils.genai.get_openai_api_key", return_value=None):
+            enrich_comparison_with_genai_triage(path)
+
+        enriched = json.loads(path.read_text(encoding="utf-8"))
+        # Fallback mode marks unchanged pairs as not relevant with heuristic source
+        triage = enriched["pair_comparisons"][0]["genai_triage"]
+        assert triage["is_relevant"] is False
+        assert triage["source"] == "heuristic"

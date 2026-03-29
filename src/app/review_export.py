@@ -30,6 +30,10 @@ VALIDATION_CSV_COLUMNS = [
     "validation_finale",
     "pertinence_genai",
     "niveau_risque_genai",
+    "type_impact_genai",
+    "phase_genai",
+    "action_requise_genai",
+    "ref_reglementaire_genai",
 ]
 
 # Mapping type_changement anglais -> francais
@@ -308,6 +312,10 @@ def _iter_validation_rows(
         ga = base.get("genai_analysis") or {}
         pertinence_genai = _sanitize_cell(ga.get("relevance", ""))
         niveau_risque_genai = _sanitize_cell(ga.get("risk_level", ""))
+        impact_type_genai = _sanitize_cell(ga.get("impact_type", ""))
+        phase_genai = _sanitize_cell(ga.get("project_phase", ""))
+        action_genai = _sanitize_cell(ga.get("action_requise", ""))
+        ref_regl_genai = _sanitize_cell(ga.get("reference_reglementaire", ""))
 
         if not indicators:
             ind_type = str(base.get("change_type", ""))
@@ -345,6 +353,10 @@ def _iter_validation_rows(
                 "validation_finale": validation,
                 "pertinence_genai": pertinence_genai,
                 "niveau_risque_genai": niveau_risque_genai,
+                "type_impact_genai": impact_type_genai,
+                "phase_genai": phase_genai,
+                "action_requise_genai": action_genai,
+                "ref_reglementaire_genai": ref_regl_genai,
             }
             yield row
         else:
@@ -410,6 +422,10 @@ def _iter_validation_rows(
                     "validation_finale": ind_validation,
                     "pertinence_genai": pertinence_genai,
                     "niveau_risque_genai": niveau_risque_genai,
+                    "type_impact_genai": impact_type_genai,
+                    "phase_genai": phase_genai,
+                    "action_requise_genai": action_genai,
+                    "ref_reglementaire_genai": ref_regl_genai,
                 }
                 yield row
 

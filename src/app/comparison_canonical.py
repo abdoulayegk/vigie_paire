@@ -23,6 +23,58 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
+# GenAI triage → UI field mapping
+# ---------------------------------------------------------------------------
+
+_CATEGORY_TO_RELEVANCE: dict[str, str] = {
+    "REGLEMENTAIRE": "Réglementaire",
+    "RISQUE": "Risque",
+    "CAPITAL": "Capital",
+    "STRUCTURE": "Structure",
+    "COSMETIQUE": "Cosmétique",
+    "INCONNU": "Inconnu",
+}
+
+_RELEVANCE_TO_PRIORITY: dict[str, str] = {
+    "ELEVEE": "critique",
+    "MOYENNE": "prioritaire",
+    "FAIBLE": "normale",
+}
+
+
+def _map_genai_triage_to_ui(triage: dict[str, Any]) -> dict[str, Any]:
+    """Map genai_triage fields to the keys expected by Dash UI components.
+
+    Dash components read: relevance, risk_level, confidence, justification,
+    review_priority, analyst_summary, impact_type, project_phase,
+    action_requise, reference_reglementaire, impact_description.
+    """
+    if not triage:
+        return {}
+    mapped: dict[str, Any] = dict(triage)
+    # explanation → justification (what review_detail_v2 reads)
+    if "explanation" in triage and "justification" not in triage:
+        mapped["justification"] = triage["explanation"]
+    # category → relevance (badge label)
+    if "category" in triage and "relevance" not in triage:
+        mapped["relevance"] = _CATEGORY_TO_RELEVANCE.get(
+            str(triage["category"]).upper(), str(triage["category"])
+        )
+    # relevance_score → review_priority
+    if "relevance_score" in triage and "review_priority" not in triage:
+        mapped["review_priority"] = _RELEVANCE_TO_PRIORITY.get(
+            str(triage["relevance_score"]).upper(), "normale"
+        )
+    # analyst_summary fallback
+    if "explanation" in triage and "analyst_summary" not in triage:
+        mapped["analyst_summary"] = triage["explanation"]
+    # risk_level and confidence pass through (names match Dash expectations)
+    # impact_type, project_phase, action_requise, reference_reglementaire,
+    # impact_description also pass through as-is
+    return mapped
+
+
+# ---------------------------------------------------------------------------
 # Changed-tables metrics
 # ---------------------------------------------------------------------------
 
@@ -455,7 +507,10 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 "footnotes_diff": footnotes_diff,
                 "footnotes_counts": footnotes_counts,
                 "uncertain_diff": False,
-                "genai_analysis": dict(item.get("analyst_assessment") or {}),
+                "genai_analysis": {
+                    **dict(item.get("analyst_assessment") or {}),
+                    **_map_genai_triage_to_ui(item.get("genai_triage") or {}),
+                },
                 "match_metadata": {
                     "drastic_row_drop": drastic_row_drop,
                     "theme": str(
@@ -505,7 +560,10 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                         item.get("indicators", []) or []
                     ),
                     "first_column_indicators": list(item.get("indicators", []) or []),
-                    "genai_analysis": dict(item.get("analyst_assessment") or {}),
+                    "genai_analysis": {
+                        **dict(item.get("analyst_assessment") or {}),
+                        **_map_genai_triage_to_ui(item.get("genai_triage") or {}),
+                    },
                     "semantic_judge": str(item.get("reason", "") or ""),
                 }
             )
@@ -707,6 +765,7 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "archived_pdf_current": str(payload.get("archived_pdf_current", "") or ""),
             "source_pdf_previous": str(payload.get("source_pdf_previous", "") or ""),
             "source_pdf_current": str(payload.get("source_pdf_current", "") or ""),
+            "global_summary": dict(payload.get("global_summary") or {}),
             "executive_summary": {
                 "content": _build_report_comparison_summary_text(
                     current_label=current_label,

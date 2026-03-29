@@ -581,6 +581,78 @@ def _build_genai_analysis_section(item: dict) -> html.Div:
     just = ga.get("justification", "")
     rel_label = _REL_DISPLAY.get(rel, rel)
     risk_label = _RISK_DISPLAY.get(risk, risk)
+
+    # New analyst fields
+    impact_type = str(ga.get("impact_type", "") or "")
+    project_phase = str(ga.get("project_phase", "") or "")
+    action_requise = str(ga.get("action_requise", "") or "")
+    ref_regl = str(ga.get("reference_reglementaire", "") or "").strip()
+    impact_desc = str(ga.get("impact_description", "") or "").strip()
+
+    _IMPACT_COLORS = {
+        "structurel": "danger",
+        "contenu": "primary",
+        "methodologique": "warning",
+        "cosmetique": "secondary",
+    }
+    _ACTION_COLORS = {
+        "escalade": "danger",
+        "investigation": "warning",
+        "confirmation": "info",
+        "information": "secondary",
+        "aucune": "light",
+    }
+    _PHASE_DISPLAY = {
+        "rapport_gestion": "Rapport de gestion",
+        "pilier_3": "Pilier 3",
+        "ifc": "IFC",
+        "autre": "Autre",
+    }
+
+    # Build secondary badges row
+    secondary_badges = []
+    if impact_type:
+        secondary_badges.append(
+            dbc.Badge(
+                f"Impact : {impact_type}",
+                color=_IMPACT_COLORS.get(impact_type, "secondary"),
+                className="me-2",
+            )
+        )
+    if project_phase:
+        secondary_badges.append(
+            dbc.Badge(
+                _PHASE_DISPLAY.get(project_phase, project_phase),
+                color="info",
+                className="me-2",
+            )
+        )
+    if action_requise and action_requise != "aucune":
+        secondary_badges.append(
+            dbc.Badge(
+                f"Action : {action_requise}",
+                color=_ACTION_COLORS.get(action_requise, "secondary"),
+                className="me-2",
+            )
+        )
+
+    # Build detail lines
+    detail_lines = []
+    if ref_regl:
+        detail_lines.append(
+            html.Div(
+                [html.Strong("Réf. réglementaire : "), html.Span(ref_regl)],
+                className="small mb-1",
+            )
+        )
+    if impact_desc:
+        detail_lines.append(
+            html.Div(
+                [html.Strong("Impact : "), html.Span(impact_desc)],
+                className="small mb-1",
+            )
+        )
+
     return html.Div(
         [
             html.H6("Analyse IA générative", className="text-muted small mb-2"),
@@ -600,6 +672,13 @@ def _build_genai_analysis_section(item: dict) -> html.Div:
                 ],
                 className="d-flex align-items-center mb-2",
             ),
+            html.Div(
+                secondary_badges,
+                className="d-flex align-items-center mb-2",
+            )
+            if secondary_badges
+            else html.Div(),
+            *detail_lines,
             html.Div(
                 html.Small(just, className="text-muted fst-italic"),
                 className="p-2 bg-light rounded",

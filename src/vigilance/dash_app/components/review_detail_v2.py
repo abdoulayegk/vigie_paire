@@ -254,10 +254,83 @@ def _build_genai_section(table: dict) -> html.Div:
         except (TypeError, ValueError):
             pass
 
+    # New analyst fields
+    impact_type = str(ga.get("impact_type", "") or "")
+    project_phase = str(ga.get("project_phase", "") or "")
+    action_requise = str(ga.get("action_requise", "") or "")
+    ref_regl = str(ga.get("reference_reglementaire", "") or "").strip()
+    impact_desc = str(ga.get("impact_description", "") or "").strip()
+
+    _IMPACT_COLORS = {
+        "structurel": "danger",
+        "contenu": "primary",
+        "methodologique": "warning",
+        "cosmetique": "secondary",
+    }
+    _ACTION_COLORS = {
+        "escalade": "danger",
+        "investigation": "warning",
+        "confirmation": "info",
+        "information": "secondary",
+        "aucune": "light",
+    }
+    _PHASE_DISPLAY = {
+        "rapport_gestion": "Rapport de gestion",
+        "pilier_3": "Pilier 3",
+        "ifc": "IFC",
+        "autre": "Autre",
+    }
+
+    secondary_chips = []
+    if impact_type:
+        secondary_chips.append(
+            dbc.Badge(
+                f"Impact : {impact_type}",
+                color=_IMPACT_COLORS.get(impact_type, "secondary"),
+                className="me-2",
+            )
+        )
+    if project_phase:
+        secondary_chips.append(
+            dbc.Badge(
+                _PHASE_DISPLAY.get(project_phase, project_phase),
+                color="info",
+                className="me-2",
+            )
+        )
+    if action_requise and action_requise != "aucune":
+        secondary_chips.append(
+            dbc.Badge(
+                f"Action : {action_requise}",
+                color=_ACTION_COLORS.get(action_requise, "secondary"),
+                className="me-2",
+            )
+        )
+
+    detail_parts = []
+    if ref_regl:
+        detail_parts.append(
+            html.Small(
+                [html.Strong("Réf. : "), ref_regl],
+                className="d-block text-muted mb-1",
+            )
+        )
+    if impact_desc:
+        detail_parts.append(
+            html.Small(
+                [html.Strong("Impact : "), impact_desc],
+                className="d-block text-muted mb-1",
+            )
+        )
+
     return html.Div(
         [
             html.H6("Explication IA générative", className="mb-2"),
             html.Div(chips, className="mb-2"),
+            html.Div(secondary_chips, className="mb-2")
+            if secondary_chips
+            else html.Div(),
+            *detail_parts,
             html.P(justification or "Explication non fournie.", className="mb-0"),
         ],
         className="mb-4",
