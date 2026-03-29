@@ -271,6 +271,7 @@ stores = [
     dcc.Store(id="store-review-items", data=None),
     dcc.Store(id="store-review-queue", data=None),  # V2: deduplicated grouped queue
     dcc.Store(id="store-review-selection", data={"review_id": None, "change_id": None}),
+    dcc.Store(id="store-review-last-positions", data={}),
     dcc.Store(id="store-review-current-idx", data=0),
     dcc.Store(id="store-review-current-indicator-idx", data=0),
     dcc.Store(
@@ -1482,7 +1483,12 @@ def update_review_queue(
     pct_rejected = (rejected / total) * 100 if total else 0
     pct_pending = (pending / total) * 100 if total else 0
 
-    queue_component = build_review_queue_v2(queue, current_review_id, filters)
+    queue_component = build_review_queue_v2(
+        queue,
+        current_review_id,
+        resolved_selection.get("change_id"),
+        filters,
+    )
 
     return (
         queue_component,
@@ -1504,16 +1510,17 @@ def update_review_queue(
     Input("store-review-queue", "data"),
     Input("store-review-filters", "data"),
     State("store-review-selection", "data"),
+    State("store-review-last-positions", "data"),
     prevent_initial_call=True,
 )
-def sync_review_selection(queue, filters, selection):
+def sync_review_selection(queue, filters, selection, last_positions):
     """Keep selection stable on queue refresh/filter changes, with safe fallback."""
     if not REVIEW_QUEUE_V2_ACTIVE:
         raise PreventUpdate
     if queue is None:
         raise PreventUpdate
     resolved_selection, table_idx, change_idx = _resolve_selection(
-        queue or [], selection, filters
+        queue or [], selection, filters, last_positions
     )
     if resolved_selection == (selection or {}):
         raise PreventUpdate
@@ -1532,6 +1539,20 @@ def sync_review_selection(queue, filters, selection):
 
 
 @callback(
+    Output("store-review-last-positions", "data", allow_duplicate=True),
+    Input("store-review-selection", "data"),
+    State("store-review-last-positions", "data"),
+    prevent_initial_call=True,
+)
+def remember_review_position_v2(selection, last_positions):
+    """Remember the last visited change for each table in the active review."""
+    updated = _remember_selection(last_positions, selection)
+    if updated == _normalize_last_positions(last_positions):
+        raise PreventUpdate
+    return updated
+
+
+@callback(
     Output("store-review-filters", "data"),
     Input({"type": "filter-section-v2", "value": ALL}, "n_clicks"),
     State("store-review-filters", "data"),
@@ -1546,58 +1567,6 @@ def on_filter_section(n_clicks, current_filters):
     new_filters = dict(current_filters or {})
     new_filters["section"] = section_value
     return new_filters
-
-
-@callback(
-    Output("store-review-selection", "data", allow_duplicate=True),
-    Output("store-review-current-idx", "data", allow_duplicate=True),
-    Output("store-current-change-idx", "data", allow_duplicate=True),
-    Output("store-nav-debug", "data", allow_duplicate=True),
-    Input({"type": "queue-table-item-v2", "review_id": ALL}, "n_clicks"),
-    State("store-review-queue", "data"),
-    State("store-review-selection", "data"),
-    State("store-review-filters", "data"),
-    prevent_initial_call=True,
-)
-def on_queue_item_click(n_clicks, queue, current_selection, filters):
-    """Handle click on a table item in the V2 queue."""
-    if not REVIEW_QUEUE_V2_ACTIVE:
-        raise PreventUpdate
-    if not ctx.triggered:
-        raise PreventUpdate
-
-    button_id = ctx.triggered_id
-    if not button_id or not isinstance(button_id, dict):
-        raise PreventUpdate
-
-    clicked_review_id = str(button_id.get("review_id") or "")
-    if not clicked_review_id:
-        raise PreventUpdate
-
-    if not queue:
-        raise PreventUpdate
-    total = len(queue)
-    resolved_selection, table_idx, change_idx = _resolve_selection(
-        queue,
-        {"review_id": clicked_review_id, "change_id": None},
-        filters,
-    )
-
-    dbg = {
-        "writer": "on_queue_item_click",
-        "trigger": str(button_id),
-        "from": (current_selection or {}).get("review_id"),
-        "to": resolved_selection.get("review_id"),
-        "total": total,
-    }
-    logger.info(
-        "[on_queue_item_click] trig=%s current_review_id=%r total=%s -> review_id=%s",
-        button_id,
-        (current_selection or {}).get("review_id"),
-        total,
-        resolved_selection.get("review_id"),
-    )
-    return resolved_selection, table_idx, change_idx, dbg
 
 
 @callback(
@@ -2399,13 +2368,52 @@ def _get_table_by_review_id(
     return -1, None
 
 
+def _normalize_last_positions(data: dict | None) -> dict[str, str]:
+    if not isinstance(data, dict):
+        return {}
+
+    normalized: dict[str, str] = {}
+    for review_id, change_id in data.items():
+        rid = str(review_id or "").strip()
+        cid = str(change_id or "").strip()
+        if rid and cid:
+            normalized[rid] = cid
+    return normalized
+
+
+def _remember_selection(
+    last_positions: dict | None,
+    selection: dict | None,
+) -> dict[str, str]:
+    remembered = dict(_normalize_last_positions(last_positions))
+    if not isinstance(selection, dict):
+        return remembered
+
+    review_id = str(selection.get("review_id") or "").strip()
+    change_id = str(selection.get("change_id") or "").strip()
+    if review_id and change_id:
+        remembered[review_id] = change_id
+    return remembered
+
+
 def _resolve_change_id(
-    table: dict, preferred_change_id: str | None = None
+    table: dict,
+    preferred_change_id: str | None = None,
+    last_positions: dict | None = None,
 ) -> str | None:
     changes = table.get("changes", []) or []
     preferred = str(preferred_change_id or "")
     if preferred and any(str(c.get("change_id", "")) == preferred for c in changes):
         return preferred
+
+    remembered_change_id = _normalize_last_positions(last_positions).get(
+        _review_id(table), ""
+    )
+    if remembered_change_id and any(
+        str(c.get("change_id", "")) == remembered_change_id for c in changes
+    ):
+        return remembered_change_id
+
     for change in changes:
         status = str(change.get("validation_status", "pending"))
         if change.get("is_required", True) and status == "pending":
@@ -2419,6 +2427,7 @@ def _resolve_selection(
     queue: list[dict],
     selection: dict | None,
     filters: dict | None = None,
+    last_positions: dict | None = None,
 ) -> tuple[dict, int, int]:
     if not queue:
         return {"review_id": None, "change_id": None}, 0, 0
@@ -2437,7 +2446,9 @@ def _resolve_selection(
         preferred_review_id = _review_id(table)
 
     resolved_change_id = _resolve_change_id(
-        table, preferred_change_id=(selection or {}).get("change_id")
+        table,
+        preferred_change_id=(selection or {}).get("change_id"),
+        last_positions=last_positions,
     )
     changes = table.get("changes", []) or []
     change_idx = 0
@@ -2899,6 +2910,7 @@ def render_sections_tab(indicator_result, show_results):
     Output("store-review-items", "data"),
     Output("store-review-queue", "data"),  # V2: deduplicated grouped queue
     Output("store-review-selection", "data"),
+    Output("store-review-last-positions", "data"),
     Output("store-review-current-idx", "data"),
     Output("store-current-change-idx", "data"),  # V2: reset change index
     Output("store-nav-debug", "data", allow_duplicate=True),
@@ -3029,6 +3041,7 @@ def init_review_items(indicator_result, paths, indicator_meta):
         serialized,
         serialized_v2,
         resolved_selection,
+        _remember_selection({}, resolved_selection),
         sel_table_idx,
         sel_change_idx,
         dbg,
@@ -3998,6 +4011,7 @@ def on_download_indicator_json_brut(n_clicks, indicator_result):
     Output("store-review-items", "data", allow_duplicate=True),
     Output("store-review-queue", "data", allow_duplicate=True),  # V2
     Output("store-review-selection", "data", allow_duplicate=True),
+    Output("store-review-last-positions", "data", allow_duplicate=True),
     Output("store-review-current-idx", "data", allow_duplicate=True),
     Output("store-current-change-idx", "data", allow_duplicate=True),  # V2
     Output("main-content", "children", allow_duplicate=True),
@@ -4026,6 +4040,7 @@ def on_reset(n_clicks):
             None,
             None,  # store-review-queue
             {"review_id": None, "change_id": None},
+            {},
             0,
             0,  # store-current-change-idx
             build_page_upload(),
@@ -4169,12 +4184,21 @@ def on_load_comparison(n_clicks, filename):
     State("store-review-queue", "data"),
     State("store-review-selection", "data"),
     State("store-review-filters", "data"),
+    State("store-review-last-positions", "data"),
     State("validation-notes-v2", "value"),
     State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
 def on_validate_change_v2(
-    approve, reject, skip, queue, selection, filters, notes, indicator_meta
+    approve,
+    reject,
+    skip,
+    queue,
+    selection,
+    filters,
+    last_positions,
+    notes,
+    indicator_meta,
 ):
     """Apply validation to current change in V2 queue, auto-advance.
 
@@ -4197,7 +4221,7 @@ def on_validate_change_v2(
         raise PreventUpdate
 
     resolved_selection, table_idx, change_idx = _resolve_selection(
-        queue, selection, filters
+        queue, selection, filters, last_positions
     )
     if table_idx < 0:
         raise PreventUpdate
@@ -4259,6 +4283,7 @@ def on_validate_change_v2(
 
     # Auto-advance logic based on filtered visible queue
     next_selection = dict(resolved_selection)
+    remembered_positions = _remember_selection(last_positions, resolved_selection)
     if change_idx + 1 < len(changes):
         next_selection["change_id"] = str(changes[change_idx + 1].get("change_id", ""))
     else:
@@ -4274,15 +4299,27 @@ def on_validate_change_v2(
                 if next_table is not None:
                     next_selection = {
                         "review_id": next_review_id,
-                        "change_id": _resolve_change_id(next_table, None),
+                        "change_id": _resolve_change_id(
+                            next_table,
+                            None,
+                            remembered_positions,
+                        ),
                     }
             else:
-                next_selection["change_id"] = _resolve_change_id(table, None)
+                next_selection["change_id"] = _resolve_change_id(
+                    table,
+                    None,
+                    remembered_positions,
+                )
         else:
-            next_selection["change_id"] = _resolve_change_id(table, None)
+            next_selection["change_id"] = _resolve_change_id(
+                table,
+                None,
+                remembered_positions,
+            )
 
     next_selection, new_table_idx, new_change_idx = _resolve_selection(
-        new_queue, next_selection, filters
+        new_queue, next_selection, filters, remembered_positions
     )
 
     logger.info(
@@ -4322,15 +4359,16 @@ def on_validate_change_v2(
     State("store-review-queue", "data"),
     State("store-review-selection", "data"),
     State("store-review-filters", "data"),
+    State("store-review-last-positions", "data"),
     prevent_initial_call=True,
 )
-def on_navigate_change_v2(prev, next_c, queue, selection, filters):
+def on_navigate_change_v2(prev, next_c, queue, selection, filters, last_positions):
     """Navigate prev/next within current table's changes (V2)."""
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
 
     resolved_selection, table_idx, change_idx = _resolve_selection(
-        queue, selection, filters
+        queue, selection, filters, last_positions
     )
     if table_idx < 0:
         raise PreventUpdate
@@ -4361,7 +4399,12 @@ def on_navigate_change_v2(prev, next_c, queue, selection, filters):
         "review_id": resolved_selection.get("review_id"),
         "change_id": new_change_id,
     }
-    new_selection, _, new_change_idx = _resolve_selection(queue, new_selection, filters)
+    new_selection, _, new_change_idx = _resolve_selection(
+        queue,
+        new_selection,
+        filters,
+        last_positions,
+    )
     return new_selection, new_change_idx
 
 
@@ -4372,9 +4415,10 @@ def on_navigate_change_v2(prev, next_c, queue, selection, filters):
     State("store-review-queue", "data"),
     State("store-review-selection", "data"),
     State("store-review-filters", "data"),
+    State("store-review-last-positions", "data"),
     prevent_initial_call=True,
 )
-def on_change_row_click(n_clicks, queue, selection, filters):
+def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
     """Select a specific change row by stable change_id."""
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
@@ -4385,7 +4429,12 @@ def on_change_row_click(n_clicks, queue, selection, filters):
     if not change_id:
         raise PreventUpdate
 
-    resolved_selection, table_idx, _ = _resolve_selection(queue, selection, filters)
+    resolved_selection, table_idx, _ = _resolve_selection(
+        queue,
+        selection,
+        filters,
+        last_positions,
+    )
     if table_idx < 0:
         raise PreventUpdate
     table = queue[table_idx]
@@ -4398,7 +4447,12 @@ def on_change_row_click(n_clicks, queue, selection, filters):
         "review_id": resolved_selection.get("review_id"),
         "change_id": change_id,
     }
-    new_selection, _, new_change_idx = _resolve_selection(queue, new_selection, filters)
+    new_selection, _, new_change_idx = _resolve_selection(
+        queue,
+        new_selection,
+        filters,
+        last_positions,
+    )
     return new_selection, new_change_idx
 
 
@@ -4406,20 +4460,34 @@ def on_change_row_click(n_clicks, queue, selection, filters):
     Output("store-review-selection", "data", allow_duplicate=True),
     Output("store-review-current-idx", "data", allow_duplicate=True),
     Output("store-current-change-idx", "data", allow_duplicate=True),
+    Output("store-nav-debug", "data", allow_duplicate=True),
     Input("btn-prev-table-v2", "n_clicks"),
     Input("btn-next-table-v2", "n_clicks"),
     Input({"type": "queue-table-item-v2", "review_id": ALL}, "n_clicks"),
     State("store-review-queue", "data"),
     State("store-review-selection", "data"),
     State("store-review-filters", "data"),
+    State("store-review-last-positions", "data"),
     prevent_initial_call=True,
 )
-def on_navigate_table_v2(prev, next_t, clicks, queue, selection, filters):
-    """Navigate between tables (V2) using stable review IDs."""
+def on_navigate_table_v2(
+    prev, next_t, clicks, queue, selection, filters, last_positions
+):
+    """Navigate between tables or jump directly from the review queue.
+
+    A single callback owns table-level navigation to avoid duplicate writes
+    to the same selection stores, which can otherwise snap the UI back to
+    the first visible table.
+    """
     if not queue:
         raise PreventUpdate
 
-    resolved_selection, table_idx, _ = _resolve_selection(queue, selection, filters)
+    resolved_selection, table_idx, _ = _resolve_selection(
+        queue,
+        selection,
+        filters,
+        last_positions,
+    )
     visible_ids = _visible_review_ids(queue, filters) or [
         _review_id(t) for t in queue if _review_id(t)
     ]
@@ -4449,39 +4517,64 @@ def on_navigate_table_v2(prev, next_t, clicks, queue, selection, filters):
     _, target_table = _get_table_by_review_id(queue, target_review_id)
     new_selection = {
         "review_id": target_review_id,
-        "change_id": _resolve_change_id(target_table or {}, None),
+        "change_id": _resolve_change_id(target_table or {}, None, last_positions),
     }
     new_selection, new_table_idx, new_change_idx = _resolve_selection(
-        queue, new_selection, filters
+        queue,
+        new_selection,
+        filters,
+        last_positions,
     )
-    return new_selection, new_table_idx, new_change_idx
+    dbg = {
+        "writer": "on_navigate_table_v2",
+        "trigger": str(ctx.triggered_id),
+        "from": (selection or {}).get("review_id"),
+        "to": new_selection.get("review_id"),
+        "total": len(visible_ids),
+    }
+    logger.info(
+        "[on_navigate_table_v2] trig=%s from=%r to=%s visible_total=%s",
+        ctx.triggered_id,
+        (selection or {}).get("review_id"),
+        new_selection.get("review_id"),
+        len(visible_ids),
+    )
+    return new_selection, new_table_idx, new_change_idx, dbg
 
 
 @callback(
+    Output("btn-prev-table-v2", "disabled"),
     Output("btn-next-table-v2", "disabled"),
     Input("store-review-queue", "data"),
     Input("store-review-selection", "data"),
+    Input("store-review-filters", "data"),
 )
-def block_next_table_until_complete_v2(queue, selection):
-    """Disable 'Next Table' if current table has required pending changes."""
+def block_table_navigation_v2(queue, selection, filters):
+    """Disable table navigation buttons only at visible boundaries.
+
+    This avoids a misleading UX where the buttons look active but navigation
+    remains on the same table because the current selection is already at the
+    first/last visible table under the active filters.
+    """
     if not queue:
-        return False
+        return True, True
 
-    _, table = _get_table_by_review_id(queue, (selection or {}).get("review_id"))
-    if table is None:
-        return False
+    visible_ids = _visible_review_ids(queue, filters) or [
+        _review_id(table) for table in queue if _review_id(table)
+    ]
+    if not visible_ids:
+        return True, True
 
-    changes = table.get("changes", [])
+    resolved_selection, _, _ = _resolve_selection(queue, selection, filters)
+    current_review_id = str(resolved_selection.get("review_id") or "")
+    if current_review_id not in visible_ids:
+        current_review_id = visible_ids[0]
 
-    # Block if any required change is still pending
-    for c in changes:
-        if (
-            c.get("is_required", True)
-            and c.get("validation_status", "pending") == "pending"
-        ):
-            return True
+    pos = visible_ids.index(current_review_id)
+    prev_disabled = pos <= 0
+    next_disabled = pos >= len(visible_ids) - 1
 
-    return False
+    return prev_disabled, next_disabled
 
 
 if __name__ == "__main__":

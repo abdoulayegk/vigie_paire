@@ -451,7 +451,7 @@ def build_page_results() -> html.Div:
                             html.Div(
                                 id="review-queue-container",
                                 className="bg-white p-3 shadow-sm rounded h-100",
-                                style={"overflowY": "auto"},
+                                style={"overflowY": "hidden"},
                             ),
                             md=4,
                             className="h-100",

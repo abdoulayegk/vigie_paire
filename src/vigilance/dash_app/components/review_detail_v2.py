@@ -122,20 +122,6 @@ def _get_change_description(change: dict) -> str:
     return payload.get("description", "Changement")
 
 
-def _is_table_only_view(table: dict) -> bool:
-    """True when review should be at table level (added/removed table)."""
-    for change in table.get("changes", []) or []:
-        ctype = change.get("change_type", "")
-        if ctype in (
-            ChangeType.TABLE_ADDED.value,
-            ChangeType.TABLE_REMOVED.value,
-            "table_added",
-            "table_removed",
-        ):
-            return True
-    return False
-
-
 def _build_fallback_genai_message(table: dict) -> str:
     """Build analyst-friendly fallback when GenAI classification is unavailable."""
     change_types = {
@@ -286,20 +272,25 @@ def build_change_list_v2(
             [
                 html.Div(
                     [
-                        status_icon,
-                        dbc.Badge(
-                            type_label,
-                            color=type_color,
-                            className="me-2",
+                        html.Div(
+                            [
+                                status_icon,
+                                dbc.Badge(
+                                    type_label,
+                                    color=type_color,
+                                    className="me-2",
+                                ),
+                                html.Span(
+                                    description,
+                                    className="small flex-grow-1",
+                                    style={"wordBreak": "break-word"},
+                                ),
+                                required_badge,
+                            ],
+                            className="d-flex align-items-center flex-wrap flex-grow-1 gap-1",
                         ),
-                        html.Span(
-                            description,
-                            className="small",
-                            style={"wordBreak": "break-word"},
-                        ),
-                        required_badge,
                     ],
-                    className="d-flex align-items-center flex-wrap",
+                    className="d-flex align-items-start gap-2",
                 ),
                 # Show validation notes if present
                 html.Small(
@@ -349,12 +340,17 @@ def build_validation_panel_v2(
             html.H6("Changement actuel", className="mb-2"),
             html.Div(
                 [
-                    dbc.Badge(
-                        _CHANGE_TYPE_LABELS.get(change_type, change_type),
-                        color=_CHANGE_TYPE_COLORS.get(change_type, "secondary"),
-                        className="me-2",
+                    html.Div(
+                        [
+                            dbc.Badge(
+                                _CHANGE_TYPE_LABELS.get(change_type, change_type),
+                                color=_CHANGE_TYPE_COLORS.get(change_type, "secondary"),
+                                className="me-2",
+                            ),
+                            html.Span(description, className="fw-semibold"),
+                        ],
+                        className="d-flex align-items-center flex-wrap gap-1",
                     ),
-                    html.Span(description, className="fw-semibold"),
                 ],
                 className="mb-2",
             ),
@@ -576,8 +572,6 @@ def build_review_detail_v2(
         className="mb-3",
     )
 
-    table_only_view = _is_table_only_view(table)
-
     # Proof images
     proof_section = (
         html.Div(
@@ -653,29 +647,19 @@ def build_review_detail_v2(
 
     # Changes list
     changes = table.get("changes", [])
-    if table_only_view:
-        changes_section = dbc.Alert(
-            [
-                html.I(className="bi bi-table me-2"),
-                "Validation au niveau tableau: aucun détail indicateur à afficher.",
-            ],
-            color="info",
-            className="mb-4",
-        )
-    else:
-        changes_section = html.Div(
-            [
-                html.H6(
-                    [
-                        html.I(className="bi bi-list-check me-2"),
-                        f"Changements ({len(changes)})",
-                    ],
-                    className="mb-2",
-                ),
-                build_change_list_v2(changes, current_change_idx),
-            ],
-            className="mb-4",
-        )
+    changes_section = html.Div(
+        [
+            html.H6(
+                [
+                    html.I(className="bi bi-list-check me-2"),
+                    f"Changements ({len(changes)})",
+                ],
+                className="mb-2",
+            ),
+            build_change_list_v2(changes, current_change_idx),
+        ],
+        className="mb-4",
+    )
 
     # Validation panel
     validation_section = html.Div(
