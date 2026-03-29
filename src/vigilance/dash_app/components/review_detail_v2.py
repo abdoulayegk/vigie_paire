@@ -64,6 +64,15 @@ _CHANGE_TYPE_COLORS = {
     "modified": "primary",
 }
 
+_FOOTNOTE_CHANGE_TYPES = {
+    ChangeType.FOOTNOTE_ADDED.value,
+    ChangeType.FOOTNOTE_REMOVED.value,
+    ChangeType.FOOTNOTE_MODIFIED.value,
+    "footnote_added",
+    "footnote_removed",
+    "footnote_modified",
+}
+
 
 def _format_section(section: str) -> str:
     """Format section name for display."""
@@ -72,10 +81,22 @@ def _format_section(section: str) -> str:
     return " ".join(w.capitalize() for w in section.replace("_", " ").split())
 
 
-def _get_change_description(change: dict) -> str:
-    """Get human-readable description for a change."""
-    change_type = change.get("change_type", "")
-    payload = change.get("payload", {})
+def _normalize_text(value: object) -> str:
+    return str(value or "").strip()
+
+
+def _is_footnote_change(change_type: str) -> bool:
+    return str(change_type or "") in _FOOTNOTE_CHANGE_TYPES
+
+
+def _get_change_row_summary(change: dict) -> str:
+    """Get compact, scan-friendly label for the change row.
+
+    The row summary intentionally stays short. Full text for long footnotes is
+    rendered separately for the currently selected change.
+    """
+    change_type = str(change.get("change_type", "") or "")
+    payload = change.get("payload", {}) or {}
 
     if change_type in (
         "indicator_added",
@@ -83,33 +104,21 @@ def _get_change_description(change: dict) -> str:
         ChangeType.INDICATOR_ADDED.value,
         ChangeType.INDICATOR_REMOVED.value,
     ):
-        return payload.get("indicator_name", "(indicateur)")
+        return _normalize_text(payload.get("indicator_name")) or "(indicateur)"
 
     if change_type in ("indicator_renamed", ChangeType.INDICATOR_RENAMED.value):
-        from_val = payload.get("from", "")
-        to_val = payload.get("to", "")
+        from_val = _normalize_text(payload.get("from"))
+        to_val = _normalize_text(payload.get("to"))
         return f"{from_val} → {to_val}"
 
-    if "footnote" in change_type:
-        ref = payload.get("footnote_ref", "")
-        old_text = payload.get("old_text", "")
-        new_text = payload.get("new_text", "")
+    if _is_footnote_change(change_type):
+        ref = _normalize_text(payload.get("footnote_ref"))
+        ref_label = f" [{ref}]" if ref else ""
         if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
-            return (
-                f"[{ref}] {new_text[:80]}..."
-                if len(new_text) > 80
-                else f"[{ref}] {new_text}"
-            )
-        elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
-            return (
-                f"[{ref}] {old_text[:80]}..."
-                if len(old_text) > 80
-                else f"[{ref}] {old_text}"
-            )
-        else:
-            old_preview = old_text[:40] + "..." if len(old_text) > 40 else old_text
-            new_preview = new_text[:40] + "..." if len(new_text) > 40 else new_text
-            return f"[{ref}] {old_preview} → {new_preview}"
+            return f"Note ajoutée{ref_label}"
+        if change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
+            return f"Note supprimée{ref_label}"
+        return f"Note modifiée{ref_label}"
 
     if change_type in (
         "table_added",
@@ -117,9 +126,55 @@ def _get_change_description(change: dict) -> str:
         ChangeType.TABLE_ADDED.value,
         ChangeType.TABLE_REMOVED.value,
     ):
-        return payload.get("description", "Tableau entier")
+        return _normalize_text(payload.get("description")) or "Tableau entier"
 
-    return payload.get("description", "Changement")
+    return _normalize_text(payload.get("description")) or "Changement"
+
+
+def _build_detail_block(label: str, text: str, muted: bool = False) -> html.Div:
+    content = text or "Élément absent"
+    text_class = "text-muted fst-italic" if muted or not text else "text-dark"
+    return html.Div(
+        [
+            html.Div(label, className="fw-semibold border-bottom px-3 py-2"),
+            html.Div(
+                content,
+                className=f"px-3 py-3 {text_class}",
+                style={
+                    "whiteSpace": "pre-wrap",
+                    "overflowWrap": "anywhere",
+                    "wordBreak": "break-word",
+                    "lineHeight": "1.55",
+                },
+            ),
+        ],
+        className="border rounded bg-white overflow-hidden",
+    )
+
+
+def _build_change_full_detail(change: dict) -> html.Div | None:
+    change_type = str(change.get("change_type", "") or "")
+    if not _is_footnote_change(change_type):
+        return None
+
+    payload = change.get("payload", {}) or {}
+    old_text = _normalize_text(payload.get("old_text"))
+    new_text = _normalize_text(payload.get("new_text"))
+
+    if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
+        blocks = [_build_detail_block("Trimestre courant", new_text)]
+    elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
+        blocks = [
+            _build_detail_block("Trimestre précédent", old_text),
+            _build_detail_block("Trimestre courant", "", muted=True),
+        ]
+    else:
+        blocks = [
+            _build_detail_block("Trimestre précédent", old_text, muted=not old_text),
+            _build_detail_block("Trimestre courant", new_text, muted=not new_text),
+        ]
+
+    return html.Div(blocks, className="d-grid gap-3 mt-3")
 
 
 def _build_fallback_genai_message(table: dict) -> str:
@@ -252,7 +307,8 @@ def build_change_list_v2(
         type_color = _CHANGE_TYPE_COLORS.get(change_type, "secondary")
 
         # Description
-        description = _get_change_description(change)
+        description = _get_change_row_summary(change)
+        full_detail = _build_change_full_detail(change) if is_current else None
 
         # Required indicator
         required_badge = None
@@ -299,6 +355,7 @@ def build_change_list_v2(
                 )
                 if change.get("validation_notes")
                 else None,
+                full_detail,
             ],
             id={"type": "change-row-v2", "change_id": change_id},
             className=f"p-2 {current_class}",
@@ -332,7 +389,7 @@ def build_validation_panel_v2(
     current_change = changes[current_change_idx]
     change_type = current_change.get("change_type", "")
     status = current_change.get("validation_status", "pending")
-    description = _get_change_description(current_change)
+    description = _get_change_row_summary(current_change)
 
     # Current change info
     change_info = html.Div(
