@@ -15,6 +15,7 @@ from app.comparison_canonical import (
     new_empty_ui_comparison_payload,
     to_canonical_payload,
 )
+from app.quarter_utils import format_quarter_label
 from app.ui_config import OUTPUT_DIR
 from vigilance.compare_gpt import (
     REFERENCE_RESOLUTION_RULE,
@@ -95,7 +96,7 @@ def _extract_metrics_from_tables(
 
 def _quarter_label(quarter: str, year: int) -> str:
     code = normalize_quarter(quarter)
-    return f"Q{code[1]}-{int(year)}"
+    return format_quarter_label(code, year)
 
 
 def _extract_year(value: Any) -> int | None:
@@ -346,7 +347,7 @@ def run_comparison_with_sections(
             "OPENAI_API_KEY absente. Ajouter la clé dans .env avant de lancer l'analyse."
         )
 
-    current_quarter_value = current_quarter or "Q2"
+    current_quarter_value = current_quarter or "T2"
     current_year_value = int(
         current_year or _extract_year(current_quarter_value) or datetime.now().year
     )

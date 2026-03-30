@@ -68,7 +68,9 @@ def build_review_items_from_indicator_result(
 
         # Skip completely stable tables with zero changes
         footnotes_counts = comp.get("footnotes_counts") or {}
-        has_footnote_changes = any(footnotes_counts.values()) if footnotes_counts else False
+        has_footnote_changes = (
+            any(footnotes_counts.values()) if footnotes_counts else False
+        )
         if (
             table_status_raw in ("inchange", "stable", "")
             and not added
@@ -89,6 +91,10 @@ def build_review_items_from_indicator_result(
                 }
             )
             if table_status_raw not in _status_without_indicators:
+                continue
+            # Skip redundant table-level "modified" ReviewItem when footnote pass
+            # will handle the changes (avoids confusing noise for analysts)
+            if table_status_raw == "modifie" and has_footnote_changes:
                 continue
             # Créer un ReviewItem tableau type_changement modifié/incertain/fusion
             if table_status_raw == "structure_change":
@@ -161,35 +167,53 @@ def build_review_items_from_indicator_result(
         confidence = float(comp.get("match_score", 0.0) or 0.0)
         match_method = str(comp.get("rescue_type") or comp.get("match_reason", ""))
 
-        indicators: list[dict[str, str]] = []
+        indicators: list[dict[str, Any]] = []
 
         for idx, ind in enumerate(added):
             display_name = str(ind)
+            assessment = {}
             if isinstance(added_raw, list) and idx < len(added_raw):
-                candidate = str(added_raw[idx]).strip()
-                if candidate:
-                    display_name = candidate
+                raw_item = added_raw[idx]
+                if isinstance(raw_item, dict):
+                    display_name = (
+                        str(raw_item.get("value", "")).strip() or display_name
+                    )
+                    assessment = dict(raw_item.get("analyst_assessment") or {})
+                else:
+                    candidate = str(raw_item).strip()
+                    if candidate:
+                        display_name = candidate
             indicators.append(
                 {
                     "name": display_name,
                     "name_clean": str(ind),
                     "type": CHANGE_TYPE_ADDED,
                     "review_status": "pending",
+                    "analyst_assessment": assessment,
                 }
             )
 
         for idx, ind in enumerate(removed):
             display_name = str(ind)
+            assessment = {}
             if isinstance(removed_raw, list) and idx < len(removed_raw):
-                candidate = str(removed_raw[idx]).strip()
-                if candidate:
-                    display_name = candidate
+                raw_item = removed_raw[idx]
+                if isinstance(raw_item, dict):
+                    display_name = (
+                        str(raw_item.get("value", "")).strip() or display_name
+                    )
+                    assessment = dict(raw_item.get("analyst_assessment") or {})
+                else:
+                    candidate = str(raw_item).strip()
+                    if candidate:
+                        display_name = candidate
             indicators.append(
                 {
                     "name": display_name,
                     "name_clean": str(ind),
                     "type": CHANGE_TYPE_REMOVED,
                     "review_status": "pending",
+                    "analyst_assessment": assessment,
                 }
             )
 
@@ -199,14 +223,19 @@ def build_review_items_from_indicator_result(
                 if isinstance(renamed_raw, list) and idx < len(renamed_raw)
                 else {}
             )
+            assessment = (
+                dict(ren_raw.get("analyst_assessment") or {})
+                if isinstance(ren_raw, dict)
+                else {}
+            )
             if isinstance(ren, dict):
                 old_clean = str(ren.get("from", ""))
                 new_clean = str(ren.get("to", ""))
                 old_val = old_clean
                 new_val = new_clean
                 if isinstance(ren_raw, dict):
-                    old_raw = str(ren_raw.get("from", "")).strip()
-                    new_raw = str(ren_raw.get("to", "")).strip()
+                    old_raw = str(ren_raw.get("previous", "")).strip()
+                    new_raw = str(ren_raw.get("current", "")).strip()
                     if old_raw:
                         old_val = old_raw
                     if new_raw:
@@ -221,6 +250,7 @@ def build_review_items_from_indicator_result(
                         "from_clean": old_clean,
                         "to_clean": new_clean,
                         "review_status": "pending",
+                        "analyst_assessment": assessment,
                     }
                 )
             else:
@@ -233,6 +263,7 @@ def build_review_items_from_indicator_result(
                         "name_clean": str(ren),
                         "type": CHANGE_TYPE_RENAMED,
                         "review_status": "pending",
+                        "analyst_assessment": assessment,
                     }
                 )
 
@@ -471,7 +502,5 @@ def build_review_items_from_indicator_result(
     # from the review queue. They are unverified items that inflate the queue
     # with false positives. They remain visible in the stats section as a separate
     # category for reference only.
-
-
 
     return items

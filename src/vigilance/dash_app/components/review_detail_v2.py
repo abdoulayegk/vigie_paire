@@ -64,6 +64,15 @@ _CHANGE_TYPE_COLORS = {
     "modified": "primary",
 }
 
+_FOOTNOTE_CHANGE_TYPES = {
+    ChangeType.FOOTNOTE_ADDED.value,
+    ChangeType.FOOTNOTE_REMOVED.value,
+    ChangeType.FOOTNOTE_MODIFIED.value,
+    "footnote_added",
+    "footnote_removed",
+    "footnote_modified",
+}
+
 
 def _format_section(section: str) -> str:
     """Format section name for display."""
@@ -72,10 +81,22 @@ def _format_section(section: str) -> str:
     return " ".join(w.capitalize() for w in section.replace("_", " ").split())
 
 
-def _get_change_description(change: dict) -> str:
-    """Get human-readable description for a change."""
-    change_type = change.get("change_type", "")
-    payload = change.get("payload", {})
+def _normalize_text(value: object) -> str:
+    return str(value or "").strip()
+
+
+def _is_footnote_change(change_type: str) -> bool:
+    return str(change_type or "") in _FOOTNOTE_CHANGE_TYPES
+
+
+def _get_change_row_summary(change: dict) -> str:
+    """Get compact, scan-friendly label for the change row.
+
+    The row summary intentionally stays short. Full text for long footnotes is
+    rendered separately for the currently selected change.
+    """
+    change_type = str(change.get("change_type", "") or "")
+    payload = change.get("payload", {}) or {}
 
     if change_type in (
         "indicator_added",
@@ -83,33 +104,21 @@ def _get_change_description(change: dict) -> str:
         ChangeType.INDICATOR_ADDED.value,
         ChangeType.INDICATOR_REMOVED.value,
     ):
-        return payload.get("indicator_name", "(indicateur)")
+        return _normalize_text(payload.get("indicator_name")) or "(indicateur)"
 
     if change_type in ("indicator_renamed", ChangeType.INDICATOR_RENAMED.value):
-        from_val = payload.get("from", "")
-        to_val = payload.get("to", "")
+        from_val = _normalize_text(payload.get("from"))
+        to_val = _normalize_text(payload.get("to"))
         return f"{from_val} → {to_val}"
 
-    if "footnote" in change_type:
-        ref = payload.get("footnote_ref", "")
-        old_text = payload.get("old_text", "")
-        new_text = payload.get("new_text", "")
+    if _is_footnote_change(change_type):
+        ref = _normalize_text(payload.get("footnote_ref"))
+        ref_label = f" [{ref}]" if ref else ""
         if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
-            return (
-                f"[{ref}] {new_text[:80]}..."
-                if len(new_text) > 80
-                else f"[{ref}] {new_text}"
-            )
-        elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
-            return (
-                f"[{ref}] {old_text[:80]}..."
-                if len(old_text) > 80
-                else f"[{ref}] {old_text}"
-            )
-        else:
-            old_preview = old_text[:40] + "..." if len(old_text) > 40 else old_text
-            new_preview = new_text[:40] + "..." if len(new_text) > 40 else new_text
-            return f"[{ref}] {old_preview} → {new_preview}"
+            return f"Note ajoutée{ref_label}"
+        if change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
+            return f"Note supprimée{ref_label}"
+        return f"Note modifiée{ref_label}"
 
     if change_type in (
         "table_added",
@@ -117,23 +126,55 @@ def _get_change_description(change: dict) -> str:
         ChangeType.TABLE_ADDED.value,
         ChangeType.TABLE_REMOVED.value,
     ):
-        return payload.get("description", "Tableau entier")
+        return _normalize_text(payload.get("description")) or "Tableau entier"
 
-    return payload.get("description", "Changement")
+    return _normalize_text(payload.get("description")) or "Changement"
 
 
-def _is_table_only_view(table: dict) -> bool:
-    """True when review should be at table level (added/removed table)."""
-    for change in table.get("changes", []) or []:
-        ctype = change.get("change_type", "")
-        if ctype in (
-            ChangeType.TABLE_ADDED.value,
-            ChangeType.TABLE_REMOVED.value,
-            "table_added",
-            "table_removed",
-        ):
-            return True
-    return False
+def _build_detail_block(label: str, text: str, muted: bool = False) -> html.Div:
+    content = text or "Élément absent"
+    text_class = "text-muted fst-italic" if muted or not text else "text-dark"
+    return html.Div(
+        [
+            html.Div(label, className="fw-semibold border-bottom px-3 py-2"),
+            html.Div(
+                content,
+                className=f"px-3 py-3 {text_class}",
+                style={
+                    "whiteSpace": "pre-wrap",
+                    "overflowWrap": "anywhere",
+                    "wordBreak": "break-word",
+                    "lineHeight": "1.55",
+                },
+            ),
+        ],
+        className="border rounded bg-white overflow-hidden",
+    )
+
+
+def _build_change_full_detail(change: dict) -> html.Div | None:
+    change_type = str(change.get("change_type", "") or "")
+    if not _is_footnote_change(change_type):
+        return None
+
+    payload = change.get("payload", {}) or {}
+    old_text = _normalize_text(payload.get("old_text"))
+    new_text = _normalize_text(payload.get("new_text"))
+
+    if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
+        blocks = [_build_detail_block("Trimestre courant", new_text)]
+    elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
+        blocks = [
+            _build_detail_block("Trimestre précédent", old_text),
+            _build_detail_block("Trimestre courant", "", muted=True),
+        ]
+    else:
+        blocks = [
+            _build_detail_block("Trimestre précédent", old_text, muted=not old_text),
+            _build_detail_block("Trimestre courant", new_text, muted=not new_text),
+        ]
+
+    return html.Div(blocks, className="d-grid gap-3 mt-3")
 
 
 def _build_fallback_genai_message(table: dict) -> str:
@@ -151,28 +192,28 @@ def _build_fallback_genai_message(table: dict) -> str:
         final_decision = str(semantic_judge.get("final_decision", "") or "").strip()
         guard_action = str(semantic_judge.get("guard_action", "") or "").strip()
         if final_decision and guard_action:
-            semantic_hint = f" Controle semantique: {final_decision} ({guard_action})."
+            semantic_hint = f" Contrôle sémantique : {final_decision} ({guard_action})."
 
     if change_types.intersection({ChangeType.TABLE_REMOVED.value, "table_removed"}):
         return (
-            "Explication automatique: ce tableau est present au trimestre precedent "
-            "et absent au trimestre courant. Verifier si le contenu a ete renomme, "
-            "fusionne ou deplace dans une autre section."
+            "Explication automatique : ce tableau est présent au trimestre précédent "
+            "et absent au trimestre courant. Vérifier si le contenu a été renommé, "
+            "fusionné ou déplacé dans une autre section."
             f"{semantic_hint}"
         )
 
     if change_types.intersection({ChangeType.TABLE_ADDED.value, "table_added"}):
         return (
-            "Explication automatique: ce tableau est absent au trimestre precedent "
-            "et present au trimestre courant. Verifier s'il s'agit d'une nouvelle "
-            "divulgation ou d'une table decomposee depuis un ancien tableau."
+            "Explication automatique : ce tableau est absent au trimestre précédent "
+            "et présent au trimestre courant. Vérifier s'il s'agit d'une nouvelle "
+            "divulgation ou d'une table décomposée depuis un ancien tableau."
             f"{semantic_hint}"
         )
 
     return (
-        "Classification GenAI non disponible pour cet element. Activez "
-        "'Classifier les changements avec GenAI' puis relancez l'analyse pour "
-        "obtenir une justification detaillee."
+        "Classification IA générative non disponible pour cet élément. Activez "
+        "'Classer les changements avec l'IA générative (GPT-4o)' puis relancez l'analyse pour "
+        "obtenir une justification détaillée."
     )
 
 
@@ -188,7 +229,7 @@ def _build_genai_section(table: dict) -> html.Div:
         fallback_msg = _build_fallback_genai_message(table)
         return html.Div(
             [
-                html.H6("Explication GenAI", className="mb-2"),
+                html.H6("Explication IA générative", className="mb-2"),
                 html.P(fallback_msg, className="text-muted mb-0"),
             ],
             className="mb-4",
@@ -213,10 +254,83 @@ def _build_genai_section(table: dict) -> html.Div:
         except (TypeError, ValueError):
             pass
 
+    # New analyst fields
+    impact_type = str(ga.get("impact_type", "") or "")
+    project_phase = str(ga.get("project_phase", "") or "")
+    action_requise = str(ga.get("action_requise", "") or "")
+    ref_regl = str(ga.get("reference_reglementaire", "") or "").strip()
+    impact_desc = str(ga.get("impact_description", "") or "").strip()
+
+    _IMPACT_COLORS = {
+        "structurel": "danger",
+        "contenu": "primary",
+        "methodologique": "warning",
+        "cosmetique": "secondary",
+    }
+    _ACTION_COLORS = {
+        "escalade": "danger",
+        "investigation": "warning",
+        "confirmation": "info",
+        "information": "secondary",
+        "aucune": "light",
+    }
+    _PHASE_DISPLAY = {
+        "rapport_gestion": "Rapport de gestion",
+        "pilier_3": "Pilier 3",
+        "ifc": "IFC",
+        "autre": "Autre",
+    }
+
+    secondary_chips = []
+    if impact_type:
+        secondary_chips.append(
+            dbc.Badge(
+                f"Impact : {impact_type}",
+                color=_IMPACT_COLORS.get(impact_type, "secondary"),
+                className="me-2",
+            )
+        )
+    if project_phase:
+        secondary_chips.append(
+            dbc.Badge(
+                _PHASE_DISPLAY.get(project_phase, project_phase),
+                color="info",
+                className="me-2",
+            )
+        )
+    if action_requise and action_requise != "aucune":
+        secondary_chips.append(
+            dbc.Badge(
+                f"Action : {action_requise}",
+                color=_ACTION_COLORS.get(action_requise, "secondary"),
+                className="me-2",
+            )
+        )
+
+    detail_parts = []
+    if ref_regl:
+        detail_parts.append(
+            html.Small(
+                [html.Strong("Réf. : "), ref_regl],
+                className="d-block text-muted mb-1",
+            )
+        )
+    if impact_desc:
+        detail_parts.append(
+            html.Small(
+                [html.Strong("Impact : "), impact_desc],
+                className="d-block text-muted mb-1",
+            )
+        )
+
     return html.Div(
         [
-            html.H6("Explication GenAI", className="mb-2"),
+            html.H6("Explication IA générative", className="mb-2"),
             html.Div(chips, className="mb-2"),
+            html.Div(secondary_chips, className="mb-2")
+            if secondary_chips
+            else html.Div(),
+            *detail_parts,
             html.P(justification or "Explication non fournie.", className="mb-0"),
         ],
         className="mb-4",
@@ -266,7 +380,8 @@ def build_change_list_v2(
         type_color = _CHANGE_TYPE_COLORS.get(change_type, "secondary")
 
         # Description
-        description = _get_change_description(change)
+        description = _get_change_row_summary(change)
+        full_detail = _build_change_full_detail(change) if is_current else None
 
         # Required indicator
         required_badge = None
@@ -286,20 +401,25 @@ def build_change_list_v2(
             [
                 html.Div(
                     [
-                        status_icon,
-                        dbc.Badge(
-                            type_label,
-                            color=type_color,
-                            className="me-2",
+                        html.Div(
+                            [
+                                status_icon,
+                                dbc.Badge(
+                                    type_label,
+                                    color=type_color,
+                                    className="me-2",
+                                ),
+                                html.Span(
+                                    description,
+                                    className="small flex-grow-1",
+                                    style={"wordBreak": "break-word"},
+                                ),
+                                required_badge,
+                            ],
+                            className="d-flex align-items-center flex-wrap flex-grow-1 gap-1",
                         ),
-                        html.Span(
-                            description,
-                            className="small",
-                            style={"wordBreak": "break-word"},
-                        ),
-                        required_badge,
                     ],
-                    className="d-flex align-items-center flex-wrap",
+                    className="d-flex align-items-start gap-2",
                 ),
                 # Show validation notes if present
                 html.Small(
@@ -308,6 +428,7 @@ def build_change_list_v2(
                 )
                 if change.get("validation_notes")
                 else None,
+                full_detail,
             ],
             id={"type": "change-row-v2", "change_id": change_id},
             className=f"p-2 {current_class}",
@@ -341,7 +462,7 @@ def build_validation_panel_v2(
     current_change = changes[current_change_idx]
     change_type = current_change.get("change_type", "")
     status = current_change.get("validation_status", "pending")
-    description = _get_change_description(current_change)
+    description = _get_change_row_summary(current_change)
 
     # Current change info
     change_info = html.Div(
@@ -349,12 +470,17 @@ def build_validation_panel_v2(
             html.H6("Changement actuel", className="mb-2"),
             html.Div(
                 [
-                    dbc.Badge(
-                        _CHANGE_TYPE_LABELS.get(change_type, change_type),
-                        color=_CHANGE_TYPE_COLORS.get(change_type, "secondary"),
-                        className="me-2",
+                    html.Div(
+                        [
+                            dbc.Badge(
+                                _CHANGE_TYPE_LABELS.get(change_type, change_type),
+                                color=_CHANGE_TYPE_COLORS.get(change_type, "secondary"),
+                                className="me-2",
+                            ),
+                            html.Span(description, className="fw-semibold"),
+                        ],
+                        className="d-flex align-items-center flex-wrap gap-1",
                     ),
-                    html.Span(description, className="fw-semibold"),
                 ],
                 className="mb-2",
             ),
@@ -478,9 +604,9 @@ def build_review_detail_v2(
     if not table:
         return html.Div(
             [
-                html.H5("Aucun element selectionne"),
+                html.H5("Aucun élément sélectionné"),
                 html.P(
-                    "Selectionnez un tableau dans la file de revue.",
+                    "Sélectionnez un tableau dans la file de revue.",
                     className="text-muted",
                 ),
             ]
@@ -515,9 +641,9 @@ def build_review_detail_v2(
                     html.H5(table_name, className="mb-1"),
                     html.Small(
                         [
-                            f"Section: {section}",
+                            f"Section : {section}",
                             html.Span(" | ", className="text-muted"),
-                            f"Pages: précédent p.{page_t1 or '?'} / courant p.{page_t2 or '?'}",
+                            f"Pages : précédent p.{page_t1 or '?'} / courant p.{page_t2 or '?'}",
                         ],
                         className="text-muted",
                     ),
@@ -569,14 +695,12 @@ def build_review_detail_v2(
             if summary.get("footnotes_changed", 0)
             else None,
             html.Span(
-                f"Validé: {summary.get('validated', 0)}/{summary.get('total_changes', 0)}",
+                f"Validé : {summary.get('validated', 0)}/{summary.get('total_changes', 0)}",
                 className="ms-2 text-muted small",
             ),
         ],
         className="mb-3",
     )
-
-    table_only_view = _is_table_only_view(table)
 
     # Proof images
     proof_section = (
@@ -653,29 +777,19 @@ def build_review_detail_v2(
 
     # Changes list
     changes = table.get("changes", [])
-    if table_only_view:
-        changes_section = dbc.Alert(
-            [
-                html.I(className="bi bi-table me-2"),
-                "Validation au niveau tableau: aucun détail indicateur à afficher.",
-            ],
-            color="info",
-            className="mb-4",
-        )
-    else:
-        changes_section = html.Div(
-            [
-                html.H6(
-                    [
-                        html.I(className="bi bi-list-check me-2"),
-                        f"Changements ({len(changes)})",
-                    ],
-                    className="mb-2",
-                ),
-                build_change_list_v2(changes, current_change_idx),
-            ],
-            className="mb-4",
-        )
+    changes_section = html.Div(
+        [
+            html.H6(
+                [
+                    html.I(className="bi bi-list-check me-2"),
+                    f"Changements ({len(changes)})",
+                ],
+                className="mb-2",
+            ),
+            build_change_list_v2(changes, current_change_idx),
+        ],
+        className="mb-4",
+    )
 
     # Validation panel
     validation_section = html.Div(

@@ -10,16 +10,68 @@ preferred names in this module explicitly mention the UI payload role.
 
 from __future__ import annotations
 
+import logging
 from copy import deepcopy
 from datetime import datetime
-import logging
 from typing import Any
 
-from app.quarter_utils import get_payload_quarter_context
+from app.quarter_utils import format_quarter_label, get_payload_quarter_context
 
 UI_COMPARISON_PAYLOAD_SCHEMA_VERSION = "comparison_canonical_v1"
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# GenAI triage → UI field mapping
+# ---------------------------------------------------------------------------
+
+_CATEGORY_TO_RELEVANCE: dict[str, str] = {
+    "REGLEMENTAIRE": "Réglementaire",
+    "RISQUE": "Risque",
+    "CAPITAL": "Capital",
+    "STRUCTURE": "Structure",
+    "COSMETIQUE": "Cosmétique",
+    "INCONNU": "Inconnu",
+}
+
+_RELEVANCE_TO_PRIORITY: dict[str, str] = {
+    "ELEVEE": "critique",
+    "MOYENNE": "prioritaire",
+    "FAIBLE": "normale",
+}
+
+
+def _map_genai_triage_to_ui(triage: dict[str, Any]) -> dict[str, Any]:
+    """Map genai_triage fields to the keys expected by Dash UI components.
+
+    Dash components read: relevance, risk_level, confidence, justification,
+    review_priority, analyst_summary, impact_type, project_phase,
+    action_requise, reference_reglementaire, impact_description.
+    """
+    if not triage:
+        return {}
+    mapped: dict[str, Any] = dict(triage)
+    # explanation → justification (what review_detail_v2 reads)
+    if "explanation" in triage and "justification" not in triage:
+        mapped["justification"] = triage["explanation"]
+    # category → relevance (badge label)
+    if "category" in triage and "relevance" not in triage:
+        mapped["relevance"] = _CATEGORY_TO_RELEVANCE.get(
+            str(triage["category"]).upper(), str(triage["category"])
+        )
+    # relevance_score → review_priority
+    if "relevance_score" in triage and "review_priority" not in triage:
+        mapped["review_priority"] = _RELEVANCE_TO_PRIORITY.get(
+            str(triage["relevance_score"]).upper(), "normale"
+        )
+    # analyst_summary fallback
+    if "explanation" in triage and "analyst_summary" not in triage:
+        mapped["analyst_summary"] = triage["explanation"]
+    # risk_level and confidence pass through (names match Dash expectations)
+    # impact_type, project_phase, action_requise, reference_reglementaire,
+    # impact_description also pass through as-is
+    return mapped
 
 
 # ---------------------------------------------------------------------------
@@ -205,10 +257,7 @@ def new_empty_ui_comparison_payload() -> dict[str, Any]:
 
 
 def _quarter_label(quarter: str, year: int) -> str:
-    text = str(quarter or "").strip().lower()
-    if text.startswith("t") and len(text) >= 2 and text[1].isdigit():
-        return f"Q{text[1]}-{year}"
-    return f"{quarter}-{year}" if quarter else str(year)
+    return format_quarter_label(quarter, year)
 
 
 def _build_report_comparison_summary_text(
@@ -227,7 +276,7 @@ def _build_report_comparison_summary_text(
     ]
     parts.append(f" {tables_added} tableau(x) ajouté(s), {tables_removed} supprimé(s).")
     parts.append(
-        f" {indicator_changes} changement(s) d'indicateur et {footnote_changes} changement(s) de footnote détecté(s)."
+        f" {indicator_changes} changement(s) d'indicateur et {footnote_changes} changement(s) de note de bas de tableau détecté(s)."
     )
     if high_priority_items:
         parts.append(f" {high_priority_items} élément(s) prioritaire(s) à réviser.")
@@ -246,6 +295,9 @@ def _build_footnotes_diff(
             "new_text": str(item.get("text", "") or ""),
             "change_type": "new",
             "reason": str(item.get("reason", "") or ""),
+            "analyst_assessment": dict(item.get("analyst_assessment") or {})
+            if isinstance(item.get("analyst_assessment"), dict)
+            else {},
         }
         for item in list(technical_diff.get("footnotes_added", []) or [])
         if isinstance(item, dict)
@@ -257,6 +309,9 @@ def _build_footnotes_diff(
             "new_text": "",
             "change_type": "removed",
             "reason": str(item.get("reason", "") or ""),
+            "analyst_assessment": dict(item.get("analyst_assessment") or {})
+            if isinstance(item.get("analyst_assessment"), dict)
+            else {},
         }
         for item in list(technical_diff.get("footnotes_removed", []) or [])
         if isinstance(item, dict)
@@ -270,6 +325,9 @@ def _build_footnotes_diff(
             "new_text": str(item.get("current_text", "") or ""),
             "change_type": "modified",
             "reason": str(item.get("reason", "") or ""),
+            "analyst_assessment": dict(item.get("analyst_assessment") or {})
+            if isinstance(item.get("analyst_assessment"), dict)
+            else {},
         }
         for item in list(technical_diff.get("footnotes_renamed", []) or [])
         if isinstance(item, dict)
@@ -367,28 +425,34 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
             current_table=current_table,
         )
         footnotes_diff, footnotes_counts = _build_footnotes_diff(technical_diff)
-        added = [
-            str(entry.get("value", "") or "").strip()
+        added_raw = [
+            entry
             for entry in list(technical_diff.get("indicators_added", []) or [])
             if isinstance(entry, dict) and str(entry.get("value", "") or "").strip()
         ]
-        removed = [
-            str(entry.get("value", "") or "").strip()
+        removed_raw = [
+            entry
             for entry in list(technical_diff.get("indicators_removed", []) or [])
             if isinstance(entry, dict) and str(entry.get("value", "") or "").strip()
         ]
-        renamed = [
-            {
-                "from": str(entry.get("previous", "") or "").strip(),
-                "to": str(entry.get("current", "") or "").strip(),
-            }
+        renamed_raw = [
+            entry
             for entry in list(technical_diff.get("indicators_renamed", []) or [])
             if isinstance(entry, dict)
             and str(entry.get("previous", "") or "").strip()
             and str(entry.get("current", "") or "").strip()
         ]
+        added = [str(entry.get("value", "") or "").strip() for entry in added_raw]
+        removed = [str(entry.get("value", "") or "").strip() for entry in removed_raw]
+        renamed = [
+            {
+                "from": str(entry.get("previous", "") or "").strip(),
+                "to": str(entry.get("current", "") or "").strip(),
+            }
+            for entry in renamed_raw
+        ]
         match_info = matched_lookup.get(previous_table_id, {})
-        
+
         all_inds_t1 = list(previous_table.get("indicators", []) or [])
         all_inds_t2 = list(current_table.get("indicators", []) or [])
         drastic_row_drop = False
@@ -429,9 +493,9 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 "added_indicators": added,
                 "removed_indicators": removed,
                 "renamed_indicators": renamed,
-                "added_indicators_raw": list(added),
-                "removed_indicators_raw": list(removed),
-                "renamed_indicators_raw": [dict(entry) for entry in renamed],
+                "added_indicators_raw": added_raw,
+                "removed_indicators_raw": removed_raw,
+                "renamed_indicators_raw": renamed_raw,
                 "all_indicators_t1": list(previous_table.get("indicators", []) or []),
                 "all_indicators_t2": list(current_table.get("indicators", []) or []),
                 "counts": {
@@ -443,7 +507,10 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                 "footnotes_diff": footnotes_diff,
                 "footnotes_counts": footnotes_counts,
                 "uncertain_diff": False,
-                "genai_analysis": dict(item.get("analyst_assessment") or {}),
+                "genai_analysis": {
+                    **dict(item.get("analyst_assessment") or {}),
+                    **_map_genai_triage_to_ui(item.get("genai_triage") or {}),
+                },
                 "match_metadata": {
                     "drastic_row_drop": drastic_row_drop,
                     "theme": str(
@@ -489,9 +556,14 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
                     "all_indicators_t2": list(item.get("indicators", []) or [])
                     if side == "current"
                     else [],
-                    "first_column_indicators_raw": list(item.get("indicators", []) or []),
+                    "first_column_indicators_raw": list(
+                        item.get("indicators", []) or []
+                    ),
                     "first_column_indicators": list(item.get("indicators", []) or []),
-                    "genai_analysis": dict(item.get("analyst_assessment") or {}),
+                    "genai_analysis": {
+                        **dict(item.get("analyst_assessment") or {}),
+                        **_map_genai_triage_to_ui(item.get("genai_triage") or {}),
+                    },
                     "semantic_judge": str(item.get("reason", "") or ""),
                 }
             )
@@ -531,9 +603,9 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
     ui_payload["tables_removed_pending_review"] = list(
         ui_payload["extraction_suspects_previous"]
     )
-    ui_payload["review_candidates"] = list(ui_payload["extraction_suspects_current"]) + list(
-        ui_payload["extraction_suspects_previous"]
-    )
+    ui_payload["review_candidates"] = list(
+        ui_payload["extraction_suspects_current"]
+    ) + list(ui_payload["extraction_suspects_previous"])
 
     indicator_change_pairs = sum(
         1
@@ -693,6 +765,7 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "archived_pdf_current": str(payload.get("archived_pdf_current", "") or ""),
             "source_pdf_previous": str(payload.get("source_pdf_previous", "") or ""),
             "source_pdf_current": str(payload.get("source_pdf_current", "") or ""),
+            "global_summary": dict(payload.get("global_summary") or {}),
             "executive_summary": {
                 "content": _build_report_comparison_summary_text(
                     current_label=current_label,

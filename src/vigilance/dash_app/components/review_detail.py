@@ -562,12 +562,12 @@ def _build_genai_analysis_section(item: dict) -> html.Div:
     ga = item.get("genai_analysis") or {}
     if not ga.get("relevance"):
         placeholder = (
-            "Classification non executee. Activez l'option "
-            "'Classifier les changements avec GenAI' dans les options et relancez l'analyse."
+            "Classification non exécutée. Activez l'option "
+            "'Classer les changements avec l'IA générative (GPT-4o)' dans les options et relancez l'analyse."
         )
         return html.Div(
             [
-                html.H6("Analyse GenAI", className="text-muted small mb-2"),
+                html.H6("Analyse IA générative", className="text-muted small mb-2"),
                 html.Div(
                     html.Small(placeholder, className="text-muted fst-italic"),
                     className="p-2 bg-light rounded",
@@ -581,9 +581,81 @@ def _build_genai_analysis_section(item: dict) -> html.Div:
     just = ga.get("justification", "")
     rel_label = _REL_DISPLAY.get(rel, rel)
     risk_label = _RISK_DISPLAY.get(risk, risk)
+
+    # New analyst fields
+    impact_type = str(ga.get("impact_type", "") or "")
+    project_phase = str(ga.get("project_phase", "") or "")
+    action_requise = str(ga.get("action_requise", "") or "")
+    ref_regl = str(ga.get("reference_reglementaire", "") or "").strip()
+    impact_desc = str(ga.get("impact_description", "") or "").strip()
+
+    _IMPACT_COLORS = {
+        "structurel": "danger",
+        "contenu": "primary",
+        "methodologique": "warning",
+        "cosmetique": "secondary",
+    }
+    _ACTION_COLORS = {
+        "escalade": "danger",
+        "investigation": "warning",
+        "confirmation": "info",
+        "information": "secondary",
+        "aucune": "light",
+    }
+    _PHASE_DISPLAY = {
+        "rapport_gestion": "Rapport de gestion",
+        "pilier_3": "Pilier 3",
+        "ifc": "IFC",
+        "autre": "Autre",
+    }
+
+    # Build secondary badges row
+    secondary_badges = []
+    if impact_type:
+        secondary_badges.append(
+            dbc.Badge(
+                f"Impact : {impact_type}",
+                color=_IMPACT_COLORS.get(impact_type, "secondary"),
+                className="me-2",
+            )
+        )
+    if project_phase:
+        secondary_badges.append(
+            dbc.Badge(
+                _PHASE_DISPLAY.get(project_phase, project_phase),
+                color="info",
+                className="me-2",
+            )
+        )
+    if action_requise and action_requise != "aucune":
+        secondary_badges.append(
+            dbc.Badge(
+                f"Action : {action_requise}",
+                color=_ACTION_COLORS.get(action_requise, "secondary"),
+                className="me-2",
+            )
+        )
+
+    # Build detail lines
+    detail_lines = []
+    if ref_regl:
+        detail_lines.append(
+            html.Div(
+                [html.Strong("Réf. réglementaire : "), html.Span(ref_regl)],
+                className="small mb-1",
+            )
+        )
+    if impact_desc:
+        detail_lines.append(
+            html.Div(
+                [html.Strong("Impact : "), html.Span(impact_desc)],
+                className="small mb-1",
+            )
+        )
+
     return html.Div(
         [
-            html.H6("Analyse GenAI", className="text-muted small mb-2"),
+            html.H6("Analyse IA générative", className="text-muted small mb-2"),
             html.Div(
                 [
                     dbc.Badge(
@@ -600,6 +672,13 @@ def _build_genai_analysis_section(item: dict) -> html.Div:
                 ],
                 className="d-flex align-items-center mb-2",
             ),
+            html.Div(
+                secondary_badges,
+                className="d-flex align-items-center mb-2",
+            )
+            if secondary_badges
+            else html.Div(),
+            *detail_lines,
             html.Div(
                 html.Small(just, className="text-muted fst-italic"),
                 className="p-2 bg-light rounded",
@@ -764,6 +843,17 @@ def render_indicator_diff_view(
     confidence = item.get("confidence", 0.0)
     comment = item.get("comment", "")
     indicators = item.get("indicators", [])
+
+    def _ind_sort_key(ind: dict) -> int:
+        assessment = ind.get("analyst_assessment", {})
+        level = (
+            assessment.get("relevance_level") if isinstance(assessment, dict) else None
+        )
+        if isinstance(level, int):
+            return level
+        return 999
+
+    indicators = sorted(indicators, key=_ind_sort_key)
     n_indicators = len(indicators)
 
     n_decided = sum(
@@ -826,6 +916,36 @@ def render_indicator_diff_view(
         className="mb-3",
     )
 
+    def _render_assessment(ind_dict: dict) -> html.Div:
+        assessment = ind_dict.get("analyst_assessment", {})
+        if not assessment:
+            return html.Div()
+        level = assessment.get("relevance_level")
+        just = str(assessment.get("justification", "")).strip()
+        if not level and not just:
+            return html.Div()
+
+        badge_color = "secondary"
+        badge_label = "Info"
+        if level == 1:
+            badge_color = "danger"
+            badge_label = "Critique"
+        elif level == 2:
+            badge_color = "warning"
+            badge_label = "Élevé"
+        elif level == 3:
+            badge_color = "info"
+            badge_label = "Faible"
+
+        return html.Div(
+            [
+                dbc.Badge(badge_label, color=badge_color, className="me-2"),
+                html.Small(just, className="text-muted fst-italic"),
+            ],
+            className="mt-1 p-1 bg-white rounded border d-flex align-items-center w-100",
+            style={"marginLeft": "32px"},
+        )
+
     indicator_rows = []
     for i, ind in enumerate(indicators):
         name = ind.get("name", "")
@@ -833,7 +953,9 @@ def render_indicator_diff_view(
         ind_status = ind.get("review_status", "pending")
         is_current = i == indicator_idx
 
-        row_class = "d-flex align-items-center py-1 border-bottom px-2 rounded"
+        row_class = (
+            "d-flex flex-column py-2 border-bottom px-2 rounded align-items-start"
+        )
         if is_current:
             row_class += " bg-primary bg-opacity-10 border border-primary"
 
@@ -841,12 +963,18 @@ def render_indicator_diff_view(
         indicator_rows.append(
             html.Div(
                 [
-                    _indicator_status_icon(ind_status),
-                    _indicator_badge(change_type),
-                    row_content,
-                    html.I(className="bi bi-chevron-right text-primary")
-                    if is_current
-                    else html.Span(),
+                    html.Div(
+                        [
+                            _indicator_status_icon(ind_status),
+                            _indicator_badge(change_type),
+                            row_content,
+                            html.I(className="bi bi-chevron-right text-primary")
+                            if is_current
+                            else html.Span(),
+                        ],
+                        className="d-flex align-items-center w-100",
+                    ),
+                    _render_assessment(ind),
                 ],
                 id={"type": "indicator-item", "index": i},
                 className=row_class,
@@ -893,7 +1021,22 @@ def render_indicator_diff_view(
 
     footnote_detail_rows = []
     if item_type == "footnote":
-        for fc in item.get("footnote_changes", []):
+        footnote_changes = item.get("footnote_changes", [])
+
+        def _fn_sort_key(fc: dict) -> int:
+            assessment = fc.get("analyst_assessment", {})
+            level = (
+                assessment.get("relevance_level")
+                if isinstance(assessment, dict)
+                else None
+            )
+            if isinstance(level, int):
+                return level
+            return 999
+
+        footnote_changes = sorted(footnote_changes, key=_fn_sort_key)
+
+        for fc in footnote_changes:
             ref = fc.get("footnote_ref", "")
             ctype = fc.get("change_type", "")
             old_text = fc.get("old_text") or ""
@@ -946,6 +1089,35 @@ def render_indicator_diff_view(
                         className="ms-3 mb-1 bg-light p-1 rounded",
                     )
                 )
+            assessment = fc.get("analyst_assessment", {})
+            if assessment:
+                level = assessment.get("relevance_level")
+                just = str(assessment.get("justification", "")).strip()
+                if level or just:
+                    if level == 1:
+                        badge_color = "danger"
+                        badge_label = "Critique"
+                    elif level == 2:
+                        badge_color = "warning"
+                        badge_label = "Élevé"
+                    elif level == 3:
+                        badge_color = "info"
+                        badge_label = "Faible"
+                    else:
+                        badge_color = "secondary"
+                        badge_label = "Info"
+                    detail_children.append(
+                        html.Div(
+                            [
+                                dbc.Badge(
+                                    badge_label, color=badge_color, className="me-2"
+                                ),
+                                html.Small(just, className="text-muted fst-italic"),
+                            ],
+                            className="ms-3 mb-1 mt-1 p-1 bg-white border rounded d-flex align-items-center",
+                        )
+                    )
+
             footnote_detail_rows.append(
                 html.Div(detail_children, className="py-2 border-bottom")
             )
@@ -953,7 +1125,7 @@ def render_indicator_diff_view(
     footnote_detail_section = (
         html.Div(
             [
-                html.H6("Detail des notes", className="text-muted small mb-2"),
+                html.H6("Détail des notes", className="text-muted small mb-2"),
                 html.Div(
                     footnote_detail_rows,
                     style={"maxHeight": "200px", "overflowY": "auto"},

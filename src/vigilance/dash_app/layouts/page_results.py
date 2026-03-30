@@ -9,18 +9,248 @@ from app.i18n import t
 
 
 def build_analyst_kpi_card(
-    title: str, value: str | int, delta_icon: str | None = None, color: str = "light"
+    title: str,
+    value: str | int,
+    delta_icon: str | None = None,
+    color: str = "light",
+    helper_text: str | None = None,
 ) -> dbc.Card:
     """Build a single KPI card for the analyst panel."""
     body_children = [
         html.P(title, className="text-muted mb-1 small"),
         html.H3(str(value), className="mb-0 fw-bold"),
     ]
+    if helper_text:
+        body_children.append(html.P(helper_text, className="text-muted mb-0 small"))
     if delta_icon:
         body_children.append(html.Span(delta_icon, className="text-muted small"))
     return dbc.Card(
         dbc.CardBody(body_children, className="text-center py-3"),
         className=f"shadow-sm border-0 bg-{color}",
+    )
+
+
+def _format_priority_badge(raw_priority: str) -> dbc.Badge | None:
+    priority = str(raw_priority or "").strip().lower()
+    if not priority:
+        return None
+
+    mapping = {
+        "critique": ("Critique", "danger"),
+        "prioritaire": ("Prioritaire", "warning"),
+        "normal": ("Normal", "secondary"),
+    }
+    label, color = mapping.get(priority, (priority.capitalize(), "secondary"))
+    return dbc.Badge(label, color=color, className="me-2")
+
+
+def _format_confidence_badge(score: float | int | None) -> dbc.Badge | None:
+    if score is None:
+        return None
+    try:
+        numeric = float(score)
+    except (TypeError, ValueError):
+        return None
+
+    if numeric >= 0.9:
+        color = "success"
+    elif numeric >= 0.8:
+        color = "warning"
+    else:
+        color = "danger"
+    return dbc.Badge(f"Confiance {numeric:.2f}", color=color, className="me-2")
+
+
+def _build_change_badges(comp: dict) -> list[dbc.Badge]:
+    badges: list[dbc.Badge] = []
+    added = len(comp.get("added_indicators", []) or [])
+    removed = len(comp.get("removed_indicators", []) or [])
+    renamed = len(comp.get("renamed_indicators", []) or [])
+    fn_counts = comp.get("footnotes_counts", {}) or {}
+    fn_total = sum(
+        int(fn_counts.get(key, 0) or 0) for key in ("added", "removed", "modified")
+    )
+
+    if added:
+        badges.append(dbc.Badge(f"+{added}", color="success", className="me-2"))
+    if removed:
+        badges.append(dbc.Badge(f"-{removed}", color="danger", className="me-2"))
+    if renamed:
+        badges.append(
+            dbc.Badge(
+                f"~{renamed}", color="warning", text_color="dark", className="me-2"
+            )
+        )
+    if fn_total:
+        badges.append(dbc.Badge(f"FN {fn_total}", color="info", className="me-2"))
+    return badges
+
+
+def _build_indicator_detail_lines(comp: dict) -> list:
+    details: list = []
+    added = [
+        str(v).strip()
+        for v in (comp.get("added_indicators", []) or [])
+        if str(v).strip()
+    ]
+    removed = [
+        str(v).strip()
+        for v in (comp.get("removed_indicators", []) or [])
+        if str(v).strip()
+    ]
+    renamed = comp.get("renamed_indicators", []) or []
+    footnotes_diff = comp.get("footnotes_diff", {}) or {}
+
+    if added:
+        details.append(
+            html.Div(
+                [html.Strong("Ajouts: "), html.Span(", ".join(added[:3]))],
+                className="small mb-1",
+            )
+        )
+    if removed:
+        details.append(
+            html.Div(
+                [html.Strong("Suppressions: "), html.Span(", ".join(removed[:3]))],
+                className="small mb-1",
+            )
+        )
+    if renamed:
+        preview = []
+        for item in renamed[:2]:
+            if isinstance(item, dict):
+                prev = str(item.get("from", "")).strip()
+                curr = str(item.get("to", "")).strip()
+                if prev or curr:
+                    preview.append(f"{prev} -> {curr}")
+        if preview:
+            details.append(
+                html.Div(
+                    [html.Strong("Renommages: "), html.Span(" | ".join(preview))],
+                    className="small mb-1",
+                )
+            )
+
+    footnote_refs: list[str] = []
+    for bucket in ("added", "removed", "modified"):
+        for item in footnotes_diff.get(bucket, []) or []:
+            ref = str(item.get("footnote_ref", "")).strip()
+            if ref:
+                footnote_refs.append(f"[{ref}]")
+    if footnote_refs:
+        details.append(
+            html.Div(
+                [html.Strong("Notes: "), html.Span(", ".join(footnote_refs[:4]))],
+                className="small mb-1",
+            )
+        )
+
+    analyst_summary = str(
+        (comp.get("match_metadata", {}) or {}).get("analyst_summary")
+        or (comp.get("genai_analysis", {}) or {}).get("analyst_summary")
+        or ""
+    ).strip()
+    if analyst_summary:
+        details.append(html.P(analyst_summary, className="small text-muted mb-0"))
+
+    return details
+
+
+def _build_comparison_overview_card(comp: dict) -> dbc.Card:
+    title = (
+        comp.get("title_t2")
+        or comp.get("title_t1")
+        or comp.get("table_title")
+        or comp.get("table_id_t2")
+        or comp.get("table_id_t1")
+        or "Sans titre"
+    )
+    page_t1 = comp.get("page_t1")
+    page_t2 = comp.get("page_t2")
+    priority_badge = _format_priority_badge(
+        str(
+            (comp.get("match_metadata", {}) or {}).get("review_priority")
+            or (comp.get("genai_analysis", {}) or {}).get("review_priority")
+            or ""
+        )
+    )
+    confidence_badge = _format_confidence_badge(comp.get("match_score"))
+    change_badges = _build_change_badges(comp)
+    detail_lines = _build_indicator_detail_lines(comp)
+
+    badge_row = [
+        badge
+        for badge in [priority_badge, confidence_badge, *change_badges]
+        if badge is not None
+    ]
+
+    return dbc.Card(
+        dbc.CardBody(
+            [
+                html.Div(
+                    [
+                        html.H6(title, className="mb-1"),
+                        html.Small(
+                            f"Pages: préc. p.{page_t1 if page_t1 is not None else '-'} / cour. p.{page_t2 if page_t2 is not None else '-'}",
+                            className="text-muted",
+                        ),
+                    ],
+                    className="mb-2",
+                ),
+                html.Div(badge_row, className="mb-2") if badge_row else html.Div(),
+                html.Div(detail_lines)
+                if detail_lines
+                else html.P(
+                    "Aucun détail textuel supplémentaire.",
+                    className="small text-muted mb-0",
+                ),
+            ]
+        ),
+        className="shadow-sm border-0 mb-3",
+    )
+
+
+def _build_table_presence_card(
+    table: dict, *, change_label: str, color: str
+) -> dbc.Card:
+    title = (
+        table.get("title")
+        or table.get("table_title")
+        or table.get("table_id")
+        or "Sans titre"
+    )
+    page = table.get("page")
+    indicators = [
+        str(v).strip()
+        for v in (
+            table.get("first_column_indicators_raw")
+            or table.get("all_indicators_t1")
+            or table.get("all_indicators_t2")
+            or []
+        )
+        if str(v).strip()
+    ]
+    excerpt = (
+        ", ".join(indicators[:3]) if indicators else "Aucun indicateur exploitable"
+    )
+    return dbc.Card(
+        dbc.CardBody(
+            [
+                html.Div(
+                    [
+                        html.H6(title, className="mb-1"),
+                        dbc.Badge(change_label, color=color, className="me-2"),
+                        html.Small(
+                            f"Page p.{page}" if page is not None else "Page inconnue",
+                            className="text-muted",
+                        ),
+                    ],
+                    className="mb-2",
+                ),
+                html.P(excerpt, className="small text-muted mb-0"),
+            ]
+        ),
+        className="shadow-sm border-0 mb-3",
     )
 
 
@@ -35,106 +265,68 @@ def build_section_accordion_item(
     parts = []
     if tables_with_changes:
         n = len(tables_with_changes)
-        items = []
-        for comp in tables_with_changes[:10]:
-            title = comp.get("table_title") or comp.get("title_t1") or "Sans titre"
-            fn_c = comp.get("footnotes_counts", {})
-            fn_total = sum(fn_c.get(k, 0) for k in ("added", "removed", "modified"))
-            badges = []
-            if comp.get("table_status") == "structure_change":
-                badges.append(
-                    dbc.Badge(t("fusion_split"), color="warning", className="ms-2")
-                )
-            if comp.get("table_status") == "incertain":
-                badges.append(
-                    dbc.Badge("INCERTAIN", color="secondary", className="ms-2")
-                )
-            if fn_total:
-                badges.append(
-                    dbc.Badge(
-                        f"FN +{fn_c.get('added', 0)}/-{fn_c.get('removed', 0)}/~{fn_c.get('modified', 0)}",
-                        color="info",
-                        className="ms-2",
-                    )
-                )
-            ga = comp.get("genai_analysis", {})
-            ga_rel = ga.get("relevance", "")
-            if ga_rel:
-                _rel_display = {
-                    "REGLEMENTAIRE": "Reglementaire",
-                    "NON_SIGNIFICATIF": "Non significatif",
-                    "STRUCTUREL": "Structurel",
-                    "NOUVELLE_DIVULGATION": "Nouvelle divulgation",
-                    "NON_CLASSIFIE": "Non classifie",
-                }
-                _rel_colors = {
-                    "REGLEMENTAIRE": "danger",
-                    "NON_SIGNIFICATIF": "secondary",
-                    "STRUCTUREL": "primary",
-                    "NOUVELLE_DIVULGATION": "info",
-                    "NON_CLASSIFIE": "light",
-                }
-                badges.append(
-                    dbc.Badge(
-                        _rel_display.get(ga_rel, ga_rel),
-                        color=_rel_colors.get(ga_rel, "secondary"),
-                        className="ms-2",
-                    )
-                )
-            items.append(html.Li([title, *badges], className="mb-0 small text-muted"))
+        cards = [
+            _build_comparison_overview_card(comp) for comp in tables_with_changes[:6]
+        ]
         parts.append(
             html.Div(
                 [
                     html.Strong(f"{n} tableau(x) avec changements"),
-                    html.Ul(items, className="mb-0"),
-                ]
-                if n <= 10
-                else [html.Strong(f"{n} tableau(x) avec changements")],
+                    html.Div(cards, className="mt-3"),
+                    html.Small(
+                        f"{n - len(cards)} autre(s) tableau(x) dans cette section."
+                        if n > len(cards)
+                        else "",
+                        className="text-muted",
+                    ),
+                ],
                 className="mb-2",
             )
         )
     if tables_added:
+        cards = [
+            _build_table_presence_card(
+                table,
+                change_label=t("table_added"),
+                color="success",
+            )
+            for table in tables_added[:3]
+        ]
         parts.append(
             html.Div(
                 [
                     html.Strong(f"{t('table_added_plural')}: {len(tables_added)}"),
-                    html.Ul(
-                        [
-                            html.Li(
-                                tbl.get("table_title")
-                                or tbl.get("title")
-                                or "Sans titre"
-                            )
-                            for tbl in tables_added[:5]
-                        ],
-                        className="mb-0 small text-muted",
+                    html.Div(cards, className="mt-3"),
+                    html.Small(
+                        f"{len(tables_added) - len(cards)} autre(s) tableau(x) ajouté(s)."
+                        if len(tables_added) > len(cards)
+                        else "",
+                        className="text-muted",
                     ),
-                ]
-                if len(tables_added) <= 5
-                else [html.Strong(f"{t('table_added_plural')}: {len(tables_added)}")],
+                ],
                 className="mb-2",
             )
         )
     if tables_removed:
+        cards = [
+            _build_table_presence_card(
+                table,
+                change_label=t("table_removed"),
+                color="danger",
+            )
+            for table in tables_removed[:3]
+        ]
         parts.append(
             html.Div(
                 [
                     html.Strong(f"{t('table_removed_plural')}: {len(tables_removed)}"),
-                    html.Ul(
-                        [
-                            html.Li(
-                                tbl.get("table_title")
-                                or tbl.get("title")
-                                or "Sans titre"
-                            )
-                            for tbl in tables_removed[:5]
-                        ],
-                        className="mb-0 small text-muted",
+                    html.Div(cards, className="mt-3"),
+                    html.Small(
+                        f"{len(tables_removed) - len(cards)} autre(s) tableau(x) retiré(s)."
+                        if len(tables_removed) > len(cards)
+                        else "",
+                        className="text-muted",
                     ),
-                ]
-                if len(tables_removed) <= 5
-                else [
-                    html.Strong(f"{t('table_removed_plural')}: {len(tables_removed)}")
                 ],
                 className="mb-2",
             )
@@ -142,7 +334,7 @@ def build_section_accordion_item(
     body = (
         html.Div(parts, className="p-2")
         if parts
-        else html.Div("Aucun detail.", className="text-muted p-2")
+        else html.Div("Aucun détail.", className="text-muted p-2")
     )
     return dbc.AccordionItem(
         body,
@@ -236,6 +428,22 @@ def build_page_results() -> html.Div:
             ),
             # Main Split Pane (Review Dashboard)
             html.Div(
+                [
+                    html.Div(
+                        [
+                            html.H5("Vue rapide par section", className="mb-1"),
+                            html.P(
+                                "Repérez rapidement les tableaux touchés avant d'ouvrir le détail analyste.",
+                                className="text-muted mb-0",
+                            ),
+                        ],
+                        className="mb-3",
+                    ),
+                    html.Div(id="results-sections-tab"),
+                ],
+                className="mb-5",
+            ),
+            html.Div(
                 dbc.Row(
                     [
                         # Left Panel: Review Queue
@@ -243,7 +451,7 @@ def build_page_results() -> html.Div:
                             html.Div(
                                 id="review-queue-container",
                                 className="bg-white p-3 shadow-sm rounded h-100",
-                                style={"overflowY": "auto"},
+                                style={"overflowY": "hidden"},
                             ),
                             md=4,
                             className="h-100",
@@ -268,7 +476,7 @@ def build_page_results() -> html.Div:
                                         dbc.Button(
                                             [
                                                 html.I(className="bi bi-chevron-left"),
-                                                f" {t('btn_prev', 'Precedent')}",
+                                                f" {t('btn_prev', 'Précédent')}",
                                             ],
                                             id="btn-prev",
                                             color="light",
@@ -351,8 +559,7 @@ def build_page_results() -> html.Div:
             # Hidden div for storing review state
             dcc.Store(id="store-review-data", data=[]),
             dcc.Store(id="store-current-review-index", data=0),
-            # Legacy tabs container (hidden or repurposed if needed later, but keeping structure clean)
-            html.Div(id="results-sections-tab", style={"display": "none"}),
+            # Legacy tabs container (other tabs kept hidden)
             html.Div(id="results-review-tab", style={"display": "none"}),
             html.Div(id="results-table-tab", style={"display": "none"}),
             # Nav debug panel (instrumentation: triggered_id, current_idx, last writer)
