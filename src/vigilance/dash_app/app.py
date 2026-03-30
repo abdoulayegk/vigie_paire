@@ -20,7 +20,12 @@ logger = logging.getLogger(__name__)
 
 
 def _cached_render_or_crop(
-    pdf_path: str, page: int, scale: float, bbox_key: str, display_mode: str = "crop"
+    pdf_path: str,
+    page: int,
+    scale: float,
+    bbox_key: str,
+    display_mode: str = "crop",
+    highlight_rects: list[list[float]] | None = None,
 ) -> bytes:
     """Return PNG bytes based on display_mode: crop, full (page + bbox highlight), or footnote."""
     from vigilance.utils.pdf_crop import (
@@ -56,7 +61,9 @@ def _cached_render_or_crop(
         elif display_mode == "footnote":
             return crop_footnote_region_to_bytes(pdf_path, page, bbox, scale=scale)
         else:  # "crop" (default)
-            return crop_table_region_to_bytes(pdf_path, page, bbox, scale=scale)
+            return crop_table_region_to_bytes(
+                pdf_path, page, bbox, scale=scale, highlight_rects=highlight_rects
+            )
     except Exception:
         if display_mode == "full":
             raw = get_pdf_preview(pdf_path, page, scale=scale)
@@ -3118,7 +3125,12 @@ def _proof_render_result(
 
 
 def _get_proof_render_result_for_item(
-    item_dict: dict, side: str, paths: dict, *, proof_display_mode: str = "crop"
+    item_dict: dict,
+    side: str,
+    paths: dict,
+    *,
+    proof_display_mode: str = "crop",
+    highlight_rects: list[list[float]] | None = None,
 ) -> dict[str, str | None]:
     """Return proof image + availability status for one side."""
     display_mode = (proof_display_mode or "crop").strip().lower()
@@ -3158,6 +3170,7 @@ def _get_proof_render_result_for_item(
         side,
         paths,
         proof_display_mode=display_mode,
+        highlight_rects=highlight_rects,
     )
     if image_b64:
         return _proof_render_result(image_b64, "ok", display_mode)
@@ -3165,7 +3178,12 @@ def _get_proof_render_result_for_item(
 
 
 def _get_proof_image_b64_for_item(
-    item_dict: dict, side: str, paths: dict, *, proof_display_mode: str = "crop"
+    item_dict: dict,
+    side: str,
+    paths: dict,
+    *,
+    proof_display_mode: str = "crop",
+    highlight_rects: list[list[float]] | None = None,
 ) -> str | None:
     """Get proof image base64. With proof_display_mode='full' skip crop (full page); with 'crop' use bbox; with 'footnote' show only footnote region."""
     display_mode = (proof_display_mode or "crop").strip().lower()
@@ -3203,7 +3221,12 @@ def _get_proof_image_b64_for_item(
             bbox_key = json.dumps(bbox)
         try:
             raw_bytes = _cached_render_or_crop(
-                str(pdf_path), page_effective, 1.5, bbox_key, display_mode
+                str(pdf_path),
+                page_effective,
+                1.5,
+                bbox_key,
+                display_mode,
+                highlight_rects=highlight_rects,
             )
             if raw_bytes:
                 return base64.b64encode(raw_bytes).decode("ascii")
@@ -3250,7 +3273,12 @@ def _get_proof_image_b64_for_item(
             bbox_key = json.dumps(bbox)
         try:
             raw_bytes = _cached_render_or_crop(
-                str(pdf_path), page_effective, 1.5, bbox_key, display_mode
+                str(pdf_path),
+                page_effective,
+                1.5,
+                bbox_key,
+                display_mode,
+                highlight_rects=highlight_rects,
             )
             base_img_b64 = (
                 base64.b64encode(raw_bytes).decode("ascii") if raw_bytes else None
