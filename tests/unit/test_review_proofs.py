@@ -4,6 +4,7 @@ from dash.development.base_component import Component
 
 from vigilance.dash_app import app as dash_app
 from vigilance.dash_app.components.review_detail import build_proofs_section
+from vigilance.dash_app.layouts import page_results
 
 
 def _flatten_text(node: object) -> str:
@@ -73,7 +74,7 @@ def test_build_proofs_section_table_added_shows_previous_placeholder() -> None:
     )
 
     text = _flatten_text(section)
-    assert "Aucun tableau dans le trimestre precedent" in text
+    assert "Aucun tableau dans le trimestre précédent" in text
     assert "Mode focus tableau" in text
 
 
@@ -119,7 +120,7 @@ def test_update_review_proofs_returns_non_empty_panel_with_fallback_images(
     monkeypatch.setattr(
         dash_app,
         "_get_proof_render_result_for_item",
-        lambda item, side, paths, proof_display_mode="crop": {
+        lambda item, side, paths, proof_display_mode="crop", **kwargs: {
             "image_b64": None,
             "status": "render_failed",
             "mode_effective": proof_display_mode,
@@ -163,7 +164,7 @@ def test_update_review_proofs_returns_non_empty_panel_with_fallback_images(
 def test_update_review_proofs_uses_requested_display_mode(monkeypatch) -> None:
     seen_modes: list[str] = []
 
-    def _fake_get(item, side, paths, proof_display_mode="crop"):
+    def _fake_get(item, side, paths, proof_display_mode="crop", **kwargs):
         seen_modes.append(proof_display_mode)
         return {
             "image_b64": "abc",
@@ -205,6 +206,105 @@ def test_update_review_proofs_uses_requested_display_mode(monkeypatch) -> None:
     text = _flatten_text(result)
     assert seen_modes == ["footnote", "footnote"]
     assert "Mode note de bas de tableau" in text
+
+
+def test_v2_meta_and_proofs_resolve_same_review_selection(monkeypatch) -> None:
+    queue = [
+        {
+            "review_id": "rid-structure",
+            "table_key": "rid-structure",
+            "table_name": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
+            "section": "capital_management",
+            "page_t1": 38,
+            "page_t2": 33,
+            "bbox_t1": [0.1, 0.1, 0.9, 0.9],
+            "bbox_t2": [0.1, 0.1, 0.9, 0.9],
+            "source_pdf_t1": "/tmp/prev.pdf",
+            "source_pdf_t2": "/tmp/curr.pdf",
+            "changes": [
+                {
+                    "change_id": "chg-structure",
+                    "change_type": "indicator_added",
+                    "payload": {"indicator_name": "Crypto"},
+                    "validation_status": "pending",
+                    "is_required": True,
+                }
+            ],
+        },
+        {
+            "review_id": "rid-actions",
+            "table_key": "rid-actions",
+            "table_name": "ACTIONS ET AUTRES TITRES¹",
+            "section": "capital_management",
+            "page_t1": 39,
+            "page_t2": 34,
+            "bbox_t1": [0.2, 0.2, 0.8, 0.8],
+            "bbox_t2": [0.2, 0.2, 0.8, 0.8],
+            "source_pdf_t1": "/tmp/prev.pdf",
+            "source_pdf_t2": "/tmp/curr.pdf",
+            "changes": [
+                {
+                    "change_id": "chg-actions",
+                    "change_type": "indicator_removed",
+                    "payload": {"indicator_name": "Serie 32"},
+                    "validation_status": "pending",
+                    "is_required": True,
+                }
+            ],
+        },
+    ]
+    selection = {"review_id": "rid-actions", "change_id": "chg-actions"}
+    seen: dict[str, str] = {}
+
+    monkeypatch.setattr(
+        dash_app,
+        "_get_proof_render_result_for_item",
+        lambda item, side, paths, proof_display_mode="crop", **kwargs: {
+            "image_b64": "abc",
+            "status": "ok",
+            "mode_effective": proof_display_mode,
+        },
+    )
+
+    def _capture_proofs(item, **kwargs):
+        seen["proofs"] = str(item.get("table_name") or "")
+        return "proofs"
+
+    def _capture_meta(table, **kwargs):
+        seen["meta"] = str(table.get("table_name") or "")
+        return "meta"
+
+    monkeypatch.setattr(dash_app, "build_proofs_section", _capture_proofs)
+    monkeypatch.setattr(dash_app, "build_review_detail_v2", _capture_meta)
+
+    assert dash_app.update_review_proofs(queue, selection, {}, True, "crop") == "proofs"
+    assert dash_app.update_review_meta(queue, selection, True) == "meta"
+    assert seen == {
+        "proofs": "ACTIONS ET AUTRES TITRES¹",
+        "meta": "ACTIONS ET AUTRES TITRES¹",
+    }
+
+
+def test_legacy_nav_buttons_hidden_when_v2_active(monkeypatch) -> None:
+    monkeypatch.setattr(page_results, "REVIEW_QUEUE_V2_ACTIVE", True)
+    view = page_results.build_page_results()
+
+    ids: set[str] = set()
+    stack = [view]
+    while stack:
+        current = stack.pop()
+        if isinstance(current, Component):
+            current_id = getattr(current, "id", None)
+            if isinstance(current_id, str):
+                ids.add(current_id)
+            children = getattr(current, "children", None)
+            if isinstance(children, list):
+                stack.extend(children)
+            elif children is not None:
+                stack.append(children)
+
+    assert "btn-prev" not in ids
+    assert "btn-next" not in ids
 
 
 def test_get_proof_render_result_returns_bbox_missing_for_crop() -> None:

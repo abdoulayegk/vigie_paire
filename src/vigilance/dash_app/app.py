@@ -1937,6 +1937,9 @@ def on_review_action_modern(
 )
 def on_modern_nav(prev_clicks, next_clicks, current_idx, items):
     """Handle Previous/Next table buttons. Resets indicator_idx to 0 on table change."""
+    if REVIEW_QUEUE_V2_ACTIVE:
+        raise PreventUpdate
+
     logger.info(
         "[on_modern_nav] ENTER trig=%s current_idx=%r items_len=%s",
         ctx.triggered_id,
@@ -2024,6 +2027,9 @@ def render_nav_debug(idx, dbg, items):
 def update_review_nav_disabled(current_idx, items, show_results):
     """Disable Prev/Next when at first/last item.
     btn-next also disabled if current table has pending indicators."""
+    if REVIEW_QUEUE_V2_ACTIVE:
+        return True, True
+
     if not show_results or not items:
         return True, True
     idx = max(0, min(int(current_idx or 0), len(items) - 1))
@@ -3055,19 +3061,10 @@ def init_review_items(indicator_result, paths, indicator_meta):
             persisted_state = None
             stored_items = None
 
-    if persisted_state:
-        preferred_store = str(
-            persisted_state.get("preferred_store") or "review_queue"
-        ).strip()
-
-        if (
-            preferred_store in {"review_items", "review_queue"}
-            and isinstance(stored_items, list)
-            and stored_items
-        ):
-            serialized = stored_items
-        elif isinstance(stored_items, list) and stored_items:
-            serialized = stored_items
+    if persisted_state and isinstance(stored_items, list) and stored_items:
+        # Reuse persisted validation decisions, but do not restore navigation
+        # from the legacy review_items cursor when V2 is active.
+        serialized = stored_items
 
     # V2: Build deduplicated review queue from the active review-items only.
     grouped_tables = build_normalized_review_queue(
@@ -3089,7 +3086,7 @@ def init_review_items(indicator_result, paths, indicator_meta):
     resolved_selection, sel_table_idx, sel_change_idx = _resolve_selection(
         serialized_v2, persisted_selection or {"review_id": None, "change_id": None}
     )
-    if persisted_state and not persisted_selection:
+    if persisted_state and not REVIEW_QUEUE_V2_ACTIVE and not persisted_selection:
         sel_table_idx = int(
             persisted_state.get("review_current_idx", sel_table_idx) or 0
         )
@@ -3662,6 +3659,9 @@ def on_review_navigate(prev_clicks, next_clicks, review_items, current_idx):
     """Navigation Precedent/Suivant dans la revue (legacy buttons)."""
     from dash import ctx
 
+    if REVIEW_QUEUE_V2_ACTIVE:
+        raise PreventUpdate
+
     if not ctx.triggered_id or not review_items:
         raise PreventUpdate
     n = len(review_items)
@@ -3711,6 +3711,9 @@ def on_review_status(
     import json
 
     from dash import ctx
+
+    if REVIEW_QUEUE_V2_ACTIVE:
+        raise PreventUpdate
 
     if not ctx.triggered_id or not review_items:
         raise PreventUpdate

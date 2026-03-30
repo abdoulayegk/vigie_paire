@@ -2,10 +2,19 @@
 
 from __future__ import annotations
 
+import os
+
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from app.i18n import t
+
+REVIEW_QUEUE_V2_ACTIVE = os.getenv("REVIEW_QUEUE_V2_ACTIVE", "1").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
 
 def build_analyst_kpi_card(
@@ -494,7 +503,9 @@ def build_page_results() -> html.Div:
                                         ),
                                     ],
                                     className="d-flex justify-content-end mt-3 pt-3 border-top",
-                                ),
+                                )
+                                if not REVIEW_QUEUE_V2_ACTIVE
+                                else None,
                             ],
                             md=8,
                             className="h-100 d-flex flex-column",
