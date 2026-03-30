@@ -3262,8 +3262,13 @@ def _get_proof_image_b64_for_item(
 
     # For "crop" mode, use existing images if available
     base_img_b64: str | None = None
+    
+    # If we have highlight_rects we MUST bypass the physical file cache and re-render from PDF
+    skip_cache = highlight_rects is not None and len(highlight_rects) > 0
+    
     if (
-        side == "t1"
+        not skip_cache
+        and side == "t1"
         and proof_image_path
         and Path(proof_image_path).exists()
         and Path(proof_image_path).suffix.lower() in {".png", ".jpg", ".jpeg"}
@@ -3275,7 +3280,8 @@ def _get_proof_image_b64_for_item(
         except Exception:
             pass
     if (
-        base_img_b64 is None
+        not skip_cache
+        and base_img_b64 is None
         and ref
         and Path(ref).exists()
         and Path(ref).suffix.lower() in {".png", ".jpg", ".jpeg"}
