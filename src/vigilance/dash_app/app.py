@@ -26,6 +26,7 @@ def _cached_render_or_crop(
     bbox_key: str,
     display_mode: str = "crop",
     highlight_rects: list[list[float]] | None = None,
+    secondary_highlight_rects: list[list[float]] | None = None,
 ) -> bytes:
     """Return PNG bytes based on display_mode: crop, full (page + bbox highlight), or footnote."""
     from vigilance.utils.pdf_crop import (
@@ -62,7 +63,9 @@ def _cached_render_or_crop(
             return crop_footnote_region_to_bytes(pdf_path, page, bbox, scale=scale)
         else:  # "crop" (default)
             return crop_table_region_to_bytes(
-                pdf_path, page, bbox, scale=scale, highlight_rects=highlight_rects
+                pdf_path, page, bbox, scale=scale,
+                highlight_rects=highlight_rects,
+                secondary_highlight_rects=secondary_highlight_rects,
             )
     except Exception:
         if display_mode == "full":
@@ -1626,33 +1629,83 @@ def update_review_proofs(
     pdf_path_t1 = normalized_paths.get("pdf_t1", "") or item.get("source_ref_t1", "")
     pdf_path_t2 = normalized_paths.get("pdf_t2", "") or item.get("source_ref_t2", "")
     
+    # primary (magenta) = active change being validated
+    # secondary (yellow) = all other changes in the table (context)
+    primary_rects_t1: list[list[float]] = []
+    primary_rects_t2: list[list[float]] = []
+    secondary_rects_t1: list[list[float]] = []
+    secondary_rects_t2: list[list[float]] = []
+
     active_change_id = resolved_selection.get("change_id")
-    highlight_rects_t1, highlight_rects_t2 = None, None
-    
-    if active_change_id:
-        active_change = next((c for c in table.get("changes", []) if str(c.get("change_id", "")) == str(active_change_id)), None)
-        if active_change:
-            indicator_text = active_change.get("indicator", "")
-            if indicator_text:
-                if pdf_path_t1 and item.get("page_t1") is not None and item.get("bbox_t1"):
-                    try:
-                        from vigilance.utils.pdf_highlight import find_text_bboxes_in_region
-                        highlight_rects_t1 = find_text_bboxes_in_region(str(pdf_path_t1), max(1, int(item.get("page_t1"))), indicator_text, item.get("bbox_t1"))
-                    except Exception as e:
-                        logger.warning(f"Error finding text highlights in t1: {e}")
-                
-                if pdf_path_t2 and item.get("page_t2") is not None and item.get("bbox_t2"):
-                    try:
-                        from vigilance.utils.pdf_highlight import find_text_bboxes_in_region
-                        highlight_rects_t2 = find_text_bboxes_in_region(str(pdf_path_t2), max(1, int(item.get("page_t2"))), indicator_text, item.get("bbox_t2"))
-                    except Exception as e:
-                        logger.warning(f"Error finding text highlights in t2: {e}")
+    all_changes = table.get("changes") or []
+
+    if all_changes and (pdf_path_t1 or pdf_path_t2):
+        from vigilance.utils.pdf_highlight import find_text_bboxes_in_region
+
+        _FOOTNOTE_CHANGE_TYPES = {
+            "footnote_added", "FOOTNOTE_ADDED",
+            "footnote_removed", "FOOTNOTE_REMOVED",
+            "footnote_modified", "FOOTNOTE_MODIFIED",
+        }
+
+        def _extended_bbox(bbox: list[float]) -> list[float]:
+            return [bbox[0], bbox[1], bbox[2], min(1.0, bbox[3] + 0.25)]
+
+        def _texts_for_change(change: dict) -> tuple[str, str]:
+            payload = change.get("payload") or {}
+            ct = str(change.get("change_type", "") or "")
+            if ct in ("indicator_renamed", "INDICATOR_RENAMED"):
+                return payload.get("from", ""), payload.get("to", "")
+            if ct in ("footnote_added", "FOOTNOTE_ADDED"):
+                return "", (payload.get("new_text", "") or "").split("\n")[0].strip()
+            if ct in ("footnote_removed", "FOOTNOTE_REMOVED"):
+                return (payload.get("old_text", "") or "").split("\n")[0].strip(), ""
+            if ct in ("footnote_modified", "FOOTNOTE_MODIFIED"):
+                return (
+                    (payload.get("old_text", "") or "").split("\n")[0].strip(),
+                    (payload.get("new_text", "") or "").split("\n")[0].strip(),
+                )
+            if ct in ("indicator_added", "INDICATOR_ADDED"):
+                return "", payload.get("indicator_name", "")
+            if ct in ("indicator_removed", "INDICATOR_REMOVED"):
+                return payload.get("indicator_name", ""), ""
+            name = payload.get("indicator_name", "")
+            return name, name
+
+        for change in all_changes:
+            is_active = str(change.get("change_id", "")) == str(active_change_id or "")
+            s_t1, s_t2 = _texts_for_change(change)
+            is_fn = str(change.get("change_type", "") or "") in _FOOTNOTE_CHANGE_TYPES
+
+            if s_t1 and pdf_path_t1 and item.get("page_t1") is not None and item.get("bbox_t1"):
+                try:
+                    bbox = _extended_bbox(item["bbox_t1"]) if is_fn else item["bbox_t1"]
+                    rects = find_text_bboxes_in_region(
+                        str(pdf_path_t1), max(1, int(item["page_t1"])), s_t1, bbox
+                    )
+                    (primary_rects_t1 if is_active else secondary_rects_t1).extend(rects)
+                except Exception as e:
+                    logger.warning(f"Highlight t1 failed for {change.get('change_id')}: {e}")
+
+            if s_t2 and pdf_path_t2 and item.get("page_t2") is not None and item.get("bbox_t2"):
+                try:
+                    bbox = _extended_bbox(item["bbox_t2"]) if is_fn else item["bbox_t2"]
+                    rects = find_text_bboxes_in_region(
+                        str(pdf_path_t2), max(1, int(item["page_t2"])), s_t2, bbox
+                    )
+                    (primary_rects_t2 if is_active else secondary_rects_t2).extend(rects)
+                except Exception as e:
+                    logger.warning(f"Highlight t2 failed for {change.get('change_id')}: {e}")
 
     proof_t1 = _get_proof_render_result_for_item(
-        item, "t1", paths or {}, proof_display_mode=mode, highlight_rects=highlight_rects_t1
+        item, "t1", paths or {}, proof_display_mode=mode,
+        highlight_rects=primary_rects_t1 or None,
+        secondary_highlight_rects=secondary_rects_t1 or None,
     )
     proof_t2 = _get_proof_render_result_for_item(
-        item, "t2", paths or {}, proof_display_mode=mode, highlight_rects=highlight_rects_t2
+        item, "t2", paths or {}, proof_display_mode=mode,
+        highlight_rects=primary_rects_t2 or None,
+        secondary_highlight_rects=secondary_rects_t2 or None,
     )
     return build_proofs_section(
         item=item,
@@ -3157,6 +3210,7 @@ def _get_proof_render_result_for_item(
     *,
     proof_display_mode: str = "crop",
     highlight_rects: list[list[float]] | None = None,
+    secondary_highlight_rects: list[list[float]] | None = None,
 ) -> dict[str, str | None]:
     """Return proof image + availability status for one side."""
     display_mode = (proof_display_mode or "crop").strip().lower()
@@ -3197,6 +3251,7 @@ def _get_proof_render_result_for_item(
         paths,
         proof_display_mode=display_mode,
         highlight_rects=highlight_rects,
+        secondary_highlight_rects=secondary_highlight_rects,
     )
     if image_b64:
         return _proof_render_result(image_b64, "ok", display_mode)
@@ -3210,6 +3265,7 @@ def _get_proof_image_b64_for_item(
     *,
     proof_display_mode: str = "crop",
     highlight_rects: list[list[float]] | None = None,
+    secondary_highlight_rects: list[list[float]] | None = None,
 ) -> str | None:
     """Get proof image base64. With proof_display_mode='full' skip crop (full page); with 'crop' use bbox; with 'footnote' show only footnote region."""
     display_mode = (proof_display_mode or "crop").strip().lower()
@@ -3253,6 +3309,7 @@ def _get_proof_image_b64_for_item(
                 bbox_key,
                 display_mode,
                 highlight_rects=highlight_rects,
+                secondary_highlight_rects=secondary_highlight_rects,
             )
             if raw_bytes:
                 return base64.b64encode(raw_bytes).decode("ascii")
@@ -3263,8 +3320,8 @@ def _get_proof_image_b64_for_item(
     # For "crop" mode, use existing images if available
     base_img_b64: str | None = None
     
-    # If we have highlight_rects we MUST bypass the physical file cache and re-render from PDF
-    skip_cache = highlight_rects is not None and len(highlight_rects) > 0
+    # If we have any highlights we MUST bypass the physical file cache and re-render from PDF
+    skip_cache = bool(highlight_rects or secondary_highlight_rects)
     
     if (
         not skip_cache
@@ -3311,6 +3368,7 @@ def _get_proof_image_b64_for_item(
                 bbox_key,
                 display_mode,
                 highlight_rects=highlight_rects,
+                secondary_highlight_rects=secondary_highlight_rects,
             )
             base_img_b64 = (
                 base64.b64encode(raw_bytes).decode("ascii") if raw_bytes else None
@@ -4482,6 +4540,9 @@ def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
     """Select a specific change row by stable change_id."""
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
+    # Guard: if all n_clicks are None/0 this is a re-render initialization, not a real click
+    if not any(nc for nc in (n_clicks or [])):
+        raise PreventUpdate
     trig = ctx.triggered_id
     if not isinstance(trig, dict) or trig.get("type") != "change-row-v2":
         raise PreventUpdate
@@ -4489,22 +4550,21 @@ def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
     if not change_id:
         raise PreventUpdate
 
-    resolved_selection, table_idx, _ = _resolve_selection(
-        queue,
-        selection,
-        filters,
-        last_positions,
-    )
-    if table_idx < 0:
+    # Find the table that actually owns this change_id by direct lookup.
+    # Do NOT use _resolve_selection here — when the current selection's review_id
+    # is filtered/hidden, _resolve_selection silently switches to the first visible
+    # table, causing clicks on one table to navigate to a completely different table.
+    # change_id values are globally unique across all tables in the queue.
+    owner_table = None
+    for t in queue:
+        if any(str(c.get("change_id", "")) == change_id for c in (t.get("changes", []) or [])):
+            owner_table = t
+            break
+    if owner_table is None:
         raise PreventUpdate
-    table = queue[table_idx]
-    if not any(
-        str(c.get("change_id", "")) == change_id
-        for c in (table.get("changes", []) or [])
-    ):
-        raise PreventUpdate
+
     new_selection = {
-        "review_id": resolved_selection.get("review_id"),
+        "review_id": _review_id(owner_table),
         "change_id": change_id,
     }
     new_selection, _, new_change_idx = _resolve_selection(

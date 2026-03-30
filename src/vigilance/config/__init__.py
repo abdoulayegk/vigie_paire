@@ -292,16 +292,10 @@ def get_validation_config(
         bank_code: Optional bank code for per-bank validation overrides.
 
     Returns:
-        Dict with keys such as vision_pair_validation, vision_pair_confidence_min,
-        semantic_judge_enabled, semantic_judge_banks, rename_validator_enabled,
-        rename_validator_confidence_min, rename_validator_batch_size,
-        rename_validator_uncertain_score_band, added_table_validator_enabled,
-        indicator_validator_enabled, indicator_validator_use_vision,
-        indicator_validator_confidence_min, indicator_validator_batch_size.
-        For backward compatibility, if vision_pair_validation is absent in the
-        validation block, falls back to vision_extraction.vision_pair_validation.
-        Cross-section rescue defaults (cross_section_rescue_enabled, etc.) are
-        applied when keys are absent.
+        Dict with keys: vision_unmatched_rescue_enabled,
+        cross_section_rescue_enabled, cross_section_rescue_rerank_min,
+        cross_section_rescue_vision_confidence_min,
+        cross_section_rescue_max_candidates_per_table.
     """
     path = _resolve_config_path(config_path)
     cfg: dict[str, Any] = {}
@@ -324,12 +318,6 @@ def get_validation_config(
             bank_val = bank_cfg.get("validation")
             if isinstance(bank_val, dict):
                 base = {**base, **bank_val}
-
-    # Fallback: vision_pair_validation from vision_extraction if not in validation
-    if "vision_pair_validation" not in base:
-        ve = cfg.get("vision_extraction")
-        if isinstance(ve, dict) and "vision_pair_validation" in ve:
-            base["vision_pair_validation"] = ve["vision_pair_validation"]
 
     # Cross-section rescue defaults when keys absent
     if "cross_section_rescue_enabled" not in base:

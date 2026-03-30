@@ -2,6 +2,16 @@
 
 from __future__ import annotations
 
+# action_requise is the primary sort key — it reflects the analyst action needed,
+# which is the most direct signal of urgency.
+_ACTION_PRIORITY = {
+    "escalade": 0,
+    "investigation": 1,
+    "confirmation": 2,
+    "information": 3,
+    "aucune": 4,
+}
+
 _RELEVANCE_PRIORITY = {
     "REGLEMENTAIRE": 0,
     "NOUVELLE_DIVULGATION": 1,
@@ -43,12 +53,15 @@ def normalize_risk(value: str) -> str:
     return raw
 
 
-def get_priority_signals(item: dict) -> tuple[str, str, float]:
+def get_priority_signals(item: dict) -> tuple[str, str, str, float]:
+    """Return (action_requise, relevance, risk, confidence) for a queue item."""
     ga = item.get("genai_analysis")
     if not isinstance(ga, dict):
         ga = {}
 
-    relevance = normalize_relevance(str(ga.get("relevance", "")))
+    action = str(ga.get("action_requise", "") or "").strip().lower()
+
+    relevance = normalize_relevance(str(ga.get("relevance", "") or ga.get("category", "")))
     if not relevance:
         if str(item.get("table_status", "")).strip().lower() == "structure_change":
             relevance = "STRUCTUREL"
@@ -64,20 +77,28 @@ def get_priority_signals(item: dict) -> tuple[str, str, float]:
     except (TypeError, ValueError):
         conf_f = -1.0
 
-    return relevance, risk, conf_f
+    return action, relevance, risk, conf_f
 
 
 def sort_review_items_by_priority(items: list[dict]) -> list[dict]:
-    """Sort queue items by criticity (regulatory > structural > non-significant)."""
+    """Sort queue items by analyst urgency.
+
+    Primary key  : action_requise (escalade → investigation → confirmation → information → aucune)
+    Secondary    : relevance category (REGLEMENTAIRE → … → NON_SIGNIFICATIF)
+    Tertiary     : risk level (ELEVE → MODERE → FAIBLE)
+    Quaternary   : confidence (descending)
+    Stable       : original index
+    """
     indexed: list[tuple[int, dict]] = list(enumerate(items))
 
-    def _priority_key(entry: tuple[int, dict]) -> tuple[int, int, float, int]:
+    def _priority_key(entry: tuple[int, dict]) -> tuple[int, int, int, float, int]:
         idx, item = entry
-        relevance, risk, confidence = get_priority_signals(item)
+        action, relevance, risk, confidence = get_priority_signals(item)
+        action_rank = _ACTION_PRIORITY.get(action, 5)
         relevance_rank = _RELEVANCE_PRIORITY.get(relevance, 5)
         risk_rank = _RISK_PRIORITY.get(risk, 3)
         conf_rank = -confidence if confidence >= 0 else 1.0
-        return (relevance_rank, risk_rank, conf_rank, idx)
+        return (action_rank, relevance_rank, risk_rank, conf_rank, idx)
 
     ordered = sorted(indexed, key=_priority_key)
     return [item for _, item in ordered]

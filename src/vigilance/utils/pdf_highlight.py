@@ -37,13 +37,11 @@ def find_text_bboxes_in_region(
     if not text_to_find or not text_to_find.strip():
         return []
 
-    # Clean up the search string (remove newlines, extra spaces, footnote markers if desired)
-    # PyMuPDF's search_for handles basic spaces, but exact matches on long multi-line
-    # strings might break. So we take the first chunk if it's too long.
-    search_text = text_to_find.strip().split("\n")[0]
-    # Restrict length to improve match rate on split lines
-    if len(search_text) > 40:
-        search_text = search_text[:40].strip()
+    # Take only the first line (PDF text spans can break across lines).
+    # Do NOT truncate further — truncation causes false positives when multiple
+    # rows share a common prefix (e.g. "Billets avec remboursement de capital à
+    # recours limité – Série 5" vs "– Série 6").
+    search_text = text_to_find.strip().split("\n")[0].strip()
 
     try:
         doc = fitz.open(pdf_path)

@@ -10,7 +10,7 @@ This component renders the right panel of the review UI showing:
 from __future__ import annotations
 
 import dash_bootstrap_components as dbc
-from dash import html
+from dash import dcc, html
 
 from app.review_models_v2 import ChangeType
 
