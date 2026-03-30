@@ -1622,11 +1622,37 @@ def update_review_proofs(
         proof_display_mode,
     )
 
+    normalized_paths = _normalize_pdf_paths_store(paths or {})
+    pdf_path_t1 = normalized_paths.get("pdf_t1", "") or item.get("source_ref_t1", "")
+    pdf_path_t2 = normalized_paths.get("pdf_t2", "") or item.get("source_ref_t2", "")
+    
+    active_change_id = resolved_selection.get("change_id")
+    highlight_rects_t1, highlight_rects_t2 = None, None
+    
+    if active_change_id:
+        active_change = next((c for c in table.get("changes", []) if str(c.get("change_id", "")) == str(active_change_id)), None)
+        if active_change:
+            indicator_text = active_change.get("indicator", "")
+            if indicator_text:
+                if pdf_path_t1 and item.get("page_t1") is not None and item.get("bbox_t1"):
+                    try:
+                        from vigilance.utils.pdf_highlight import find_text_bboxes_in_region
+                        highlight_rects_t1 = find_text_bboxes_in_region(str(pdf_path_t1), max(1, int(item.get("page_t1"))), indicator_text, item.get("bbox_t1"))
+                    except Exception as e:
+                        logger.warning(f"Error finding text highlights in t1: {e}")
+                
+                if pdf_path_t2 and item.get("page_t2") is not None and item.get("bbox_t2"):
+                    try:
+                        from vigilance.utils.pdf_highlight import find_text_bboxes_in_region
+                        highlight_rects_t2 = find_text_bboxes_in_region(str(pdf_path_t2), max(1, int(item.get("page_t2"))), indicator_text, item.get("bbox_t2"))
+                    except Exception as e:
+                        logger.warning(f"Error finding text highlights in t2: {e}")
+
     proof_t1 = _get_proof_render_result_for_item(
-        item, "t1", paths or {}, proof_display_mode=mode
+        item, "t1", paths or {}, proof_display_mode=mode, highlight_rects=highlight_rects_t1
     )
     proof_t2 = _get_proof_render_result_for_item(
-        item, "t2", paths or {}, proof_display_mode=mode
+        item, "t2", paths or {}, proof_display_mode=mode, highlight_rects=highlight_rects_t2
     )
     return build_proofs_section(
         item=item,
