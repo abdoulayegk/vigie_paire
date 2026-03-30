@@ -181,6 +181,7 @@ def crop_table_region_to_bytes(
     top_extension: float = 0.0,
     horizontal_padding: float = 0.0,
     dpi: int | None = None,
+    highlight_rects: list[list[float]] | None = None,
 ) -> bytes:
     """
     Crop a table region from a PDF page and return PNG bytes.
@@ -194,6 +195,7 @@ def crop_table_region_to_bytes(
         top_extension: Extra height above bbox (e.g. for title or missed rows), in normalized 0..1.
         horizontal_padding: Symmetric horizontal padding (normalized 0..1), clamped to page.
         dpi: If set, render at this resolution (72 * zoom); overrides scale. Use 300 for Vision/OCR.
+        highlight_rects: Optional list of normalized bounding boxes [l, t, r, b] to highlight in magenta.
 
     Returns:
         PNG bytes of the cropped region. Returns b"" on invalid bbox, page out of range,
@@ -229,6 +231,23 @@ def crop_table_region_to_bytes(
             x1 = rect.x0 + r_norm_effective * rect.width
             y1 = rect.y0 + b_norm_effective * rect.height
             clip = fitz.Rect(x0, y0, x1, y1)
+
+            # Draw highlights if requested
+            if highlight_rects:
+                for hl_norm in highlight_rects:
+                    if len(hl_norm) == 4:
+                        hx0 = rect.x0 + hl_norm[0] * rect.width
+                        hy0 = rect.y0 + hl_norm[1] * rect.height
+                        hx1 = rect.x0 + hl_norm[2] * rect.width
+                        hy1 = rect.y0 + hl_norm[3] * rect.height
+                        # Highlight with magenta and 30% opacity
+                        page.draw_rect(
+                            fitz.Rect(hx0, hy0, hx1, hy1),
+                            color=(1, 0, 1),
+                            fill=(1, 0, 1),
+                            fill_opacity=0.3,
+                        )
+
             mat = fitz.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, clip=clip, alpha=False)
             return pix.tobytes("png")

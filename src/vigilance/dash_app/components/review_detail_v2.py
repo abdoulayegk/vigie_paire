@@ -429,6 +429,11 @@ def build_change_list_v2(
                 if change.get("validation_notes")
                 else None,
                 full_detail,
+                # Store the change exact text for highlight callback
+                dcc.Store(
+                    id={"type": "change-text-data-v2", "change_id": change_id},
+                    data=change,
+                ),
             ],
             id={"type": "change-row-v2", "change_id": change_id},
             className=f"p-2 {current_class}",
@@ -437,7 +442,14 @@ def build_change_list_v2(
         )
         change_rows.append(row)
 
-    return dbc.ListGroup(change_rows, flush=True, className="mb-3")
+    # Added active-highlight store inside the list container to avoid duplication
+    # but still available in the DOM for callbacks
+    return html.Div(
+        [
+            dbc.ListGroup(change_rows, flush=True, className="mb-3"),
+            dcc.Store(id="active-highlight-store", data=None),
+        ]
+    )
 
 
 def build_validation_panel_v2(
