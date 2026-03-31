@@ -789,12 +789,22 @@ def build_review_detail_v2(
 
     # Changes list
     changes = table.get("changes", [])
+    table_only_change = len(changes) == 1 and str(changes[0].get("change_type", "")) in {
+        ChangeType.TABLE_ADDED.value,
+        ChangeType.TABLE_REMOVED.value,
+        "table_added",
+        "table_removed",
+    }
     changes_section = html.Div(
         [
             html.H6(
                 [
                     html.I(className="bi bi-list-check me-2"),
-                    f"Changements ({len(changes)})",
+                    (
+                        "Validation au niveau tableau"
+                        if table_only_change
+                        else f"Changements ({len(changes)})"
+                    ),
                 ],
                 className="mb-2",
             ),

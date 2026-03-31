@@ -3,9 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
-from dash.exceptions import PreventUpdate
-
 from app.comparison_canonical import to_canonical_payload
 from app.ui_io import load_comparison_result
 from app.review_models import ReviewItem
@@ -117,7 +114,7 @@ def test_init_review_items_restores_persisted_state(monkeypatch, tmp_path) -> No
         lambda *args, **kwargs: [_FakeTable(persisted_queue[0])],
     )
 
-    serialized, serialized_v2, selection, _last_positions, current_idx, change_idx, dbg = (
+    serialized, serialized_v2, selection, _last_positions, change_idx = (
         dash_app.init_review_items(
             {"bank_code": "bnc", "quarter_from": "q1", "quarter_to": "q2"},
             {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
@@ -128,9 +125,7 @@ def test_init_review_items_restores_persisted_state(monkeypatch, tmp_path) -> No
     assert serialized_v2 == persisted_queue
     assert serialized[0]["table_name"] == "Capital"
     assert selection["review_id"] == "bnc::capital::pair"
-    assert current_idx == 0
     assert change_idx == 0
-    assert dbg["trigger"] == "persisted_init"
 
 
 def test_init_review_items_discards_incompatible_persisted_state(
@@ -216,7 +211,7 @@ def test_init_review_items_discards_incompatible_persisted_state(
         ],
     )
 
-    serialized, serialized_v2, selection, _last_positions, current_idx, change_idx, dbg = (
+    serialized, serialized_v2, selection, _last_positions, change_idx = (
         dash_app.init_review_items(
             {"bank_code": "bnc", "quarter_from": "q1", "quarter_to": "q2"},
             {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
@@ -228,9 +223,7 @@ def test_init_review_items_discards_incompatible_persisted_state(
     assert serialized[0]["table_name"] == "Risk"
     assert serialized_v2[0]["table_name"] == "Risk"
     assert selection["review_id"] == "bnc::risk::pair"
-    assert current_idx == 0
     assert change_idx == 0
-    assert dbg["trigger"] == "init"
 
 
 def test_init_review_items_v2_ignores_legacy_cursor_restore(
@@ -318,7 +311,7 @@ def test_init_review_items_v2_ignores_legacy_cursor_restore(
         ],
     )
 
-    serialized, serialized_v2, selection, _last_positions, current_idx, change_idx, dbg = (
+    serialized, serialized_v2, selection, _last_positions, change_idx = (
         dash_app.init_review_items(
             {"bank_code": "td", "quarter_from": "q3", "quarter_to": "q1"},
             {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
@@ -329,9 +322,7 @@ def test_init_review_items_v2_ignores_legacy_cursor_restore(
     assert serialized[0]["change_id"] == "fresh-1"
     assert serialized_v2[0]["review_id"] == "td::capital::pair"
     assert selection == {"review_id": "td::capital::pair", "change_id": "chg_1"}
-    assert current_idx == 0
     assert change_idx == 0
-    assert dbg["trigger"] == "init"
 
 
 def test_td_review_queue_keeps_structure_and_actions_tables_separate() -> None:
@@ -372,17 +363,10 @@ def test_td_review_queue_keeps_structure_and_actions_tables_separate() -> None:
     assert actions["page_t2"] == 34
 
 
-def test_legacy_review_callbacks_are_disabled_when_v2_active(monkeypatch) -> None:
-    monkeypatch.setattr(dash_app, "REVIEW_QUEUE_V2_ACTIVE", True)
-
-    with pytest.raises(PreventUpdate):
-        dash_app.on_modern_nav(1, None, 0, [{"change_id": "x"}])
-
-    with pytest.raises(PreventUpdate):
-        dash_app.on_review_navigate(1, None, [{"change_id": "x"}], 0)
-
-    with pytest.raises(PreventUpdate):
-        dash_app.on_review_status(1, None, None, [{"change_id": "x"}], 0, {})
+def test_legacy_review_callbacks_are_removed() -> None:
+    assert not hasattr(dash_app, "on_modern_nav")
+    assert not hasattr(dash_app, "on_review_navigate")
+    assert not hasattr(dash_app, "on_review_status")
 
 
 def test_on_validate_change_v2_persists_review_state(monkeypatch, tmp_path) -> None:
@@ -417,7 +401,7 @@ def test_on_validate_change_v2_persists_review_state(monkeypatch, tmp_path) -> N
         }
     ]
 
-    new_queue, selection, change_idx, table_idx = dash_app.on_validate_change_v2(
+    new_queue, selection, change_idx = dash_app.on_validate_change_v2(
         1,
         None,
         None,
@@ -432,7 +416,6 @@ def test_on_validate_change_v2_persists_review_state(monkeypatch, tmp_path) -> N
     assert new_queue[0]["changes"][0]["validation_status"] == "approved"
     assert selection["review_id"] == "bnc::capital::pair"
     assert change_idx == 0
-    assert table_idx == 0
 
     persisted = load_review_state(compare_path)
     assert persisted is not None

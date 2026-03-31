@@ -3,7 +3,7 @@ from __future__ import annotations
 from dash.development.base_component import Component
 
 from vigilance.dash_app import app as dash_app
-from vigilance.dash_app.components.review_detail import build_proofs_section
+from vigilance.dash_app.components.review_display_shared import build_proofs_section
 from vigilance.dash_app.layouts import page_results
 
 
@@ -286,7 +286,6 @@ def test_v2_meta_and_proofs_resolve_same_review_selection(monkeypatch) -> None:
 
 
 def test_legacy_nav_buttons_hidden_when_v2_active(monkeypatch) -> None:
-    monkeypatch.setattr(page_results, "REVIEW_QUEUE_V2_ACTIVE", True)
     view = page_results.build_page_results()
 
     ids: set[str] = set()
@@ -305,6 +304,10 @@ def test_legacy_nav_buttons_hidden_when_v2_active(monkeypatch) -> None:
 
     assert "btn-prev" not in ids
     assert "btn-next" not in ids
+    assert "results-review-tab" not in ids
+    assert "nav-debug-panel" not in ids
+    assert "store-review-data" not in ids
+    assert "store-current-review-index" not in ids
 
 
 def test_get_proof_render_result_returns_bbox_missing_for_crop() -> None:

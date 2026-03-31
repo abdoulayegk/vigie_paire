@@ -29,16 +29,6 @@ Artefacts d’extraction :
 Artefact de comparaison :
 - `comparison.json` : sortie backend officielle, historisée par `run_id`
 
-## Structure utile
-
-- `src/vigilance/extraction/` : moteur d’extraction PDF
-- `src/vigilance/compare_gpt.py` : moteur de comparaison GPT
-- `src/vigilance/cli/` : CLI d’extraction et de comparaison
-- `src/vigilance/dash_app/` : application Dash
-- `src/app/` : adaptateurs UI, orchestration Dash, historique et revue
-- `configs/bank_profiles.yaml` : configuration banques / modèles / pipeline
-- `tests/unit/` : tests unitaires
-
 ## Installation
 
 ```bash
@@ -125,35 +115,9 @@ Le pipeline trouvera automatiquement :
 - **Courant :**  `Inputs/BNC/2025/BNC_2025_T2.pdf`
 - **Précédent :** `Inputs/BNC/2025/BNC_2025_T1.pdf` (déduit automatiquement)
 
-## CLI
 
-### 1. Extraire un rapport
-
-```bash
-uv run vigilance-run-extract-report \
-  --bank bnc \
-  --pdf data/bnc/report.pdf \
-  --year 2026 \
-  --quarter t1
-```
-
-Sortie :
-
-```text
-outputs/extractions/{bank}/{year}/{quarter}/
-  tables.json
-  indicators.json
-  footnotes.json
-```
 
 ### 2. Comparer un rapport courant à sa période de référence métier
-
-```bash
-uv run vigilance-run-compare-gpt4o \
-  --bank bnc \
-  --year-current 2026 \
-  --quarter-current t1
-```
 
 La période de référence est résolue automatiquement selon la règle métier :
 - `T2-Y -> T1-Y`
@@ -195,24 +159,4 @@ L’interface Dash permet :
 - la revue analyste par thème et priorité
 - le rechargement d’un `comparison.json` historique
 
-Les runs historiques sont isolés et non écrasables.
 
-## Tests
-
-Exécuter la suite unitaire :
-
-```bash
-uv run pytest
-```
-
-Exécuter un sous-ensemble ciblé :
-
-```bash
-uv run pytest tests/unit/test_compare_gpt.py
-```
-
-## Notes
-
-- Les extractions sous `outputs/extractions/` servent de cache technique par période.
-- La vérité historisée côté analyse est le dossier de run sous `outputs/comparisons/`.
-- Le projet privilégie la robustesse de la revue analyste et l’auditabilité des résultats.

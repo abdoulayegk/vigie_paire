@@ -110,7 +110,7 @@ from app.comparison_canonical import (
 )
 from app.comparison_runner import run_comparison_with_sections
 from app.dash_app.components.pdf_preview import pdf_images_from_base64
-from app.dash_app.components.review_detail import (
+from vigilance.dash_app.components.review_display_shared import (
     build_proofs_section,
     section_display_label,
 )
@@ -154,7 +154,6 @@ from app.review_priority import sort_review_items_by_priority
 from app.review_queue_normalizer import (
     build_normalized_review_queue,
 )
-from app.review_state import set_review_status
 from app.review_storage import (
     is_review_state_compatible,
     is_review_state_stale,
@@ -248,12 +247,6 @@ from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
 # Theme Bootstrap
 APP_THEME = dbc.themes.FLATLY
-REVIEW_QUEUE_V2_ACTIVE = os.getenv("REVIEW_QUEUE_V2_ACTIVE", "1").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
 
 app = Dash(
     __name__,
@@ -282,8 +275,6 @@ stores = [
     dcc.Store(id="store-review-queue", data=None),  # V2: deduplicated grouped queue
     dcc.Store(id="store-review-selection", data={"review_id": None, "change_id": None}),
     dcc.Store(id="store-review-last-positions", data={}),
-    dcc.Store(id="store-review-current-idx", data=0),
-    dcc.Store(id="store-review-current-indicator-idx", data=0),
     dcc.Store(
         id="store-current-change-idx", data=0
     ),  # V2: index within table's changes
@@ -294,7 +285,6 @@ stores = [
     dcc.Store(id="store-show-results-page", data=False),
     dcc.Store(id="store-review-filters", data={"section": "all", "status": "all"}),
     dcc.Store(id="store-proof-display-mode", data="crop"),
-    dcc.Store(id="store-nav-debug", data=None),
     dcc.Store(id="store-sidebar-collapsed", data=False),
     dcc.Interval(
         id="analysis-timer-interval", interval=1000, n_intervals=0, disabled=True
@@ -500,20 +490,6 @@ app.layout = html.Div(
         dcc.Download(id="download-review-json"),
         dcc.Download(id="download-review-excel"),
         dcc.Download(id="download-indicator-json-brut"),
-        # Placeholder elements for callbacks that reference dynamically-rendered
-        # button IDs. Dash 2.x validates Input IDs client-side even when
-        # suppress_callback_exceptions=True is set server-side. These elements
-        # are always hidden and never interact with the user.
-        html.Div(
-            [
-                dbc.Button(id="btn-approve", n_clicks=0),
-                dbc.Button(id="btn-reject", n_clicks=0),
-                dbc.Button(id="btn-apply", n_clicks=0),
-                dcc.Textarea(id="review-comment", value=""),
-            ],
-            style={"display": "none"},
-            id="_callback-placeholders",
-        ),
     ],
 )
 
@@ -1445,8 +1421,6 @@ def update_review_queue(
     """Update the left-side review queue and top KPIs."""
     if not show_results:
         raise PreventUpdate
-    if not REVIEW_QUEUE_V2_ACTIVE:
-        raise PreventUpdate
 
     if review_queue_data is None:
         return (
@@ -1514,9 +1488,7 @@ def update_review_queue(
 
 @callback(
     Output("store-review-selection", "data", allow_duplicate=True),
-    Output("store-review-current-idx", "data", allow_duplicate=True),
     Output("store-current-change-idx", "data", allow_duplicate=True),
-    Output("store-nav-debug", "data", allow_duplicate=True),
     Input("store-review-queue", "data"),
     Input("store-review-filters", "data"),
     State("store-review-selection", "data"),
@@ -1525,27 +1497,14 @@ def update_review_queue(
 )
 def sync_review_selection(queue, filters, selection, last_positions):
     """Keep selection stable on queue refresh/filter changes, with safe fallback."""
-    if not REVIEW_QUEUE_V2_ACTIVE:
-        raise PreventUpdate
     if queue is None:
         raise PreventUpdate
-    resolved_selection, table_idx, change_idx = _resolve_selection(
+    resolved_selection, _, change_idx = _resolve_selection(
         queue or [], selection, filters, last_positions
     )
     if resolved_selection == (selection or {}):
         raise PreventUpdate
-    selection_miss = str((selection or {}).get("review_id") or "") not in {
-        _review_id(t) for t in (queue or [])
-    }
-    dbg = {
-        "writer": "sync_review_selection",
-        "trigger": "queue_or_filter_refresh",
-        "from": (selection or {}).get("review_id"),
-        "to": resolved_selection.get("review_id"),
-        "total": len(queue or []),
-        "selection_miss": selection_miss,
-    }
-    return resolved_selection, table_idx, change_idx, dbg
+    return resolved_selection, change_idx
 
 
 @callback(
@@ -1593,8 +1552,6 @@ def update_review_proofs(
 ):
     """Update proof images section only (table-scoped; stable across indicator navigation)."""
     if not show_results:
-        raise PreventUpdate
-    if not REVIEW_QUEUE_V2_ACTIVE:
         raise PreventUpdate
     if not review_queue_data:
         return html.Div(
@@ -1728,8 +1685,6 @@ def update_review_meta(review_queue_data, selection, show_results):
     """Update V2 metadata + per-change validation section."""
     if not show_results:
         raise PreventUpdate
-    if not REVIEW_QUEUE_V2_ACTIVE:
-        raise PreventUpdate
     if not review_queue_data:
         return html.Div(
             "Veuillez lancer une analyse pour voir les détails.",
@@ -1764,289 +1719,6 @@ def on_proof_display_mode_change(value):
     if value in ("crop", "full", "footnote"):
         return value
     return no_update
-
-
-def _derive_table_status(indicators: list[dict]) -> str:
-    """Derive table-level review status from per-indicator statuses."""
-    if not indicators:
-        return REVIEW_STATUS_APPROVED
-    statuses = [ind.get("review_status", REVIEW_STATUS_PENDING) for ind in indicators]
-    if all(s == REVIEW_STATUS_APPROVED for s in statuses):
-        return REVIEW_STATUS_APPROVED
-    if all(s == REVIEW_STATUS_REJECTED for s in statuses):
-        return REVIEW_STATUS_REJECTED
-    if all(s in (REVIEW_STATUS_APPROVED, REVIEW_STATUS_REJECTED) for s in statuses):
-        return REVIEW_STATUS_APPROVED
-    return REVIEW_STATUS_PENDING
-
-
-@callback(
-    Output("store-review-items", "data", allow_duplicate=True),
-    Output("store-review-current-indicator-idx", "data", allow_duplicate=True),
-    Output("store-review-current-idx", "data", allow_duplicate=True),
-    Input("btn-approve", "n_clicks"),
-    Input("btn-reject", "n_clicks"),
-    Input("btn-apply", "n_clicks"),
-    State("store-review-items", "data"),
-    State("store-review-current-idx", "data"),
-    State("store-review-current-indicator-idx", "data"),
-    State("review-comment", "value"),
-    State("store-indicator-meta", "data"),
-    prevent_initial_call=True,
-)
-def on_review_action_modern(
-    btn_approve,
-    btn_reject,
-    btn_apply,
-    review_items,
-    current_idx,
-    indicator_idx,
-    comment,
-    indicator_meta,
-):
-    """Handle review actions per-indicator: Approve/Reject applies to the current indicator only.
-
-    Auto-advance rules:
-    - After decision, advance to next indicator in same table (images stable).
-    - When last indicator of table is decided, auto-advance to next table + reset indicator_idx.
-    """
-    import json
-
-    from dash import ctx
-
-    if not ctx.triggered_id or not review_items:
-        raise PreventUpdate
-
-    idx = max(0, min(int(current_idx or 0), len(review_items) - 1))
-    item_dict = review_items[idx]
-    indicators = item_dict.get("indicators", [])
-    ind_idx = int(indicator_idx or 0)
-
-    triggered = ctx.triggered_id
-
-    if triggered == "btn-approve":
-        if not btn_approve:
-            raise PreventUpdate
-        new_ind_status = REVIEW_STATUS_APPROVED
-    elif triggered == "btn-reject":
-        if not btn_reject:
-            raise PreventUpdate
-        new_ind_status = REVIEW_STATUS_REJECTED
-    elif triggered == "btn-apply":
-        if not btn_apply:
-            raise PreventUpdate
-        updated_item = json.loads(json.dumps(item_dict))
-        if comment is not None:
-            updated_item["comment"] = comment
-        new_items = json.loads(json.dumps(review_items))
-        new_items[idx] = updated_item
-        _persist_review_state(
-            indicator_meta=indicator_meta,
-            review_items=new_items,
-            review_current_idx=idx,
-            current_indicator_idx=ind_idx,
-            preferred_store="review_items",
-            source="on_review_action_modern",
-        )
-        return new_items, no_update, no_update
-    else:
-        raise PreventUpdate
-
-    updated_item = json.loads(json.dumps(item_dict))
-    updated_indicators = updated_item.get("indicators", [])
-    event_type = (updated_item.get("event_type") or "").strip()
-
-    if updated_indicators and 0 <= ind_idx < len(updated_indicators):
-        updated_indicators[ind_idx]["review_status"] = new_ind_status
-    elif not updated_indicators:
-        updated_item["review_status"] = new_ind_status
-
-    # Whole-table events: keep item-level status from button. Matched/footnote: derive from indicators.
-    if event_type not in ("table_added", "table_removed"):
-        updated_item["review_status"] = _derive_table_status(updated_indicators)
-    if comment is not None:
-        updated_item["comment"] = comment
-
-    new_items = json.loads(json.dumps(review_items))
-    new_items[idx] = updated_item
-
-    next_ind_idx = ind_idx
-    next_table_idx = idx
-
-    if not updated_indicators:
-        _persist_review_state(
-            indicator_meta=indicator_meta,
-            review_items=new_items,
-            review_current_idx=idx,
-            current_indicator_idx=next_ind_idx,
-            preferred_store="review_items",
-            source="on_review_action_modern",
-        )
-        return new_items, next_ind_idx, no_update
-
-    def _is_decided(s: str | None) -> bool:
-        return s in (REVIEW_STATUS_APPROVED, REVIEW_STATUS_REJECTED)
-
-    all_decided = all(
-        _is_decided(ind.get("review_status")) for ind in updated_indicators
-    )
-
-    if ind_idx < len(updated_indicators) - 1:
-        next_ind_idx = ind_idx + 1
-        _persist_review_state(
-            indicator_meta=indicator_meta,
-            review_items=new_items,
-            review_current_idx=idx,
-            current_indicator_idx=next_ind_idx,
-            preferred_store="review_items",
-            source="on_review_action_modern",
-        )
-        return new_items, next_ind_idx, no_update
-    if all_decided and idx < len(new_items) - 1:
-        next_table_idx = idx + 1
-        next_ind_idx = 0
-        _persist_review_state(
-            indicator_meta=indicator_meta,
-            review_items=new_items,
-            review_current_idx=next_table_idx,
-            current_indicator_idx=next_ind_idx,
-            preferred_store="review_items",
-            source="on_review_action_modern",
-        )
-        return new_items, next_ind_idx, next_table_idx
-    _persist_review_state(
-        indicator_meta=indicator_meta,
-        review_items=new_items,
-        review_current_idx=idx,
-        current_indicator_idx=next_ind_idx,
-        preferred_store="review_items",
-        source="on_review_action_modern",
-    )
-    return new_items, next_ind_idx, no_update
-
-
-@callback(
-    Output("store-review-current-idx", "data", allow_duplicate=True),
-    Output("store-review-current-indicator-idx", "data", allow_duplicate=True),
-    Output("store-nav-debug", "data", allow_duplicate=True),
-    Input("btn-prev", "n_clicks"),
-    Input("btn-next", "n_clicks"),
-    State("store-review-current-idx", "data"),
-    State("store-review-items", "data"),
-    prevent_initial_call=True,
-)
-def on_modern_nav(prev_clicks, next_clicks, current_idx, items):
-    """Handle Previous/Next table buttons. Resets indicator_idx to 0 on table change."""
-    if REVIEW_QUEUE_V2_ACTIVE:
-        raise PreventUpdate
-
-    logger.info(
-        "[on_modern_nav] ENTER trig=%s current_idx=%r items_len=%s",
-        ctx.triggered_id,
-        current_idx,
-        len(items) if items else 0,
-    )
-
-    if not items or not isinstance(items, list):
-        logger.warning("[on_modern_nav] PreventUpdate: no items")
-        raise PreventUpdate
-
-    total = len(items)
-    if total == 0:
-        logger.warning("[on_modern_nav] PreventUpdate: total=0")
-        raise PreventUpdate
-
-    try:
-        idx = int(current_idx) if current_idx is not None else 0
-    except (TypeError, ValueError):
-        idx = 0
-
-    triggered = ctx.triggered_id
-    if triggered == "btn-prev":
-        idx = idx - 1
-    elif triggered == "btn-next":
-        idx = idx + 1
-    else:
-        logger.warning(
-            "[on_modern_nav] PreventUpdate: trig=%r (not btn-prev/btn-next)", triggered
-        )
-        raise PreventUpdate
-
-    idx = max(0, min(idx, total - 1))
-    dbg = {
-        "writer": "on_modern_nav",
-        "trigger": triggered,
-        "from": current_idx,
-        "to": idx,
-        "total": total,
-    }
-    logger.info("[on_modern_nav] EXIT -> new_idx=%s total=%s", idx, total)
-    return idx, 0, dbg
-
-
-@callback(
-    Output("store-review-current-indicator-idx", "data", allow_duplicate=True),
-    Input({"type": "indicator-item", "index": ALL}, "n_clicks"),
-    prevent_initial_call=True,
-)
-def on_indicator_item_click(n_clicks):
-    """Handle click on an individual indicator row in the detail panel."""
-    if not ctx.triggered:
-        raise PreventUpdate
-    button_id = ctx.triggered_id
-    if not button_id or not isinstance(button_id, dict):
-        raise PreventUpdate
-    clicked_index = button_id.get("index")
-    if clicked_index is None:
-        raise PreventUpdate
-    return int(clicked_index)
-
-
-@callback(
-    Output("nav-debug-panel", "children"),
-    Input("store-review-current-idx", "data"),
-    Input("store-nav-debug", "data"),
-    State("store-review-items", "data"),
-)
-def render_nav_debug(idx, dbg, items):
-    """Debug panel: show current idx, total items, last writer (to detect nav / reset)."""
-    total = len(items) if items and isinstance(items, list) else None
-    payload = {"idx": idx, "total": total, "dbg": dbg}
-    return html.Pre(
-        json.dumps(payload, ensure_ascii=False, indent=2), className="mb-0 small"
-    )
-
-
-@callback(
-    Output("btn-prev", "disabled"),
-    Output("btn-next", "disabled"),
-    Input("store-review-current-idx", "data"),
-    Input("store-review-items", "data"),
-    Input("store-show-results-page", "data"),
-)
-def update_review_nav_disabled(current_idx, items, show_results):
-    """Disable Prev/Next when at first/last item.
-    btn-next also disabled if current table has pending indicators."""
-    if REVIEW_QUEUE_V2_ACTIVE:
-        return True, True
-
-    if not show_results or not items:
-        return True, True
-    idx = max(0, min(int(current_idx or 0), len(items) - 1))
-    n = len(items)
-    at_first = idx <= 0
-    at_last = idx >= n - 1
-
-    current_item = items[idx]
-    indicators = current_item.get("indicators", [])
-    has_pending = any(
-        ind.get("review_status", REVIEW_STATUS_PENDING) == REVIEW_STATUS_PENDING
-        for ind in indicators
-    )
-    next_disabled = at_last or has_pending
-    return at_first, next_disabled
-
-
 @callback(
     Output("stats-validation-time", "children"),
     Input("store-validation-duration-sec", "data"),
@@ -3003,9 +2675,7 @@ def render_sections_tab(indicator_result, show_results):
     Output("store-review-queue", "data"),  # V2: deduplicated grouped queue
     Output("store-review-selection", "data"),
     Output("store-review-last-positions", "data"),
-    Output("store-review-current-idx", "data"),
     Output("store-current-change-idx", "data"),  # V2: reset change index
-    Output("store-nav-debug", "data", allow_duplicate=True),
     Input("store-indicator-result", "data"),
     Input("store-pdf-paths", "data"),
     State("store-indicator-meta", "data"),
@@ -3086,28 +2756,12 @@ def init_review_items(indicator_result, paths, indicator_meta):
     resolved_selection, sel_table_idx, sel_change_idx = _resolve_selection(
         serialized_v2, persisted_selection or {"review_id": None, "change_id": None}
     )
-    if persisted_state and not REVIEW_QUEUE_V2_ACTIVE and not persisted_selection:
-        sel_table_idx = int(
-            persisted_state.get("review_current_idx", sel_table_idx) or 0
-        )
-        sel_change_idx = int(
-            persisted_state.get("current_change_idx", sel_change_idx) or 0
-        )
-    dbg = {
-        "writer": "init_review_items",
-        "trigger": "persisted_init" if persisted_state else "init",
-        "from": None,
-        "to": sel_table_idx,
-        "total": total,
-        "total_v2": total_v2,
-        "dedup_merged": dedup_merged,
-    }
     logger.info(
-        "[init_review_items] v1_count=%s v2_count=%s dedup_merged=%s review_queue_v2_active=%s",
+        "[init_review_items] v1_count=%s v2_count=%s dedup_merged=%s persisted_selection=%s",
         total,
         total_v2,
         dedup_merged,
-        REVIEW_QUEUE_V2_ACTIVE,
+        bool(persisted_selection),
     )
     _persist_review_state(
         indicator_meta=indicator_meta,
@@ -3125,38 +2779,8 @@ def init_review_items(indicator_result, paths, indicator_meta):
         serialized_v2,
         resolved_selection,
         _remember_selection({}, resolved_selection),
-        sel_table_idx,
         sel_change_idx,
-        dbg,
     )
-
-
-def _build_comparison_statement(item: ReviewItem) -> str:
-    """Phrase d'interpretation metier pour un changement."""
-    table = item.table_name or "(tableau inconnu)"
-    table_id = (item.table_id_t2 or item.table_id_t1 or "").strip()
-    table_label = f"Tableau n°{table_id}: {table}" if table_id else f"Tableau: {table}"
-    if item.indicators:
-        return f"{table_label} -- {item.indicator}"
-    indicator = item.indicator or "(indicateur non disponible)"
-    if item.change_type == CHANGE_TYPE_TABLE_ADDED:
-        return f"Tableau entier ajouté au trimestre courant: {table_label}"
-    if item.change_type == CHANGE_TYPE_TABLE_REMOVED:
-        return (
-            f"Tableau entier supprimé depuis le trimestre précédent: {table_label} "
-            "(présent au trimestre précédent)"
-        )
-    if item.change_type == CHANGE_TYPE_ADDED:
-        return (
-            f"Ajout au trimestre courant: {indicator} -- absent au trimestre précédent."
-        )
-    if item.change_type == CHANGE_TYPE_REMOVED:
-        return f"Suppression au trimestre courant: {indicator} -- présent au trimestre précédent."
-    if item.change_type == CHANGE_TYPE_RENAMED:
-        return f"Renommage entre trimestre précédent et trimestre courant: {indicator}."
-    return f"Changement detecte: {indicator}"
-
-
 def _filter_noise(items: list[str]) -> list[str]:
     """Filter out noise lines (dates, units, footnotes) using normalize_indicator_for_comparison."""
     return [
@@ -3450,298 +3074,6 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
         if raw:
             return base64.b64encode(raw).decode("ascii")
     return None
-
-
-@callback(
-    Output("results-review-tab", "children"),
-    Input("store-review-items", "data"),
-    Input("store-review-current-idx", "data"),
-    Input("store-pdf-paths", "data"),
-    Input("store-show-results-page", "data"),
-    prevent_initial_call=True,
-)
-def render_review_tab(review_items_data, current_idx, paths, show_results):
-    """Rendre l'onglet Revue et validation."""
-    if not show_results:
-        raise PreventUpdate
-    if not review_items_data:
-        return html.Div(
-            "Aucun changement a revoir. La revue est disponible lorsque la comparaison "
-            "indicateurs produit des changements.",
-            className="text-muted",
-        )
-
-    items = [ReviewItem.from_dict(d) for d in review_items_data]
-    idx = max(0, min(int(current_idx or 0), len(items) - 1))
-    current = items[idx]
-
-    approved = sum(1 for it in items if it.review_status == REVIEW_STATUS_APPROVED)
-    rejected = sum(1 for it in items if it.review_status == REVIEW_STATUS_REJECTED)
-    pending = sum(1 for it in items if it.review_status == REVIEW_STATUS_PENDING)
-
-    current_dict = review_items_data[idx]
-    proof_image_path = current_dict.get("proof_image_path", "") or ""
-    proof_mode = current_dict.get("proof_mode", "") or ""
-
-    img_t1_b64 = _get_proof_image_b64_for_item(
-        current_dict, "t1", paths or {}, proof_display_mode="crop"
-    )
-    img_t2_b64 = _get_proof_image_b64_for_item(
-        current_dict, "t2", paths or {}, proof_display_mode="crop"
-    )
-
-    def _img_div(b64, label, caption):
-        if b64:
-            src = f"data:image/png;base64,{b64}"
-            return html.Div(
-                [
-                    html.P(label, className="small text-muted mb-1"),
-                    html.Img(
-                        src=src, style={"maxWidth": "100%", "border": "1px solid #ddd"}
-                    ),
-                    html.P(caption, className="small text-muted mt-1")
-                    if caption
-                    else None,
-                ],
-                className="mb-2",
-            )
-        return html.Div(
-            [
-                html.P(label, className="small text-muted"),
-                html.P("Aperçu non disponible", className="text-muted"),
-            ]
-        )
-
-    if proof_image_path:
-        col1_content = _img_div(
-            img_t1_b64,
-            "Preuve tableau entier courant/précédent",
-            f"Mode {proof_mode}" if proof_mode else None,
-        )
-        col2_content = html.Div(
-            [
-                html.P("Trimestre précédent", className="small text-muted"),
-                html.P("Inclus dans la preuve tableau entier."),
-            ]
-        )
-    else:
-        col1_content = _img_div(
-            img_t2_b64,
-            "Trimestre courant",
-            f"Page {current.page_t2}" if current.page_t2 else None,
-        )
-        col2_content = _img_div(
-            img_t1_b64,
-            "Trimestre précédent",
-            f"Page {current.page_t1}" if current.page_t1 else None,
-        )
-    unit_context_t1 = current_dict.get("unit_context_t1", "") or ""
-    unit_context_t2 = current_dict.get("unit_context_t2", "") or ""
-    title_method_t1 = current_dict.get("title_resolution_method_t1", "") or ""
-    title_method_t2 = current_dict.get("title_resolution_method_t2", "") or ""
-    table_title_raw = current_dict.get("table_title_raw", "") or ""
-
-    meta_lines = []
-    if proof_image_path:
-        meta_lines.append(
-            html.P(
-                f"Chemin de la preuve image : {proof_image_path}",
-                className="small text-muted mb-1",
-            )
-        )
-    if unit_context_t1 or unit_context_t2:
-        meta_lines.append(
-            html.P(
-                "Contexte unité précédent/courant: "
-                f"{unit_context_t1 or '-'} | {unit_context_t2 or '-'}",
-                className="small text-muted mb-1",
-            )
-        )
-    if title_method_t1 or title_method_t2:
-        meta_lines.append(
-            html.P(
-                "Méthode titre précédent/courant: "
-                f"{title_method_t1 or '-'} | {title_method_t2 or '-'}",
-                className="small text-muted mb-1",
-            )
-        )
-    if table_title_raw:
-        meta_lines.append(
-            html.P(f"Titre brut: {table_title_raw}", className="small text-muted mb-1")
-        )
-
-    return html.Div(
-        [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dbc.Button(
-                            "Précédent",
-                            id="btn-review-prev",
-                            color="secondary",
-                            size="sm",
-                        ),
-                        width="auto",
-                    ),
-                    dbc.Col(
-                        dbc.Button(
-                            "Suivant",
-                            id="btn-review-next",
-                            color="secondary",
-                            size="sm",
-                        ),
-                        width="auto",
-                    ),
-                    dbc.Col(
-                        html.Span(
-                            f"Changement {idx + 1} / {len(items)}",
-                            className="text-muted",
-                        ),
-                        width="auto",
-                    ),
-                ],
-                className="mb-2 align-items-center g-2",
-            ),
-            html.P(
-                f"{approved} valides | {rejected} rejetes | {pending} en attente",
-                className="small text-muted mb-2",
-            ),
-            html.Hr(),
-            dbc.Alert(_build_comparison_statement(current), color="success"),
-            html.Div(meta_lines, className="mb-2") if meta_lines else html.Div(),
-            dbc.Row(
-                [
-                    dbc.Col(col1_content, md=6),
-                    dbc.Col(col2_content, md=6),
-                ],
-            ),
-            html.Hr(),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dbc.Button(
-                            "Valider",
-                            id="btn-review-approve",
-                            color="success",
-                            size="sm",
-                        ),
-                        width="auto",
-                    ),
-                    dbc.Col(
-                        dbc.Button(
-                            "Rejeter", id="btn-review-reject", color="danger", size="sm"
-                        ),
-                        width="auto",
-                    ),
-                    dbc.Col(
-                        dbc.Button(
-                            "Passer", id="btn-review-pass", color="secondary", size="sm"
-                        ),
-                        width="auto",
-                    ),
-                ],
-                className="g-2",
-            ),
-        ],
-    )
-
-
-@callback(
-    Output("store-review-current-idx", "data", allow_duplicate=True),
-    Output("store-nav-debug", "data", allow_duplicate=True),
-    Input("btn-review-prev", "n_clicks"),
-    Input("btn-review-next", "n_clicks"),
-    State("store-review-items", "data"),
-    State("store-review-current-idx", "data"),
-    prevent_initial_call=True,
-)
-def on_review_navigate(prev_clicks, next_clicks, review_items, current_idx):
-    """Navigation Precedent/Suivant dans la revue (legacy buttons)."""
-    from dash import ctx
-
-    if REVIEW_QUEUE_V2_ACTIVE:
-        raise PreventUpdate
-
-    if not ctx.triggered_id or not review_items:
-        raise PreventUpdate
-    n = len(review_items)
-    idx = int(current_idx or 0)
-    if ctx.triggered_id == "btn-review-prev":
-        idx = max(0, idx - 1)
-    elif ctx.triggered_id == "btn-review-next":
-        idx = min(n - 1, idx + 1)
-    else:
-        raise PreventUpdate
-    dbg = {
-        "writer": "on_review_navigate",
-        "trigger": ctx.triggered_id,
-        "from": current_idx,
-        "to": idx,
-        "total": n,
-    }
-    logger.info(
-        "[on_review_navigate] trig=%s current_idx=%r total=%s -> new_idx=%s",
-        ctx.triggered_id,
-        current_idx,
-        n,
-        idx,
-    )
-    return idx, dbg
-
-
-@callback(
-    Output("store-review-items", "data", allow_duplicate=True),
-    Input("btn-review-approve", "n_clicks"),
-    Input("btn-review-reject", "n_clicks"),
-    Input("btn-review-pass", "n_clicks"),
-    State("store-review-items", "data"),
-    State("store-review-current-idx", "data"),
-    State("store-indicator-meta", "data"),
-    prevent_initial_call=True,
-)
-def on_review_status(
-    approve_clicks,
-    reject_clicks,
-    pass_clicks,
-    review_items,
-    current_idx,
-    indicator_meta,
-):
-    """Appliquer Valider/Rejeter/Passer sur l'item courant."""
-    import json
-
-    from dash import ctx
-
-    if REVIEW_QUEUE_V2_ACTIVE:
-        raise PreventUpdate
-
-    if not ctx.triggered_id or not review_items:
-        raise PreventUpdate
-
-    idx = max(0, min(int(current_idx or 0), len(review_items) - 1))
-    status_map = {
-        "btn-review-approve": REVIEW_STATUS_APPROVED,
-        "btn-review-reject": REVIEW_STATUS_REJECTED,
-        "btn-review-pass": REVIEW_STATUS_PENDING,
-    }
-    status = status_map.get(ctx.triggered_id)
-    if not status:
-        raise PreventUpdate
-
-    item = ReviewItem.from_dict(review_items[idx])
-    updated = set_review_status(item, status)
-
-    # Deep copy to ensure Dash detects the change
-    new_items = json.loads(json.dumps(review_items))
-    new_items[idx] = updated.to_dict()
-    _persist_review_state(
-        indicator_meta=indicator_meta,
-        review_items=new_items,
-        review_current_idx=idx,
-        preferred_store="review_items",
-        source="on_review_status",
-    )
-    return new_items
 
 
 @callback(
@@ -4133,26 +3465,16 @@ def on_download_indicator_json_brut(n_clicks, indicator_result):
     Output("store-review-queue", "data", allow_duplicate=True),  # V2
     Output("store-review-selection", "data", allow_duplicate=True),
     Output("store-review-last-positions", "data", allow_duplicate=True),
-    Output("store-review-current-idx", "data", allow_duplicate=True),
     Output("store-current-change-idx", "data", allow_duplicate=True),  # V2
     Output("main-content", "children", allow_duplicate=True),
     Output("store-show-results-page", "data", allow_duplicate=True),
     Output("store-review-filters", "data", allow_duplicate=True),
-    Output("store-nav-debug", "data", allow_duplicate=True),
     Input("btn-reset", "n_clicks"),
     prevent_initial_call=True,
 )
 def on_reset(n_clicks):
     """Reinitialiser pour nouvelle analyse."""
     if n_clicks:
-        dbg = {
-            "writer": "on_reset",
-            "trigger": "btn-reset",
-            "from": None,
-            "to": 0,
-            "total": None,
-        }
-        logger.info("[on_reset] -> idx=0")
         return (
             None,
             None,
@@ -4162,12 +3484,10 @@ def on_reset(n_clicks):
             None,  # store-review-queue
             {"review_id": None, "change_id": None},
             {},
-            0,
             0,  # store-current-change-idx
             build_page_upload(),
             False,
             {"section": "all", "status": "all"},
-            dbg,
         )
     raise PreventUpdate
 
@@ -4298,7 +3618,6 @@ def on_load_comparison(n_clicks, filename):
     Output("store-review-queue", "data", allow_duplicate=True),
     Output("store-review-selection", "data", allow_duplicate=True),
     Output("store-current-change-idx", "data", allow_duplicate=True),
-    Output("store-review-current-idx", "data", allow_duplicate=True),
     Input("btn-approve-change-v2", "n_clicks"),
     Input("btn-reject-change-v2", "n_clicks"),
     Input("btn-skip-change-v2", "n_clicks"),
@@ -4469,7 +3788,7 @@ def on_validate_change_v2(
         preferred_store="review_queue",
         source="on_validate_change_v2",
     )
-    return new_queue, next_selection, new_change_idx, new_table_idx
+    return new_queue, next_selection, new_change_idx
 
 
 @callback(
@@ -4581,9 +3900,7 @@ def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
 
 @callback(
     Output("store-review-selection", "data", allow_duplicate=True),
-    Output("store-review-current-idx", "data", allow_duplicate=True),
     Output("store-current-change-idx", "data", allow_duplicate=True),
-    Output("store-nav-debug", "data", allow_duplicate=True),
     Input("btn-prev-table-v2", "n_clicks"),
     Input("btn-next-table-v2", "n_clicks"),
     Input({"type": "queue-table-item-v2", "review_id": ALL}, "n_clicks"),
@@ -4648,13 +3965,6 @@ def on_navigate_table_v2(
         filters,
         last_positions,
     )
-    dbg = {
-        "writer": "on_navigate_table_v2",
-        "trigger": str(ctx.triggered_id),
-        "from": (selection or {}).get("review_id"),
-        "to": new_selection.get("review_id"),
-        "total": len(visible_ids),
-    }
     logger.info(
         "[on_navigate_table_v2] trig=%s from=%r to=%s visible_total=%s",
         ctx.triggered_id,
@@ -4662,7 +3972,7 @@ def on_navigate_table_v2(
         new_selection.get("review_id"),
         len(visible_ids),
     )
-    return new_selection, new_table_idx, new_change_idx, dbg
+    return new_selection, new_change_idx
 
 
 @callback(

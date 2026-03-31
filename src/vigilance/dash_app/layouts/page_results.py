@@ -2,19 +2,10 @@
 
 from __future__ import annotations
 
-import os
-
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from app.i18n import t
-
-REVIEW_QUEUE_V2_ACTIVE = os.getenv("REVIEW_QUEUE_V2_ACTIVE", "1").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-    "on",
-}
 
 
 def build_analyst_kpi_card(
@@ -480,32 +471,6 @@ def build_page_results() -> html.Div:
                                     className="bg-white p-4 shadow-sm rounded",
                                     style={"overflowY": "auto", "minHeight": "400px"},
                                 ),
-                                html.Div(
-                                    [
-                                        dbc.Button(
-                                            [
-                                                html.I(className="bi bi-chevron-left"),
-                                                f" {t('btn_prev', 'Précédent')}",
-                                            ],
-                                            id="btn-prev",
-                                            color="light",
-                                            size="sm",
-                                            className="me-2",
-                                        ),
-                                        dbc.Button(
-                                            [
-                                                f"{t('btn_next', 'Suivant')} ",
-                                                html.I(className="bi bi-chevron-right"),
-                                            ],
-                                            id="btn-next",
-                                            color="light",
-                                            size="sm",
-                                        ),
-                                    ],
-                                    className="d-flex justify-content-end mt-3 pt-3 border-top",
-                                )
-                                if not REVIEW_QUEUE_V2_ACTIVE
-                                else None,
                             ],
                             md=8,
                             className="h-100 d-flex flex-column",
@@ -567,18 +532,7 @@ def build_page_results() -> html.Div:
                 ],
                 className="p-4 bg-light rounded shadow-sm",
             ),
-            # Hidden div for storing review state
-            dcc.Store(id="store-review-data", data=[]),
-            dcc.Store(id="store-current-review-index", data=0),
-            # Legacy tabs container (other tabs kept hidden)
-            html.Div(id="results-review-tab", style={"display": "none"}),
             html.Div(id="results-table-tab", style={"display": "none"}),
-            # Nav debug panel (instrumentation: triggered_id, current_idx, last writer)
-            html.Div(
-                id="nav-debug-panel",
-                className="mt-2 p-2 small font-monospace bg-dark text-light rounded",
-                style={"maxHeight": "180px", "overflowY": "auto"},
-            ),
         ],
         className="p-4",
     )
