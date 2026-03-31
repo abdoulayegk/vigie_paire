@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from app import comparison_runner as cr
+from vigilance import comparison_runner as cr
 
 
 def _write_tables_json(path: Path, *, bank: str, year: int, quarter: str, table_id: str, title: str) -> None:
