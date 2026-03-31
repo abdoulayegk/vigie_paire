@@ -1,10 +1,11 @@
-"""Export helpers for review items. Excel-ready CSV for Excel FR."""
+"""Export helpers for review items and analyst-facing expert Excel exports."""
 
 from __future__ import annotations
 
 import csv
 import io
 import json
+from collections import Counter, defaultdict
 from datetime import datetime
 from typing import Any, Iterator
 
@@ -14,9 +15,11 @@ CSV_SCHEMA_VERSION = "csv_review_v1"
 CSV_SEPARATOR = ";"
 CSV_BOM = "\ufeff"
 
-# Schema validation superviseur (12 colonnes, ordre fixe)
+# Legacy CSV validation schema kept for flat exports.
 VALIDATION_CSV_COLUMNS = [
     "banque",
+    "trimestre",
+    "tableau",
     "section",
     "type_élément",
     "type_changement",
@@ -26,9 +29,31 @@ VALIDATION_CSV_COLUMNS = [
     "indicateur_courant",
     "résumé_automatique",
     "validation_finale",
+    "notes_analyste",
+    "date_validation",
     "nouvelle_divulgation",
     "pertinence_genai",
     "niveau_risque_genai",
+]
+
+EXPERT_EXCEL_SHEET_SUMMARY = "Synthèse"
+EXPERT_EXCEL_SHEET_REVIEW = "Revue expert"
+EXPERT_EXCEL_COLUMNS = [
+    "Banque",
+    "Trimestre comparé",
+    "Section",
+    "Tableau",
+    "Type d’élément",
+    "Type de changement",
+    "Page précédente",
+    "Page courante",
+    "Valeur / libellé précédent",
+    "Valeur / libellé courant",
+    "Résumé métier",
+    "Nouvelle idée ?",
+    "Validation expert",
+    "Commentaire expert",
+    "Date de validation",
 ]
 
 # Mapping type_changement anglais -> francais
@@ -276,13 +301,368 @@ def _to_validation_finale(review_status: str) -> str:
     )
 
 
+def _to_nouvelle_idee(genai_analysis: dict[str, Any] | None) -> str:
+    """Return a conservative business-facing novelty flag."""
+    relevance = str((genai_analysis or {}).get("relevance", "") or "").strip().upper()
+    return "Oui" if relevance == "NOUVELLE_DIVULGATION" else "Non"
+
+
+def _build_trimestre_label(indicator_result: dict[str, Any] | None) -> str:
+    """Build a human-facing quarter comparison label."""
+    ir = indicator_result or {}
+    ctx = _build_export_context(ir)
+    q_from = _sanitize_cell(ctx.get("quarter_from", ""))
+    q_to = _sanitize_cell(ctx.get("quarter_to", ""))
+    if not q_to and not q_from:
+        return ""
+    if q_to and q_from:
+        return f"{q_to.upper()} vs {q_from.upper()}"
+    return q_to.upper() or q_from.upper()
+
+
+def _iter_expert_excel_rows(
+    review_items: list[ReviewItem],
+    indicator_result: dict[str, Any] | None,
+) -> Iterator[dict[str, str]]:
+    """Yield analyst-facing expert Excel rows with one line per business change."""
+    ir = indicator_result or {}
+    banque = _sanitize_cell(ir.get("bank_code", "")).upper()
+    trimestre = _build_trimestre_label(ir)
+
+    for item in review_items:
+        base = item.to_dict()
+        indicators = list(base.get("indicators", []) or [])
+        table_status = str(base.get("table_status", "") or "")
+        item_type = str(base.get("item_type", "indicator") or "indicator")
+        tableau = _sanitize_cell(base.get("table_name", ""))
+        section = _section_to_fr(base.get("section", ""))
+        validation = _to_validation_finale(base.get("review_status", ""))
+        notes_analyste = _sanitize_cell(base.get("comment", ""))
+        date_validation = ""
+        ts = str(base.get("review_timestamp", "") or "")
+        if len(ts) >= 10 and ts[4] == "-":
+            date_validation = f"{ts[8:10]}/{ts[5:7]}/{ts[:4]}"
+        nouvelle_idee = _to_nouvelle_idee(base.get("genai_analysis") or {})
+
+        if not indicators:
+            ind_type = str(base.get("change_type", "") or "")
+            type_elem = _to_type_element(ind_type, item_type)
+            type_chg = _to_type_changement(ind_type, table_status)
+            precedent = ""
+            courant = ""
+            display_indicator = _sanitize_cell(base.get("indicator", ""))
+            if ind_type in ("table_removed", "removed"):
+                precedent = display_indicator
+            elif ind_type in ("table_added", "added"):
+                courant = display_indicator
+            else:
+                precedent = display_indicator
+                courant = display_indicator
+
+            resume = _build_resume_court(
+                ind_type,
+                display_indicator,
+                precedent,
+                courant,
+                table_status,
+                suspect=False,
+            )
+            resume = _augment_resume_with_review_context(
+                resume,
+                comment=notes_analyste,
+                edited_value=str(base.get("edited_value", "") or ""),
+            )
+            yield {
+                "Banque": banque,
+                "Trimestre comparé": trimestre,
+                "Section": section,
+                "Tableau": tableau,
+                "Type d’élément": type_elem.capitalize(),
+                "Type de changement": type_chg,
+                "Page précédente": _format_cell(base.get("page_t1")),
+                "Page courante": _format_cell(base.get("page_t2")),
+                "Valeur / libellé précédent": precedent,
+                "Valeur / libellé courant": courant,
+                "Résumé métier": resume,
+                "Nouvelle idée ?": nouvelle_idee,
+                "Validation expert": validation,
+                "Commentaire expert": notes_analyste,
+                "Date de validation": date_validation,
+            }
+            continue
+
+        for ind in indicators:
+            ind_type = str(ind.get("type", "") or "")
+            item_change_type = str(base.get("change_type", "") or "")
+            type_elem = _to_type_element(item_change_type or ind_type, item_type)
+            type_chg = _to_type_changement(ind_type, table_status)
+            ind_name = _sanitize_cell(ind.get("name", ""))
+            from_val = _sanitize_cell(ind.get("from", ""))
+            to_val = _sanitize_cell(ind.get("to", ""))
+
+            if item_type == "footnote":
+                precedent = _sanitize_cell(ind.get("old_text", "")) or ind_name
+                courant = _sanitize_cell(ind.get("new_text", "")) or ind_name
+            elif ind_type == "added":
+                precedent = ""
+                courant = ind_name
+            elif ind_type == "removed":
+                precedent = ind_name
+                courant = ""
+            elif ind_type == "renamed":
+                precedent = from_val or ind_name
+                courant = to_val or ind_name
+            else:
+                precedent = from_val or ind_name
+                courant = to_val or ind_name
+
+            resume_type = (
+                item_change_type
+                if item_change_type in ("table_added", "table_removed")
+                else ind_type
+            )
+            resume = _build_resume_court(
+                resume_type,
+                ind_name,
+                precedent,
+                courant,
+                table_status,
+                suspect=False,
+            )
+            resume = _augment_resume_with_review_context(
+                resume,
+                comment=notes_analyste,
+                edited_value=str(base.get("edited_value", "") or ""),
+            )
+            ind_validation = _to_validation_finale(
+                ind.get("review_status", base.get("review_status", ""))
+            )
+            yield {
+                "Banque": banque,
+                "Trimestre comparé": trimestre,
+                "Section": section,
+                "Tableau": tableau,
+                "Type d’élément": type_elem.capitalize(),
+                "Type de changement": type_chg,
+                "Page précédente": _format_cell(base.get("page_t1")),
+                "Page courante": _format_cell(base.get("page_t2")),
+                "Valeur / libellé précédent": precedent,
+                "Valeur / libellé courant": courant,
+                "Résumé métier": resume,
+                "Nouvelle idée ?": nouvelle_idee,
+                "Validation expert": ind_validation,
+                "Commentaire expert": notes_analyste,
+                "Date de validation": date_validation,
+            }
+
+
+def _append_summary_sheet(
+    wb: Any,
+    rows: list[dict[str, str]],
+    indicator_result: dict[str, Any] | None,
+) -> None:
+    """Create the pilotage summary worksheet for the expert workbook."""
+    ir = indicator_result or {}
+    ws = wb.active
+    if ws is None:
+        raise RuntimeError("openpyxl: no active sheet")
+    ws.title = EXPERT_EXCEL_SHEET_SUMMARY
+
+    banque = _sanitize_cell(ir.get("bank_code", "")).upper()
+    trimestre = _build_trimestre_label(ir)
+    exported_at = datetime.now().strftime("%d/%m/%Y %H:%M")
+    counts = Counter(str(row.get("Validation expert", "") or "") for row in rows)
+    sections: dict[str, Counter[str]] = defaultdict(Counter)
+    notes_modifiees = 0
+    for row in rows:
+        section = str(row.get("Section", "") or "")
+        validation = str(row.get("Validation expert", "") or "")
+        sections[section]["Nombre de changements"] += 1
+        sections[section][validation] += 1
+        if str(row.get("Type d’élément", "")).strip().lower() == "note":
+            notes_modifiees += 1
+
+    tables_added = len(list((ir.get("tables_added") or [])))
+    tables_removed = len(list((ir.get("tables_removed") or [])))
+    tables_matched = int(ir.get("tables_matched") or ir.get("matched_pairs") or 0)
+
+    ws.append(["Synthèse export expert", ""])
+    summary_rows = [
+        ("Banque", banque),
+        ("Trimestre comparé", trimestre),
+        ("Date d’export", exported_at),
+        ("", ""),
+        ("Nombre total de changements", len(rows)),
+        ("Validés", counts.get("Validé", 0)),
+        ("Rejetés", counts.get("Rejeté", 0)),
+        ("En attente", counts.get("En attente", 0)),
+        ("Tableaux appariés", tables_matched),
+        ("Vrais ajouts", tables_added),
+        ("Vrais retraits", tables_removed),
+        ("Notes modifiées", notes_modifiees),
+    ]
+    for pair in summary_rows:
+        ws.append(list(pair))
+
+    ws.append(["", ""])
+    ws.append(["Section", "Nombre de changements", "Validés", "Rejetés", "En attente"])
+    for section in sorted(sections):
+        counter = sections[section]
+        ws.append(
+            [
+                section,
+                counter.get("Nombre de changements", 0),
+                counter.get("Validé", 0),
+                counter.get("Rejeté", 0),
+                counter.get("En attente", 0),
+            ]
+        )
+
+
+def _style_expert_workbook(wb: Any) -> None:
+    """Apply lightweight analyst-friendly formatting."""
+    from openpyxl.styles import Font, PatternFill
+
+    review_ws = wb[EXPERT_EXCEL_SHEET_REVIEW]
+    summary_ws = wb[EXPERT_EXCEL_SHEET_SUMMARY]
+
+    review_ws.freeze_panes = "A2"
+    summary_ws.freeze_panes = "A2"
+    review_ws.auto_filter.ref = review_ws.dimensions
+
+    header_fill = PatternFill("solid", fgColor="1F4E78")
+    header_font = Font(color="FFFFFF", bold=True)
+    for ws in (review_ws, summary_ws):
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+
+    widths = {
+        "A": 12,
+        "B": 22,
+        "C": 22,
+        "D": 48,
+        "E": 18,
+        "F": 18,
+        "G": 15,
+        "H": 15,
+        "I": 28,
+        "J": 28,
+        "K": 48,
+        "L": 16,
+        "M": 18,
+        "N": 40,
+        "O": 18,
+    }
+    for col, width in widths.items():
+        review_ws.column_dimensions[col].width = width
+    summary_ws.column_dimensions["A"].width = 28
+    summary_ws.column_dimensions["B"].width = 22
+    summary_ws.column_dimensions["C"].width = 14
+    summary_ws.column_dimensions["D"].width = 14
+    summary_ws.column_dimensions["E"].width = 14
+
+    status_fill = {
+        "Validé": PatternFill("solid", fgColor="C6EFCE"),
+        "Rejeté": PatternFill("solid", fgColor="FFC7CE"),
+        "En attente": PatternFill("solid", fgColor="FCE4D6"),
+    }
+    status_col = EXPERT_EXCEL_COLUMNS.index("Validation expert") + 1
+    for row_idx in range(2, review_ws.max_row + 1):
+        cell = review_ws.cell(row=row_idx, column=status_col)
+        fill = status_fill.get(str(cell.value or ""))
+        if fill is not None:
+            cell.fill = fill
+
+
+def generate_validation_txt(
+    review_items: list[ReviewItem],
+    indicator_result: dict[str, Any] | None,
+) -> str:
+    """Generate a human-readable text report for expert review."""
+    rows = list(_iter_expert_excel_rows(review_items, indicator_result))
+    ir = indicator_result or {}
+    banque = _sanitize_cell(ir.get("bank_code", "")).upper()
+    trimestre = _build_trimestre_label(ir)
+    exported_at = datetime.now().strftime("%d/%m/%Y %H:%M")
+    counts = Counter(str(row.get("Validation expert", "") or "") for row in rows)
+
+    lines = [
+        "REVUE EXPERT",
+        "",
+        f"Banque : {banque or '-'}",
+        f"Trimestre comparé : {trimestre or '-'}",
+        f"Date d’export : {exported_at}",
+        "",
+        "SYNTHÈSE",
+        f"- Nombre total de changements : {len(rows)}",
+        f"- Validés : {counts.get('Validé', 0)}",
+        f"- Rejetés : {counts.get('Rejeté', 0)}",
+        f"- En attente : {counts.get('En attente', 0)}",
+        "",
+    ]
+
+    grouped: dict[str, dict[str, list[dict[str, str]]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
+    for row in rows:
+        grouped[str(row.get("Section", "") or "Sans section")][
+            str(row.get("Tableau", "") or "Sans titre")
+        ].append(row)
+
+    for section, tables in grouped.items():
+        lines.append(f"SECTION : {section}")
+        for table_name, table_rows in tables.items():
+            lines.append(f"  Tableau : {table_name}")
+            for row in table_rows:
+                lines.append(
+                    f"    - {row.get('Type d’élément', '')} | {row.get('Type de changement', '')}"
+                )
+                lines.append(
+                    f"      Pages : préc. {row.get('Page précédente', '') or '-'} / cour. {row.get('Page courante', '') or '-'}"
+                )
+                lines.append(
+                    f"      Avant : {row.get('Valeur / libellé précédent', '') or '-'}"
+                )
+                lines.append(
+                    f"      Après : {row.get('Valeur / libellé courant', '') or '-'}"
+                )
+                lines.append(
+                    f"      Résumé métier : {row.get('Résumé métier', '') or '-'}"
+                )
+                lines.append(
+                    f"      Nouvelle idée : {row.get('Nouvelle idée ?', '') or 'Non'}"
+                )
+                lines.append(
+                    f"      Validation expert : {row.get('Validation expert', '') or 'En attente'}"
+                )
+                if row.get("Commentaire expert"):
+                    lines.append(
+                        f"      Commentaire expert : {row.get('Commentaire expert', '')}"
+                    )
+                if row.get("Date de validation"):
+                    lines.append(
+                        f"      Date de validation : {row.get('Date de validation', '')}"
+                    )
+            lines.append("")
+        if lines and lines[-1] != "":
+            lines.append("")
+
+    return "\n".join(lines).strip() + "\n"
+
+
 def _iter_validation_rows(
     review_items: list[ReviewItem],
     indicator_result: dict[str, Any] | None,
 ) -> Iterator[dict[str, str]]:
     """Itere sur les lignes du schema validation (12 colonnes) pour CSV ou Excel."""
     ir = indicator_result or {}
+    ctx = _build_export_context(ir)
     banque = _sanitize_cell(ir.get("bank_code", ""))
+    q_from = _sanitize_cell(ctx.get("quarter_from", ""))
+    q_to = _sanitize_cell(ctx.get("quarter_to", ""))
+    year = _sanitize_cell(ctx.get("year", ""))
+    trimestre = f"{q_to.upper()} {year} vs {q_from.upper()}".strip() if q_to else ""
 
     for item in review_items:
         base = item.to_dict()
@@ -302,6 +682,13 @@ def _iter_validation_rows(
         validation = _to_validation_finale(base.get("review_status", ""))
         comment = str(base.get("comment", "") or "")
         edited_value = str(base.get("edited_value", "") or "")
+
+        tableau = _sanitize_cell(base.get("table_name", ""))
+        notes_analyste = _sanitize_cell(comment)
+        ts = str(base.get("review_timestamp", "") or "")
+        date_validation = (
+            f"{ts[8:10]}/{ts[5:7]}/{ts[:4]}" if len(ts) >= 10 and ts[4] == "-" else ""
+        )
 
         item_type = str(base.get("item_type", "indicator"))
         ga = base.get("genai_analysis") or {}
@@ -342,6 +729,8 @@ def _iter_validation_rows(
 
             row = {
                 "banque": banque,
+                "trimestre": trimestre,
+                "tableau": tableau,
                 "section": _section_to_fr(base.get("section", "")),
                 "type_élément": type_elem,
                 "type_changement": type_chg,
@@ -351,6 +740,8 @@ def _iter_validation_rows(
                 "indicateur_courant": ind_t2,
                 "résumé_automatique": resume,
                 "validation_finale": validation,
+                "notes_analyste": notes_analyste,
+                "date_validation": date_validation,
                 "nouvelle_divulgation": nouvelle_divulgation,
                 "pertinence_genai": pertinence_genai,
                 "niveau_risque_genai": niveau_risque_genai,
@@ -406,6 +797,8 @@ def _iter_validation_rows(
                 )
                 row = {
                     "banque": banque,
+                    "trimestre": trimestre,
+                    "tableau": tableau,
                     "section": _section_to_fr(base.get("section", "")),
                     "type_élément": type_elem,
                     "type_changement": type_chg,
@@ -415,6 +808,8 @@ def _iter_validation_rows(
                     "indicateur_courant": ind_t2,
                     "résumé_automatique": resume,
                     "validation_finale": ind_validation,
+                    "notes_analyste": notes_analyste,
+                    "date_validation": date_validation,
                     "nouvelle_divulgation": nouvelle_divulgation,
                     "pertinence_genai": pertinence_genai,
                     "niveau_risque_genai": niveau_risque_genai,
@@ -450,34 +845,19 @@ def generate_validation_excel(
     review_items: list[ReviewItem],
     indicator_result: dict[str, Any] | None,
 ) -> bytes:
-    """Genere le fichier Excel (.xlsx) de validation (meme schema que le CSV)."""
+    """Generate the expert analyst workbook (.xlsx)."""
     from openpyxl import Workbook
 
     wb = Workbook()
-    ws = wb.active
-    if ws is None:
-        raise RuntimeError("openpyxl: no active sheet")
-    ws.title = "Revue"
-    ws.append(list(VALIDATION_CSV_COLUMNS))
-    for row in _iter_validation_rows(review_items, indicator_result):
-        ws.append([row[col] for col in VALIDATION_CSV_COLUMNS])
+    expert_rows = list(_iter_expert_excel_rows(review_items, indicator_result))
+    _append_summary_sheet(wb, expert_rows, indicator_result)
 
-    ws_context = wb.create_sheet("Contexte")
-    ws_context.append(["cle", "valeur"])
-    for key, value in _build_export_context(indicator_result).items():
-        ws_context.append([key, value])
+    ws = wb.create_sheet(EXPERT_EXCEL_SHEET_REVIEW)
+    ws.append(list(EXPERT_EXCEL_COLUMNS))
+    for row in expert_rows:
+        ws.append([row[col] for col in EXPERT_EXCEL_COLUMNS])
 
-    ws_tech = wb.create_sheet("Technique")
-    ws_tech.append(list(_CSV_COLUMNS))
-    technical_csv = export_review_items_csv(
-        review_items,
-        metadata=_build_export_context(indicator_result),
-    )
-    reader = csv.DictReader(
-        io.StringIO(technical_csv.lstrip(CSV_BOM)), delimiter=CSV_SEPARATOR
-    )
-    for row in reader:
-        ws_tech.append([row.get(col, "") for col in _CSV_COLUMNS])
+    _style_expert_workbook(wb)
 
     buffer = io.BytesIO()
     wb.save(buffer)

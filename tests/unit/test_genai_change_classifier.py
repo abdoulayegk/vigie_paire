@@ -391,8 +391,9 @@ class TestIntegrationPoint:
 
 
 class TestExportIncludesGenAI:
-    def test_csv_columns_include_genai(self):
-        from vigilance.review_export import VALIDATION_CSV_COLUMNS
+    def test_expert_excel_columns_hide_genai(self):
+        from vigilance.review_export import EXPERT_EXCEL_COLUMNS
 
-        assert "pertinence_genai" in VALIDATION_CSV_COLUMNS
-        assert "niveau_risque_genai" in VALIDATION_CSV_COLUMNS
+        assert "Nouvelle idée ?" in EXPERT_EXCEL_COLUMNS
+        assert "pertinence_genai" not in EXPERT_EXCEL_COLUMNS
+        assert "niveau_risque_genai" not in EXPERT_EXCEL_COLUMNS

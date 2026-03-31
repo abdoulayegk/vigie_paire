@@ -115,10 +115,8 @@ from vigilance.quarter_utils import (
 )
 from vigilance.review_adapters import build_review_items_from_indicator_result
 from vigilance.review_export import (
-    build_export_metadata,
-    export_review_items_json_fr,
-    generate_validation_csv,
     generate_validation_excel,
+    generate_validation_txt,
 )
 from vigilance.review_models import (
     CHANGE_TYPE_ADDED,
@@ -472,10 +470,8 @@ app.layout = html.Div(
     ]
     + stores
     + [
-        dcc.Download(id="download-review-csv"),
-        dcc.Download(id="download-review-json"),
         dcc.Download(id="download-review-excel"),
-        dcc.Download(id="download-indicator-json-brut"),
+        dcc.Download(id="download-review-txt"),
     ],
 )
 
@@ -3261,95 +3257,66 @@ def render_export_tab(review_items_data, indicator_result, show_results):
         return html.Div("Aucun resultat a exporter.", className="text-muted")
 
     ir = indicator_result or {}
-    base_name = _comparison_export_base_name(ir, "review")
+    if not review_items_data and not ir:
+        return html.Div("Aucun resultat a exporter.", className="text-muted")
 
-    content = [html.H5("Exporter les resultats")]
-    if review_items_data or ir:
-        content.append(
-            html.Div(
-                [
-                    html.P("Export revue (avec statuts validation)", className="mb-2"),
+    card_body = [
+        html.Div(
+            [
+                html.H5("Exporter la revue", className="mb-1"),
+                html.P(
+                    "Téléchargez la revue expert au format Excel ou TXT.",
+                    className="text-muted mb-0",
+                ),
+            ],
+            className="mb-4",
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
                     dbc.Button(
-                        "Telecharger CSV (avec statuts validation)",
-                        id="btn-download-review-csv",
-                        color="primary",
-                        className="me-2 mb-2",
-                    ),
-                    dbc.Button(
-                        "Telecharger JSON (comparaison + statuts validation)",
-                        id="btn-download-review-json",
-                        color="primary",
-                        outline=True,
-                        className="me-2 mb-2",
-                    ),
-                    dbc.Button(
-                        "Telecharger Excel (avec statuts validation)",
+                        "Télécharger le fichier Excel expert",
                         id="btn-download-review-excel",
                         color="primary",
-                        outline=True,
-                        className="me-2 mb-2",
+                        className="w-100 py-3 fw-semibold",
                     ),
-                ],
-                className="mb-4",
-            )
-        )
-        content.append(
-            html.P(
-                "Les exports contiennent les changements avec leurs statuts de validation (valide, rejete, en attente).",
-                className="small text-muted",
-            )
-        )
-    if ir:
-        content.append(
-            html.Div(
-                [
-                    html.P(
-                        "Export payload canonical complet (summary, status_counts, structure_change_detected)",
-                        className="mb-2",
-                    ),
+                    xs=12,
+                    md=6,
+                ),
+                dbc.Col(
                     dbc.Button(
-                        "Telecharger JSON brut",
-                        id="btn-download-indicator-json-brut",
+                        "Télécharger le rapport TXT",
+                        id="btn-download-review-txt",
                         color="secondary",
                         outline=True,
-                        className="mb-2",
+                        className="w-100 py-3 fw-semibold",
                     ),
-                ],
-                className="mb-4",
-            )
-        )
-        if not review_items_data:
-            content.append(
-                html.P(
-                    "Aucun changement a exporter. La revue genere des exports lorsque des changements sont detectes.",
-                    className="text-muted",
-                )
-            )
-    else:
-        content.append(
+                    xs=12,
+                    md=6,
+                    className="mt-2 mt-md-0",
+                ),
+            ],
+            className="g-3 align-items-stretch",
+        ),
+    ]
+    if not review_items_data and ir:
+        card_body.append(
             html.P(
-                "Export revue disponible pour le mode indicateurs. Chargez une comparaison indicateurs ou lancez une analyse.",
-                className="text-muted",
+                "Aucun changement détecté à exporter pour cette comparaison.",
+                className="small text-muted mt-4 mb-0",
             )
         )
-    return html.Div(content)
+
+    return dbc.Card(
+        dbc.CardBody(card_body, className="p-4 p-lg-5"),
+        className="shadow-sm border-0 bg-white",
+    )
 
 
-@callback(
-    Output("download-review-csv", "data"),
-    Input("btn-download-review-csv", "n_clicks"),
-    State("store-review-items", "data"),
-    State("store-review-queue", "data"),
-    State("store-indicator-result", "data"),
-    State("store-pdf-paths", "data"),
-    prevent_initial_call=True,
-)
-def on_download_csv(
-    n_clicks, review_items_data, review_queue_data, indicator_result, paths
+def _resolve_export_review_items(
+    review_items_data, review_queue_data, indicator_result, paths
 ):
-    """Telecharger le CSV de validation (Excel FR, UTF-8 BOM, separateur ;)."""
-    if not n_clicks:
-        raise PreventUpdate
+    """Resolve export items from the current review state with queue priority."""
     ir = indicator_result or {}
     items = []
     if review_queue_data:
@@ -3358,9 +3325,8 @@ def on_download_csv(
         try:
             items = [ReviewItem.from_dict(d) for d in review_items_data]
         except Exception:
-            pass
+            items = []
     if not items and ir:
-        # Reconstruire depuis indicator_result si store desynchronise
         paths = paths or {}
         path_t1 = (
             paths.get("pdf_previous", "") or paths.get("pdf_t1", "")
@@ -3380,56 +3346,7 @@ def on_download_csv(
             pdf_path_t1=path_t1 or "",
             pdf_path_t2=path_t2 or "",
         )
-    bank = str(ir.get("bank_code", "bank")).upper()
-    q_from = quarter_label_from_payload(ir, "previous").upper()
-    q_to = quarter_label_from_payload(ir, "current").upper()
-    year_val = str(ir.get("year", "2025"))
-    filename = f"Vigie_Comparaison_{bank}_{q_to}_vs_{q_from}_{year_val}.csv"
-    csv_str = generate_validation_csv(items, ir)
-    return dict(content=csv_str, filename=filename)
-
-
-@callback(
-    Output("download-review-json", "data"),
-    Input("btn-download-review-json", "n_clicks"),
-    State("store-review-items", "data"),
-    State("store-review-queue", "data"),
-    State("store-indicator-result", "data"),
-    prevent_initial_call=True,
-)
-def on_download_json(n_clicks, review_items_data, review_queue_data, indicator_result):
-    """Telecharger le JSON de revue."""
-    if not n_clicks or (not review_items_data and not review_queue_data):
-        raise PreventUpdate
-    from datetime import datetime
-
-    ir = indicator_result or {}
-    if review_queue_data:
-        items = _review_items_from_v2_queue(review_queue_data)
-    else:
-        items = [ReviewItem.from_dict(d) for d in review_items_data]
-    bank = str(ir.get("bank_code", "bank"))
-    q_from = quarter_label_from_payload(ir, "previous")
-    q_to = quarter_label_from_payload(ir, "current")
-    year_val = str(ir.get("year", "2025"))
-    base_name = _comparison_export_base_name(ir, "review").replace(" ", "_").lower()
-    json_str = export_review_items_json_fr(
-        items,
-        metadata=build_export_metadata(
-            ir,
-            overrides={
-                "bank_code": bank,
-                "quarter_from": q_from,
-                "quarter_to": q_to,
-                "previous_quarter": q_from,
-                "current_quarter": q_to,
-                "comparison_direction": "current_vs_previous",
-                "year": year_val,
-                "exported_at": datetime.now().isoformat(timespec="seconds"),
-            },
-        ),
-    )
-    return dict(content=json_str, filename=f"{base_name}.json")
+    return items
 
 
 @callback(
@@ -3448,34 +3365,9 @@ def on_download_excel(
     if not n_clicks:
         raise PreventUpdate
     ir = indicator_result or {}
-    items = []
-    if review_queue_data:
-        items = _review_items_from_v2_queue(review_queue_data)
-    elif review_items_data:
-        try:
-            items = [ReviewItem.from_dict(d) for d in review_items_data]
-        except Exception:
-            pass
-    if not items and ir:
-        paths = paths or {}
-        path_t1 = (
-            paths.get("pdf_previous", "") or paths.get("pdf_t1", "")
-            if isinstance(paths, dict)
-            else ""
-        )
-        path_t2 = (
-            paths.get("pdf_current", "") or paths.get("pdf_t2", "")
-            if isinstance(paths, dict)
-            else ""
-        )
-        items = build_review_items_from_indicator_result(
-            ir,
-            bank_code=str(ir.get("bank_code", "")),
-            quarter_from=quarter_label_from_payload(ir, "previous"),
-            quarter_to=quarter_label_from_payload(ir, "current"),
-            pdf_path_t1=path_t1 or "",
-            pdf_path_t2=path_t2 or "",
-        )
+    items = _resolve_export_review_items(
+        review_items_data, review_queue_data, indicator_result, paths
+    )
     bank = str(ir.get("bank_code", "bank")).upper()
     q_from = quarter_label_from_payload(ir, "previous").upper()
     q_to = quarter_label_from_payload(ir, "current").upper()
@@ -3487,25 +3379,31 @@ def on_download_excel(
 
 
 @callback(
-    Output("download-indicator-json-brut", "data"),
-    Input("btn-download-indicator-json-brut", "n_clicks"),
+    Output("download-review-txt", "data"),
+    Input("btn-download-review-txt", "n_clicks"),
+    State("store-review-items", "data"),
+    State("store-review-queue", "data"),
     State("store-indicator-result", "data"),
+    State("store-pdf-paths", "data"),
     prevent_initial_call=True,
 )
-def on_download_indicator_json_brut(n_clicks, indicator_result):
-    """Telecharger le payload canonical complet en JSON."""
-    if not n_clicks or not indicator_result:
+def on_download_txt(
+    n_clicks, review_items_data, review_queue_data, indicator_result, paths
+):
+    """Telecharger le rapport TXT de revue expert."""
+    if not n_clicks:
         raise PreventUpdate
-    import json
-
-    bank = str(indicator_result.get("bank_code", "bank"))
-    base_name = (
-        _comparison_export_base_name(indicator_result, "canonical")
-        .replace(" ", "_")
-        .lower()
+    ir = indicator_result or {}
+    items = _resolve_export_review_items(
+        review_items_data, review_queue_data, indicator_result, paths
     )
-    json_str = json.dumps(indicator_result, ensure_ascii=False, indent=2)
-    return dict(content=json_str, filename=f"{base_name}.json")
+    bank = str(ir.get("bank_code", "bank")).upper()
+    q_from = quarter_label_from_payload(ir, "previous").upper()
+    q_to = quarter_label_from_payload(ir, "current").upper()
+    year_val = str(ir.get("year", "2025"))
+    filename = f"Vigie_Comparaison_{bank}_{q_to}_vs_{q_from}_{year_val}.txt"
+    txt_content = generate_validation_txt(items, ir)
+    return dict(content=txt_content, filename=filename)
 
 
 @callback(
