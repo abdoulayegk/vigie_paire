@@ -25,15 +25,10 @@ VALIDATION_CSV_COLUMNS = [
     "indicateur_precedent",
     "indicateur_courant",
     "résumé_automatique",
-    "score_confiance",
-    "suspect",
     "validation_finale",
+    "nouvelle_divulgation",
     "pertinence_genai",
     "niveau_risque_genai",
-    "type_impact_genai",
-    "phase_genai",
-    "action_requise_genai",
-    "ref_reglementaire_genai",
 ]
 
 # Mapping type_changement anglais -> francais
@@ -317,6 +312,13 @@ def _iter_validation_rows(
         action_genai = _sanitize_cell(ga.get("action_requise", ""))
         ref_regl_genai = _sanitize_cell(ga.get("reference_reglementaire", ""))
 
+        if not pertinence_genai:
+            nouvelle_divulgation = "Non analysé"
+        elif pertinence_genai.upper() == "NOUVELLE_DIVULGATION":
+            nouvelle_divulgation = "Oui"
+        else:
+            nouvelle_divulgation = "Non"
+
         if not indicators:
             ind_type = str(base.get("change_type", ""))
             ind_name = _sanitize_cell(base.get("indicator", ""))
@@ -348,15 +350,10 @@ def _iter_validation_rows(
                 "indicateur_precedent": ind_t1,
                 "indicateur_courant": ind_t2,
                 "résumé_automatique": resume,
-                "score_confiance": score_str,
-                "suspect": suspect,
                 "validation_finale": validation,
+                "nouvelle_divulgation": nouvelle_divulgation,
                 "pertinence_genai": pertinence_genai,
                 "niveau_risque_genai": niveau_risque_genai,
-                "type_impact_genai": impact_type_genai,
-                "phase_genai": phase_genai,
-                "action_requise_genai": action_genai,
-                "ref_reglementaire_genai": ref_regl_genai,
             }
             yield row
         else:
@@ -380,7 +377,7 @@ def _iter_validation_rows(
                     from_val,
                     to_val,
                     table_status,
-                    suspect=(suspect == "Oui"),
+                    suspect=False,
                 )
                 resume = _augment_resume_with_review_context(
                     resume,
@@ -417,15 +414,10 @@ def _iter_validation_rows(
                     "indicateur_precedent": ind_t1,
                     "indicateur_courant": ind_t2,
                     "résumé_automatique": resume,
-                    "score_confiance": score_str,
-                    "suspect": suspect,
                     "validation_finale": ind_validation,
+                    "nouvelle_divulgation": nouvelle_divulgation,
                     "pertinence_genai": pertinence_genai,
                     "niveau_risque_genai": niveau_risque_genai,
-                    "type_impact_genai": impact_type_genai,
-                    "phase_genai": phase_genai,
-                    "action_requise_genai": action_genai,
-                    "ref_reglementaire_genai": ref_regl_genai,
                 }
                 yield row
 
