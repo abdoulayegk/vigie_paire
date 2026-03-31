@@ -39,7 +39,7 @@ def _make_tables_json(
 
 def test_load_extraction_returns_stored_tables() -> None:
     """load_extraction must return previously saved tables without calling Vision."""
-    from app.extraction_storage import load_extraction
+    from vigilance.extraction_storage import load_extraction
 
     stored_table = {
         "bank_code": "bnc",
@@ -75,7 +75,7 @@ def test_load_extraction_returns_stored_tables() -> None:
 
 def test_load_extraction_returns_none_when_missing() -> None:
     """load_extraction must return None when no stored extraction exists."""
-    from app.extraction_storage import load_extraction
+    from vigilance.extraction_storage import load_extraction
 
     base_dir = Path(tempfile.mkdtemp())
     try:
@@ -93,7 +93,7 @@ def test_load_extraction_returns_none_when_tables_empty() -> None:
     Empty stored extraction is treated as no valid cache so the caller runs fresh
     extraction (avoids Q1=0 when a previous run persisted 0 tables for t1).
     """
-    from app.extraction_storage import load_extraction
+    from vigilance.extraction_storage import load_extraction
 
     base_dir = _make_tables_json("bnc", 2025, "t1", [])
     try:
@@ -107,7 +107,7 @@ def test_load_extraction_returns_none_when_tables_empty() -> None:
 
 def test_table_artifact_from_dict_normalizes_indicators() -> None:
     """Raw indicators with footnote markers are normalized on load (matches fresh Vision path)."""
-    from app.extraction_storage import table_artifact_from_dict
+    from vigilance.extraction_storage import table_artifact_from_dict
     from vigilance.models.table_models import get_comparison_indicators
 
     d = {
@@ -133,7 +133,7 @@ def test_table_artifact_from_dict_normalizes_indicators() -> None:
 
 def test_table_artifact_from_dict_uses_raw_pipeline_when_raw_present() -> None:
     """When first_column_indicators_raw is present and non-empty, build indicators from raw (normalize + post_normalize)."""
-    from app.extraction_storage import table_artifact_from_dict
+    from vigilance.extraction_storage import table_artifact_from_dict
     from vigilance.utils.indicator_cleaner import (
         normalize_indicator_for_comparison,
         post_normalize_indicator,
@@ -164,7 +164,7 @@ def test_table_artifact_from_dict_uses_raw_pipeline_when_raw_present() -> None:
 
 def test_save_then_load_roundtrip() -> None:
     """save_extraction then load_extraction must return identical data."""
-    from app.extraction_storage import load_extraction, save_extraction
+    from vigilance.extraction_storage import load_extraction, save_extraction
     from vigilance.models.table_models import TableArtifact
 
     base_dir = Path(tempfile.mkdtemp())
@@ -211,7 +211,7 @@ def test_save_then_load_roundtrip() -> None:
 
 
 def test_save_then_load_roundtrip_preserves_rbc_matching_fields() -> None:
-    from app.extraction_storage import load_extraction, save_extraction
+    from vigilance.extraction_storage import load_extraction, save_extraction
     from vigilance.models.table_models import TableArtifact
 
     base_dir = Path(tempfile.mkdtemp())
@@ -258,7 +258,7 @@ def test_save_then_load_roundtrip_preserves_rbc_matching_fields() -> None:
 
 def test_save_writes_schema_version_in_tables_json_root() -> None:
     """After save_extraction, tables.json root must contain schema_version and tables."""
-    from app.extraction_storage import save_extraction
+    from vigilance.extraction_storage import save_extraction
     from vigilance.models.table_models import TableArtifact
 
     base_dir = Path(tempfile.mkdtemp())
@@ -298,7 +298,7 @@ def test_save_writes_schema_version_in_tables_json_root() -> None:
 
 def test_save_extraction_writes_unified_json_and_txt_artifacts() -> None:
     """save_extraction writes the official JSON contract only."""
-    from app.extraction_storage import save_extraction
+    from vigilance.extraction_storage import save_extraction
     from vigilance.models.table_models import TableArtifact
 
     base_dir = Path(tempfile.mkdtemp())
@@ -348,7 +348,7 @@ def test_save_extraction_writes_unified_json_and_txt_artifacts() -> None:
 
 def test_save_normalizes_footnotes_to_id_text_in_file() -> None:
     """Saved tables.json must store footnotes with canonical keys id/text, not marker."""
-    from app.extraction_storage import save_extraction
+    from vigilance.extraction_storage import save_extraction
     from vigilance.models.table_models import TableArtifact
 
     base_dir = Path(tempfile.mkdtemp())
@@ -394,7 +394,7 @@ def test_save_normalizes_footnotes_to_id_text_in_file() -> None:
 
 def test_load_extraction_reads_minimal_tables_json() -> None:
     """load_extraction must rebuild TableArtifact from the official minimal tables.json."""
-    from app.extraction_storage import load_extraction
+    from vigilance.extraction_storage import load_extraction
 
     base = Path(tempfile.mkdtemp())
     target = base / "bnc" / "2025" / "t1"
@@ -445,7 +445,7 @@ def test_load_extraction_reads_minimal_tables_json() -> None:
 
 def test_load_extraction_recreates_missing_derived_json_artifacts() -> None:
     """load_extraction regenerates missing derived JSON artifacts locally."""
-    from app.extraction_storage import load_extraction, save_extraction
+    from vigilance.extraction_storage import load_extraction, save_extraction
     from vigilance.models.table_models import TableArtifact
 
     base_dir = Path(tempfile.mkdtemp())
@@ -488,7 +488,7 @@ def test_load_extraction_recreates_missing_derived_json_artifacts() -> None:
 
 
 def test_load_extraction_rejects_non_current_schema_version() -> None:
-    from app.extraction_storage import load_extraction
+    from vigilance.extraction_storage import load_extraction
 
     base_dir = Path(tempfile.mkdtemp())
     target = base_dir / "bnc" / "2025" / "t1"

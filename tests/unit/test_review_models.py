@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.review_models import ReviewItem
+from vigilance.review_models import ReviewItem
 
 
 def test_review_item_roundtrip_preserves_future_persistence_fields() -> None:

@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 from typing import Any, Iterator
 
-from app.review_models import ReviewItem
+from vigilance.review_models import ReviewItem
 
 CSV_SCHEMA_VERSION = "csv_review_v1"
 CSV_SEPARATOR = ";"

@@ -9,8 +9,8 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import html
 
-from app.i18n import t
-from app.review_models_v2 import ChangeType
+from vigilance.i18n import t
+from vigilance.review_models_v2 import ChangeType
 
 _CHANGE_TYPE_LABELS = {
     ChangeType.INDICATOR_ADDED.value: "Ajoute",
@@ -765,7 +765,7 @@ def _build_progress_pill(
 def build_review_queue_v2(
     tables: list[dict],
     current_review_id: str | None,
-    current_change_id: str | None,
+    current_change_id: str | None = None,
     active_filters: dict | None = None,
 ) -> html.Div:
     """Build the left-side review queue panel V2 with grouped tables.
@@ -890,7 +890,7 @@ def build_review_queue_v2(
 
         row_class = "review-queue-table-row"
         if is_active:
-            row_class += " is-active"
+            row_class += " is-active border-primary"
         if table_status == "completed":
             row_class += " is-completed"
         elif table_status == "partial":

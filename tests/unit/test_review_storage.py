@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.review_storage import (
+from vigilance.review_storage import (
     REVIEW_STATE_SCHEMA_VERSION,
     build_review_items_signature,
     get_review_state_path,

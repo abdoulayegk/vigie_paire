@@ -37,10 +37,6 @@ dev = [
 [tool.setuptools]
 package-dir = {"" = "src"}
 packages = [
-    "app",
-    "app.dash_app",
-    "app.dash_app.components",
-    "app.dash_app.layouts",
     "vigilance",
     "vigilance.cli",
     "vigilance.config",
@@ -50,6 +46,7 @@ packages = [
     "vigilance.dash_app.layouts",
     "vigilance.extraction",
     "vigilance.extract",
+    "vigilance.i18n",
     "vigilance.models",
     "vigilance.quality",
     "vigilance.report",

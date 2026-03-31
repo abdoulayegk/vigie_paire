@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.quarter_utils import build_quarter_context, parse_quarter_ref
+from vigilance.quarter_utils import build_quarter_context, parse_quarter_ref
 
 
 @pytest.mark.parametrize(

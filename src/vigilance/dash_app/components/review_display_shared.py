@@ -5,8 +5,8 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import html
 
-from app.i18n import t
-from app.review_models import (
+from vigilance.i18n import t
+from vigilance.review_models import (
     CHANGE_TYPE_ADDED,
     CHANGE_TYPE_MODIFIED,
     CHANGE_TYPE_REMOVED,

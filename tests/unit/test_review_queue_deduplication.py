@@ -7,14 +7,14 @@ Tests cover:
 - ReviewTableItem: summary computation and status
 """
 
-from app.review_models_v2 import (
+from vigilance.review_models_v2 import (
     ChangeItem,
     ChangeType,
     ReviewTableItem,
     compute_table_key,
     legacy_change_type_to_new,
 )
-from app.review_queue_normalizer import (
+from vigilance.review_queue_normalizer import (
     _change_exists,
     normalize_review_queue,
     sort_review_tables_by_priority,

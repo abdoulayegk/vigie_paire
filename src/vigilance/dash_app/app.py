@@ -2,8 +2,8 @@
 Application Dash - Comparateur de Rapports Bancaires.
 
 Pour lancer:
-    uv run python -m app.dash_app.app
-    ou: uv run dash run app.dash_app.app --port 8050
+    uv run python -m vigilance.dash_app.app
+    ou: uv run dash run vigilance.dash_app.app --port 8050
 """
 
 from __future__ import annotations
@@ -12,7 +12,6 @@ import base64
 import json
 import logging
 import os
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -73,19 +72,6 @@ def _cached_render_or_crop(
             return raw if raw else b""
         return b""
 
-
-try:
-    from dotenv import load_dotenv
-
-    load_dotenv()
-except ImportError:
-    pass
-
-# Assurer que src/ est dans le path
-SRC_DIR = Path(__file__).resolve().parents[2]
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
-
 import dash_bootstrap_components as dbc
 from dash import (
     ALL,
@@ -103,38 +89,38 @@ from dash import (
 )
 from dash.exceptions import PreventUpdate
 
-from app.comparison_canonical import (
+from vigilance.comparison_canonical import (
     get_meta_value,
     is_canonical_comparison,
     to_canonical_payload,
 )
-from app.comparison_runner import run_comparison_with_sections
-from app.dash_app.components.pdf_preview import pdf_images_from_base64
+from vigilance.comparison_runner import run_comparison_with_sections
+from vigilance.dash_app.components.pdf_preview import pdf_images_from_base64
 from vigilance.dash_app.components.review_display_shared import (
     build_proofs_section,
     section_display_label,
 )
-from app.dash_app.layouts import (
+from vigilance.dash_app.layouts import (
     build_page_results,
     build_page_upload,
     build_page_validation,
     build_sidebar,
 )
-from app.dash_app.layouts.page_results import build_analyst_kpi_card
-from app.i18n import t
-from app.quarter_utils import (
+from vigilance.dash_app.layouts.page_results import build_analyst_kpi_card
+from vigilance.i18n import t
+from vigilance.quarter_utils import (
     build_quarter_context,
     get_payload_quarter_context,
     quarter_label_from_payload,
 )
-from app.review_adapters import build_review_items_from_indicator_result
-from app.review_export import (
+from vigilance.review_adapters import build_review_items_from_indicator_result
+from vigilance.review_export import (
     build_export_metadata,
     export_review_items_json_fr,
     generate_validation_csv,
     generate_validation_excel,
 )
-from app.review_models import (
+from vigilance.review_models import (
     CHANGE_TYPE_ADDED,
     CHANGE_TYPE_MODIFIED,
     CHANGE_TYPE_REMOVED,
@@ -149,25 +135,25 @@ from app.review_models import (
     REVIEW_STATUS_REJECTED,
     ReviewItem,
 )
-from app.review_models_v2 import ChangeType
-from app.review_priority import sort_review_items_by_priority
-from app.review_queue_normalizer import (
+from vigilance.review_models_v2 import ChangeType
+from vigilance.review_priority import sort_review_items_by_priority
+from vigilance.review_queue_normalizer import (
     build_normalized_review_queue,
 )
-from app.review_storage import (
+from vigilance.review_storage import (
     is_review_state_compatible,
     is_review_state_stale,
     load_review_state,
     save_review_state,
 )
-from app.ui_config import INDICATOR_COMPARISON_DIR
-from app.ui_detection import (
+from vigilance.ui_config import INDICATOR_COMPARISON_DIR
+from vigilance.ui_detection import (
     _detect_sections_core,
     get_pdf_preview,
     get_section_preview_images,
 )
-from app.ui_indicators import build_indicator_change_rows
-from app.ui_io import (
+from vigilance.ui_indicators import build_indicator_change_rows
+from vigilance.ui_io import (
     get_available_indicator_comparison_options,
     load_comparison_result,
     save_pdfs_to_temp,
@@ -673,7 +659,7 @@ def populate_db_runs(source_type, bank_code, year, current_quarter):
     if source_type != "db" or not bank_code or not year or not current_quarter:
         return [], None
 
-    from app.quarter_utils import build_quarter_context
+    from vigilance.quarter_utils import build_quarter_context
 
     try:
         ctx = build_quarter_context(current_quarter, year=year)
@@ -1711,6 +1697,72 @@ def update_review_meta(review_queue_data, selection, show_results):
 
 
 @callback(
+    Output("review-progress-banner", "children"),
+    Input("store-review-queue", "data"),
+    Input("store-show-results-page", "data"),
+    State("store-indicator-meta", "data"),
+    prevent_initial_call=True,
+)
+def update_progress_banner(review_queue_data, show_results, indicator_meta):
+    """Render global progress banner above proof images."""
+    if not show_results:
+        return html.Div()
+    if not review_queue_data:
+        return html.Div()
+
+    total_tables = len(review_queue_data)
+    completed_tables = sum(
+        1 for t in review_queue_data if t.get("table_status") == "completed"
+    )
+    total_changes = sum(len(t.get("changes", []) or []) for t in review_queue_data)
+    validated_changes = sum(
+        1
+        for t in review_queue_data
+        for c in (t.get("changes", []) or [])
+        if c.get("validation_status", "pending") in ("approved", "rejected", "skipped")
+    )
+    pct = int(validated_changes / total_changes * 100) if total_changes else 0
+
+    # Bank + period label from meta
+    meta = indicator_meta or {}
+    bank = str(meta.get("bank_code", "") or "").upper()
+    q_current = str(meta.get("quarter_current", "") or "").upper()
+    year_current = str(meta.get("year_current", "") or "")
+    q_previous = str(meta.get("quarter_previous", "") or "").upper()
+    year_previous = str(meta.get("year_previous", "") or "")
+    period_label = ""
+    if bank and q_current:
+        period_label = f"{bank} — {q_current} {year_current} vs {q_previous} {year_previous}"
+
+    return html.Div(
+        [
+            html.Div(
+                [
+                    html.Span(period_label, className="fw-semibold me-3") if period_label else None,
+                    html.Span(
+                        f"{completed_tables}/{total_tables} tables complètes",
+                        className="me-3 text-muted small",
+                    ),
+                    html.Span(
+                        f"{validated_changes}/{total_changes} changements validés",
+                        className="me-3 text-muted small",
+                    ),
+                    dbc.Badge(f"{pct}%", color="primary" if pct < 100 else "success"),
+                ],
+                className="d-flex align-items-center flex-wrap gap-1 mb-1",
+            ),
+            dbc.Progress(
+                value=pct,
+                color="success" if pct == 100 else "primary",
+                style={"height": "6px"},
+                className="review-progress-bar",
+            ),
+        ],
+        className="review-progress-banner px-3 py-2 rounded border mb-1",
+    )
+
+
+@callback(
     Output("store-proof-display-mode", "data"),
     Input("proof-display-mode", "value"),
 )
@@ -2599,7 +2651,7 @@ def render_sections_tab(indicator_result, show_results):
     """Render the section-based changes tab with accordion."""
     if not show_results:
         raise PreventUpdate
-    from app.dash_app.layouts.page_results import build_section_accordion_item
+    from vigilance.dash_app.layouts.page_results import build_section_accordion_item
 
     if not indicator_result:
         return html.Div("Aucun resultat disponible.", className="text-muted")
@@ -3789,6 +3841,88 @@ def on_validate_change_v2(
         source="on_validate_change_v2",
     )
     return new_queue, next_selection, new_change_idx
+
+
+@callback(
+    Output("store-review-queue", "data", allow_duplicate=True),
+    Output("store-review-selection", "data", allow_duplicate=True),
+    Output("store-current-change-idx", "data", allow_duplicate=True),
+    Input({"type": "btn-reset-change-v2", "change_id": ALL}, "n_clicks"),
+    State("store-review-queue", "data"),
+    State("store-review-selection", "data"),
+    State("store-review-filters", "data"),
+    State("store-review-last-positions", "data"),
+    State("store-indicator-meta", "data"),
+    prevent_initial_call=True,
+)
+def on_reset_change_decision(n_clicks, queue, selection, filters, last_positions, indicator_meta):
+    """Reset a validated change back to pending so the analyst can re-decide."""
+    if not ctx.triggered_id or not queue:
+        raise PreventUpdate
+    if not any(nc for nc in (n_clicks or [])):
+        raise PreventUpdate
+    if not isinstance(ctx.triggered_id, dict) or ctx.triggered_id.get("type") != "btn-reset-change-v2":
+        raise PreventUpdate
+
+    change_id = str(ctx.triggered_id.get("change_id") or "")
+    if not change_id:
+        raise PreventUpdate
+
+    new_queue = json.loads(json.dumps(queue))
+    found = False
+    for table in new_queue:
+        for change in table.get("changes", []) or []:
+            if str(change.get("change_id", "")) == change_id:
+                change["validation_status"] = "pending"
+                change.pop("validation_decision", None)
+                change.pop("validation_notes", None)
+                change.pop("validated_at", None)
+                change.pop("validated_by", None)
+                found = True
+                break
+        if found:
+            # Recompute table status
+            changes = table.get("changes", [])
+            n_pending = sum(1 for c in changes if c.get("validation_status", "pending") == "pending")
+            n_validated = sum(1 for c in changes if c.get("validation_status", "pending") in ("approved", "rejected", "skipped"))
+            if n_pending == 0:
+                table["table_status"] = "completed"
+            elif n_validated > 0:
+                table["table_status"] = "partial"
+            else:
+                table["table_status"] = "pending"
+            summary = table.get("summary", {})
+            summary["pending"] = n_pending
+            summary["validated"] = len(changes) - n_pending
+            table["summary"] = summary
+            break
+
+    if not found:
+        raise PreventUpdate
+
+    # Point selection to the reset change so it becomes the active one
+    new_selection = dict(selection or {})
+    for table in new_queue:
+        for idx, change in enumerate(table.get("changes", []) or []):
+            if str(change.get("change_id", "")) == change_id:
+                new_selection = {"review_id": _review_id(table), "change_id": change_id}
+                break
+
+    new_selection, _, new_change_idx = _resolve_selection(new_queue, new_selection, filters, last_positions)
+
+    _persist_review_state(
+        indicator_meta=indicator_meta,
+        review_items=[it.to_dict() for it in _review_items_from_v2_queue(new_queue)],
+        review_queue=new_queue,
+        review_selection=new_selection,
+        review_current_idx=None,
+        current_change_idx=new_change_idx,
+        preferred_store="review_queue",
+        source="on_reset_change_decision",
+    )
+
+    logger.info("[on_reset_change_decision] change_id=%s reset to pending", change_id)
+    return new_queue, new_selection, new_change_idx
 
 
 @callback(

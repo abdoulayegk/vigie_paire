@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from app.review_models_v2 import (
+from vigilance.review_models_v2 import (
     ChangeItem,
     ChangeType,
     ReviewTableItem,
@@ -95,6 +95,31 @@ def normalize_review_queue(
         # Update table_item fields if this raw item has better data
         _merge_table_metadata(table_item, raw)
 
+        change_type_raw = str(raw.get("change_type", "") or "")
+        is_table_only_change = change_type_raw in {"table_added", "table_removed"}
+
+        if is_table_only_change:
+            table_change_type = _map_table_level_change_type(change_type_raw)
+            table_item.changes = []
+
+            change_item = ChangeItem(
+                change_id=f"chg_{change_counter:05d}",
+                change_type=table_change_type,
+                payload={
+                    "description": raw.get("indicator", ""),
+                    "table_status": raw.get("table_status", ""),
+                },
+                validation_status="pending",
+                is_required=True,
+            )
+
+            table_item.changes.append(change_item)
+            change_counter += 1
+            continue
+
+        if _has_table_only_change(table_item.changes):
+            continue
+
         # Step 3: Extract and append changes
         item_type = raw.get("item_type", "indicator")
         indicators = raw.get("indicators", [])
@@ -124,7 +149,6 @@ def normalize_review_queue(
                 change_counter += 1
 
         # Handle table-level changes (table_added, table_removed, structure_change)
-        change_type_raw = raw.get("change_type", "")
         if change_type_raw in (
             "table_added",
             "table_removed",
@@ -303,6 +327,18 @@ def _change_exists(changes: list[ChangeItem], new_change: ChangeItem) -> bool:
             if c.payload.get("description") == new_change.payload.get("description"):
                 return True
 
+    return False
+
+
+def _has_table_only_change(changes: list[ChangeItem]) -> bool:
+    for change in changes:
+        if change.change_type in (
+            ChangeType.TABLE_ADDED.value,
+            ChangeType.TABLE_REMOVED.value,
+            "table_added",
+            "table_removed",
+        ):
+            return True
     return False
 
 

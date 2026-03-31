@@ -4,8 +4,8 @@ import io
 
 from openpyxl import load_workbook
 
-from app.review_export import generate_validation_csv, generate_validation_excel
-from app.review_models import ReviewItem
+from vigilance.review_export import generate_validation_csv, generate_validation_excel
+from vigilance.review_models import ReviewItem
 
 
 def test_generate_validation_csv_includes_comment_in_summary_without_schema_change() -> None:

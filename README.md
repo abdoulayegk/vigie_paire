@@ -140,7 +140,6 @@ bash scripts/run_dash.sh
 ### Windows (PowerShell)
 
 ```powershell
-$env:PYTHONPATH = "src"
 uv run python -m vigilance.dash_app.app
 ```
 

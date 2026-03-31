@@ -5,7 +5,7 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from app.i18n import t
+from vigilance.i18n import t
 
 
 def build_analyst_kpi_card(
@@ -461,6 +461,7 @@ def build_page_results() -> html.Div:
                             [
                                 html.Div(
                                     [
+                                        html.Div(id="review-progress-banner", className="mb-3"),
                                         html.Div(
                                             id="review-proof-container",
                                             className="mb-3",

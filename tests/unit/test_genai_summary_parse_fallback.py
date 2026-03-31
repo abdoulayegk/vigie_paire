@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.genai_summary import (
+from vigilance.genai_summary import (
     _build_genai_input,
     _heuristic_fallback,
     _validate_genai_response,

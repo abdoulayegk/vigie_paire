@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from app.review_models import (
+from vigilance.review_models import (
     REVIEW_STATUS_APPROVED,
     REVIEW_STATUS_PENDING,
     REVIEW_STATUS_REJECTED,

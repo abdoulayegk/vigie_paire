@@ -836,3 +836,14 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* Progress banner */
+.review-progress-banner {
+    background-color: #f8f9fa;
+    border-color: #dee2e6 !important;
+    font-size: 0.85rem;
+}
+
+.review-progress-bar {
+    border-radius: 3px;
+}

@@ -392,7 +392,7 @@ class TestIntegrationPoint:
 
 class TestExportIncludesGenAI:
     def test_csv_columns_include_genai(self):
-        from app.review_export import VALIDATION_CSV_COLUMNS
+        from vigilance.review_export import VALIDATION_CSV_COLUMNS
 
         assert "pertinence_genai" in VALIDATION_CSV_COLUMNS
         assert "niveau_risque_genai" in VALIDATION_CSV_COLUMNS

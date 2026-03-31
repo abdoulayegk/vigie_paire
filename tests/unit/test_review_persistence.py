@@ -3,10 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
-from app.comparison_canonical import to_canonical_payload
-from app.ui_io import load_comparison_result
-from app.review_models import ReviewItem
-from app.review_storage import load_review_state, save_review_state
+from vigilance.comparison_canonical import to_canonical_payload
+from vigilance.ui_io import load_comparison_result
+from vigilance.review_models import ReviewItem
+from vigilance.review_storage import load_review_state, save_review_state
 from vigilance.dash_app import app as dash_app
 
 

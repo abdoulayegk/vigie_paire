@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.ui_detection import _fallback_sections
+from vigilance.ui_detection import _fallback_sections
 
 
 def test_fallback_sections_returns_single_unknown_range() -> None:

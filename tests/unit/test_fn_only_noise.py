@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from app.review_adapters import build_review_items_from_indicator_result
-from app.review_models import (
+from vigilance.review_adapters import build_review_items_from_indicator_result
+from vigilance.review_models import (
     CHANGE_TYPE_FOOTNOTE,
     CHANGE_TYPE_MODIFIED,
 )
