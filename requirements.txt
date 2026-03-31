@@ -1,0 +1,20 @@
+# Generated from pyproject.toml direct dependencies using versions resolved in uv.lock.
+# Python: >=3.10
+
+rapidfuzz==3.14.3
+scipy==1.15.3 ; python_version < "3.11"
+scipy==1.17.0 ; python_version >= "3.11"
+PyYAML==6.0.3
+pdfplumber==0.11.9
+dash==4.0.0
+dash-bootstrap-components==2.0.4
+PyMuPDF==1.27.1
+docling==2.73.1
+python-dotenv==1.2.1
+openai==2.21.0
+openpyxl==3.1.5
+pydantic==2.12.5
+
+# Optional dev dependencies:
+# pytest==9.0.2
+# reportlab==4.4.10
