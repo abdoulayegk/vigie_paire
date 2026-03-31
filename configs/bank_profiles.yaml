@@ -61,23 +61,7 @@ quality_gate:
   max_tables_review_required: 10
   fail_on_budget_exhausted: true
 
-# Validation post-matching: filtres GenAI/Vision pour reduire faux positifs.
-# Voir docs/comparison-validation.md pour le schema et valeurs recommandees.
 validation:
-  vision_pair_validation: false
-  vision_pair_confidence_min: 0.75
-  semantic_judge_enabled: false
-  semantic_judge_banks: [rbc, bns, td]
-  rename_validator_enabled: false
-  rename_validator_confidence_min: 0.8
-  rename_validator_batch_size: 10
-  rename_validator_uncertain_score_band: [0.85, 0.95]
-  added_table_validator_enabled: false
-  added_table_validator_confidence_min: 0.75
-  indicator_validator_enabled: false
-  indicator_validator_use_vision: true
-  indicator_validator_confidence_min: 0.8
-  indicator_validator_batch_size: 8
   vision_unmatched_rescue_enabled: true
   cross_section_rescue_enabled: false
   cross_section_rescue_rerank_min: 0.30

@@ -3,9 +3,9 @@ from __future__ import annotations
 from copy import deepcopy
 import logging
 
-from app import comparison_canonical as cc
-from app.review_adapters import build_review_items_from_indicator_result
-from app.review_queue_normalizer import build_normalized_review_queue
+from vigilance import comparison_canonical as cc
+from vigilance.review_adapters import build_review_items_from_indicator_result
+from vigilance.review_queue_normalizer import build_normalized_review_queue
 
 
 def _raw_report_comparison() -> dict:
@@ -274,7 +274,7 @@ def test_to_canonical_payload_separates_artifacts_and_extraction_suspects() -> N
     assert canonical["tables_added_pending_review"][0]["table_id"] == "curr_suspect"
 
 
-def test_review_queue_includes_extraction_suspects_as_pending_review() -> None:
+def test_review_queue_excludes_extraction_suspects_from_visible_review() -> None:
     raw = _raw_report_comparison()
     raw["matching"]["tables_added"] = []
     raw["matching"]["artifacts_confirmed_previous"] = []
@@ -314,6 +314,4 @@ def test_review_queue_includes_extraction_suspects_as_pending_review() -> None:
         "/tmp/curr.pdf",
     )
 
-    suspect = next(table for table in queue if table.table_id_t2 == "curr_suspect")
-    assert suspect.match_metadata["review_kind"] == "extraction_suspect"
-    assert suspect.changes[0].change_type == "table_added"
+    assert all(table.table_id_t2 != "curr_suspect" for table in queue)

@@ -35,7 +35,7 @@ def _mk_table(
 
 def test_collect_vision_rescue_candidates_includes_cross_section_when_enabled() -> None:
     """With cross_section_rescue_enabled=True, confirmed_unmatched from different sections produce candidates with is_cross_section=True."""
-    from app.comparison_runner import _collect_vision_rescue_candidates
+    from vigilance.comparison_runner import _collect_vision_rescue_candidates
 
     t1_uid = "risk_management|t1_x|p10"
     t2_uid = "regulatory_updates|t2_x|p39"
@@ -107,7 +107,7 @@ def test_collect_vision_rescue_candidates_includes_cross_section_when_enabled() 
 
 def test_collect_vision_rescue_candidates_excludes_cross_section_when_disabled() -> None:
     """With cross_section_rescue_enabled=False, tables from different sections do not produce candidates."""
-    from app.comparison_runner import _collect_vision_rescue_candidates
+    from vigilance.comparison_runner import _collect_vision_rescue_candidates
 
     t1_uid = "risk_management|t1_y|p10"
     t2_uid = "regulatory_updates|t2_y|p39"
@@ -175,7 +175,7 @@ def test_collect_vision_rescue_candidates_excludes_cross_section_when_disabled()
 
 
 def test_collect_vision_rescue_candidates_excludes_blocked_targets() -> None:
-    from app.comparison_runner import _collect_vision_rescue_candidates
+    from vigilance.comparison_runner import _collect_vision_rescue_candidates
 
     t1_uid = "risk_management|t1_ok|p10"
     t2_uid_ok = "risk_management|t2_ok|p12"

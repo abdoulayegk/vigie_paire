@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from app import ui_io
+from vigilance import ui_io
 
 
 def test_get_available_indicator_comparison_options_recurses_and_skips_review_state(

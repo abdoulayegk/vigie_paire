@@ -15,7 +15,7 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any
 
-from app.quarter_utils import format_quarter_label, get_payload_quarter_context
+from vigilance.quarter_utils import format_quarter_label, get_payload_quarter_context
 
 UI_COMPARISON_PAYLOAD_SCHEMA_VERSION = "comparison_canonical_v1"
 

@@ -57,7 +57,7 @@ def test_embed_sim_in_match_decision_when_enabled() -> None:
 
 def test_embedding_debug_schema_complete() -> None:
     """Verify embedding_debug has all required keys."""
-    from app.comparison_runner import run_comparison_with_sections
+    from vigilance.comparison_runner import run_comparison_with_sections
 
     result = run_comparison_with_sections(
         pdf_path_t1="/nonexistent/t1.pdf",

@@ -10,9 +10,9 @@ This component renders the right panel of the review UI showing:
 from __future__ import annotations
 
 import dash_bootstrap_components as dbc
-from dash import html
+from dash import dcc, html
 
-from app.review_models_v2 import ChangeType
+from vigilance.review_models_v2 import ChangeType
 
 _CHANGE_TYPE_LABELS = {
     ChangeType.INDICATOR_ADDED.value: "Ajouté",
@@ -397,6 +397,20 @@ def build_change_list_v2(
             else ""
         )
 
+        # "Modifier" button for already-validated changes
+        reset_button = (
+            dbc.Button(
+                [html.I(className="bi bi-pencil me-1"), "Modifier"],
+                id={"type": "btn-reset-change-v2", "change_id": change_id},
+                color="light",
+                size="sm",
+                className="ms-auto flex-shrink-0",
+                title="Réinitialiser la décision pour re-valider",
+            )
+            if status in ("approved", "rejected", "skipped")
+            else None
+        )
+
         row = dbc.ListGroupItem(
             [
                 html.Div(
@@ -418,6 +432,7 @@ def build_change_list_v2(
                             ],
                             className="d-flex align-items-center flex-wrap flex-grow-1 gap-1",
                         ),
+                        reset_button,
                     ],
                     className="d-flex align-items-start gap-2",
                 ),
@@ -429,6 +444,11 @@ def build_change_list_v2(
                 if change.get("validation_notes")
                 else None,
                 full_detail,
+                # Store the change exact text for highlight callback
+                dcc.Store(
+                    id={"type": "change-text-data-v2", "change_id": change_id},
+                    data=change,
+                ),
             ],
             id={"type": "change-row-v2", "change_id": change_id},
             className=f"p-2 {current_class}",
@@ -437,7 +457,14 @@ def build_change_list_v2(
         )
         change_rows.append(row)
 
-    return dbc.ListGroup(change_rows, flush=True, className="mb-3")
+    # Added active-highlight store inside the list container to avoid duplication
+    # but still available in the DOM for callbacks
+    return html.Div(
+        [
+            dbc.ListGroup(change_rows, flush=True, className="mb-3"),
+            dcc.Store(id="active-highlight-store", data=None),
+        ]
+    )
 
 
 def build_validation_panel_v2(
@@ -526,26 +553,36 @@ def build_validation_panel_v2(
     )
 
     # Status indicator if already validated
+    change_id_current = str(current_change.get("change_id", "") or f"idx_{current_change_idx}")
     status_indicator = None
     if is_validated:
-        if status == "approved":
-            status_indicator = dbc.Alert(
-                [html.I(className="bi bi-check-circle me-2"), "Approuvé"],
-                color="success",
-                className="py-2",
-            )
-        elif status == "rejected":
-            status_indicator = dbc.Alert(
-                [html.I(className="bi bi-x-circle me-2"), "Rejeté"],
-                color="danger",
-                className="py-2",
-            )
-        elif status == "skipped":
-            status_indicator = dbc.Alert(
-                [html.I(className="bi bi-dash-circle me-2"), "Passé"],
-                color="secondary",
-                className="py-2",
-            )
+        _status_colors = {"approved": "success", "rejected": "danger", "skipped": "secondary"}
+        _status_labels = {
+            "approved": ("bi bi-check-circle me-2", "Approuvé"),
+            "rejected": ("bi bi-x-circle me-2", "Rejeté"),
+            "skipped": ("bi bi-dash-circle me-2", "Passé"),
+        }
+        icon_cls, label = _status_labels.get(status, ("bi bi-circle me-2", status))
+        status_indicator = dbc.Alert(
+            [
+                html.Div(
+                    [
+                        html.Span([html.I(className=icon_cls), label]),
+                        dbc.Button(
+                            [html.I(className="bi bi-pencil me-1"), "Modifier"],
+                            id={"type": "btn-reset-change-v2", "change_id": change_id_current},
+                            color="light",
+                            size="sm",
+                            className="ms-auto",
+                            title="Réinitialiser pour re-valider",
+                        ),
+                    ],
+                    className="d-flex align-items-center justify-content-between",
+                )
+            ],
+            color=_status_colors.get(status, "secondary"),
+            className="py-2",
+        )
 
     # Navigation buttons
     nav_buttons = html.Div(
@@ -777,12 +814,22 @@ def build_review_detail_v2(
 
     # Changes list
     changes = table.get("changes", [])
+    table_only_change = len(changes) == 1 and str(changes[0].get("change_type", "")) in {
+        ChangeType.TABLE_ADDED.value,
+        ChangeType.TABLE_REMOVED.value,
+        "table_added",
+        "table_removed",
+    }
     changes_section = html.Div(
         [
             html.H6(
                 [
                     html.I(className="bi bi-list-check me-2"),
-                    f"Changements ({len(changes)})",
+                    (
+                        "Validation au niveau tableau"
+                        if table_only_change
+                        else f"Changements ({len(changes)})"
+                    ),
                 ],
                 className="mb-2",
             ),

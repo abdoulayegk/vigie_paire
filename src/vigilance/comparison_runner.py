@@ -11,12 +11,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from app.comparison_canonical import (
+from vigilance.comparison_canonical import (
     new_empty_ui_comparison_payload,
     to_canonical_payload,
 )
-from app.quarter_utils import format_quarter_label
-from app.ui_config import OUTPUT_DIR
+from vigilance.quarter_utils import format_quarter_label
+from vigilance.ui_config import OUTPUT_DIR
 from vigilance.compare_gpt import (
     REFERENCE_RESOLUTION_RULE,
     compare_reports_gpt4o,

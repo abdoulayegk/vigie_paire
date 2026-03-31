@@ -860,7 +860,7 @@ def run_quality_gate(
             footnotes_payload,
             config=cfg,
         )
-        from app.extraction_storage import table_artifact_from_dict
+        from vigilance.extraction_storage import table_artifact_from_dict
 
         tables_for_quality = [
             table_artifact_from_dict(

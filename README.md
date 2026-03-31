@@ -1,218 +1,202 @@
-# Bank Peer Vigilance
+# Vigie de Paire — Analyse de Rapports Bancaires
 
-Application de vigie bancaire pour extraire, comparer et revoir des tableaux réglementaires issus de rapports PDF.
+Système d'extraction, de comparaison et de revue des tableaux réglementaires issus de rapports trimestriels PDF.
 
-Le système repose sur trois blocs :
-- extraction ciblée des sections pertinentes d’un rapport
-- comparaison GPT des tableaux entre deux périodes
-- interface Dash de revue analyste avec historique par run
+> Projet interne — usage restreint.
 
-## Architecture
+---
 
-Le pipeline officiel est le suivant :
+## Prérequis
 
-```text
-PDF
--> détection des sections utiles
--> extraction des tableaux
--> génération des artefacts canoniques
--> comparaison GPT sur tables.json
--> comparison.json
--> revue Dash
-```
+| Outil  | Version minimale |
+| ------ | ---------------- |
+| Python | 3.10+            |
+| uv     | dernière         |
+| Git    | —                |
 
-Artefacts d’extraction :
-- `tables.json` : source canonique
-- `indicators.json` : projection
-- `footnotes.json` : projection
+- Installer **uv** : `pip install uv` ou [docs.astral.sh/uv](https://docs.astral.sh/uv/getting-started/installation/)
+- Clé API OpenAI requise pour l'extraction Vision et la comparaison GPT-4o.
 
-Artefact de comparaison :
-- `comparison.json` : sortie backend officielle, historisée par `run_id`
-
-## Structure utile
-
-- `src/vigilance/extraction/` : moteur d’extraction PDF
-- `src/vigilance/compare_gpt.py` : moteur de comparaison GPT
-- `src/vigilance/cli/` : CLI d’extraction et de comparaison
-- `src/vigilance/dash_app/` : application Dash
-- `src/app/` : adaptateurs UI, orchestration Dash, historique et revue
-- `configs/bank_profiles.yaml` : configuration banques / modèles / pipeline
-- `tests/unit/` : tests unitaires
+---
 
 ## Installation
 
-```bash
-uv sync --extra dev
-```
-
-Ou, si tu utilises `pip` :
+### Linux / macOS
 
 ```bash
-pip install -e .
+git clone https://github.com/abdoulayegk/vigie_paire.git
+cd vigie_paire
+uv sync
+cp .env.example .env        # puis renseigner OPENAI_API_KEY
 ```
 
-## Variables d’environnement
+### Windows (PowerShell)
 
-Le projet charge automatiquement `.env` au démarrage de Dash.
+```powershell
+git clone https://github.com/abdoulayegk/vigie_paire.git
+cd vigie_paire
+uv sync
+copy .env.example .env      # puis renseigner OPENAI_API_KEY
+```
 
-Variables principales :
-- `OPENAI_API_KEY` : requis pour l’extraction Vision et la comparaison GPT
-- `DASH_PORT` : port Dash, par défaut `8050`
-- `DASH_DEBUG` : `0` ou `1`
+---
 
-## Lancer Dash
+## Variables d'environnement
 
-Depuis la racine du repo :
+Le projet charge automatiquement le fichier `.env` au démarrage.
+Un modèle est fourni dans `.env.example` — il suffit de le copier et de renseigner la clé API.
 
 ```bash
-UV_CACHE_DIR=/tmp/uv-cache uv run python -m vigilance.dash_app.app
+# Linux / macOS
+cp .env.example .env
+
+# Windows (PowerShell)
+copy .env.example .env
 ```
 
-Puis ouvrir :
+Ouvrir `.env` et remplacer `sk-...` par votre clé OpenAI.
+
+Variables disponibles :
+
+| Variable                 | Requis | Défaut | Description                        |
+| ------------------------ | ------ | ------ | ---------------------------------- |
+| `OPENAI_API_KEY`         | Oui    | —      | Clé API OpenAI                     |
+| `DASH_PORT`              | Non    | `8050` | Port de l'interface Dash           |
+| `DASH_DEBUG`             | Non    | `0`    | Mode debug Dash (1 = activé)       |
+| `DOCLING_NUM_THREADS`    | Non    | `4`    | Parallélisme extraction PDF        |
+| `ENABLE_TABLE_CROP_DUMP` | Non    | `0`    | Dump images de crop (débogage)     |
+
+> Le fichier `.env` est dans `.gitignore` — ne jamais le commiter.
+
+---
+
+## Structure des entrées
+
+Déposer les PDFs dans `Inputs/` selon la convention suivante :
 
 ```text
-http://127.0.0.1:8050
-```
-
-## Dossier `Inputs/` — Convention de Nomenclature
-
-Ce dossier contient les rapports PDF des banques, organisés par **banque** puis par **année**.
-
-### Structure Obligatoire
-
-```
 Inputs/
-├── BNC/
-│   └── 2025/
-│       ├── BNC_2025_T1.pdf
-│       └── BNC_2025_T2.pdf
-├── RBC/
-│   └── 2025/
-│       ├── RBC_2025_T1.pdf
-│       └── RBC_2025_T2.pdf
-├── TD/
-│   └── 2025/
-│       ├── TD_2025_T1.pdf
-│       └── TD_2025_T2.pdf
-├── BMO/
-├── BNS/
-└── CIBC/
+  TD/
+    2026/
+      TD_2026_T1.pdf
+    2025/
+      TD_2025_T3.pdf
+  BNC/
+    2025/
+      BNC_2025_T1.pdf
+      BNC_2025_T2.pdf
 ```
 
-### Convention de Nommage des PDFs
+**Format de nommage strict :** `{BANQUE}_{ANNÉE}_{TRIMESTRE}.pdf`
 
-**Format strict : `{BANQUE}_{ANNÉE}_{TRIMESTRE}.pdf`**
+Banques supportées : `BNC` `RBC` `TD` `BMO` `BNS` `CIBC`
 
-| Champ | Valeurs | Exemple |
-|---|---|---|
-| `{BANQUE}` | BNC, RBC, TD, BMO, BNS, CIBC | `BNC` |
-| `{ANNÉE}` | 2024, 2025, … | `2025` |
-| `{TRIMESTRE}` | T1, T2, T3, T4 | `T2` |
+Le trimestre de référence est déduit automatiquement :
+`T2→T1` · `T3→T2` · `T1→T3(N-1)` · `T4→T4(N-1)`
 
-**Exemple complet :** `BNC_2025_T2.pdf`
+---
 
-### Utilisation
+## Exécuter le pipeline
 
 ```bash
-uv run python run_pipeline.py --bank BNC --year 2025 --quarter T2
+# Extraction + Comparaison complètes
+uv run run_pipeline.py --bank TD --year 2026 --quarter T1
+
+# Réutiliser l'extraction existante (tables.json déjà présent)
+uv run run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
+
+# Sauter la comparaison (re-triage uniquement)
+uv run run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-comparison
 ```
 
-```bash
-uv run python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
-```
+**Options :**
 
-Le pipeline trouvera automatiquement :
-- **Courant :**  `Inputs/BNC/2025/BNC_2025_T2.pdf`
-- **Précédent :** `Inputs/BNC/2025/BNC_2025_T1.pdf` (déduit automatiquement)
+| Option              | Description                                                  |
+| ------------------- | ------------------------------------------------------------ |
+| `--bank`            | Code banque : `BNC`, `RBC`, `TD`, `BMO`, `BNS`, `CIBC`       |
+| `--year`            | Année du rapport courant                                     |
+| `--quarter`         | Trimestre courant : `T1`, `T2`, `T3`, `T4`                   |
+| `--skip-extraction` | Réutilise les `tables.json` existants                        |
+| `--skip-comparison` | Saute la comparaison GPT-4o                                  |
+| `--inputs-root`     | Répertoire des PDFs (défaut : `Inputs/`)                     |
+| `--outputs-root`    | Répertoire de sortie (défaut : `Outputs/`)                   |
 
-## CLI
-
-### 1. Extraire un rapport
-
-```bash
-uv run vigilance-run-extract-report \
-  --bank bnc \
-  --pdf data/bnc/report.pdf \
-  --year 2026 \
-  --quarter t1
-```
-
-Sortie :
+**Artefact produit :**
 
 ```text
-outputs/extractions/{bank}/{year}/{quarter}/
-  tables.json
-  indicators.json
-  footnotes.json
+outputs/comparisons/{banque}/{annee_q}_vs_{annee_prev_q}/comparison.json
 ```
 
-### 2. Comparer un rapport courant à sa période de référence métier
+---
+
+## Lancer l'interface Dash
+
+### Linux / macOS
 
 ```bash
-uv run vigilance-run-compare-gpt4o \
-  --bank bnc \
-  --year-current 2026 \
-  --quarter-current t1
+bash scripts/run_dash.sh
 ```
 
-La période de référence est résolue automatiquement selon la règle métier :
-- `T2-Y -> T1-Y`
-- `T3-Y -> T2-Y`
-- `T1-Y -> T3-(Y-1)`
-- `T4-Y -> T4-(Y-1)`
+### Windows (PowerShell)
 
-Sortie :
+```powershell
+uv run python -m vigilance.dash_app.app
+```
+
+Ouvrir ensuite : [http://localhost:8050](http://localhost:8050)
+
+---
+
+## Guide d'utilisation — Interface analyste
+
+### 1. Charger une comparaison
+
+Au démarrage, sélectionner un `comparison.json` dans le menu déroulant puis cliquer **Charger**.
+
+### 2. File d'attente
+
+Les tableaux sont triés automatiquement par priorité d'action :
+
+| Priorité          | Signification                  |
+| ----------------- | ------------------------------ |
+| **Escalade**      | Intervention immédiate requise |
+| **Investigation** | Analyse approfondie nécessaire |
+| **Confirmation**  | Vérification de cohérence      |
+| **Information**   | Changement mineur à documenter |
+
+### 3. Valider les changements
+
+Sélectionner un tableau dans la file. Le panneau de détail affiche les changements détectés :
+
+- **Indicateurs ajoutés / supprimés / renommés**
+- **Footnotes modifiées**
+
+Pour chaque changement :
+
+1. Consulter les **preuves visuelles** — aperçu PDF T1 / T2 avec surbrillance de la modification (magenta = changement actif, jaune = contexte)
+2. Lire la **synthèse GenAI** (catégorie, niveau de risque, narratif)
+3. Choisir une action : **Approuver** · **Rejeter** · **Passer**
+4. Ajouter une note si nécessaire
+
+L'interface avance automatiquement au changement suivant après validation.
+
+### 4. Navigation
+
+- Flèches `← →` pour naviguer entre les tableaux
+- Flèches `‹ ›` pour naviguer entre les changements d'un tableau
+- Clic direct sur un tableau dans la file pour y accéder
+
+---
+
+## Architecture
+
+Le pipeline suit ce flux :
 
 ```text
-outputs/comparisons/{bank}/{current}_vs_{previous}/{run_id}/comparison.json
+PDF → Détection des sections → Extraction des tableaux (Vision GPT-4o)
+    → Artefacts canoniques (tables.json)
+    → Comparaison GPT-4o → comparison.json
+    → Triage GenAI → Interface Dash
 ```
 
-Le dossier de run contient aussi les PDF archivés utilisés pour la preuve Dash.
-
-## Règles de comparaison
-
-La comparaison GPT est volontairement limitée à :
-- la première colonne des tableaux
-- les footnotes associées
-
-Le moteur ignore explicitement :
-- les valeurs numériques
-- les pourcentages et montants
-- les dates
-- les labels de période
-
-Le résultat identifie :
-- tableaux ajoutés / supprimés
-- indicateurs ajoutés / supprimés / renommés
-- footnotes ajoutées / supprimées / renommées
-
-## Dash
-
-L’interface Dash permet :
-- l’upload de deux rapports
-- la validation des sections détectées
-- le lancement de l’extraction et de la comparaison
-- la revue analyste par thème et priorité
-- le rechargement d’un `comparison.json` historique
-
-Les runs historiques sont isolés et non écrasables.
-
-## Tests
-
-Exécuter la suite unitaire :
-
-```bash
-uv run pytest
-```
-
-Exécuter un sous-ensemble ciblé :
-
-```bash
-uv run pytest tests/unit/test_compare_gpt.py
-```
-
-## Notes
-
-- Les extractions sous `outputs/extractions/` servent de cache technique par période.
-- La vérité historisée côté analyse est le dossier de run sous `outputs/comparisons/`.
-- Le projet privilégie la robustesse de la revue analyste et l’auditabilité des résultats.
+Voir `Architecture_Vigilance_Bancaire_Desjardins.pdf` pour le détail technique.

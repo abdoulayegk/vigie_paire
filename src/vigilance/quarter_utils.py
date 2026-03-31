@@ -13,14 +13,14 @@ def format_quarter_label(
     quarter: "QuarterRef | int | str | None",
     year: int | str | None = None,
 ) -> str:
-    """Return a French display label like ``T2 2025``."""
+    """Return the canonical repo label like ``Q2-2025``."""
     if isinstance(quarter, QuarterRef):
-        return f"T{quarter.quarter} {quarter.year}"
+        return f"Q{quarter.quarter}-{quarter.year}"
 
     if isinstance(quarter, int):
         if year is None:
             raise ValueError("Quarter year is required when quarter is numeric.")
-        return f"T{quarter} {int(year)}"
+        return f"Q{quarter}-{int(year)}"
 
     text = str(quarter or "").strip()
     if not text:
@@ -31,8 +31,8 @@ def format_quarter_label(
         quarter_num = int(match.group(2))
         resolved_year = match.group(3) or year
         if resolved_year is None:
-            return f"T{quarter_num}"
-        return f"T{quarter_num} {int(resolved_year)}"
+            return f"Q{quarter_num}"
+        return f"Q{quarter_num}-{int(resolved_year)}"
 
     return text
 
@@ -138,7 +138,7 @@ def get_payload_quarter_context(payload: dict[str, Any] | None) -> dict[str, Any
                 current_ctx.get("label")
                 or current_ctx.get("code")
                 or (
-                    f"T{int(current_ctx.get('quarter'))} {int(current_ctx.get('year'))}"
+                    f"Q{int(current_ctx.get('quarter'))}-{int(current_ctx.get('year'))}"
                     if current_ctx.get("quarter") and current_ctx.get("year")
                     else ""
                 )
@@ -147,7 +147,7 @@ def get_payload_quarter_context(payload: dict[str, Any] | None) -> dict[str, Any
                 previous_ctx.get("label")
                 or previous_ctx.get("code")
                 or (
-                    f"T{int(previous_ctx.get('quarter'))} {int(previous_ctx.get('year'))}"
+                    f"Q{int(previous_ctx.get('quarter'))}-{int(previous_ctx.get('year'))}"
                     if previous_ctx.get("quarter") and previous_ctx.get("year")
                     else ""
                 )

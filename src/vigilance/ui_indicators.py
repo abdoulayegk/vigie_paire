@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.i18n import status_fr, t
+from vigilance.i18n import status_fr, t
 from vigilance.utils.matching_normalizer import _classify_excluded_line
 
 

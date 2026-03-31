@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.ui_config import INDICATOR_COMPARISON_DIR
+from vigilance.ui_config import INDICATOR_COMPARISON_DIR
 
 
 def save_pdfs_to_temp(

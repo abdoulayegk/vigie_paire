@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from app.ui_detection import _detect_sections_core
-from app.ui_io import load_comparison_result
+from vigilance.ui_detection import _detect_sections_core
+from vigilance.ui_io import load_comparison_result
 from vigilance.extraction.row_bbox_extractor import extract_row_bboxes_from_pdf
 from vigilance.extraction.vision_cache import compute_pdf_sha256
 

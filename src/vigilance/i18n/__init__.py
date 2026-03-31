@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.i18n.fr import (
+from vigilance.i18n.fr import (
     reason_fr,
     source_method_fr,
     status_fr,

@@ -9,8 +9,8 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import html
 
-from app.i18n import t
-from app.review_models_v2 import ChangeType
+from vigilance.i18n import t
+from vigilance.review_models_v2 import ChangeType
 
 _CHANGE_TYPE_LABELS = {
     ChangeType.INDICATOR_ADDED.value: "Ajoute",
@@ -66,6 +66,23 @@ _PRIORITY_DISPLAY = {
     "critique": ("Critique", "danger"),
     "prioritaire": ("Prioritaire", "warning"),
     "normal": ("Normal", "secondary"),
+}
+
+_ACTION_DISPLAY = {
+    "escalade": ("Escalade", "danger"),
+    "investigation": ("Investigation", "warning"),
+    "confirmation": ("Confirmation", "info"),
+    "information": ("Information", "secondary"),
+    "aucune": None,
+}
+
+_CATEGORY_DISPLAY = {
+    "REGLEMENTAIRE": ("Réglementaire", "danger"),
+    "RISQUE": ("Risque", "warning"),
+    "CAPITAL": ("Capital", "primary"),
+    "STRUCTURE": ("Structure", "info"),
+    "COSMETIQUE": ("Cosmétique", "secondary"),
+    "INCONNU": None,
 }
 
 _RELEVANCE_DISPLAY = {
@@ -650,6 +667,52 @@ def _build_change_group(
     )
 
 
+def _build_genai_summary_row(table: dict) -> html.Div | None:
+    """Build the GenAI action badge + category badge + narrative line for a queue card."""
+    ga = table.get("genai_analysis")
+    if not isinstance(ga, dict) or not ga:
+        return None
+
+    action = str(ga.get("action_requise", "") or "").strip().lower()
+    category = str(ga.get("category", "") or "").strip().upper()
+    narrative = str(ga.get("impact_description", "") or ga.get("justification", "") or "").strip()
+
+    chips = []
+
+    action_info = _ACTION_DISPLAY.get(action)
+    if action_info:
+        label, color = action_info
+        chips.append(
+            dbc.Badge(label, color=color, className="me-1", style={"fontSize": "0.65rem"})
+        )
+
+    category_info = _CATEGORY_DISPLAY.get(category)
+    if category_info:
+        label, color = category_info
+        chips.append(
+            dbc.Badge(label, color=color, className="me-1", style={"fontSize": "0.65rem"})
+        )
+
+    if not chips and not narrative:
+        return None
+
+    parts: list = []
+    if chips:
+        parts.append(html.Div(chips, className="d-flex flex-wrap gap-1 mb-1"))
+    if narrative:
+        # Truncate to keep card compact
+        display = narrative if len(narrative) <= 90 else narrative[:87] + "…"
+        parts.append(
+            html.Div(
+                display,
+                className="review-queue-narrative",
+                title=narrative,
+            )
+        )
+
+    return html.Div(parts, className="review-queue-genai-summary mt-1")
+
+
 def _build_table_metric_badges(summary: dict) -> list[html.Span]:
     badges: list[html.Span] = []
     n_added = int(summary.get("indicators_added", 0) or 0)
@@ -702,7 +765,7 @@ def _build_progress_pill(
 def build_review_queue_v2(
     tables: list[dict],
     current_review_id: str | None,
-    current_change_id: str | None,
+    current_change_id: str | None = None,
     active_filters: dict | None = None,
 ) -> html.Div:
     """Build the left-side review queue panel V2 with grouped tables.
@@ -823,10 +886,11 @@ def build_review_queue_v2(
             str(table_status or "pending"),
             is_active,
         )
+        genai_summary = _build_genai_summary_row(table)
 
         row_class = "review-queue-table-row"
         if is_active:
-            row_class += " is-active"
+            row_class += " is-active border-primary"
         if table_status == "completed":
             row_class += " is-completed"
         elif table_status == "partial":
@@ -858,6 +922,7 @@ def build_review_queue_v2(
                         context_text,
                         className="review-queue-table-context",
                     ),
+                    genai_summary,
                     html.Div(
                         [
                             html.Span(

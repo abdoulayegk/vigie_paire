@@ -8,7 +8,6 @@ import os
 import shlex
 import statistics
 import subprocess
-import sys
 import time
 import urllib.error
 import urllib.request
@@ -113,7 +112,6 @@ def _measure_startup(args: argparse.Namespace) -> dict[str, Any]:
     base_env = os.environ.copy()
     base_env.update(
         {
-            "PYTHONPATH": f"{root / 'src'}:{base_env.get('PYTHONPATH', '')}".rstrip(":"),
             "DASH_DEBUG": "0",
             "DASH_PORT": str(args.port),
             "DOCLING_NUM_THREADS": str(args.docling_threads),
@@ -174,11 +172,7 @@ def _measure_compare(args: argparse.Namespace) -> dict[str, Any]:
     if not (args.pdf_t1 and args.pdf_t2 and args.sections_t1 and args.sections_t2 and args.bank):
         return {"enabled": False}
 
-    root = _repo_root()
-    if str(root / "src") not in sys.path:
-        sys.path.insert(0, str(root / "src"))
-
-    from app.comparison_runner import run_comparison_with_sections
+    from vigilance.comparison_runner import run_comparison_with_sections
 
     sections_t1 = _load_sections(args.sections_t1)
     sections_t2 = _load_sections(args.sections_t2)
@@ -243,7 +237,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--runs", type=int, default=3, help="Number of runs for median timings.")
     parser.add_argument(
         "--command",
-        default="uv run python -m app.app",
+        default="uv run python -m vigilance.dash_app.app",
         help="Startup command used for Dash boot measurements.",
     )
     parser.add_argument("--host", default="127.0.0.1", help="Dash host for readiness checks.")

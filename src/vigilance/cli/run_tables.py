@@ -421,7 +421,7 @@ def main(argv: list[str] | None = None) -> None:
         print(vigie_path)
 
     if args.save_extraction:
-        from app.extraction_storage import (
+        from vigilance.extraction_storage import (
             get_extraction_artifact_paths,
             save_extraction,
         )

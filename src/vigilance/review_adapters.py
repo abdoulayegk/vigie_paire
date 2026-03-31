@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.i18n import t
-from app.review_models import (
+from vigilance.i18n import t
+from vigilance.review_models import (
     CHANGE_TYPE_ADDED,
     CHANGE_TYPE_FOOTNOTE,
     CHANGE_TYPE_MODIFIED,
@@ -498,9 +498,7 @@ def build_review_items_from_indicator_result(
         )
         seq += 1
 
-    # NOTE: Extraction suspects (tables_added/removed_pending_review) are excluded
-    # from the review queue. They are unverified items that inflate the queue
-    # with false positives. They remain visible in the stats section as a separate
-    # category for reference only.
+    # Extraction suspects (tables_*_pending_review) remain visible in summary
+    # metrics, but are intentionally excluded from the visible review queue.
 
     return items

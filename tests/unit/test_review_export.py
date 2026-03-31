@@ -4,8 +4,15 @@ import io
 
 from openpyxl import load_workbook
 
-from app.review_export import generate_validation_csv, generate_validation_excel
-from app.review_models import ReviewItem
+from vigilance.review_export import (
+    EXPERT_EXCEL_COLUMNS,
+    EXPERT_EXCEL_SHEET_REVIEW,
+    EXPERT_EXCEL_SHEET_SUMMARY,
+    generate_validation_csv,
+    generate_validation_excel,
+    generate_validation_txt,
+)
+from vigilance.review_models import ReviewItem
 
 
 def test_generate_validation_csv_includes_comment_in_summary_without_schema_change() -> None:
@@ -36,8 +43,30 @@ def test_generate_validation_csv_includes_comment_in_summary_without_schema_chan
     assert "validation_finale" in csv_text
 
 
-def test_generate_validation_excel_adds_context_and_technical_sheets() -> None:
-    item = ReviewItem(
+def test_generate_validation_excel_generates_expert_workbook() -> None:
+    indicator_item = ReviewItem(
+        change_id="ind-1",
+        change_type="modified",
+        indicator="Ratio CET1",
+        section="capital_management",
+        table_name="Structure des fonds propres",
+        page_t1=33,
+        page_t2=38,
+        review_status="approved",
+        comment="Variation cohérente",
+        confidence=0.91,
+        indicators=[
+            {
+                "name": "Ratio CET1",
+                "type": "modified",
+                "from": "12,4 %",
+                "to": "12,8 %",
+                "review_status": "approved",
+            }
+        ],
+        genai_analysis={"relevance": "NOUVELLE_DIVULGATION"},
+    )
+    footnote_item = ReviewItem(
         change_id="fn-1",
         change_type="footnote",
         indicator="+1 note(s)",
@@ -57,50 +86,140 @@ def test_generate_validation_excel_adds_context_and_technical_sheets() -> None:
             }
         ],
     )
+    removed_item = ReviewItem(
+        change_id="tbl-rem-1",
+        change_type="table_removed",
+        indicator="Tableau entier retiré",
+        section="risk_management",
+        table_name="Table supprimée",
+        page_t1=41,
+        review_status="rejected",
+        comment="A reclassifier",
+    )
 
     excel_bytes = generate_validation_excel(
-        [item],
+        [indicator_item, footnote_item, removed_item],
         {
             "bank_code": "bnc",
             "quarter_from": "Q1-2025",
             "quarter_to": "Q2-2025",
             "year": 2025,
-            "meta": {
-                "compare_path": "/tmp/compare.json",
-                "extraction_sources": {
-                    "previous": {
-                        "mode": "stored",
-                        "tables_path": "/tmp/t1/tables.json",
-                        "indicators_path": "/tmp/t1/indicators.json",
-                        "footnotes_path": "/tmp/t1/footnotes.json",
-                    },
-                    "current": {
-                        "mode": "fresh",
-                        "tables_path": "/tmp/t2/tables.json",
-                        "indicators_path": "/tmp/t2/indicators.json",
-                        "footnotes_path": "/tmp/t2/footnotes.json",
-                    },
-                },
-            },
+            "tables_matched": 24,
+            "tables_added": [{"table_id": "tbl_cur_1"}],
+            "tables_removed": [{"table_id": "tbl_prev_1"}],
         },
     )
 
     wb = load_workbook(io.BytesIO(excel_bytes))
-    assert "Revue" in wb.sheetnames
-    assert "Contexte" in wb.sheetnames
-    assert "Technique" in wb.sheetnames
+    assert wb.sheetnames == [EXPERT_EXCEL_SHEET_SUMMARY, EXPERT_EXCEL_SHEET_REVIEW]
 
-    ws_context = wb["Contexte"]
-    context_pairs = {
-        str(ws_context.cell(row=i, column=1).value): str(
-            ws_context.cell(row=i, column=2).value
-        )
-        for i in range(2, ws_context.max_row + 1)
+    ws_review = wb[EXPERT_EXCEL_SHEET_REVIEW]
+    headers = [
+        ws_review.cell(row=1, column=i).value for i in range(1, ws_review.max_column + 1)
+    ]
+    assert headers == EXPERT_EXCEL_COLUMNS
+    assert "pertinence_genai" not in headers
+    assert "niveau_risque_genai" not in headers
+    assert "change_id" not in headers
+    assert "confidence" not in headers
+
+    assert ws_review.freeze_panes == "A2"
+    assert ws_review.auto_filter.ref == ws_review.dimensions
+    assert ws_review.max_row == 4
+
+    row_2 = [ws_review.cell(row=2, column=i).value for i in range(1, ws_review.max_column + 1)]
+    assert row_2[0] == "BNC"
+    assert row_2[1] == "Q2-2025 vs Q1-2025"
+    assert row_2[2] == "Gestion du capital"
+    assert row_2[3] == "Structure des fonds propres"
+    assert row_2[8] == "12,4 %"
+    assert row_2[9] == "12,8 %"
+    assert row_2[11] == "Oui"
+    assert row_2[12] == "Validé"
+
+    row_3 = [ws_review.cell(row=3, column=i).value for i in range(1, ws_review.max_column + 1)]
+    assert row_3[4] == "Note"
+    assert row_3[11] == "Non"
+    assert row_3[12] == "En attente"
+
+    row_4 = [ws_review.cell(row=4, column=i).value for i in range(1, ws_review.max_column + 1)]
+    assert row_4[5] == "retiré"
+    assert row_4[6] == "41"
+    assert row_4[7] is None
+    assert row_4[8] == "Tableau entier retiré"
+    assert row_4[9] is None
+    assert row_4[12] == "Rejeté"
+
+    ws_summary = wb[EXPERT_EXCEL_SHEET_SUMMARY]
+    summary_pairs = {
+        str(ws_summary.cell(row=i, column=1).value): ws_summary.cell(row=i, column=2).value
+        for i in range(2, 14)
+        if ws_summary.cell(row=i, column=1).value not in ("", None)
     }
-    assert context_pairs["compare_path"] == "/tmp/compare.json"
-    assert context_pairs["previous_source_mode"] == "stored"
-    assert context_pairs["current_source_mode"] == "fresh"
+    assert summary_pairs["Banque"] == "BNC"
+    assert summary_pairs["Trimestre comparé"] == "Q2-2025 vs Q1-2025"
+    assert summary_pairs["Nombre total de changements"] == 3
+    assert summary_pairs["Validés"] == 1
+    assert summary_pairs["Rejetés"] == 1
+    assert summary_pairs["En attente"] == 1
+    assert summary_pairs["Tableaux appariés"] == 24
+    assert summary_pairs["Vrais ajouts"] == 1
+    assert summary_pairs["Vrais retraits"] == 1
+    assert summary_pairs["Notes modifiées"] == 1
 
-    ws_tech = wb["Technique"]
-    headers = [ws_tech.cell(row=1, column=i).value for i in range(1, ws_tech.max_column + 1)]
-    assert "comment" in headers
+    section_header_row = 15
+    section_headers = [
+        ws_summary.cell(row=section_header_row, column=i).value for i in range(1, 6)
+    ]
+    assert section_headers == [
+        "Section",
+        "Nombre de changements",
+        "Validés",
+        "Rejetés",
+        "En attente",
+    ]
+
+
+def test_generate_validation_txt_generates_readable_report() -> None:
+    item = ReviewItem(
+        change_id="ind-1",
+        change_type="modified",
+        indicator="Ratio CET1",
+        section="capital_management",
+        table_name="Structure des fonds propres",
+        page_t1=33,
+        page_t2=38,
+        review_status="approved",
+        comment="Variation cohérente",
+        indicators=[
+            {
+                "name": "Ratio CET1",
+                "type": "modified",
+                "from": "12,4 %",
+                "to": "12,8 %",
+                "review_status": "approved",
+            }
+        ],
+        genai_analysis={"relevance": "NOUVELLE_DIVULGATION"},
+    )
+
+    txt = generate_validation_txt(
+        [item],
+        {
+            "bank_code": "bnc",
+            "quarter_from": "Q1-2025",
+            "quarter_to": "Q2-2025",
+        },
+    )
+
+    assert "REVUE EXPERT" in txt
+    assert "Banque : BNC" in txt
+    assert "Trimestre comparé : Q2-2025 vs Q1-2025" in txt
+    assert "SECTION : Gestion du capital" in txt
+    assert "Tableau : Structure des fonds propres" in txt
+    assert "Nouvelle idée : Oui" in txt
+    assert "Validation expert : Validé" in txt
+    assert "Commentaire expert : Variation cohérente" in txt
+    assert "change_id" not in txt
+    assert "pertinence_genai" not in txt
+    assert "niveau_risque_genai" not in txt

@@ -5,8 +5,8 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from app.i18n import t
-from app.ui_config import AVAILABLE_BANKS
+from vigilance.i18n import t
+from vigilance.ui_config import AVAILABLE_BANKS
 
 
 def build_sidebar() -> dbc.Col:

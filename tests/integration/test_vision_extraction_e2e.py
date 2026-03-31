@@ -150,7 +150,7 @@ def test_docling_only_flags_stay_strict_when_disabled(tmp_path: Path) -> None:
 
 def test_vision_writer_handles_vision_style_footnotes(tmp_path: Path) -> None:
     """Direct test: Vision-style list[dict] footnotes produce clean footnotes_content."""
-    from app.comparison_runner import _table_to_artifact
+    from vigilance.comparison_runner import _table_to_artifact
 
     fake = SimpleNamespace(
         rows=[["a", "1"]],
