@@ -1127,7 +1127,9 @@ def _right_column_bleed_score(
         return 0
     if not _has_multi_textual_headers(result):
         return 0
-    indicators = [str(v).strip() for v in list(result.indicators or []) if str(v).strip()]
+    indicators = [
+        str(v).strip() for v in list(result.indicators or []) if str(v).strip()
+    ]
     baseline_indicators = [
         str(v).strip() for v in list(baseline_result.indicators or []) if str(v).strip()
     ]
@@ -1138,11 +1140,13 @@ def _right_column_bleed_score(
     tail = indicators[len(baseline_indicators) :]
     if len(tail) < 2:
         return 0
-    suspicious_tail = [item for item in tail if _looks_like_right_column_bleed_indicator(item)]
+    suspicious_tail = [
+        item for item in tail if _looks_like_right_column_bleed_indicator(item)
+    ]
     if not suspicious_tail:
         return 0
-    baseline_avg_tokens = (
-        sum(_token_count(item) for item in baseline_indicators) / len(baseline_indicators)
+    baseline_avg_tokens = sum(_token_count(item) for item in baseline_indicators) / len(
+        baseline_indicators
     )
     tail_avg_tokens = sum(_token_count(item) for item in tail) / len(tail)
     if tail_avg_tokens < baseline_avg_tokens + 2.5:
@@ -1265,9 +1269,7 @@ _DATE_RE = re.compile(
     r"^\s*(au\s+\d{1,2}\s+\w+\s+\d{4}|\d{1,2}\s+\w+\s+\d{4}|\d{4}[-/]\d{2}[-/]\d{2}|[tTqQ][1-4]\s*\d{4}|\d{1,2}\s*(?:janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\s*\d{4})\s*$",
     re.IGNORECASE,
 )
-_NUMBER_RE = re.compile(
-    r"^\s*[\(\-]?[\d\s.,]+[\)%]?\s*$"
-)
+_NUMBER_RE = re.compile(r"^\s*[\(\-]?[\d\s.,]+[\)%]?\s*$")
 
 
 def _count_real_indicators(indicators: list[Any]) -> int:
@@ -1389,7 +1391,7 @@ def _collect_incompleteness_reasons(
         reasons.append("dominant_contamination")
     if bbox_norm and len(bbox_norm) >= 4 and bbox_norm[1] < 0.15 and not title:
         reasons.append("top_context_missing_title")
-        
+
     if bbox_norm and len(bbox_norm) >= 4:
         bbox_height = max(0.0, float(bbox_norm[3]) - float(bbox_norm[1]))
         viable = _viable_indicator_count(result)
@@ -1655,6 +1657,7 @@ class VisionFullExtractor:
         max_completion_tokens_override: int | None = None,
         rescue_mode: bool = False,
         rescue_instruction: str = "",
+        temperature: float = 0.0,
     ) -> VisionFullResult | None:
         """
         Extract indicators and footnotes from a table crop.
@@ -1918,7 +1921,7 @@ class VisionFullExtractor:
                             }
                         ],
                         response_format=response_format,
-                        temperature=0,
+                        temperature=temperature,
                         max_completion_tokens=effective_max,
                     )
                     prompt_tokens, completion_tokens, total_tokens = (
@@ -2210,11 +2213,17 @@ class VisionFullExtractor:
             if critiques and attempt < max_self_healing_attempts - 1:
                 # --- Quorum: if same indicator count as previous attempt, accept ---
                 current_real_count = _count_real_indicators(result.indicators or [])
-                if prev_real_indicator_count is not None and abs(current_real_count - prev_real_indicator_count) <= 1:
+                if (
+                    prev_real_indicator_count is not None
+                    and abs(current_real_count - prev_real_indicator_count) <= 1
+                ):
                     logger.info(
                         "Vision full: Quorum reached (attempt %d: %d real inds ≈ prev %d). "
                         "Accepting result despite critiques: %s",
-                        attempt + 1, current_real_count, prev_real_indicator_count, critiques,
+                        attempt + 1,
+                        current_real_count,
+                        prev_real_indicator_count,
+                        critiques,
                     )
                 else:
                     prev_real_indicator_count = current_real_count
@@ -2263,6 +2272,154 @@ class VisionFullExtractor:
             return result
 
         return None
+
+    # ------------------------------------------------------------------
+    # Multi-Shot Consensus extraction
+    # ------------------------------------------------------------------
+
+    _CONSENSUS_TEMPERATURES: tuple[float, ...] = (0.0, 0.2, 0.4)
+
+    def extract_with_consensus(
+        self,
+        crop_bytes: bytes,
+        bank_code: str,
+        pdf_sha: str = "",
+        page_number: int = 0,
+        bbox_norm: list[float] | None = None,
+        vision_cfg: dict[str, Any] | None = None,
+        bottom_extension_used: float = 0.0,
+        reference_text: str | None = None,
+        max_completion_tokens_override: int | None = None,
+        rescue_mode: bool = False,
+        rescue_instruction: str = "",
+        temperatures: tuple[float, ...] | None = None,
+    ) -> VisionFullResult | None:
+        """Multi-shot extraction with consensus voting.
+
+        Dispatches ``len(temperatures)`` parallel extractions at different
+        temperatures, then selects the result with the best consensus on
+        indicator count and label overlap.
+
+        Falls back to a single temperature-0 extraction when the consensus
+        is unanimous or only one shot succeeds.
+        """
+        temps = temperatures or self._CONSENSUS_TEMPERATURES
+        if len(temps) <= 1:
+            return self.extract(
+                crop_bytes=crop_bytes,
+                bank_code=bank_code,
+                pdf_sha=pdf_sha,
+                page_number=page_number,
+                bbox_norm=bbox_norm,
+                vision_cfg=vision_cfg,
+                bottom_extension_used=bottom_extension_used,
+                reference_text=reference_text,
+                max_completion_tokens_override=max_completion_tokens_override,
+                rescue_mode=rescue_mode,
+                rescue_instruction=rescue_instruction,
+                temperature=temps[0],
+            )
+
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        def _shot(temp: float) -> VisionFullResult | None:
+            return self.extract(
+                crop_bytes=crop_bytes,
+                bank_code=bank_code,
+                pdf_sha=pdf_sha,
+                page_number=page_number,
+                bbox_norm=bbox_norm,
+                vision_cfg=vision_cfg,
+                bottom_extension_used=bottom_extension_used,
+                reference_text=reference_text,
+                max_completion_tokens_override=max_completion_tokens_override,
+                rescue_mode=rescue_mode,
+                rescue_instruction=rescue_instruction,
+                temperature=temp,
+            )
+
+        results: list[VisionFullResult] = []
+        with ThreadPoolExecutor(max_workers=len(temps)) as pool:
+            futures = {pool.submit(_shot, t): t for t in temps}
+            for future in as_completed(futures):
+                try:
+                    r = future.result()
+                    if r is not None and r.indicators:
+                        results.append(r)
+                except Exception as exc:
+                    logger.debug(
+                        "Consensus shot at temp=%.1f failed: %s",
+                        futures[future],
+                        exc,
+                    )
+
+        if not results:
+            return None
+        if len(results) == 1:
+            return results[0]
+
+        # --- Consensus voting ---
+        return self._select_consensus(results, bbox_norm=bbox_norm)
+
+    @staticmethod
+    def _select_consensus(
+        results: list[VisionFullResult],
+        *,
+        bbox_norm: list[float] | None = None,
+    ) -> VisionFullResult:
+        """Pick the result with the best consensus on indicator labels.
+
+        Strategy:
+        1. Compute *median* indicator count across all shots.
+        2. Build a superset of normalised indicator labels from all shots and
+           compute per-label vote counts.
+        3. Score each result by: (a) closeness to median count, (b) sum of
+           vote counts for its indicators (label popularity).
+        4. Return the result with the highest composite score.
+        """
+        import statistics
+
+        counts = [_count_real_indicators(r.indicators or []) for r in results]
+        median_count = statistics.median(counts)
+
+        # Normalise labels for comparison
+        def _norm(label: str) -> str:
+            return label.strip().lower()
+
+        # Collect vote counts per normalised label
+        label_votes: dict[str, int] = {}
+        for r in results:
+            for ind in r.indicators or []:
+                key = _norm(str(ind))
+                if key:
+                    label_votes[key] = label_votes.get(key, 0) + 1
+
+        def _score(r: VisionFullResult) -> float:
+            real_count = _count_real_indicators(r.indicators or [])
+            # Penalty for deviating from the median count
+            count_penalty = abs(real_count - median_count)
+            # Popularity: sum of votes for this result's labels
+            popularity = sum(
+                label_votes.get(_norm(str(ind)), 0) for ind in (r.indicators or [])
+            )
+            # Quality bonus from existing scoring function (tuple of ints)
+            quality_tuple = _candidate_quality_score(
+                r,
+                bbox_norm=bbox_norm,
+                expected_footnote_ids=set(),
+                baseline_result=None,
+            )
+            return popularity - count_penalty * 3 + sum(quality_tuple) * 0.5
+
+        best = max(results, key=_score)
+
+        logger.info(
+            "Consensus: selected result with %d indicators (median=%s, from %d shots)",
+            _count_real_indicators(best.indicators or []),
+            median_count,
+            len(results),
+        )
+        return best
 
     def extract_with_quality_pass(
         self,
@@ -2334,20 +2491,21 @@ class VisionFullExtractor:
 
         def _extract_markers_from_indicators(indicators: list[str]) -> set[str]:
             import re
+
             markers = set()
             for text in indicators:
                 text_lower = text.lower()
-                for m in re.finditer(r'[²³*†‡]', text):
+                for m in re.finditer(r"[²³*†‡]", text):
                     val = m.group(0)
-                    if val == '²':
-                        markers.add('2')
-                    elif val == '³':
-                        markers.add('3')
+                    if val == "²":
+                        markers.add("2")
+                    elif val == "³":
+                        markers.add("3")
                     else:
                         markers.add(val)
-                for m in re.finditer(r'\(\s*([0-9a-z])\s*\)', text_lower):
+                for m in re.finditer(r"\(\s*([0-9a-z])\s*\)", text_lower):
                     if m.start() <= 1:
-                        prefix = text[:m.start()]
+                        prefix = text[: m.start()]
                         if not any(c.isalnum() for c in prefix):
                             continue
                     markers.add(m.group(1))
@@ -2371,6 +2529,8 @@ class VisionFullExtractor:
                 return True
             return "vision_truncated" in {str(w).strip() for w in result.warnings or []}
 
+        consensus_enabled = bool(vision_cfg.get("vision_consensus_enabled", False))
+
         def _run_pass(
             *,
             crop_bytes_for_pass: bytes,
@@ -2378,19 +2538,34 @@ class VisionFullExtractor:
             rescue_mode: bool = False,
             rescue_instruction: str = "",
         ) -> VisionFullResult | None:
-            primary = self.extract(
-                crop_bytes=crop_bytes_for_pass,
-                bank_code=bank_code,
-                pdf_sha=pdf_sha,
-                page_number=page_number,
-                bbox_norm=bbox_norm,
-                vision_cfg=vision_cfg,
-                bottom_extension_used=bottom_extension_used,
-                reference_text=reference_text,
-                max_completion_tokens_override=base_max_completion_tokens,
-                rescue_mode=rescue_mode,
-                rescue_instruction=rescue_instruction,
-            )
+            if consensus_enabled and not rescue_mode:
+                primary = self.extract_with_consensus(
+                    crop_bytes=crop_bytes_for_pass,
+                    bank_code=bank_code,
+                    pdf_sha=pdf_sha,
+                    page_number=page_number,
+                    bbox_norm=bbox_norm,
+                    vision_cfg=vision_cfg,
+                    bottom_extension_used=bottom_extension_used,
+                    reference_text=reference_text,
+                    max_completion_tokens_override=base_max_completion_tokens,
+                    rescue_mode=rescue_mode,
+                    rescue_instruction=rescue_instruction,
+                )
+            else:
+                primary = self.extract(
+                    crop_bytes=crop_bytes_for_pass,
+                    bank_code=bank_code,
+                    pdf_sha=pdf_sha,
+                    page_number=page_number,
+                    bbox_norm=bbox_norm,
+                    vision_cfg=vision_cfg,
+                    bottom_extension_used=bottom_extension_used,
+                    reference_text=reference_text,
+                    max_completion_tokens_override=base_max_completion_tokens,
+                    rescue_mode=rescue_mode,
+                    rescue_instruction=rescue_instruction,
+                )
             if (
                 rescue_enabled
                 and rescue_max_completion_tokens > base_max_completion_tokens
@@ -2431,19 +2606,27 @@ class VisionFullExtractor:
             bbox_norm=bbox_norm,
             expected_footnote_ids=expected_set,
         )
-        
+
         # --- Dual LLM QA Inspector (Priority 1) ---
         qa_missing_str = ""
         passed_qa = False
-        if first is not None and not initial_is_suspect and not initial_rejection_reasons:
+        if (
+            first is not None
+            and not initial_is_suspect
+            and not initial_rejection_reasons
+        ):
             try:
-                from vigilance.extraction.vision_qa_inspector import VisionTableInspector
                 import dataclasses
+
+                from vigilance.extraction.vision_qa_inspector import (
+                    VisionTableInspector,
+                )
+
                 first_dict = dataclasses.asdict(first)
-                
+
                 inspector = VisionTableInspector(model="gpt-4o")
                 qa_result = inspector.inspect_extraction(crop_bytes, first_dict)
-                
+
                 if not qa_result.is_perfect:
                     initial_rejection_reasons.append("qa_inspector_failed")
                     qa_missing_str = ", ".join(qa_result.missing_elements)
@@ -2517,7 +2700,9 @@ class VisionFullExtractor:
                 crop_bytes_for_pass=crop_bytes_for_pass,
                 bottom_extension_used=bottom_extension_used,
                 rescue_mode=True,
-                rescue_instruction=custom_rescue_instr if custom_rescue_instr is not None else base_rescue_instruction,
+                rescue_instruction=custom_rescue_instr
+                if custom_rescue_instr is not None
+                else base_rescue_instruction,
             )
             candidates.append((name, result))
             if (

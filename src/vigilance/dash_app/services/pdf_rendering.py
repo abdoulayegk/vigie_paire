@@ -17,6 +17,10 @@ from vigilance.ui_detection import get_pdf_preview
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
 from vigilance.dash_app.services.comparison_context import _normalize_pdf_paths_store
+from vigilance.utils.proof_rendering import (
+    normalize_proof_bbox as _shared_normalize_proof_bbox,
+    render_full_proof_bytes,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,34 +45,32 @@ def _cached_render_or_crop(
     from vigilance.utils.pdf_crop import (
         crop_footnote_region_to_bytes,
         crop_table_region_to_bytes,
-        render_page_with_bbox_highlight_to_bytes,
     )
 
-    if not bbox_key:
-        if display_mode == "full":
-            raw = get_pdf_preview(pdf_path, page, scale=scale)
-            return raw if raw else b""
+    bbox: list[float] | None = None
+    if bbox_key:
+        try:
+            parsed = json.loads(bbox_key)
+            if isinstance(parsed, list) and len(parsed) == 4:
+                bbox = parsed
+        except (json.JSONDecodeError, TypeError):
+            bbox = None
+
+    if display_mode == "full":
+        raw, _, _ = render_full_proof_bytes(
+            pdf_path,
+            page=page,
+            bbox=bbox,
+            scale=scale,
+            allow_full_page_fallback=True,
+        )
+        return raw if raw else b""
+
+    if bbox is None:
         return b""
 
     try:
-        bbox = json.loads(bbox_key)
-        if not (isinstance(bbox, list) and len(bbox) == 4):
-            if display_mode == "full":
-                raw = get_pdf_preview(pdf_path, page, scale=scale)
-                return raw if raw else b""
-            return b""
-    except (json.JSONDecodeError, TypeError):
-        if display_mode == "full":
-            raw = get_pdf_preview(pdf_path, page, scale=scale)
-            return raw if raw else b""
-        return b""
-
-    try:
-        if display_mode == "full":
-            return render_page_with_bbox_highlight_to_bytes(
-                pdf_path, page, bbox, scale=scale
-            )
-        elif display_mode == "footnote":
+        if display_mode == "footnote":
             return crop_footnote_region_to_bytes(pdf_path, page, bbox, scale=scale)
         else:  # "crop" (default)
             return crop_table_region_to_bytes(
@@ -77,36 +79,12 @@ def _cached_render_or_crop(
                 secondary_highlight_rects=secondary_highlight_rects,
             )
     except Exception:
-        if display_mode == "full":
-            raw = get_pdf_preview(pdf_path, page, scale=scale)
-            return raw if raw else b""
         return b""
 
 
 def _normalize_proof_bbox(bbox: Any) -> list[float] | None:
     """Return [l, t, r, b] in 0..1 when usable for proof rendering."""
-    if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
-        return None
-    try:
-        normalized = [
-            float(bbox[0]),
-            float(bbox[1]),
-            float(bbox[2]),
-            float(bbox[3]),
-        ]
-    except (TypeError, ValueError):
-        return None
-    l_, top, r, bottom = normalized
-    if not (
-        0.0 <= l_ <= 1.0
-        and 0.0 <= top <= 1.0
-        and 0.0 <= r <= 1.0
-        and 0.0 <= bottom <= 1.0
-    ):
-        return None
-    if r <= l_ or bottom <= top:
-        return None
-    return normalized
+    return _shared_normalize_proof_bbox(bbox)
 
 
 def _proof_render_result(
@@ -156,10 +134,19 @@ def _get_proof_render_result_for_item(
         return _proof_render_result(None, "bbox_missing", display_mode)
 
     if display_mode == "full" and bbox is None:
-        image_b64 = _get_proof_image_b64(item_dict, side, paths)
-        if image_b64:
-            return _proof_render_result(image_b64, "ok", "full_without_bbox")
-        return _proof_render_result(None, "render_failed", "full_without_bbox")
+        raw_bytes, status, mode_effective = render_full_proof_bytes(
+            pdf_path,
+            page=page,
+            bbox=None,
+            scale=1.5,
+            allow_full_page_fallback=True,
+        )
+        if raw_bytes:
+            image_b64 = base64.b64encode(raw_bytes).decode("ascii")
+            return _proof_render_result(image_b64, "ok", mode_effective)
+        if status == "page_missing":
+            return _proof_render_result(None, "page_missing", mode_effective)
+        return _proof_render_result(None, "render_failed", mode_effective)
 
     image_b64 = _get_proof_image_b64_for_item(
         item_dict,

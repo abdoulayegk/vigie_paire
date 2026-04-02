@@ -8,6 +8,15 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+_TABLE_LEVEL_CHANGE_KEYS = (
+    "indicators_added",
+    "indicators_removed",
+    "indicators_renamed",
+    "footnotes_added",
+    "footnotes_removed",
+    "footnotes_renamed",
+)
+
 _FOOTNOTE_MARKER_RE = re.compile(r"\s*\(\d{1,2}\)\s*")
 _PAGE_REF_RE = re.compile(r"pages?\s+\d+\s*[àa]\s*\d+", re.IGNORECASE)
 _DATE_REF_RE = re.compile(
@@ -24,6 +33,12 @@ def _strip_page_and_date_refs(text: str) -> str:
     text = _PAGE_REF_RE.sub("__PAGE__", text)
     text = _DATE_REF_RE.sub("__DATE__", text)
     return text.strip()
+
+
+def recompute_table_level_change(technical_diff: dict[str, Any]) -> str:
+    """Return the canonical table-level status for a filtered diff."""
+    has_changes = any(technical_diff.get(key) for key in _TABLE_LEVEL_CHANGE_KEYS)
+    return "modifie" if has_changes else "inchange"
 
 
 def _filter_noise_from_diff(technical_diff: dict[str, Any]) -> dict[str, Any]:

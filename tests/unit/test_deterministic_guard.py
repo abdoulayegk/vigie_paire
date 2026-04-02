@@ -174,7 +174,7 @@ class TestPostGPTGuard:
             # Inspector is NOT called because GPT returned 0 adds/removes
         ]
 
-        def fake_call(*, model, messages, usage_recorder=None, call_kind=""):
+        def fake_call(*, model, messages, usage_recorder=None, call_kind="", **kwargs):
             call_kinds.append(call_kind)
             return responses.pop(0)
 
@@ -237,7 +237,7 @@ class TestPostGPTGuard:
             },
         ]
 
-        def fake_call(*, model, messages, usage_recorder=None, call_kind=""):
+        def fake_call(*, model, messages, usage_recorder=None, call_kind="", **kwargs):
             return responses.pop(0)
 
         result = diff_table_pair_gpt(
@@ -268,7 +268,7 @@ class TestPostGPTGuard:
             },
         ]
 
-        def fake_call(*, model, messages, usage_recorder=None, call_kind=""):
+        def fake_call(*, model, messages, usage_recorder=None, call_kind="", **kwargs):
             call_kinds.append(call_kind)
             return responses.pop(0)
 
@@ -302,7 +302,7 @@ class TestPostGPTGuard:
             },
         ]
 
-        def fake_call(*, model, messages, usage_recorder=None, call_kind=""):
+        def fake_call(*, model, messages, usage_recorder=None, call_kind="", **kwargs):
             return responses.pop(0)
 
         result = diff_table_pair_gpt(

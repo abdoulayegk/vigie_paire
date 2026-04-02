@@ -39,9 +39,23 @@ from vigilance.comparison_metrics import (
     _count_high_priority_items,
     _count_pair_changes,
 )
-from vigilance.comparison_noise_filter import _filter_noise_from_diff
+from vigilance.comparison_noise_filter import (
+    _filter_noise_from_diff,
+    recompute_table_level_change,
+)
+from vigilance.comparison_visual_sanity import (
+    render_visual_sanity_proof,
+    visual_sanity_check,
+    visual_sanity_check_table_event,
+)
 from vigilance.config import resolve_openai_model
+from vigilance.extraction.section_taxonomy import canonicalize_section
 from vigilance.utils.genai import get_openai_api_key
+from vigilance.utils.matching_normalizer import (
+    normalize_for_matching,
+    strip_temporal_expressions,
+)
+from vigilance.utils.proof_rendering import normalize_proof_bbox
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +70,37 @@ REFERENCE_RESOLUTION_RULE = (
 )
 
 
+def _visual_sanity_meta(
+    *,
+    applied: bool,
+    rejected_count: int,
+    render_status: str,
+) -> dict[str, Any]:
+    return {
+        "visual_sanity_applied": applied,
+        "visual_sanity_rejected_count": int(rejected_count),
+        "visual_sanity_scope": ["indicators", "footnotes", "tables"],
+        "visual_sanity_render_mode": "full",
+        "visual_sanity_render_status": render_status,
+    }
+
+
+def _normalize_table_anchor_section(value: Any) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    try:
+        normalized = canonicalize_section(raw)
+    except Exception:
+        normalized = raw
+    return str(normalized or "").strip()
+
+
+def _normalize_table_anchor_title(value: Any) -> str:
+    raw = strip_temporal_expressions(str(value or ""), target="title", aggressive=True)
+    return normalize_for_matching(raw, target="title")
+
+
 def _call_openai_json(
     *,
     model: str,
@@ -65,7 +110,15 @@ def _call_openai_json(
     api_retry_max: int = 2,
     usage_recorder: list[dict[str, Any]] | None = None,
     call_kind: str = "comparison",
+    response_model: type | None = None,
 ) -> dict[str, Any]:
+    """Call OpenAI with JSON output.
+
+    When *response_model* is a ``pydantic.BaseModel`` subclass, the call uses
+    OpenAI **Structured Outputs** (``client.beta.chat.completions.parse``) to
+    guarantee schema compliance.  The validated model is converted back to a
+    dict so callers keep an identical interface.
+    """
     api_key = get_openai_api_key()
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not configured")
@@ -74,21 +127,35 @@ def _call_openai_json(
 
     client = OpenAI(api_key=api_key)
     last_error: Exception | None = None
+    use_structured = response_model is not None
     for attempt in range(api_retry_max + 1):
         if attempt > 0:
             time.sleep(1.5 * (2 ** (attempt - 1)))
         try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                response_format={"type": "json_object"},
-                temperature=temperature,
-                max_completion_tokens=max_completion_tokens,
-            )
-            raw = response.choices[0].message.content or ""
-            data = json.loads(raw)
-            if not isinstance(data, dict):
-                raise ValueError("OpenAI response is not a JSON object")
+            if use_structured:
+                response = client.beta.chat.completions.parse(
+                    model=model,
+                    messages=messages,
+                    response_format=response_model,
+                    temperature=temperature,
+                    max_completion_tokens=max_completion_tokens,
+                )
+                parsed = response.choices[0].message.parsed
+                if parsed is None:
+                    raise ValueError("Structured Output parsing returned None")
+                data = parsed.model_dump()
+            else:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    response_format={"type": "json_object"},
+                    temperature=temperature,
+                    max_completion_tokens=max_completion_tokens,
+                )
+                raw = response.choices[0].message.content or ""
+                data = json.loads(raw)
+                if not isinstance(data, dict):
+                    raise ValueError("OpenAI response is not a JSON object")
             if usage_recorder is not None:
                 prompt_tokens, completion_tokens, total_tokens = _extract_usage_metrics(
                     response
@@ -386,6 +453,113 @@ def compare_reports_gpt4o(
 
     pair_comparisons: list[dict[str, Any]] = []
     diff_calls_total = 0
+    _sanity_check_enabled = bool(source_pdf_previous and source_pdf_current)
+
+    def _worst_render_status(statuses: list[str]) -> str:
+        for candidate in (
+            "skipped_missing_pdf",
+            "skipped_missing_anchor",
+            "skipped_missing_bbox",
+            "skipped_render_failed",
+        ):
+            if candidate in statuses:
+                return candidate
+        return "ok"
+
+    def _snapshot_has_render_anchor(snapshot: dict[str, Any]) -> bool:
+        try:
+            page = int(snapshot.get("page") or 0)
+        except (TypeError, ValueError):
+            return False
+        return page > 0 and normalize_proof_bbox(snapshot.get("bbox")) is not None
+
+    def _resolve_opposite_table_anchor(
+        event_snapshot: dict[str, Any],
+        opposite_snapshots: dict[str, dict[str, Any]],
+    ) -> dict[str, Any] | None:
+        normalized_section = _normalize_table_anchor_section(event_snapshot.get("section"))
+        normalized_title = _normalize_table_anchor_title(event_snapshot.get("title"))
+        if not normalized_section or not normalized_title:
+            return None
+
+        candidates = [
+            snapshot
+            for snapshot in opposite_snapshots.values()
+            if _snapshot_has_render_anchor(snapshot)
+            and _normalize_table_anchor_section(snapshot.get("section"))
+            == normalized_section
+            and _normalize_table_anchor_title(snapshot.get("title")) == normalized_title
+        ]
+        if len(candidates) != 1:
+            return None
+        return candidates[0]
+
+    def _render_pair_proofs(
+        previous_table_snapshot: dict[str, Any],
+        current_table_snapshot: dict[str, Any],
+    ) -> tuple[bytes | None, bytes | None, str]:
+        previous_render, previous_status = render_visual_sanity_proof(
+            source_pdf_previous,
+            page=previous_table_snapshot.get("page"),
+            bbox=previous_table_snapshot.get("bbox"),
+        )
+        current_render, current_status = render_visual_sanity_proof(
+            source_pdf_current,
+            page=current_table_snapshot.get("page"),
+            bbox=current_table_snapshot.get("bbox"),
+        )
+        return (
+            previous_render,
+            current_render,
+            _worst_render_status([previous_status, current_status]),
+        )
+
+    def _render_table_event_proofs(
+        *,
+        event_type: str,
+        event_snapshot: dict[str, Any],
+    ) -> tuple[bytes | None, bytes | None, str]:
+        normalized_event_type = str(event_type or "").strip().lower()
+        if normalized_event_type == "table_added":
+            opposite_anchor = _resolve_opposite_table_anchor(
+                event_snapshot,
+                previous_snapshots,
+            )
+            if opposite_anchor is None:
+                return None, None, "skipped_missing_anchor"
+            previous_render, previous_status = render_visual_sanity_proof(
+                source_pdf_previous,
+                page=opposite_anchor.get("page"),
+                bbox=opposite_anchor.get("bbox"),
+            )
+            current_render, current_status = render_visual_sanity_proof(
+                source_pdf_current,
+                page=event_snapshot.get("page"),
+                bbox=event_snapshot.get("bbox"),
+            )
+        else:
+            opposite_anchor = _resolve_opposite_table_anchor(
+                event_snapshot,
+                current_snapshots,
+            )
+            if opposite_anchor is None:
+                return None, None, "skipped_missing_anchor"
+            previous_render, previous_status = render_visual_sanity_proof(
+                source_pdf_previous,
+                page=event_snapshot.get("page"),
+                bbox=event_snapshot.get("bbox"),
+            )
+            current_render, current_status = render_visual_sanity_proof(
+                source_pdf_current,
+                page=opposite_anchor.get("page"),
+                bbox=opposite_anchor.get("bbox"),
+            )
+        return (
+            previous_render,
+            current_render,
+            _worst_render_status([previous_status, current_status]),
+        )
+
     for pair in match_result["matched_pairs"]:
         previous_table_id = pair["previous_table_id"]
         current_table_id = pair["current_table_id"]
@@ -398,7 +572,51 @@ def compare_reports_gpt4o(
             max_validation_attempts=_MATCHING_VALIDATION_ATTEMPTS,
         )
         diff_calls_total += _coerce_int(diff.get("diff_calls_total"))
+
+        # --- Visual Sanity Check (post-diff) ---
+        diff.setdefault(
+            "visual_sanity_scope",
+            ["indicators", "footnotes", "tables"],
+        )
+        diff.setdefault("visual_sanity_render_mode", "full")
+        diff.setdefault("visual_sanity_applied", False)
+        diff.setdefault("visual_sanity_rejected_count", 0)
+        diff.setdefault("visual_sanity_render_status", "ok")
+        if _sanity_check_enabled and any(
+            diff.get("technical_diff", {}).get(k)
+            for k in (
+                "indicators_added",
+                "indicators_removed",
+                "indicators_renamed",
+                "footnotes_added",
+                "footnotes_removed",
+                "footnotes_renamed",
+            )
+        ):
+            prev_render, curr_render, render_status = _render_pair_proofs(
+                previous_snapshots[previous_table_id],
+                current_snapshots[current_table_id],
+            )
+            if render_status == "ok":
+                diff = visual_sanity_check(
+                    prev_render,
+                    curr_render,
+                    diff,
+                    model=model_name,
+                    call_openai_json=_call_openai_json,
+                    usage_recorder=usage_records,
+                )
+            else:
+                diff.update(
+                    _visual_sanity_meta(
+                        applied=False,
+                        rejected_count=0,
+                        render_status=render_status,
+                    )
+                )
+
         filtered_diff = _filter_noise_from_diff(diff["technical_diff"])
+        filtered_diff["table_level_change"] = recompute_table_level_change(filtered_diff)
         pair_comparisons.append(
             {
                 "previous_table_id": previous_table_id,
@@ -415,8 +633,82 @@ def compare_reports_gpt4o(
                     change_kind="modifie",
                 ),
                 "reason": diff["reason"],
+                "visual_sanity_applied": bool(diff.get("visual_sanity_applied", False)),
+                "visual_sanity_rejected_count": _coerce_int(
+                    diff.get("visual_sanity_rejected_count")
+                ),
+                "visual_sanity_scope": list(diff.get("visual_sanity_scope") or []),
+                "visual_sanity_render_mode": str(
+                    diff.get("visual_sanity_render_mode", "") or ""
+                ),
+                "visual_sanity_render_status": str(
+                    diff.get("visual_sanity_render_status", "") or ""
+                ),
             }
         )
+
+    if _sanity_check_enabled:
+        filtered_tables_added: list[dict[str, Any]] = []
+        for item in tables_added:
+            previous_render, current_render, render_status = _render_table_event_proofs(
+                event_type="table_added",
+                event_snapshot=item,
+            )
+            if render_status != "ok":
+                item.update(
+                    _visual_sanity_meta(
+                        applied=False,
+                        rejected_count=0,
+                        render_status=render_status,
+                    )
+                )
+                filtered_tables_added.append(item)
+                continue
+            verdict = visual_sanity_check_table_event(
+                previous_render,
+                current_render,
+                event_type="table_added",
+                table_id=str(item.get("table_id", "") or ""),
+                table_title=str(item.get("title", "") or ""),
+                model=model_name,
+                call_openai_json=_call_openai_json,
+                usage_recorder=usage_records,
+            )
+            item.update({key: value for key, value in verdict.items() if key != "confirmed"})
+            if verdict.get("confirmed", True):
+                filtered_tables_added.append(item)
+        tables_added = filtered_tables_added
+
+        filtered_tables_removed: list[dict[str, Any]] = []
+        for item in tables_removed:
+            previous_render, current_render, render_status = _render_table_event_proofs(
+                event_type="table_removed",
+                event_snapshot=item,
+            )
+            if render_status != "ok":
+                item.update(
+                    _visual_sanity_meta(
+                        applied=False,
+                        rejected_count=0,
+                        render_status=render_status,
+                    )
+                )
+                filtered_tables_removed.append(item)
+                continue
+            verdict = visual_sanity_check_table_event(
+                previous_render,
+                current_render,
+                event_type="table_removed",
+                table_id=str(item.get("table_id", "") or ""),
+                table_title=str(item.get("title", "") or ""),
+                model=model_name,
+                call_openai_json=_call_openai_json,
+                usage_recorder=usage_records,
+            )
+            item.update({key: value for key, value in verdict.items() if key != "confirmed"})
+            if verdict.get("confirmed", True):
+                filtered_tables_removed.append(item)
+        tables_removed = filtered_tables_removed
 
     indicator_changes_total, footnote_changes_total = _count_pair_changes(
         pair_comparisons
