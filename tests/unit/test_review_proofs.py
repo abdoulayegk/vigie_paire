@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app import app as dash_app
+from vigilance.dash_app.callbacks import proof_flow as proof_mod
 from vigilance.dash_app.components.review_display_shared import build_proofs_section
 from vigilance.dash_app.layouts import page_results
+from vigilance.dash_app.services import pdf_rendering as pdf_mod
 
 
 def _flatten_text(node: object) -> str:
@@ -118,7 +119,7 @@ def test_update_review_proofs_returns_non_empty_panel_with_fallback_images(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(
-        dash_app,
+        proof_mod,
         "_get_proof_render_result_for_item",
         lambda item, side, paths, proof_display_mode="crop", **kwargs: {
             "image_b64": None,
@@ -127,7 +128,7 @@ def test_update_review_proofs_returns_non_empty_panel_with_fallback_images(
         },
     )
 
-    result = dash_app.update_review_proofs(
+    result = proof_mod.update_review_proofs(
         [
             {
                 "review_id": "rid-1",
@@ -172,9 +173,9 @@ def test_update_review_proofs_uses_requested_display_mode(monkeypatch) -> None:
             "mode_effective": proof_display_mode,
         }
 
-    monkeypatch.setattr(dash_app, "_get_proof_render_result_for_item", _fake_get)
+    monkeypatch.setattr(proof_mod, "_get_proof_render_result_for_item", _fake_get)
 
-    result = dash_app.update_review_proofs(
+    result = proof_mod.update_review_proofs(
         [
             {
                 "review_id": "rid-1",
@@ -206,6 +207,104 @@ def test_update_review_proofs_uses_requested_display_mode(monkeypatch) -> None:
     text = _flatten_text(result)
     assert seen_modes == ["footnote", "footnote"]
     assert "Mode note de bas de tableau" in text
+
+
+def test_update_review_proofs_table_removed_without_bbox_falls_back_to_full(
+    monkeypatch,
+) -> None:
+    seen_modes: list[str] = []
+
+    def _fake_get(item, side, paths, proof_display_mode="crop", **kwargs):
+        seen_modes.append(proof_display_mode)
+        return {
+            "image_b64": "abc" if side == "t1" else None,
+            "status": "ok" if side == "t1" else "page_missing",
+            "mode_effective": proof_display_mode,
+        }
+
+    monkeypatch.setattr(proof_mod, "_get_proof_render_result_for_item", _fake_get)
+
+    result = proof_mod.update_review_proofs(
+        [
+            {
+                "review_id": "rid-rem-1",
+                "table_key": "rid-rem-1",
+                "table_name": "Tableau supprimé",
+                "section": "risk_management",
+                "page_t1": 18,
+                "page_t2": None,
+                "bbox_t1": None,
+                "bbox_t2": None,
+                "source_pdf_t1": "/tmp/t1.pdf",
+                "source_pdf_t2": "/tmp/t2.pdf",
+                "changes": [
+                    {
+                        "change_id": "chg-rem-1",
+                        "change_type": "table_removed",
+                        "payload": {},
+                        "validation_status": "pending",
+                    }
+                ],
+            }
+        ],
+        {"review_id": "rid-rem-1", "change_id": "chg-rem-1"},
+        {},
+        True,
+        "crop",
+    )
+
+    text = _flatten_text(result)
+    assert seen_modes == ["full", "full"]
+    assert "Mode page complète + bbox" in text
+
+
+def test_update_review_proofs_table_added_without_bbox_falls_back_to_full(
+    monkeypatch,
+) -> None:
+    seen_modes: list[str] = []
+
+    def _fake_get(item, side, paths, proof_display_mode="crop", **kwargs):
+        seen_modes.append(proof_display_mode)
+        return {
+            "image_b64": "abc" if side == "t2" else None,
+            "status": "ok" if side == "t2" else "page_missing",
+            "mode_effective": proof_display_mode,
+        }
+
+    monkeypatch.setattr(proof_mod, "_get_proof_render_result_for_item", _fake_get)
+
+    result = proof_mod.update_review_proofs(
+        [
+            {
+                "review_id": "rid-add-1",
+                "table_key": "rid-add-1",
+                "table_name": "Tableau ajouté",
+                "section": "capital_management",
+                "page_t1": None,
+                "page_t2": 22,
+                "bbox_t1": None,
+                "bbox_t2": None,
+                "source_pdf_t1": "/tmp/t1.pdf",
+                "source_pdf_t2": "/tmp/t2.pdf",
+                "changes": [
+                    {
+                        "change_id": "chg-add-1",
+                        "change_type": "table_added",
+                        "payload": {},
+                        "validation_status": "pending",
+                    }
+                ],
+            }
+        ],
+        {"review_id": "rid-add-1", "change_id": "chg-add-1"},
+        {},
+        True,
+        "crop",
+    )
+
+    text = _flatten_text(result)
+    assert seen_modes == ["full", "full"]
+    assert "Mode page complète + bbox" in text
 
 
 def test_v2_meta_and_proofs_resolve_same_review_selection(monkeypatch) -> None:
@@ -257,7 +356,7 @@ def test_v2_meta_and_proofs_resolve_same_review_selection(monkeypatch) -> None:
     seen: dict[str, str] = {}
 
     monkeypatch.setattr(
-        dash_app,
+        proof_mod,
         "_get_proof_render_result_for_item",
         lambda item, side, paths, proof_display_mode="crop", **kwargs: {
             "image_b64": "abc",
@@ -274,11 +373,13 @@ def test_v2_meta_and_proofs_resolve_same_review_selection(monkeypatch) -> None:
         seen["meta"] = str(table.get("table_name") or "")
         return "meta"
 
-    monkeypatch.setattr(dash_app, "build_proofs_section", _capture_proofs)
-    monkeypatch.setattr(dash_app, "build_review_detail_v2", _capture_meta)
+    monkeypatch.setattr(proof_mod, "build_proofs_section", _capture_proofs)
+    monkeypatch.setattr(proof_mod, "build_review_detail_v2", _capture_meta)
 
-    assert dash_app.update_review_proofs(queue, selection, {}, True, "crop") == "proofs"
-    assert dash_app.update_review_meta(queue, selection, True) == "meta"
+    assert (
+        proof_mod.update_review_proofs(queue, selection, {}, True, "crop") == "proofs"
+    )
+    assert proof_mod.update_review_meta(queue, selection, True) == "meta"
     assert seen == {
         "proofs": "ACTIONS ET AUTRES TITRES¹",
         "meta": "ACTIONS ET AUTRES TITRES¹",
@@ -311,7 +412,7 @@ def test_legacy_nav_buttons_hidden_when_v2_active(monkeypatch) -> None:
 
 
 def test_get_proof_render_result_returns_bbox_missing_for_crop() -> None:
-    result = dash_app._get_proof_render_result_for_item(
+    result = pdf_mod._get_proof_render_result_for_item(
         {
             "page_t1": 4,
             "source_ref_t1": "/tmp/t1.pdf",
@@ -330,7 +431,7 @@ def test_get_proof_render_result_returns_bbox_missing_for_crop() -> None:
 
 
 def test_get_proof_render_result_returns_bbox_missing_for_footnote() -> None:
-    result = dash_app._get_proof_render_result_for_item(
+    result = pdf_mod._get_proof_render_result_for_item(
         {
             "page_t1": 4,
             "source_ref_t1": "/tmp/t1.pdf",
@@ -349,9 +450,9 @@ def test_get_proof_render_result_returns_bbox_missing_for_footnote() -> None:
 
 
 def test_get_proof_render_result_uses_full_without_bbox(monkeypatch) -> None:
-    monkeypatch.setattr(dash_app, "_get_proof_image_b64", lambda *args, **kwargs: "abc")
+    monkeypatch.setattr(pdf_mod, "_get_proof_image_b64", lambda *args, **kwargs: "abc")
 
-    result = dash_app._get_proof_render_result_for_item(
+    result = pdf_mod._get_proof_render_result_for_item(
         {
             "page_t1": 4,
             "source_ref_t1": "/tmp/t1.pdf",
@@ -370,9 +471,9 @@ def test_get_proof_render_result_uses_full_without_bbox(monkeypatch) -> None:
 
 
 def test_get_proof_image_b64_tolerates_none_pdf_paths(monkeypatch) -> None:
-    monkeypatch.setattr(dash_app, "get_pdf_preview", lambda *args, **kwargs: None)
+    monkeypatch.setattr(pdf_mod, "get_pdf_preview", lambda *args, **kwargs: None)
 
-    result = dash_app._get_proof_image_b64(
+    result = pdf_mod._get_proof_image_b64(
         {
             "page_t1": 4,
             "source_ref_t1": None,

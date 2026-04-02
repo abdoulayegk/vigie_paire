@@ -5,7 +5,7 @@ from pathlib import Path
 
 import dash_bootstrap_components as dbc
 
-from vigilance.dash_app import app as dash_app
+from vigilance.dash_app.callbacks import load_flow as load_mod
 
 
 def _write_report_comparison(
@@ -78,12 +78,21 @@ def test_on_load_comparison_restores_archived_pdf_paths(
         archived_current=str(current_pdf),
     )
 
-    monkeypatch.setattr(dash_app, "INDICATOR_COMPARISON_DIR", tmp_path)
-    monkeypatch.setattr(dash_app, "build_page_results", lambda: "results-page")
+    monkeypatch.setattr(load_mod, "INDICATOR_COMPARISON_DIR", tmp_path)
+    monkeypatch.setattr(load_mod, "build_page_results", lambda: "results-page")
 
-    result = dash_app.on_load_comparison(1, relative)
+    result = load_mod.on_load_comparison(1, relative)
 
-    _, indicator_result, indicator_meta, pdf_paths, sections_validated, page, notification, show_results = result
+    (
+        _,
+        indicator_result,
+        indicator_meta,
+        pdf_paths,
+        sections_validated,
+        page,
+        notification,
+        show_results,
+    ) = result
     assert indicator_result["meta"]["pdf_paths"]["pdf_previous"] == str(previous_pdf)
     assert indicator_meta["pdf_paths"]["pdf_current"] == str(current_pdf)
     assert indicator_meta["model_version"] == "gpt-5.4"
@@ -112,10 +121,10 @@ def test_on_load_comparison_warns_when_archived_pdf_is_missing(
         archived_current=str(missing_current),
     )
 
-    monkeypatch.setattr(dash_app, "INDICATOR_COMPARISON_DIR", tmp_path)
-    monkeypatch.setattr(dash_app, "build_page_results", lambda: "results-page")
+    monkeypatch.setattr(load_mod, "INDICATOR_COMPARISON_DIR", tmp_path)
+    monkeypatch.setattr(load_mod, "build_page_results", lambda: "results-page")
 
-    result = dash_app.on_load_comparison(1, relative)
+    result = load_mod.on_load_comparison(1, relative)
 
     _, _, indicator_meta, pdf_paths, _, _, notification, _ = result
     assert indicator_meta["pdf_paths"]["pdf_previous"] == str(missing_previous)

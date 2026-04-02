@@ -77,3 +77,42 @@ def test_current_review_id_marks_active_row() -> None:
             elif children is not None:
                 nodes.append(children)
     assert found_active
+
+
+def test_queue_translates_english_section_labels_to_french() -> None:
+    tables = [
+        {
+            **_sample_table("rid-1", "Table 1"),
+            "section": "Capital Management",
+        },
+        {
+            **_sample_table("rid-2", "Table 2"),
+            "section": "Regulatory Updates",
+        },
+        {
+            **_sample_table("rid-3", "Table 3"),
+            "section": "Risk Management",
+        },
+    ]
+    tree = build_review_queue_v2(tables, current_review_id="rid-1")
+    text_fragments: list[str] = []
+    nodes = [tree]
+    while nodes:
+        node = nodes.pop()
+        if isinstance(node, str):
+            text_fragments.append(node)
+            continue
+        if isinstance(node, Component):
+            children = getattr(node, "children", None)
+            if isinstance(children, list):
+                nodes.extend(children)
+            elif children is not None:
+                nodes.append(children)
+
+    text = " ".join(text_fragments)
+    assert "Gestion du capital" in text
+    assert "Reglementation" in text
+    assert "Gestion des risques" in text
+    assert "Capital Management" not in text
+    assert "Regulatory Updates" not in text
+    assert "Risk Management" not in text

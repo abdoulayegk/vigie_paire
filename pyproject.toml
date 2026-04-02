@@ -28,12 +28,6 @@ vigilance-run-tables = "vigilance.cli.run_tables:main"
 vigilance-run-extract-report = "vigilance.cli.run_extract_report:main"
 vigilance-run-compare-gpt4o = "vigilance.cli.run_compare_gpt4o:main"
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "reportlab>=4.0",
-]
-
 [tool.setuptools]
 package-dir = {"" = "src"}
 packages = [
@@ -59,4 +53,5 @@ testpaths = ["tests"]
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
+    "reportlab>=4.0",
 ]

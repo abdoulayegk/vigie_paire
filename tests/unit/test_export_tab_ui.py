@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.app import render_export_tab
+from vigilance.dash_app.callbacks.export_flow import render_export_tab
 
 
 def _collect_component_ids(node: object, acc: list[object]) -> None:
@@ -21,7 +21,11 @@ def _collect_component_ids(node: object, acc: list[object]) -> None:
 def test_render_export_tab_shows_only_excel_and_txt_actions() -> None:
     tree = render_export_tab(
         review_items_data=[{"change_id": "x"}],
-        indicator_result={"bank_code": "td", "quarter_from": "Q3-2025", "quarter_to": "Q1-2026"},
+        indicator_result={
+            "bank_code": "td",
+            "quarter_from": "Q3-2025",
+            "quarter_to": "Q1-2026",
+        },
         show_results=True,
     )
     ids: list[object] = []

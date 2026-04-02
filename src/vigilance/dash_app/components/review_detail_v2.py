@@ -12,6 +12,7 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from vigilance.dash_app.components.review_display_shared import section_display_label
 from vigilance.review_models_v2 import ChangeType
 
 _CHANGE_TYPE_LABELS = {
@@ -76,9 +77,7 @@ _FOOTNOTE_CHANGE_TYPES = {
 
 def _format_section(section: str) -> str:
     """Format section name for display."""
-    if not section:
-        return "Autre"
-    return " ".join(w.capitalize() for w in section.replace("_", " ").split())
+    return section_display_label(section)
 
 
 def _normalize_text(value: object) -> str:
