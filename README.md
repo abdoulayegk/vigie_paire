@@ -26,7 +26,7 @@ Système d'extraction, de comparaison et de revue des tableaux réglementaires i
 ```bash
 git clone https://github.com/abdoulayegk/vigie_paire.git
 cd vigie_paire
-uv sync
+uv sync --group dev
 cp .env.example .env        # puis renseigner OPENAI_API_KEY
 ```
 
@@ -35,7 +35,7 @@ cp .env.example .env        # puis renseigner OPENAI_API_KEY
 ```powershell
 git clone https://github.com/abdoulayegk/vigie_paire.git
 cd vigie_paire
-uv sync
+uv sync --group dev
 copy .env.example .env      # puis renseigner OPENAI_API_KEY
 ```
 
@@ -131,9 +131,16 @@ outputs/comparisons/{banque}/{annee_q}_vs_{annee_prev_q}/comparison.json
 
 ## Lancer l'interface Dash
 
+Commande de référence, identique sur toutes les plateformes :
+
+```bash
+uv run python -m vigilance.dash_app.app
+```
+
 ### Linux / macOS
 
 ```bash
+# Alternative pratique sous Bash
 bash scripts/run_dash.sh
 ```
 

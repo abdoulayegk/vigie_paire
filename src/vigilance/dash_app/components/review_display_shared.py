@@ -32,11 +32,19 @@ _CHANGE_TYPES_WITH_VISUAL_FLAG = frozenset(
 _SECTION_LABELS = {
     "gestion_capital": "Gestion du capital",
     "capital_management": "Gestion du capital",
+    "capital": "Gestion du capital",
     "gestion_risques": "Gestion des risques",
     "risk_management": "Gestion des risques",
+    "risk": "Gestion des risques",
     "gestion_reglementation": "Reglementation",
     "regulatory_updates": "Reglementation",
     "reglementation": "Reglementation",
+    "regulatory": "Reglementation",
+    "unknown_section": "Section non determinee",
+    "credit_risk": "Risque de credit",
+    "market_risk": "Risque de marche",
+    "liquidity_risk": "Risque de liquidite",
+    "operational_risk": "Risque operationnel",
 }
 
 
@@ -49,10 +57,20 @@ def section_display_label(section: str | None) -> str:
         return _SECTION_LABELS[lowered]
     if "capital" in lowered or "fonds propres" in lowered:
         return "Gestion du capital"
+    if "credit" in lowered and "risk" in lowered:
+        return "Risque de credit"
+    if "market" in lowered and "risk" in lowered:
+        return "Risque de marche"
+    if "liquidity" in lowered and "risk" in lowered:
+        return "Risque de liquidite"
+    if "operational" in lowered and "risk" in lowered:
+        return "Risque operationnel"
     if "risque" in lowered or "risk" in lowered:
         return "Gestion des risques"
     if "reglement" in lowered or "regulatory" in lowered:
         return "Reglementation"
+    if "unknown" in lowered:
+        return "Section non determinee"
     return "Autre section"
 
 

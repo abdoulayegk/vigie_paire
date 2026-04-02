@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from vigilance.extraction.vision_full_extractor import (
     VisionFullExtractor,
     VisionFullResult,
 )
+from vigilance.extraction.vision_qa_inspector import QAResult
 
 
 def _result(
@@ -29,6 +32,18 @@ def _result(
     )
 
 
+@pytest.fixture(autouse=True)
+def _stub_qa_inspector(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "vigilance.extraction.vision_qa_inspector.VisionTableInspector.inspect_extraction",
+        lambda self, image_bytes, extracted_json: QAResult(
+            is_perfect=True,
+            missing_elements=[],
+            justification="test stub",
+        ),
+    )
+
+
 def test_quality_pass_accepts_complete_initial_result(monkeypatch) -> None:
     extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
     calls: list[tuple[bytes, bool]] = []
@@ -38,7 +53,7 @@ def test_quality_pass_accepts_complete_initial_result(monkeypatch) -> None:
         return _result(
             title="Tableau 1 - Capital",
             summary="Ratios de capital réglementaires",
-            indicators=["Ratio CET1", "Ratio Tier 1"],
+            indicators=["Ratio CET1", "Ratio Tier 1", "Ratio de levier"],
             headers=["Mesure", "Valeur"],
         )
 

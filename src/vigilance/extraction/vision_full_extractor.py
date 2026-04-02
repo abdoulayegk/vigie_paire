@@ -137,6 +137,7 @@ FIELD 1: indicators (HIGHEST PRIORITY)
 ═══════════════════════════════════════════
 
 Extract ALL logical row labels from the FIRST COLUMN of the table, in strict visual order top → bottom.
+An indicator comes ONLY from the LEFTMOST visible cell of each logical row in the table body.
 
 An indicator is any text that functions as a row label:
 - normal row label
@@ -157,6 +158,14 @@ DO NOT:
 - include pure numeric values, units-only cells, or isolated footnote markers
 - include narrative paragraphs or explanatory text blocks
 - include free text below the table (these may be footnotes)
+- include text from columns 2+ even when those cells contain meaningful business phrases
+
+CRITICAL: MULTI-COLUMN TEXT TABLES
+If the table has multiple textual columns (for example headers like "Canada", "États-Unis", "Europe"):
+- ONLY the text in the LEFTMOST / FIRST COLUMN is eligible for "indicators"
+- text visible under "États-Unis", "Europe", or any other non-leftmost header must NEVER appear in "indicators"
+- if a logical row has no visible first-column / leftmost cell, it must NOT produce an indicator
+- exhaustiveness means "all first-column row labels", NOT "all text visible anywhere in the image"
 
 CRITICAL: FORCED EXHAUSTIVENESS (ANTI-SUMMARIZATION)
 You MUST extract EVERY SINGLE ROW containing financial data. Do NOT summarize or group rows.
@@ -307,7 +316,7 @@ The JSON object must strictly follow this structure:
 VALIDATION CHECKLIST (apply before returning):
 1. indicators: every element is UNIQUE — if duplicates exist, disambiguate with group heading prefix ("Group – label")
 2. indicators: no date/period identifiers ("Au 30 avril 2025", "Trimestre clos le...", "En millions de dollars")
-3. indicators: no pure numeric values, no column headers, no narrative paragraphs
+3. indicators: no pure numeric values, no column headers, no narrative paragraphs, no text from columns 2+
 4. indicators: multi-line labels merged into single strings
 5. indicators: hierarchy preserved via leading spaces (2-space increments per nesting level)
 6. footnotes_content: visual order preserved (top → bottom), NOT sorted by id
@@ -328,6 +337,7 @@ Apply these overrides:
 - Apply the disambiguation rule for repeated labels (prepend group heading).
 - Apply the date/period exclusion rule.
 - Apply hierarchy preservation via leading spaces.
+- In multi-column textual tables, re-check that ONLY the leftmost column populates "indicators".
 - Use no_table_detected = true only if absolutely no tabular structure is visible.
 """
 
@@ -650,9 +660,11 @@ def _build_prompt(
             f"{truncated}\n"
             "=== FIN DICTIONNAIRE ===\n\n"
             "CONSIGNE : Utilise l'image pour l'ordre visuel et la structure du tableau. "
-            "Utilise le Dictionnaire de Référence ci-dessus pour VÉRIFIER L'ORTHOGRAPHE EXACTE "
-            "des libellés d'indicateurs, en-têtes et notes de bas de page. "
-            "Transcris les libellés d'indicateurs à l'identique du dictionnaire quand il est fourni ; "
+            "Utilise le Dictionnaire de Référence ci-dessus UNIQUEMENT pour VÉRIFIER L'ORTHOGRAPHE EXACTE "
+            "des libellés d'indicateurs, en-têtes et notes de bas de page APRÈS avoir identifié les bonnes cellules dans l'image. "
+            "Ne traite jamais ce dictionnaire comme une liste d'indicateurs à recopier. "
+            "Dans un tableau multi-colonnes textuel, si le dictionnaire contient du texte des colonnes 2+, ce texte doit être ignoré pour le champ indicators. "
+            "Transcris un libellé d'indicateur à l'identique du dictionnaire seulement s'il provient réellement de la cellule la plus à gauche dans l'image ; "
             "ne modifie pas la casse, la ponctuation ni les espaces. "
             "Si un libellé long est renvoyé sur 2 ou plusieurs lignes visuelles, reconstruis-le comme un seul indicateur logique et ne le coupe jamais en deux indicateurs distincts, car cela crée des faux positifs en aval. "
             "En cas de conflit entre l'image et le dictionnaire, privilégie l'orthographe du dictionnaire.\n"
@@ -1063,6 +1075,81 @@ def _looks_narrative_indicator(text: str) -> bool:
     )
 
 
+def _looks_compact_textual_header(text: str) -> bool:
+    normalized = re.sub(r"\s+", " ", str(text or "").strip())
+    if not normalized:
+        return False
+    if any(char.isdigit() for char in normalized):
+        return False
+    words = normalized.split()
+    if len(words) == 0 or len(words) > 4:
+        return False
+    if len(normalized) > 28:
+        return False
+    return any(char.isalpha() for char in normalized)
+
+
+def _has_multi_textual_headers(result: VisionFullResult | None) -> bool:
+    if result is None:
+        return False
+    headers = [str(v).strip() for v in list(result.headers or []) if str(v).strip()]
+    if len(headers) < 3:
+        return False
+    return all(_looks_compact_textual_header(header) for header in headers[:3])
+
+
+def _token_count(text: str) -> int:
+    return len(re.findall(r"\w+", str(text or ""), flags=re.UNICODE))
+
+
+def _looks_like_right_column_bleed_indicator(text: str) -> bool:
+    normalized = _normalized_signal_text(text)
+    if not normalized:
+        return False
+    token_count = _token_count(normalized)
+    if token_count >= 10:
+        return True
+    if token_count >= 7 and any(char.isdigit() for char in normalized):
+        return True
+    if token_count >= 7 and "(" in text and ")" in text:
+        return True
+    if token_count >= 8 and normalized.count(" de ") + normalized.count(" du ") >= 2:
+        return True
+    return False
+
+
+def _right_column_bleed_score(
+    result: VisionFullResult | None,
+    *,
+    baseline_result: VisionFullResult | None = None,
+) -> int:
+    if result is None or baseline_result is None:
+        return 0
+    if not _has_multi_textual_headers(result):
+        return 0
+    indicators = [str(v).strip() for v in list(result.indicators or []) if str(v).strip()]
+    baseline_indicators = [
+        str(v).strip() for v in list(baseline_result.indicators or []) if str(v).strip()
+    ]
+    if len(indicators) <= len(baseline_indicators) or not baseline_indicators:
+        return 0
+    if indicators[: len(baseline_indicators)] != baseline_indicators:
+        return 0
+    tail = indicators[len(baseline_indicators) :]
+    if len(tail) < 2:
+        return 0
+    suspicious_tail = [item for item in tail if _looks_like_right_column_bleed_indicator(item)]
+    if not suspicious_tail:
+        return 0
+    baseline_avg_tokens = (
+        sum(_token_count(item) for item in baseline_indicators) / len(baseline_indicators)
+    )
+    tail_avg_tokens = sum(_token_count(item) for item in tail) / len(tail)
+    if tail_avg_tokens < baseline_avg_tokens + 2.5:
+        return 0
+    return len(suspicious_tail) + max(0, len(tail) - 1)
+
+
 def _viable_indicator_count(result: VisionFullResult | None) -> int:
     if result is None:
         return 0
@@ -1325,9 +1412,10 @@ def _candidate_quality_score(
     *,
     bbox_norm: list[float] | None = None,
     expected_footnote_ids: set[str] | None = None,
-) -> tuple[int, int, int, int, int, int, int]:
+    baseline_result: VisionFullResult | None = None,
+) -> tuple[int, int, int, int, int, int, int, int]:
     if result is None:
-        return (0, 0, 0, 0, 0, 0, 0)
+        return (0, 0, 0, 0, 0, 0, 0, 0)
     viable_indicators = _viable_indicator_count(result)
     headers = [str(v).strip() for v in list(result.headers or []) if str(v).strip()]
     title = str(result.table_title or "").strip()
@@ -1338,8 +1426,13 @@ def _candidate_quality_score(
         if isinstance(item, dict) and str(item.get("id") or "").strip()
     }
     expected_ids = expected_footnote_ids or set()
+    right_column_bleed = _right_column_bleed_score(
+        result,
+        baseline_result=baseline_result,
+    )
     return (
         1 if _is_viable_result(result) else 0,
+        -right_column_bleed,
         -_contamination_score(result),
         1 if summary else 0,
         viable_indicators,
@@ -1435,6 +1528,7 @@ def _build_result_debug_metadata(
             result,
             bbox_norm=bbox_norm,
             expected_footnote_ids=expected_footnote_ids,
+            baseline_result=result,
         )
     )
     return replace(
@@ -2383,11 +2477,16 @@ class VisionFullExtractor:
         base_rescue_instruction = ""
         if "qa_inspector_failed" in initial_rejection_reasons:
             base_rescue_instruction = (
-                f"CRITICAL WARNING: The rigid QA Inspector found you completely missed the following visual elements in the image: [{qa_missing_str}].\n"
-                "You MUST execute the extraction again and GUARANTEE these elements are included. Reread carefully line-by-line."
+                f"CRITICAL WARNING: The rigid QA Inspector found you missed required first-column row labels or footnotes in the image: [{qa_missing_str}].\n"
+                "You MUST execute the extraction again and GUARANTEE these missing FIRST-COLUMN row labels or footnotes are included. "
+                "Do NOT add text from non-leftmost columns. Reread carefully line-by-line."
             )
         elif "low_density_vertical" in initial_rejection_reasons:
-            base_rescue_instruction = "WARNING: You failed to extract the full table height in the previous pass. You summarized aggressively. Reread the entire image, line-by-line, and extract EVERY row including heavily indented sub-items."
+            base_rescue_instruction = (
+                "WARNING: You failed to extract the full table height in the previous pass. "
+                "Reread the entire image, line-by-line, and extract EVERY first-column row label including heavily indented sub-items. "
+                "Do NOT convert text from columns 2+ into indicators."
+            )
 
         same_crop_rescue = _run_pass(
             crop_bytes_for_pass=crop_bytes,
@@ -2492,6 +2591,7 @@ class VisionFullExtractor:
                     item[1],
                     bbox_norm=bbox_norm,
                     expected_footnote_ids=expected_set,
+                    baseline_result=first,
                 ),
             )
             assert best_result is not None

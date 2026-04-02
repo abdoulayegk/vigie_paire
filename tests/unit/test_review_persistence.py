@@ -4,10 +4,15 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from vigilance.comparison_canonical import to_canonical_payload
-from vigilance.ui_io import load_comparison_result
+from vigilance.dash_app.callbacks import dashboard_flow as dashboard_mod
+from vigilance.dash_app.callbacks import review_flow as review_mod
+from vigilance.dash_app.services.export_helpers import _review_items_from_v2_queue
+from vigilance.quarter_utils import quarter_label_from_payload
+from vigilance.review_adapters import build_review_items_from_indicator_result
 from vigilance.review_models import ReviewItem
+from vigilance.review_queue_normalizer import build_normalized_review_queue
 from vigilance.review_storage import load_review_state, save_review_state
-from vigilance.dash_app import app as dash_app
+from vigilance.ui_io import load_comparison_result
 
 
 class _FakeTable:
@@ -45,7 +50,7 @@ def test_review_items_from_v2_queue_preserves_validation_metadata() -> None:
         }
     ]
 
-    items = dash_app._review_items_from_v2_queue(queue)
+    items = _review_items_from_v2_queue(queue)
 
     assert len(items) == 1
     assert items[0].comment == "Valide par analyste"
@@ -87,7 +92,7 @@ def test_init_review_items_restores_persisted_state(monkeypatch, tmp_path) -> No
     )
 
     monkeypatch.setattr(
-        dash_app,
+        dashboard_mod,
         "build_review_items_from_indicator_result",
         lambda *args, **kwargs: [
             ReviewItem(
@@ -109,13 +114,13 @@ def test_init_review_items_restores_persisted_state(monkeypatch, tmp_path) -> No
         ],
     )
     monkeypatch.setattr(
-        dash_app,
+        dashboard_mod,
         "build_normalized_review_queue",
         lambda *args, **kwargs: [_FakeTable(persisted_queue[0])],
     )
 
     serialized, serialized_v2, selection, _last_positions, change_idx = (
-        dash_app.init_review_items(
+        dashboard_mod.init_review_items(
             {"bank_code": "bnc", "quarter_from": "q1", "quarter_to": "q2"},
             {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
             {"compare_path": str(compare_path)},
@@ -160,7 +165,7 @@ def test_init_review_items_discards_incompatible_persisted_state(
     )
 
     monkeypatch.setattr(
-        dash_app,
+        dashboard_mod,
         "build_review_items_from_indicator_result",
         lambda *args, **kwargs: [
             ReviewItem(
@@ -182,7 +187,7 @@ def test_init_review_items_discards_incompatible_persisted_state(
         ],
     )
     monkeypatch.setattr(
-        dash_app,
+        dashboard_mod,
         "build_normalized_review_queue",
         lambda *args, **kwargs: [
             _FakeTable(
@@ -212,7 +217,7 @@ def test_init_review_items_discards_incompatible_persisted_state(
     )
 
     serialized, serialized_v2, selection, _last_positions, change_idx = (
-        dash_app.init_review_items(
+        dashboard_mod.init_review_items(
             {"bank_code": "bnc", "quarter_from": "q1", "quarter_to": "q2"},
             {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
             {"compare_path": str(compare_path)},
@@ -260,7 +265,7 @@ def test_init_review_items_v2_ignores_legacy_cursor_restore(
     )
 
     monkeypatch.setattr(
-        dash_app,
+        dashboard_mod,
         "build_review_items_from_indicator_result",
         lambda *args, **kwargs: [
             ReviewItem(
@@ -282,7 +287,7 @@ def test_init_review_items_v2_ignores_legacy_cursor_restore(
         ],
     )
     monkeypatch.setattr(
-        dash_app,
+        dashboard_mod,
         "build_normalized_review_queue",
         lambda *args, **kwargs: [
             _FakeTable(
@@ -312,7 +317,7 @@ def test_init_review_items_v2_ignores_legacy_cursor_restore(
     )
 
     serialized, serialized_v2, selection, _last_positions, change_idx = (
-        dash_app.init_review_items(
+        dashboard_mod.init_review_items(
             {"bank_code": "td", "quarter_from": "q3", "quarter_to": "q1"},
             {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
             {"compare_path": str(compare_path)},
@@ -328,20 +333,25 @@ def test_init_review_items_v2_ignores_legacy_cursor_restore(
 def test_td_review_queue_keeps_structure_and_actions_tables_separate() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     compare_path = (
-        repo_root / "outputs" / "comparisons" / "td" / "2026_t1_vs_2025_t3" / "comparison.json"
+        repo_root
+        / "outputs"
+        / "comparisons"
+        / "td"
+        / "2026_t1_vs_2025_t3"
+        / "comparison.json"
     )
     raw = load_comparison_result(compare_path)
     payload = to_canonical_payload(raw)
 
-    review_items = dash_app.build_review_items_from_indicator_result(
+    review_items = build_review_items_from_indicator_result(
         payload,
         bank_code=str(payload.get("bank_code") or "td"),
-        quarter_from=dash_app.quarter_label_from_payload(payload, "previous"),
-        quarter_to=dash_app.quarter_label_from_payload(payload, "current"),
+        quarter_from=quarter_label_from_payload(payload, "previous"),
+        quarter_to=quarter_label_from_payload(payload, "current"),
         pdf_path_t1=str(compare_path.parent / "previous_report.pdf"),
         pdf_path_t2=str(compare_path.parent / "current_report.pdf"),
     )
-    queue = dash_app.build_normalized_review_queue(
+    queue = build_normalized_review_queue(
         payload,
         [item.to_dict() for item in review_items],
         pdf_path_t1=str(compare_path.parent / "previous_report.pdf"),
@@ -364,16 +374,18 @@ def test_td_review_queue_keeps_structure_and_actions_tables_separate() -> None:
 
 
 def test_legacy_review_callbacks_are_removed() -> None:
-    assert not hasattr(dash_app, "on_modern_nav")
-    assert not hasattr(dash_app, "on_review_navigate")
-    assert not hasattr(dash_app, "on_review_status")
+    from vigilance.dash_app import app as _app_mod
+
+    assert not hasattr(_app_mod, "on_modern_nav")
+    assert not hasattr(_app_mod, "on_review_navigate")
+    assert not hasattr(_app_mod, "on_review_status")
 
 
 def test_on_validate_change_v2_persists_review_state(monkeypatch, tmp_path) -> None:
     compare_path = tmp_path / "comparison.json"
     compare_path.write_text("{}", encoding="utf-8")
     monkeypatch.setattr(
-        dash_app,
+        review_mod,
         "ctx",
         SimpleNamespace(triggered_id="btn-approve-change-v2"),
     )
@@ -401,7 +413,7 @@ def test_on_validate_change_v2_persists_review_state(monkeypatch, tmp_path) -> N
         }
     ]
 
-    new_queue, selection, change_idx = dash_app.on_validate_change_v2(
+    new_queue, selection, change_idx = review_mod.on_validate_change_v2(
         1,
         None,
         None,

@@ -94,6 +94,8 @@ from .table_title_resolver import (
 logger = logging.getLogger(__name__)
 configure_mupdf_runtime(fitz)
 
+_REFERENCE_TEXT_SPLIT_RE = re.compile(r"\s{2,}|\t+|\s+\|\s+")
+
 
 def _coerce_pdf_path(pdf_path: str | Path | os.PathLike[str] | None) -> Path:
     if pdf_path is None:
@@ -109,6 +111,55 @@ def _coerce_pdf_path(pdf_path: str | Path | os.PathLike[str] | None) -> Path:
 
 _ENV_TRUE = {"1", "true", "yes", "on"}
 _ENV_FALSE = {"0", "false", "no", "off"}
+
+
+def _looks_short_textual_header_fragment(value: str) -> bool:
+    text = re.sub(r"\s+", " ", str(value or "").strip())
+    if not text:
+        return False
+    if any(char.isdigit() for char in text):
+        return False
+    words = text.split()
+    if len(words) == 0 or len(words) > 4:
+        return False
+    if len(text) > 28:
+        return False
+    return any(char.isalpha() for char in text)
+
+
+def _build_indicator_reference_text(
+    raw_text: str | None,
+    *,
+    max_chars: int,
+) -> str | None:
+    """Return a safer OCR dictionary for indicator extraction.
+
+    For multi-column textual tables, Docling's full ``table.text`` often mixes
+    the whole row across columns. Feeding that text back to Vision during rescue
+    can turn right-column content into fake first-column indicators. When the
+    top lines look like multiple short textual headers, disable the dictionary.
+    """
+    text = str(raw_text or "").strip()
+    if len(text) <= 20 or max_chars <= 0:
+        return None
+
+    raw_lines = [str(line).strip() for line in text.splitlines() if str(line).strip()]
+    lines = [re.sub(r"\s+", " ", line).strip() for line in raw_lines]
+    if not lines:
+        return None
+
+    for line in raw_lines[:3]:
+        parts = [
+            re.sub(r"\s+", " ", part).strip()
+            for part in _REFERENCE_TEXT_SPLIT_RE.split(line)
+            if re.sub(r"\s+", " ", part).strip()
+        ]
+        if len(parts) >= 3 and all(
+            _looks_short_textual_header_fragment(part) for part in parts[:3]
+        ):
+            return None
+
+    return text[:max_chars]
 
 
 def _env_bool(*names: str) -> bool | None:
@@ -1545,7 +1596,10 @@ class DoclingProcessor:
                                 )
                             )
                             if ref_max_chars > 0:
-                                reference_text = _ref_raw[:ref_max_chars]
+                                reference_text = _build_indicator_reference_text(
+                                    _ref_raw,
+                                    max_chars=ref_max_chars,
+                                )
                 except Exception:
                     pass
                 vision_items.append(

@@ -19,7 +19,10 @@ jobs:
         run: uv python install 3.11
 
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: uv sync --group dev
+
+      - name: Check test environment imports
+        run: uv run python -c "import pytest; import reportlab; print('test_env_imports_ok')"
 
       - name: Run tests
         run: uv run pytest -q

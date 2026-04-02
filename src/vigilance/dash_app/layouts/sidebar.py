@@ -120,32 +120,32 @@ def build_sidebar() -> dbc.Col:
                     dbc.RadioItems(
                         id="data-source-type",
                         options=[
-                            {"label": "Téléverser les PDF", "value": "upload"},
                             {
-                                "label": "Charger une comparaison existante",
-                                "value": "db",
+                                "label": "Analyses enregistrées",
+                                "value": "saved",
                             },
+                            {"label": "Téléverser les PDF", "value": "upload"},
                         ],
-                        value="upload",
+                        value="saved",
                         className="mb-3 small",
                     ),
-                    # 4b. DB Run Selector (hidden by default)
+                    # 4b. Saved analyses selector (hidden by default)
                     html.Div(
                         [
                             html.Label(
-                                "Comparaison disponible",
+                                "Analyses disponibles",
                                 className="fw-bold small",
                             ),
                             dcc.Dropdown(
                                 id="db-run-selector",
                                 options=[],
-                                placeholder="Sélectionner une comparaison...",
+                                placeholder="Sélectionner une analyse enregistrée...",
                                 className="small mb-2",
                             ),
                             dbc.Button(
                                 [
                                     html.I(className="bi bi-database me-2"),
-                                    "Charger la comparaison",
+                                    "Charger l'analyse",
                                 ],
                                 id="btn-load-db",
                                 color="success",
@@ -153,7 +153,7 @@ def build_sidebar() -> dbc.Col:
                             ),
                         ],
                         id="db-source-container",
-                        style={"display": "none"},
+                        style={"display": "block"},
                     ),
                     html.Hr(),
                     # 4. Upload Zones (togglable)
@@ -235,6 +235,7 @@ def build_sidebar() -> dbc.Col:
                             ),
                         ],
                         id="upload-source-container",
+                        style={"display": "none"},
                     ),
                     # 7. Options (Collapsed)
                     dbc.Button(

@@ -12,12 +12,13 @@ def build_page_upload() -> html.Div:
         [
             html.H4("Comparateur de Rapports Bancaires"),
             html.P(
-                "Téléversez les deux fichiers PDF du trimestre courant et du trimestre précédent "
-                "dans la barre latérale, puis lancez l'analyse depuis le panneau de gauche.",
+                "Consultez d'abord les analyses enregistrées dans la barre latérale. "
+                "Si aucune analyse n'est disponible, téléversez ensuite les rapports "
+                "PDF du trimestre courant et du trimestre précédent pour lancer une nouvelle exécution.",
                 className="text-muted",
             ),
             dbc.Alert(
-                "En attente des rapports courant et précédent.",
+                "Aucune analyse affichée pour le moment.",
                 color="info",
                 className="mt-4",
             ),

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import dash_bootstrap_components as dbc
 
-from vigilance.dash_app import app as dash_app
+from vigilance.dash_app.callbacks import load_flow as load_mod
 
 
 def _write_report_comparison(path: Path) -> None:
@@ -59,10 +59,10 @@ def test_on_load_comparison_falls_back_to_run_archived_pdfs(
     previous_pdf.write_bytes(b"%PDF-1.4 previous")
     current_pdf.write_bytes(b"%PDF-1.4 current")
 
-    monkeypatch.setattr(dash_app, "INDICATOR_COMPARISON_DIR", tmp_path)
-    monkeypatch.setattr(dash_app, "build_page_results", lambda: "results-page")
+    monkeypatch.setattr(load_mod, "INDICATOR_COMPARISON_DIR", tmp_path)
+    monkeypatch.setattr(load_mod, "build_page_results", lambda: "results-page")
 
-    result = dash_app.on_load_comparison(1, relative)
+    result = load_mod.on_load_comparison(1, relative)
 
     (
         _,

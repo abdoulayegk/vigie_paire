@@ -94,3 +94,27 @@ def test_table_removed_without_genai_shows_fallback_explanation() -> None:
     assert "Aucune explication GenAI disponible." not in text
     assert "Explication automatique" in text
     assert "absent au trimestre courant" in text
+
+
+def test_detail_view_translates_english_section_label() -> None:
+    table = {
+        "table_name": "Credit table",
+        "section": "Credit Risk",
+        "page_t1": 12,
+        "page_t2": 14,
+        "table_status": "pending",
+        "summary": {"total_changes": 1, "validated": 0, "pending": 1},
+        "changes": [
+            {
+                "change_id": "chg_1",
+                "change_type": "indicator_added",
+                "payload": {"indicator_name": "Indicateur A"},
+                "validation_status": "pending",
+                "is_required": True,
+            }
+        ],
+    }
+    view = build_review_detail_v2(table=table, current_change_idx=0, show_proofs=False)
+    text = _flatten_text(view)
+    assert "Risque de credit" in text
+    assert "Credit Risk" not in text
