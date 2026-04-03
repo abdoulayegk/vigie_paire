@@ -1,0 +1,13 @@
+{
+  "bank": "RBC",
+  "current": {
+    "year": 2025,
+    "quarter": "T2"
+  },
+  "previous": {
+    "year": 2025,
+    "quarter": "T1"
+  },
+  "status": "completed",
+  "generated_at": "2026-04-03T20:19:46.111993+00:00"
+}

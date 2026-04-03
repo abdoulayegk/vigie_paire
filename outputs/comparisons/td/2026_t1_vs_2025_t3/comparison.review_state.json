@@ -3,14 +3,14 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/comparison.json",
   "comparison_run_id": "20260329_181809",
   "review_items_signature": "86a5fce689fa7625bb01c1b2cc69f96d8761a10ece170126670d7231801f8d37",
-  "saved_at": "2026-04-02T14:29:51+00:00",
+  "saved_at": "2026-04-03T20:31:15+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "td::capital_management::tbl_p038_i01|tbl_p033_i01",
-    "change_id": "chg_00002"
+    "review_id": "td::capital_management::tbl_p039_i01|tbl_p034_i01",
+    "change_id": "chg_00004"
   },
-  "review_current_idx": 0,
+  "review_current_idx": 1,
   "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
@@ -27,10 +27,10 @@
       "page_t2": 33,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-02T14:29:51.614650+00:00",
+      "review_timestamp": "2026-04-03T20:31:08.803256+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -40,7 +40,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
-      "table_status": "partial",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "Déduction des expositions sur crypto-actifs",
@@ -52,7 +52,7 @@
           "type": "renamed",
           "from": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des risques)",
           "to": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des actifs pondérés en fonction des risques)",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers are highly similar; row_count 49 vs 48; footnote count identical.",
@@ -118,8 +118,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-03T20:31:15.989100+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -129,12 +129,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "ACTIONS ET AUTRES TITRES¹",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Billets avec remboursement de capital à recours limité – Série 6",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "Série 5",
@@ -1003,7 +1003,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-02T14:29:51.614650+00:00",
+          "validated_at": "2026-04-03T20:31:08.670588+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1017,15 +1017,15 @@
             "from_clean": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des risques)",
             "to_clean": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des actifs pondérés en fonction des risques)"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-03T20:31:08.803256+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "partial",
+      "table_status": "completed",
       "confidence": 0.95,
       "match_method": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers are highly similar; row_count 49 vs 48; footnote count identical.",
       "genai_analysis": {
@@ -1063,8 +1063,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 1,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 1
+        "validated": 2,
+        "pending": 0
       }
     },
     {
@@ -1104,12 +1104,12 @@
             "indicator_name": "Billets avec remboursement de capital à recours limité – Série 6",
             "indicator_name_clean": "billets avec remboursement de capital à recours limité – série 6"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-03T20:31:15.989100+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00004",
@@ -1222,7 +1222,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.9,
       "match_method": "Title identical: 'ACTIONS ET AUTRES TITRES¹'; indicators and headers are highly similar; row_count 23 vs 25; footnote count similar.",
       "genai_analysis": {
@@ -1260,8 +1260,8 @@
         "indicators_removed": 3,
         "indicators_renamed": 0,
         "footnotes_changed": 4,
-        "validated": 0,
-        "pending": 8
+        "validated": 1,
+        "pending": 7
       }
     },
     {

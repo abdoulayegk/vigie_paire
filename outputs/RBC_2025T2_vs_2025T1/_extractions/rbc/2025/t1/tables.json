@@ -1,0 +1,1549 @@
+{
+  "bank_code": "rbc",
+  "year": 2025,
+  "quarter": "t1",
+  "created_at": "2026-04-03T16:16:54",
+  "schema_version": 7,
+  "tables": [
+    {
+      "table_id": "tbl_p024_i01",
+      "page": 24,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.12628829222215746,
+        0.09958865968355883,
+        0.8930797671797264,
+        0.36316315515744735
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Au 31 janvier 2025",
+        "Prêts hypothécaires résidentiels",
+        "Marges de crédit sur valeur nette (2)",
+        "Assurés (3)",
+        "Non assurés",
+        "Total",
+        "Total"
+      ],
+      "table_summary": "Répartition géographique des prêts hypothécaires résidentiels et marges de crédit",
+      "row_count": 13,
+      "indicators": [
+        "Secteur géographique (4)",
+        "Canada",
+        "Provinces de l’Atlantique",
+        "Québec",
+        "Ontario",
+        "Alberta",
+        "Saskatchewan et Manitoba",
+        "Colombie-Britannique et territoires",
+        "Total – Canada (5)",
+        "États-Unis",
+        "Autres pays",
+        "Total – Autres pays",
+        "Total"
+      ],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p024_i02",
+      "page": 24,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.126191463438828,
+        0.37355429307102095,
+        0.8930837147271455,
+        0.6333022623074314
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Prêts hypothécaires résidentiels",
+        "Marges de crédit sur valeur nette (2)",
+        "Assurés (3)",
+        "Non assurés",
+        "Total",
+        "Total"
+      ],
+      "table_summary": "Suite: prêts hypothécaires résidentiels par secteur géographique",
+      "row_count": 13,
+      "indicators": [
+        "Secteur géographique (4)",
+        "Canada",
+        "Provinces de l’Atlantique",
+        "Québec",
+        "Ontario",
+        "Alberta",
+        "Saskatchewan et Manitoba",
+        "Colombie-Britannique et territoires",
+        "Total – Canada (5)",
+        "États-Unis",
+        "Autres pays",
+        "Total – Autres pays",
+        "Total"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Information fournie conformément aux exigences énoncées dans la ligne directrice B-20 du BSIF (Pratiques et procédures de souscription de prêts hypothécaires résidentiels)."
+        },
+        {
+          "id": "2",
+          "text": "Comprend des marges de crédit sur valeur nette assurées et non assurées totalisant 40 892 millions de dollars et 17 millions, respectivement (40 998 millions et 17 millions, respectivement, au 31 octobre 2024), et sont présentées dans les prêts aux particuliers. Les montants indiqués pour les États-Unis et les autres pays comprennent les prêts à terme garantis par des immeubles résidentiels."
+        },
+        {
+          "id": "3",
+          "text": "Les prêts hypothécaires résidentiels assurés sont des prêts hypothécaires pour lesquels le risque de défaillance auquel nous sommes exposés est atténué par l’assurance souscrite auprès de la Société canadienne d’hypothèques et de logement ou d’autres sociétés d’assurance indépendantes."
+        },
+        {
+          "id": "4",
+          "text": "Le secteur géographique est déterminé selon l’adresse où se trouve la propriété grevée d’un prêt hypothécaire. Les provinces de l’Atlantique comprennent Terre-Neuve-et-Labrador, l’Île-du-Prince-Édouard, la Nouvelle-Écosse et le Nouveau-Brunswick; la Colombie-Britannique et les territoires comprennent la Colombie-Britannique, le Nunavut, les Territoires du Nord-Ouest et le Yukon."
+        },
+        {
+          "id": "5",
+          "text": "Le total consolidé des prêts hypothécaires résidentiels au Canada de 443 milliards de dollars (441 milliards au 31 octobre 2024) comprend des prêts hypothécaires commerciaux de 12 milliards (12 milliards au 31 octobre 2024) dans le secteur Services bancaires aux entreprises, dont une tranche de 9 milliards (9 milliards au 31 octobre 2024) est assurée, et des prêts hypothécaires résidentiels de 18 milliards (18 milliards au 31 octobre 2024) dans le secteur Marchés des Capitaux, dont un montant de 18 milliards (18 milliards au 31 octobre 2024) est détenu à des fins de titrisation. Tous les prêts hypothécaires résidentiels détenus à des fins de titrisation sont assurés (tous assurés au 31 octobre 2024)."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p025_i01",
+      "page": 25,
+      "section": "risk_management",
+      "title": "thécaires résidentiels par période d’amortissement (1)",
+      "bbox": [
+        0.14034477474282234,
+        0.11349042013078206,
+        0.8395068420106498,
+        0.25271111460328866
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Canada (2)",
+        "États-Unis et autres pays",
+        "Total",
+        "Canada (2)",
+        "États-Unis et autres pays",
+        "Total"
+      ],
+      "table_summary": "Répartition des prêts hypothécaires résidentiels par période d’amortissement",
+      "row_count": 5,
+      "indicators": [
+        "Période d’amortissement",
+        "25 ans ou moins",
+        "De 25 à 30 ans",
+        "De 30 à 35 ans",
+        "Total"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Information fournie conformément aux exigences énoncées dans la ligne directrice B-20 du BSIF (Pratiques et procédures de souscription de prêts hypothécaires résidentiels)."
+        },
+        {
+          "id": "2",
+          "text": "Selon notre politique, les nouveaux prêts hypothécaires sont accordés avec des périodes d’amortissement de 30 ans ou moins. Les périodes d’amortissement de plus de 30 ans indiquent l’incidence de la hausse des taux d’intérêt sur nos portefeuilles de prêts hypothécaires à taux variables. Pour ces prêts, la période d’amortissement est ramenée au calendrier d’amortissement initial lors du renouvellement. Nous n’offrons pas de produits hypothécaires dont la structure entraînerait un amortissement négatif, car les paiements sur les prêts hypothécaires à taux variables augmentent automatiquement pour assurer la couverture des intérêts courus."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p025_i02",
+      "page": 25,
+      "section": "risk_management",
+      "title": "prêt-valeur moyen (1)",
+      "bbox": [
+        0.10646417722180115,
+        0.4249566907626916,
+        0.872861036613806,
+        0.7206389718281051
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "le 31 janvier 2025",
+        "le 31 octobre 2024",
+        "Prêts hypothécaires résidentiels (2)",
+        "Produits de la gamme Marge Proprio RBC (3)",
+        "Prêts hypothécaires résidentiels (2)",
+        "Produits de la gamme Marge Proprio RBC (3)"
+      ],
+      "table_summary": "Ratios prêt-valeur moyens des prêts hypothécaires résidentiels",
+      "row_count": 11,
+      "indicators": [
+        "Moyenne des nouveaux prêts et des prêts acquis pour la période, par secteur géographique (4)",
+        "Provinces de l’Atlantique",
+        "Québec",
+        "Ontario",
+        "Alberta",
+        "Saskatchewan et Manitoba",
+        "Colombie-Britannique et territoires",
+        "États-Unis",
+        "Autres pays",
+        "Moyenne des nouveaux prêts et des prêts acquis pour la période (5), (6)",
+        "Total du portefeuille de prêts hypothécaires résidentiels du secteur Services bancaires canadiens (7)"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Information fournie conformément aux exigences énoncées dans la ligne directrice B-20 du BSIF (Pratiques et procédures de souscription de prêts hypothécaires résidentiels)."
+        },
+        {
+          "id": "2",
+          "text": "Les prêts hypothécaires résidentiels excluent les prêts hypothécaires résidentiels faisant partie des produits de la gamme Marge Proprio RBC."
+        },
+        {
+          "id": "3",
+          "text": "Les produits de la gamme Marge Proprio RBC comprennent des prêts hypothécaires résidentiels et des marges de crédit sur valeur nette."
+        },
+        {
+          "id": "4",
+          "text": "Le secteur géographique est déterminé selon l’adresse où se trouve la propriété grevée d’un prêt hypothécaire. Les provinces de l’Atlantique comprennent Terre-Neuve-et-Labrador, l’Île-du-Prince-Édouard, la Nouvelle-Écosse et le Nouveau-Brunswick; la Colombie-Britannique et les territoires comprennent la Colombie-Britannique, le Nunavut, les Territoires du Nord-Ouest et le Yukon."
+        },
+        {
+          "id": "5",
+          "text": "Nous calculons le ratio prêt-valeur moyen concernant les nouveaux prêts hypothécaires résidentiels, les prêts hypothécaires résidentiels non assurés acquis et les produits de la gamme Marge Proprio RBC sur une base pondérée, selon le montant du prêt hypothécaire lors de l’origination."
+        },
+        {
+          "id": "6",
+          "text": "En ce qui a trait aux nouveaux prêts hypothécaires et aux produits de la gamme Marge Proprio RBC, le ratio prêt-valeur est calculé en fonction du montant total de la facilité aux fins des prêts hypothécaires résidentiels et des produits de la gamme Marge Proprio RBC divisé par la valeur des propriétés résidentielles connexes."
+        },
+        {
+          "id": "7",
+          "text": "Pondéré selon les soldes des prêts hypothécaires et ajusté pour tenir compte des valeurs des propriétés basées sur l’indice de prix des maisons Teranet – Banque Nationale‡."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p026_i01",
+      "page": 26,
+      "section": "risk_management",
+      "title": "26 Banque Royale du Canada Premier trimestre de 2025",
+      "bbox": [
+        0.06017705812976135,
+        0.10063945044350656,
+        0.9603893982237252,
+        0.2902338410398208
+      ],
+      "extraction_status": "ok",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p026_i02",
+      "page": 26,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.05977547109423585,
+        0.5001656835563338,
+        0.9600033483299648,
+        0.7979682542355125
+      ],
+      "extraction_status": "ok",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p027_i01",
+      "page": 27,
+      "section": "risk_management",
+      "title": "Correction de valeur pour pertes de crédit",
+      "bbox": [
+        0.039836108585692954,
+        0.23458554400642562,
+        0.9398072908569134,
+        0.4632990850494892
+      ],
+      "extraction_status": "suspect_unresolved",
+      "headers": [
+        "Aux 31 janvier 2025",
+        "31 octobre 2024"
+      ],
+      "table_summary": "Correction de valeur pour pertes de crédit",
+      "row_count": 13,
+      "indicators": [
+        "Services bancaires aux particuliers",
+        "Services bancaires aux entreprises",
+        "Gestion de patrimoine",
+        "Marchés des Capitaux",
+        "Services de soutien généraux et autres",
+        "Correction de valeur pour pertes de crédit liée aux prêts",
+        "Correction de valeur pour pertes de crédit liée aux autres actifs financiers (1)",
+        "Total de la correction de valeur pour pertes de crédit",
+        "La correction de valeur pour pertes de crédit liée aux prêts comprend ce qui suit :",
+        "Prêts de détail",
+        "Prêts de gros",
+        "Correction de valeur pour pertes de crédit liée aux prêts productifs",
+        "Correction de valeur pour pertes de crédit liée aux prêts douteux"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "La correction de valeur pour pertes de crédit liée aux autres actifs financiers représente principalement la correction de valeur pour les titres de créance évalués à la juste valeur par le biais des autres éléments du résultat global ou au coût amorti, les débiteurs et les garanties financières."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p028_i01",
+      "page": 28,
+      "section": "risk_management",
+      "title": "VAR et VAR des activités de négociation",
+      "bbox": [
+        0.06006467322607341,
+        0.12254419241523987,
+        0.9594302454200353,
+        0.28620684588396994
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "31 janvier 2025 Au",
+        "31 janvier 2025 Moyenne",
+        "31 janvier 2025 Haut",
+        "31 janvier 2025 Bas",
+        "31 octobre 2024 Au",
+        "31 octobre 2024 Moyenne",
+        "31 janvier 2024 Au",
+        "31 janvier 2024 Moyenne"
+      ],
+      "table_summary": "VAR liée au risque de marché et activités de négociation",
+      "row_count": 8,
+      "indicators": [
+        "Titres de participation",
+        "Change",
+        "Marchandises",
+        "Taux d’intérêt (1)",
+        "Risque de crédit spécifique (2)",
+        "Effet de diversification (3)",
+        "VAR des activités de négociation",
+        "VAR totale"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le risque lié à l’écart de taux général et le risque lié à l’écart de financement associé aux dérivés non garantis sont inclus dans la VAR liée aux taux d’intérêt."
+        },
+        {
+          "id": "2",
+          "text": "Le risque spécifique de crédit tient compte de la volatilité de l’écart de taux lié à chaque émetteur."
+        },
+        {
+          "id": "3",
+          "text": "La VAR des activités de négociation est inférieure à la somme des VAR individuelles par facteur de risque, en raison de la diversification des facteurs de risque."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p029_i01",
+      "page": 29,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.040253488973993966,
+        0.2825921693219688,
+        0.9389983472934805,
+        0.4724927490546177
+      ],
+      "extraction_status": "suspect_unresolved",
+      "headers": [
+        "31 janvier 2025",
+        "Risque lié à la valeur économique des capitaux propres",
+        "Risque lié au revenu net d’intérêt (1)",
+        "Incidence – dollar canadien",
+        "Incidence – dollar américain",
+        "Total",
+        "Incidence – dollar canadien",
+        "Incidence – dollar américain",
+        "Total",
+        "31 octobre 2024",
+        "Risque lié à la valeur économique des capitaux propres",
+        "Risque lié au revenu net d’intérêt (1)",
+        "31 janvier 2024",
+        "Risque lié à la valeur économique des capitaux propres",
+        "Risque lié au revenu net d’intérêt (1)"
+      ],
+      "table_summary": "Sensibilité aux taux d’intérêt de la valeur économique et du revenu net",
+      "row_count": 2,
+      "indicators": [
+        "Incidence avant impôt d’une : augmentation des taux de 100 p.b.",
+        "diminution des taux de 100 p.b."
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Représente le risque lié au revenu net d’intérêt sur 12 mois découlant d’une variation instantanée et soutenue des taux d’intérêt."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p030_i01",
+      "page": 30,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.059847475877448694,
+        0.12788095876174868,
+        0.9596646690052343,
+        0.6571650596414033
+      ],
+      "extraction_status": "suspect_unresolved",
+      "headers": [
+        "Montant figurant au bilan",
+        "Risque lié aux activités de négociation (1)",
+        "Risque lié aux activités autres que de négociation (2)",
+        "Risque principal lié aux activités autres que de négociation"
+      ],
+      "table_summary": "Lien entre données du bilan et risque de marché",
+      "row_count": 28,
+      "indicators": [
+        "Actifs exposés au risque de marché",
+        "Trésorerie et montants à recevoir de banques",
+        "Dépôts productifs d’intérêts auprès de banques",
+        "Titres",
+        "Titres détenus à des fins de transaction",
+        "Titres de placement, déduction faite de la correction de valeur applicable",
+        "Actifs achetés en vertu de conventions de revente et titres empruntés",
+        "Prêts",
+        "Prêts de détail",
+        "Prêts de gros",
+        "Correction de valeur pour pertes sur prêts",
+        "Autres",
+        "Dérivés",
+        "Autres actifs",
+        "Actifs non exposés au risque de marché (3)",
+        "Total de l’actif",
+        "Passifs exposés au risque de marché",
+        "Dépôts",
+        "Autres",
+        "Engagements afférents à des titres vendus à découvert",
+        "Engagements afférents à des actifs vendus en vertu de conventions de rachat et aux titres prêtés",
+        "Dérivés",
+        "Autres passifs",
+        "Débentures subordonnées",
+        "Passifs non exposés au risque de marché (4)",
+        "Total du passif",
+        "Total des capitaux propres",
+        "Total du passif et des capitaux propres"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le risque lié aux activités de négociation comprend les positions qui sont classées ou désignées à la juste valeur par le biais du résultat net et les positions pour lesquelles les profits et pertes de réévaluation sont comptabilisés dans les revenus de nos portefeuilles de négociation. Les évaluations du risque de marché liées à la VAR et aux simulations de crise servent de contrôles des risques pour le risque lié aux activités de négociation."
+        },
+        {
+          "id": "2",
+          "text": "Le risque lié aux activités autres que de négociation comprend les positions utilisées aux fins de la gestion du RTIPB et d’autres portefeuilles d’activités autres que de négociation. Les autres portefeuilles d’activités autres que de négociation significatifs comprennent les positions liées à RBC Assurances et les titres de placement, déduction faite de la correction de valeur applicable, non pris en compte dans le RTIPB."
+        },
+        {
+          "id": "3",
+          "text": "Les actifs non exposés au risque de marché comprennent des immobilisations corporelles et d’autres actifs."
+        },
+        {
+          "id": "4",
+          "text": "Les passifs non exposés au risque de marché comprennent des passifs liés à la paie et d’autres passifs."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p031_i01",
+      "page": 31,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.03916174222778523,
+        0.04556858554805985,
+        0.9389021890871165,
+        0.5700888603278657
+      ],
+      "extraction_status": "suspect_unresolved",
+      "headers": [
+        "Montant figurant au bilan",
+        "Risque lié aux activités de négociation (1)",
+        "Risque lié aux activités autres que de négociation (2)",
+        "Risque principal lié aux activités autres que de négociation"
+      ],
+      "table_summary": "Exposition au risque de marché des actifs et passifs",
+      "row_count": 28,
+      "indicators": [
+        "Actifs exposés au risque de marché",
+        "Trésorerie et montants à recevoir de banques",
+        "Dépôts productifs d’intérêts auprès de banques",
+        "Titres",
+        "Titres détenus à des fins de transaction",
+        "Titres de placement, déduction faite de la correction de valeur applicable",
+        "Actifs achetés en vertu de conventions de revente et titres empruntés",
+        "Prêts",
+        "Prêts de détail",
+        "Prêts de gros",
+        "Correction de valeur pour pertes sur prêts",
+        "Autres",
+        "Dérivés",
+        "Autres actifs",
+        "Actifs non exposés au risque de marché (3)",
+        "Total de l’actif",
+        "Passifs exposés au risque de marché",
+        "Dépôts",
+        "Autres",
+        "Engagements afférents à des titres vendus à découvert",
+        "Engagements afférents à des actifs vendus en vertu de conventions de rachat et aux titres prêtés",
+        "Dérivés",
+        "Autres passifs",
+        "Débentures subordonnées",
+        "Passifs non exposés au risque de marché (4)",
+        "Total du passif",
+        "Total des capitaux propres",
+        "Total du passif et des capitaux propres"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le risque lié aux activités de négociation comprend les positions qui sont classées ou désignées à la juste valeur par le biais du résultat net et les positions pour lesquelles les profits et pertes de réévaluation sont comptabilisés dans les revenus de nos portefeuilles de négociation. Les évaluations du risque de marché liées à la VAR et aux simulations de crise servent de contrôles des risques pour le risque lié aux activités de négociation."
+        },
+        {
+          "id": "2",
+          "text": "Le risque lié aux activités autres que de négociation comprend les positions utilisées aux fins de la gestion du RTIPB et d’autres portefeuilles d’activités autres que de négociation. Les autres portefeuilles d’activités autres que de négociation significatifs comprennent les positions liées à RBC Assurances et les titres de placement, déduction faite de la correction de valeur applicable, non pris en compte dans le RTIPB."
+        },
+        {
+          "id": "3",
+          "text": "Les actifs non exposés au risque de marché comprennent des immobilisations corporelles et d’autres actifs."
+        },
+        {
+          "id": "4",
+          "text": "Les passifs non exposés au risque de marché comprennent des passifs liés à la paie et d’autres passifs."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p032_i01",
+      "page": 32,
+      "section": "risk_management",
+      "title": "32 Banque Royale du Canada Premier trimestre de 2025",
+      "bbox": [
+        0.05968067302039607,
+        0.3086710573003971,
+        0.9600929272906302,
+        0.5124657875733357
+      ],
+      "extraction_status": "ok",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p032_i02",
+      "page": 32,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.0596335554992777,
+        0.5247955517141604,
+        0.9606837435543636,
+        0.7249731694753752
+      ],
+      "extraction_status": "ok",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p032_i03",
+      "page": 32,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.060571224535282575,
+        0.7367920857279694,
+        0.6659654202943616,
+        0.8394349001985553
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Aux",
+        "31 janvier 2025",
+        "31 octobre 2024"
+      ],
+      "table_summary": "Suite: actifs liquides non grevés par entité",
+      "row_count": 4,
+      "indicators": [
+        "Banque Royale du Canada",
+        "Succursales à l’étranger",
+        "Filiales",
+        "Total des actifs liquides non grevés"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Inclut les titres liquides émis par des gouvernements provinciaux et des entités parrainées par le gouvernement américain ou sous la tutelle du curateur (p. ex., la Federal National Mortgage Association et la Federal Home Loan Mortgage Corporation)."
+        },
+        {
+          "id": "2",
+          "text": "Le montant des actifs liquides grevés représente les garanties en espèces et les dépôts de garantie obligatoires en espèces visant des dérivés négociés hors cote et en Bourse."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p033_i01",
+      "page": 33,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.04022485027661173,
+        0.22548296503332538,
+        0.9396710498613703,
+        0.480474089601792
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Total de l’actif",
+        "Actifs détenus par la banque",
+        "Titres reçus en garantie dans le cadre des transactions de financement de titres et des transactions sur dérivés",
+        "Actifs grevés",
+        "Total",
+        "Donnés en garantie",
+        "Autres (1)",
+        "Actifs non grevés",
+        "Pouvant être donnés en garantie (2)",
+        "Autres (3)"
+      ],
+      "table_summary": "Actifs grevés et non grevés au 31 janvier 2025",
+      "row_count": 9,
+      "indicators": [
+        "Trésorerie et dépôts auprès de banques",
+        "Titres (4)",
+        "Prêts, déduction faite de la correction de valeur pour pertes sur prêts (5)",
+        "Titres hypothécaires",
+        "Prêts hypothécaires",
+        "Autres prêts",
+        "Dérivés",
+        "Autres (6)",
+        "Total"
+      ],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p033_i02",
+      "page": 33,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.04030022059704732,
+        0.48950951431293904,
+        0.939426200702218,
+        0.7362317783165709
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Total de l’actif",
+        "Actifs détenus par la banque",
+        "Titres reçus en garantie dans le cadre des transactions de financement de titres et des transactions sur dérivés",
+        "Actifs grevés",
+        "Total",
+        "Donnés en garantie",
+        "Autres (1)",
+        "Actifs non grevés",
+        "Pouvant être donnés en garantie (2)",
+        "Autres (3)"
+      ],
+      "table_summary": "Actifs grevés et non grevés au 31 octobre 2024",
+      "row_count": 9,
+      "indicators": [
+        "Trésorerie et dépôts auprès de banques",
+        "Titres (4)",
+        "Prêts, déduction faite de la correction de valeur pour pertes sur prêts (5)",
+        "Titres hypothécaires",
+        "Prêts hypothécaires",
+        "Autres prêts",
+        "Dérivés",
+        "Autres (6)",
+        "Total"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Inclut les actifs qui ne peuvent pas être utilisés pour obtenir un financement garanti en raison de restrictions juridiques ou d’autre nature."
+        },
+        {
+          "id": "2",
+          "text": "Représente les actifs qui peuvent être immédiatement donnés en garantie, dont les titres adossés à des créances hypothécaires dans le cadre de la Loi nationale sur l’habitation, nos prêts hypothécaires non grevés qui sont admissibles à titre de garantie auprès d’une Federal Home Loan Bank (FHLB), ainsi que les prêts qui sont admissibles à titre de garantie au titre de la facilité d’escompte dont nous disposons et que nous avons déposés en garantie auprès de la Federal Reserve Bank of New York (FRBNY)."
+        },
+        {
+          "id": "3",
+          "text": "Les autres actifs non grevés ne sont assujettis à aucune restriction en ce qui a trait à leur recours pour obtenir du financement ou à leur utilisation à titre de garantie, mais ils ne seront pas considérés comme immédiatement disponibles."
+        },
+        {
+          "id": "4",
+          "text": "Inclut les actifs liquides détenus par la banque et les titres reçus en garantie dans le cadre de financement de titres hors bilan, de transactions sur dérivés et de prêts sur marges. Comprend des garanties de 30 milliards de dollars (31 milliards au 31 octobre 2024) reçues dans le cadre d’opérations de revente qui ne peuvent pas être redonnées en garantie dans leur forme juridique actuelle."
+        },
+        {
+          "id": "5",
+          "text": "Avec prise d’effet au premier trimestre de 2025, les titres hypothécaires, les prêts hypothécaires et les autres prêts sont présentés déduction faite de la correction de valeur pour pertes sur prêts. Les montants correspondants ont été révisés par rapport à ceux présentés précédemment afin qu’ils soient conformes à la présentation adoptée pour la période considérée."
+        },
+        {
+          "id": "6",
+          "text": "Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ont été fournis en lien avec des transactions visant des dérivés négociés hors cote et en Bourse."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p034_i01",
+      "page": 34,
+      "section": "risk_management",
+      "title": "Programmes par secteur géographique",
+      "bbox": [
+        0.05974790152427965,
+        0.6073042868349897,
+        0.9595473559934702,
+        0.6815332873114225
+      ],
+      "extraction_status": "suspect_unresolved",
+      "headers": [
+        "Canada",
+        "États-Unis",
+        "Europe"
+      ],
+      "table_summary": "Programmes d’emprunt à long terme par secteur géographique",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p035_i01",
+      "page": 35,
+      "section": "risk_management",
+      "title": "Composition du financement de gros (1)",
+      "bbox": [
+        0.040256114346075615,
+        0.0933398640171017,
+        0.9390876225966521,
+        0.3445550716395275
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Au 31 janvier 2025",
+        "Moins de 1 mois",
+        "De 1 à 3 mois",
+        "De 3 à 6 mois",
+        "De 6 à 12 mois",
+        "Moins de 1 an Sous-total",
+        "De 1 à 2 ans",
+        "2 ans et plus",
+        "Total"
+      ],
+      "table_summary": "Composition du financement de gros par échéance",
+      "row_count": 13,
+      "indicators": [
+        "Dépôts provenant de banques (2)",
+        "Certificats de dépôt et papier commercial (3)",
+        "Papier commercial adossé à des actifs (4)",
+        "Billets à moyen terme non garantis de premier rang (5)",
+        "Obligations structurées non garanties de premier rang (6)",
+        "Titrisation de prêts hypothécaires",
+        "Obligations sécurisées/titres adossés à des actifs (7)",
+        "Passif subordonné",
+        "Autres (8)",
+        "Total",
+        "Comprend :",
+        "– Financement garanti",
+        "– Financement non garanti"
+      ],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p035_i02",
+      "page": 35,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.04018574804808963,
+        0.3567377823674968,
+        0.9389901485411485,
+        0.6047289228378433
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Moins de 1 mois",
+        "De 1 à 3 mois",
+        "De 3 à 6 mois",
+        "De 6 à 12 mois",
+        "Moins de 1 an Sous-total",
+        "De 1 à 2 ans",
+        "2 ans et plus",
+        "Total"
+      ],
+      "table_summary": "Suite: échéances des dépôts et autres financements non garantis",
+      "row_count": 13,
+      "indicators": [
+        "Dépôts provenant de banques (2)",
+        "Certificats de dépôt et papier commercial (3)",
+        "Papier commercial adossé à des actifs (4)",
+        "Billets à moyen terme non garantis de premier rang (5)",
+        "Obligations structurées non garanties de premier rang (6), (9)",
+        "Titrisation de prêts hypothécaires",
+        "Obligations sécurisées/titres adossés à des actifs (7)",
+        "Passif subordonné",
+        "Autres (8)",
+        "Total",
+        "Comprend :",
+        "– Financement garanti",
+        "– Financement non garanti (9)"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Ne tient pas compte des acceptations bancaires ni des conventions de rachat."
+        },
+        {
+          "id": "2",
+          "text": "Ne tient pas compte des dépôts liés aux services que nous fournissons aux banques (p. ex., services de garde, gestion de la trésorerie)."
+        },
+        {
+          "id": "3",
+          "text": "Inclut les billets de dépôt au porteur (non garantis)."
+        },
+        {
+          "id": "4",
+          "text": "Inclut seulement le passif consolidé, y compris notre programme de papier commercial garanti par des créances."
+        },
+        {
+          "id": "5",
+          "text": "Inclut les billets de dépôt et les billets à taux variable (non garantis)."
+        },
+        {
+          "id": "6",
+          "text": "Inclut les billets pour lesquels le résultat est fonction des fluctuations du taux de change, des marchandises et des titres de participation."
+        },
+        {
+          "id": "7",
+          "text": "Inclut les obligations sécurisées garanties par les emprunts hypothécaires résidentiels et les titres adossés à des créances sur cartes de crédit."
+        },
+        {
+          "id": "8",
+          "text": "Inclut les obligations encaissables par anticipation (garanties) de 4 957 millions de dollars (5 157 millions au 31 octobre 2024), d’autres dépôts structurés à long terme (non garantis) de 23 104 millions (19 777 millions au 31 octobre 2024) et des certificats de placement garanti de gros de 196 millions (192 millions au 31 octobre 2024)."
+        },
+        {
+          "id": "9",
+          "text": "Avec prise d’effet au premier trimestre de 2025, nous avons révisé la portée des billets structurés non garantis de premier rang afin de refléter davantage le réseau de distribution utilisé pour l’émission de ces billets. Les montants correspondants ont été révisés par rapport à ceux présentés précédemment afin de les rendre conformes à l’approche que nous avons adoptée pour le trimestre considéré."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p036_i01",
+      "page": 36,
+      "section": "risk_management",
+      "title": "Notations (1)",
+      "bbox": [
+        0.12331262591664076,
+        0.09323322788204423,
+        0.8962065283931904,
+        0.21003189184352053
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Dette à court terme",
+        "Dette à long terme de premier rang existante (2)",
+        "Dette à long terme de premier rang (3)",
+        "Perspective"
+      ],
+      "table_summary": "Notations de crédit et perspectives",
+      "row_count": 4,
+      "indicators": [
+        "Moody’s‡ (4)",
+        "Standard & Poor’s‡ (5)",
+        "Fitch Ratings‡ (6)",
+        "DBRS‡ (7)"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les notations ne constituent pas des recommandations visant l’achat, la vente ou la détention d’une obligation financière, car elles ne fournissent pas de commentaires sur le cours du marché ni sur la pertinence pour un investisseur en particulier. Les notations sont déterminées par les agences de notation en fonction des critères que celles-ci établissent à l’occasion et elles peuvent faire l’objet d’une révision ou d’un retrait par une agence de notation en tout temps."
+        },
+        {
+          "id": "2",
+          "text": "Comprend la dette à long terme de premier rang émise avant le 23 septembre 2018 ainsi que celle émise à cette date ou par la suite, laquelle est ignorée aux fins du régime de recapitalisation interne."
+        },
+        {
+          "id": "3",
+          "text": "Comprend la dette à long terme de premier rang émise le 23 septembre 2018 ou après cette date, laquelle peut être convertie aux termes du régime de recapitalisation interne."
+        },
+        {
+          "id": "4",
+          "text": "Le 8 octobre 2024, Moody’s a confirmé nos notations avec une perspective stable."
+        },
+        {
+          "id": "5",
+          "text": "Le 25 juin 2024, Standard & Poor’s a confirmé nos notations avec une perspective stable."
+        },
+        {
+          "id": "6",
+          "text": "Le 11 juin 2024, Fitch Ratings a confirmé nos notations avec une perspective stable."
+        },
+        {
+          "id": "7",
+          "text": "Le 10 mai 2024, DBRS a confirmé nos notations avec une perspective stable."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p036_i02",
+      "page": 36,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.06012141922022375,
+        0.5311134309147509,
+        0.9599308754081157,
+        0.666303183992856
+      ],
+      "extraction_status": "suspect_unresolved",
+      "headers": [
+        "Révision à la baisse de 1 cran",
+        "Révision à la baisse de 2 crans",
+        "Révision à la baisse de 3 crans",
+        "Révision à la baisse de 1 cran",
+        "Révision à la baisse de 2 crans",
+        "Révision à la baisse de 3 crans"
+      ],
+      "table_summary": "Exigences contractuelles liées au financement et aux marges",
+      "row_count": 2,
+      "indicators": [
+        "Exigences contractuelles liées au financement des dérivés ou aux marges",
+        "Autres exigences contractuelles liées au financement ou aux marges (1)"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Inclut les certificats de placement garanti (CPG) émis dans le cadre de nos activités sur les marchés des obligations municipales à New York."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p037_i01",
+      "page": 37,
+      "section": "risk_management",
+      "title": "Modèle commun de déclaration du ratio de liquidité à court terme (1)",
+      "bbox": [
+        0.03972920849548644,
+        0.1930769412453604,
+        0.9396625474515444,
+        0.668182022270115
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Valeur non pondérée totale (moyenne) (2)",
+        "Valeur pondérée totale (moyenne)",
+        "Total de la valeur ajustée"
+      ],
+      "table_summary": "Déclaration du ratio de liquidité à court terme",
+      "row_count": 26,
+      "indicators": [
+        "Actifs liquides de haute qualité",
+        "Total des actifs liquides de haute qualité",
+        "Sorties de trésorerie",
+        "Dépôts de détail et dépôts de petites entreprises, dont :",
+        "Dépôts stables (3)",
+        "Dépôts moins stables",
+        "Financement de gros non garanti, dont :",
+        "Dépôts opérationnels (toutes contreparties) et dépôts dans les réseaux de banques coopératives (4)",
+        "Dépôts non opérationnels",
+        "Dettes non garanties",
+        "Financement de gros garanti",
+        "Exigences supplémentaires, dont :",
+        "Sorties associées aux expositions sur dérivés et autres sûretés exigées",
+        "Sorties associées à une perte de financement sur produits de dette",
+        "Facilités de crédit et de liquidité",
+        "Autres obligations de financement contractuelles (5)",
+        "Autres obligations de financement conditionnelles (6)",
+        "Total des sorties de trésorerie",
+        "Entrées de trésorerie",
+        "Prêts garantis (p. ex., conventions de revente)",
+        "Entrées liées aux expositions parfaitement productives",
+        "Autres entrées de trésorerie",
+        "Total des entrées de trésorerie",
+        "Total des actifs liquides de haute qualité",
+        "Total des sorties de trésorerie nettes",
+        "Ratio de liquidité à court terme"
+      ],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p037_i02",
+      "page": 37,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.04046636869262898,
+        0.6760280409382983,
+        0.9392022026909722,
+        0.7773664335638171
+      ],
+      "extraction_status": "suspect_unresolved",
+      "headers": [
+        "le 31 octobre 2024",
+        "Total de la valeur ajustée"
+      ],
+      "table_summary": "Ratio de liquidité à court terme",
+      "row_count": 3,
+      "indicators": [
+        "Total des actifs liquides de haute qualité",
+        "Total des sorties de trésorerie nettes",
+        "Ratio de liquidité à court terme"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le ratio de liquidité à court terme est calculé conformément à la ligne directrice sur les normes de liquidité du BSIF, laquelle reflète à son tour les normes de liquidité publiées par le CBCB. Le ratio de liquidité à court terme pour le trimestre clos le 31 janvier 2025 correspond à une moyenne de 62 positions quotidiennes."
+        },
+        {
+          "id": "2",
+          "text": "À l’exception des autres obligations de financement conditionnelles, les entrées et sorties non pondérées représentent des éléments venant à échéance ou remboursables par anticipation dans 30 jours tout au plus. Les autres obligations de financement conditionnelles comprennent aussi les titres d’emprunt dont la durée restante jusqu’à l’échéance dépasse 30 jours."
+        },
+        {
+          "id": "3",
+          "text": "Selon la définition du CBCB, les dépôts stables de détail et de petites entreprises constituent des dépôts qui sont assurés et qui sont soit détenus dans des comptes courants, soit ceux de clients avec lesquels la banque entretient des relations durables, ce qui rend les retraits improbables."
+        },
+        {
+          "id": "4",
+          "text": "Les dépôts opérationnels de clients qui ne sont pas des dépôts de détail ou des dépôts de petites ou moyennes entreprises constituent des dépôts que les clients doivent laisser à la banque afin d’y accéder plus aisément et d’être en mesure d’utiliser les systèmes de paiement et de règlement, principalement pour la compensation, la garde et la gestion de trésorerie."
+        },
+        {
+          "id": "5",
+          "text": "Les autres obligations de financement contractuelles comprennent principalement les sorties liées aux opérations sur valeur non réglées et les sorties liées aux engagements afférents à des titres vendus à découvert."
+        },
+        {
+          "id": "6",
+          "text": "Les autres obligations de financement conditionnelles comprennent les sorties liées à d’autres facilités hors bilan dont le facteur de retrait du ratio de liquidité à court terme est faible (de 0 % à 5 %)."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p039_i01",
+      "page": 39,
+      "section": "risk_management",
+      "title": "Banque Royale du Canada Premier trimestre de 2025 39",
+      "bbox": [
+        0.037402897924926154,
+        0.06627371971939107,
+        0.9397320850176203,
+        0.7406663760676087
+      ],
+      "extraction_status": "ok",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p039_i02",
+      "page": 39,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.04035639723339682,
+        0.7523073315772669,
+        0.9397214570053379,
+        0.8388752163902858
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Valeur pondérée"
+      ],
+      "table_summary": "Ratio de liquidité à long terme",
+      "row_count": 3,
+      "indicators": [
+        "Total du financement stable disponible",
+        "Total du financement stable exigé",
+        "Ratio de liquidité à long terme (%)"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le ratio de liquidité à long terme est calculé conformément à la ligne directrice sur les normes de liquidité du BSIF, laquelle reflète à son tour les normes de liquidité publiées par le CBCB."
+        },
+        {
+          "id": "2",
+          "text": "Les totaux des rangées suivantes englobent les catégories d’échéances résiduelles de moins de 6 mois, de 6 mois à moins de 1 an et de 1 an et plus, conformément aux exigences du modèle de déclaration courant prescrit par le BSIF : Autres passifs, Passifs d’instruments dérivés du ratio de liquidité à court terme, Autres actifs, Actifs versés en tant que marge initiale dans le cadre de contrats dérivés et apports aux fonds de garantie de contrepartie centrale, Actifs dérivés du ratio de liquidité à long terme, Passifs dérivés du ratio de liquidité à long terme ayant déduction de la marge de variation versée et Éléments hors bilan."
+        },
+        {
+          "id": "3",
+          "text": "Selon la définition du CBCB, les dépôts stables de détail et de petites entreprises constituent des dépôts qui sont assurés et qui sont soit détenus dans des comptes courants, soit ceux de clients avec lesquels la banque entretient des relations durables, ce qui rend les retraits improbables."
+        },
+        {
+          "id": "4",
+          "text": "Les dépôts opérationnels de clients qui ne sont pas des dépôts de détail ou des dépôts de petites ou moyennes entreprises constituent des dépôts que les clients doivent laisser à la banque afin d’y accéder plus aisément et d’être en mesure d’utiliser les systèmes de paiement et de règlement, principalement pour la compensation, la garde et la gestion de trésorerie."
+        },
+        {
+          "id": "5",
+          "text": "Les actifs et passifs interdépendants représentent le passif des titres hypothécaires garantis par la Loi nationale sur l’habitation, y compris les passifs découlant des opérations relatives au programme des obligations hypothécaires du Canada et des prêts hypothécaires grevés correspondants."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p041_i01",
+      "page": 41,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.0396470438386275,
+        0.2117437798705899,
+        0.9388316393293947,
+        0.7974483251267162
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Moins de 1 mois",
+        "De 1 à 3 mois",
+        "De 3 à 6 mois",
+        "De 6 à 9 mois",
+        "De 9 à 12 mois",
+        "De 1 à 2 ans",
+        "De 2 à 5 ans",
+        "5 ans et plus",
+        "Sans échéance précise",
+        "Total"
+      ],
+      "table_summary": "Échéances contractuelles des actifs, passifs et éléments hors bilan",
+      "row_count": 36,
+      "indicators": [
+        "Actif",
+        "Trésorerie et dépôts auprès de banques",
+        "Titres",
+        "Titres détenus à des fins de transaction (1)",
+        "Titres de placement, déduction faite de la correction de valeur applicable",
+        "Actifs achetés en vertu de conventions de revente et titres empruntés (2)",
+        "Prêts, déduction faite de la correction de valeur applicable",
+        "Autres",
+        "Engagements de clients en contrepartie d’acceptations",
+        "Dérivés",
+        "Autres actifs financiers",
+        "Total des actifs financiers",
+        "Autres actifs non financiers",
+        "Total de l’actif",
+        "Passif et capitaux propres",
+        "Dépôts (3)",
+        "Emprunts non garantis",
+        "Emprunts garantis",
+        "Obligations sécurisées",
+        "Autres",
+        "Acceptations",
+        "Engagements afférents à des titres vendus à découvert",
+        "Engagements afférents à des actifs vendus en vertu de conventions de rachat et aux titres prêtés (2)",
+        "Dérivés",
+        "Autres passifs financiers",
+        "Débentures subordonnées",
+        "Total des passifs financiers",
+        "Autres passifs non financiers",
+        "Capitaux propres",
+        "Total du passif et des capitaux propres",
+        "Éléments hors bilan",
+        "Garanties financières",
+        "Engagements de crédit",
+        "Autres engagements liés au crédit",
+        "Autres engagements",
+        "Total des éléments hors bilan"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "À l’exception des titres de créance du secteur Assurances, les titres d’emprunt détenus à des fins de transaction et classés à la juste valeur par le biais du résultat net sont pris en compte dans la catégorie Moins de 1 mois, car nous ne prévoyons pas détenir ces actifs jusqu’à leur échéance contractuelle."
+        },
+        {
+          "id": "2",
+          "text": "Les conventions de revente et les transactions de mise en pension de titre en cours, qui n’ont pas de date d’échéance établie et qui sont généralement à court terme, ont été incluses dans la catégorie Sans échéance précise."
+        },
+        {
+          "id": "3",
+          "text": "Une grande partie des dépôts basés sur les relations sont remboursables à vue ou moyennant un court préavis selon les conditions du contrat; toutefois, dans les faits, ces soldes de clients procurent les fonds de base nous permettant de répondre à nos besoins en matière d’exploitation et de liquidité comme il est expliqué à la rubrique Profil des dépôts et du financement plus haut."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p042_i01",
+      "page": 42,
+      "section": "capital_management",
+      "title": "",
+      "bbox": [
+        0.05967905983996036,
+        0.04526072535021552,
+        0.95923226073409,
+        0.6279460181069405
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Moins de 1 mois",
+        "De 1 à 3 mois",
+        "De 3 à 6 mois",
+        "De 6 à 9 mois",
+        "De 9 à 12 mois",
+        "De 1 à 2 ans",
+        "De 2 à 5 ans",
+        "5 ans et plus",
+        "Sans échéance précise",
+        "Total"
+      ],
+      "table_summary": "Échéances contractuelles des actifs, passifs et éléments hors bilan",
+      "row_count": 36,
+      "indicators": [
+        "Actif",
+        "Trésorerie et dépôts auprès de banques",
+        "Titres",
+        "Titres détenus à des fins de transaction (1)",
+        "Titres de placement, déduction faite de la correction de valeur applicable",
+        "Actifs achetés en vertu de conventions de revente et titres empruntés (2)",
+        "Prêts, déduction faite de la correction de valeur applicable",
+        "Autres",
+        "Engagements de clients en contrepartie d’acceptations",
+        "Dérivés",
+        "Autres actifs financiers",
+        "Total des actifs financiers",
+        "Autres actifs non financiers",
+        "Total de l’actif",
+        "Passif et capitaux propres",
+        "Dépôts (3)",
+        "Emprunts non garantis",
+        "Emprunts garantis",
+        "Obligations sécurisées",
+        "Autres",
+        "Acceptations",
+        "Engagements afférents à des titres vendus à découvert",
+        "Engagements afférents à des actifs vendus en vertu de conventions de rachat et aux titres prêtés (2)",
+        "Dérivés",
+        "Autres passifs financiers",
+        "Débentures subordonnées",
+        "Total des passifs financiers",
+        "Autres passifs non financiers",
+        "Capitaux propres",
+        "Total du passif et des capitaux propres",
+        "Éléments hors bilan",
+        "Garanties financières",
+        "Engagements de crédit",
+        "Autres engagements liés au crédit",
+        "Autres engagements",
+        "Total des éléments hors bilan"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "À l’exception des titres de créance du secteur Assurances, les titres d’emprunt détenus à des fins de transaction et classés à la juste valeur par le biais du résultat net sont pris en compte dans la catégorie Moins de 1 mois, car nous ne prévoyons pas détenir ces actifs jusqu’à leur échéance contractuelle."
+        },
+        {
+          "id": "2",
+          "text": "Les conventions de revente et les transactions de mise en pension de titre en cours, qui n’ont pas de date d’échéance établie et qui sont généralement à court terme, ont été incluses dans la catégorie Sans échéance précise."
+        },
+        {
+          "id": "3",
+          "text": "Une grande partie des dépôts basés sur les relations sont remboursables à vue ou moyennant un court préavis selon les conditions du contrat; toutefois, dans les faits, ces soldes de clients procurent les fonds de base nous permettant de répondre à nos besoins en matière d’exploitation et de liquidité comme il est expliqué à la rubrique Profil des dépôts et du financement plus haut."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p043_i01",
+      "page": 43,
+      "section": "capital_management",
+      "title": "",
+      "bbox": [
+        0.04040250256286925,
+        0.5641384782462285,
+        0.9387051153736526,
+        0.8528805631635138
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Ratios de fonds propres, de levier et TLAC au titre de Bâle III",
+        "Ratio minimal",
+        "Réserves de fonds propres",
+        "Ratio minimal, y compris les réserves de fonds propres",
+        "Supplément s’appliquant aux banques d’importance systémique intérieure et mondiale (1)",
+        "Ratio minimal, y compris les réserves de fonds propres et le supplément s’appliquant aux banques d’importance systémique intérieure et mondiale (1), (2)",
+        "Réserve pour stabilité intérieure (3)",
+        "Ratio minimal, y compris les réserves de fonds propres, le supplément s’appliquant aux banques d’importance systémique intérieure et mondiale et la réserve pour stabilité intérieure au 31 janvier 2025 (4)",
+        "Ratios de fonds propres, de levier et TLAC de RBC au 31 janvier 2025"
+      ],
+      "table_summary": "Ratios de fonds propres, de levier et TLAC de Bâle III",
+      "row_count": 6,
+      "indicators": [
+        "Fonds propres de première catégorie sous forme d’actions ordinaires",
+        "Fonds propres de première catégorie",
+        "Total des fonds propres",
+        "Ratio de levier",
+        "Ratio TLAC",
+        "Ratio de levier TLAC"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Un supplément de fonds propres équivalant à notre supplément applicable aux banques d’importance systémique intérieure et au supplément du CBCB applicable aux banques d’importance systémique mondiale, selon le plus élevé des deux montants, s’applique aux fonds propres pondérés en fonction des risques. En ce qui concerne le ratio de levier, seulement 50 % de notre supplément de fonds propres applicable aux banques d’importance systémique intérieure correspond au supplément requis."
+        },
+        {
+          "id": "2",
+          "text": "Les réserves de fonds propres comprennent la réserve de conservation des fonds propres de 2,5 % et la réserve de fonds propres anticyclique, comme le BSIF le prescrit. La réserve de fonds propres anticyclique, calculée conformément aux lignes directrices sur les normes de fonds propres du BSIF, était de 0,09 % au 31 janvier 2025 (0,08 % au 31 octobre 2024 et 0,06 % au 31 janvier 2024)."
+        },
+        {
+          "id": "3",
+          "text": "La réserve pour stabilité intérieure peut varier entre 0 % et 4 % du total de l’actif pondéré en fonction des risques et, actuellement, elle est établie à 3,5 %."
+        },
+        {
+          "id": "4",
+          "text": "Les exigences cibles minimales reflètent les exigences concernant la réserve de fonds propres anticyclique au 31 janvier 2025, qui sont assujetties à des changements en fonction des positions détenues à la date de clôture."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p044_i01",
+      "page": 44,
+      "section": "capital_management",
+      "title": "",
+      "bbox": [
+        0.09304201622705159,
+        0.11400798149644796,
+        0.9262013095330639,
+        0.4373467105558549
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "31 janvier 2025",
+        "31 octobre 2024",
+        "31 janvier 2024"
+      ],
+      "table_summary": "Fonds propres, actif pondéré, ratios de levier et TLAC",
+      "row_count": 19,
+      "indicators": [
+        "Fonds propres (1)",
+        "Fonds propres CET1",
+        "Fonds propres de première catégorie",
+        "Total des fonds propres",
+        "Actif pondéré en fonction des risques aux fins du calcul des ratios de fonds propres (1)",
+        "Risque de crédit",
+        "Risque de marché",
+        "Risque opérationnel",
+        "Total de l’actif pondéré en fonction des risques",
+        "Ratios de fonds propres et ratio de levier (1)",
+        "Ratio CET1",
+        "Ratio de fonds propres de première catégorie",
+        "Ratio du total des fonds propres",
+        "Ratio de levier",
+        "Exposition du ratio de levier",
+        "TLAC disponible et ratios (2)",
+        "TLAC disponible",
+        "Ratio TLAC",
+        "Ratio de levier TLAC"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les fonds propres, l’actif pondéré en fonction des risques et les ratios de fonds propres sont calculés conformément à la ligne directrice sur les normes de fonds propres du BSIF et le ratio de levier est calculé conformément à la ligne directrice sur les exigences de levier du BSIF. Les lignes directrices sur les normes de fonds propres et les exigences de levier sont établies d’après le cadre de l’accord de Bâle III."
+        },
+        {
+          "id": "2",
+          "text": "La TLAC disponible et les ratios TLAC sont calculés au moyen de la ligne directrice sur la TLAC du BSIF. La norme TLAC s’applique aux entités de résolution pour lesquelles nous sommes réputés être la Banque Royale du Canada et à ses filiales. Une entité de résolution et ses filiales sont collectivement appelées groupe de résolution. Le ratio TLAC et le ratio de levier TLAC sont calculés au moyen de la TLAC disponible, en pourcentage de l’actif pondéré en fonction des risques et de l’exposition aux fins du ratio de levier, respectivement."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p045_i01",
+      "page": 45,
+      "section": "capital_management",
+      "title": "",
+      "bbox": [
+        0.1062598536856732,
+        0.3669720840941292,
+        0.8728363391376451,
+        0.5759902505886814
+      ],
+      "extraction_status": "suspect_unresolved",
+      "headers": [
+        "Pour le trimestre clos le 31 janvier 2025",
+        "Date d’émission ou de rachat",
+        "Nombre d’actions (en milliers)",
+        "Montant"
+      ],
+      "table_summary": "Principales activités de gestion des fonds propres",
+      "row_count": 8,
+      "indicators": [
+        "Fonds propres de première catégorie",
+        "Activités liées aux actions ordinaires",
+        "Actions émises dans le cadre des régimes de rémunération fondée sur des actions (1)",
+        "Actions rachetées aux fins d’annulation (2)",
+        "Émission de billets de capital à recours limité (LRCN) de série 5 (2), (3), (4)",
+        "Fonds propres de deuxième catégorie",
+        "Rachat de débentures subordonnées échéant le 23 décembre 2029 (2), (3)",
+        "Émission de débentures subordonnées échéant le 4 février 2035 (2), (3)"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les montants comprennent la trésorerie reçue au titre des options sur actions exercées au cours de la période et les ajustements de la juste valeur des options sur actions."
+        },
+        {
+          "id": "2",
+          "text": "Pour plus de détails, se reporter à la note 10 de nos états financiers résumés."
+        },
+        {
+          "id": "3",
+          "text": "Instruments de fonds propres d’urgence en cas de non-viabilité (FPUNV)."
+        },
+        {
+          "id": "4",
+          "text": "En ce qui concerne les billets LRCN, le nombre d’actions correspond au nombre de billets émis."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p046_i01",
+      "page": 46,
+      "section": "capital_management",
+      "title": "Principales données concernant les actions (1)",
+      "bbox": [
+        0.1837466921577011,
+        0.06564253591486321,
+        0.8348384117012594,
+        0.5160488942269317
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Au 31 janvier 2025",
+        "Nombre d’actions (en milliers)",
+        "Montant",
+        "Dividendes déclarés par action"
+      ],
+      "table_summary": "Données sur les actions et instruments de capitaux propres",
+      "row_count": 26,
+      "indicators": [
+        "Actions ordinaires émises",
+        "Actions propres – actions ordinaires (2)",
+        "Actions ordinaires en circulation",
+        "Options sur actions et attribution d’actions",
+        "En cours",
+        "Exerçables",
+        "Actions privilégiées de premier rang émises",
+        "À dividende non cumulatif, série BD (3), (4)",
+        "À dividende non cumulatif, série BF (3), (4)",
+        "À dividende non cumulatif, série BH (4)",
+        "À dividende non cumulatif, série BI (4)",
+        "À dividende non cumulatif, série BO (3), (4)",
+        "À dividende non cumulatif, série BT (3), (4), (5)",
+        "À dividende non cumulatif, série BU (3), (4), (5)",
+        "À dividende non cumulatif, série BW (3), (4), (5)",
+        "Autres instruments de capitaux propres émis",
+        "Billets de capital à recours limité de série 1 (3), (4), (6), (7)",
+        "Billets de capital à recours limité de série 2 (3), (4), (6), (7)",
+        "Billets de capital à recours limité de série 3 (3), (4), (6), (7)",
+        "Billets de capital à recours limité de série 4 (3), (4), (6), (7)",
+        "Billets de capital à recours limité de série 5 (3), (4), (6), (7)",
+        "Actions privilégiées et autres instruments de capitaux propres émis",
+        "Instruments en propre – actions privilégiées et autres instruments de capitaux propres (2)",
+        "Actions privilégiées et autres instruments de capitaux propres en circulation",
+        "Dividendes sur actions ordinaires",
+        "Dividendes sur actions privilégiées et distributions sur les autres instruments de capitaux propres (8)"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Pour plus de détails au sujet de nos activités de gestion des fonds propres, se reporter à la note 10 de nos états financiers résumés."
+        },
+        {
+          "id": "2",
+          "text": "Les montants positifs représentent une position vendeur, et les montants négatifs représentent une position acheteur."
+        },
+        {
+          "id": "3",
+          "text": "Le taux de dividende est révisé tous les cinq ans."
+        },
+        {
+          "id": "4",
+          "text": "Instruments relatifs aux FPUNV."
+        },
+        {
+          "id": "5",
+          "text": "Les dividendes déclarés par action correspondent au taux de dividende annuel s’appliquant aux actions émises à la date de clôture."
+        },
+        {
+          "id": "6",
+          "text": "En ce qui concerne les séries de billets LRCN, le nombre d’actions correspond au nombre de billets émis, et les dividendes déclarés par action correspondent au taux d’intérêt annuel applicable aux billets émis à la date de clôture."
+        },
+        {
+          "id": "7",
+          "text": "Dans le cadre de l’émission des billets LRCN de série 1, le 28 juillet 2020, nous avons émis 1 750 millions de dollars d’actions privilégiées de premier rang de série BQ (série BQ). Dans le cadre de l’émission des billets LRCN de série 2, le 2 novembre 2020, nous avons émis 1 250 millions de dollars d’actions privilégiées de premier rang de série BR (série BR). Dans le cadre de l’émission des billets LRCN de série 3, le 8 juin 2021, nous avons émis 1 000 millions de dollars d’actions privilégiées de premier rang de série BS (série BS). Dans le cadre de l’émission des billets LRCN de série 4, le 24 avril 2024, nous avons émis 1 000 millions de dollars américains d’actions privilégiées de premier rang de série BV (série BV). Dans le cadre de l’émission des billets LRCN de série 5, le 1er novembre 2024, nous avons émis 1 000 millions de dollars américains d’actions privilégiées de premier rang de série BX (série BX). Les actions privilégiées des séries BQ, BR et BS ont été émises au prix de 1 000 $ chacune, et les actions privilégiées des séries BV et BX ont été émises au prix de 1 000 dollars américains chacune. Les actions privilégiées des séries BQ, BR, BS, BV et BX ont été émises en faveur d’une fiducie consolidée afin d’y être détenues en tant qu’actifs en fiducie en lien avec les séries de billets LRCN. Pour plus de détails, se reporter à la note 19 de nos états financiers consolidés annuels de 2024."
+        },
+        {
+          "id": "8",
+          "text": "Compte non tenu des distributions versées aux détenteurs de participations ne donnant pas le contrôle."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p047_i01",
+      "page": 47,
+      "section": "capital_management",
+      "title": "Banques d’importance systémique mondiale selon 13 indicateurs d’évaluation (1)",
+      "bbox": [
+        0.039443074569575624,
+        0.11389042256283426,
+        0.9381763464578151,
+        0.40331505084859914
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "31 octobre 2024",
+        "31 octobre 2023"
+      ],
+      "table_summary": "Indicateurs d’évaluation des banques d’importance systémique mondiale",
+      "row_count": 20,
+      "indicators": [
+        "Activité transfrontalière (2)",
+        "Créances transfrontalières",
+        "Passifs transfrontaliers",
+        "Taille (3)",
+        "Expositions totales telles que définies par le ratio de levier de Bâle III",
+        "Interdépendance (4)",
+        "Actifs dans le système financier",
+        "Passifs dans le système financier",
+        "Titres en circulation",
+        "Substituabilité/infrastructure financière (5)",
+        "Activité de paiement",
+        "Actifs sous garde",
+        "Valeurs des transactions placées sur les marchés obligataires et boursiers",
+        "Volume de transactions",
+        "Titres à revenu fixe",
+        "Titres de participation et autres titres",
+        "Complexité (6)",
+        "Capital nominal des dérivés de gré à gré",
+        "Titres détenus à des fins de négociation et titres de placement",
+        "Actifs de niveau 3"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les indicateurs d’importance systémique mondiale des banques reposent sur la méthodologie prescrite dans les lignes directrices publiées par le CBCB en juillet 2018, et sont présentés conformément au préavis du BSIF intitulé Banques d’importance systémique mondiale – Obligations redditionnelles. Les indicateurs s’appuient sur les principes de consolidation prescrits par la réglementation, ce qui exclut les filiales RBC assurances, sauf indication contraire dans la méthodologie d’évaluation. Pour obtenir nos informations indépendantes sur les banques d’importance systémique mondiale pour 2024, se reporter à la section Information réglementaire à l’adresse rbc.com/investisseurs."
+        },
+        {
+          "id": "2",
+          "text": "Représente le niveau d’interaction d’une banque hors de son territoire."
+        },
+        {
+          "id": "3",
+          "text": "Représente le total des expositions au bilan et hors bilan de la banque, selon les règles de ratio de levier, lesquelles reflètent la mise en œuvre par le BSIF des réformes définitives de Bâle III, avant les ajustements réglementaires."
+        },
+        {
+          "id": "4",
+          "text": "Représente les transactions avec d’autres institutions financières."
+        },
+        {
+          "id": "5",
+          "text": "Représente la mesure dans laquelle les services de la banque pourraient être remplacés par ceux d’autres institutions."
+        },
+        {
+          "id": "6",
+          "text": "Tient compte du degré de complexité et du volume des activités de négociation de la banque visant les dérivés, les titres détenus à des fins de transaction, les titres de placement et les actifs de niveau 3."
+        }
+      ]
+    }
+  ]
+}
