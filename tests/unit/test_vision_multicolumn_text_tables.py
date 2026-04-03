@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
+import pytest
+
 from vigilance.extraction.docling_processor import _build_indicator_reference_text
 from vigilance.extraction.vision_full_extractor import (
     VisionFullExtractor,
     VisionFullResult,
 )
-from vigilance.extraction.vision_qa_inspector import VisionTableInspector
+from vigilance.extraction.vision_qa_inspector import QAResult, VisionTableInspector
+from vigilance.utils.openai_schema import build_strict_openai_response_format
 
 
 def _result(
@@ -101,3 +106,58 @@ def test_quality_pass_prefers_initial_candidate_when_rescue_adds_right_column_no
     assert result.acceptance_reason == "rescued_without_summary_strong_structure"
     assert result.selected_candidate_name == "initial"
     assert result.indicators == clean_indicators
+
+
+def test_qa_inspector_uses_openai_compatible_strict_schema(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeParseCompletions:
+        def parse(self, **kwargs):
+            captured["model"] = kwargs["model"]
+            captured["messages"] = kwargs["messages"]
+            captured["response_format"] = kwargs["response_format"]
+            return SimpleNamespace(
+                choices=[
+                    SimpleNamespace(
+                        message=SimpleNamespace(
+                            parsed=QAResult(
+                                is_perfect=True,
+                                missing_elements=[],
+                                justification="ok",
+                            )
+                        )
+                    )
+                ]
+            )
+
+    class FakeOpenAI:
+        def __init__(self, api_key: str) -> None:
+            self.beta = SimpleNamespace(
+                chat=SimpleNamespace(completions=FakeParseCompletions())
+            )
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr("openai.OpenAI", FakeOpenAI)
+
+    inspector = VisionTableInspector(model="gpt-4o-test")
+    result = inspector.inspect_extraction(b"fake-image", {"indicators": ["Programme A"]})
+
+    assert result == QAResult(
+        is_perfect=True,
+        missing_elements=[],
+        justification="ok",
+    )
+    assert captured["model"] == "gpt-4o-test"
+    assert captured["response_format"] is QAResult
+    assert isinstance(captured["messages"], list)
+
+
+def test_strict_schema_builder_rejects_map_like_objects() -> None:
+    class UnsupportedPayload(QAResult):
+        metadata: dict[str, str]
+
+    with pytest.raises(RuntimeError, match="map-like object not allowed"):
+        build_strict_openai_response_format(
+            UnsupportedPayload,
+            name="UnsupportedPayload",
+        )

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+
 from dash.development.base_component import Component
 
 from vigilance.dash_app.callbacks import proof_flow as proof_mod
@@ -450,7 +452,11 @@ def test_get_proof_render_result_returns_bbox_missing_for_footnote() -> None:
 
 
 def test_get_proof_render_result_uses_full_without_bbox(monkeypatch) -> None:
-    monkeypatch.setattr(pdf_mod, "_get_proof_image_b64", lambda *args, **kwargs: "abc")
+    monkeypatch.setattr(
+        pdf_mod,
+        "render_full_proof_bytes",
+        lambda *args, **kwargs: (b"abc", "ok", "full_without_bbox"),
+    )
 
     result = pdf_mod._get_proof_render_result_for_item(
         {
@@ -464,7 +470,7 @@ def test_get_proof_render_result_uses_full_without_bbox(monkeypatch) -> None:
     )
 
     assert result == {
-        "image_b64": "abc",
+        "image_b64": base64.b64encode(b"abc").decode("ascii"),
         "status": "ok",
         "mode_effective": "full_without_bbox",
     }

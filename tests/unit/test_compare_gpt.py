@@ -1157,6 +1157,468 @@ def test_compare_reports_gpt4o_always_uses_gpt_for_unchanged_diff(
     assert payload["run_metrics"]["comparison_calls_total"] == 3
 
 
+def test_compare_reports_gpt4o_runs_visual_sanity_for_footnote_only_diff(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    table_prev = _table(
+        table_id="prev_same",
+        page=3,
+        section="capital_management",
+        title="Capital",
+        table_summary="Ratios de capital",
+        headers=["Indicateur", "Valeur"],
+        indicators=["Ratio CET1"],
+        footnotes=[{"id": "1", "text": "Note A"}],
+        bbox=[0.1, 0.2, 0.9, 0.7],
+    )
+    table_curr = _table(
+        table_id="curr_same",
+        page=4,
+        section="capital_management",
+        title="Capital",
+        table_summary="Ratios de capital",
+        headers=["Indicateur", "Valeur"],
+        indicators=["Ratio CET1"],
+        footnotes=[{"id": "2", "text": "Note A mise à jour"}],
+        bbox=[0.1, 0.2, 0.9, 0.7],
+    )
+    _write_tables_json(
+        previous_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t1",
+        tables=[table_prev],
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t2",
+        tables=[table_curr],
+    )
+
+    responses = [
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_same",
+                    "decision": "matched",
+                    "previous_table_id": "prev_same",
+                    "match_confidence": 0.99,
+                    "reason": "Même tableau.",
+                }
+            ],
+            "warnings": [],
+        },
+        {
+            "indicators_added": [],
+            "indicators_removed": [],
+            "indicators_renamed": [],
+            "reason": "Aucun changement indicateur.",
+        },
+        {
+            "footnotes_added": [],
+            "footnotes_removed": [],
+            "footnotes_renamed": [
+                {
+                    "previous_id": "1",
+                    "current_id": "2",
+                    "previous_text": "Note A",
+                    "current_text": "Note A mise à jour",
+                    "reason": "Même note, wording mis à jour.",
+                }
+            ],
+            "reason": "Une note change.",
+        },
+    ]
+
+    def fake_call_openai_json(**kwargs):
+        return responses.pop(0)
+
+    sanity_calls: list[dict] = []
+
+    def fake_render_visual_sanity_proof(pdf_path, *, page, bbox, scale=1.5):
+        return b"proof-bytes", "ok"
+
+    def fake_visual_sanity_check(
+        previous_render_bytes,
+        current_render_bytes,
+        diff_result,
+        *,
+        model,
+        call_openai_json,
+        usage_recorder=None,
+    ):
+        sanity_calls.append(diff_result)
+        return {
+            **diff_result,
+            "visual_sanity_applied": True,
+            "visual_sanity_rejected_count": 0,
+            "visual_sanity_scope": ["indicators", "footnotes", "tables"],
+            "visual_sanity_render_mode": "full",
+            "visual_sanity_render_status": "ok",
+        }
+
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt.render_visual_sanity_proof",
+        fake_render_visual_sanity_proof,
+    )
+    monkeypatch.setattr("vigilance.compare_gpt.visual_sanity_check", fake_visual_sanity_check)
+
+    source_pdf_previous = tmp_path / "prev.pdf"
+    source_pdf_current = tmp_path / "curr.pdf"
+    source_pdf_previous.write_bytes(b"%PDF-1.4\n")
+    source_pdf_current.write_bytes(b"%PDF-1.4\n")
+
+    comparison_path = compare_reports_gpt4o(
+        previous_dir=previous_dir,
+        current_dir=current_dir,
+        out_root=tmp_path / "comparisons",
+        model="gpt-4o-test",
+        source_pdf_previous=str(source_pdf_previous),
+        source_pdf_current=str(source_pdf_current),
+    )
+
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert len(sanity_calls) == 1
+    assert payload["pair_comparisons"][0]["visual_sanity_applied"] is True
+    assert payload["pair_comparisons"][0]["visual_sanity_render_mode"] == "full"
+    assert payload["pair_comparisons"][0]["technical_diff"]["footnotes_renamed"] != []
+
+
+def test_compare_reports_gpt4o_filters_table_added_removed_with_visual_sanity(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    _write_tables_json(
+        previous_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t1",
+        tables=[
+            _table(
+                table_id="prev_removed",
+                page=12,
+                section="liquidite",
+                title="Liquidité",
+                table_summary="Tableau de liquidité antérieur",
+                headers=["Indicateur", "Valeur"],
+                indicators=["LCR"],
+                bbox=[0.1, 0.2, 0.9, 0.7],
+            )
+        ],
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t2",
+        tables=[
+            _table(
+                table_id="curr_added",
+                page=14,
+                section="liquidite",
+                title="Liquidité",
+                table_summary="Tableau de liquidité à court terme",
+                headers=["Indicateur", "Valeur"],
+                indicators=["LCR"],
+                bbox=[0.1, 0.2, 0.9, 0.7],
+            )
+        ],
+    )
+
+    responses = [
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_added",
+                    "decision": "unresolved",
+                    "reason": "Aucune contrepartie.",
+                }
+            ],
+            "warnings": [],
+        },
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_added",
+                    "decision": "added",
+                    "reason": "Nouveau tableau.",
+                }
+            ],
+            "warnings": [],
+        },
+    ]
+
+    def fake_call_openai_json(**kwargs):
+        return responses.pop(0)
+
+    render_calls: list[tuple[str, int]] = []
+
+    def fake_render_visual_sanity_proof(pdf_path, *, page, bbox, scale=1.5):
+        render_calls.append((str(pdf_path), int(page)))
+        return b"proof-bytes", "ok"
+
+    def fake_visual_sanity_check_table_event(
+        previous_render_bytes,
+        current_render_bytes,
+        *,
+        event_type,
+        table_id,
+        table_title,
+        model,
+        call_openai_json,
+        usage_recorder=None,
+    ):
+        return {
+            "confirmed": False,
+            "visual_sanity_applied": True,
+            "visual_sanity_rejected_count": 1,
+            "visual_sanity_scope": ["indicators", "footnotes", "tables"],
+            "visual_sanity_render_mode": "full",
+            "visual_sanity_render_status": "ok",
+        }
+
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt.render_visual_sanity_proof",
+        fake_render_visual_sanity_proof,
+    )
+    monkeypatch.setattr(
+        "vigilance.compare_gpt.visual_sanity_check_table_event",
+        fake_visual_sanity_check_table_event,
+    )
+
+    source_pdf_previous = tmp_path / "prev.pdf"
+    source_pdf_current = tmp_path / "curr.pdf"
+    source_pdf_previous.write_bytes(b"%PDF-1.4\n")
+    source_pdf_current.write_bytes(b"%PDF-1.4\n")
+
+    comparison_path = compare_reports_gpt4o(
+        previous_dir=previous_dir,
+        current_dir=current_dir,
+        out_root=tmp_path / "comparisons",
+        model="gpt-4o-test",
+        source_pdf_previous=str(source_pdf_previous),
+        source_pdf_current=str(source_pdf_current),
+    )
+
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert payload["matching"]["tables_added"] == []
+    assert payload["matching"]["tables_removed"] == []
+    assert payload["summary"]["tables_added_total"] == 0
+    assert payload["summary"]["tables_removed_total"] == 0
+    assert render_calls == [
+        (str(source_pdf_previous), 12),
+        (str(source_pdf_current), 14),
+        (str(source_pdf_previous), 12),
+        (str(source_pdf_current), 14),
+    ]
+
+
+def test_compare_reports_gpt4o_skips_table_visual_sanity_without_anchor(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    _write_tables_json(
+        previous_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t1",
+        tables=[
+            _table(
+                table_id="prev_removed",
+                page=12,
+                section="risk_management",
+                title="Risque",
+                table_summary="Tableau de risque hérité",
+                headers=["Indicateur", "Valeur"],
+                indicators=["RWA"],
+                bbox=[0.1, 0.2, 0.9, 0.7],
+            )
+        ],
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t2",
+        tables=[
+            _table(
+                table_id="curr_added",
+                page=14,
+                section="liquidite",
+                title="Liquidité",
+                table_summary="Tableau de liquidité à court terme",
+                headers=["Indicateur", "Valeur"],
+                indicators=["LCR"],
+                bbox=[0.1, 0.2, 0.9, 0.7],
+            )
+        ],
+    )
+
+    responses = [
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_added",
+                    "decision": "unresolved",
+                    "reason": "Aucune contrepartie.",
+                }
+            ],
+            "warnings": [],
+        },
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_added",
+                    "decision": "added",
+                    "reason": "Nouveau tableau.",
+                }
+            ],
+            "warnings": [],
+        },
+    ]
+
+    def fake_call_openai_json(**kwargs):
+        return responses.pop(0)
+
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt.render_visual_sanity_proof",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected render")),
+    )
+    monkeypatch.setattr(
+        "vigilance.compare_gpt.visual_sanity_check_table_event",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected sanity")),
+    )
+
+    source_pdf_previous = tmp_path / "prev.pdf"
+    source_pdf_current = tmp_path / "curr.pdf"
+    source_pdf_previous.write_bytes(b"%PDF-1.4\n")
+    source_pdf_current.write_bytes(b"%PDF-1.4\n")
+
+    comparison_path = compare_reports_gpt4o(
+        previous_dir=previous_dir,
+        current_dir=current_dir,
+        out_root=tmp_path / "comparisons",
+        model="gpt-4o-test",
+        source_pdf_previous=str(source_pdf_previous),
+        source_pdf_current=str(source_pdf_current),
+    )
+
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert len(payload["matching"]["tables_added"]) == 1
+    assert len(payload["matching"]["tables_removed"]) == 1
+    assert payload["matching"]["tables_added"][0]["visual_sanity_render_status"] == "skipped_missing_anchor"
+    assert payload["matching"]["tables_removed"][0]["visual_sanity_render_status"] == "skipped_missing_anchor"
+    assert "confirmed" not in payload["matching"]["tables_added"][0]
+    assert "confirmed" not in payload["matching"]["tables_removed"][0]
+
+
+def test_compare_reports_gpt4o_recomputes_table_level_change_after_noise_filter(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    table_prev = _table(
+        table_id="prev_same",
+        page=3,
+        section="capital_management",
+        title="Capital",
+        table_summary="Ratios de capital",
+        headers=["Indicateur", "Valeur"],
+        indicators=["Ratio CET1"],
+        footnotes=[{"id": "1", "text": "Voir pages 10 à 11"}],
+        bbox=[0.1, 0.2, 0.9, 0.7],
+    )
+    table_curr = _table(
+        table_id="curr_same",
+        page=4,
+        section="capital_management",
+        title="Capital",
+        table_summary="Ratios de capital",
+        headers=["Indicateur", "Valeur"],
+        indicators=["Ratio CET1"],
+        footnotes=[{"id": "1", "text": "Voir pages 12 à 13"}],
+        bbox=[0.1, 0.2, 0.9, 0.7],
+    )
+    _write_tables_json(
+        previous_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t1",
+        tables=[table_prev],
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t2",
+        tables=[table_curr],
+    )
+
+    responses = [
+        {
+            "current_table_decisions": [
+                {
+                    "current_table_id": "curr_same",
+                    "decision": "matched",
+                    "previous_table_id": "prev_same",
+                    "match_confidence": 0.99,
+                    "reason": "Même tableau.",
+                }
+            ],
+            "warnings": [],
+        },
+        {
+            "indicators_added": [],
+            "indicators_removed": [],
+            "indicators_renamed": [],
+            "reason": "Aucun changement indicateur.",
+        },
+        {
+            "footnotes_added": [],
+            "footnotes_removed": [],
+            "footnotes_renamed": [
+                {
+                    "previous_id": "1",
+                    "current_id": "1",
+                    "previous_text": "Voir pages 10 à 11",
+                    "current_text": "Voir pages 12 à 13",
+                    "reason": "Référence de page modifiée.",
+                }
+            ],
+            "reason": "Une note change.",
+        },
+    ]
+
+    def fake_call_openai_json(**kwargs):
+        return responses.pop(0)
+
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+
+    comparison_path = compare_reports_gpt4o(
+        previous_dir=previous_dir,
+        current_dir=current_dir,
+        out_root=tmp_path / "comparisons",
+        model="gpt-4o-test",
+    )
+
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert payload["pair_comparisons"][0]["technical_diff"]["footnotes_renamed"] == []
+    assert payload["pair_comparisons"][0]["technical_diff"]["table_level_change"] == "inchange"
+
+
 def test_compare_reports_gpt4o_rejects_non_schema_7_tables_json(tmp_path: Path) -> None:
     previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
     current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"

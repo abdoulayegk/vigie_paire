@@ -13,6 +13,8 @@ import json
 import logging
 from typing import Any, Callable
 
+from vigilance.models.comparison_models import DevilAdvocateResponse
+
 logger = logging.getLogger(__name__)
 
 DEVIL_ADVOCATE_SYSTEM_PROMPT = """\
@@ -104,6 +106,7 @@ def _devil_advocate_review(
             temperature=0.0,
             usage_recorder=usage_recorder,
             call_kind="devil_advocate",
+            response_model=DevilAdvocateResponse,
         )
     except Exception as exc:
         logger.warning("Devil's Advocate: API call failed: %s", exc)
@@ -113,19 +116,11 @@ def _devil_advocate_review(
             "contested_pairs": [],
         }
 
-    new_matches = list(result.get("new_matches", []) or [])
-    confirmed = list(result.get("confirmed_low_confidence", []) or [])
-    contested = list(result.get("contested_pairs", []) or [])
-
     logger.info(
         "Devil's Advocate: found %d new matches, %d confirmed, %d contested",
-        len(new_matches),
-        len(confirmed),
-        len(contested),
+        len(result.get("new_matches", [])),
+        len(result.get("confirmed_low_confidence", [])),
+        len(result.get("contested_pairs", [])),
     )
 
-    return {
-        "new_matches": new_matches,
-        "confirmed_low_confidence": confirmed,
-        "contested_pairs": contested,
-    }
+    return result

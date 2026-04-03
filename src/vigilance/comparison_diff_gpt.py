@@ -7,6 +7,12 @@ import logging
 import re
 from typing import Any, Callable
 
+from vigilance.models.comparison_models import (
+    FootnoteDiffResponse,
+    IndicatorDiffResponse,
+    InspectorResponse,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -155,120 +161,6 @@ def _normalize_footnotes(raw: Any) -> list[dict[str, str]]:
         normalized.append({"id": fid, "text": text})
     return normalized
 
-
-def _normalize_reasoned_values(
-    items: Any,
-    *,
-    value_key: str,
-) -> list[dict[str, Any]]:
-    if not isinstance(items, list):
-        return []
-    out: list[dict[str, Any]] = []
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-        value = str(item.get(value_key, "") or "").strip()
-        reason = str(item.get("reason", "") or "").strip()
-        if not value:
-            continue
-        assessment = item.get("analyst_assessment")
-        out.append(
-            {
-                value_key: value,
-                "reason": reason,
-                "analyst_assessment": dict(assessment)
-                if isinstance(assessment, dict)
-                else {},
-            }
-        )
-    return out
-
-
-def _normalize_indicator_renames(items: Any) -> list[dict[str, Any]]:
-    if not isinstance(items, list):
-        return []
-    out: list[dict[str, Any]] = []
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-        previous = str(item.get("previous", "") or "").strip()
-        current = str(item.get("current", "") or "").strip()
-        reason = str(item.get("reason", "") or "").strip()
-        if not previous or not current:
-            continue
-        assessment = item.get("analyst_assessment")
-        out.append(
-            {
-                "previous": previous,
-                "current": current,
-                "reason": reason,
-                "analyst_assessment": dict(assessment)
-                if isinstance(assessment, dict)
-                else {},
-            }
-        )
-    return out
-
-
-def _normalize_footnote_reasoned_values(items: Any) -> list[dict[str, Any]]:
-    if not isinstance(items, list):
-        return []
-    out: list[dict[str, Any]] = []
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-        fid = str(item.get("id", "") or "").strip()
-        text = str(item.get("text", "") or "").strip()
-        reason = str(item.get("reason", "") or "").strip()
-        if not fid and not text:
-            continue
-        assessment = item.get("analyst_assessment")
-        out.append(
-            {
-                "id": fid,
-                "text": text,
-                "reason": reason,
-                "analyst_assessment": dict(assessment)
-                if isinstance(assessment, dict)
-                else {},
-            }
-        )
-    return out
-
-
-def _normalize_footnote_renames(items: Any) -> list[dict[str, Any]]:
-    if not isinstance(items, list):
-        return []
-    out: list[dict[str, Any]] = []
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-        previous_id = str(item.get("previous_id", "") or "").strip()
-        current_id = str(item.get("current_id", "") or "").strip()
-        previous_text = str(item.get("previous_text", "") or "").strip()
-        current_text = str(item.get("current_text", "") or "").strip()
-        reason = str(item.get("reason", "") or "").strip()
-        if (
-            not previous_id
-            and not current_id
-            and not previous_text
-            and not current_text
-        ):
-            continue
-        assessment = item.get("analyst_assessment")
-        out.append(
-            {
-                "previous_id": previous_id,
-                "current_id": current_id,
-                "previous_text": previous_text,
-                "current_text": current_text,
-                "reason": reason,
-                "analyst_assessment": dict(assessment)
-                if isinstance(assessment, dict)
-                else {},
-            }
-        )
-    return out
 
 
 # ---------------------------------------------------------------------------
@@ -466,6 +358,7 @@ def _call_validated_diff_json(
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None,
     max_validation_attempts: int,
+    response_model: type | None = None,
 ) -> dict[str, Any]:
     validation_feedback = ""
     data: dict[str, Any] | None = None
@@ -487,6 +380,7 @@ def _call_validated_diff_json(
             ],
             usage_recorder=usage_recorder,
             call_kind=call_kind,
+            response_model=response_model,
         )
         if all(isinstance(data.get(field, []), list) for field in required_list_fields):
             return data
@@ -611,18 +505,13 @@ def diff_indicators_pair_gpt(
         call_openai_json=call_openai_json,
         usage_recorder=usage_recorder,
         max_validation_attempts=max_validation_attempts,
+        response_model=IndicatorDiffResponse,
     )
     return {
-        "indicators_added": _normalize_reasoned_values(
-            data.get("indicators_added", []), value_key="value"
-        ),
-        "indicators_removed": _normalize_reasoned_values(
-            data.get("indicators_removed", []), value_key="value"
-        ),
-        "indicators_renamed": _normalize_indicator_renames(
-            data.get("indicators_renamed", [])
-        ),
-        "reason": str(data.get("reason", "") or "").strip(),
+        "indicators_added": data["indicators_added"],
+        "indicators_removed": data["indicators_removed"],
+        "indicators_renamed": data["indicators_renamed"],
+        "reason": data["reason"],
     }
 
 
@@ -823,15 +712,9 @@ def diff_footnotes_pair_gpt(
             "previous_table": _table_context(previous_table),
             "current_table": _table_context(current_table),
             "indicator_diff": {
-                "indicators_added": list(
-                    indicator_diff.get("indicators_added", []) or []
-                ),
-                "indicators_removed": list(
-                    indicator_diff.get("indicators_removed", []) or []
-                ),
-                "indicators_renamed": list(
-                    indicator_diff.get("indicators_renamed", []) or []
-                ),
+                "indicators_added": indicator_diff["indicators_added"],
+                "indicators_removed": indicator_diff["indicators_removed"],
+                "indicators_renamed": indicator_diff["indicators_renamed"],
             },
         },
     }
@@ -851,18 +734,13 @@ def diff_footnotes_pair_gpt(
         call_openai_json=call_openai_json,
         usage_recorder=usage_recorder,
         max_validation_attempts=max_validation_attempts,
+        response_model=FootnoteDiffResponse,
     )
     return {
-        "footnotes_added": _normalize_footnote_reasoned_values(
-            data.get("footnotes_added", [])
-        ),
-        "footnotes_removed": _normalize_footnote_reasoned_values(
-            data.get("footnotes_removed", [])
-        ),
-        "footnotes_renamed": _normalize_footnote_renames(
-            data.get("footnotes_renamed", [])
-        ),
-        "reason": str(data.get("reason", "") or "").strip(),
+        "footnotes_added": data["footnotes_added"],
+        "footnotes_removed": data["footnotes_removed"],
+        "footnotes_renamed": data["footnotes_renamed"],
+        "reason": data["reason"],
     }
 
 
@@ -957,36 +835,16 @@ def _inspect_diff_artifacts_gpt(
         ],
         usage_recorder=usage_recorder,
         call_kind="inspect_artifacts",
+        response_model=InspectorResponse,
     )
 
     # --- Parse verdicts and filter ---
-    added_verdicts = (
-        data.get("added_verdicts", [])
-        if isinstance(data.get("added_verdicts"), list)
-        else []
-    )
-    removed_verdicts = (
-        data.get("removed_verdicts", [])
-        if isinstance(data.get("removed_verdicts"), list)
-        else []
-    )
-
-    # Build sets of artifact values for fast lookup
-    artifact_added: set[str] = set()
-    for v in added_verdicts:
-        if (
-            isinstance(v, dict)
-            and str(v.get("verdict", "")).strip().lower() == "artifact"
-        ):
-            artifact_added.add(str(v.get("value", "")).strip())
-
-    artifact_removed: set[str] = set()
-    for v in removed_verdicts:
-        if (
-            isinstance(v, dict)
-            and str(v.get("verdict", "")).strip().lower() == "artifact"
-        ):
-            artifact_removed.add(str(v.get("value", "")).strip())
+    artifact_added = {
+        v["value"] for v in data["added_verdicts"] if v["verdict"].lower() == "artifact"
+    }
+    artifact_removed = {
+        v["value"] for v in data["removed_verdicts"] if v["verdict"].lower() == "artifact"
+    }
 
     filtered_added = [
         item
@@ -1089,12 +947,12 @@ def diff_table_pair_gpt(
     footnote_gpt_called = bool(previous_footnotes and current_footnotes)
 
     technical_diff: dict[str, Any] = {
-        "indicators_added": list(indicator_diff.get("indicators_added", []) or []),
-        "indicators_removed": list(indicator_diff.get("indicators_removed", []) or []),
-        "indicators_renamed": list(indicator_diff.get("indicators_renamed", []) or []),
-        "footnotes_added": list(footnote_diff.get("footnotes_added", []) or []),
-        "footnotes_removed": list(footnote_diff.get("footnotes_removed", []) or []),
-        "footnotes_renamed": list(footnote_diff.get("footnotes_renamed", []) or []),
+        "indicators_added": indicator_diff["indicators_added"],
+        "indicators_removed": indicator_diff["indicators_removed"],
+        "indicators_renamed": indicator_diff["indicators_renamed"],
+        "footnotes_added": footnote_diff["footnotes_added"],
+        "footnotes_removed": footnote_diff["footnotes_removed"],
+        "footnotes_renamed": footnote_diff["footnotes_renamed"],
     }
     has_changes = any(technical_diff.values())
     technical_diff["table_level_change"] = "modifie" if has_changes else "inchange"
