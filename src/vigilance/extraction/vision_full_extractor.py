@@ -14,6 +14,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..config import resolve_openai_model
 from ..utils.genai import get_openai_api_key
+from ..utils.openai_schema import (
+    build_strict_openai_response_format,
+    validate_strict_openai_response_format,
+)
 from .vision_cache import (
     cache_get,
     cache_put,
@@ -459,101 +463,19 @@ class VisionSchemaContractError(RuntimeError):
 
 def _build_openai_json_schema() -> dict[str, Any]:
     """Build OpenAI json_schema format from Pydantic model for Structured Outputs (full schema only)."""
-    schema = VisionFullResponseSchema.model_json_schema()
-    props = schema.get("properties", {})
-    defs = schema.get("$defs", {})
-    required = list(props.keys())
-    strict_schema: dict[str, Any] = {
-        "type": "object",
-        "properties": props,
-        "required": required,
-        "additionalProperties": False,
-    }
-    if isinstance(defs, dict) and defs:
-        # OpenAI strict mode: every object must have required == all properties.
-        # Pydantic omits fields with defaults from required — fix that recursively.
-        for def_name, def_schema in defs.items():
-            if isinstance(def_schema, dict) and def_schema.get("type") == "object":
-                def_props = def_schema.get("properties", {})
-                if isinstance(def_props, dict):
-                    def_schema["required"] = list(def_props.keys())
-        strict_schema["$defs"] = defs
-
-    return {
-        "type": "json_schema",
-        "json_schema": {
-            "name": "vision_full_extraction",
-            "strict": True,
-            "schema": strict_schema,
-        },
-    }
+    return build_strict_openai_response_format(
+        VisionFullResponseSchema,
+        name="vision_full_extraction",
+        error_cls=VisionSchemaContractError,
+    )
 
 
 def _validate_openai_strict_schema_contract(schema: dict[str, Any]) -> None:
     """Validate local Structured Outputs strict contract before API call."""
-    try:
-        if schema.get("type") != "json_schema":
-            raise VisionSchemaContractError("schema.type must be 'json_schema'")
-        json_schema = schema["json_schema"]
-        block = json_schema["schema"]
-        properties = block["properties"]
-        required = block["required"]
-    except Exception as exc:
-        raise VisionSchemaContractError(
-            f"schema malformed for Structured Outputs: {exc}"
-        ) from exc
-
-    if not isinstance(properties, dict):
-        raise VisionSchemaContractError("schema.properties must be a dict")
-    if not isinstance(required, list):
-        raise VisionSchemaContractError("schema.required must be a list")
-
-    prop_keys = set(properties.keys())
-    req_keys = {str(k) for k in required}
-    if prop_keys != req_keys:
-        missing = sorted(prop_keys - req_keys)
-        extra = sorted(req_keys - prop_keys)
-        details: list[str] = []
-        if missing:
-            details.append(f"missing_in_required={missing}")
-        if extra:
-            details.append(f"unknown_in_required={extra}")
-        joined = ", ".join(details) if details else "required/properties mismatch"
-        raise VisionSchemaContractError(
-            "Structured Outputs strict contract invalid: "
-            f"required must exactly match properties ({joined})"
-        )
-    _validate_no_map_like_objects(block, path="$")
-
-
-def _validate_no_map_like_objects(node: Any, path: str) -> None:
-    if not isinstance(node, dict):
-        return
-    node_type = node.get("type")
-    if node_type == "object":
-        # OpenAI strict schema handling is fragile with map-like additionalProperties objects.
-        if "additionalProperties" in node and node.get("additionalProperties") not in (
-            False,
-            None,
-        ):
-            raise VisionSchemaContractError(
-                f"Structured Outputs strict contract invalid: map-like object not allowed at {path}"
-            )
-        props = node.get("properties")
-        if isinstance(props, dict):
-            for key, sub in props.items():
-                _validate_no_map_like_objects(sub, f"{path}.properties.{key}")
-    if node_type == "array":
-        _validate_no_map_like_objects(node.get("items"), f"{path}.items")
-    for key in ("anyOf", "oneOf", "allOf"):
-        variants = node.get(key)
-        if isinstance(variants, list):
-            for idx, sub in enumerate(variants):
-                _validate_no_map_like_objects(sub, f"{path}.{key}[{idx}]")
-    defs = node.get("$defs")
-    if isinstance(defs, dict):
-        for key, sub in defs.items():
-            _validate_no_map_like_objects(sub, f"{path}.$defs.{key}")
+    validate_strict_openai_response_format(
+        schema,
+        error_cls=VisionSchemaContractError,
+    )
 
 
 def _classify_openai_error(exc: Exception) -> str:

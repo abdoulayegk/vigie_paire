@@ -13,7 +13,7 @@ import time
 from typing import Any
 
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from vigilance.utils.genai import get_openai_api_key
 
@@ -26,6 +26,9 @@ logger = logging.getLogger(__name__)
 
 class QAResult(BaseModel):
     """Result of a deep QA inspection on an extracted table."""
+
+    model_config = ConfigDict(extra="forbid")
+
     is_perfect: bool = Field(
         ...,
         description="True if ALL textual rows from the image are present in the JSON. False if anything is missing.",
@@ -123,32 +126,31 @@ Respond STRICTLY using the required JSON schema format."""
         ]
         
         logger.debug("Executing Deep QA Inspector on table crop using model %s", self.model)
-        
-        payload_kwargs = {
-            "model": self.model,
-            "messages": messages,
-            "max_completion_tokens": 1500,
-            "temperature": 0.0,
-            "response_format": {
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "ExtractionQA",
-                    "strict": True,
-                    "schema": QAResult.model_json_schema(),
-                },
-            },
-        }
 
         from openai import OpenAI
 
         client = OpenAI(api_key=self.api_key)
-        raw_response = ""
         last_exc: Exception | None = None
         for attempt in range(3):
             try:
-                response = client.chat.completions.create(**payload_kwargs)
-                raw_response = response.choices[0].message.content or ""
-                break
+                response = client.beta.chat.completions.parse(
+                    model=self.model,
+                    messages=messages,
+                    response_format=QAResult,
+                    max_completion_tokens=1500,
+                    temperature=0.0,
+                )
+                parsed = response.choices[0].message.parsed
+                if parsed is None:
+                    raise ValueError("Structured Output parsing returned None")
+                if not parsed.is_perfect:
+                    logger.info(
+                        "QA INSPECTOR ALERT: Missing elements detected: %s",
+                        parsed.missing_elements,
+                    )
+                else:
+                    logger.debug("QA INSPECTOR PASSED: Extraction is 100%% complete.")
+                return parsed
             except Exception as exc:
                 last_exc = exc
                 if attempt >= 2:
@@ -159,20 +161,5 @@ Respond STRICTLY using the required JSON schema format."""
                     exc,
                 )
                 time.sleep(0.5 * (attempt + 1))
-        if not raw_response and last_exc is not None:
-            raise last_exc
-
-        try:
-            parsed = QAResult.model_validate_json(raw_response)
-            if not parsed.is_perfect:
-                logger.info(
-                    "QA INSPECTOR ALERT: Missing elements detected: %s", 
-                    parsed.missing_elements
-                )
-            else:
-                logger.debug("QA INSPECTOR PASSED: Extraction is 100%% complete.")
-            return parsed
-        except Exception as e:
-            logger.error("Failed to parse QA Inspector response: %s", e)
-            # In case of QA parse failure, assume perfect to avoid blocking the pipeline on QA internal errors
-            return QAResult(is_perfect=True, missing_elements=[], justification="QA parsing failed, defaulting to True")
+        # unreachable — last iteration always raises — but keeps type-checker happy
+        raise last_exc  # type: ignore[misc]
