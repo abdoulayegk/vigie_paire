@@ -1,0 +1,1622 @@
+{
+  "schema_version": "review_state_v1",
+  "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/comparison.json",
+  "comparison_run_id": "20260331_114648",
+  "review_items_signature": "adc0efd9bd7415693817d1c0c99995445cfc91d9dd59e090790609868ff46dfe",
+  "saved_at": "2026-04-01T15:55:57+00:00",
+  "source": "on_validate_change_v2",
+  "preferred_store": "review_queue",
+  "review_selection": {
+    "review_id": "bmo::risk_management::tbl_p053_i01|tbl_p047_i01",
+    "change_id": "chg_00016"
+  },
+  "review_current_idx": 0,
+  "current_change_idx": 5,
+  "current_indicator_idx": 0,
+  "review_items": [
+    {
+      "change_id": "bmo::risk_management::tbl_p053_i01|tbl_p047_i01",
+      "change_type": "renamed",
+      "indicator": "1 ajouté(s), 1 retiré(s), 2 renommé(s)",
+      "section": "risk_management",
+      "table_name": "TABLEAU 35",
+      "table_number": "",
+      "table_id_t1": "tbl_p053_i01",
+      "table_id_t2": "tbl_p047_i01",
+      "page_t1": 53,
+      "page_t2": 47,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-01T15:55:57.015858+00:00",
+      "edited_value": "",
+      "confidence": 0.92,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 35",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "Crédits hypothécaires au logement productifs, dont : Prêts présentant un risque pondéré inférieur ou égal à 35 % dans l’approche standard de Bâle II pour le risque de crédit",
+          "type": "added",
+          "review_status": "approved"
+        },
+        {
+          "name": "Actifs d’instruments dérivés du RSLT",
+          "type": "removed",
+          "review_status": "approved"
+        },
+        {
+          "name": "Passifs d’instruments dérivés du RSLT avant déduction de la marge de variation versée -> Passifs d’instruments dérivés du RSLLT avant déduction de la marge de variation versée",
+          "type": "renamed",
+          "from": "Passifs d’instruments dérivés du RSLT avant déduction de la marge de variation versée",
+          "to": "Passifs d’instruments dérivés du RSLLT avant déduction de la marge de variation versée",
+          "review_status": "pending"
+        },
+        {
+          "name": "Total des actifs liquides de haute qualité du RSLT -> Total des actifs liquides de haute qualité du RSLLT",
+          "type": "renamed",
+          "from": "Total des actifs liquides de haute qualité du RSLT",
+          "to": "Total des actifs liquides de haute qualité du RSLLT",
+          "review_status": "pending"
+        },
+        {
+          "name": "[*] Valeur non exigée par la norme régissant les informations à fournir sur le RSLLT.",
+          "type": "modified",
+          "review_status": "approved"
+        },
+        {
+          "name": "[1] Les éléments classés dans la colonne « Sans échéance » ne so -> Les éléments classés dans la colonne « Sans échéance » ne so",
+          "type": "modified",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Indicators and headers match; row_count 39 vs 39; similar table summary.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.056576481552350226,
+        0.2605737213800424,
+        0.9409129986776315,
+        0.8681767908292234
+      ],
+      "bbox_t2": [
+        0.056534378541613535,
+        0.2618420123941158,
+        0.9406296197397661,
+        0.8680525815269946
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "L'ajout d'indicateurs liés aux prêts présentant un risque et la suppression d'indicateurs dérivés peuvent affecter l'évaluation du risque de crédit et de marché.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "L'ajout d'indicateurs liés aux prêts présentant un risque et la suppression d'indicateurs dérivés peuvent affecter l'évaluation du risque de crédit et de marché.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "Les changements dans les indicateurs de risque peuvent influencer la gestion des risques et nécessitent une analyse approfondie.",
+        "source": "llm",
+        "justification": "L'ajout d'indicateurs liés aux prêts présentant un risque et la suppression d'indicateurs dérivés peuvent affecter l'évaluation du risque de crédit et de marché.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "critique",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 4 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bmo::capital_management::tbl_p025_i01|tbl_p022_i01",
+      "change_type": "removed",
+      "indicator": "2 retiré(s), 1 renommé(s)",
+      "section": "capital_management",
+      "table_name": "TABLEAU 13",
+      "table_number": "",
+      "table_id_t1": "tbl_p025_i01",
+      "table_id_t2": "tbl_p022_i01",
+      "page_t1": 25,
+      "page_t2": 22,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-01T03:17:46.170767+00:00",
+      "edited_value": "",
+      "confidence": 0.9,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 13",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "Billets avec remboursement de capital à recours limité, série 1 à 4,300 %",
+          "type": "removed",
+          "review_status": "approved"
+        },
+        {
+          "name": "Série 33",
+          "type": "removed",
+          "review_status": "approved"
+        },
+        {
+          "name": "Série K – première tranche -> Série K - première tranche",
+          "type": "renamed",
+          "from": "Série K – première tranche",
+          "to": "Série K - première tranche",
+          "review_status": "approved"
+        },
+        {
+          "name": "[1] Des détails sur les billets à moyen terme sont présentés à l -> Des détails sur les billets à moyen terme sont présentés à l",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[2] Convertible en actions ordinaires. Les billets avec rembours -> Convertible en actions ordinaires. Les billets avec rembours",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'TABLEAU 13'; indicators: similar structure with minor differences; row_count 23 vs 25.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05654907346454383,
+        0.07716379134717316,
+        0.6811152865686959,
+        0.41527638804280503
+      ],
+      "bbox_t2": [
+        0.05639663389295854,
+        0.0715226509763298,
+        0.6808762790690255,
+        0.3883366078254634
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "La suppression des indicateurs liés aux billets avec remboursement de capital à recours limité peut affecter la gestion du capital et les ratios prudentiels.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression des indicateurs liés aux billets avec remboursement de capital à recours limité peut affecter la gestion du capital et les ratios prudentiels.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "Bâle III — CET1",
+        "impact_description": "La suppression de ces indicateurs pourrait modifier la composition du capital réglementaire.",
+        "source": "llm",
+        "justification": "La suppression des indicateurs liés aux billets avec remboursement de capital à recours limité peut affecter la gestion du capital et les ratios prudentiels.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "critique",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bmo::regulatory_updates::tbl_p043_i01|",
+      "change_type": "table_removed",
+      "indicator": "Tableau entier retiré",
+      "section": "regulatory_updates",
+      "table_name": "TABLEAU 21",
+      "table_number": "",
+      "table_id_t1": "tbl_p043_i01",
+      "table_id_t2": "",
+      "page_t1": 43,
+      "page_t2": null,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-01T15:55:53.607895+00:00",
+      "edited_value": "",
+      "confidence": 1.0,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 21",
+      "table_status": "completed",
+      "indicators": [],
+      "match_method": "",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.056450502813149186,
+        0.22702430341466165,
+        0.942442965751033,
+        0.4649263212302207
+      ],
+      "bbox_t2": null,
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "table_removed",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "La suppression du Tableau 21, qui contenait des indicateurs clés liés à l'activité transfrontière et à la complexité, est pertinente car elle peut affecter l'évaluation des risques systémiques.",
+        "is_relevant": true,
+        "category": "STRUCTURE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression du Tableau 21, qui contenait des indicateurs clés liés à l'activité transfrontière et à la complexité, est pertinente car elle peut affecter l'évaluation des risques systémiques.",
+        "impact_type": "structurel",
+        "project_phase": "pilier_3",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression de ce tableau pourrait réduire la transparence sur les indicateurs de risque systémique de la banque.",
+        "source": "llm",
+        "justification": "La suppression du Tableau 21, qui contenait des indicateurs clés liés à l'activité transfrontière et à la complexité, est pertinente car elle peut affecter l'évaluation des risques systémiques.",
+        "relevance": "Structure"
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
+      }
+    },
+    {
+      "change_id": "bmo::risk_management::tbl_p047_i02|",
+      "change_type": "table_removed",
+      "indicator": "Tableau entier retiré",
+      "section": "risk_management",
+      "table_name": "TABLEAU 30",
+      "table_number": "",
+      "table_id_t1": "tbl_p047_i02",
+      "table_id_t2": "",
+      "page_t1": 47,
+      "page_t2": null,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-01T03:17:18.911602+00:00",
+      "edited_value": "",
+      "confidence": 1.0,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 30",
+      "table_status": "completed",
+      "indicators": [],
+      "match_method": "",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.0568906275956045,
+        0.44902036462364964,
+        0.9427957436124573,
+        0.5303966437598618
+      ],
+      "bbox_t2": null,
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "table_removed",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_marche",
+        "change_significance": "moyen",
+        "review_priority": "critique",
+        "analyst_summary": "La suppression du tableau sur la sensibilité aux taux d'intérêt et aux marchés boursiers est pertinente car elle affecte la transparence sur la gestion des risques financiers.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression du tableau sur la sensibilité aux taux d'intérêt et aux marchés boursiers est pertinente car elle affecte la transparence sur la gestion des risques financiers.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression du tableau réduit la visibilité sur la sensibilité de la banque aux fluctuations des taux d'intérêt et des marchés boursiers.",
+        "source": "llm",
+        "justification": "La suppression du tableau sur la sensibilité aux taux d'intérêt et aux marchés boursiers est pertinente car elle affecte la transparence sur la gestion des risques financiers.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
+      }
+    },
+    {
+      "change_id": "bmo::regulatory_updates::tbl_p044_i01|tbl_p038_i01",
+      "change_type": "added",
+      "indicator": "2 ajouté(s)",
+      "section": "regulatory_updates",
+      "table_name": "TABLEAU 21",
+      "table_number": "",
+      "table_id_t1": "tbl_p044_i01",
+      "table_id_t2": "tbl_p038_i01",
+      "page_t1": 44,
+      "page_t2": 38,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-01T03:17:54.370041+00:00",
+      "edited_value": "",
+      "confidence": 0.8,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 21",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "Au 31 janvier 2026",
+          "type": "added",
+          "review_status": "approved"
+        },
+        {
+          "name": "Au 31 octobre 2025",
+          "type": "added",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Both tables share identical headers related to 'Prêts garantis par un bien immobilier au Canada'. The CQ table appears to be a truncated version with updated date indicators.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.056800227022225806,
+        0.31969954524909433,
+        0.9388850743854755,
+        0.37290483487020515
+      ],
+      "bbox_t2": [
+        0.05652699368848698,
+        0.7980167195583573,
+        0.9388477824351724,
+        0.8518913486063516
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "matched_pair",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "autre",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Les ajouts de dates dans un tableau existant ne constituent pas un changement réglementaire ou méthodologique.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Les ajouts de dates dans un tableau existant ne constituent pas un changement réglementaire ou méthodologique.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur la réglementation ou la gestion des risques.",
+        "source": "llm",
+        "justification": "Les ajouts de dates dans un tableau existant ne constituent pas un changement réglementaire ou méthodologique.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "autre",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bmo::risk_management::tbl_p046_i01|tbl_p041_i01",
+      "change_type": "renamed",
+      "indicator": "1 renommé(s)",
+      "section": "risk_management",
+      "table_name": "TABLEAU 26",
+      "table_number": "",
+      "table_id_t1": "tbl_p046_i01",
+      "table_id_t2": "tbl_p041_i01",
+      "page_t1": 46,
+      "page_t2": 41,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-01T03:17:56.934486+00:00",
+      "edited_value": "",
+      "confidence": 0.9,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 26",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "Engagements des clients aux termes -> Engagements des clients aux termes d’acceptations",
+          "type": "renamed",
+          "from": "Engagements des clients aux termes",
+          "to": "Engagements des clients aux termes d’acceptations",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Indicators and headers match; row_count 19 vs 20; similar table summary.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05699375379774641,
+        0.1911373118425556,
+        0.9373479281130852,
+        0.5065731531918323
+      ],
+      "bbox_t2": [
+        0.05712646926794306,
+        0.19731133092424818,
+        0.9371093194578031,
+        0.5112224106251657
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "matched_pair",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Le changement concerne uniquement le renommage d'un indicateur sans impact de fond sur la réglementation ou la gestion des risques.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Le changement concerne uniquement le renommage d'un indicateur sans impact de fond sur la réglementation ou la gestion des risques.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Le changement de nom de l'indicateur n'affecte pas les calculs ou les seuils réglementaires.",
+        "source": "llm",
+        "justification": "Le changement concerne uniquement le renommage d'un indicateur sans impact de fond sur la réglementation ou la gestion des risques.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bmo::risk_management::tbl_p055_i02|tbl_p049_i02",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "TABLEAU 39",
+      "table_number": "",
+      "table_id_t1": "tbl_p055_i02",
+      "table_id_t2": "tbl_p049_i02",
+      "page_t1": 55,
+      "page_t2": 49,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-01T03:16:54.322671+00:00",
+      "edited_value": "",
+      "confidence": 0.92,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 39",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "[1] Les crédits fermes ne tiennent pas compte des marges de crédit personnelles et des cartes de crédit que BMO peut annuler",
+          "type": "modified",
+          "review_status": "approved"
+        },
+        {
+          "name": "[2] Les lettres de crédit peuvent faire l’objet de prélèvements en tout temps. Elles sont classées en fonction de leur échéa",
+          "type": "modified",
+          "review_status": "approved"
+        },
+        {
+          "name": "[3] Les autres engagements comprennent les obligations d’achat et les engagements sur bail pour les baux signés, mais non en",
+          "type": "modified",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Indicators and headers match; row_count 19 vs 19; similar table summary.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.056777729705949985,
+        0.2309870193573879,
+        0.9429849952746912,
+        0.5332400505035639
+      ],
+      "bbox_t2": [
+        0.056789053147410694,
+        0.23104902769235605,
+        0.9429758218537609,
+        0.5332132360884425
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {},
+      "match_metadata": {}
+    },
+    {
+      "change_id": "bmo::regulatory_updates::tbl_p045_i02|tbl_p039_i04",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "regulatory_updates",
+      "table_name": "tbl_p039_i04",
+      "table_number": "",
+      "table_id_t1": "tbl_p045_i02",
+      "table_id_t2": "tbl_p039_i04",
+      "page_t1": 45,
+      "page_t2": 39,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-01T03:16:52.080189+00:00",
+      "edited_value": "",
+      "confidence": 0.92,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "tbl_p039_i04",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "[3] À la suite des hausses des taux d’intérêt, le portefeuille c -> À la suite des hausses des taux d’intérêt, le portefeuille c",
+          "type": "modified",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Indicators and headers match; row_count 3 vs 3; similar table summary.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05647121156162136,
+        0.16939812194302184,
+        0.9423071592368273,
+        0.24441788216359042
+      ],
+      "bbox_t2": [
+        0.05671384605244764,
+        0.6538133411578002,
+        0.9415653086746462,
+        0.7310433257764969
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {},
+      "match_metadata": {}
+    },
+    {
+      "change_id": "bmo::risk_management::tbl_p050_i01|tbl_p044_i02",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "TABLEAU 32",
+      "table_number": "",
+      "table_id_t1": "tbl_p050_i01",
+      "table_id_t2": "tbl_p044_i02",
+      "page_t1": 50,
+      "page_t2": 44,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.92,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 32",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[4] Le total du financement de gros était constitué de 55,1 mill -> Le total du financement de gros était constitué de 53,8 mill",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Indicators and headers match; row_count 19 vs 19; similar table summary.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05657654387178589,
+        0.1932971628961849,
+        0.9370972544150579,
+        0.46445799360060114
+      ],
+      "bbox_t2": [
+        0.056424970540356376,
+        0.46831133292762406,
+        0.9369074044862417,
+        0.746248871367398
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {},
+      "match_metadata": {}
+    }
+  ],
+  "review_queue": [
+    {
+      "review_id": "bmo::risk_management::tbl_p053_i01|tbl_p047_i01",
+      "table_key": "bmo::risk_management::tbl_p053_i01|tbl_p047_i01",
+      "table_title": "TABLEAU 35",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "TABLEAU 35",
+      "table_number": "",
+      "table_id_t1": "tbl_p053_i01",
+      "table_id_t2": "tbl_p047_i01",
+      "page_t1": 53,
+      "page_t2": 47,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.056576481552350226,
+        0.2605737213800424,
+        0.9409129986776315,
+        0.8681767908292234
+      ],
+      "bbox_t2": [
+        0.056534378541613535,
+        0.2618420123941158,
+        0.9406296197397661,
+        0.8680525815269946
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00005",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Crédits hypothécaires au logement productifs, dont : Prêts présentant un risque pondéré inférieur ou égal à 35 % dans l’approche standard de Bâle II pour le risque de crédit",
+            "indicator_name_clean": "crédits hypothécaires au logement productifs, dont : prêts présentant un risque pondéré inférieur ou égal à 35 % dans l’approche standard de bâle ii pour le risque de crédit"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-03-31T15:51:41.926101+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00006",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Actifs d’instruments dérivés du RSLT",
+            "indicator_name_clean": "actifs d’instruments dérivés du rslt"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-03-31T15:52:18.659305+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00007",
+          "change_type": "indicator_renamed",
+          "payload": {
+            "indicator_name": "Passifs d’instruments dérivés du RSLT avant déduction de la marge de variation versée -> Passifs d’instruments dérivés du RSLLT avant déduction de la marge de variation versée",
+            "indicator_name_clean": "passifs d’instruments dérivés du rslt avant déduction de la marge de variation versée -> passifs d’instruments dérivés du rsllt avant déduction de la marge de variation versée",
+            "from": "Passifs d’instruments dérivés du RSLT avant déduction de la marge de variation versée",
+            "to": "Passifs d’instruments dérivés du RSLLT avant déduction de la marge de variation versée",
+            "from_clean": "Passifs d’instruments dérivés du RSLT avant déduction de la marge de variation versée",
+            "to_clean": "Passifs d’instruments dérivés du RSLLT avant déduction de la marge de variation versée"
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00008",
+          "change_type": "indicator_renamed",
+          "payload": {
+            "indicator_name": "Total des actifs liquides de haute qualité du RSLT -> Total des actifs liquides de haute qualité du RSLLT",
+            "indicator_name_clean": "total des actifs liquides de haute qualité du rslt -> total des actifs liquides de haute qualité du rsllt",
+            "from": "Total des actifs liquides de haute qualité du RSLT",
+            "to": "Total des actifs liquides de haute qualité du RSLLT",
+            "from_clean": "Total des actifs liquides de haute qualité du RSLT",
+            "to_clean": "Total des actifs liquides de haute qualité du RSLLT"
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00015",
+          "change_type": "footnote_added",
+          "payload": {
+            "indicator_name": "[*] Valeur non exigée par la norme régissant les informations à fournir sur le RSLLT.",
+            "indicator_name_clean": "[*] valeur non exigée par la norme régissant les informations à fournir sur le rsllt.",
+            "footnote_ref": "*",
+            "old_text": "",
+            "new_text": "Valeur non exigée par la norme régissant les informations à fournir sur le RSLLT."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-01T15:55:57.015858+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00016",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Les éléments classés dans la colonne « Sans échéance » ne so -> Les éléments classés dans la colonne « Sans échéance » ne so",
+            "indicator_name_clean": "[1] les éléments classés dans la colonne « sans échéance » ne so -> les éléments classés dans la colonne « sans échéance » ne so",
+            "footnote_ref": "1",
+            "old_text": "Les éléments classés dans la colonne « Sans échéance » ne sont assortis d’aucune échéance stipulée. Ces éléments peuvent inclure notamment des dépôts sans échéance, des positions vendeurs, des positions à échéance ouverte, des titres autres que des actifs liquides de haute qualité, des produits de base physiques et des prêts à vue.",
+            "new_text": "Les éléments classés dans la colonne « Sans échéance » ne sont assortis d’aucune échéance stipulée. Ces éléments peuvent inclure notamment des fonds propres à durée indéterminée, des dépôts sans échéance, des positions vendeurs, des positions à échéance ouverte, des titres autres que des actifs liquides de haute qualité, des produits de base physiques et des prêts à vue."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-01T15:55:55.287634+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.92,
+      "match_method": "Indicators and headers match; row_count 39 vs 39; similar table summary.",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "L'ajout d'indicateurs liés aux prêts présentant un risque et la suppression d'indicateurs dérivés peuvent affecter l'évaluation du risque de crédit et de marché.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "L'ajout d'indicateurs liés aux prêts présentant un risque et la suppression d'indicateurs dérivés peuvent affecter l'évaluation du risque de crédit et de marché.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "Les changements dans les indicateurs de risque peuvent influencer la gestion des risques et nécessitent une analyse approfondie.",
+        "source": "llm",
+        "justification": "L'ajout d'indicateurs liés aux prêts présentant un risque et la suppression d'indicateurs dérivés peuvent affecter l'évaluation du risque de crédit et de marché.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "critique",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 4 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 6,
+        "indicators_added": 1,
+        "indicators_removed": 1,
+        "indicators_renamed": 2,
+        "footnotes_changed": 2,
+        "validated": 4,
+        "pending": 2
+      }
+    },
+    {
+      "review_id": "bmo::capital_management::tbl_p025_i01|tbl_p022_i01",
+      "table_key": "bmo::capital_management::tbl_p025_i01|tbl_p022_i01",
+      "table_title": "TABLEAU 13",
+      "view_mode": "change_list",
+      "section": "capital_management",
+      "table_name": "TABLEAU 13",
+      "table_number": "",
+      "table_id_t1": "tbl_p025_i01",
+      "table_id_t2": "tbl_p022_i01",
+      "page_t1": 25,
+      "page_t2": 22,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05654907346454383,
+        0.07716379134717316,
+        0.6811152865686959,
+        0.41527638804280503
+      ],
+      "bbox_t2": [
+        0.05639663389295854,
+        0.0715226509763298,
+        0.6808762790690255,
+        0.3883366078254634
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00001",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Billets avec remboursement de capital à recours limité, série 1 à 4,300 %",
+            "indicator_name_clean": "billets avec remboursement de capital à recours limité, série 1 à 4,300 %"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-03-31T19:04:42.581516+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00002",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Série 33",
+            "indicator_name_clean": "série 33"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-03-31T19:04:42.728258+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00003",
+          "change_type": "indicator_renamed",
+          "payload": {
+            "indicator_name": "Série K – première tranche -> Série K - première tranche",
+            "indicator_name_clean": "série k – première tranche -> série k - première tranche",
+            "from": "Série K – première tranche",
+            "to": "Série K - première tranche",
+            "from_clean": "Série K – première tranche",
+            "to_clean": "Série K - première tranche"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-01T03:17:46.170767+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00011",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Des détails sur les billets à moyen terme sont présentés à l -> Des détails sur les billets à moyen terme sont présentés à l",
+            "indicator_name_clean": "[1] des détails sur les billets à moyen terme sont présentés à l -> des détails sur les billets à moyen terme sont présentés à l",
+            "footnote_ref": "1",
+            "old_text": "Des détails sur les billets à moyen terme sont présentés à la note 16 des états financiers consolidés audités du Rapport annuel de BMO pour 2024. La note 16 des états financiers consolidés audités du Rapport annuel de BMO pour 2024, traitent en détail du capital social et des autres instruments de capitaux propres.",
+            "new_text": "Des détails sur les billets à moyen terme sont présentés à la note 16 des états financiers consolidés audités du Rapport annuel de BMO pour 2025. La note 16 des états financiers consolidés annuels audités du Rapport annuel de BMO pour 2025, traitent en détail du capital social et des autres instruments convertibles en actions ordinaires."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00012",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[2] Convertible en actions ordinaires. Les billets avec rembours -> Convertible en actions ordinaires. Les billets avec rembours",
+            "indicator_name_clean": "[2] convertible en actions ordinaires. les billets avec rembours -> convertible en actions ordinaires. les billets avec rembours",
+            "footnote_ref": "2",
+            "old_text": "Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actions ordinaires en vertu du recours aux actions privilégiées, série 49, aux actions privilégiées, série 51, aux actions privilégiées, série 53, aux actions privilégiées, série 54 et aux actions privilégiées, capital à recours limité, série 1, série 2, série 3, série 4, série 5 et série 6, respectivement émises en même temps que les billets avec remboursement actuellement les actifs détenus dans une fiducie à recours limité.",
+            "new_text": "Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actions ordinaires en vertu du recours aux actions privilégiées, série 51, aux actions privilégiées, série 53, aux actions privilégiées, série 54 et aux actions privilégiées, série 55 au titre des billets avec remboursement de capital à recours limité, série 4, série 5 et série 6, respectivement émises en même temps que les billets avec remboursement de capital à recours limité, qui comprennent actions privilégiées, série 51, aux actions privilégiées, série 53, aux actions privilégiées, série 54 et aux actions privilégiées, série 55 au titre des billets avec remboursement de capital à recours limité, série 4, série 5 et série 6, respectivement émises en même temps que les billets avec remboursement de capital à recours limité."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.9,
+      "match_method": "Title identical: 'TABLEAU 13'; indicators: similar structure with minor differences; row_count 23 vs 25.",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "La suppression des indicateurs liés aux billets avec remboursement de capital à recours limité peut affecter la gestion du capital et les ratios prudentiels.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression des indicateurs liés aux billets avec remboursement de capital à recours limité peut affecter la gestion du capital et les ratios prudentiels.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "Bâle III — CET1",
+        "impact_description": "La suppression de ces indicateurs pourrait modifier la composition du capital réglementaire.",
+        "source": "llm",
+        "justification": "La suppression des indicateurs liés aux billets avec remboursement de capital à recours limité peut affecter la gestion du capital et les ratios prudentiels.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "critique",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "Capital",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 5,
+        "indicators_added": 0,
+        "indicators_removed": 2,
+        "indicators_renamed": 1,
+        "footnotes_changed": 2,
+        "validated": 3,
+        "pending": 2
+      }
+    },
+    {
+      "review_id": "bmo::regulatory_updates::tbl_p043_i01|",
+      "table_key": "bmo::regulatory_updates::tbl_p043_i01|",
+      "table_title": "TABLEAU 21",
+      "view_mode": "table_only",
+      "section": "regulatory_updates",
+      "table_name": "TABLEAU 21",
+      "table_number": "",
+      "table_id_t1": "tbl_p043_i01",
+      "table_id_t2": "",
+      "page_t1": 43,
+      "page_t2": null,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.056450502813149186,
+        0.22702430341466165,
+        0.942442965751033,
+        0.4649263212302207
+      ],
+      "bbox_t2": null,
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00020",
+          "change_type": "table_removed",
+          "payload": {
+            "description": "Tableau entier supprimé",
+            "table_status": "supprime"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-01T15:55:53.607895+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 1,
+      "match_method": "",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "La suppression du Tableau 21, qui contenait des indicateurs clés liés à l'activité transfrontière et à la complexité, est pertinente car elle peut affecter l'évaluation des risques systémiques.",
+        "is_relevant": true,
+        "category": "STRUCTURE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression du Tableau 21, qui contenait des indicateurs clés liés à l'activité transfrontière et à la complexité, est pertinente car elle peut affecter l'évaluation des risques systémiques.",
+        "impact_type": "structurel",
+        "project_phase": "pilier_3",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression de ce tableau pourrait réduire la transparence sur les indicateurs de risque systémique de la banque.",
+        "source": "llm",
+        "justification": "La suppression du Tableau 21, qui contenait des indicateurs clés liés à l'activité transfrontière et à la complexité, est pertinente car elle peut affecter l'évaluation des risques systémiques.",
+        "relevance": "Structure"
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
+      },
+      "relevance": "Structure",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "bmo::risk_management::tbl_p047_i02|",
+      "table_key": "bmo::risk_management::tbl_p047_i02|",
+      "table_title": "TABLEAU 30",
+      "view_mode": "table_only",
+      "section": "risk_management",
+      "table_name": "TABLEAU 30",
+      "table_number": "",
+      "table_id_t1": "tbl_p047_i02",
+      "table_id_t2": "",
+      "page_t1": 47,
+      "page_t2": null,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.0568906275956045,
+        0.44902036462364964,
+        0.9427957436124573,
+        0.5303966437598618
+      ],
+      "bbox_t2": null,
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00021",
+          "change_type": "table_removed",
+          "payload": {
+            "description": "Tableau entier supprimé",
+            "table_status": "supprime"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-01T03:17:18.911602+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 1,
+      "match_method": "",
+      "genai_analysis": {
+        "theme": "risque_marche",
+        "change_significance": "moyen",
+        "review_priority": "critique",
+        "analyst_summary": "La suppression du tableau sur la sensibilité aux taux d'intérêt et aux marchés boursiers est pertinente car elle affecte la transparence sur la gestion des risques financiers.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression du tableau sur la sensibilité aux taux d'intérêt et aux marchés boursiers est pertinente car elle affecte la transparence sur la gestion des risques financiers.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression du tableau réduit la visibilité sur la sensibilité de la banque aux fluctuations des taux d'intérêt et des marchés boursiers.",
+        "source": "llm",
+        "justification": "La suppression du tableau sur la sensibilité aux taux d'intérêt et aux marchés boursiers est pertinente car elle affecte la transparence sur la gestion des risques financiers.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
+      },
+      "relevance": "Risque",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "bmo::regulatory_updates::tbl_p044_i01|tbl_p038_i01",
+      "table_key": "bmo::regulatory_updates::tbl_p044_i01|tbl_p038_i01",
+      "table_title": "TABLEAU 21",
+      "view_mode": "change_list",
+      "section": "regulatory_updates",
+      "table_name": "TABLEAU 21",
+      "table_number": "",
+      "table_id_t1": "tbl_p044_i01",
+      "table_id_t2": "tbl_p038_i01",
+      "page_t1": 44,
+      "page_t2": 38,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.056800227022225806,
+        0.31969954524909433,
+        0.9388850743854755,
+        0.37290483487020515
+      ],
+      "bbox_t2": [
+        0.05652699368848698,
+        0.7980167195583573,
+        0.9388477824351724,
+        0.8518913486063516
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00009",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Au 31 janvier 2026",
+            "indicator_name_clean": "au 31 janvier 2026"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-01T03:17:21.728133+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00010",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Au 31 octobre 2025",
+            "indicator_name_clean": "au 31 octobre 2025"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-01T03:17:54.370041+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.8,
+      "match_method": "Both tables share identical headers related to 'Prêts garantis par un bien immobilier au Canada'. The CQ table appears to be a truncated version with updated date indicators.",
+      "genai_analysis": {
+        "theme": "autre",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Les ajouts de dates dans un tableau existant ne constituent pas un changement réglementaire ou méthodologique.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Les ajouts de dates dans un tableau existant ne constituent pas un changement réglementaire ou méthodologique.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur la réglementation ou la gestion des risques.",
+        "source": "llm",
+        "justification": "Les ajouts de dates dans un tableau existant ne constituent pas un changement réglementaire ou méthodologique.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "autre",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "relevance": "Cosmétique",
+      "risk_level": "FAIBLE",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 2,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 2,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "bmo::risk_management::tbl_p046_i01|tbl_p041_i01",
+      "table_key": "bmo::risk_management::tbl_p046_i01|tbl_p041_i01",
+      "table_title": "TABLEAU 26",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "TABLEAU 26",
+      "table_number": "",
+      "table_id_t1": "tbl_p046_i01",
+      "table_id_t2": "tbl_p041_i01",
+      "page_t1": 46,
+      "page_t2": 41,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05699375379774641,
+        0.1911373118425556,
+        0.9373479281130852,
+        0.5065731531918323
+      ],
+      "bbox_t2": [
+        0.05712646926794306,
+        0.19731133092424818,
+        0.9371093194578031,
+        0.5112224106251657
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00004",
+          "change_type": "indicator_renamed",
+          "payload": {
+            "indicator_name": "Engagements des clients aux termes -> Engagements des clients aux termes d’acceptations",
+            "indicator_name_clean": "engagements des clients aux termes -> engagements des clients aux termes d’acceptations",
+            "from": "Engagements des clients aux termes",
+            "to": "Engagements des clients aux termes d’acceptations",
+            "from_clean": "Engagements des clients aux termes",
+            "to_clean": "Engagements des clients aux termes d’acceptations"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-01T03:17:56.934486+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.9,
+      "match_method": "Indicators and headers match; row_count 19 vs 20; similar table summary.",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Le changement concerne uniquement le renommage d'un indicateur sans impact de fond sur la réglementation ou la gestion des risques.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Le changement concerne uniquement le renommage d'un indicateur sans impact de fond sur la réglementation ou la gestion des risques.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Le changement de nom de l'indicateur n'affecte pas les calculs ou les seuils réglementaires.",
+        "source": "llm",
+        "justification": "Le changement concerne uniquement le renommage d'un indicateur sans impact de fond sur la réglementation ou la gestion des risques.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "relevance": "Cosmétique",
+      "risk_level": "FAIBLE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 1,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "bmo::risk_management::tbl_p055_i02|tbl_p049_i02",
+      "table_key": "bmo::risk_management::tbl_p055_i02|tbl_p049_i02",
+      "table_title": "TABLEAU 39",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "TABLEAU 39",
+      "table_number": "",
+      "table_id_t1": "tbl_p055_i02",
+      "table_id_t2": "tbl_p049_i02",
+      "page_t1": 55,
+      "page_t2": 49,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.056777729705949985,
+        0.2309870193573879,
+        0.9429849952746912,
+        0.5332400505035639
+      ],
+      "bbox_t2": [
+        0.056789053147410694,
+        0.23104902769235605,
+        0.9429758218537609,
+        0.5332132360884425
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00017",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[1] Les crédits fermes ne tiennent pas compte des marges de crédit personnelles et des cartes de crédit que BMO peut annuler",
+            "indicator_name_clean": "[1] les crédits fermes ne tiennent pas compte des marges de crédit personnelles et des cartes de crédit que bmo peut annuler",
+            "footnote_ref": "1",
+            "old_text": "Les crédits fermes ne tiennent pas compte des marges de crédit personnelles et des cartes de crédit que BMO peut annuler sans condition à son entière discrétion. La grande majorité de ces engagements arrivent à échéance avant d’avoir été utilisés. Par conséquent, le montant contractuel total peut ne pas être représentatif du financement qui sera vraisemblablement requis dans le cadre de ces engagements.",
+            "new_text": ""
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-03-31T19:05:53.120544+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00018",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[2] Les lettres de crédit peuvent faire l’objet de prélèvements en tout temps. Elles sont classées en fonction de leur échéa",
+            "indicator_name_clean": "[2] les lettres de crédit peuvent faire l’objet de prélèvements en tout temps. elles sont classées en fonction de leur échéa",
+            "footnote_ref": "2",
+            "old_text": "Les lettres de crédit peuvent faire l’objet de prélèvements en tout temps. Elles sont classées en fonction de leur échéance contractuelle déclarée.",
+            "new_text": ""
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-03-31T19:05:53.538138+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00019",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[3] Les autres engagements comprennent les obligations d’achat et les engagements sur bail pour les baux signés, mais non en",
+            "indicator_name_clean": "[3] les autres engagements comprennent les obligations d’achat et les engagements sur bail pour les baux signés, mais non en",
+            "footnote_ref": "3",
+            "old_text": "Les autres engagements comprennent les obligations d’achat et les engagements sur bail pour les baux signés, mais non encore en vigueur.",
+            "new_text": ""
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-01T03:16:54.322671+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.92,
+      "match_method": "Indicators and headers match; row_count 19 vs 19; similar table summary.",
+      "genai_analysis": {},
+      "match_metadata": {},
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 3,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 3,
+        "validated": 3,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "bmo::regulatory_updates::tbl_p045_i02|tbl_p039_i04",
+      "table_key": "bmo::regulatory_updates::tbl_p045_i02|tbl_p039_i04",
+      "table_title": "tbl_p039_i04",
+      "view_mode": "change_list",
+      "section": "regulatory_updates",
+      "table_name": "tbl_p039_i04",
+      "table_number": "",
+      "table_id_t1": "tbl_p045_i02",
+      "table_id_t2": "tbl_p039_i04",
+      "page_t1": 45,
+      "page_t2": 39,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05647121156162136,
+        0.16939812194302184,
+        0.9423071592368273,
+        0.24441788216359042
+      ],
+      "bbox_t2": [
+        0.05671384605244764,
+        0.6538133411578002,
+        0.9415653086746462,
+        0.7310433257764969
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00013",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[3] À la suite des hausses des taux d’intérêt, le portefeuille c -> À la suite des hausses des taux d’intérêt, le portefeuille c",
+            "indicator_name_clean": "[3] à la suite des hausses des taux d’intérêt, le portefeuille c -> à la suite des hausses des taux d’intérêt, le portefeuille c",
+            "footnote_ref": "3",
+            "old_text": "À la suite des hausses des taux d’intérêt, le portefeuille comprenait des prêts hypothécaires à taux variables à amortissement négatif totalisant 0,1 milliard de dollars (0,1 milliard au 30 avril 2025) les paiements contractuels de la période considérée étant appliqués aux intérêts et la portion des intérêts exigibles non visée par des versements étant appliquée au capital.",
+            "new_text": "À la suite des hausses des taux d’intérêt, le portefeuille comprenait des prêts hypothécaires à taux variables à amortissement négatif inférieur à 0,1 milliard de dollars (relativement stable par rapport au 31 octobre 2025) les paiements contractuels de la période considérée étant appliqués aux intérêts et la portion des intérêts exigibles non visée par des versements étant appliquée au capital."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-01T03:16:52.080189+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.92,
+      "match_method": "Indicators and headers match; row_count 3 vs 3; similar table summary.",
+      "genai_analysis": {},
+      "match_metadata": {},
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "bmo::risk_management::tbl_p050_i01|tbl_p044_i02",
+      "table_key": "bmo::risk_management::tbl_p050_i01|tbl_p044_i02",
+      "table_title": "TABLEAU 32",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "TABLEAU 32",
+      "table_number": "",
+      "table_id_t1": "tbl_p050_i01",
+      "table_id_t2": "tbl_p044_i02",
+      "page_t1": 50,
+      "page_t2": 44,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05657654387178589,
+        0.1932971628961849,
+        0.9370972544150579,
+        0.46445799360060114
+      ],
+      "bbox_t2": [
+        0.056424970540356376,
+        0.46831133292762406,
+        0.9369074044862417,
+        0.746248871367398
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00014",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[4] Le total du financement de gros était constitué de 55,1 mill -> Le total du financement de gros était constitué de 53,8 mill",
+            "indicator_name_clean": "[4] le total du financement de gros était constitué de 55,1 mill -> le total du financement de gros était constitué de 53,8 mill",
+            "footnote_ref": "4",
+            "old_text": "Le total du financement de gros était constitué de 55,1 milliards de dollars de fonds libellés en dollars canadiens et de 193,3 milliards de fonds libellés en dollars américains et en d’autres monnaies au 31 juillet 2025.",
+            "new_text": "Le total du financement de gros était constitué de 53,8 milliards de dollars de fonds libellés en dollars canadiens (54,3 milliards au 31 octobre 2025) et de 199,8 milliards de fonds libellés en dollars américains et en d’autres monnaies au 31 janvier 2026 (204,3 milliards au 31 octobre 2025)."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.92,
+      "match_method": "Indicators and headers match; row_count 19 vs 19; similar table summary.",
+      "genai_analysis": {},
+      "match_metadata": {},
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
+        "pending": 1
+      }
+    }
+  ]
+}

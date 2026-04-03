@@ -1,0 +1,520 @@
+{
+  "bank_code": "cibc",
+  "year": 2025,
+  "quarter": "t1",
+  "created_at": "2026-04-03T12:44:44",
+  "schema_version": 7,
+  "tables": [
+    {
+      "table_id": "tbl_p024_i01",
+      "page": 24,
+      "section": "capital_management",
+      "title": "",
+      "indicators": [
+        "Ratio des fonds propres de première catégorie sous forme d’actions ordinaires",
+        "Ratio des fonds propres de première catégorie",
+        "Ratio du total des fonds propres",
+        "Ratio de levier",
+        "Ratio de CTAP",
+        "Ratio de levier CTAP"
+      ]
+    },
+    {
+      "table_id": "tbl_p024_i02",
+      "page": 24,
+      "section": "capital_management",
+      "title": "",
+      "indicators": [
+        "Fonds propres de première catégorie sous forme d’actions ordinaires",
+        "Fonds propres de première catégorie",
+        "Total des fonds propres",
+        "L’APR se compose de ce qui suit :",
+        "Risque de crédit",
+        "Risque de marché",
+        "Risque opérationnel",
+        "Total de l’APR",
+        "Ratio des fonds propres de première catégorie sous forme d’actions ordinaires",
+        "Ratio des fonds propres de première catégorie",
+        "Ratio du total des fonds propres",
+        "Exposition aux fins du ratio de levier",
+        "Ratio de levier",
+        "CTAP disponible",
+        "Ratio de CTAP",
+        "Ratio de levier CTAP"
+      ]
+    },
+    {
+      "table_id": "tbl_p026_i01",
+      "page": 26,
+      "section": "capital_management",
+      "title": "",
+      "indicators": [
+        "Actions ordinaires",
+        "Actions autodétenues – actions ordinaires¹",
+        "Actions privilégiées",
+        "Série 43 (FPUNV)",
+        "Série 47 (FPUNV)",
+        "Série 56 (FPUNV)",
+        "Série 57 (FPUNV)",
+        "Actions autodétenues – actions privilégiées¹",
+        "Billets avec remboursement de capital à recours limité",
+        "Billets de série 1 avec remboursement de capital à recours limité à 4,375 % (FPUNV)",
+        "Billets de série 2 avec remboursement de capital à recours limité à 4,000 % (FPUNV)",
+        "Billets de série 3 avec remboursement de capital à recours limité à 7,150 % (FPUNV)",
+        "Billets de série 4 avec remboursement de capital à recours limité à 6,987 % (FPUNV)",
+        "Billets de série 5 avec remboursement de capital à recours limité à 6,950 % (FPUNV)",
+        "Titres secondaires",
+        "Débentures à 2,01 % échéant le 21 juillet 2030 (FPUNV)",
+        "Débentures à 1,96 % échéant le 21 avril 2031 (FPUNV)",
+        "Débentures à 4,20 % échéant le 7 avril 2032 (FPUNV)",
+        "Débentures à 5,33 % échéant le 20 janvier 2033 (FPUNV)",
+        "Débentures à 5,35 % échéant le 20 avril 2033 (FPUNV)",
+        "Débentures à 5,30 % échéant le 16 janvier 2034 (FPUNV)",
+        "Débentures à 4,90 % échéant le 12 juin 2034 (FPUNV)",
+        "Options sur actions en cours"
+      ]
+    },
+    {
+      "table_id": "tbl_p027_i01",
+      "page": 27,
+      "section": "capital_management",
+      "title": "",
+      "indicators": [
+        "A. Activité transfrontière",
+        "B. Taille",
+        "C. Interdépendance",
+        "D. Substituabilité / infrastructure financière",
+        "E. Complexité"
+      ]
+    },
+    {
+      "table_id": "tbl_p032_i01",
+      "page": 32,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Portefeuilles de prêts aux entreprises et aux gouvernements",
+        "Engagements utilisés",
+        "Engagements non utilisés",
+        "Transactions assimilées à des mises en pension de titres",
+        "Divers – hors bilan",
+        "Dérivés de gré à gré",
+        "ECD des portefeuilles de prêts aux entreprises et aux gouvernements, montant brut",
+        "Moins : garanties détenues aux fins de transactions assimilées à des mises en pension de titres",
+        "ECD des portefeuilles de prêts aux entreprises et aux gouvernements, montant net",
+        "Portefeuilles de détail",
+        "Engagements utilisés",
+        "Engagements non utilisés",
+        "Divers – hors bilan",
+        "ECD des portefeuilles de détail, montant brut",
+        "Expositions de titrisation2",
+        "ECD, montant brut3",
+        "ECD, montant net3"
+      ]
+    },
+    {
+      "table_id": "tbl_p033_i01",
+      "page": 33,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Ontario3",
+        "Colombie-Britannique et territoires4",
+        "Alberta",
+        "Québec",
+        "Provinces des Prairies / du Centre",
+        "Provinces de l’Atlantique",
+        "Portefeuille canadien5, 6",
+        "Portefeuille américain5",
+        "Autre portefeuille international5",
+        "Total des portefeuilles",
+        "31 octobre 2024"
+      ]
+    },
+    {
+      "table_id": "tbl_p033_i02",
+      "page": 33,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Ontario²",
+        "Colombie-Britannique et territoires³",
+        "Alberta",
+        "Québec",
+        "Provinces des Prairies / du Centre",
+        "Provinces de l’Atlantique",
+        "Portefeuille canadien⁴",
+        "Portefeuille américain⁴",
+        "Autre portefeuille international⁴"
+      ]
+    },
+    {
+      "table_id": "tbl_p033_i03",
+      "page": 33,
+      "section": "risk_management",
+      "title": "Prêts personnels garantis par des biens immobiliers",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p034_i01",
+      "page": 34,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "En fonction des paiements contractuels",
+        "Portefeuille canadien",
+        "31 janvier 2025",
+        "31 octobre 2024",
+        "Portefeuille américain",
+        "31 janvier 2025",
+        "31 octobre 2024",
+        "Autre portefeuille international",
+        "31 janvier 2025",
+        "31 octobre 2024",
+        "En fonction des paiements réels des clients",
+        "Portefeuille canadien",
+        "31 janvier 2025",
+        "31 octobre 2024",
+        "Portefeuille américain",
+        "31 janvier 2025",
+        "31 octobre 2024",
+        "Autre portefeuille international",
+        "31 janvier 2025",
+        "31 octobre 2024"
+      ]
+    },
+    {
+      "table_id": "tbl_p035_i01",
+      "page": 35,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Prêts douteux bruts",
+        "Solde au début de la période",
+        "Classement dans les prêts douteux au cours de la période",
+        "Transfert dans les prêts productifs au cours de la période",
+        "Remboursements nets¹",
+        "Montants radiés",
+        "Change et autres",
+        "Solde à la fin de la période",
+        "Provision pour pertes sur créances – prêts douteux",
+        "Prêts douteux nets²",
+        "Solde au début de la période",
+        "Variation nette des prêts douteux bruts",
+        "Variation nette de la provision",
+        "Solde à la fin de la période",
+        "Prêts douteux nets en pourcentage des prêts et des acceptations nets"
+      ]
+    },
+    {
+      "table_id": "tbl_p035_i02",
+      "page": 35,
+      "section": "risk_management",
+      "title": "Prêts en souffrance aux termes du contrat, mais non douteux",
+      "indicators": [
+        "Prêts hypothécaires à l’habitation",
+        "Prêts personnels",
+        "Cartes de crédit",
+        "Prêts aux entreprises et aux gouvernements"
+      ]
+    },
+    {
+      "table_id": "tbl_p036_i01",
+      "page": 36,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Royaume-Uni",
+        "Europe, à l’exclusion du Royaume-Uni²",
+        "Caraïbes",
+        "Amérique latine³",
+        "Asie",
+        "Océanie⁴",
+        "Divers",
+        "Total⁵",
+        "31 octobre 2024"
+      ]
+    },
+    {
+      "table_id": "tbl_p037_i01",
+      "page": 37,
+      "section": "risk_management",
+      "title": "Mesure de risque",
+      "indicators": [
+        "Trésorerie et dépôts non productifs d’intérêts auprès d’autres banques",
+        "Dépôts productifs d’intérêts auprès d’autres banques",
+        "Valeurs mobilières",
+        "Garanties au comptant au titre de valeurs empruntées",
+        "Valeurs acquises en vertu de prises en pension de titres",
+        "Prêts",
+        "Prêts hypothécaires à l’habitation",
+        "Prêts personnels",
+        "Cartes de crédit",
+        "Prêts aux entreprises et aux gouvernements¹",
+        "Provision pour pertes sur créances",
+        "Dérivés",
+        "Autres actifs",
+        "Dépôts",
+        "Engagements liés à des valeurs vendues à découvert",
+        "Garanties au comptant au titre de valeurs prêtées",
+        "Engagements liés à des valeurs vendues en vertu de mises en pension de titres",
+        "Dérivés (bloc 2)",
+        "Autres passifs¹",
+        "Titres secondaires"
+      ]
+    },
+    {
+      "table_id": "tbl_p038_i01",
+      "page": 38,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Risque de taux d’intérêt",
+        "Risque d’écart de taux",
+        "Risque lié aux actions",
+        "Risque de change",
+        "Risque lié aux marchandises",
+        "Effet de diversification1)",
+        "Total de la VAR (mesure d’un jour)"
+      ]
+    },
+    {
+      "table_id": "tbl_p039_i01",
+      "page": 39,
+      "section": "risk_management",
+      "title": "Sensibilité au risque de taux d’intérêt structurel – mesures",
+      "indicators": [
+        "Hausse de 100 points de base des taux d’intérêt",
+        "Augmentation (diminution) des produits nets d’intérêts",
+        "Augmentation (diminution) de la valeur économique des capitaux propres",
+        "Baisse de 100 points de base des taux d’intérêt",
+        "Baisse de 100 points de base des taux d’intérêt – Augmentation (diminution) des produits nets d’intérêts",
+        "Baisse de 100 points de base des taux d’intérêt – Augmentation (diminution) de la valeur économique des capitaux propres"
+      ]
+    },
+    {
+      "table_id": "tbl_p040_i01",
+      "page": 40,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Trésorerie et dépôts auprès d’autres banques",
+        "Valeurs mobilières émises ou garanties par des entités souveraines, des banques centrales et des banques multilatérales de développement",
+        "Autres titres de créance",
+        "Titres de participation",
+        "Titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation garantis par le gouvernement canadien",
+        "Autres actifs liquides²",
+        "31 janv. 2025 –  (bloc 2)",
+        "31 oct. 2024 – Trésorerie et dépôts auprès d’autres banques",
+        "31 oct. 2024 – Valeurs mobilières émises ou garanties par des entités souveraines, des banques centrales et des banques multilatérales de développement",
+        "31 oct. 2024 – Autres titres de créance",
+        "31 oct. 2024 – Titres de participation",
+        "31 oct. 2024 – Titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation garantis par le gouvernement canadien",
+        "31 oct. 2024 – Autres actifs liquides²"
+      ]
+    },
+    {
+      "table_id": "tbl_p040_i02",
+      "page": 40,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "CIBC (société mère)",
+        "Filiales canadiennes",
+        "Filiales étrangères"
+      ]
+    },
+    {
+      "table_id": "tbl_p041_i01",
+      "page": 41,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Trésorerie et dépôts auprès d’autres banques",
+        "Valeurs mobilières³",
+        "Prêts, nets de la provision⁴",
+        "Autres actifs",
+        "Trésorerie et dépôts auprès d’autres banques (bloc 2)",
+        "Valeurs mobilières³ (bloc 2)",
+        "Prêts, nets de la provision⁴,⁵",
+        "Autres actifs⁵"
+      ]
+    },
+    {
+      "table_id": "tbl_p042_i01",
+      "page": 42,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "HQLA",
+        "Sorties de trésorerie",
+        "HQLA",
+        "Dépôts de détail et dépôts de petites entreprises, dont :",
+        "Dépôts stables",
+        "Dépôts moins stables",
+        "Financement de gros non garanti, dont :",
+        "Dépôts opérationnels (toutes contreparties) et dépôts dans les réseaux de banques coopératives",
+        "Dépôts non opérationnels (toutes contreparties)",
+        "Dettes non garanties",
+        "Financement de gros garanti",
+        "Exigences supplémentaires, dont :",
+        "Sorties associées aux expositions sur dérivés et autres sûretés exigées",
+        "Sorties associées à une perte de financement sur produits de dette",
+        "Facilités de crédit et de liquidité",
+        "Autres obligations de financement contractuelles",
+        "Autres obligations de financement conditionnelles",
+        "Total des sorties de trésorerie",
+        "Entrées de trésorerie",
+        "Prêts garantis (p. ex., prises en pension de titres)",
+        "Entrées liées aux expositions parfaitement productives",
+        "Autres entrées de trésorerie",
+        "Total des entrées de trésorerie",
+        "Total des HQLA",
+        "Total des sorties nettes de trésorerie",
+        "LCR",
+        "Total des HQLA (bloc 2)",
+        "Total des sorties nettes de trésorerie (bloc 2)",
+        "LCR (bloc 2)"
+      ]
+    },
+    {
+      "table_id": "tbl_p043_i01",
+      "page": 43,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Élément de FSD",
+        "Fonds propres",
+        "Fonds propres réglementaires",
+        "Autres instruments de fonds propres",
+        "Dépôts de détail et dépôts de petites entreprises",
+        "Dépôts stables",
+        "Dépôts moins stables",
+        "Financement de gros",
+        "Dépôts opérationnels",
+        "Autres financements de gros",
+        "Passifs et leurs actifs interdépendants correspondants",
+        "Autres passifs",
+        "Passifs d’instruments dérivés du NSFR",
+        "Tous autres passifs ou fonds propres non couverts par les catégories ci-dessus",
+        "FSD total",
+        "Élément de RSF",
+        "Total des HQLA du NSFR",
+        "Dépôts détenus auprès d’autres institutions financières à des fins opérationnelles",
+        "Prêts et titres productifs",
+        "Prêts productifs à des institutions financières garantis par des HQLA de niveau 1",
+        "Prêts productifs à des institutions financières garantis par des HQLA autres que de niveau 1 et prêts productifs à des institutions financières non garantis",
+        "Prêts productifs à des entreprises non financières, prêts à la clientèle de détail et aux petites entreprises, et prêts à des entités souveraines, des banques centrales et des organismes publics, dont :",
+        "Prêts présentant un risque pondéré inférieur ou égal à 35 % dans l’approche standard de Bâle II pour le risque de crédit",
+        "Crédits hypothécaires au logement productifs, dont :",
+        "Prêts présentant un risque pondéré inférieur ou égal à 35 % dans l’approche standard de Bâle II pour le risque de crédit",
+        "Titres qui ne sont pas en défaut et qui ne remplissent pas les critères définissant les HQLA, y compris les actions négociées sur les marchés organisés",
+        "Actifs et leurs passifs interdépendants correspondants",
+        "Autres actifs",
+        "Produits de base physiques, y compris l’or",
+        "Actifs versés en tant que marge initiale dans le cadre de contrats dérivés et contributions à des fonds de garantie de contrepartie centrale",
+        "Actifs d’instruments dérivés du NSFR",
+        "Passifs d’instruments dérivés du NSFR avant déduction de la marge de variation versée",
+        "Tous autres actifs non couverts par les catégories ci-dessus",
+        "Éléments hors bilan",
+        "RSF total",
+        "NSFR",
+        "FSD total (bloc 2)",
+        "RSF total (bloc 2)",
+        "NSFR (bloc 2)"
+      ]
+    },
+    {
+      "table_id": "tbl_p044_i01",
+      "page": 44,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Dépôts provenant d’autres banques1",
+        "Certificats de dépôt et papier commercial",
+        "Billets de dépôt au porteur et acceptations bancaires",
+        "Billets à moyen terme non garantis de premier rang2",
+        "Billets structurés non garantis de premier rang",
+        "Obligations sécurisées/titres adossés à des créances mobilières",
+        "Titrisation de créances hypothécaires3",
+        "Obligations sécurisées",
+        "Titrisation de créances sur cartes de crédit",
+        "Passifs subordonnés",
+        "Divers4",
+        "Dont :",
+        "Garanti",
+        "Non garanti"
+      ]
+    },
+    {
+      "table_id": "tbl_p044_i02",
+      "page": 44,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "$ CA",
+        "$ US",
+        "Divers"
+      ]
+    },
+    {
+      "table_id": "tbl_p045_i01",
+      "page": 45,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Dépôt/contrepartie¹",
+        "Créances de premier rang²",
+        "Créances de premier rang requalifiables³",
+        "Titres secondaires",
+        "Titres secondaires – instruments de FPUNV⁴",
+        "Billets avec remboursement de capital à recours limité – instruments de FPUNV⁴, ⁵",
+        "Actions privilégiées – instruments de FPUNV⁴, ⁵",
+        "Créances à court terme",
+        "Perspective"
+      ]
+    },
+    {
+      "table_id": "tbl_p045_i02",
+      "page": 45,
+      "section": "risk_management",
+      "title": "",
+      "indicators": [
+        "Baisse d’un cran",
+        "Baisse de deux crans",
+        "Baisse de trois crans"
+      ]
+    },
+    {
+      "table_id": "tbl_p046_i01",
+      "page": 46,
+      "section": "risk_management",
+      "title": "Actifs et passifs",
+      "indicators": [
+        "Actif",
+        "Trésorerie et dépôts non productifs d’intérêts auprès d’autres banques¹",
+        "Dépôts productifs d’intérêts auprès d’autres banques",
+        "Valeurs mobilières",
+        "Garanties au comptant au titre de valeurs empruntées",
+        "Valeurs acquises en vertu de prises en pension de titres",
+        "Prêts",
+        "Prêts hypothécaires à l’habitation",
+        "Prêts personnels",
+        "Cartes de crédit",
+        "Prêts aux entreprises et aux gouvernements²",
+        "Provision pour pertes sur créances",
+        "Dérivés",
+        "Autres actifs",
+        "Passif",
+        "Dépôts³",
+        "Engagements liés à des valeurs vendues à découvert",
+        "Garanties au comptant au titre de valeurs prêtées",
+        "Engagements liés à des valeurs vendues en vertu de mises en pension de titres",
+        "Dérivés",
+        "Autres passifs²",
+        "Titres secondaires",
+        "Capitaux propres"
+      ]
+    }
+  ]
+}
