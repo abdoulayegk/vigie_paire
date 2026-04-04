@@ -3,14 +3,14 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/comparison.json",
   "comparison_run_id": "20260329_181809",
   "review_items_signature": "86a5fce689fa7625bb01c1b2cc69f96d8761a10ece170126670d7231801f8d37",
-  "saved_at": "2026-04-03T20:31:15+00:00",
+  "saved_at": "2026-04-04T04:46:53+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "td::capital_management::tbl_p039_i01|tbl_p034_i01",
-    "change_id": "chg_00004"
+    "review_id": "td::risk_management::tbl_p049_i01|tbl_p043_i01",
+    "change_id": "chg_00022"
   },
-  "review_current_idx": 1,
+  "review_current_idx": 8,
   "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
@@ -742,8 +742,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T04:46:53.101467+00:00",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -753,12 +753,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[1] Les sûretés données en garanties correspondent aux actifs do -> Les sûretés données en garantie correspondent à la portion d",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[3] Représentent les actifs qui sont disponibles facilement pour -> Représentent les actifs qui sont disponibles facilement pour",
@@ -1970,12 +1970,12 @@
             "old_text": "Les sûretés données en garanties correspondent aux actifs donnés en garanties dans le cadre de diverses opérations, telles que des mises en pension, des prêts de valeurs mobilières, des contrats de dérivés, et des exigences liées à la participation aux chambres de compensation et aux systèmes de paiement.",
             "new_text": "Les sûretés données en garantie correspondent à la portion des actifs donnés en garantie dans le cadre de grèvement, comme les mises en pension, les prêts de valeurs mobilières, les contrats de dérivés, et les exigences liées à la participation aux chambres de compensation et aux systèmes de paiement."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T04:46:53.101467+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00022",
@@ -1995,7 +1995,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.98,
       "match_method": "Indicators and headers are identical; row_count 8 vs 8; title and table_summary match exactly.",
       "genai_analysis": {},
@@ -2008,8 +2008,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 0,
-        "pending": 2
+        "validated": 1,
+        "pending": 1
       }
     },
     {

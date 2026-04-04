@@ -1,17 +1,17 @@
 {
   "schema_version": "review_state_v1",
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/comparison.json",
-  "comparison_run_id": "20260403_161939",
-  "review_items_signature": "0a93782d2babf4458a61a5e66c2efa8435608c2de3ef37fcd4600d884776c516",
-  "saved_at": "2026-04-03T20:30:44+00:00",
+  "comparison_run_id": "20260404_030545",
+  "review_items_signature": "46163c7c18d55370ca50e8c402929c7a716f8771a5a5962bf790fd2e45b40908",
+  "saved_at": "2026-04-04T07:16:08+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "rbc::risk_management::tbl_p037_i01|",
-    "change_id": "chg_00033"
+    "review_id": "rbc::risk_management::tbl_p033_i02|tbl_p039_i02",
+    "change_id": "chg_00014"
   },
-  "review_current_idx": 1,
-  "current_change_idx": 0,
+  "review_current_idx": 2,
+  "current_change_idx": 3,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:30:44.176198+00:00",
+      "review_timestamp": "2026-04-04T07:14:11.402936+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -61,20 +61,20 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "La suppression du tableau sur les banques d'importance systémique mondiale peut affecter l'évaluation de la stabilité financière et la gestion du capital.",
+        "analyst_summary": "La suppression du tableau sur les banques d'importance systémique mondiale pourrait affecter l'évaluation de la stabilité financière et la gestion du capital.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
         "confidence": 0.9,
-        "explanation": "La suppression du tableau sur les banques d'importance systémique mondiale peut affecter l'évaluation de la stabilité financière et la gestion du capital.",
+        "explanation": "La suppression du tableau sur les banques d'importance systémique mondiale pourrait affecter l'évaluation de la stabilité financière et la gestion du capital.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — ratio de levier",
-        "impact_description": "La suppression de ce tableau peut réduire la transparence sur l'évaluation des banques systémiques et leur gestion des risques associés.",
+        "reference_reglementaire": "Bâle III — Ratio de levier",
+        "impact_description": "La suppression de ce tableau peut compliquer l'évaluation des risques systémiques et la conformité aux exigences de Bâle III.",
         "source": "llm",
-        "justification": "La suppression du tableau sur les banques d'importance systémique mondiale peut affecter l'évaluation de la stabilité financière et la gestion du capital.",
+        "justification": "La suppression du tableau sur les banques d'importance systémique mondiale pourrait affecter l'évaluation de la stabilité financière et la gestion du capital.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -97,7 +97,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:30:11.697722+00:00",
+      "review_timestamp": "2026-04-04T07:12:41.549112+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -128,20 +128,20 @@
         "theme": "liquidite",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "La suppression du tableau lié au ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence et la conformité réglementaire en matière de gestion des risques de liquidité.",
+        "analyst_summary": "La suppression du tableau du ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence sur la gestion des risques de liquidité.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
         "confidence": 0.9,
-        "explanation": "La suppression du tableau lié au ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence et la conformité réglementaire en matière de gestion des risques de liquidité.",
+        "explanation": "La suppression du tableau du ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence sur la gestion des risques de liquidité.",
         "impact_type": "structurel",
         "project_phase": "pilier_3",
         "action_requise": "escalade",
         "reference_reglementaire": "Bâle III — LCR",
-        "impact_description": "La suppression du tableau pourrait entraîner un manque d'information critique sur la gestion des risques de liquidité de la banque.",
+        "impact_description": "La suppression du tableau LCR réduit la visibilité sur la capacité de la banque à couvrir ses sorties de trésorerie à court terme.",
         "source": "llm",
-        "justification": "La suppression du tableau lié au ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence et la conformité réglementaire en matière de gestion des risques de liquidité.",
+        "justification": "La suppression du tableau du ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence sur la gestion des risques de liquidité.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -149,103 +149,68 @@
       }
     },
     {
-      "change_id": "rbc::risk_management::tbl_p032_i03|tbl_p038_i01",
-      "change_type": "added",
-      "indicator": "5 ajouté(s), 4 retiré(s)",
+      "change_id": "rbc::risk_management::tbl_p033_i02|tbl_p039_i02",
+      "change_type": "removed",
+      "indicator": "1 ajouté(s), 1 retiré(s)",
       "section": "risk_management",
-      "table_name": "tbl_p038_i01",
+      "table_name": "tbl_p039_i02",
       "table_number": "",
-      "table_id_t1": "tbl_p032_i03",
-      "table_id_t2": "tbl_p038_i01",
-      "page_t1": 32,
-      "page_t2": 38,
+      "table_id_t1": "tbl_p033_i02",
+      "table_id_t2": "tbl_p039_i02",
+      "page_t1": 33,
+      "page_t2": 39,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:30:16.972711+00:00",
+      "review_timestamp": "2026-04-04T07:16:08.014460+00:00",
       "edited_value": "",
-      "confidence": 0.99,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
       "unit_context_t2": "",
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
-      "table_title_raw": "tbl_p038_i01",
+      "table_title_raw": "tbl_p039_i02",
       "table_status": "partial",
       "indicators": [
         {
-          "name": "Trésorerie et dépôts auprès de banques",
+          "name": "Autres prêts",
           "type": "added",
           "review_status": "approved"
         },
         {
-          "name": "Titres émis ou garantis par des organismes souverains, des banques centrales ou des banques multilatérales de développement (1)",
-          "type": "added",
+          "name": "Autres (6)",
+          "type": "removed",
           "review_status": "approved"
         },
         {
-          "name": "Autres titres",
-          "type": "added",
-          "review_status": "approved"
-        },
-        {
-          "name": "Autres actifs liquides (2)",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "Total des actifs liquides",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "Banque Royale du Canada",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "Filiales",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "Succursales à l’étranger",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "Total des actifs liquides non grevés",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "[1] Inclut les titres liquides émis par des gouvernements provinciaux et des entités parrainées par le gouvernement américai",
+          "name": "[6] Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
-          "name": "[2] Le montant des actifs liquides grevés représente les garanties en espèces et les dépôts de garantie obligatoires en espè",
+          "name": "[5] Avec prise d’effet au premier trimestre de 2025, les titres  -> Le montant des actifs donnés en garantie représente les gara",
           "type": "modified",
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
-        0.060571224535282575,
-        0.7367920857279694,
-        0.6659654202943616,
-        0.8394349001985553
+        0.04030022059704732,
+        0.48950951431293904,
+        0.939426200702218,
+        0.7362317783165709
       ],
       "bbox_t2": [
-        0.06001478483032429,
-        0.316279288300457,
-        0.9599486899810842,
-        0.5203554584605484
+        0.040120094767455046,
+        0.48230194832325596,
+        0.9392988669931592,
+        0.7296822305535601
       ],
       "added_indicators": [],
       "removed_indicators": [],
@@ -256,20 +221,20 @@
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Les modifications dans les indicateurs de gestion des risques, notamment l'ajout et la suppression d'actifs liquides, peuvent affecter l'évaluation de la liquidité et du risque de la banque.",
+        "analyst_summary": "La modification du tableau de gestion des risques avec l'ajout et la suppression d'indicateurs, ainsi que la modification des notes, peut indiquer un changement dans la manière dont les risques sont évalués ou présentés.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Les modifications dans les indicateurs de gestion des risques, notamment l'ajout et la suppression d'actifs liquides, peuvent affecter l'évaluation de la liquidité et du risque de la banque.",
+        "explanation": "La modification du tableau de gestion des risques avec l'ajout et la suppression d'indicateurs, ainsi que la modification des notes, peut indiquer un changement dans la manière dont les risques sont évalués ou présentés.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Ces changements peuvent influencer la manière dont la liquidité est gérée et rapportée, nécessitant une analyse plus approfondie.",
+        "impact_description": "Le changement pourrait affecter la manière dont les risques sont suivis et rapportés, nécessitant une analyse plus approfondie.",
         "source": "llm",
-        "justification": "Les modifications dans les indicateurs de gestion des risques, notamment l'ajout et la suppression d'actifs liquides, peuvent affecter l'évaluation de la liquidité et du risque de la banque.",
+        "justification": "La modification du tableau de gestion des risques avec l'ajout et la suppression d'indicateurs, ainsi que la modification des notes, peut indiquer un changement dans la manière dont les risques sont évalués ou présentés.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -277,7 +242,7 @@
         "theme": "financement",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 9 changement(s) d'indicateur et 2 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 2 changement(s) d'indicateur et 2 changement(s) de footnote."
       }
     },
     {
@@ -296,9 +261,9 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:30:06.818226+00:00",
+      "review_timestamp": "2026-04-04T07:14:15.708509+00:00",
       "edited_value": "",
-      "confidence": 0.99,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -326,7 +291,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -350,20 +315,20 @@
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "La suppression de notes et la modification des montants des obligations structurées peuvent indiquer un changement dans la gestion des risques ou la méthodologie de calcul.",
+        "analyst_summary": "La suppression de notes et la modification des indicateurs peuvent indiquer un changement dans la gestion des risques liés aux obligations structurées.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression de notes et la modification des montants des obligations structurées peuvent indiquer un changement dans la gestion des risques ou la méthodologie de calcul.",
+        "explanation": "La suppression de notes et la modification des indicateurs peuvent indiquer un changement dans la gestion des risques liés aux obligations structurées.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Le changement pourrait affecter la manière dont les obligations structurées sont évaluées et gérées.",
         "source": "llm",
-        "justification": "La suppression de notes et la modification des montants des obligations structurées peuvent indiquer un changement dans la gestion des risques ou la méthodologie de calcul.",
+        "justification": "La suppression de notes et la modification des indicateurs peuvent indiquer un changement dans la gestion des risques liés aux obligations structurées.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -390,9 +355,9 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:21:32.714173+00:00",
+      "review_timestamp": "2026-04-04T07:14:18.493170+00:00",
       "edited_value": "",
-      "confidence": 0.99,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -400,7 +365,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "thécaires résidentiels par période d’amortissement (1)",
-      "table_status": "partial",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "De 30 à 35 ans",
@@ -410,10 +375,10 @@
         {
           "name": "[2] Selon notre politique, les nouveaux prêts hypothécaires sont -> Selon notre politique, les nouveaux prêts hypothécaires sont",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -437,20 +402,20 @@
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "critique",
-        "analyst_summary": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des prêts hypothécaires peut indiquer un changement dans la politique de gestion des risques de la banque.",
+        "analyst_summary": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des hypothèques résidentiels peut indiquer un changement dans la gestion du risque hypothécaire.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des prêts hypothécaires peut indiquer un changement dans la politique de gestion des risques de la banque.",
+        "explanation": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des hypothèques résidentiels peut indiquer un changement dans la gestion du risque hypothécaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La suppression de cette catégorie d'amortissement pourrait affecter la gestion des risques liés aux prêts hypothécaires.",
+        "impact_description": "La suppression de cette catégorie d'amortissement pourrait affecter l'évaluation du risque de crédit hypothécaire.",
         "source": "llm",
-        "justification": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des prêts hypothécaires peut indiquer un changement dans la politique de gestion des risques de la banque.",
+        "justification": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des hypothèques résidentiels peut indiquer un changement dans la gestion du risque hypothécaire.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -474,12 +439,12 @@
       "page_t2": 37,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T07:13:06.208532+00:00",
       "edited_value": "",
-      "confidence": 0.99,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -487,15 +452,15 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p037_i01",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "Passifs exposés au risque de marché – Dérivés",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -519,20 +484,20 @@
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il peut affecter l'évaluation des risques de marché.",
+        "analyst_summary": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il affecte la gestion des risques de la banque.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il peut affecter l'évaluation des risques de marché.",
+        "explanation": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il affecte la gestion des risques de la banque.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces indicateurs peut influencer la gestion des risques de marché et nécessite une analyse pour comprendre l'impact potentiel.",
+        "impact_description": "L'ajout de ces indicateurs peut influencer l'évaluation des risques de marché et nécessiter une révision des stratégies de couverture.",
         "source": "llm",
-        "justification": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il peut affecter l'évaluation des risques de marché.",
+        "justification": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il affecte la gestion des risques de la banque.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -559,7 +524,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:30:29.717755+00:00",
+      "review_timestamp": "2026-04-04T07:14:24.761654+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -626,7 +591,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:30:27.796861+00:00",
+      "review_timestamp": "2026-04-04T07:13:13.146997+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -657,24 +622,24 @@
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout d'un nouveau tableau d'indicateurs de risque est pertinent car il peut refléter un changement dans la gestion ou l'évaluation des risques.",
+        "analyst_summary": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout d'un nouveau tableau d'indicateurs de risque est pertinent car il peut refléter un changement dans la gestion ou l'évaluation des risques.",
+        "explanation": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Ce nouveau tableau pourrait indiquer une révision des méthodes de gestion des risques ou une réponse à des exigences réglementaires.",
+        "impact_description": "Ce nouveau tableau pourrait refléter une nouvelle approche ou exigence en matière de gestion des risques, nécessitant une analyse plus approfondie.",
         "source": "llm",
-        "justification": "L'ajout d'un nouveau tableau d'indicateurs de risque est pertinent car il peut refléter un changement dans la gestion ou l'évaluation des risques.",
+        "justification": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
         "relevance": "Risque"
       },
       "match_metadata": {
-        "semantic_judge": "Indicators are unique to VAR and risk management; no previous table shares a similar structure or purpose."
+        "semantic_judge": "Indicators are unique; no previous table has a similar indicator structure or table summary."
       }
     },
     {
@@ -693,7 +658,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:30:23.900330+00:00",
+      "review_timestamp": "2026-04-04T07:14:27.992875+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -724,20 +689,20 @@
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut affecter la transparence et la gestion des risques.",
+        "analyst_summary": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut indiquer un changement dans la gestion des risques ou la divulgation des risques.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut affecter la transparence et la gestion des risques.",
+        "explanation": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut indiquer un changement dans la gestion des risques ou la divulgation des risques.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La suppression du tableau pourrait réduire la visibilité sur les engagements financiers liés aux dérivés.",
+        "impact_description": "La suppression pourrait affecter la transparence sur les engagements financiers liés aux dérivés.",
         "source": "llm",
-        "justification": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut affecter la transparence et la gestion des risques.",
+        "justification": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut indiquer un changement dans la gestion des risques ou la divulgation des risques.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -745,22 +710,22 @@
       }
     },
     {
-      "change_id": "rbc::risk_management::|tbl_p038_i03",
+      "change_id": "rbc::risk_management::|tbl_p038_i01",
       "change_type": "table_added",
       "indicator": "Tableau entier ajouté",
       "section": "risk_management",
-      "table_name": "tbl_p038_i03",
+      "table_name": "tbl_p038_i01",
       "table_number": "",
       "table_id_t1": "",
-      "table_id_t2": "tbl_p038_i03",
+      "table_id_t2": "tbl_p038_i01",
       "page_t1": null,
       "page_t2": 38,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T07:14:32.427977+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -769,18 +734,18 @@
       "unit_context_t2": "",
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
-      "table_title_raw": "tbl_p038_i03",
-      "table_status": "pending",
+      "table_title_raw": "tbl_p038_i01",
+      "table_status": "completed",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": null,
       "bbox_t2": [
-        0.060529560196656694,
-        0.7462437265525224,
-        0.6655627704576078,
-        0.8484391057780573
+        0.06001478483032429,
+        0.316279288300457,
+        0.9599486899810842,
+        0.5203554584605484
       ],
       "added_indicators": [],
       "removed_indicators": [],
@@ -791,24 +756,24 @@
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
+        "analyst_summary": "L'ajout d'un nouveau tableau dans la section gestion des risques, détaillant les actifs liquides, est pertinent pour la veille réglementaire car il peut influencer l'évaluation de la liquidité et du risque de la banque.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
+        "explanation": "L'ajout d'un nouveau tableau dans la section gestion des risques, détaillant les actifs liquides, est pertinent pour la veille réglementaire car il peut influencer l'évaluation de la liquidité et du risque de la banque.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Ce changement pourrait affecter la transparence et la compréhension des risques liés aux actifs liquides non grevés.",
+        "impact_description": "Ce changement structurel pourrait affecter l'analyse de la liquidité et du risque de la banque.",
         "source": "llm",
-        "justification": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
+        "justification": "L'ajout d'un nouveau tableau dans la section gestion des risques, détaillant les actifs liquides, est pertinent pour la veille réglementaire car il peut influencer l'évaluation de la liquidité et du risque de la banque.",
         "relevance": "Risque"
       },
       "match_metadata": {
-        "semantic_judge": "Indicators and table summary focus on 'Actifs liquides non grevés', which is not covered by any previous table."
+        "semantic_judge": "No previous table matches the unique structure and indicators related to liquidity reserve and liquid assets."
       }
     },
     {
@@ -827,9 +792,9 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:30:32.285314+00:00",
+      "review_timestamp": "2026-04-04T07:14:30.081211+00:00",
       "edited_value": "",
-      "confidence": 0.99,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -847,7 +812,7 @@
         {
           "name": "[2] Le risque spécifique de crédit tient compte de la volatilité de l’écart de taux lié à chaque émetteur.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[3] La VAR des activités de négociation est inférieure à la somme des VAR individuelles par facteur de risque, en raison de ",
@@ -855,7 +820,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -894,9 +859,9 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:22:06.871484+00:00",
+      "review_timestamp": "2026-04-04T07:15:37.364994+00:00",
       "edited_value": "",
-      "confidence": 0.99,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -914,7 +879,7 @@
         {
           "name": "[2] Les totaux des rangées suivantes englobent les catégories d’ -> Les totaux des rangées suivantes englobent les catégories d’",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[4] Les dépôts opérationnels de clients qui ne sont pas des dépô -> Les dépôts opérationnels de clients qui ne sont pas des dépô",
@@ -922,7 +887,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "match_method": "Both tables discuss the long-term liquidity ratio. Indicators and headers are identical.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -961,9 +926,9 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:22:26.105448+00:00",
+      "review_timestamp": "2026-04-04T07:13:33.164131+00:00",
       "edited_value": "",
-      "confidence": 0.99,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -984,7 +949,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -1008,58 +973,53 @@
       "match_metadata": {}
     },
     {
-      "change_id": "rbc::risk_management::tbl_p033_i02|tbl_p039_i02",
+      "change_id": "rbc::risk_management::tbl_p032_i03|tbl_p038_i03",
       "change_type": "removed",
       "indicator": "",
       "section": "risk_management",
-      "table_name": "tbl_p039_i02",
+      "table_name": "tbl_p038_i03",
       "table_number": "",
-      "table_id_t1": "tbl_p033_i02",
-      "table_id_t2": "tbl_p039_i02",
-      "page_t1": 33,
-      "page_t2": 39,
+      "table_id_t1": "tbl_p032_i03",
+      "table_id_t2": "tbl_p038_i03",
+      "page_t1": 32,
+      "page_t2": 38,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:22:19.487531+00:00",
+      "review_timestamp": "2026-04-04T07:15:52.062041+00:00",
       "edited_value": "",
-      "confidence": 0.99,
+      "confidence": 0.95,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
       "unit_context_t2": "",
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
-      "table_title_raw": "tbl_p039_i02",
-      "table_status": "partial",
+      "table_title_raw": "tbl_p038_i03",
+      "table_status": "completed",
       "indicators": [
         {
-          "name": "[6] Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ",
+          "name": "[1] Inclut les titres liquides émis par des gouvernements provin -> Inclut les titres liquides émis par des gouvernements provin",
           "type": "modified",
           "review_status": "approved"
-        },
-        {
-          "name": "[5] Avec prise d’effet au premier trimestre de 2025, les titres  -> Le montant des actifs donnés en garantie représente les gara",
-          "type": "modified",
-          "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "match_method": "Both tables discuss unencumbered liquid assets by entity. Indicators and headers are highly similar.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
-        0.04030022059704732,
-        0.48950951431293904,
-        0.939426200702218,
-        0.7362317783165709
+        0.060571224535282575,
+        0.7367920857279694,
+        0.6659654202943616,
+        0.8394349001985553
       ],
       "bbox_t2": [
-        0.040120094767455046,
-        0.48230194832325596,
-        0.9392988669931592,
-        0.7296822305535601
+        0.060529560196656694,
+        0.7462437265525224,
+        0.6655627704576078,
+        0.8484391057780573
       ],
       "added_indicators": [],
       "removed_indicators": [],
@@ -1082,12 +1042,12 @@
       "page_t2": 52,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:22:31.750302+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
-      "confidence": 0.99,
+      "confidence": 0.97,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -1095,15 +1055,15 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Principales données concernant les actions (1)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[7] Dans le cadre de l’émission des billets LRCN de série 1, le  -> Dans le cadre de l’émission des billets LRCN de série 1, le ",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "match_method": "Both tables discuss key data on shares and equity instruments. Indicators and headers are identical.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -1154,7 +1114,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00034",
+          "change_id": "chg_00026",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
@@ -1164,7 +1124,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:30:44.176198+00:00",
+          "validated_at": "2026-04-04T07:14:11.402936+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1175,20 +1135,20 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "La suppression du tableau sur les banques d'importance systémique mondiale peut affecter l'évaluation de la stabilité financière et la gestion du capital.",
+        "analyst_summary": "La suppression du tableau sur les banques d'importance systémique mondiale pourrait affecter l'évaluation de la stabilité financière et la gestion du capital.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
         "confidence": 0.9,
-        "explanation": "La suppression du tableau sur les banques d'importance systémique mondiale peut affecter l'évaluation de la stabilité financière et la gestion du capital.",
+        "explanation": "La suppression du tableau sur les banques d'importance systémique mondiale pourrait affecter l'évaluation de la stabilité financière et la gestion du capital.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — ratio de levier",
-        "impact_description": "La suppression de ce tableau peut réduire la transparence sur l'évaluation des banques systémiques et leur gestion des risques associés.",
+        "reference_reglementaire": "Bâle III — Ratio de levier",
+        "impact_description": "La suppression de ce tableau peut compliquer l'évaluation des risques systémiques et la conformité aux exigences de Bâle III.",
         "source": "llm",
-        "justification": "La suppression du tableau sur les banques d'importance systémique mondiale peut affecter l'évaluation de la stabilité financière et la gestion du capital.",
+        "justification": "La suppression du tableau sur les banques d'importance systémique mondiale pourrait affecter l'évaluation de la stabilité financière et la gestion du capital.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -1232,7 +1192,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00033",
+          "change_id": "chg_00025",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
@@ -1242,7 +1202,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:30:11.697722+00:00",
+          "validated_at": "2026-04-04T07:12:41.549112+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1253,20 +1213,20 @@
         "theme": "liquidite",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "La suppression du tableau lié au ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence et la conformité réglementaire en matière de gestion des risques de liquidité.",
+        "analyst_summary": "La suppression du tableau du ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence sur la gestion des risques de liquidité.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
         "confidence": 0.9,
-        "explanation": "La suppression du tableau lié au ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence et la conformité réglementaire en matière de gestion des risques de liquidité.",
+        "explanation": "La suppression du tableau du ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence sur la gestion des risques de liquidité.",
         "impact_type": "structurel",
         "project_phase": "pilier_3",
         "action_requise": "escalade",
         "reference_reglementaire": "Bâle III — LCR",
-        "impact_description": "La suppression du tableau pourrait entraîner un manque d'information critique sur la gestion des risques de liquidité de la banque.",
+        "impact_description": "La suppression du tableau LCR réduit la visibilité sur la capacité de la banque à couvrir ses sorties de trésorerie à court terme.",
         "source": "llm",
-        "justification": "La suppression du tableau lié au ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence et la conformité réglementaire en matière de gestion des risques de liquidité.",
+        "justification": "La suppression du tableau du ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence sur la gestion des risques de liquidité.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -1285,31 +1245,31 @@
       }
     },
     {
-      "review_id": "rbc::risk_management::tbl_p032_i03|tbl_p038_i01",
-      "table_key": "rbc::risk_management::tbl_p032_i03|tbl_p038_i01",
-      "table_title": "tbl_p038_i01",
+      "review_id": "rbc::risk_management::tbl_p033_i02|tbl_p039_i02",
+      "table_key": "rbc::risk_management::tbl_p033_i02|tbl_p039_i02",
+      "table_title": "tbl_p039_i02",
       "view_mode": "change_list",
       "section": "risk_management",
-      "table_name": "tbl_p038_i01",
+      "table_name": "tbl_p039_i02",
       "table_number": "",
-      "table_id_t1": "tbl_p032_i03",
-      "table_id_t2": "tbl_p038_i01",
-      "page_t1": 32,
-      "page_t2": 38,
+      "table_id_t1": "tbl_p033_i02",
+      "table_id_t2": "tbl_p039_i02",
+      "page_t1": 33,
+      "page_t2": 39,
       "proof_image_t1": "",
       "proof_image_t2": "",
       "proof_image_combined": "",
       "bbox_t1": [
-        0.060571224535282575,
-        0.7367920857279694,
-        0.6659654202943616,
-        0.8394349001985553
+        0.04030022059704732,
+        0.48950951431293904,
+        0.939426200702218,
+        0.7362317783165709
       ],
       "bbox_t2": [
-        0.06001478483032429,
-        0.316279288300457,
-        0.9599486899810842,
-        0.5203554584605484
+        0.040120094767455046,
+        0.48230194832325596,
+        0.9392988669931592,
+        0.7296822305535601
       ],
       "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
@@ -1318,154 +1278,56 @@
           "change_id": "chg_00003",
           "change_type": "indicator_added",
           "payload": {
-            "indicator_name": "Trésorerie et dépôts auprès de banques",
-            "indicator_name_clean": "trésorerie et dépôts auprès de banques"
+            "indicator_name": "Autres prêts",
+            "indicator_name_clean": "autres prêts"
           },
           "validation_status": "approved",
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:28:57.875398+00:00",
+          "validated_at": "2026-04-04T07:12:44.581619+00:00",
           "validated_by": "analyst"
         },
         {
           "change_id": "chg_00004",
-          "change_type": "indicator_added",
+          "change_type": "indicator_removed",
           "payload": {
-            "indicator_name": "Titres émis ou garantis par des organismes souverains, des banques centrales ou des banques multilatérales de développement (1)",
-            "indicator_name_clean": "titres émis ou garantis par des organismes souverains, des banques centrales ou des banques multilatérales de développement (1)"
+            "indicator_name": "Autres (6)",
+            "indicator_name_clean": "autres (6)"
           },
           "validation_status": "approved",
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:30:09.844597+00:00",
+          "validated_at": "2026-04-04T07:14:13.105121+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00005",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Autres titres",
-            "indicator_name_clean": "autres titres"
-          },
-          "validation_status": "approved",
-          "is_required": true,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-03T20:30:16.972711+00:00",
-          "validated_by": "analyst"
-        },
-        {
-          "change_id": "chg_00006",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Autres actifs liquides (2)",
-            "indicator_name_clean": "autres actifs liquides (2)"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00007",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Total des actifs liquides",
-            "indicator_name_clean": "total des actifs liquides"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00008",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Banque Royale du Canada",
-            "indicator_name_clean": "banque royale du canada"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00009",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Filiales",
-            "indicator_name_clean": "filiales"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00010",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Succursales à l’étranger",
-            "indicator_name_clean": "succursales à l’étranger"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00011",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Total des actifs liquides non grevés",
-            "indicator_name_clean": "total des actifs liquides non grevés"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00019",
+          "change_id": "chg_00013",
           "change_type": "footnote_removed",
           "payload": {
-            "indicator_name": "[1] Inclut les titres liquides émis par des gouvernements provinciaux et des entités parrainées par le gouvernement américai",
-            "indicator_name_clean": "[1] inclut les titres liquides émis par des gouvernements provinciaux et des entités parrainées par le gouvernement américai",
-            "footnote_ref": "1",
-            "old_text": "Inclut les titres liquides émis par des gouvernements provinciaux et des entités parrainées par le gouvernement américain ou sous la tutelle du curateur (p. ex., la Federal National Mortgage Association et la Federal Home Loan Mortgage Corporation).",
+            "indicator_name": "[6] Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ",
+            "indicator_name_clean": "[6] le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui",
+            "footnote_ref": "6",
+            "old_text": "Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ont été fournis en lien avec des transactions visant des dérivés négociés hors cote et en Bourse.",
             "new_text": ""
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T07:16:08.014460+00:00",
+          "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00020",
-          "change_type": "footnote_removed",
+          "change_id": "chg_00014",
+          "change_type": "footnote_modified",
           "payload": {
-            "indicator_name": "[2] Le montant des actifs liquides grevés représente les garanties en espèces et les dépôts de garantie obligatoires en espè",
-            "indicator_name_clean": "[2] le montant des actifs liquides grevés représente les garanties en espèces et les dépôts de garantie obligatoires en espè",
-            "footnote_ref": "2",
-            "old_text": "Le montant des actifs liquides grevés représente les garanties en espèces et les dépôts de garantie obligatoires en espèces visant des dérivés négociés hors cote et en Bourse.",
-            "new_text": ""
+            "indicator_name": "[5] Avec prise d’effet au premier trimestre de 2025, les titres  -> Le montant des actifs donnés en garantie représente les gara",
+            "indicator_name_clean": "[5] avec prise d’effet au premier trimestre de 2025, les titres  -> le montant des actifs donnés en garantie représente les gara",
+            "footnote_ref": "5",
+            "old_text": "Avec prise d’effet au premier trimestre de 2025, les titres hypothécaires, les prêts hypothécaires et les autres prêts sont présentés déduction faite de la correction de valeur pour pertes sur prêts. Les montants correspondants ont été révisés par rapport à ceux présentés précédemment afin qu’ils soient conformes à la présentation adoptée pour la période considérée.",
+            "new_text": "Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ont été fournis en lien avec des transactions visant des dérivés négociés hors cote et en Bourse."
           },
           "validation_status": "pending",
           "is_required": false,
@@ -1476,26 +1338,26 @@
         }
       ],
       "table_status": "partial",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Les modifications dans les indicateurs de gestion des risques, notamment l'ajout et la suppression d'actifs liquides, peuvent affecter l'évaluation de la liquidité et du risque de la banque.",
+        "analyst_summary": "La modification du tableau de gestion des risques avec l'ajout et la suppression d'indicateurs, ainsi que la modification des notes, peut indiquer un changement dans la manière dont les risques sont évalués ou présentés.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Les modifications dans les indicateurs de gestion des risques, notamment l'ajout et la suppression d'actifs liquides, peuvent affecter l'évaluation de la liquidité et du risque de la banque.",
+        "explanation": "La modification du tableau de gestion des risques avec l'ajout et la suppression d'indicateurs, ainsi que la modification des notes, peut indiquer un changement dans la manière dont les risques sont évalués ou présentés.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Ces changements peuvent influencer la manière dont la liquidité est gérée et rapportée, nécessitant une analyse plus approfondie.",
+        "impact_description": "Le changement pourrait affecter la manière dont les risques sont suivis et rapportés, nécessitant une analyse plus approfondie.",
         "source": "llm",
-        "justification": "Les modifications dans les indicateurs de gestion des risques, notamment l'ajout et la suppression d'actifs liquides, peuvent affecter l'évaluation de la liquidité et du risque de la banque.",
+        "justification": "La modification du tableau de gestion des risques avec l'ajout et la suppression d'indicateurs, ainsi que la modification des notes, peut indiquer un changement dans la manière dont les risques sont évalués ou présentés.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -1503,18 +1365,18 @@
         "theme": "financement",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 9 changement(s) d'indicateur et 2 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 2 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
       "relevance": "Risque",
       "risk_level": "MODERE",
       "summary": {
-        "total_changes": 11,
-        "indicators_added": 5,
-        "indicators_removed": 4,
+        "total_changes": 4,
+        "indicators_added": 1,
+        "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
         "validated": 3,
-        "pending": 8
+        "pending": 1
       }
     },
     {
@@ -1548,7 +1410,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00012",
+          "change_id": "chg_00005",
           "change_type": "indicator_renamed",
           "payload": {
             "indicator_name": "Obligations structurées non garanties de premier rang (6), (9) -> Obligations structurées non garanties de premier rang (6)",
@@ -1562,11 +1424,11 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:21:19.009956+00:00",
+          "validated_at": "2026-04-04T07:14:15.708509+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00023",
+          "change_id": "chg_00015",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[9] Avec prise d’effet au premier trimestre de 2025, nous avons révisé la portée des billets structurés non garantis de prem",
@@ -1579,11 +1441,11 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:30:06.818226+00:00",
+          "validated_at": "2026-04-04T07:13:54.406257+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00024",
+          "change_id": "chg_00016",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[8] Inclut les obligations encaissables par anticipation (garant -> Inclut les obligations encaissables par anticipation (garant",
@@ -1601,26 +1463,26 @@
         }
       ],
       "table_status": "partial",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "La suppression de notes et la modification des montants des obligations structurées peuvent indiquer un changement dans la gestion des risques ou la méthodologie de calcul.",
+        "analyst_summary": "La suppression de notes et la modification des indicateurs peuvent indiquer un changement dans la gestion des risques liés aux obligations structurées.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression de notes et la modification des montants des obligations structurées peuvent indiquer un changement dans la gestion des risques ou la méthodologie de calcul.",
+        "explanation": "La suppression de notes et la modification des indicateurs peuvent indiquer un changement dans la gestion des risques liés aux obligations structurées.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Le changement pourrait affecter la manière dont les obligations structurées sont évaluées et gérées.",
         "source": "llm",
-        "justification": "La suppression de notes et la modification des montants des obligations structurées peuvent indiquer un changement dans la gestion des risques ou la méthodologie de calcul.",
+        "justification": "La suppression de notes et la modification des indicateurs peuvent indiquer un changement dans la gestion des risques liés aux obligations structurées.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -1683,11 +1545,11 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:21:32.714173+00:00",
+          "validated_at": "2026-04-04T07:12:56.036890+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00015",
+          "change_id": "chg_00008",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[2] Selon notre politique, les nouveaux prêts hypothécaires sont -> Selon notre politique, les nouveaux prêts hypothécaires sont",
@@ -1696,35 +1558,35 @@
             "old_text": "Selon notre politique, les nouveaux prêts hypothécaires sont accordés avec des périodes d’amortissement de 30 ans ou moins. Les périodes d’amortissement de plus de 30 ans indiquent l’incidence de la hausse des taux d’intérêt sur nos portefeuilles de prêts hypothécaires à taux variables. Pour ces prêts, la période d’amortissement est ramenée au calendrier d’amortissement initial lors du renouvellement. Nous n’offrons pas de produits hypothécaires dont la structure entraînerait un amortissement négatif, car les paiements sur les prêts hypothécaires à taux variables augmentent automatiquement pour assurer la couverture des intérêts courus.",
             "new_text": "Selon notre politique, les nouveaux prêts hypothécaires sont accordés avec des périodes d’amortissement de 30 ans ou moins. Nous n’offrons pas de produits hypothécaires dont la structure entraînerait un amortissement négatif, car les paiements sur les prêts hypothécaires à taux variables augmentent automatiquement pour assurer la couverture des intérêts courus."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T07:14:18.493170+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "partial",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "table_status": "completed",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "genai_analysis": {
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "critique",
-        "analyst_summary": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des prêts hypothécaires peut indiquer un changement dans la politique de gestion des risques de la banque.",
+        "analyst_summary": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des hypothèques résidentiels peut indiquer un changement dans la gestion du risque hypothécaire.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des prêts hypothécaires peut indiquer un changement dans la politique de gestion des risques de la banque.",
+        "explanation": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des hypothèques résidentiels peut indiquer un changement dans la gestion du risque hypothécaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La suppression de cette catégorie d'amortissement pourrait affecter la gestion des risques liés aux prêts hypothécaires.",
+        "impact_description": "La suppression de cette catégorie d'amortissement pourrait affecter l'évaluation du risque de crédit hypothécaire.",
         "source": "llm",
-        "justification": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des prêts hypothécaires peut indiquer un changement dans la politique de gestion des risques de la banque.",
+        "justification": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des hypothèques résidentiels peut indiquer un changement dans la gestion du risque hypothécaire.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -1742,8 +1604,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 1
+        "validated": 2,
+        "pending": 0
       }
     },
     {
@@ -1783,35 +1645,35 @@
             "indicator_name": "Passifs exposés au risque de marché – Dérivés",
             "indicator_name_clean": "passifs exposés au risque de marché – dérivés"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T07:13:06.208532+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "table_status": "completed",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il peut affecter l'évaluation des risques de marché.",
+        "analyst_summary": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il affecte la gestion des risques de la banque.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il peut affecter l'évaluation des risques de marché.",
+        "explanation": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il affecte la gestion des risques de la banque.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces indicateurs peut influencer la gestion des risques de marché et nécessite une analyse pour comprendre l'impact potentiel.",
+        "impact_description": "L'ajout de ces indicateurs peut influencer l'évaluation des risques de marché et nécessiter une révision des stratégies de couverture.",
         "source": "llm",
-        "justification": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il peut affecter l'évaluation des risques de marché.",
+        "justification": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il affecte la gestion des risques de la banque.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -1829,8 +1691,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -1859,7 +1721,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00031",
+          "change_id": "chg_00023",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
@@ -1869,7 +1731,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:30:29.717755+00:00",
+          "validated_at": "2026-04-04T07:14:24.761654+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1937,7 +1799,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00029",
+          "change_id": "chg_00021",
           "change_type": "table_added",
           "payload": {
             "description": "Tableau entier ajouté",
@@ -1947,7 +1809,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:30:27.796861+00:00",
+          "validated_at": "2026-04-04T07:13:13.146997+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1958,24 +1820,24 @@
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout d'un nouveau tableau d'indicateurs de risque est pertinent car il peut refléter un changement dans la gestion ou l'évaluation des risques.",
+        "analyst_summary": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout d'un nouveau tableau d'indicateurs de risque est pertinent car il peut refléter un changement dans la gestion ou l'évaluation des risques.",
+        "explanation": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Ce nouveau tableau pourrait indiquer une révision des méthodes de gestion des risques ou une réponse à des exigences réglementaires.",
+        "impact_description": "Ce nouveau tableau pourrait refléter une nouvelle approche ou exigence en matière de gestion des risques, nécessitant une analyse plus approfondie.",
         "source": "llm",
-        "justification": "L'ajout d'un nouveau tableau d'indicateurs de risque est pertinent car il peut refléter un changement dans la gestion ou l'évaluation des risques.",
+        "justification": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
         "relevance": "Risque"
       },
       "match_metadata": {
-        "semantic_judge": "Indicators are unique to VAR and risk management; no previous table shares a similar structure or purpose."
+        "semantic_judge": "Indicators are unique; no previous table has a similar indicator structure or table summary."
       },
       "relevance": "Risque",
       "risk_level": "MODERE",
@@ -2015,7 +1877,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00032",
+          "change_id": "chg_00024",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
@@ -2025,7 +1887,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:30:23.900330+00:00",
+          "validated_at": "2026-04-04T07:14:27.992875+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -2036,20 +1898,20 @@
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut affecter la transparence et la gestion des risques.",
+        "analyst_summary": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut indiquer un changement dans la gestion des risques ou la divulgation des risques.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut affecter la transparence et la gestion des risques.",
+        "explanation": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut indiquer un changement dans la gestion des risques ou la divulgation des risques.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La suppression du tableau pourrait réduire la visibilité sur les engagements financiers liés aux dérivés.",
+        "impact_description": "La suppression pourrait affecter la transparence sur les engagements financiers liés aux dérivés.",
         "source": "llm",
-        "justification": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut affecter la transparence et la gestion des risques.",
+        "justification": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut indiquer un changement dans la gestion des risques ou la divulgation des risques.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -2068,15 +1930,15 @@
       }
     },
     {
-      "review_id": "rbc::risk_management::|tbl_p038_i03",
-      "table_key": "rbc::risk_management::|tbl_p038_i03",
-      "table_title": "tbl_p038_i03",
+      "review_id": "rbc::risk_management::|tbl_p038_i01",
+      "table_key": "rbc::risk_management::|tbl_p038_i01",
+      "table_title": "tbl_p038_i01",
       "view_mode": "table_only",
       "section": "risk_management",
-      "table_name": "tbl_p038_i03",
+      "table_name": "tbl_p038_i01",
       "table_number": "",
       "table_id_t1": "",
-      "table_id_t2": "tbl_p038_i03",
+      "table_id_t2": "tbl_p038_i01",
       "page_t1": null,
       "page_t2": 38,
       "proof_image_t1": "",
@@ -2084,54 +1946,54 @@
       "proof_image_combined": "",
       "bbox_t1": null,
       "bbox_t2": [
-        0.060529560196656694,
-        0.7462437265525224,
-        0.6655627704576078,
-        0.8484391057780573
+        0.06001478483032429,
+        0.316279288300457,
+        0.9599486899810842,
+        0.5203554584605484
       ],
       "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00030",
+          "change_id": "chg_00022",
           "change_type": "table_added",
           "payload": {
             "description": "Tableau entier ajouté",
             "table_status": "ajoute"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T07:14:32.427977+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
+        "analyst_summary": "L'ajout d'un nouveau tableau dans la section gestion des risques, détaillant les actifs liquides, est pertinent pour la veille réglementaire car il peut influencer l'évaluation de la liquidité et du risque de la banque.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
+        "explanation": "L'ajout d'un nouveau tableau dans la section gestion des risques, détaillant les actifs liquides, est pertinent pour la veille réglementaire car il peut influencer l'évaluation de la liquidité et du risque de la banque.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Ce changement pourrait affecter la transparence et la compréhension des risques liés aux actifs liquides non grevés.",
+        "impact_description": "Ce changement structurel pourrait affecter l'analyse de la liquidité et du risque de la banque.",
         "source": "llm",
-        "justification": "L'ajout d'un nouveau tableau dans la section gestion des risques est pertinent car il peut indiquer un changement dans la manière dont la banque évalue ou présente ses risques.",
+        "justification": "L'ajout d'un nouveau tableau dans la section gestion des risques, détaillant les actifs liquides, est pertinent pour la veille réglementaire car il peut influencer l'évaluation de la liquidité et du risque de la banque.",
         "relevance": "Risque"
       },
       "match_metadata": {
-        "semantic_judge": "Indicators and table summary focus on 'Actifs liquides non grevés', which is not covered by any previous table."
+        "semantic_judge": "No previous table matches the unique structure and indicators related to liquidity reserve and liquid assets."
       },
       "relevance": "Risque",
       "risk_level": "MODERE",
@@ -2141,8 +2003,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -2176,7 +2038,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00016",
+          "change_id": "chg_00009",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[1] Le risque lié à l’écart de taux général et le risque lié à l’écart de financement associé aux dérivés non garantis sont ",
@@ -2189,11 +2051,11 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:21:53.127789+00:00",
+          "validated_at": "2026-04-04T07:14:30.081211+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00017",
+          "change_id": "chg_00010",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[2] Le risque spécifique de crédit tient compte de la volatilité de l’écart de taux lié à chaque émetteur.",
@@ -2202,15 +2064,15 @@
             "old_text": "Le risque spécifique de crédit tient compte de la volatilité de l’écart de taux lié à chaque émetteur.",
             "new_text": ""
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:30:32.285314+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
-          "change_id": "chg_00018",
+          "change_id": "chg_00011",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[3] La VAR des activités de négociation est inférieure à la somme des VAR individuelles par facteur de risque, en raison de ",
@@ -2228,8 +2090,8 @@
         }
       ],
       "table_status": "partial",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -2240,8 +2102,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 3,
-        "validated": 2,
-        "pending": 1
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -2275,7 +2137,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00025",
+          "change_id": "chg_00017",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[5] Les actifs et passifs interdépendants représentent le passif des titres hypothécaires garantis par la Loi nationale sur ",
@@ -2288,11 +2150,11 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:22:06.871484+00:00",
+          "validated_at": "2026-04-04T07:13:22.806791+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00026",
+          "change_id": "chg_00018",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[2] Les totaux des rangées suivantes englobent les catégories d’ -> Les totaux des rangées suivantes englobent les catégories d’",
@@ -2301,15 +2163,15 @@
             "old_text": "Les totaux des rangées suivantes englobent les catégories d’échéances résiduelles de moins de 6 mois, de 6 mois à moins de 1 an et de 1 an et plus, conformément aux exigences du modèle de déclaration courant prescrit par le BSIF : Autres passifs, Passifs d’instruments dérivés du ratio de liquidité à court terme, Autres actifs, Actifs versés en tant que marge initiale dans le cadre de contrats dérivés et apports aux fonds de garantie de contrepartie centrale, Actifs dérivés du ratio de liquidité à long terme, Passifs dérivés du ratio de liquidité à long terme ayant déduction de la marge de variation versée et Éléments hors bilan.",
             "new_text": "Les totaux des rangées suivantes englobent les catégories d’échéances résiduelles de moins de 6 mois, de 6 mois à moins de 1 an et de 1 an et plus, conformément aux exigences du modèle de déclaration courant prescrit par le BSIF : Autres passifs, Passifs d’instruments dérivés du ratio de liquidité à court terme, Autres actifs, Actifs versés en tant que marge initiale dans le cadre de contrats dérivés et apports aux fonds de garantie de contrepartie centrale, Actifs dérivés du ratio de liquidité à long terme, Passifs dérivés du ratio de liquidité à long terme avant déduction de la marge de variation versée et Éléments hors bilan."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T07:15:37.364994+00:00",
+          "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00027",
+          "change_id": "chg_00019",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[4] Les dépôts opérationnels de clients qui ne sont pas des dépô -> Les dépôts opérationnels de clients qui ne sont pas des dépô",
@@ -2327,8 +2189,8 @@
         }
       ],
       "table_status": "partial",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "confidence": 0.98,
+      "match_method": "Both tables discuss the long-term liquidity ratio. Indicators and headers are identical.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -2339,8 +2201,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 3,
-        "validated": 1,
-        "pending": 2
+        "validated": 2,
+        "pending": 1
       }
     },
     {
@@ -2374,7 +2236,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00013",
+          "change_id": "chg_00006",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[2] Comprend des marges de crédit sur valeur nette assurées et n -> Comprend des marges de crédit sur valeur nette assurées et n",
@@ -2387,11 +2249,11 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:22:26.105448+00:00",
+          "validated_at": "2026-04-04T07:13:33.164131+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00014",
+          "change_id": "chg_00007",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[5] Le total consolidé des prêts hypothécaires résidentiels au C -> Le total consolidé des prêts hypothécaires résidentiels au C",
@@ -2409,8 +2271,8 @@
         }
       ],
       "table_status": "partial",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -2426,85 +2288,68 @@
       }
     },
     {
-      "review_id": "rbc::risk_management::tbl_p033_i02|tbl_p039_i02",
-      "table_key": "rbc::risk_management::tbl_p033_i02|tbl_p039_i02",
-      "table_title": "tbl_p039_i02",
+      "review_id": "rbc::risk_management::tbl_p032_i03|tbl_p038_i03",
+      "table_key": "rbc::risk_management::tbl_p032_i03|tbl_p038_i03",
+      "table_title": "tbl_p038_i03",
       "view_mode": "change_list",
       "section": "risk_management",
-      "table_name": "tbl_p039_i02",
+      "table_name": "tbl_p038_i03",
       "table_number": "",
-      "table_id_t1": "tbl_p033_i02",
-      "table_id_t2": "tbl_p039_i02",
-      "page_t1": 33,
-      "page_t2": 39,
+      "table_id_t1": "tbl_p032_i03",
+      "table_id_t2": "tbl_p038_i03",
+      "page_t1": 32,
+      "page_t2": 38,
       "proof_image_t1": "",
       "proof_image_t2": "",
       "proof_image_combined": "",
       "bbox_t1": [
-        0.04030022059704732,
-        0.48950951431293904,
-        0.939426200702218,
-        0.7362317783165709
+        0.060571224535282575,
+        0.7367920857279694,
+        0.6659654202943616,
+        0.8394349001985553
       ],
       "bbox_t2": [
-        0.040120094767455046,
-        0.48230194832325596,
-        0.9392988669931592,
-        0.7296822305535601
+        0.060529560196656694,
+        0.7462437265525224,
+        0.6655627704576078,
+        0.8484391057780573
       ],
       "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00021",
-          "change_type": "footnote_removed",
+          "change_id": "chg_00012",
+          "change_type": "footnote_modified",
           "payload": {
-            "indicator_name": "[6] Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ",
-            "indicator_name_clean": "[6] le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui",
-            "footnote_ref": "6",
-            "old_text": "Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ont été fournis en lien avec des transactions visant des dérivés négociés hors cote et en Bourse.",
-            "new_text": ""
+            "indicator_name": "[1] Inclut les titres liquides émis par des gouvernements provin -> Inclut les titres liquides émis par des gouvernements provin",
+            "indicator_name_clean": "[1] inclut les titres liquides émis par des gouvernements provin -> inclut les titres liquides émis par des gouvernements provin",
+            "footnote_ref": "1",
+            "old_text": "Inclut les titres liquides émis par des gouvernements provinciaux et des entités parrainées par le gouvernement américain ou sous la tutelle du curateur (p. ex., la Federal National Mortgage Association et la Federal Home Loan Mortgage Corporation).",
+            "new_text": "Inclut les titres liquides émis par des gouvernements provinciaux et des entités parrainées par le gouvernement américain sous le contrôle du curateur (p. ex., la Federal National Mortgage Association et la Federal Home Loan Mortgage Corporation)."
           },
           "validation_status": "approved",
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:22:19.487531+00:00",
+          "validated_at": "2026-04-04T07:15:52.062041+00:00",
           "validated_by": "analyst"
-        },
-        {
-          "change_id": "chg_00022",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[5] Avec prise d’effet au premier trimestre de 2025, les titres  -> Le montant des actifs donnés en garantie représente les gara",
-            "indicator_name_clean": "[5] avec prise d’effet au premier trimestre de 2025, les titres  -> le montant des actifs donnés en garantie représente les gara",
-            "footnote_ref": "5",
-            "old_text": "Avec prise d’effet au premier trimestre de 2025, les titres hypothécaires, les prêts hypothécaires et les autres prêts sont présentés déduction faite de la correction de valeur pour pertes sur prêts. Les montants correspondants ont été révisés par rapport à ceux présentés précédemment afin qu’ils soient conformes à la présentation adoptée pour la période considérée.",
-            "new_text": "Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ont été fournis en lien avec des transactions visant des dérivés négociés hors cote et en Bourse."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
         }
       ],
-      "table_status": "partial",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "table_status": "completed",
+      "confidence": 0.95,
+      "match_method": "Both tables discuss unencumbered liquid assets by entity. Indicators and headers are highly similar.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
       "risk_level": "",
       "summary": {
-        "total_changes": 2,
+        "total_changes": 1,
         "indicators_added": 0,
         "indicators_removed": 0,
         "indicators_renamed": 0,
-        "footnotes_changed": 2,
+        "footnotes_changed": 1,
         "validated": 1,
-        "pending": 1
+        "pending": 0
       }
     },
     {
@@ -2538,7 +2383,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00028",
+          "change_id": "chg_00020",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[7] Dans le cadre de l’émission des billets LRCN de série 1, le  -> Dans le cadre de l’émission des billets LRCN de série 1, le ",
@@ -2547,17 +2392,17 @@
             "old_text": "Dans le cadre de l’émission des billets LRCN de série 1, le 28 juillet 2020, nous avons émis 1 750 millions de dollars d’actions privilégiées de premier rang de série BQ (série BQ). Dans le cadre de l’émission des billets LRCN de série 2, le 2 novembre 2020, nous avons émis 1 250 millions de dollars d’actions privilégiées de premier rang de série BR (série BR). Dans le cadre de l’émission des billets LRCN de série 3, le 8 juin 2021, nous avons émis 1 000 millions de dollars d’actions privilégiées de premier rang de série BS (série BS). Dans le cadre de l’émission des billets LRCN de série 4, le 24 avril 2024, nous avons émis 1 000 millions de dollars américains d’actions privilégiées de premier rang de série BV (série BV). Dans le cadre de l’émission des billets LRCN de série 5, le 1er novembre 2024, nous avons émis 1 000 millions de dollars américains d’actions privilégiées de premier rang de série BX (série BX). Les actions privilégiées des séries BQ, BR et BS ont été émises au prix de 1 000 $ chacune, et les actions privilégiées des séries BV et BX ont été émises au prix de 1 000 dollars américains chacune. Les actions privilégiées des séries BQ, BR, BS, BV et BX ont été émises en faveur d’une fiducie consolidée afin d’y être détenues en tant qu’actifs en fiducie en lien avec les séries de billets LRCN. Pour plus de détails, se reporter à la note 19 de nos états financiers consolidés annuels de 2024.",
             "new_text": "Dans le cadre de l’émission des billets LRCN de série 1, le 28 juillet 2020, nous avons émis 1 750 millions de dollars d’actions privilégiées de premier rang de série BQ (série BQ). Dans le cadre de l’émission des billets LRCN de série 2, le 2 novembre 2020, nous avons émis 1 250 millions de dollars d’actions privilégiées de premier rang de série BR (série BR). Dans le cadre de l’émission des billets LRCN de série 3, le 8 juin 2021, nous avons émis 1 000 millions de dollars d’actions privilégiées de premier rang de série BS (série BS). Dans le cadre de l’émission des billets LRCN de série 4, le 24 avril 2024, nous avons émis 1 000 millions de dollars américains d’actions privilégiées de premier rang de série BV (série BV). Dans le cadre de l’émission des billets LRCN de série 5, le 1er novembre 2024, nous avons émis 1 000 millions de dollars américains d’actions privilégiées de premier rang de série BX (série BX). Les actions privilégiées des séries BQ, BR et BS ont été émises au prix de 1 000 $ chacune, et les actions privilégiées des séries BV et BX ont été émises au prix de 1 000 dollars américains chacune. Les actions privilégiées des séries BQ, BR, BS, BV et BX ont été émises en faveur d’une fiducie consolidée afin d’y être détenues en tant qu’actifs en fiducie en lien avec les séries de billets LRCN. Pour plus de détails, se reporter à la note 19 de nos états financiers consolidés annuels audités de 2024."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:22:31.750302+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
+      "table_status": "pending",
+      "confidence": 0.97,
+      "match_method": "Both tables discuss key data on shares and equity instruments. Indicators and headers are identical.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -2568,8 +2413,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     }
   ]

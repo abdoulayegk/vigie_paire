@@ -320,20 +320,23 @@ def _partition_tables_by_status(
         table_id = str(entry.get("table_id", "") or "").strip()
         if not table_id:
             continue
-        # Ghost table filter: 0 real indicators = not a real table
-        if _is_ghost_table(entry):
-            ghost_ids.append(table_id)
-            continue
         status = _normalize_extraction_status(entry.get("extraction_status"))
-        if status in _BUSINESS_EXTRACTION_STATUSES:
-            business.append(entry)
-        elif status in _ARTIFACT_EXTRACTION_STATUSES:
+        # Artifact status takes priority over ghost filter — explicitly
+        # classified tables must be reported even with 0 indicators/headers.
+        if status in _ARTIFACT_EXTRACTION_STATUSES:
             artifacts.append(
                 {
                     "table_id": table_id,
                     "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
                 }
             )
+            continue
+        # Ghost table filter: 0 real indicators = not a real table
+        if _is_ghost_table(entry):
+            ghost_ids.append(table_id)
+            continue
+        if status in _BUSINESS_EXTRACTION_STATUSES:
+            business.append(entry)
         else:
             suspects.append(
                 {

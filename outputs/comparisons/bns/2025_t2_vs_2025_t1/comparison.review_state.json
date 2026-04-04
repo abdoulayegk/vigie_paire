@@ -3,14 +3,14 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260403_152825",
   "review_items_signature": "f853158d89178cd126eb212a7a7f4dc8750c98a62c2f6402f144b1430911974e",
-  "saved_at": "2026-04-03T19:57:28+00:00",
+  "saved_at": "2026-04-04T05:36:39+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bns::capital_management::tbl_p047_i02|",
-    "change_id": "chg_00021"
+    "review_id": "bns::risk_management::tbl_p044_i01|tbl_p051_i01",
+    "change_id": "chg_00015"
   },
-  "review_current_idx": 3,
+  "review_current_idx": 6,
   "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
@@ -30,7 +30,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T19:57:26.569567+00:00",
+      "review_timestamp": "2026-04-04T05:35:16.236175+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -55,12 +55,12 @@
         {
           "name": "Autres instruments de fonds propres",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Dépôts de particuliers et dépôts de petites entreprises :",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Dépôts stables",
@@ -157,7 +157,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T19:57:21.294976+00:00",
+      "review_timestamp": "2026-04-04T05:35:33.296107+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -177,7 +177,7 @@
         {
           "name": "Exposition du ratio de levier",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)(2) -> Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)²)",
@@ -248,10 +248,10 @@
       "page_t2": 40,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T19:57:28.208832+00:00",
+      "review_timestamp": "2026-04-04T05:36:28.033613+00:00",
       "edited_value": "",
       "confidence": 0.92,
       "proof_image_path": "",
@@ -261,7 +261,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T19 Distribution des prêts hypothécaires à l’habitation par périodes d’amortissement et par secteurs géographiques",
-      "table_status": "completed",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Au 30 avril 2025 – Canada",
@@ -271,7 +271,7 @@
         {
           "name": "Au 30 avril 2025 – Étranger",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'T19 Distribution des prêts hypothécaires à l’habitation par périodes d’amortissement et par secteurs géographiques'; indicators: same periods and regions; row_count 6 vs 4; headers identical.",
@@ -338,7 +338,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T19:30:53.916184+00:00",
+      "review_timestamp": "2026-04-04T05:36:33.609864+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -402,10 +402,10 @@
       "page_t2": 44,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-03T19:31:08.078106+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -415,14 +415,14 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T25 Groupes d’actifs liquides",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Titres -> Titres :",
           "type": "renamed",
           "from": "Titres",
           "to": "Titres :",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'T25 Groupes d’actifs liquides'; indicators: same asset groups; row_count 9 vs 9; headers identical.",
@@ -489,7 +489,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T19:32:22.374553+00:00",
+      "review_timestamp": "2026-04-04T05:36:39.887091+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -570,10 +570,10 @@
       "page_t2": 51,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-03T19:56:53.407667+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -583,14 +583,14 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T31 Échéances contractuelles",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Titres de placement – JVAÉRG -> Titres de placement – JVAÉRG",
           "type": "renamed",
           "from": "Titres de placement – JVAÉRG",
           "to": "Titres de placement – JVAÉRG",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'T31 Échéances contractuelles'; indicators: same contractual maturities; row_count 34 vs 34; headers identical.",
@@ -656,8 +656,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-03T19:31:17.991131+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -667,12 +667,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[4] Comprend des immeubles d’habitation (quatre unités ou plus)  -> Comprend des immeubles d’habitation (quatre unités ou plus) ",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[5] Les prêts hypothécaires à taux variable représentent 31 % (3 -> Les prêts hypothécaires à taux variable représentent 33 % (3",
@@ -746,7 +746,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:31:28.103938+00:00",
+          "validated_at": "2026-04-04T05:35:15.826378+00:00",
           "validated_by": "analyst"
         },
         {
@@ -760,7 +760,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:32:27.473576+00:00",
+          "validated_at": "2026-04-04T05:35:16.236175+00:00",
           "validated_by": "analyst"
         },
         {
@@ -770,12 +770,12 @@
             "indicator_name": "Autres instruments de fonds propres",
             "indicator_name_clean": "autres instruments de fonds propres"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:57:26.025715+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00008",
@@ -784,12 +784,12 @@
             "indicator_name": "Dépôts de particuliers et dépôts de petites entreprises :",
             "indicator_name_clean": "dépôts de particuliers et dépôts de petites entreprises :"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:57:26.569567+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00009",
@@ -914,8 +914,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 4,
-        "pending": 6
+        "validated": 2,
+        "pending": 8
       }
     },
     {
@@ -959,7 +959,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:32:33.209076+00:00",
+          "validated_at": "2026-04-04T05:35:33.296107+00:00",
           "validated_by": "analyst"
         },
         {
@@ -969,12 +969,12 @@
             "indicator_name": "Exposition du ratio de levier",
             "indicator_name_clean": "exposition du ratio de levier"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:57:21.294976+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00018",
@@ -1033,8 +1033,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 1,
         "footnotes_changed": 0,
-        "validated": 2,
-        "pending": 1
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -1078,7 +1078,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:30:31.813399+00:00",
+          "validated_at": "2026-04-04T05:36:28.033613+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1088,15 +1088,15 @@
             "indicator_name": "Au 30 avril 2025 – Étranger",
             "indicator_name_clean": "au 30 avril 2025 – étranger"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:57:28.208832+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "partial",
       "confidence": 0.92,
       "match_method": "Title identical: 'T19 Distribution des prêts hypothécaires à l’habitation par périodes d’amortissement et par secteurs géographiques'; indicators: same periods and regions; row_count 6 vs 4; headers identical.",
       "genai_analysis": {
@@ -1134,8 +1134,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 2,
-        "pending": 0
+        "validated": 1,
+        "pending": 1
       }
     },
     {
@@ -1174,7 +1174,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:30:53.916184+00:00",
+          "validated_at": "2026-04-04T05:36:33.609864+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1257,15 +1257,15 @@
             "from_clean": "Titres",
             "to_clean": "Titres :"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:31:08.078106+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Title identical: 'T25 Groupes d’actifs liquides'; indicators: same asset groups; row_count 9 vs 9; headers identical.",
       "genai_analysis": {
@@ -1303,8 +1303,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 1,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1352,7 +1352,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:32:22.374553+00:00",
+          "validated_at": "2026-04-04T05:36:39.887091+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1439,15 +1439,15 @@
             "from_clean": "Titres de placement – JVAÉRG",
             "to_clean": "Titres de placement – JVAÉRG"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:56:53.407667+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Title identical: 'T31 Échéances contractuelles'; indicators: same contractual maturities; row_count 34 vs 34; headers identical.",
       "genai_analysis": {
@@ -1485,8 +1485,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 1,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1529,12 +1529,12 @@
             "old_text": "Comprend des immeubles d’habitation (quatre unités ou plus) de 3 505 $ (31 octobre 2024 – 3 796 $), dont une tranche de 2 764 $ est assurée (31 octobre 2024 – 3 024 $).",
             "new_text": "Comprend des immeubles d’habitation (quatre unités ou plus) de 3 228 $ (31 janvier 2025 – 3 505 $; 31 octobre 2024 – 3 796 $), dont une tranche de 2 548 $ est assurée (31 janvier 2025 – 2 764 $; 31 octobre 2024 – 3 024 $)."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-03T19:31:17.991131+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00020",
@@ -1554,7 +1554,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title identical: 'T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques'; indicators: same regions; row_count 16 vs 13; headers identical.",
       "genai_analysis": {},
@@ -1567,8 +1567,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     }
   ]

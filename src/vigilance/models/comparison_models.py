@@ -34,6 +34,35 @@ class AnalystAssessment(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Match Inspector (Stage 1.5 — pair-level GenAI verification)
+# ---------------------------------------------------------------------------
+
+
+class MatchInspectorVerdict(BaseModel):
+    """Verdict for a single matched pair reviewed by the inspector."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    previous_table_id: str
+    current_table_id: str
+    verdict: str = Field(description="'confirmed' or 'rejected'")
+    shared_indicators: list[str] = Field(
+        default_factory=list,
+        description="Indicator labels found in BOTH tables (exact or semantic match)",
+    )
+    confidence: float = Field(ge=0.0, le=1.0)
+    reason: str
+
+
+class MatchInspectorResponse(BaseModel):
+    """Strict response schema for the Match Inspector batch review."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    verdicts: list[MatchInspectorVerdict]
+
+
+# ---------------------------------------------------------------------------
 # Devil's Advocate
 # ---------------------------------------------------------------------------
 
