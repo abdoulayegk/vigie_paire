@@ -19,7 +19,7 @@
   },
   {
     "table_id": "tbl_p027_i01",
-    "title": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
+    "title": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
     "footnotes": [
       {
         "id": "1",
@@ -76,7 +76,7 @@
   },
   {
     "table_id": "tbl_p032_i01",
-    "title": "Exposition maximale au risque de crédit selon les catégories d'actifs de Bâle(1)",
+    "title": "Exposition maximale au risque de crédit selon les catégories d'actifs de Bâle (1)",
     "footnotes": []
   },
   {
@@ -171,7 +171,7 @@
   },
   {
     "table_id": "tbl_p035_i01",
-    "title": "VaR des portefeuilles de négociation (1) (2)",
+    "title": "VaR des portefeuilles de négociation (1)(2)",
     "footnotes": [
       {
         "id": "1",
@@ -183,7 +183,7 @@
       },
       {
         "id": "3",
-        "text": "La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l'effet de diversification."
+        "text": "La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l’effet de diversification."
       }
     ]
   },
@@ -194,7 +194,7 @@
   },
   {
     "table_id": "tbl_p037_i01",
-    "title": "Portefeuille d’actifs liquides (1)",
+    "title": "",
     "footnotes": []
   },
   {

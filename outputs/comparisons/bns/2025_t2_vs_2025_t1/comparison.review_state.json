@@ -3,14 +3,14 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260403_152825",
   "review_items_signature": "f853158d89178cd126eb212a7a7f4dc8750c98a62c2f6402f144b1430911974e",
-  "saved_at": "2026-04-04T07:49:01+00:00",
+  "saved_at": "2026-04-04T10:33:05+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bns::risk_management::tbl_p034_i02|tbl_p040_i02",
-    "change_id": "chg_00002"
+    "review_id": "bns::risk_management::tbl_p041_i01|tbl_p048_i01",
+    "change_id": "chg_00006"
   },
-  "review_current_idx": 2,
+  "review_current_idx": 0,
   "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
@@ -30,7 +30,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T07:48:42.965258+00:00",
+      "review_timestamp": "2026-04-04T10:33:05.917279+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -157,7 +157,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T07:48:55.286511+00:00",
+      "review_timestamp": "2026-04-04T10:30:56.844792+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -251,7 +251,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T07:49:01.088400+00:00",
+      "review_timestamp": "2026-04-04T10:31:02.200326+00:00",
       "edited_value": "",
       "confidence": 0.92,
       "proof_image_path": "",
@@ -486,10 +486,10 @@
       "page_t2": 46,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T10:32:37.662955+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -499,14 +499,14 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "Total des sorties de trésorerie -> Sorties de trésorerie – Total des sorties de trésorerie",
           "type": "renamed",
           "from": "Total des sorties de trésorerie",
           "to": "Sorties de trésorerie – Total des sorties de trésorerie",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Title identical: 'T28 Ratio de liquidité à court terme moyen de la Banque'; indicators: same liquidity ratios; row_count 29 vs 29; headers identical.",
@@ -656,8 +656,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T10:32:52.261560+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -667,12 +667,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[4] Comprend des immeubles d’habitation (quatre unités ou plus)  -> Comprend des immeubles d’habitation (quatre unités ou plus) ",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[5] Les prêts hypothécaires à taux variable représentent 31 % (3 -> Les prêts hypothécaires à taux variable représentent 33 % (3",
@@ -746,7 +746,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T07:48:42.965258+00:00",
+          "validated_at": "2026-04-04T10:33:05.917279+00:00",
           "validated_by": "analyst"
         },
         {
@@ -959,7 +959,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T07:48:55.286511+00:00",
+          "validated_at": "2026-04-04T10:30:56.844792+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1078,7 +1078,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T07:49:01.088400+00:00",
+          "validated_at": "2026-04-04T10:31:02.200326+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1348,15 +1348,15 @@
             "from_clean": "Total des sorties de trésorerie",
             "to_clean": "Sorties de trésorerie – Total des sorties de trésorerie"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T10:32:37.662955+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 0.99,
       "match_method": "Title identical: 'T28 Ratio de liquidité à court terme moyen de la Banque'; indicators: same liquidity ratios; row_count 29 vs 29; headers identical.",
       "genai_analysis": {
@@ -1394,8 +1394,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 1,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -1529,12 +1529,12 @@
             "old_text": "Comprend des immeubles d’habitation (quatre unités ou plus) de 3 505 $ (31 octobre 2024 – 3 796 $), dont une tranche de 2 764 $ est assurée (31 octobre 2024 – 3 024 $).",
             "new_text": "Comprend des immeubles d’habitation (quatre unités ou plus) de 3 228 $ (31 janvier 2025 – 3 505 $; 31 octobre 2024 – 3 796 $), dont une tranche de 2 548 $ est assurée (31 janvier 2025 – 2 764 $; 31 octobre 2024 – 3 024 $)."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T10:32:52.261560+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00020",
@@ -1554,7 +1554,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.95,
       "match_method": "Title identical: 'T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques'; indicators: same regions; row_count 16 vs 13; headers identical.",
       "genai_analysis": {},
@@ -1567,8 +1567,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 0,
-        "pending": 2
+        "validated": 1,
+        "pending": 1
       }
     }
   ]

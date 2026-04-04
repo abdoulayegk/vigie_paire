@@ -2,7 +2,7 @@
   "bank_code": "bnc",
   "year": 2025,
   "quarter": "t1",
-  "created_at": "2026-03-31T10:59:20",
+  "created_at": "2026-04-04T06:31:13",
   "schema_version": 7,
   "tables": [
     {
@@ -27,7 +27,7 @@
         "Minimum établi par le BSIF, y compris la réserve pour stabilité intérieure",
         "Ratios au 31 janvier 2025"
       ],
-      "table_summary": "Exigences réglementaires et ratios de fonds propres, levier et TLAC",
+      "table_summary": "Exigences réglementaires de fonds propres, levier et TLAC",
       "row_count": 7,
       "indicators": [
         "Ratios des fonds propres",
@@ -115,7 +115,7 @@
       "row_count": 40,
       "indicators": [
         "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1)",
-        "Solde au début",
+        "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Solde au début",
         "Émission d’actions ordinaires (y compris au titre du régime d’options d’achat d’actions)",
         "Incidence des actions acquises ou vendues à des fins de négociation",
         "Rachat d’actions ordinaires",
@@ -137,7 +137,7 @@
         "Actifs d'impôt différé, sauf s'ils résultent de différences temporaires (déduction faite des passifs d'impôt)",
         "Autres déductions et ajustements réglementaires du CET1 instaurés par le BSIF",
         "Variation des autres ajustements réglementaires",
-        "Solde à la fin",
+        "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Solde à la fin",
         "Autres éléments de fonds propres de catégorie 1",
         "Autres éléments de fonds propres de catégorie 1 – Solde au début",
         "Nouvelles émissions d’instruments admissibles à titre de fonds propres de catégorie 1",
@@ -184,7 +184,7 @@
         "Total",
         "Total"
       ],
-      "table_summary": "Variation de l’actif pondéré en fonction des risques",
+      "table_summary": "Variation de l’actif pondéré en fonction des risques par principaux facteurs",
       "row_count": 20,
       "indicators": [
         "Risque de crédit – actif pondéré en fonction des risques au début",
@@ -286,7 +286,7 @@
         "2024",
         "2023"
       ],
-      "table_summary": "Indicateurs BISM par catégories pour 2024 et 2023",
+      "table_summary": "Indicateurs BISM par catégorie pour 2024 et 2023",
       "row_count": 5,
       "indicators": [
         "Activité transfrontière (2)",
@@ -421,19 +421,17 @@
         "Approche standardisée (5)",
         "Approche NI"
       ],
-      "table_summary": "Suite: Expositions au risque de crédit brut par catégorie et approche",
-      "row_count": 16,
+      "table_summary": "Suite: risque de crédit brut par catégorie d’exposition",
+      "row_count": 14,
       "indicators": [
         "Particuliers",
         "Hypothèques résidentielles",
         "Crédits rotatifs admissibles",
         "Particuliers – autres",
-        "Particuliers – Total (bloc 2)",
         "Autres que particuliers",
         "Entreprises",
         "États souverains",
         "Institutions financières",
-        "Autres que particuliers – Total",
         "Portefeuille de négociation",
         "Titrisation",
         "Total – Risque de crédit brut",
@@ -448,7 +446,7 @@
         },
         {
           "id": "2",
-          "text": "Excluent les titres de participation et certains autres actifs tels les participations dans des filiales déconsolidées et coentreprises, les immeubles et actifs assortis du droit d’utilisation, les goodwill, les actifs d’impôt différé et les immobilisations incorporelles."
+          "text": "Excluent les titres de participation et certains autres actifs tels les participations dans des filiales déconsolidées et coentreprises, les immeubles et actifs assortis du droit d’utilisation, les goodwills, les actifs d’impôt différé et les immobilisations incorporelles."
         },
         {
           "id": "3",
@@ -483,7 +481,7 @@
         "Non assujettis au risque de marché",
         "Risque principal associé au risque lié aux activités autres que de négociation"
       ],
-      "table_summary": "Rapprochement du risque de marché et du bilan consolidé",
+      "table_summary": "Actifs et passifs par mesure du risque de marché",
       "row_count": 20,
       "indicators": [
         "Actifs",
@@ -567,10 +565,10 @@
         "Dépôts",
         "Engagements afférents à des titres vendus à découvert",
         "Engagements afférents à des valeurs mobilières vendues en vertu de conventions de rachat et valeurs mobilières prêtées",
-        "Instruments financiers dérivés",
+        "Instruments financiers dérivés – Instruments financiers dérivés",
         "Passifs relatifs à des créances cédées",
         "Passif au titre des prestations définies",
-        "Autres",
+        "Passifs – Autres",
         "Dette subordonnée"
       ],
       "footnotes": [
@@ -654,7 +652,7 @@
         },
         {
           "id": "3",
-          "text": "La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l’effet de diversification."
+          "text": "La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l'effet de diversification."
         }
       ]
     },
@@ -671,11 +669,9 @@
       ],
       "extraction_status": "suspect_unresolved",
       "headers": [
-        "Au 31 janvier 2025",
         "Dollar canadien",
         "Autres devises",
         "Total",
-        "Au 31 octobre 2024",
         "Dollar canadien",
         "Autres devises",
         "Total"
@@ -687,8 +683,8 @@
         "Augmentation du taux d'intérêt de 100 points de base",
         "Diminution du taux d'intérêt de 100 points de base",
         "Effet sur le revenu net d'intérêts",
-        "Augmentation du taux d'intérêt de 100 points de base (bloc 2)",
-        "Diminution du taux d'intérêt de 100 points de base (bloc 2)"
+        "Augmentation du taux d'intérêt de 100 points de base",
+        "Diminution du taux d'intérêt de 100 points de base"
       ],
       "footnotes": []
     },
@@ -710,9 +706,7 @@
         "Total des actifs liquides",
         "Actifs liquides grevés (4)",
         "Actifs liquides non grevés",
-        "Actifs liquides non grevés",
-        "Au 31 janvier 2025",
-        "Au 31 octobre 2024"
+        "Actifs liquides non grevés"
       ],
       "table_summary": "Portefeuille d’actifs liquides",
       "row_count": 16,
@@ -759,7 +753,7 @@
       "table_summary": "Portefeuille d’actifs liquides moyens",
       "row_count": 8,
       "indicators": [
-        "Trésorerie et dépôts auprès d'institutions financières",
+        "Trésorerie et dépôts auprès d’institutions financières",
         "Valeurs mobilières",
         "Émises ou garanties par le gouvernement du Canada, le Trésor et d'autres organismes américains et les gouvernements d'autres pays",
         "Émises ou garanties par les gouvernements provinciaux et municipaux du Canada",
@@ -795,7 +789,7 @@
       "table_id": "tbl_p035_i01",
       "page": 35,
       "section": "risk_management",
-      "title": "",
+      "title": "Sommaire des actifs grevés et non grevés (1)",
       "bbox": [
         0.05376842598509945,
         0.11259084759336531,
@@ -804,14 +798,12 @@
       ],
       "extraction_status": "rescued",
       "headers": [
-        "Actifs grevés (2)",
-        "Actifs non grevés",
-        "Total",
-        "Actifs grevés en % du total des actifs",
         "Donnés en garantie",
-        "Autres (3)",
+        "Actifs grevés (2) Autres (3)",
         "Disponibles pour garantie",
-        "Autres (4)"
+        "Actifs non grevés Autres (4)",
+        "Total",
+        "Actifs grevés en % du total des actifs"
       ],
       "table_summary": "Sommaire des actifs grevés et non grevés",
       "row_count": 9,
@@ -841,14 +833,14 @@
       ],
       "extraction_status": "rescued",
       "headers": [
-        "Actifs grevés (2) Donnés en garantie",
+        "Donnés en garantie",
         "Actifs grevés (2) Autres (3)",
-        "Actifs non grevés Disponibles pour garantie",
+        "Disponibles pour garantie",
         "Actifs non grevés Autres (4)",
         "Total",
         "Actifs grevés en % du total des actifs"
       ],
-      "table_summary": "Actifs grevés et non grevés au 31 octobre 2024",
+      "table_summary": "Actifs grevés et non grevés par catégorie d’actifs",
       "row_count": 9,
       "indicators": [
         "Trésorerie et dépôts auprès d’institutions financières",
@@ -884,7 +876,7 @@
       "table_id": "tbl_p036_i01",
       "page": 36,
       "section": "risk_management",
-      "title": "Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2)",
+      "title": "",
       "bbox": [
         0.05432674308228337,
         0.11374756784150096,
@@ -1044,12 +1036,11 @@
       ],
       "extraction_status": "rescued",
       "headers": [
-        "Au 31 janvier 2025",
         "Diminution d'un cran",
         "Diminution de deux crans",
         "Diminution de trois crans"
       ],
-      "table_summary": "Exigences de garanties supplémentaires selon une diminution de notation de crédit",
+      "table_summary": "Exigences de garanties supplémentaires selon une diminution de la notation de crédit",
       "row_count": 1,
       "indicators": [
         "Dérivés (1)"
@@ -1085,7 +1076,7 @@
         "Sans échéance spécifique",
         "Total"
       ],
-      "table_summary": "Suite: échéances des actifs financiers au 31 janvier 2025",
+      "table_summary": "Suite: échéances contractuelles des actifs",
       "row_count": 19,
       "indicators": [
         "Actif",
@@ -1157,7 +1148,7 @@
         "Sans échéance spécifique",
         "Total"
       ],
-      "table_summary": "Suite: échéances des actifs financiers",
+      "table_summary": "Échéances des actifs financiers",
       "row_count": 19,
       "indicators": [
         "Actif",
@@ -1200,7 +1191,6 @@
       ],
       "extraction_status": "rescued",
       "headers": [
-        "1 mois ou moins",
         "Plus de 1 mois à 3 mois",
         "Plus de 3 mois à 6 mois",
         "Plus de 6 mois à 9 mois",
@@ -1211,11 +1201,11 @@
         "Sans échéance spécifique",
         "Total"
       ],
-      "table_summary": "Échéances contractuelles des passifs et engagements hors bilan",
+      "table_summary": "Échéances des passifs, capitaux propres et engagements hors bilan",
       "row_count": 23,
       "indicators": [
         "Passif et capitaux propres",
-        "Dépôts (1)",
+        "Dépôts (1) (2)",
         "Particuliers",
         "Entreprises et administrations publiques",
         "Institutions de dépôts",
@@ -1296,13 +1286,17 @@
       "headers": [
         "Rapport annuel 2024",
         "Rapport aux actionnaires (1)",
-        "Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3 (1)"
+        "Pages Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3 (1)"
       ],
-      "table_summary": "Sommaire des divulgations sur les risques et pages de référence",
-      "row_count": 40,
+      "table_summary": "Sommaire des informations relatives aux risques et pages de référence",
+      "row_count": 44,
       "indicators": [
         "Général",
         "1 Localisation de la divulgation concernant les risques",
+        "Rapport de gestion",
+        "États financiers consolidés",
+        "Informations financières complémentaires",
+        "Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3",
         "2 Terminologie relative aux risques et mesures de risque",
         "3 Risques principaux et risques émergents",
         "4 Principaux nouveaux ratios réglementaires",

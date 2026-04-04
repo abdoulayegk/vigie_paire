@@ -38,7 +38,7 @@ def resolve_previous_quarter(year: int, quarter: str) -> Tuple[int, str]:
     mapping = {
         "t2": (year, "t1"),
         "t3": (year, "t2"),
-        "t4": (year, "t3"),
+        "t4": (year - 1, "t4"),
         "t1": (year - 1, "t3"),
     }
     result = mapping.get(q)
@@ -50,6 +50,7 @@ def resolve_previous_quarter(year: int, quarter: str) -> Tuple[int, str]:
 # ---------------------------------------------------------------------------
 # PDF discovery
 # ---------------------------------------------------------------------------
+
 
 def _find_pdf_in_dir(directory: Path, bank: str, year: int, quarter: str) -> Path | None:
     """Chercher dans *directory* un PDF correspondant a la banque/annee/trimestre.
@@ -86,7 +87,6 @@ def _find_pdf_in_dir(directory: Path, bank: str, year: int, quarter: str) -> Pat
             if pat.search(pdf.name):
                 return pdf
     return None
-
 
 
 def find_pdf_pair(
