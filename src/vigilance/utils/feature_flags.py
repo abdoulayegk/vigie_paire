@@ -1,8 +1,8 @@
-"""Feature flags for extraction and cache behavior."""
+"""Drapeaux de fonctionnalite pour l'extraction et le comportement du cache."""
 
 from __future__ import annotations
 
 
 def extraction_cache_mode_tag() -> str:
-    """Return a tag used in cache keys to invalidate cache when extraction mode changes."""
+    """Retourne un tag utilise dans les cles de cache pour invalider le cache lors d'un changement de mode d'extraction."""
     return "v1"

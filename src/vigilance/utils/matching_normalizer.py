@@ -1,4 +1,4 @@
-"""Text normalization utilities for table matching."""
+"""Utilitaires de normalisation de texte pour l'appariement de tableaux."""
 
 from __future__ import annotations
 
@@ -31,16 +31,24 @@ _TEMPORAL_PATTERNS_AGGRESSIVE = [
 
 
 def _strip_accents(text: str) -> str:
+    """Supprime les accents via decomposition NFD et encodage ASCII."""
     normalized = unicodedata.normalize("NFD", text or "")
     return normalized.encode("ascii", "ignore").decode("utf-8")
 
 
 def normalize_for_matching(text: str, target: str = "generic") -> str:
-    """Normalize text into a stable comparison-friendly representation.
+    """Normalise le texte en une representation stable adaptee a la comparaison.
 
-    Used by normalize_indicator_variants in indicator_cleaner. The canonical key
-    for indicator diff is normalize_indicator_for_comparison (elision, impôt/impôts,
-    guillemets are applied there before/after this step).
+    Utilisee par ``normalize_indicator_variants`` dans ``indicator_cleaner``. La cle canonique
+    pour le diff d'indicateurs est ``normalize_indicator_for_comparison`` (elision, impot/impots,
+    guillemets sont appliques avant/apres cette etape).
+
+    Args:
+        text: Texte brut a normaliser.
+        target: Contexte cible (``generic``, ``indicator``, ``header``, ``title``).
+
+    Returns:
+        Texte normalise en minuscules, sans accents, avec ponctuation nettoyee.
     """
     normalized = _strip_accents(text).lower()
 
@@ -52,14 +60,23 @@ def normalize_for_matching(text: str, target: str = "generic") -> str:
 
 
 def normalize_label(text: str) -> str:
-    """Alias used by legacy comparison code."""
+    """Alias utilise par le code de comparaison historique."""
     return normalize_for_matching(text, target="indicator")
 
 
 def strip_temporal_expressions(
     text: str, target: str = "title", aggressive: bool = True
 ) -> str:
-    """Remove date/quarter fragments to keep semantic table title content."""
+    """Supprime les fragments de date/trimestre pour conserver le contenu semantique du titre de tableau.
+
+    Args:
+        text: Texte contenant potentiellement des expressions temporelles.
+        target: Contexte cible (``title``, ``header``).
+        aggressive: Si True, supprime aussi les annees et mois isoles.
+
+    Returns:
+        Texte nettoye sans expressions temporelles.
+    """
     value = _strip_accents(text or "")
     if not value:
         return ""
@@ -131,7 +148,7 @@ _NOTE_OR_UNIT_LINE_RE = re.compile(
 
 
 def _is_footnote_definition_line(text: str) -> bool:
-    """True when text starts with a footnote marker like (1), [2], a), Note 1."""
+    """True si le texte commence par un marqueur de note comme (1), [2], a), Note 1."""
     if not text or not text.strip():
         return False
     stripped = (text or "").strip()
@@ -139,12 +156,12 @@ def _is_footnote_definition_line(text: str) -> bool:
 
 
 def _is_unit_header_line(text: str) -> bool:
-    """True when *text* is a unit-of-measure header, optionally followed by a date.
+    """True si *text* est un en-tete d'unite de mesure, optionnellement suivi d'une date.
 
-    Matches lines that *start* with ``(en millions de dollars ...)``,
-    ``(en milliers d'actions...)``, or ``(in millions ...)``.  If real indicator
-    text precedes the unit mention (e.g. ``Facteurs de risque (en millions...)``),
-    returns False.
+    Detecte les lignes qui *commencent* par ``(en millions de dollars ...)``,
+    ``(en milliers d'actions...)``, ou ``(in millions ...)``. Si du texte d'indicateur
+    reel precede la mention d'unite (ex. ``Facteurs de risque (en millions...)``),
+    retourne False.
     """
     if _UNIT_MILLIERS_ACTIONS_RE.match(text.strip()):
         return True
@@ -294,13 +311,17 @@ _DATE_HEADER_AS_OF_RE = re.compile(
 
 
 def is_date_only_line(text: str) -> bool:
-    """Return True when *text* is purely a date/temporal expression, a
-    unit-of-measure header, or a footnote definition that should never
-    appear as an indicator change.
+    """Detecter si une ligne est purement temporelle, unitaire ou une note.
 
-    Covers date-only lines, period headers, monetary unit headers such as
-    ``(en millions de dollars canadiens) Au 31 janvier 2025``, and footnote
-    definition lines like ``(1) Definition`` or ``[2] Note``.
+    Couvre les lignes de date seules, les en-tetes de periode, les en-tetes d'unite monetaire
+    comme ``(en millions de dollars canadiens) Au 31 janvier 2025``, et les lignes de definition
+    de notes comme ``(1) Definition`` ou ``[2] Note``.
+
+    Args:
+        text: Ligne a analyser.
+
+    Returns:
+        True si la ligne est purement temporelle, unitaire ou une note.
     """
     stripped = _strip_accents((text or "").strip())
     if not stripped:
@@ -340,11 +361,11 @@ _SECTION_HEADER_ALLOWLIST_NORMALIZED = frozenset(
 
 
 def _is_section_header_line(text: str) -> bool:
-    """True when label is a section header ending with ':' (after stripping footnotes).
+    """True si le libelle est un en-tete de section se terminant par ':' (apres suppression des notes).
 
-    Detects patterns like 'Levier(4):', 'Ratio de fonds propres (en pourcentage)(4):'
-    which are structural group headers, not data indicators.
-    Returns False for legitimate indicators with sub-lines (e.g. 'Titres :', 'Dépôts stables :').
+    Detecte des motifs comme ``Levier(4):``, ``Ratio de fonds propres (en pourcentage)(4):``
+    qui sont des en-tetes de groupe structurels, et non des indicateurs de donnees.
+    Retourne False pour les indicateurs legitimes avec sous-lignes (ex. ``Titres :``, ``Depots stables :``).
     """
     if not text or not text.strip():
         return False
@@ -373,7 +394,7 @@ def _is_section_header_line(text: str) -> bool:
 
 
 def _classify_excluded_line(text: str) -> str | None:
-    """Return exclusion type: 'total', 'unit', 'date', 'number', 'footnote', 'section_header', or None if not excluded."""
+    """Retourne le type d'exclusion : 'total', 'unit', 'date', 'number', 'footnote', 'section_header', ou None si non exclu."""
     if not text or not (text or "").strip():
         return None
     stripped = _strip_accents((text or "").strip())
@@ -423,7 +444,14 @@ def _classify_excluded_line(text: str) -> str | None:
 
 
 def is_non_indicator_line(text: str) -> bool:
-    """Return True when line should not be treated as an indicator (totals, units, numbers)."""
+    """Retourne True quand la ligne ne doit pas etre traitee comme un indicateur (totaux, unites, nombres).
+
+    Args:
+        text: Ligne a analyser.
+
+    Returns:
+        True si la ligne est exclue de l'analyse des indicateurs.
+    """
     return _classify_excluded_line(text) is not None
 
 
@@ -443,7 +471,14 @@ _NUMBER_HEADER_RE = re.compile(r"\d")
 
 
 def infer_header_schema_type(value: str) -> str:
-    """Infer a coarse semantic type for one header cell."""
+    """Infere un type semantique grossier pour une cellule d'en-tete.
+
+    Args:
+        value: Contenu textuel de la cellule d'en-tete.
+
+    Returns:
+        Type parmi ``EMPTY``, ``PERCENT``, ``CURRENCY``, ``DATE``, ``YEAR``, ``NUMBER``, ``TEXT``.
+    """
     text = normalize_for_matching(value or "", target="header")
     if not text:
         return "EMPTY"
@@ -461,7 +496,14 @@ def infer_header_schema_type(value: str) -> str:
 
 
 def infer_header_schema(headers: list[str] | tuple[str, ...] | None) -> list[str]:
-    """Map a header row to coarse semantic types used for robust matching."""
+    """Mappe une ligne d'en-tete vers des types semantiques grossiers pour un appariement robuste.
+
+    Args:
+        headers: Liste ou tuple de valeurs d'en-tete, ou None.
+
+    Returns:
+        Liste de types semantiques (un par cellule).
+    """
     if not headers:
         return []
     return [infer_header_schema_type(str(item)) for item in headers]
@@ -471,7 +513,15 @@ def header_schema_similarity(
     headers1: list[str] | tuple[str, ...] | None,
     headers2: list[str] | tuple[str, ...] | None,
 ) -> float:
-    """Compare header schemas (DATE/YEAR/CURRENCY/PERCENT/TEXT) with position tolerance."""
+    """Compare les schemas d'en-tetes (DATE/YEAR/CURRENCY/PERCENT/TEXT) avec une tolerance de position.
+
+    Args:
+        headers1: Premiere ligne d'en-tete.
+        headers2: Deuxieme ligne d'en-tete.
+
+    Returns:
+        Score de similarite entre 0.0 et 1.0.
+    """
     schema1 = infer_header_schema(headers1)
     schema2 = infer_header_schema(headers2)
     if not schema1 or not schema2:
@@ -491,7 +541,15 @@ def header_schema_similarity(
 def is_generic_title(
     title: str, generic_titles: set[str] | frozenset[str] | None = None
 ) -> bool:
-    """Return True when title is too generic to be a strong identifier."""
+    """Retourne True lorsque le titre est trop generique pour etre un identifiant fiable.
+
+    Args:
+        title: Titre de tableau a evaluer.
+        generic_titles: Ensemble optionnel de titres generiques supplementaires.
+
+    Returns:
+        True si le titre est considere comme generique.
+    """
     value = normalize_for_matching(title, target="title")
     if not value:
         return True

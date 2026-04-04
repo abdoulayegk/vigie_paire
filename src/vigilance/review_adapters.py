@@ -1,4 +1,4 @@
-"""Adapters from comparison payloads to analyst review items."""
+"""Adaptateurs de payloads de comparaison vers les elements de revue analyste."""
 
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ from vigilance.review_models import (
 
 
 def _make_change_id(prefix: str, index: int) -> str:
+    """Genere un identifiant de changement avec prefixe et index zero-padde."""
     return f"{prefix}_{index:04d}"
 
 
@@ -36,16 +37,28 @@ def build_review_items_from_indicator_result(
     pdf_path_t1: str,
     pdf_path_t2: str,
 ) -> list[ReviewItem]:
-    """Build review queue items grouped by table from canonical indicator comparison payload.
+    """Construit les elements de la file de revue groupes par tableau a partir du payload canonique.
 
-    Each table with changes produces ONE ReviewItem containing all its
-    added/removed/renamed indicators in the ``indicators`` list.
+    Chaque tableau avec des changements produit UN seul ReviewItem contenant
+    tous ses indicateurs ajoutes/retires/renommes dans la liste ``indicators``.
+
+    Args:
+        indicator_result: Payload canonique de comparaison d'indicateurs.
+        bank_code: Code de la banque (ex. ``"rbc"``).
+        quarter_from: Trimestre source (ex. ``"2025_t1"``).
+        quarter_to: Trimestre cible (ex. ``"2025_t2"``).
+        pdf_path_t1: Chemin du PDF du trimestre precedent.
+        pdf_path_t2: Chemin du PDF du trimestre courant.
+
+    Returns:
+        Liste de ReviewItem prets pour la file de revue analyste.
     """
     items: list[ReviewItem] = []
     table_comparisons = indicator_result.get("table_comparisons", [])
     seq = 1
 
     def _source_ref(comp_or_table: dict[str, Any], side: str) -> str:
+        """Resout la reference PDF source pour le cote t1 ou t2."""
         embedded = str(
             comp_or_table.get("source_pdf_t1" if side == "t1" else "source_pdf_t2", "")
             or ""
@@ -236,6 +249,10 @@ def build_review_items_from_indicator_result(
                 if isinstance(ren_raw, dict):
                     old_raw = str(ren_raw.get("previous", "")).strip()
                     new_raw = str(ren_raw.get("current", "")).strip()
+                    if not old_raw:
+                        old_raw = str(ren_raw.get("from", "")).strip()
+                    if not new_raw:
+                        new_raw = str(ren_raw.get("to", "")).strip()
                     if old_raw:
                         old_val = old_raw
                     if new_raw:

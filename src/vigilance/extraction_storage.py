@@ -1,4 +1,4 @@
-"""Persist canonical ``TableArtifact`` extractions using ``tables.json`` as the source of truth."""
+"""Persistance des extractions canoniques ``TableArtifact`` avec ``tables.json`` comme source de verite."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ REPORT_INDICATORS_FILENAME = "indicators.json"
 REPORT_FOOTNOTES_FILENAME = "footnotes.json"
 
 def _normalize_storage_quarter(quarter: str) -> str:
-    """Normalize quarter labels to ``t1``..``t4`` for storage."""
+    """Normaliser les libelles de trimestre en ``t1``..``t4`` pour le stockage."""
     value = str(quarter or "").strip().lower()
     match = None
     if value:
@@ -36,7 +36,7 @@ def _normalize_storage_quarter(quarter: str) -> str:
 
 
 def _extraction_dir(base_dir: Path, bank_code: str, year: int, quarter: str) -> Path:
-    """Return the directory for one report: {base_dir}/{bank}/{year}/{quarter}/."""
+    """Retourner le repertoire d'un rapport : {base_dir}/{bank}/{year}/{quarter}/."""
     return base_dir / str(bank_code) / str(year) / str(quarter).lower()
 
 
@@ -46,7 +46,7 @@ def get_extraction_artifact_paths(
     quarter: str,
     base_dir: Path,
 ) -> dict[str, Path]:
-    """Return canonical filesystem paths for one stored extraction."""
+    """Retourner les chemins canoniques du systeme de fichiers pour une extraction stockee."""
     quarter_norm = _normalize_storage_quarter(quarter)
     target_dir = _extraction_dir(base_dir, bank_code, year, quarter_norm)
     return {
@@ -58,14 +58,14 @@ def get_extraction_artifact_paths(
 
 
 def _footnote_to_canonical(item: dict[str, Any]) -> dict[str, str]:
-    """Normalize a footnote item to stored canonical form: ``{"id": str, "text": str}``."""
+    """Normaliser un element de note de bas de page vers la forme canonique stockee."""
     fid = (item.get("id") or item.get("marker") or "").strip()
     text = str(item.get("text") or "").strip()
     return {"id": fid, "text": text}
 
 
 def _backfill_page_local_structure(tables: list[TableArtifact]) -> None:
-    """Recompute and set page-local structure on each table after storage reload."""
+    """Recalculer et assigner la structure locale de page sur chaque table apres rechargement."""
     structure = derive_page_local_structure(tables)
     for t in tables:
         key = (t.table_id, t.page_pdf)
@@ -79,7 +79,7 @@ def _backfill_page_local_structure(tables: list[TableArtifact]) -> None:
 
 
 def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
-    """Reconstruct the canonical comparison ``TableArtifact`` from minimal stored JSON."""
+    """Reconstruire un ``TableArtifact`` canonique depuis le JSON minimal stocke."""
     bank_code = str(d.get("bank_code", "") or "")
     section = str(d.get("section", "") or "")
     page_pdf = int(d.get("page_pdf", d.get("page", 0)) or 0)
@@ -157,7 +157,7 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
 
 
 def _ensure_projection_artifacts(target_dir: Path) -> None:
-    """Ensure indicators.json and footnotes.json exist as projections of tables.json."""
+    """S'assurer que indicators.json et footnotes.json existent comme projections de tables.json."""
     tables_json_path = target_dir / TABLES_FILENAME
     if not tables_json_path.exists():
         return
@@ -184,12 +184,22 @@ def save_extraction(
     meta: dict[str, Any],
     base_dir: Path,
 ) -> Path:
-    """
-    Save extraction for one report.
+    """Sauvegarder l'extraction d'un rapport.
 
-    Writes canonical tables.json, then derives indicators.json and footnotes.json from it.
-    Layout: outputs/extractions/{bank_code}/{year}/{quarter}/.
-    Returns the directory path.
+    Ecrit le fichier canonique ``tables.json``, puis derive ``indicators.json``
+    et ``footnotes.json`` a partir de celui-ci.
+    Arborescence : ``outputs/extractions/{bank_code}/{year}/{quarter}/``.
+
+    Args:
+        bank_code: Code identifiant la banque.
+        year: Annee du rapport.
+        quarter: Libelle du trimestre (ex. ``t1``).
+        tables: Liste des artefacts de tableaux extraits.
+        meta: Metadonnees d'extraction (model_version, etc.).
+        base_dir: Repertoire racine des extractions.
+
+    Returns:
+        Chemin du repertoire contenant les artefacts sauvegardes.
     """
     quarter_norm = _normalize_storage_quarter(quarter)
     target_dir = _extraction_dir(base_dir, bank_code, year, quarter_norm)
@@ -229,10 +239,20 @@ def load_extraction(
     quarter: str,
     base_dir: Path,
 ) -> tuple[list[TableArtifact], dict[str, Any]] | None:
-    """
-    Load extraction for one report.
+    """Charger l'extraction d'un rapport.
 
-    Reads the canonical tables.json only. Returns (tables, meta) or None if not found or invalid.
+    Lit uniquement le fichier canonique ``tables.json``. Verifie la version
+    du schema et reconstruit les ``TableArtifact`` depuis les donnees stockees.
+
+    Args:
+        bank_code: Code identifiant la banque.
+        year: Annee du rapport.
+        quarter: Libelle du trimestre (ex. ``t1``).
+        base_dir: Repertoire racine des extractions.
+
+    Returns:
+        Tuple (tables, meta) ou ``None`` si le fichier est absent, invalide
+        ou d'une version de schema incompatible.
     """
     quarter_norm = _normalize_storage_quarter(quarter)
     paths = get_extraction_artifact_paths(bank_code, year, quarter_norm, base_dir)
@@ -289,10 +309,16 @@ def load_stored_extractions(
     tuple[list[TableArtifact], list[TableArtifact], dict[str, Any], dict[str, Any]]
     | None
 ):
-    """
-    Load both t1 and t2 extractions if they exist.
+    """Charger les extractions t1 et t2 si elles existent toutes les deux.
 
-    Returns (tables_t1, tables_t2, meta_t1, meta_t2) or None if either is missing.
+    Args:
+        bank_code: Code identifiant la banque.
+        year: Annee du rapport.
+        base_dir: Repertoire racine des extractions.
+
+    Returns:
+        Tuple (tables_t1, tables_t2, meta_t1, meta_t2) ou ``None`` si l'une
+        des deux est absente.
     """
     t1 = load_extraction(bank_code, year, "t1", base_dir)
     t2 = load_extraction(bank_code, year, "t2", base_dir)

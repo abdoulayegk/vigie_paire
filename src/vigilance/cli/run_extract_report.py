@@ -1,9 +1,9 @@
-"""Minimal CLI for section-targeted report extraction artifacts.
+"""CLI minimal pour l'extraction ciblee par section des artefacts de rapport.
 
-This entrypoint preserves the existing extraction pipeline:
-- detect relevant sections in the PDF
-- extract tables only on those page ranges
-- write compact ``tables.json``, ``indicators.json``, and ``footnotes.json``
+Ce point d'entree preserve le pipeline d'extraction existant :
+- detecter les sections pertinentes dans le PDF
+- extraire les tableaux uniquement sur les plages de pages ciblees
+- ecrire les artefacts compacts ``tables.json``, ``indicators.json`` et ``footnotes.json``
 """
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ DEFAULT_OUT_ROOT = "outputs/extractions"
 
 
 def _normalize_storage_quarter(quarter: str) -> str:
+    """Normaliser un libelle de trimestre en ``t1``..``t4``."""
     value = str(quarter or "").strip().lower()
     match = re.search(r"([qt])\s*([1-4])", value, flags=re.IGNORECASE)
     if match:
@@ -33,6 +34,7 @@ def _normalize_storage_quarter(quarter: str) -> str:
 
 
 def _build_section_ranges(mapping: Any) -> list[dict[str, Any]]:
+    """Convertir le resultat du locator en plages de sections pour l'extraction."""
     ranges: list[dict[str, Any]] = []
     for located in getattr(mapping, "sections", []) or []:
         start = int(getattr(located, "start_page", 0) or 0)
@@ -49,6 +51,7 @@ def _build_section_ranges(mapping: Any) -> list[dict[str, Any]]:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Construire le parseur d'arguments pour l'extraction de rapport."""
     parser = argparse.ArgumentParser(
         description="Extract compact tables/indicators/footnotes artifacts for one report."
     )
@@ -68,6 +71,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> None:
+    """Detecter les sections d'un PDF et extraire les artefacts compacts."""
     args = build_parser().parse_args(argv)
     cfg = load_config(args.config)
     get_bank_cfg(cfg, args.bank)

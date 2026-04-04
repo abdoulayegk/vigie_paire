@@ -1,4 +1,4 @@
-"""Upload, detection, section validation, and analysis callbacks."""
+"""Callbacks de televersement, detection, validation des sections et analyse."""
 
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
     Input("current-quarter", "value"),
 )
 def sync_quarter_context(year_value, current_quarter):
-    """Derive the previous quarter from the selected current quarter."""
+    """Deriver le trimestre precedent a partir du trimestre courant selectionne."""
     ctx = build_quarter_context(current_quarter or "T2", year=year_value or 2025)
     previous_label = str(ctx["previous"]["label"])
     current_label = str(ctx["current"]["label"])
@@ -357,6 +357,7 @@ def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
         )
 
     def decode(content):
+        """Decoder le contenu base64 d'un fichier televerse."""
         if content and "," in content:
             return base64.b64decode(content.split(",")[1])
         return base64.b64decode(content) if content else b""
@@ -462,6 +463,7 @@ def render_validation_sections(detection, paths, adjusted_sections):
         label2 = s2.get("label", s2.get("type", ""))
 
         def _section_col(section, orig_section, label, total_pages, path, doc_key, idx):
+            """Construire une colonne d'affichage pour une section avec apercu PDF."""
             start, end = section.get("start_page", 1), section.get("end_page", 1)
             orig_start = orig_section.get("start_page", 1)
             orig_end = orig_section.get("end_page", 1)

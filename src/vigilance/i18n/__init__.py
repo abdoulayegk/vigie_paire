@@ -1,4 +1,4 @@
-"""i18n module - French as default language for Desjardins UI."""
+"""Module d'internationalisation -- francais comme langue par defaut."""
 
 from __future__ import annotations
 

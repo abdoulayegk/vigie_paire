@@ -1,12 +1,8 @@
-"""Review queue normalizer: deduplication and grouping logic.
+"""Normalisation de la file de revue : deduplication et regroupement.
 
-This module transforms raw ReviewItems (which may contain duplicates)
-into a canonical list of ReviewTableItems where each table appears
-exactly once with all its changes grouped.
-
-Key functions:
-- normalize_review_queue: Main entry point
-- _change_exists: Deduplication helper
+Transforme les ReviewItems bruts (potentiellement dupliques) en une liste
+canonique de ReviewTableItem ou chaque tableau apparait exactement une fois
+avec tous ses changements regroupes.
 """
 
 from __future__ import annotations
@@ -31,23 +27,23 @@ def normalize_review_queue(
     quarter_from: str,
     quarter_to: str,
 ) -> list[ReviewTableItem]:
-    """Canonicalize raw review items into deduplicated, grouped table items.
+    """Canonise les elements de revue bruts en elements de tableau dedupliques et groupes.
 
-    This is the main entry point for review queue normalization. It:
-    1. Computes a stable table_key for each raw item
-    2. Groups items by table_key
-    3. Merges all changes under one ReviewTableItem per key
-    4. Filters out tables with 0 changes
-    5. Sorts by section, then page, then table_name
+    Point d'entree principal de la normalisation. Etapes :
+    1. Calcul d'une table_key stable par element
+    2. Regroupement par table_key
+    3. Fusion de tous les changements sous un ReviewTableItem par cle
+    4. Filtrage des tableaux sans changement
+    5. Tri par section, page puis nom du tableau
 
     Args:
-        raw_items: List of raw review item dicts (from build_review_items_from_indicator_result)
-        bank_code: Bank identifier (e.g., "rbc", "td")
-        quarter_from: Source quarter label (e.g., "Q3_2025")
-        quarter_to: Target quarter label (e.g., "Q4_2025")
+        raw_items: Liste de dictionnaires bruts issus de ``build_review_items_from_indicator_result``.
+        bank_code: Identifiant de la banque (ex. ``"rbc"``, ``"td"``).
+        quarter_from: Libelle du trimestre source (ex. ``"Q3_2025"``).
+        quarter_to: Libelle du trimestre cible (ex. ``"Q4_2025"``).
 
     Returns:
-        Deduplicated list of ReviewTableItem, sorted by section/page/name
+        Liste dedupliquee de ReviewTableItem, triee par section/page/nom.
     """
     groups: dict[str, ReviewTableItem] = {}
     change_counter = 1
@@ -210,7 +206,7 @@ def normalize_review_queue(
 def _build_change_payload(
     ind: dict[str, Any], item_type: str, ind_type: str
 ) -> dict[str, Any]:
-    """Build the payload dict for a ChangeItem based on type."""
+    """Construit le dictionnaire payload d'un ChangeItem selon son type."""
     payload: dict[str, Any] = {
         "indicator_name": ind.get("name", ""),
         "indicator_name_clean": (
@@ -233,7 +229,7 @@ def _build_change_payload(
 
 
 def _map_table_level_change_type(change_type_raw: str) -> str:
-    """Map raw table-level change type to ChangeType value."""
+    """Convertit un type de changement brut au niveau tableau en valeur ChangeType."""
     mapping = {
         "table_added": ChangeType.TABLE_ADDED.value,
         "table_removed": ChangeType.TABLE_REMOVED.value,
@@ -245,7 +241,7 @@ def _map_table_level_change_type(change_type_raw: str) -> str:
 
 
 def _merge_table_metadata(table_item: ReviewTableItem, raw: dict[str, Any]) -> None:
-    """Merge metadata from raw item into table_item if better."""
+    """Fusionne les metadonnees du brut dans table_item si elles sont meilleures."""
     # Update page numbers if missing
     if table_item.page_t1 is None and raw.get("page_t1") is not None:
         table_item.page_t1 = raw.get("page_t1")
@@ -273,10 +269,10 @@ def _merge_table_metadata(table_item: ReviewTableItem, raw: dict[str, Any]) -> N
 
 
 def _change_exists(changes: list[ChangeItem], new_change: ChangeItem) -> bool:
-    """Check if an equivalent change already exists (dedupe).
+    """Verifie si un changement equivalent existe deja (deduplication).
 
-    Returns True if a change with the same type and key payload fields
-    already exists in the list.
+    Returns:
+        True si un changement de meme type et memes champs cles existe deja.
     """
     for c in changes:
         if c.change_type != new_change.change_type:
@@ -331,6 +327,7 @@ def _change_exists(changes: list[ChangeItem], new_change: ChangeItem) -> bool:
 
 
 def _has_table_only_change(changes: list[ChangeItem]) -> bool:
+    """Verifie si la liste contient un changement de type tableau entier (ajout/retrait)."""
     for change in changes:
         if change.change_type in (
             ChangeType.TABLE_ADDED.value,
@@ -345,13 +342,19 @@ def _has_table_only_change(changes: list[ChangeItem]) -> bool:
 def sort_review_tables_by_priority(
     tables: list[ReviewTableItem],
 ) -> list[ReviewTableItem]:
-    """Sort review tables by priority (highest first).
+    """Trie les tableaux de revue par priorite decroissante.
 
-    Priority is determined by:
-    1. Regulatory relevance (REGLEMENTAIRE > NOUVELLE_DIVULGATION > STRUCTUREL > others)
-    2. Risk level (ELEVE > MODERE > FAIBLE)
-    3. Number of changes (more changes = higher priority)
-    4. Confidence (lower confidence = needs more review)
+    Criteres de tri :
+    1. Pertinence reglementaire (REGLEMENTAIRE > NOUVELLE_DIVULGATION > STRUCTUREL > autres)
+    2. Niveau de risque (ELEVE > MODERE > FAIBLE)
+    3. Nombre de changements (plus = prioritaire)
+    4. Confiance (plus basse = necessite plus de revue)
+
+    Args:
+        tables: Liste de ReviewTableItem a trier.
+
+    Returns:
+        Liste triee par priorite decroissante.
     """
     relevance_order = {
         "REGLEMENTAIRE": 0,
@@ -370,6 +373,7 @@ def sort_review_tables_by_priority(
     }
 
     def sort_key(t: ReviewTableItem) -> tuple:
+        """Cle de tri composite pour un tableau de revue."""
         rel = relevance_order.get(t.relevance.upper(), 5)
         risk = risk_order.get(t.risk_level.upper(), 3)
         n_changes = len(t.changes)
@@ -387,19 +391,19 @@ def build_normalized_review_queue(
     pdf_path_t1: str = "",
     pdf_path_t2: str = "",
 ) -> list[ReviewTableItem]:
-    """Build a normalized, deduplicated review queue from raw items.
+    """Construit une file de revue normalisee et dedupliquee a partir des elements bruts.
 
-    This is a convenience wrapper that extracts metadata from indicator_result
-    and calls normalize_review_queue.
+    Wrapper de commodite qui extrait les metadonnees de ``indicator_result``
+    puis appelle ``normalize_review_queue``.
 
     Args:
-        indicator_result: The canonical comparison result
-        raw_items: List of raw ReviewItem dicts
-        pdf_path_t1: Path to T1 PDF
-        pdf_path_t2: Path to T2 PDF
+        indicator_result: Resultat canonique de comparaison.
+        raw_items: Liste de dictionnaires bruts de ReviewItem.
+        pdf_path_t1: Chemin du PDF T1.
+        pdf_path_t2: Chemin du PDF T2.
 
     Returns:
-        Sorted, deduplicated list of ReviewTableItems
+        Liste de ReviewTableItem triee et dedupliquee.
     """
     bank_code = str(indicator_result.get("bank_code", ""))
     quarter_from = str(indicator_result.get("quarter_from", "t1"))

@@ -1,10 +1,11 @@
-"""Devil's Advocate second-opinion review for the comparison pipeline.
+"""Revue en second avis (Devil's Advocate) pour le pipeline de comparaison.
 
-Extracted from compare_gpt.py. compare_gpt.py re-exports all names from this module
-so that all existing imports remain valid.
+Extrait de compare_gpt.py. Ce dernier re-exporte tous les noms de ce module
+afin que les imports existants restent valides.
 
-Same injection pattern as comparison_matching.py: call_openai_json is injected
-so that monkeypatching "vigilance.compare_gpt._call_openai_json" continues to work.
+Meme patron d'injection que comparison_matching.py : ``call_openai_json`` est
+injecte pour que le monkeypatching de ``vigilance.compare_gpt._call_openai_json``
+continue de fonctionner.
 """
 
 from __future__ import annotations
@@ -68,7 +69,20 @@ def _devil_advocate_review(
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Run a second-opinion review on unmatched and low-confidence tables."""
+    """Execute une revue en second avis sur les tableaux non apparies et a faible confiance.
+
+    Args:
+        tables_added_cards: Fiches descriptives des tableaux CQ non apparies.
+        tables_removed_cards: Fiches descriptives des tableaux PQ non apparies.
+        low_confidence_pairs: Paires appariees avec une confiance inferieure a 0.90.
+        model: Identifiant du modele OpenAI a utiliser.
+        call_openai_json: Fonction injectable pour les appels OpenAI.
+        usage_recorder: Liste optionnelle pour enregistrer la consommation API.
+
+    Returns:
+        Dictionnaire contenant ``new_matches``, ``confirmed_low_confidence``
+        et ``contested_pairs``.
+    """
     if not tables_added_cards and not tables_removed_cards and not low_confidence_pairs:
         logger.info(
             "Devil's Advocate: nothing to review (all matched with high confidence)"

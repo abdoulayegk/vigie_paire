@@ -1,7 +1,7 @@
-"""I/O helpers, coercion utilities, and table-transform functions for the comparison pipeline.
+"""Fonctions utilitaires d'E/S, de coercition et de transformation de tableaux pour le pipeline de comparaison.
 
-Extracted from compare_gpt.py. compare_gpt.py re-exports all names from this module
-so that all existing imports remain valid.
+Extrait de compare_gpt.py. compare_gpt.py re-exporte tous les noms de ce module
+afin que les imports existants restent valides.
 """
 
 from __future__ import annotations
@@ -35,6 +35,8 @@ _SUSPECT_EXTRACTION_STATUSES: frozenset[str] = (
 
 
 class TableCard(TypedDict):
+    """Fiche resumee d'un tableau utilisee pour l'appariement entre trimestres."""
+
     table_id: str
     section: str
     title: str
@@ -49,6 +51,8 @@ class TableCard(TypedDict):
 
 
 class TableSnapshot(TypedDict):
+    """Instantane complet d'un tableau incluant le statut d'extraction et la bbox."""
+
     table_id: str
     title: str
     table_summary: str
@@ -68,7 +72,7 @@ class TableSnapshot(TypedDict):
 
 
 def _is_ghost_table(entry: dict[str, Any]) -> bool:
-    """Return True if the table has 0 real indicators (not a real table)."""
+    """Retourne True si le tableau a 0 indicateur reel (pas un vrai tableau)."""
     from vigilance.extraction.vision_full_extractor import _count_real_indicators
 
     indicators = list(entry.get("indicators", []) or [])
@@ -82,6 +86,7 @@ def _is_ghost_table(entry: dict[str, Any]) -> bool:
 
 
 def _coerce_pathlike(value: Any, field: str) -> Path:
+    """Convertit une valeur en ``Path``, leve ``ValueError`` si vide ou invalide."""
     text = str(value or "").strip()
     if not text:
         raise ValueError(f"Chemin requis manquant: {field}")
@@ -92,6 +97,7 @@ def _coerce_pathlike(value: Any, field: str) -> Path:
 
 
 def _coerce_int(value: Any) -> int:
+    """Convertit en entier, retourne 0 en cas d'echec."""
     try:
         return int(value or 0)
     except (TypeError, ValueError):
@@ -99,6 +105,7 @@ def _coerce_int(value: Any) -> int:
 
 
 def _coerce_float(value: Any) -> float:
+    """Convertit en flottant, retourne 0.0 en cas d'echec."""
     try:
         return float(value or 0.0)
     except (TypeError, ValueError):
@@ -111,6 +118,7 @@ def _coerce_float(value: Any) -> float:
 
 
 def _atomic_write_json(path: Path, payload: dict[str, Any]) -> Path:
+    """Ecrit un fichier JSON de maniere atomique via un fichier temporaire."""
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = path.with_name(path.name + ".tmp")
     tmp_path.write_text(
@@ -122,6 +130,7 @@ def _atomic_write_json(path: Path, payload: dict[str, Any]) -> Path:
 
 
 def _load_json(path: Path) -> dict[str, Any]:
+    """Charge et retourne un objet JSON depuis un fichier."""
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise ValueError(f"Invalid JSON object in {path}")
@@ -129,6 +138,19 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 
 def _load_tables_payload(extraction_dir: Path) -> dict[str, Any]:
+    """Charge le fichier ``tables.json`` et valide la version du schema.
+
+    Args:
+        extraction_dir: Repertoire contenant le fichier ``tables.json``.
+
+    Returns:
+        Contenu du payload tables.json.
+
+    Raises:
+        FileNotFoundError: Si ``tables.json`` n'existe pas.
+        ValueError: Si la version du schema n'est pas 7 ou si les tables
+            ne sont pas une liste.
+    """
     tables_path = extraction_dir / "tables.json"
     if not tables_path.exists():
         raise FileNotFoundError(f"Missing required file: {tables_path}")
@@ -150,6 +172,17 @@ def _load_tables_payload(extraction_dir: Path) -> dict[str, Any]:
 
 
 def normalize_quarter(value: str) -> str:
+    """Normalise une valeur de trimestre vers le format ``t1``..``t4``.
+
+    Args:
+        value: Chaine brute representant un trimestre (ex. ``"Q2"``, ``"T3"``).
+
+    Returns:
+        Trimestre normalise au format ``tN``.
+
+    Raises:
+        ValueError: Si la valeur ne correspond a aucun trimestre valide.
+    """
     text = str(value or "").strip().lower()
     match = re.search(r"([qt])\s*([1-4])", text)
     if match:
@@ -161,6 +194,18 @@ def resolve_reference_period(
     year_current: int,
     quarter_current: str,
 ) -> tuple[int, str]:
+    """Determine l'annee et le trimestre de reference precedent.
+
+    Args:
+        year_current: Annee du trimestre courant.
+        quarter_current: Code du trimestre courant (ex. ``"t2"``).
+
+    Returns:
+        Tuple ``(annee_precedente, trimestre_precedent)``.
+
+    Raises:
+        ValueError: Si le trimestre courant est invalide.
+    """
     quarter = normalize_quarter(quarter_current)
     year = int(year_current)
     if quarter == "t2":
@@ -180,6 +225,7 @@ def resolve_reference_period(
 
 
 def _normalize_footnotes(raw: Any) -> list[dict[str, str]]:
+    """Normalise une liste brute de notes de bas de page en dicts ``{id, text}``."""
     if not isinstance(raw, list):
         return []
     normalized: list[dict[str, str]] = []
@@ -195,6 +241,7 @@ def _normalize_footnotes(raw: Any) -> list[dict[str, str]]:
 
 
 def _normalize_extraction_status(value: Any) -> str:
+    """Normalise le statut d'extraction, retourne ``"ok"`` si non reconnu."""
     status = str(value or "").strip().lower()
     if (
         status
@@ -212,6 +259,7 @@ def _normalize_extraction_status(value: Any) -> str:
 
 
 def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
+    """Construit une fiche resumee d'un tableau pour l'etape d'appariement."""
     indicators = [
         str(value).strip()
         for value in list(entry.get("indicators", []) or [])
@@ -255,6 +303,7 @@ def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
 
 
 def _table_detail(entry: dict[str, Any]) -> dict[str, Any]:
+    """Construit une vue detaillee d'un tableau pour la comparaison paire a paire."""
     indicators = [
         str(value).strip()
         for value in list(entry.get("indicators", []) or [])
@@ -278,6 +327,7 @@ def _table_detail(entry: dict[str, Any]) -> dict[str, Any]:
 
 
 def _table_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
+    """Construit un instantane complet d'un tableau incluant le statut et la bbox."""
     indicators = [
         str(value).strip()
         for value in list(entry.get("indicators", []) or [])
@@ -310,6 +360,17 @@ def _table_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
 def _partition_tables_by_status(
     tables: list[dict[str, Any]],
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]], list[dict[str, str]]]:
+    """Partitionne les tableaux par statut d'extraction : business, artefacts, suspects.
+
+    Filtre egalement les tableaux fantomes (0 indicateur reel).
+
+    Args:
+        tables: Liste de dicts representant les tableaux extraits.
+
+    Returns:
+        Tuple ``(business, artifacts, suspects)`` ou chaque element est une
+        liste de dicts.
+    """
     business: list[dict[str, Any]] = []
     artifacts: list[dict[str, str]] = []
     suspects: list[dict[str, str]] = []
@@ -361,8 +422,19 @@ def _merge_extraction_suspect_side(
     partition_suspect_refs: list[dict[str, str]],
     snapshots: dict[str, dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    """Build review-queue rows for extraction suspects: partition edge cases plus
-    all tables with extraction_status suspect_unresolved (still matched).
+    """Construit les lignes de file de revision pour les suspects d'extraction.
+
+    Fusionne les cas limites de la partition et tous les tableaux avec
+    extraction_status ``suspect_unresolved`` (qui participent quand meme
+    a l'appariement).
+
+    Args:
+        tables: Liste complete des tableaux extraits pour un cote.
+        partition_suspect_refs: References suspectes issues de la partition.
+        snapshots: Dictionnaire des instantanes indexes par table_id.
+
+    Returns:
+        Liste de dicts enrichis pour la file de revision, tries par table_id.
     """
     by_id: dict[str, dict[str, str]] = {}
     for item in partition_suspect_refs:
@@ -402,10 +474,21 @@ def _merge_extraction_suspect_side(
 
 
 def _make_run_id() -> str:
+    """Genere un identifiant d'execution base sur l'horodatage courant."""
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
 def _archive_pdf(source_path: str | None, out_dir: Path, filename: str) -> str:
+    """Copie un PDF source dans le repertoire de sortie s'il n'y est pas deja.
+
+    Args:
+        source_path: Chemin du fichier PDF source, ou ``None``.
+        out_dir: Repertoire de destination pour l'archivage.
+        filename: Nom du fichier de destination.
+
+    Returns:
+        Chemin du fichier archive, ou chaine vide si la copie echoue.
+    """
     text = str(source_path or "").strip()
     if not text:
         return ""
@@ -425,6 +508,7 @@ def _archive_pdf(source_path: str | None, out_dir: Path, filename: str) -> str:
 
 
 def _require_string(value: Any, field: str) -> str:
+    """Valide et retourne une chaine non vide, leve ``ValueError`` sinon."""
     text = str(value or "").strip()
     if not text:
         raise ValueError(f"Missing required string field: {field}")
@@ -432,6 +516,11 @@ def _require_string(value: Any, field: str) -> str:
 
 
 def _extract_usage_metrics(response: Any) -> tuple[int, int, int]:
+    """Extrait les metriques d'utilisation de tokens depuis une reponse OpenAI.
+
+    Returns:
+        Tuple ``(prompt_tokens, completion_tokens, total_tokens)``.
+    """
     usage = getattr(response, "usage", None)
     if usage is None:
         return 0, 0, 0

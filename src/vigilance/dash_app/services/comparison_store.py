@@ -1,9 +1,10 @@
-"""File-first comparison store used by Dash.
+"""Magasin de comparaisons (fichier d'abord) utilise par Dash.
 
-This module centralizes all Dash access to saved comparison artifacts so the
-UI stops coupling directly to raw filesystem helpers. The initial backend is
-the local ``comparison.json`` tree, but the interface is shaped so a future
-database-backed store can replace it without rewriting every callback.
+Ce module centralise tous les acces Dash aux artefacts de comparaison
+sauvegardes afin que l'interface utilisateur ne se couple plus directement
+aux helpers du systeme de fichiers. Le backend initial est l'arborescence
+locale ``comparison.json``, mais l'interface est concue pour qu'un futur
+backend base de donnees puisse le remplacer sans reecrire chaque callback.
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ from vigilance.ui_io import load_comparison_result
 
 
 class ComparisonPayloadBundle(TypedDict):
-    """Canonical payload + resolved filesystem context for Dash."""
+    """Payload canonique et contexte systeme de fichiers resolu pour Dash."""
 
     compare_path: str
     raw_data: dict[str, Any]
@@ -38,9 +39,11 @@ class ComparisonPayloadBundle(TypedDict):
 
 
 class ComparisonStore(Protocol):
-    """Interface for comparison persistence used by Dash."""
+    """Interface de persistence des comparaisons utilisee par Dash."""
 
-    def list_comparison_options(self) -> list[dict[str, str]]: ...
+    def list_comparison_options(self) -> list[dict[str, str]]:
+        """Lister les options de comparaison disponibles."""
+        ...
 
     def list_saved_run_options(
         self,
@@ -48,7 +51,9 @@ class ComparisonStore(Protocol):
         bank_code: str,
         year: int | str,
         current_quarter: str,
-    ) -> list[dict[str, Any]]: ...
+    ) -> list[dict[str, Any]]:
+        """Lister les executions sauvegardees pour une banque et un trimestre."""
+        ...
 
     def load_dash_payload(
         self,
@@ -56,24 +61,41 @@ class ComparisonStore(Protocol):
         *,
         source: str,
         source_label: str,
-    ) -> ComparisonPayloadBundle | None: ...
+    ) -> ComparisonPayloadBundle | None:
+        """Charger le payload de comparaison depuis un artefact cible."""
+        ...
 
-    def load_review_state(self, compare_path: str | Path | None) -> dict[str, Any] | None: ...
+    def load_review_state(self, compare_path: str | Path | None) -> dict[str, Any] | None:
+        """Charger l'etat de revue associe a une comparaison."""
+        ...
 
     def save_review_state(
         self,
         compare_path: str | Path | None,
         **kwargs: Any,
-    ) -> Path | None: ...
+    ) -> Path | None:
+        """Persister l'etat de revue pour une comparaison."""
+        ...
 
 
 class FileComparisonStore:
-    """Comparison store backed by local ``comparison.json`` artifacts."""
+    """Magasin de comparaisons supporte par les artefacts locaux ``comparison.json``."""
 
     def __init__(self, *, root_dir: str | Path | None = None) -> None:
+        """Initialise le magasin avec un repertoire racine optionnel.
+
+        Args:
+            root_dir: Repertoire racine des artefacts de comparaison.
+                Par defaut, utilise ``INDICATOR_COMPARISON_DIR``.
+        """
         self.root_dir = Path(root_dir) if root_dir else INDICATOR_COMPARISON_DIR
 
     def list_comparison_options(self) -> list[dict[str, str]]:
+        """Liste toutes les comparaisons disponibles sous forme d'options ``{label, value}``.
+
+        Returns:
+            Liste de dictionnaires triee par date de modification decroissante.
+        """
         if not self.root_dir.exists():
             return []
 
@@ -100,6 +122,16 @@ class FileComparisonStore:
         year: int | str,
         current_quarter: str,
     ) -> list[dict[str, Any]]:
+        """Liste les executions sauvegardees filtrees par banque, annee et trimestre.
+
+        Args:
+            bank_code: Code de la banque (ex. ``bnc``, ``rbc``).
+            year: Annee de l'analyse.
+            current_quarter: Trimestre courant selectionne (ex. ``T2``).
+
+        Returns:
+            Liste d'options ``{label, value}`` triee par valeur decroissante.
+        """
         try:
             ctx = build_quarter_context(current_quarter, year=year)
             curr_y = ctx["current"]["year"]
@@ -155,6 +187,14 @@ class FileComparisonStore:
         return filtered_options
 
     def resolve_path(self, target: str | Path) -> Path:
+        """Resout un chemin relatif ou absolu vers un chemin absolu.
+
+        Args:
+            target: Chemin relatif au repertoire racine ou chemin absolu.
+
+        Returns:
+            Chemin absolu resolu.
+        """
         candidate = Path(target)
         if candidate.is_absolute():
             return candidate
@@ -167,6 +207,17 @@ class FileComparisonStore:
         source: str,
         source_label: str,
     ) -> ComparisonPayloadBundle | None:
+        """Charge un artefact de comparaison et construit le bundle Dash.
+
+        Args:
+            target: Chemin relatif ou absolu vers le fichier ``comparison.json``.
+            source: Identifiant interne de la source (ex. ``analyse_enregistree``).
+            source_label: Libelle affiche a l'utilisateur pour la source.
+
+        Returns:
+            Bundle contenant le payload canonique, les metadonnees et les
+            chemins PDF resolus, ou ``None`` si le fichier est invalide.
+        """
         compare_path = self.resolve_path(target)
         raw_data = load_comparison_result(compare_path)
         if not isinstance(raw_data, dict):
@@ -229,6 +280,14 @@ class FileComparisonStore:
     def load_review_state(
         self, compare_path: str | Path | None
     ) -> dict[str, Any] | None:
+        """Charge l'etat de revue persiste pour une comparaison donnee.
+
+        Args:
+            compare_path: Chemin vers le fichier de comparaison.
+
+        Returns:
+            Dictionnaire d'etat de revue ou ``None`` si introuvable.
+        """
         return load_review_state(compare_path)
 
     def save_review_state(
@@ -236,11 +295,28 @@ class FileComparisonStore:
         compare_path: str | Path | None,
         **kwargs: Any,
     ) -> Path | None:
+        """Persiste l'etat de revue a cote du fichier de comparaison.
+
+        Args:
+            compare_path: Chemin vers le fichier de comparaison.
+            **kwargs: Donnees d'etat de revue a sauvegarder.
+
+        Returns:
+            Chemin du fichier d'etat sauvegarde ou ``None`` en cas d'echec.
+        """
         return save_review_state(compare_path, **kwargs)
 
 
 def build_file_comparison_store(
     *, root_dir: str | Path | None = None
 ) -> FileComparisonStore:
-    """Return the local file-backed store used by Dash."""
+    """Retourne le magasin local supporte par fichiers utilise par Dash.
+
+    Args:
+        root_dir: Repertoire racine optionnel. Par defaut, utilise la
+            configuration globale ``INDICATOR_COMPARISON_DIR``.
+
+    Returns:
+        Instance de ``FileComparisonStore`` configuree.
+    """
     return FileComparisonStore(root_dir=root_dir)

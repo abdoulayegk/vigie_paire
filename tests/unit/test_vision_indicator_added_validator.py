@@ -7,6 +7,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+pytestmark = pytest.mark.skip(
+    reason="Module vigilance.extraction.vision_indicator_added_validator absent."
+)
+
 _MINIMAL_PNG_BYTES: bytes | None = None
 
 

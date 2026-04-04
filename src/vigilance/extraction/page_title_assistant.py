@@ -1,10 +1,12 @@
-"""Page-Level Assist for Table Titles.
+"""Assistance au niveau de la page pour les titres de tableaux.
 
-Lightweight Vision pre-pass that extracts candidate table titles from a full page image.
-Used as a fallback when the per-table red-box extraction misses or truncates the title.
+Pre-passe Vision legere qui extrait les titres candidats de tableaux a partir
+d'une image de page complete. Utilisee en fallback lorsque l'extraction
+per-table (red-box) manque ou tronque le titre.
 
-This module does NOT extract indicators, rows, or footnotes — only titles.
-The per-table VisionFullExtractor remains the single source of truth for table content.
+Ce module n'extrait PAS d'indicateurs, de lignes ni de notes de bas de page
+-- uniquement les titres. Le ``VisionFullExtractor`` per-table reste la source
+de verite pour le contenu des tableaux.
 """
 
 from __future__ import annotations
@@ -151,7 +153,7 @@ Si aucun titre de tableau n'est trouvé sur la page :
 
 
 class PageTitleCandidate(BaseModel):
-    """Schema for one title candidate extracted from a page."""
+    """Schema d'un titre candidat extrait d'une page."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -181,11 +183,13 @@ class PageTitleCandidate(BaseModel):
     @field_validator("table_number", "title_full", "title_semantic", mode="before")
     @classmethod
     def _coerce_str(cls, v: Any) -> str:
+        """Convertir en chaine et retirer les espaces superflus."""
         return str(v or "").strip()
 
     @field_validator("bbox_title", mode="before")
     @classmethod
     def _coerce_bbox(cls, v: Any) -> list[float] | None:
+        """Convertir le bbox en liste de 4 flottants ou ``None``."""
         if v is None:
             return None
         if isinstance(v, list) and len(v) == 4:
@@ -197,7 +201,7 @@ class PageTitleCandidate(BaseModel):
 
 
 class PageTitleResponse(BaseModel):
-    """Schema for the full page-level title extraction response."""
+    """Schema de la reponse complete d'extraction de titres au niveau de la page."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -209,14 +213,14 @@ class PageTitleResponse(BaseModel):
 
 @dataclass
 class PageTitleResult:
-    """Result of page-level title extraction."""
+    """Resultat de l'extraction de titres au niveau de la page."""
 
     page_number: int
     candidates: list[dict[str, Any]] = field(default_factory=list)
     extraction_method: str = _PAGE_TITLE_EXTRACTION_METHOD
 
     def get_candidate_by_number(self, table_number: str) -> dict[str, Any] | None:
-        """Find candidate by table number (exact match)."""
+        """Trouver un candidat par numero de tableau (correspondance exacte)."""
         number = str(table_number).strip()
         if not number:
             return None
@@ -231,14 +235,24 @@ class PageTitleResult:
         max_vertical_distance: float = 0.15,
         other_table_bboxes: list[list[float]] | None = None,
     ) -> dict[str, Any] | None:
-        """Find the closest candidate title that is above the table bbox.
+        """Trouver le titre candidat le plus proche situe au-dessus du tableau.
 
-        Uses vertical proximity: the title bbox bottom (y_max) should be near
-        the table bbox top (y_min), and the title should be ABOVE the table.
+        Utilise la proximite verticale : le bas du bbox du titre (y_max) doit
+        etre proche du haut du bbox du tableau (y_min), et le titre doit etre
+        AU-DESSUS du tableau.
 
-        When other_table_bboxes is provided (multi-table page), a title candidate
-        is rejected if another table's bbox lies vertically between the title
-        and this table (avoids assigning a section/top table title to a lower table).
+        Lorsque *other_table_bboxes* est fourni (page multi-tableaux), un
+        candidat est rejete si le bbox d'un autre tableau se situe verticalement
+        entre le titre et ce tableau (evite d'attribuer un titre de section /
+        tableau superieur a un tableau inferieur).
+
+        Args:
+            table_bbox: Bbox normalise du tableau ``[x_min, y_min, x_max, y_max]``.
+            max_vertical_distance: Distance verticale maximale autorisee.
+            other_table_bboxes: Bboxes des autres tableaux sur la meme page.
+
+        Returns:
+            Dictionnaire du candidat le plus proche ou ``None``.
         """
         if not table_bbox or len(table_bbox) < 4:
             return None
@@ -277,6 +291,7 @@ class PageTitleResult:
 
 
 def _strip_markdown_fences(text: str) -> str:
+    """Retirer les clotures Markdown (````` ```json ... ``` `````) d'une chaine."""
     stripped = text.strip()
     if stripped.startswith("```"):
         first_nl = stripped.find("\n")
@@ -288,7 +303,7 @@ def _strip_markdown_fences(text: str) -> str:
 
 
 def _parse_page_title_response(raw: str | dict[str, Any]) -> PageTitleResult | None:
-    """Parse and validate the page-level title response."""
+    """Parser et valider la reponse d'extraction de titres au niveau de la page."""
     try:
         if isinstance(raw, str):
             cleaned = _strip_markdown_fences(raw)
@@ -321,9 +336,9 @@ def _parse_page_title_response(raw: str | dict[str, Any]) -> PageTitleResult | N
 
 
 class PageTitleAssistant:
-    """Extract candidate table titles from a full-page image via GPT-4o.
+    """Extraire les titres candidats de tableaux depuis une image de page via GPT-4o.
 
-    Lightweight, read-only pre-pass. Does not extract table content.
+    Pre-passe legere en lecture seule. N'extrait pas le contenu des tableaux.
     """
 
     def __init__(
@@ -335,6 +350,16 @@ class PageTitleAssistant:
         api_retry_max: int = 3,
         api_retry_backoff_ms: float = 1000,
     ):
+        """Initialiser l'assistant d'extraction de titres de page.
+
+        Args:
+            api_key: Cle API OpenAI (ou via ``OPENAI_API_KEY``).
+            model: Modele a utiliser (defaut : ``gpt-4o``).
+            min_confidence: Score de confiance minimal pour conserver un candidat.
+            max_candidates: Nombre maximal de candidats renvoyes.
+            api_retry_max: Nombre maximal de tentatives en cas d'erreur API.
+            api_retry_backoff_ms: Delai de base entre les tentatives (ms).
+        """
         from ..utils.genai import get_openai_api_key
 
         self._api_key = api_key or get_openai_api_key()
@@ -346,6 +371,7 @@ class PageTitleAssistant:
         self._client: Any = None
 
     def _ensure_client(self) -> None:
+        """Initialiser le client OpenAI si necessaire."""
         if self._client is not None:
             return
         from openai import OpenAI
@@ -359,14 +385,14 @@ class PageTitleAssistant:
         page_image_bytes: bytes,
         page_number: int,
     ) -> PageTitleResult | None:
-        """Extract candidate table titles from a full page image.
+        """Extraire les titres candidats de tableaux depuis une image de page complete.
 
         Args:
-            page_image_bytes: PNG bytes of the full page.
-            page_number: 1-based page number.
+            page_image_bytes: Octets PNG de la page complete.
+            page_number: Numero de page (1-indexed).
 
         Returns:
-            PageTitleResult with candidates, or None on failure.
+            ``PageTitleResult`` avec les candidats, ou ``None`` en cas d'echec.
         """
         try:
             self._ensure_client()

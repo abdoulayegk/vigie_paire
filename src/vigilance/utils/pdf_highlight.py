@@ -1,3 +1,7 @@
+"""Recherche de texte et surlignage dans une region d'une page PDF via PyMuPDF."""
+
+from __future__ import annotations
+
 import logging
 
 try:
@@ -14,19 +18,17 @@ def find_text_bboxes_in_region(
     text_to_find: str,
     region_bbox_norm: list[float],
 ) -> list[list[float]]:
-    """
-    Search for a specific text within a constrained region of a PDF page
-    and return the normalized bounding boxes of the matches.
+    """Recherche un texte dans une region contrainte d'une page PDF et retourne les bboxes normalisees.
 
     Args:
-        pdf_path: Path to the PDF file.
-        page_number: 1-based page number.
-        text_to_find: The exact string to locate (or part of it).
-        region_bbox_norm: Normalized [l, t, r, b] of the table/region to restrict the search.
+        pdf_path: Chemin du fichier PDF.
+        page_number: Numero de page (base 1).
+        text_to_find: Chaine exacte a localiser (ou partie de celle-ci).
+        region_bbox_norm: Bbox normalisee [l, t, r, b] de la region de recherche.
 
     Returns:
-        List of normalized bounding boxes [l, t, r, b] where the text was found.
-        Returns an empty list if not found.
+        Liste de bounding boxes normalisees [l, t, r, b] ou le texte a ete trouve.
+        Retourne une liste vide si non trouve.
     """
     if fitz is None:
         logger.warning(

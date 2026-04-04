@@ -1,5 +1,4 @@
-"""
-Module de preview PDF pour la verification des sections detectees.
+"""Module de preview PDF pour la verification des sections detectees.
 
 Ce module fournit des fonctions pour:
 - Rendre des pages PDF en images
@@ -60,8 +59,7 @@ class SectionPreview:
 def render_pdf_page(
     pdf_path: str | Path, page_number: int, scale: float = 1.5, format: str = "png"
 ) -> bytes | None:
-    """
-    Rendre une page PDF en image.
+    """Rendre une page PDF en image.
 
     Args:
         pdf_path: Chemin vers le PDF
@@ -118,8 +116,7 @@ def render_pdf_pages(
     scale: float = 1.5,
     max_pages: int = 5,
 ) -> list[PagePreview]:
-    """
-    Rendre plusieurs pages PDF en images.
+    """Rendre plusieurs pages PDF en images.
 
     Args:
         pdf_path: Chemin vers le PDF
@@ -184,8 +181,7 @@ def render_pdf_pages(
 def extract_text_from_pages(
     pdf_path: str | Path, start_page: int, end_page: int
 ) -> str:
-    """
-    Extraire le texte d'une plage de pages.
+    """Extraire le texte d'une plage de pages.
 
     Args:
         pdf_path: Chemin vers le PDF
@@ -229,8 +225,7 @@ def extract_text_from_pages(
 
 
 def get_pdf_info(pdf_path: str | Path) -> dict:
-    """
-    Obtenir les informations d'un PDF.
+    """Obtenir les informations d'un PDF.
 
     Args:
         pdf_path: Chemin vers le PDF
@@ -274,8 +269,7 @@ def create_section_preview(
     max_preview_pages: int = 3,
     scale: float = 0.5,
 ) -> SectionPreview:
-    """
-    Creer un preview complet d'une section.
+    """Creer un preview complet d'une section.
 
     Args:
         pdf_path: Chemin vers le PDF
@@ -312,8 +306,7 @@ def create_section_preview(
 def create_thumbnail(
     pdf_path: str | Path, page_number: int, width: int = 200
 ) -> bytes | None:
-    """
-    Creer une vignette d'une page.
+    """Creer une vignette d'une page.
 
     Args:
         pdf_path: Chemin vers le PDF
@@ -360,8 +353,7 @@ def compare_pdf_sections(
     section_t2: tuple[int, int],  # (start, end)
     section_type: str = "",
 ) -> dict:
-    """
-    Comparer les sections de deux PDFs pour verification.
+    """Comparer les sections de deux PDFs pour verification.
 
     Args:
         pdf_path_t1: PDF T1

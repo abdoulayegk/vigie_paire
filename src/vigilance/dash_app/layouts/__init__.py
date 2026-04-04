@@ -1,4 +1,4 @@
-"""Layouts Dash."""
+"""Sous-paquet des layouts Dash pour l'interface utilisateur Vigilance."""
 
 from .page_load import build_page_load
 from .page_results import build_page_results

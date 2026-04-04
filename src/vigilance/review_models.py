@@ -1,4 +1,4 @@
-"""Review item model used by the Dash analyst workflow."""
+"""Modele d'element de revue utilise par le workflow analyste Dash."""
 
 from __future__ import annotations
 
@@ -27,6 +27,7 @@ EVENT_TYPE_FOOTNOTE_ONLY = "footnote_only"
 
 
 def _parse_all_indicators(val: Any) -> list[str]:
+    """Convertir une valeur en liste de chaines d'indicateurs."""
     if val is None:
         return []
     if isinstance(val, list):
@@ -35,6 +36,7 @@ def _parse_all_indicators(val: Any) -> list[str]:
 
 
 def _parse_bbox(val: Any) -> list[float] | None:
+    """Parser une boite englobante en liste de 4 floats."""
     if val is None:
         return None
     if isinstance(val, list) and len(val) == 4:
@@ -47,6 +49,13 @@ def _parse_bbox(val: Any) -> list[float] | None:
 
 @dataclass(slots=True)
 class ReviewItem:
+    """Element unitaire de la file de revue pour le workflow analyste.
+
+    Represente un changement individuel (indicateur, note de bas de page ou
+    evenement structurel) avec son statut de validation et ses metadonnees
+    de preuve.
+    """
+
     change_id: str
     change_type: str
     indicator: str
@@ -88,6 +97,7 @@ class ReviewItem:
     match_metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Serialiser en dictionnaire pour dcc.Store."""
         return {
             "change_id": self.change_id,
             "change_type": self.change_type,
@@ -132,6 +142,7 @@ class ReviewItem:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ReviewItem":
+        """Deserialiser depuis un dictionnaire."""
         return cls(
             change_id=str(data.get("change_id", "")),
             change_type=str(data.get("change_type", CHANGE_TYPE_ADDED)),

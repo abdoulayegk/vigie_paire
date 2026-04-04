@@ -1,7 +1,7 @@
-"""Utilities for building the standardised Run output directory structure.
+"""Utilitaires de construction de l'arborescence de sortie standardisee.
 
-Creates the folder tree and writes audit-level split files (indicators.json,
-footnotes.json) from a master tables.json.
+Cree l'arbre de repertoires et ecrit les fichiers d'audit fractionnes
+(indicators.json, footnotes.json) depuis un tables.json maitre.
 """
 
 from __future__ import annotations
@@ -20,9 +20,9 @@ def build_run_dir(
     year_previous: int,
     quarter_previous: str,
 ) -> Path:
-    """Create and return the Run directory.
+    """Creer et retourner le repertoire d'execution (Run).
 
-    Layout::
+    Arborescence::
 
         {out_root}/{BANK}_{YEAR}{Q_CUR}_vs_{YEAR}{Q_PREV}/
             {Q_CUR}-{YEAR_CUR}/
@@ -45,13 +45,14 @@ def build_run_dir(
 
 
 def split_audit_files(tables_json_path: Path, target_dir: Path) -> dict[str, Path]:
-    """Read a ``tables.json`` and split it into separate audit files.
+    """Lire un ``tables.json`` et le fractionner en fichiers d'audit separes.
 
-    Produces:
-    - ``indicators.json``  – flat list of all indicator labels per table
-    - ``footnotes.json``   – flat list of all footnote objects per table
+    Produit :
+    - ``indicators.json`` -- liste plate des indicateurs par table
+    - ``footnotes.json`` -- liste plate des notes de bas de page par table
 
-    Returns a dict mapping file-kind → written Path.
+    Returns:
+        Dictionnaire associant le type de fichier au chemin ecrit.
     """
     with open(tables_json_path, "r", encoding="utf-8") as fh:
         data = json.load(fh)
@@ -101,7 +102,7 @@ def split_audit_files(tables_json_path: Path, target_dir: Path) -> dict[str, Pat
 def write_run_manifest(run_dir: Path, *, bank: str, year_current: int,
                        quarter_current: str, year_previous: int,
                        quarter_previous: str, status: str = "completed") -> Path:
-    """Write a small ``manifest.json`` at the root of the run directory."""
+    """Ecrire un fichier ``manifest.json`` a la racine du repertoire d'execution."""
     manifest = {
         "bank": bank.upper(),
         "current": {"year": year_current, "quarter": quarter_current.upper()},

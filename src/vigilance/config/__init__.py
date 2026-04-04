@@ -1,18 +1,21 @@
-"""Configuration helpers for vigilance.
+"""Helpers de configuration pour vigilance.
 
-This module provides a YAML-based configuration system for the vigilance application.
-Configuration is loaded from bank_profiles.yaml (or a custom path) with the following
-layers:
+Systeme de configuration YAML de l'application vigilance. La configuration
+est chargee depuis ``bank_profiles.yaml`` (ou un chemin personnalise) avec
+les couches suivantes :
 
-- **Bank profiles**: Top-level ``banks`` mapping (bank_code -> profile dict).
-- **Layered defaults**: Each config getter merges global blocks with optional
-  per-bank overrides, then fills missing keys with built-in defaults.
-- **Environment overrides**: LLM model selection can be overridden via env vars
-  (e.g. OPENAI_MODEL_EXTRACTION_PRIMARY, OPENAI_MODEL_DEFAULT_GENAI).
+- **Profils bancaires** : mapping ``banks`` (bank_code -> profil dict).
+- **Defauts en couches** : chaque getter fusionne le bloc global avec les
+  surcharges optionnelles par banque, puis comble les cles manquantes avec
+  les valeurs par defaut integrees.
+- **Surcharges par variable d'environnement** : la selection du modele LLM
+  peut etre surchargee via des variables d'environnement
+  (ex. OPENAI_MODEL_EXTRACTION_PRIMARY, OPENAI_MODEL_DEFAULT_GENAI).
 
-Config path resolution: relative paths are resolved against the repo root
-(pyproject.toml directory) when the path does not exist from the current
-working directory. Absolute paths are used as-is.
+Resolution des chemins : les chemins relatifs sont resolus par rapport a la
+racine du depot (repertoire contenant ``pyproject.toml``) quand le chemin
+n'existe pas depuis le repertoire courant. Les chemins absolus sont utilises
+tels quels.
 """
 
 from __future__ import annotations
@@ -38,15 +41,16 @@ _MODEL_ENV_OVERRIDES: dict[str, str] = {
 def load_bank_profiles(
     config_path: str | Path = "configs/bank_profiles.yaml",
 ) -> dict[str, Any]:
-    """Load the bank profiles map from the main YAML config.
+    """Charger la table des profils bancaires depuis la configuration YAML.
 
     Args:
-        config_path: Path to the YAML config file. Relative paths are resolved
-            against the repo root if they do not exist from cwd.
+        config_path: Chemin vers le fichier YAML. Les chemins relatifs sont
+            resolus par rapport a la racine du depot.
 
     Returns:
-        Dict mapping bank_code (lowercase) to bank profile dict. Empty dict
-        if config is missing, invalid, or has no ``banks`` key.
+        Dictionnaire associant le code banque (minuscule) a son profil.
+        Dictionnaire vide si la configuration est absente, invalide ou
+        ne contient pas de cle ``banks``.
     """
     cfg = load_config(config_path)
     banks = cfg.get("banks")
@@ -59,27 +63,26 @@ def get_matching_thresholds(
     config_path: str | Path = "configs/bank_profiles.yaml",
     bank_code: str | None = None,
 ) -> dict[str, Any]:
-    """Load matching thresholds from configuration with bank overrides and defaults.
+    """Charger les seuils de matching depuis la configuration avec surcharges bancaires.
 
-    Supports either:
-    - ``matching_thresholds: {...}`` at root
+    Supporte deux formats :
+    - ``matching_thresholds: {...}`` a la racine
     - ``matching: { thresholds: {...} }``
 
-    If bank_code is provided and ``banks.<bank_code>.matching_overrides`` exists,
-    those overrides are merged on top of the base thresholds.
+    Si ``bank_code`` est fourni et que ``banks.<bank_code>.matching_overrides``
+    existe, ces surcharges sont fusionnees par-dessus les seuils de base.
 
-    Indicator diff config (indicator_hungarian_enabled, indicator_rename_min_score,
-    etc.) is included in the returned dict. Use this function where indicator diff
-    thresholds are needed; there is no separate get_indicator_diff_config.
+    La configuration du diff d'indicateurs (indicator_hungarian_enabled,
+    indicator_rename_min_score, etc.) est incluse dans le dictionnaire retourne.
 
     Args:
-        config_path: Path to the YAML config file.
-        bank_code: Optional bank code for per-bank matching_overrides.
+        config_path: Chemin vers le fichier YAML de configuration.
+        bank_code: Code banque optionnel pour les surcharges par banque.
 
     Returns:
-        Dict of matching thresholds and indicator-diff settings with defaults
-        applied for missing keys (indicator_hungarian_enabled, embedding weights,
-        recall-first engine params, etc.). Empty dict if config is missing or invalid.
+        Dictionnaire des seuils de matching et des parametres de diff
+        d'indicateurs, avec les valeurs par defaut appliquees pour les cles
+        manquantes. Dictionnaire vide si la configuration est absente.
     """
     path = _resolve_config_path(config_path)
     if not path.exists():
@@ -165,18 +168,18 @@ def get_vision_extraction_config(
     config_path: str | Path = "configs/bank_profiles.yaml",
     bank_code: str | None = None,
 ) -> dict[str, Any]:
-    """Load vision_extraction config with optional bank overrides.
+    """Charger la configuration d'extraction Vision avec surcharges bancaires.
 
     Args:
-        config_path: Path to the YAML config file.
-        bank_code: Optional bank code for per-bank vision_extraction overrides
-            (e.g. footnote_marker_type, expected_markers).
+        config_path: Chemin vers le fichier YAML de configuration.
+        bank_code: Code banque optionnel pour les surcharges par banque
+            (ex. footnote_marker_type, expected_markers).
 
     Returns:
-        Dict with keys such as enabled, bottom_extension_footnotes, run_on_all_tables,
-        fallback_to_docling_on_error, save_indicators_footnotes_json. Per-bank
-        overrides merge on top of global vision_extraction block. Empty dict if
-        config is missing or invalid.
+        Dictionnaire avec les cles enabled, bottom_extension_footnotes,
+        run_on_all_tables, fallback_to_docling_on_error, etc. Les surcharges
+        par banque sont fusionnees par-dessus le bloc global. Dictionnaire
+        vide si la configuration est absente ou invalide.
     """
     path = _resolve_config_path(config_path)
     if not path.exists():
@@ -210,16 +213,19 @@ def get_vision_extraction_config(
 def get_llm_model_config(
     config_path: str | Path = "configs/bank_profiles.yaml",
 ) -> dict[str, str]:
-    """Load OpenAI model routing config from YAML (no env overrides).
+    """Charger le routage des modeles OpenAI depuis la configuration YAML.
+
+    N'applique pas les surcharges par variable d'environnement ; utiliser
+    ``resolve_openai_model`` pour cela.
 
     Args:
-        config_path: Path to the YAML config file.
+        config_path: Chemin vers le fichier YAML de configuration.
 
     Returns:
-        Dict mapping role names (e.g. extraction_primary, default_genai) to model
-        identifiers. Falls back to built-in defaults if config is missing or has
-        no llm_models block. Does not apply environment variable overrides; use
-        resolve_openai_model for that.
+        Dictionnaire associant les noms de roles (ex. extraction_primary,
+        default_genai) aux identifiants de modeles. Repli sur les valeurs
+        par defaut integrees si la configuration est absente ou ne contient
+        pas de bloc ``llm_models``.
     """
     path = _resolve_config_path(config_path)
     base = dict(_DEFAULT_OPENAI_MODELS)
@@ -246,22 +252,22 @@ def resolve_openai_model(
     role: str,
     config_path: str | Path = "configs/bank_profiles.yaml",
 ) -> str:
-    """Resolve the OpenAI model for a known role with env override support.
+    """Resoudre le modele OpenAI pour un role donne avec support des surcharges.
 
-    Resolution order: (1) env var override, (2) llm_models in config, (3) built-in
-    default. Supported roles: extraction_primary, default_genai.
+    Ordre de resolution : (1) variable d'environnement, (2) bloc llm_models
+    dans la configuration, (3) valeur par defaut integree.
+    Roles supportes : extraction_primary, default_genai.
 
     Args:
-        role: Model role (e.g. extraction_primary, default_genai). Normalized to
-            lowercase. Must be a known role.
-        config_path: Path to the YAML config file for llm_models block.
+        role: Role du modele (ex. extraction_primary, default_genai).
+            Normalise en minuscule. Doit etre un role connu.
+        config_path: Chemin vers le fichier YAML pour le bloc llm_models.
 
     Returns:
-        Model identifier string (e.g. gpt-5.4, gpt-4o).
+        Identifiant du modele (ex. gpt-5.4, gpt-4o).
 
     Raises:
-        ValueError: If role is not in the known roles (extraction_primary,
-            default_genai).
+        ValueError: Si le role n'est pas dans les roles connus.
     """
     key = str(role or "").strip().lower()
     if key not in _DEFAULT_OPENAI_MODELS:
@@ -285,14 +291,14 @@ def get_validation_config(
     config_path: str | Path = "configs/bank_profiles.yaml",
     bank_code: str | None = None,
 ) -> dict[str, Any]:
-    """Load validation config (post-matching validators) with optional bank overrides.
+    """Charger la configuration de validation post-matching avec surcharges bancaires.
 
     Args:
-        config_path: Path to the YAML config file.
-        bank_code: Optional bank code for per-bank validation overrides.
+        config_path: Chemin vers le fichier YAML de configuration.
+        bank_code: Code banque optionnel pour les surcharges par banque.
 
     Returns:
-        Dict with keys: vision_unmatched_rescue_enabled,
+        Dictionnaire avec les cles vision_unmatched_rescue_enabled,
         cross_section_rescue_enabled, cross_section_rescue_rerank_min,
         cross_section_rescue_vision_confidence_min,
         cross_section_rescue_max_candidates_per_table.
@@ -336,15 +342,16 @@ def get_quality_gate_config(
     config_path: str | Path = "configs/bank_profiles.yaml",
     bank_code: str | None = None,
 ) -> dict[str, Any]:
-    """Load quality_gate config with optional bank overrides.
+    """Charger la configuration du portail qualite avec surcharges bancaires.
 
     Args:
-        config_path: Path to the YAML config file.
-        bank_code: Optional bank code for per-bank quality_gate overrides.
+        config_path: Chemin vers le fichier YAML de configuration.
+        bank_code: Code banque optionnel pour les surcharges par banque.
 
     Returns:
-        Dict merged from global quality_gate block and optional bank overrides.
-        Empty dict if config is missing or invalid.
+        Dictionnaire fusionne du bloc global quality_gate et des surcharges
+        bancaires optionnelles. Dictionnaire vide si la configuration est
+        absente ou invalide.
     """
     path = _resolve_config_path(config_path)
     if not path.exists():

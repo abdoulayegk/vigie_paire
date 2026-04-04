@@ -1,4 +1,4 @@
-"""I/O helpers for Dash workflows."""
+"""Utilitaires d'entree/sortie pour les workflows Dash."""
 
 from __future__ import annotations
 
@@ -11,7 +11,19 @@ from vigilance.ui_config import INDICATOR_COMPARISON_DIR
 def save_pdfs_to_temp(
     pdf_bytes_t1: bytes, pdf_bytes_t2: bytes, *, temp_dir: Path
 ) -> tuple[str, str]:
-    """Persist uploaded PDF bytes into a temporary working directory."""
+    """Persiste les bytes PDF uploades dans un repertoire temporaire.
+
+    Args:
+        pdf_bytes_t1: Contenu binaire du PDF du trimestre precedent.
+        pdf_bytes_t2: Contenu binaire du PDF du trimestre courant.
+        temp_dir: Repertoire temporaire de travail.
+
+    Returns:
+        Tuple ``(chemin_t1, chemin_t2)`` des fichiers sauvegardes.
+
+    Raises:
+        ValueError: Si l'un des deux PDF est vide.
+    """
     temp_dir.mkdir(parents=True, exist_ok=True)
 
     if not pdf_bytes_t1 or not pdf_bytes_t2:
@@ -29,7 +41,14 @@ def save_pdfs_to_temp(
 
 
 def load_comparison_result(path: str | Path) -> dict | None:
-    """Load a comparison JSON payload from disk."""
+    """Charge un payload JSON de comparaison depuis le disque.
+
+    Args:
+        path: Chemin du fichier JSON.
+
+    Returns:
+        Dictionnaire du payload, ou ``None`` si absent/invalide.
+    """
     if not path:
         return None
     target = Path(path)
@@ -42,7 +61,7 @@ def load_comparison_result(path: str | Path) -> dict | None:
 
 
 def get_available_indicator_comparison_options() -> list[dict[str, str]]:
-    """Return dropdown options for available comparison JSON files."""
+    """Retourne les options de dropdown pour les fichiers JSON de comparaison disponibles."""
     if not INDICATOR_COMPARISON_DIR.exists():
         return []
 
@@ -65,5 +84,5 @@ def get_available_indicator_comparison_options() -> list[dict[str, str]]:
 
 
 def get_available_comparisons() -> list[dict[str, str]]:
-    """Backward-compatible alias used by older UI variants."""
+    """Alias retro-compatible utilise par les anciennes variantes de l'UI."""
     return get_available_indicator_comparison_options()

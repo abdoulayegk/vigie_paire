@@ -1,5 +1,4 @@
-"""
-Localisateur de sections pour identifier les pages des sections cibles dans les rapports bancaires.
+"""Localisateur de sections pour identifier les pages des sections cibles dans les rapports bancaires.
 
 Ce module detecte automatiquement les pages des sections:
 - Gestion des risques
@@ -25,8 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def normalize_text(text: str) -> str:
-    """
-    Normaliser le texte en supprimant les accents et en mettant en minuscules.
+    """Normaliser le texte en supprimant les accents et en mettant en minuscules.
 
     Permet de matcher "réglementation" avec "reglementation", etc.
 
@@ -63,10 +61,12 @@ class VisualTextElement:
 
     @property
     def height(self) -> float:
+        """Hauteur de l'element en points."""
         return abs(self.y1 - self.y0)
 
     @property
     def width(self) -> float:
+        """Largeur de l'element en points."""
         return abs(self.x1 - self.x0)
 
     @property
@@ -90,6 +90,7 @@ class TocEntry:
     raw_line: str = ""
 
     def __repr__(self):
+        """Representation textuelle courte de l'entree TDM."""
         return f"TocEntry('{self.title[:30]}...', page={self.page}, level={self.level})"
 
 
@@ -128,7 +129,11 @@ class SectionMapping:
     override_applied: bool = False
 
     def to_dict(self) -> dict:
-        """Convertir en dictionnaire."""
+        """Convertir le mapping de sections en dictionnaire serialisable.
+
+        Returns:
+            Dictionnaire contenant toutes les informations du mapping.
+        """
         sections_dict = {}
         for section in self.sections:
             sections_dict[section.section_type] = {
@@ -325,8 +330,7 @@ FOLLOWING_SECTION_PATTERNS = {
 
 
 def _get_bank_section_names(bank_code: str) -> dict:
-    """
-    Charger les noms de sections depuis bank_profiles.json (source unique de verite).
+    """Charger les noms de sections depuis bank_profiles.json (source unique de verite).
 
     Args:
         bank_code: Code de la banque (bnc, rbc, td, bmo, bns, cibc)
@@ -445,8 +449,7 @@ BANK_SECTION_NAMES = {
 
 
 class SectionLocator:
-    """
-    Localisateur de sections dans les rapports bancaires.
+    """Localisateur de sections dans les rapports bancaires.
 
     Utilise une approche hybride a 3 niveaux:
     1. Override manuel (configuration bank_profiles.json)
@@ -457,8 +460,7 @@ class SectionLocator:
     def __init__(
         self, bank_code: str | None = None, quarter: str | None = None, year: int = 2025
     ):
-        """
-        Initialiser le localisateur.
+        """Initialiser le localisateur.
 
         Args:
             bank_code: Code de la banque pour utiliser les patterns specifiques
@@ -473,7 +475,7 @@ class SectionLocator:
         self._load_following_patterns()
 
     def _compile_patterns(self):
-        """Compiler les patterns regex."""
+        """Compiler les patterns regex de detection de sections."""
         self.compiled_patterns = {}
 
         for section_type, config in SECTION_PATTERNS.items():
@@ -503,7 +505,7 @@ class SectionLocator:
         self.toc_patterns = [re.compile(p, re.IGNORECASE) for p in TOC_PATTERNS]
 
     def _load_following_patterns(self):
-        """Charger les patterns des sections suivantes depuis la config et les defaults."""
+        """Charger les patterns des sections suivantes depuis la configuration et les valeurs par defaut."""
         self.following_patterns = {}
 
         # D'abord les patterns par defaut
@@ -537,8 +539,7 @@ class SectionLocator:
                             self.following_patterns[internal_name] = [pattern]
 
     def _get_section_length_constraints(self, section_type: str) -> dict[str, int]:
-        """
-        Recuperer les contraintes de longueur pour un type de section.
+        """Recuperer les contraintes de longueur pour un type de section.
 
         Priorite:
         1. Default code (gestion_reglementation = section courte 1-3 pages)
@@ -630,7 +631,16 @@ class SectionLocator:
     def _apply_section_length_constraints(
         self, section: LocatedSection, total_pages: int, source: str = ""
     ) -> LocatedSection:
-        """Appliquer min/max/default de longueur a une section."""
+        """Appliquer les contraintes min/max/default de longueur a une section.
+
+        Args:
+            section: Section a contraindre
+            total_pages: Nombre total de pages du document
+            source: Etiquette indiquant l'origine de l'appel (pour le log)
+
+        Returns:
+            La section modifiee en place avec les contraintes appliquees.
+        """
         constraints = self._get_section_length_constraints(section.section_type)
         min_length = constraints["min_length"]
         max_length = constraints["max_length"]
@@ -690,7 +700,16 @@ class SectionLocator:
         toc_sections: list[LocatedSection],
         total_pages: int,
     ) -> float:
-        """Evaluer la fiabilite de la TDM (0-1)."""
+        """Evaluer la fiabilite de la Table des matieres.
+
+        Args:
+            toc_entries: Entrees TDM extraites
+            toc_sections: Sections detectees depuis la TDM
+            total_pages: Nombre total de pages du document
+
+        Returns:
+            Score de fiabilite entre 0.0 et 1.0.
+        """
         if not toc_entries:
             return 0.0
 
@@ -717,7 +736,15 @@ class SectionLocator:
     def _is_section_bounds_suspicious(
         self, section: LocatedSection, total_pages: int
     ) -> bool:
-        """Verifier si les bornes d'une section semblent anormales."""
+        """Verifier si les bornes d'une section semblent anormales.
+
+        Args:
+            section: Section a verifier
+            total_pages: Nombre total de pages du document
+
+        Returns:
+            True si les bornes sont suspectes (trop courtes, trop longues, etc.).
+        """
         if not section.start_page or not section.end_page:
             return True
 
@@ -737,8 +764,7 @@ class SectionLocator:
         return False
 
     def _text_similarity(self, text1: str, text2: str) -> float:
-        """
-        Calculer une similarite simple entre deux textes normalises.
+        """Calculer une similarite simple entre deux textes normalises.
 
         Utilise le ratio de caracteres communs et la longueur des mots communs.
 
@@ -790,8 +816,7 @@ class SectionLocator:
         return word_ratio
 
     def _get_manual_override(self, section_type: str) -> tuple[int, int] | None:
-        """
-        Obtenir l'override manuel de pages depuis la configuration.
+        """Obtenir l'override manuel de pages depuis la configuration.
 
         Args:
             section_type: Type de section (gestion_capital ou gestion_risques)
@@ -827,8 +852,7 @@ class SectionLocator:
         return None
 
     def _get_page_number_offset(self) -> int:
-        """
-        Obtenir l'offset de numerotation document -> physique pour la banque courante.
+        """Obtenir l'offset de numerotation document -> physique pour la banque courante.
 
         CONVENTION DE NUMEROTATION:
         ===========================
@@ -855,8 +879,7 @@ class SectionLocator:
         return int(offset) if offset else 0
 
     def _uses_document_page_numbers(self, detection_method: str) -> bool:
-        """
-        Indiquer si la methode de detection fournit des numeros en numerotation document.
+        """Indiquer si la methode de detection fournit des numeros en numerotation document.
 
         Seules les sections issues de la TOC ou des overrides manuels utilisent la
         numerotation document (pied de page / config). Les methodes scan, genai_fallback,
@@ -872,8 +895,7 @@ class SectionLocator:
         )
 
     def _get_config_section_names(self, section_type: str) -> list[str]:
-        """
-        Recuperer les noms configures pour un type de section (banque courante).
+        """Recuperer les noms configures pour un type de section (banque courante).
 
         Args:
             section_type: Type interne (gestion_capital, gestion_risques, ...)
@@ -899,8 +921,7 @@ class SectionLocator:
         return [n for n in names if isinstance(n, str) and n.strip()]
 
     def _line_matches_section_title(self, line: str, section_names: list[str]) -> bool:
-        """
-        Verifier si une ligne correspond a un des titres de section attendus.
+        """Verifier si une ligne correspond a un des titres de section attendus.
 
         Args:
             line: Ligne candidate
@@ -935,13 +956,21 @@ class SectionLocator:
         section_names: list[str],
         total_pages: int,
     ) -> int | None:
-        """
-        Recaler le debut reel d'une section autour d'une page estimee.
+        """Recaler le debut reel d'une section autour d'une page estimee.
 
         Strategie:
         - Fenetre etroite d'abord (rapide, limite les faux positifs)
         - Fenetre plus large en fallback
         - Ignorer les toutes premieres pages pour eviter les matchs TDM
+
+        Args:
+            estimated_page: Page estimee du debut de la section
+            text_by_page: Texte du PDF indexe par numero de page
+            section_names: Noms de section attendus (depuis la config)
+            total_pages: Nombre total de pages du document
+
+        Returns:
+            Numero de page du debut reel, ou None si non trouve.
         """
         if estimated_page <= 0 or not section_names or not text_by_page:
             return None
@@ -984,8 +1013,7 @@ class SectionLocator:
         text_by_page: dict[int, str],
         total_pages: int,
     ) -> int | None:
-        """
-        Trouver la prochaine section/titre principal apres une section.
+        """Trouver la prochaine section/titre principal apres une section.
 
         Args:
             section_type: Type de section courante
@@ -1027,15 +1055,20 @@ class SectionLocator:
         text_by_page: dict[int, str],
         total_pages: int,
     ) -> list[LocatedSection]:
-        """
-        Recaler CIBC pour les 2 sections cibles:
-        - gestion_capital ("Gestion des fonds propres")
-        - gestion_risques ("Gestion du risque")
+        """Recaler les bornes des sections CIBC pour les sections capital et risques.
 
         Le recalage est fait sur les pages physiques:
         1) debut reel par recherche du titre autour de la page estimee
         2) fin capital = debut risque - 1
         3) fin risques = page avant le prochain grand titre
+
+        Args:
+            sections: Sections detectees a recaler
+            text_by_page: Texte du PDF indexe par numero de page
+            total_pages: Nombre total de pages du document
+
+        Returns:
+            Liste de sections avec bornes recalees pour CIBC.
         """
         if self.bank_code != "cibc" or not sections:
             return sections
@@ -1112,8 +1145,7 @@ class SectionLocator:
         return adjusted
 
     def _bank_has_regulatory_section(self) -> bool:
-        """
-        Indiquer si la banque courante a une section reglementation (gestion_reglementation).
+        """Indiquer si la banque courante a une section reglementation (gestion_reglementation).
 
         Seules les banques listees dans banks_with_regulatory (RBC, Scotia, BMO)
         peuvent avoir des sections de type gestion_reglementation.
@@ -1127,8 +1159,7 @@ class SectionLocator:
         return self.bank_code in self.bank_config.get("banks_with_regulatory", [])
 
     def _needs_genai_fallback(self, sections: list[LocatedSection]) -> bool:
-        """
-        Determiner si le fallback GenAI est necessaire.
+        """Determiner si le fallback GenAI est necessaire.
 
         Criteres:
         - Moins de 2 sections trouvees
@@ -1156,8 +1187,7 @@ class SectionLocator:
         return False
 
     def _detect_with_genai(self, pdf_path: Path) -> list[LocatedSection]:
-        """
-        Utiliser GenAI pour detecter les sections.
+        """Utiliser GenAI pour detecter les sections.
 
         Args:
             pdf_path: Chemin vers le PDF
@@ -1196,8 +1226,7 @@ class SectionLocator:
             return []
 
     def locate_sections(self, pdf_path: str | Path) -> SectionMapping:
-        """
-        Localiser les sections cibles dans un PDF.
+        """Localiser les sections cibles dans un PDF.
 
         Strategie hybride a 3 niveaux:
         1. Verifier les overrides manuels (configuration)
@@ -1468,8 +1497,7 @@ class SectionLocator:
         return mapping
 
     def _extract_text_by_page(self, pdf_path: Path) -> dict[int, str]:
-        """
-        Extraire le texte de chaque page du PDF.
+        """Extraire le texte de chaque page du PDF.
 
         Args:
             pdf_path: Chemin vers le PDF
@@ -1495,8 +1523,7 @@ class SectionLocator:
     def _extract_visual_elements(
         self, pdf_path: Path
     ) -> dict[int, list[VisualTextElement]]:
-        """
-        Extraire les elements de texte avec leurs caracteristiques visuelles.
+        """Extraire les elements de texte avec leurs caracteristiques visuelles.
 
         Utilise pdfplumber pour obtenir:
         - Taille de police
@@ -1592,7 +1619,7 @@ class SectionLocator:
         return visual_elements
 
     def _is_bold_font(self, font_name: str) -> bool:
-        """Determiner si le nom de police indique du gras."""
+        """Determiner si le nom de police indique une graisse en gras."""
         if not font_name:
             return False
         font_lower = font_name.lower()
@@ -1604,8 +1631,7 @@ class SectionLocator:
     def _merge_adjacent_elements(
         self, elements: list[VisualTextElement]
     ) -> list[VisualTextElement]:
-        """
-        Fusionner les elements adjacents sur la meme ligne.
+        """Fusionner les elements adjacents sur la meme ligne.
 
         Args:
             elements: Liste d'elements a fusionner
@@ -1657,8 +1683,7 @@ class SectionLocator:
         visual_elements: dict[int, list[VisualTextElement]],
         text_by_page: dict[int, str],
     ) -> list[LocatedSection]:
-        """
-        Detecter les titres de sections en utilisant les caracteristiques visuelles.
+        """Detecter les titres de sections en utilisant les caracteristiques visuelles.
 
         Cette methode cherche les elements qui:
         - Ont une grande taille de police (> moyenne de la page)
@@ -1801,8 +1826,7 @@ class SectionLocator:
         is_top_of_page: bool,
         is_left_aligned: bool,
     ) -> float:
-        """
-        Calculer un score de confiance base sur les caracteristiques visuelles.
+        """Calculer un score de confiance base sur les caracteristiques visuelles.
 
         Args:
             elem: Element visuel
@@ -1840,8 +1864,7 @@ class SectionLocator:
         return min(1.0, score)
 
     def _parse_full_toc(self, text_by_page: dict[int, str]) -> list[TocEntry]:
-        """
-        Parser la Table des matieres complete pour extraire TOUTES les sections.
+        """Parser la Table des matieres complete pour extraire TOUTES les sections.
 
         Cette methode extrait toutes les entrees de la TDM, pas seulement
         les sections cibles, ce qui permet de determiner les limites exactes.
@@ -1947,8 +1970,7 @@ class SectionLocator:
     def _parse_toc_line(
         self, line: str, max_pages: int = 200
     ) -> TocEntry | list[TocEntry] | None:
-        """
-        Parser une ligne de la Table des matieres.
+        """Parser une ligne de la Table des matieres.
 
         Formats supportes:
         - "Titre ... 25"
@@ -2073,8 +2095,7 @@ class SectionLocator:
         return TocEntry(title=title_part, page=page_num, level=level, raw_line=line)
 
     def _try_parse_multi_column_toc(self, line: str, max_pages: int) -> list[TocEntry]:
-        """
-        Essayer de parser une ligne de TDM en format multi-colonnes.
+        """Essayer de parser une ligne de TDM en format multi-colonnes.
 
         Formats supportes:
         - BNC: "Acquisition 4 Gestion du capital 25" (Titre numero Titre numero)
@@ -2148,8 +2169,7 @@ class SectionLocator:
         return entries
 
     def _is_valid_toc_entry(self, entry: TocEntry) -> bool:
-        """
-        Valider qu'une entree TDM est probablement un vrai titre de section.
+        """Valider qu'une entree TDM est probablement un vrai titre de section.
 
         Filtre le bruit: ratios, phrases completes, donnees financieres.
 
@@ -2205,7 +2225,14 @@ class SectionLocator:
         return True
 
     def _deduplicate_toc_entries(self, entries: list[TocEntry]) -> list[TocEntry]:
-        """Deduplicer les entrees TDM par titre similaire et page proche."""
+        """Deduplicer les entrees TDM par titre similaire et page proche.
+
+        Args:
+            entries: Liste d'entrees TDM potentiellement dupliquees
+
+        Returns:
+            Liste d'entrees TDM sans doublons.
+        """
         if not entries:
             return entries
 
@@ -2231,8 +2258,7 @@ class SectionLocator:
     def _detect_sections_from_full_toc(
         self, toc_entries: list[TocEntry]
     ) -> list[LocatedSection]:
-        """
-        Detecter les sections cibles depuis la TDM complete.
+        """Detecter les sections cibles depuis la TDM complete.
 
         Args:
             toc_entries: Entrees TDM
@@ -2354,8 +2380,7 @@ class SectionLocator:
         return sections
 
     def _detect_from_toc(self, text_by_page: dict[int, str]) -> list[LocatedSection]:
-        """
-        Detecter les sections depuis la Table des matieres (methode legacy).
+        """Detecter les sections depuis la Table des matieres (methode legacy).
 
         Args:
             text_by_page: Texte par page
@@ -2367,8 +2392,7 @@ class SectionLocator:
         return self._detect_sections_from_full_toc(toc_entries)
 
     def _is_risk_subsection(self, title: str) -> bool:
-        """
-        Verifier si un titre est une sous-section de Gestion des risques.
+        """Verifier si un titre est une sous-section de Gestion des risques.
 
         Les sous-sections comme "Risque de credit" font partie de "Gestion des risques"
         et ne doivent pas etre traitees comme des sections principales.
@@ -2410,8 +2434,7 @@ class SectionLocator:
     def _is_likely_section_title(
         self, line: str, page_text: str, matches_configured_pattern: bool = False
     ) -> bool:
-        """
-        Verifier si une ligne ressemble a un titre de section.
+        """Verifier si une ligne ressemble a un titre de section.
 
         Args:
             line: Ligne a verifier
@@ -2468,8 +2491,7 @@ class SectionLocator:
     def _scan_section_titles(
         self, text_by_page: dict[int, str]
     ) -> list[LocatedSection]:
-        """
-        Scanner le PDF pour trouver les titres de sections.
+        """Scanner le PDF pour trouver les titres de sections.
 
         Args:
             text_by_page: Texte par page
@@ -2628,8 +2650,7 @@ class SectionLocator:
     def _find_first_risk_subsection(
         self, text_by_page: dict[int, str]
     ) -> LocatedSection | None:
-        """
-        Trouver la premiere sous-section de risques comme proxy pour la section principale.
+        """Trouver la premiere sous-section de risques comme proxy pour la section principale.
 
         Args:
             text_by_page: Texte par page
@@ -2672,8 +2693,7 @@ class SectionLocator:
     def _calculate_title_confidence(
         self, title: str, page_text: str, keywords: list[str]
     ) -> float:
-        """
-        Calculer le score de confiance pour un titre de section.
+        """Calculer le score de confiance pour un titre de section.
 
         Args:
             title: Titre trouve
@@ -2740,8 +2760,7 @@ class SectionLocator:
         toc_entries: list[TocEntry],
         total_pages: int,
     ) -> list[LocatedSection]:
-        """
-        Determiner les pages de fin avec la logique hybride a 3 niveaux.
+        """Determiner les pages de fin avec la logique hybride a 3 niveaux.
 
         Priorite:
         1. Override manuel (deja applique)
@@ -2815,8 +2834,7 @@ class SectionLocator:
         return sections
 
     def _get_subsection_patterns(self, section_type: str) -> list[re.Pattern]:
-        """
-        Obtenir les patterns regex pour les sous-sections d'un type de section.
+        """Obtenir les patterns regex pour les sous-sections d'un type de section.
 
         Args:
             section_type: Type de section (gestion_capital ou gestion_risques)
@@ -2867,8 +2885,7 @@ class SectionLocator:
     def _refine_bounds_with_subsections(
         self, section: LocatedSection, text_by_page: dict[int, str]
     ) -> LocatedSection:
-        """
-        Affiner les limites d'une section en detectant les sous-sections.
+        """Affiner les limites d'une section en detectant les sous-sections.
 
         Pour "Gestion des risques":
         - Detecte "Risque de credit", "Risque de marche", etc.
@@ -2905,8 +2922,7 @@ class SectionLocator:
     def _extract_section_text(
         self, section: LocatedSection, text_by_page: dict[int, str]
     ) -> str:
-        """
-        Extraire le texte complet d'une section.
+        """Extraire le texte complet d'une section.
 
         Args:
             section: Section dont on veut extraire le texte
@@ -2940,8 +2956,7 @@ class SectionLocator:
     def _validate_section_content(
         self, section: LocatedSection, text_by_page: dict[int, str]
     ) -> tuple[bool, float]:
-        """
-        Valider que le contenu d'une section correspond au type de section attendu.
+        """Valider que le contenu d'une section correspond au type de section attendu.
 
         Verifie:
         - Presence de mots-cles specifiques a la section
@@ -3025,8 +3040,7 @@ class SectionLocator:
         return is_valid, validation_score
 
     def _matches_section(self, title: str, section_type: str) -> bool:
-        """
-        Verifier si un titre correspond a un type de section.
+        """Verifier si un titre correspond a un type de section.
 
         Args:
             title: Titre a verifier
@@ -3050,8 +3064,7 @@ class SectionLocator:
         toc_detections: list[TocEntry],
         scan_detections: list[LocatedSection],
     ) -> float:
-        """
-        Calculer le score de consensus entre les differentes methodes de detection.
+        """Calculer le score de consensus entre les differentes methodes de detection.
 
         Compare les pages de debut/fin entre override, TDM et scan.
         Score base sur la proximite des pages detectees.
@@ -3151,8 +3164,7 @@ class SectionLocator:
         toc_detections: list[TocEntry],
         scan_detections: list[LocatedSection],
     ) -> LocatedSection | None:
-        """
-        Corriger les limites d'une section selon le consensus des methodes.
+        """Corriger les limites d'une section selon le consensus des methodes.
 
         Utilise la mediane ponderee des pages detectees par toutes les methodes.
 
@@ -3251,8 +3263,7 @@ class SectionLocator:
         scanned_sections: list[LocatedSection],
         text_by_page: dict[int, str],
     ) -> list[LocatedSection]:
-        """
-        Valider les sections en croisant les resultats de toutes les methodes.
+        """Valider les sections en croisant les resultats de toutes les methodes.
 
         Pour chaque section:
         1. Verifier si TDM et scan donnent des resultats coherents
@@ -3337,9 +3348,7 @@ class SectionLocator:
     def _find_next_section_by_pattern(
         self, section_type: str, start_page: int, toc_entries: list[TocEntry]
     ) -> tuple[int, str] | None:
-        """
-        Trouver la prochaine section en utilisant les patterns 'followed_by'
-        ET les autres sections cibles.
+        """Trouver la prochaine section via les patterns 'followed_by' et les sections cibles.
 
         Cette methode cherche dans les entrees TDM :
         1. Les sections qui correspondent aux patterns 'followed_by'
@@ -3429,8 +3438,7 @@ class SectionLocator:
     def _find_end_from_toc(
         self, section_type: str, start_page: int, toc_entries: list[TocEntry]
     ) -> tuple[int | None, str]:
-        """
-        Trouver la fin d'une section depuis la TDM.
+        """Trouver la fin d'une section depuis la TDM.
 
         Args:
             section_type: Type de section
@@ -3500,8 +3508,7 @@ class SectionLocator:
         text_by_page: dict[int, str],
         total_pages: int,
     ) -> tuple[int | None, str]:
-        """
-        Detecter la fin d'une section en scannant le PDF.
+        """Detecter la fin d'une section en scannant le PDF.
 
         Cherche les patterns des sections qui suivent typiquement cette section.
 
@@ -3555,8 +3562,7 @@ class SectionLocator:
     def _estimate_end_pages(
         self, sections: list[LocatedSection], total_pages: int
     ) -> list[LocatedSection]:
-        """
-        Estimer les pages de fin pour les sections (methode legacy).
+        """Estimer les pages de fin pour les sections (methode legacy).
 
         Args:
             sections: Sections avec start_page
@@ -3601,8 +3607,7 @@ def locate_sections_in_pdf(
     quarter: str | None = None,
     year: int = 2025,
 ) -> SectionMapping:
-    """
-    Fonction utilitaire pour localiser les sections dans un PDF.
+    """Fonction utilitaire pour localiser les sections dans un PDF.
 
     Args:
         pdf_path: Chemin vers le PDF

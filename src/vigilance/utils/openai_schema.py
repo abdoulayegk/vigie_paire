@@ -1,4 +1,4 @@
-"""Helpers to normalize Pydantic JSON Schema for OpenAI Structured Outputs."""
+"""Utilitaires de normalisation du JSON Schema Pydantic pour les Structured Outputs OpenAI."""
 
 from __future__ import annotations
 
@@ -14,14 +14,25 @@ def build_strict_openai_response_format(
     name: str,
     error_cls: type[Exception] = RuntimeError,
 ) -> dict[str, Any]:
-    """Return an OpenAI ``response_format`` payload from a Pydantic model.
+    """Construit un payload ``response_format`` OpenAI a partir d'un modele Pydantic.
 
-    OpenAI Structured Outputs strict mode requires every object node to:
+    Le mode strict des Structured Outputs OpenAI exige que chaque noeud objet :
     - declare ``additionalProperties: false``
-    - list every property in ``required`` even when Pydantic marks defaults optional
+    - liste chaque propriete dans ``required`` meme si Pydantic les marque optionnelles
 
-    Pydantic's raw ``model_json_schema()`` output does not always satisfy that
-    contract, so we normalize it once here and reuse the same logic everywhere.
+    La sortie brute de ``model_json_schema()`` de Pydantic ne satisfait pas toujours
+    ce contrat ; on normalise donc ici une seule fois et on reutilise la meme logique partout.
+
+    Args:
+        model: Classe Pydantic a convertir en schema JSON.
+        name: Nom du schema pour le payload OpenAI.
+        error_cls: Classe d'exception a lever en cas d'erreur de validation.
+
+    Returns:
+        Dictionnaire ``response_format`` pret a etre envoye a l'API OpenAI.
+
+    Raises:
+        error_cls: Si le schema contient des objets map-like interdits en mode strict.
     """
     schema = deepcopy(model.model_json_schema())
     _normalize_object_nodes_for_openai(schema, path="$", error_cls=error_cls)
@@ -40,7 +51,15 @@ def validate_strict_openai_response_format(
     *,
     error_cls: type[Exception] = RuntimeError,
 ) -> None:
-    """Validate a strict OpenAI ``response_format`` payload before API calls."""
+    """Valide un payload ``response_format`` OpenAI strict avant les appels API.
+
+    Args:
+        response_format: Payload ``response_format`` a valider.
+        error_cls: Classe d'exception a lever en cas d'erreur.
+
+    Raises:
+        error_cls: Si le schema est malformed ou si required/properties ne correspondent pas.
+    """
     try:
         if response_format.get("type") != "json_schema":
             raise error_cls("schema.type must be 'json_schema'")
@@ -85,6 +104,7 @@ def _normalize_object_nodes_for_openai(
     path: str,
     error_cls: type[Exception],
 ) -> None:
+    """Normalise recursivement les noeuds objet pour le mode strict OpenAI."""
     if not isinstance(node, dict):
         return
 
@@ -143,6 +163,7 @@ def _validate_no_map_like_objects(
     path: str,
     error_cls: type[Exception],
 ) -> None:
+    """Valide recursivement qu'aucun noeud objet n'est de type map-like."""
     if not isinstance(node, dict):
         return
 

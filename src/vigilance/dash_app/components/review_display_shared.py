@@ -1,4 +1,4 @@
-"""Shared review display helpers used by the V2 Dash review UI."""
+"""Fonctions d'affichage partagees pour l'interface de revue Dash V2."""
 
 from __future__ import annotations
 
@@ -49,6 +49,14 @@ _SECTION_LABELS = {
 
 
 def section_display_label(section: str | None) -> str:
+    """Convertit un identifiant de section en libelle lisible pour l'affichage.
+
+    Args:
+        section: Identifiant brut de la section (peut etre ``None``).
+
+    Returns:
+        Libelle francise de la section, ou ``"Autre section"`` par defaut.
+    """
     value = (section or "").strip()
     if not value:
         return "Autre section"
@@ -75,6 +83,7 @@ def section_display_label(section: str | None) -> str:
 
 
 def _clean_title_for_display(raw_title: str) -> str:
+    """Nettoie un titre brut de tableau pour l'affichage."""
     title = (raw_title or "").strip()
     if not title:
         return ""
@@ -86,7 +95,16 @@ def _clean_title_for_display(raw_title: str) -> str:
 
 
 def table_display_label(item: dict) -> str:
-    """Format a report-like table label for display."""
+    """Formate un libelle de tableau de type rapport pour l'affichage.
+
+    Args:
+        item: Dictionnaire contenant les metadonnees du tableau
+            (``table_name``, ``table_number``, ``page_t1``/``page_t2``,
+            ``section``, ``change_type``).
+
+    Returns:
+        Libelle formate du tableau.
+    """
     raw_title = (item.get("table_name") or item.get("table_title_raw") or "").strip()
     title = _clean_title_for_display(raw_title)
     has_title = bool(title)
@@ -119,7 +137,15 @@ def table_display_label(item: dict) -> str:
 
 
 def compute_flag_state(item: dict) -> dict:
-    """Compute visual proof-card flags from the change payload."""
+    """Calcule les indicateurs visuels des cartes de preuve a partir du payload de changement.
+
+    Args:
+        item: Dictionnaire du changement contenant ``change_type``,
+            ``added_indicators``, ``removed_indicators`` et ``indicators``.
+
+    Returns:
+        Dictionnaire avec les classes CSS et libelles de badges pour T1/T2.
+    """
     change_type = (item.get("change_type") or "").strip()
     added = item.get("added_indicators") or []
     removed = item.get("removed_indicators") or []
@@ -178,7 +204,7 @@ def compute_flag_state(item: dict) -> dict:
 
 
 def _bbox_normalized_for_overlay(bbox: list | None) -> list[float] | None:
-    """Return [left, top, right, bottom] in 0..1 if valid for CSS overlays."""
+    """Retourne ``[left, top, right, bottom]`` normalise en 0..1 si valide pour les overlays CSS."""
     if not bbox or not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
         return None
     try:
@@ -207,7 +233,20 @@ def build_proofs_section(
     proof_result_t1: dict | None = None,
     proof_result_t2: dict | None = None,
 ) -> html.Div:
-    """Build the proof panel shared by the V2 review detail view."""
+    """Construit le panneau de preuves visuelles partage par la vue de detail V2.
+
+    Args:
+        item: Dictionnaire du changement contenant les metadonnees du tableau.
+        img_t1_b64: Image base64 de la preuve T1 (trimestre precedent).
+        img_t2_b64: Image base64 de la preuve T2 (trimestre courant).
+        proof_display_mode: Mode d'affichage (``"crop"``, ``"full"``,
+            ``"footnote"`` ou ``"full_without_bbox"``).
+        proof_result_t1: Resultat de rendu pour la preuve T1.
+        proof_result_t2: Resultat de rendu pour la preuve T2.
+
+    Returns:
+        Un ``Div`` contenant les cartes de preuve T1/T2 et le selecteur de mode.
+    """
     flag_state = compute_flag_state(item)
     normalized_mode = (proof_display_mode or "crop").strip().lower()
     mode_label_map = {
@@ -218,18 +257,21 @@ def build_proofs_section(
     }
 
     def _mode_label(mode_value: str | None) -> str:
+        """Retourne le libelle francais du mode d'affichage."""
         return mode_label_map.get(
             (mode_value or normalized_mode).strip().lower(),
             "Mode focus tableau",
         )
 
     def _proof_caption(base_label: str, page: int | None, mode_value: str | None) -> str:
+        """Genere la legende d'une carte de preuve."""
         page_label = f"Page {page}" if page is not None else "Page indisponible"
         return f"{base_label} · {page_label} · {_mode_label(mode_value)}"
 
     def _proof_placeholder(
         placeholder: str | None, render_result: dict | None, mode_value: str
     ) -> str:
+        """Retourne le message de substitution quand l'image n'est pas disponible."""
         if placeholder:
             return placeholder
         status = str((render_result or {}).get("status") or "").strip().lower()
@@ -253,6 +295,7 @@ def build_proofs_section(
         render_result=None,
         side: str = "t1",
     ):
+        """Construit une carte image de preuve avec overlay bbox optionnel."""
         if not b64:
             msg = _proof_placeholder(placeholder, render_result, mode_value)
             return dbc.Card(
@@ -315,6 +358,7 @@ def build_proofs_section(
         )
 
     def _proof_wrapper(card, card_class: str, badge_text: str, badge_class: str):
+        """Enveloppe une carte de preuve avec un badge de trimestre."""
         badge = html.Span(badge_text, className=f"proof-badge {badge_class}")
         return html.Div([badge, card], className=card_class)
 

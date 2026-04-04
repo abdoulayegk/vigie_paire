@@ -1,5 +1,4 @@
-"""
-Annotateur d'images de tableaux pour la visualisation des changements.
+"""Annotateur d'images de tableaux pour la visualisation des changements.
 
 Ce module permet de dessiner des annotations visuelles (cercles, rectangles)
 sur les images de tableaux pour indiquer les lignes ajoutees ou supprimees.
@@ -48,6 +47,7 @@ class RowAnnotation:
     verified: bool = False  # Si l'utilisateur a verifie
 
     def to_dict(self) -> dict:
+        """Serialiser l'annotation en dictionnaire."""
         return {
             "indicator": self.indicator,
             "y_position": self.y_position,
@@ -57,8 +57,7 @@ class RowAnnotation:
 
 
 def image_from_base64(base64_str: str) -> Image.Image | None:
-    """
-    Convertir une image base64 en objet PIL Image.
+    """Convertir une image base64 en objet PIL Image.
 
     Args:
         base64_str: Image encodee en base64
@@ -79,8 +78,7 @@ def image_from_base64(base64_str: str) -> Image.Image | None:
 
 
 def image_to_bytes(img: Image.Image, format: str = "PNG") -> bytes:
-    """
-    Convertir une image PIL en bytes.
+    """Convertir une image PIL en bytes.
 
     Args:
         img: Image PIL
@@ -96,8 +94,7 @@ def image_to_bytes(img: Image.Image, format: str = "PNG") -> bytes:
 
 
 def image_to_base64(img: Image.Image, format: str = "PNG") -> str:
-    """
-    Convertir une image PIL en base64.
+    """Convertir une image PIL en base64.
 
     Args:
         img: Image PIL
@@ -112,8 +109,7 @@ def image_to_base64(img: Image.Image, format: str = "PNG") -> str:
 def get_row_positions_from_bboxes(
     row_bboxes: list[tuple[str, float, float]],
 ) -> list[tuple[str, float]]:
-    """
-    Convertir les bounding boxes de lignes en positions Y centrales.
+    """Convertir les bounding boxes de lignes en positions Y centrales.
 
     Args:
         row_bboxes: Liste de (indicateur, y_min, y_max) en pixels
@@ -135,8 +131,7 @@ def estimate_row_positions(
     row_height: int | None = None,
     row_bboxes: list[tuple[str, float, float]] | None = None,
 ) -> list[tuple[str, float]]:
-    """
-    Estimer les positions Y des lignes dans une image de tableau.
+    """Estimer les positions Y des lignes dans une image de tableau.
 
     Utilise les positions reelles si row_bboxes est fourni,
     sinon fallback sur l'heuristique.
@@ -190,8 +185,7 @@ def draw_circle(
     radius: int = CIRCLE_RADIUS,
     color: str = "red",
 ) -> None:
-    """
-    Dessiner un cercle sur l'image.
+    """Dessiner un cercle sur l'image.
 
     Args:
         draw: Objet ImageDraw
@@ -216,8 +210,7 @@ def draw_rectangle_border(
     color: str = "red",
     padding: int = 5,
 ) -> None:
-    """
-    Dessiner un rectangle autour de l'image entiere.
+    """Dessiner un rectangle autour de l'image entiere.
 
     Args:
         draw: Objet ImageDraw
@@ -242,8 +235,7 @@ def highlight_row(
     color: str = "green",
     opacity: int = 50,
 ) -> None:
-    """
-    Surligner une ligne complete du tableau.
+    """Surligner une ligne complete du tableau.
 
     Args:
         draw: Objet ImageDraw
@@ -277,8 +269,7 @@ def annotate_table_image(
     row_bboxes: list[tuple[str, float, float]] | None = None,
     debug_mode: bool = False,
 ) -> bytes | None:
-    """
-    Annoter une image de tableau avec cercles ou surlignages.
+    """Annoter une image de tableau avec cercles ou surlignages.
 
     Args:
         image_base64: Image du tableau en base64
@@ -367,8 +358,7 @@ def annotate_table_with_changes(
     row_bboxes_t2: list[tuple[str, float, float]] | None = None,
     debug_mode: bool = False,
 ) -> bytes | None:
-    """
-    Annoter une image avec tous les changements detectes.
+    """Annoter une image avec tous les changements detectes.
 
     Pour T1: Cercles rouges sur les lignes supprimees
     Pour T2: Cercles verts sur les lignes ajoutees
@@ -434,8 +424,7 @@ def annotate_proof_for_review_item(
     indicators_t2: list[str],
     is_for_t1: bool = True,
 ) -> bytes | None:
-    """
-    Annoter une image de preuve pour un ReviewItem (une seule moitie T1 ou T2).
+    """Annoter une image de preuve pour un ReviewItem (une seule moitie T1 ou T2).
 
     Args:
         image_bytes: Image en bytes
@@ -501,8 +490,7 @@ def annotate_side_by_side_proof_for_review_item(
     indicators_t2: list[str],
     gap: int = 20,
 ) -> bytes | None:
-    """
-    Annoter une image cote-a-cote (T1|T2) pour un ReviewItem.
+    """Annoter une image cote-a-cote (T1|T2) pour un ReviewItem.
 
     Decoupe l'image en deux, annote chaque moitie, recombine.
     """
@@ -567,8 +555,7 @@ def create_side_by_side_comparison(
     row_bboxes_t2: list[tuple[str, float, float]] | None = None,
     debug_mode: bool = False,
 ) -> bytes | None:
-    """
-    Creer une image cote-a-cote avec T1 et T2 annotes.
+    """Creer une image cote-a-cote avec T1 et T2 annotes.
 
     Args:
         image_t1_base64: Image T1 en base64 (peut etre None)

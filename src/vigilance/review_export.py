@@ -1,4 +1,4 @@
-"""Export helpers for review items and analyst-facing expert Excel exports."""
+"""Utilitaires d'export pour les elements de revue et les classeurs Excel expert."""
 
 from __future__ import annotations
 
@@ -134,7 +134,7 @@ _CSV_COLUMNS = [
 
 
 def _sanitize_cell(val: Any) -> str:
-    """Nettoie retours ligne pour CSV Excel. Les guillemets/delimiteurs sont geres par csv.DictWriter."""
+    """Nettoie les retours de ligne pour un CSV compatible Excel."""
     if val is None:
         return ""
     s = str(val).strip()
@@ -143,7 +143,7 @@ def _sanitize_cell(val: Any) -> str:
 
 
 def _format_cell(val: Any) -> str:
-    """Formate une valeur pour CSV (None, int, float). Pages en entiers si possible."""
+    """Formate une valeur pour CSV ; convertit les pages en entiers si possible."""
     if val is None:
         return ""
     if isinstance(val, int):
@@ -161,7 +161,7 @@ def _build_resume_court(
     table_status: str = "",
     suspect: bool = False,
 ) -> str:
-    """Genere une phrase interpretative courte pour le superviseur (FR, 1 phrase max)."""
+    """Genere une phrase interpretative courte pour le superviseur (1 phrase max)."""
     if indicator_type == "added":
         base = "Nouvel indicateur dans le trimestre courant."
     elif indicator_type == "removed":
@@ -199,7 +199,7 @@ def _augment_resume_with_review_context(
     comment: str = "",
     edited_value: str = "",
 ) -> str:
-    """Append analyst review context without changing the supervisor CSV schema."""
+    """Ajoute le contexte de revue analyste sans modifier le schema CSV superviseur."""
     parts = [str(resume or "").strip()]
     comment_clean = _sanitize_cell(comment)
     edited_clean = _sanitize_cell(edited_value)
@@ -211,7 +211,7 @@ def _augment_resume_with_review_context(
 
 
 def _build_export_context(indicator_result: dict[str, Any] | None) -> dict[str, str]:
-    """Extract stable export context from the canonical comparison payload."""
+    """Extrait le contexte d'export stable depuis le payload canonique de comparaison."""
     ir = indicator_result or {}
     meta = ir.get("meta") or {}
     previous = (meta.get("extraction_sources") or {}).get("previous") or {}
@@ -243,7 +243,15 @@ def build_export_metadata(
     *,
     overrides: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Public helper to build stable export metadata from a comparison payload."""
+    """Construit les metadonnees d'export stables a partir d'un payload de comparaison.
+
+    Args:
+        indicator_result: Payload canonique de comparaison.
+        overrides: Surcharges optionnelles de champs.
+
+    Returns:
+        Dictionnaire de metadonnees d'export.
+    """
     payload = dict(_build_export_context(indicator_result))
     if overrides:
         payload.update(dict(overrides))
@@ -251,14 +259,14 @@ def build_export_metadata(
 
 
 def _to_type_changement(ind_type: str, table_status: str) -> str:
-    """Convertit indicator_type + table_status en type_changement francais."""
+    """Convertit indicator_type et table_status en type de changement francais."""
     if table_status == "structure_change":
         return "fusion"
     return _TYPE_CHANGEMENT_MAP.get(ind_type, "incertain")
 
 
 def _to_type_element(ind_type: str, item_type: str = "indicator") -> str:
-    """Retourne type_élément: tableau, indicateur, note ou texte."""
+    """Retourne le type d'element : tableau, indicateur, note ou texte."""
     if item_type == "footnote" or ind_type == "footnote":
         return "note"
     if ind_type in (
@@ -275,7 +283,7 @@ def _to_type_element(ind_type: str, item_type: str = "indicator") -> str:
 
 
 def _to_suspect(match_method: str) -> str:
-    """Convertit match_method en suspect Oui/Non."""
+    """Convertit la methode d'appariement en indicateur suspect Oui/Non."""
     if not match_method:
         return "Non"
     normalized = str(match_method).strip().lower()
@@ -286,7 +294,7 @@ def _to_suspect(match_method: str) -> str:
 
 
 def _section_to_fr(section: str) -> str:
-    """Convertit le code section en libellé français pour le CSV."""
+    """Convertit le code section en libelle francais pour le CSV."""
     if not section:
         return ""
     key = str(section).strip().lower()
@@ -294,7 +302,7 @@ def _section_to_fr(section: str) -> str:
 
 
 def _to_validation_finale(review_status: str) -> str:
-    """Convertit review_status en validation_finale."""
+    """Convertit le statut de revue en libelle validation finale."""
     return _VALIDATION_FINALE_MAP.get(
         str(review_status or "").strip().lower(),
         "En attente",
@@ -302,13 +310,13 @@ def _to_validation_finale(review_status: str) -> str:
 
 
 def _to_nouvelle_idee(genai_analysis: dict[str, Any] | None) -> str:
-    """Return a conservative business-facing novelty flag."""
+    """Retourne un indicateur conservateur de nouveaute metier (Oui/Non)."""
     relevance = str((genai_analysis or {}).get("relevance", "") or "").strip().upper()
     return "Oui" if relevance == "NOUVELLE_DIVULGATION" else "Non"
 
 
 def _build_trimestre_label(indicator_result: dict[str, Any] | None) -> str:
-    """Build a human-facing quarter comparison label."""
+    """Construit un libelle lisible de comparaison de trimestres."""
     ir = indicator_result or {}
     ctx = _build_export_context(ir)
     q_from = _sanitize_cell(ctx.get("quarter_from", ""))
@@ -324,7 +332,7 @@ def _iter_expert_excel_rows(
     review_items: list[ReviewItem],
     indicator_result: dict[str, Any] | None,
 ) -> Iterator[dict[str, str]]:
-    """Yield analyst-facing expert Excel rows with one line per business change."""
+    """Produit les lignes Excel expert avec une ligne par changement metier."""
     ir = indicator_result or {}
     banque = _sanitize_cell(ir.get("bank_code", "")).upper()
     trimestre = _build_trimestre_label(ir)
@@ -461,7 +469,7 @@ def _append_summary_sheet(
     rows: list[dict[str, str]],
     indicator_result: dict[str, Any] | None,
 ) -> None:
-    """Create the pilotage summary worksheet for the expert workbook."""
+    """Cree la feuille de synthese de pilotage pour le classeur expert."""
     ir = indicator_result or {}
     ws = wb.active
     if ws is None:
@@ -520,7 +528,7 @@ def _append_summary_sheet(
 
 
 def _style_expert_workbook(wb: Any) -> None:
-    """Apply lightweight analyst-friendly formatting."""
+    """Applique un formatage leger adapte aux analystes."""
     from openpyxl.styles import Font, PatternFill
 
     review_ws = wb[EXPERT_EXCEL_SHEET_REVIEW]
@@ -579,7 +587,15 @@ def generate_validation_txt(
     review_items: list[ReviewItem],
     indicator_result: dict[str, Any] | None,
 ) -> str:
-    """Generate a human-readable text report for expert review."""
+    """Genere un rapport texte lisible pour la revue expert.
+
+    Args:
+        review_items: Elements de revue a exporter.
+        indicator_result: Payload canonique de comparaison.
+
+    Returns:
+        Rapport au format texte brut.
+    """
     rows = list(_iter_expert_excel_rows(review_items, indicator_result))
     ir = indicator_result or {}
     banque = _sanitize_cell(ir.get("bank_code", "")).upper()
@@ -655,7 +671,7 @@ def _iter_validation_rows(
     review_items: list[ReviewItem],
     indicator_result: dict[str, Any] | None,
 ) -> Iterator[dict[str, str]]:
-    """Itere sur les lignes du schema validation (12 colonnes) pour CSV ou Excel."""
+    """Itere sur les lignes du schema de validation pour CSV ou Excel."""
     ir = indicator_result or {}
     ctx = _build_export_context(ir)
     banque = _sanitize_cell(ir.get("bank_code", ""))
@@ -821,12 +837,14 @@ def generate_validation_csv(
     review_items: list[ReviewItem],
     indicator_result: dict[str, Any] | None,
 ) -> str:
-    """Genere le CSV de validation unique (12 colonnes, Excel FR, conformite bancaire).
+    """Genere le CSV de validation conforme au schema bancaire.
 
-    Schema exact:
-    banque | section | type_élément | type_changement | page_precedente | page_courante |
-    indicateur_precedent | indicateur_courant | résumé_automatique |
-    score_confiance | suspect | validation_finale
+    Args:
+        review_items: Elements de revue a exporter.
+        indicator_result: Payload canonique de comparaison.
+
+    Returns:
+        Contenu CSV avec BOM UTF-8 et separateur point-virgule.
     """
     buffer = io.StringIO()
     writer = csv.DictWriter(
@@ -845,7 +863,15 @@ def generate_validation_excel(
     review_items: list[ReviewItem],
     indicator_result: dict[str, Any] | None,
 ) -> bytes:
-    """Generate the expert analyst workbook (.xlsx)."""
+    """Genere le classeur Excel expert pour les analystes (.xlsx).
+
+    Args:
+        review_items: Elements de revue a exporter.
+        indicator_result: Payload canonique de comparaison.
+
+    Returns:
+        Contenu binaire du fichier XLSX.
+    """
     from openpyxl import Workbook
 
     wb = Workbook()
@@ -870,10 +896,18 @@ def export_review_items_csv(
     metadata: dict[str, Any] | None = None,
     separator: str = CSV_SEPARATOR,
 ) -> str:
-    """Serialize review items to CSV text (schema technique, colonnes en anglais).
+    """Serialise les elements de revue en CSV technique (colonnes en anglais).
 
-    DEPRECATED: Pour l'export superviseur en français, utiliser generate_validation_csv()
-    qui produit le schema 12 colonnes (banque, section, type_élément, etc.).
+    DEPRECATED: Pour l'export superviseur en francais, utiliser
+    ``generate_validation_csv()`` qui produit le schema de validation.
+
+    Args:
+        items: Elements de revue a serialiser.
+        metadata: Metadonnees d'export (run_id, bank_code, etc.).
+        separator: Separateur CSV. Par defaut point-virgule.
+
+    Returns:
+        Contenu CSV avec BOM UTF-8.
     """
     now = datetime.now()
     meta = metadata or {}
@@ -990,7 +1024,15 @@ def export_review_items_json_fr(
     *,
     metadata: dict[str, Any] | None = None,
 ) -> str:
-    """Serialize review items to JSON (French-oriented schema)."""
+    """Serialise les elements de revue au format JSON (schema francophone).
+
+    Args:
+        items: Elements de revue a serialiser.
+        metadata: Metadonnees d'export optionnelles.
+
+    Returns:
+        Chaine JSON formatee.
+    """
     payload = {
         "metadata": metadata or {},
         "total": len(items),

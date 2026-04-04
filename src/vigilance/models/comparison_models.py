@@ -1,14 +1,14 @@
-"""Pydantic models for the GPT comparison pipeline (Structured Outputs).
+"""Modeles Pydantic pour le pipeline de comparaison GPT (Structured Outputs).
 
-These models define the strict response schemas used by:
-- Devil's Advocate review
-- Indicator diff
-- Footnote diff
-- Inspector artifact filter
-- Visual Sanity Check
+Ces modeles definissent les schemas de reponse stricts utilises par :
+- la revue Devil's Advocate
+- le diff d'indicateurs
+- le diff de notes de bas de page
+- le filtre d'artefacts de l'inspecteur
+- la verification visuelle (Visual Sanity Check)
 
-They replace the previous pattern of free-form ``dict[str, Any]`` parsing
-with guaranteed-typed outputs via OpenAI Structured Outputs.
+Ils remplacent l'ancien pattern de parsing ``dict[str, Any]`` libre par des
+sorties garanties typees via OpenAI Structured Outputs.
 """
 
 from __future__ import annotations
@@ -21,16 +21,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class AnalystAssessment(BaseModel):
-    """Analyst-facing assessment attached to every diff change."""
+    """Evaluation destinee a l'analyste, attachee a chaque changement du diff."""
 
     model_config = ConfigDict(extra="forbid")
 
-    relevance_level: int = Field(
-        description="1=Critical/Regulatory, 2=High/Structural, 3=Low/Cosmetic"
-    )
-    justification: str = Field(
-        description="Business impact justification for the analyst"
-    )
+    relevance_level: int = Field(description="1=Critical/Regulatory, 2=High/Structural, 3=Low/Cosmetic")
+    justification: str = Field(description="Business impact justification for the analyst")
 
 
 # ---------------------------------------------------------------------------
@@ -39,7 +35,7 @@ class AnalystAssessment(BaseModel):
 
 
 class MatchInspectorVerdict(BaseModel):
-    """Verdict for a single matched pair reviewed by the inspector."""
+    """Verdict pour une paire appariee revue par l'inspecteur."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -55,11 +51,25 @@ class MatchInspectorVerdict(BaseModel):
 
 
 class MatchInspectorResponse(BaseModel):
-    """Strict response schema for the Match Inspector batch review."""
+    """Schema de reponse strict pour la revue par lot de l'inspecteur de matching."""
 
     model_config = ConfigDict(extra="forbid")
 
     verdicts: list[MatchInspectorVerdict]
+
+
+class SinglePairInspectorResponse(BaseModel):
+    """Schema de reponse pour l'inspection d'une paire unique (pas d'IDs — le code les connait)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    verdict: str = Field(description="'confirmed' or 'rejected'")
+    shared_indicators: list[str] = Field(
+        default_factory=list,
+        description="Indicator labels found in BOTH tables (exact or semantic match)",
+    )
+    confidence: float = Field(ge=0.0, le=1.0)
+    reason: str
 
 
 # ---------------------------------------------------------------------------
@@ -68,6 +78,8 @@ class MatchInspectorResponse(BaseModel):
 
 
 class DevilAdvocateMatch(BaseModel):
+    """Paire proposee par le Devil's Advocate."""
+
     model_config = ConfigDict(extra="forbid")
 
     previous_table_id: str
@@ -77,6 +89,8 @@ class DevilAdvocateMatch(BaseModel):
 
 
 class DevilAdvocateConfirmation(BaseModel):
+    """Confirmation d'une paire a faible confiance par le Devil's Advocate."""
+
     model_config = ConfigDict(extra="forbid")
 
     previous_table_id: str
@@ -85,6 +99,8 @@ class DevilAdvocateConfirmation(BaseModel):
 
 
 class DevilAdvocateContestation(BaseModel):
+    """Contestation d'une paire par le Devil's Advocate."""
+
     model_config = ConfigDict(extra="forbid")
 
     previous_table_id: str
@@ -94,14 +110,12 @@ class DevilAdvocateContestation(BaseModel):
 
 
 class DevilAdvocateResponse(BaseModel):
-    """Strict response schema for the Devil's Advocate second-opinion review."""
+    """Schema de reponse strict pour la revue en second avis du Devil's Advocate."""
 
     model_config = ConfigDict(extra="forbid")
 
     new_matches: list[DevilAdvocateMatch] = Field(default_factory=list)
-    confirmed_low_confidence: list[DevilAdvocateConfirmation] = Field(
-        default_factory=list
-    )
+    confirmed_low_confidence: list[DevilAdvocateConfirmation] = Field(default_factory=list)
     contested_pairs: list[DevilAdvocateContestation] = Field(default_factory=list)
 
 
@@ -111,7 +125,7 @@ class DevilAdvocateResponse(BaseModel):
 
 
 class IndicatorChange(BaseModel):
-    """An indicator added or removed."""
+    """Indicateur ajoute ou supprime entre deux trimestres."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -121,7 +135,7 @@ class IndicatorChange(BaseModel):
 
 
 class IndicatorRename(BaseModel):
-    """An indicator renamed between quarters."""
+    """Indicateur renomme entre deux trimestres."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -132,7 +146,7 @@ class IndicatorRename(BaseModel):
 
 
 class IndicatorDiffResponse(BaseModel):
-    """Strict response schema for indicator diff GPT call."""
+    """Schema de reponse strict pour l'appel GPT de diff d'indicateurs."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -148,7 +162,7 @@ class IndicatorDiffResponse(BaseModel):
 
 
 class FootnoteChange(BaseModel):
-    """A footnote added or removed."""
+    """Note de bas de page ajoutee ou supprimee."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -159,7 +173,7 @@ class FootnoteChange(BaseModel):
 
 
 class FootnoteRename(BaseModel):
-    """A footnote renamed (materially revised wording)."""
+    """Note de bas de page modifiee (reformulation materielle)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -172,7 +186,7 @@ class FootnoteRename(BaseModel):
 
 
 class FootnoteDiffResponse(BaseModel):
-    """Strict response schema for footnote diff GPT call."""
+    """Schema de reponse strict pour l'appel GPT de diff de notes de bas de page."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -188,7 +202,7 @@ class FootnoteDiffResponse(BaseModel):
 
 
 class InspectorVerdict(BaseModel):
-    """Verdict for a single indicator in the inspector pass."""
+    """Verdict pour un indicateur individuel dans la passe d'inspection."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -198,7 +212,7 @@ class InspectorVerdict(BaseModel):
 
 
 class InspectorArtifactPair(BaseModel):
-    """A matched pair of artifact indicators (removed ↔ added)."""
+    """Paire appariee d'indicateurs artefactuels (supprime / ajoute)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -208,7 +222,7 @@ class InspectorArtifactPair(BaseModel):
 
 
 class InspectorResponse(BaseModel):
-    """Strict response schema for the post-diff artifact inspector."""
+    """Schema de reponse strict pour l'inspecteur d'artefacts post-diff."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -223,13 +237,11 @@ class InspectorResponse(BaseModel):
 
 
 class SanityCheckItem(BaseModel):
-    """Verdict for a single diff item in the visual sanity check."""
+    """Verdict pour un element de diff dans la verification visuelle."""
 
     model_config = ConfigDict(extra="forbid")
 
-    item_id: str = Field(
-        description="Exact opaque identifier provided in the input items list"
-    )
+    item_id: str = Field(description="Exact opaque identifier provided in the input items list")
     item_type: str = Field(
         description=(
             "'indicator_added', 'indicator_removed', 'indicator_renamed', "
@@ -242,7 +254,7 @@ class SanityCheckItem(BaseModel):
 
 
 class VisualSanityCheckResponse(BaseModel):
-    """Strict response schema for the Visual Sanity Check agent."""
+    """Schema de reponse strict pour l'agent de verification visuelle."""
 
     model_config = ConfigDict(extra="forbid")
 

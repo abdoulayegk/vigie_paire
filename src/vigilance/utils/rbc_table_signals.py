@@ -1,4 +1,4 @@
-"""RBC-specific helpers for title reliability and first-column structure."""
+"""Utilitaires specifiques RBC pour la fiabilite des titres et la structure de la premiere colonne."""
 
 from __future__ import annotations
 
@@ -40,6 +40,7 @@ _TOTAL_ROW_RE = re.compile(r"^\s*total\b", re.IGNORECASE)
 
 
 def is_rbc_bank(bank_code: str | None) -> bool:
+    """Verifie si le code banque correspond a RBC."""
     return (str(bank_code or "").strip().lower()) == "rbc"
 
 
@@ -48,10 +49,16 @@ def classify_rbc_title_reliability(
     *,
     bank_code: str | None = None,
 ) -> str:
-    """Classify RBC title reliability.
+    """Classifie la fiabilite d'un titre RBC.
 
-    Returns ``missing``, ``unreliable`` or ``reliable``.
-    Non-RBC callers get a permissive answer so the helper is safe as a fallback.
+    Args:
+        title: Titre du tableau a evaluer.
+        bank_code: Code banque (ex. ``"rbc"``).
+
+    Returns:
+        ``missing``, ``unreliable`` ou ``reliable``.
+        Les appelants non-RBC recoivent une reponse permissive afin que
+        l'utilitaire reste sur comme repli.
     """
     value = str(title or "").strip()
     if not value:
@@ -90,11 +97,14 @@ def is_unreliable_rbc_title(
     *,
     bank_code: str | None = None,
 ) -> bool:
+    """Retourne ``True`` si le titre RBC est absent ou non fiable."""
     return classify_rbc_title_reliability(title, bank_code=bank_code) != "reliable"
 
 
 @dataclass(slots=True)
 class RbcFirstColumnSignals:
+    """Signaux extraits de la premiere colonne d'un tableau RBC."""
+
     indicators_raw: list[str]
     indicators_clean: list[str]
     groups_raw: list[str]
@@ -103,6 +113,7 @@ class RbcFirstColumnSignals:
 
 
 def _uniq(values: list[str]) -> list[str]:
+    """Retourne les valeurs uniques non vides en preservant l'ordre."""
     out: list[str] = []
     seen: set[str] = set()
     for value in values:
@@ -117,6 +128,7 @@ def _uniq(values: list[str]) -> list[str]:
 
 
 def _cell_looks_like_value(cell: Any) -> bool:
+    """Verifie si une cellule ressemble a une valeur numerique ou symbolique."""
     text = str(cell or "").strip()
     if not text:
         return False
@@ -124,14 +136,17 @@ def _cell_looks_like_value(cell: Any) -> bool:
 
 
 def _clean_label(text: str) -> str:
+    """Normalise les espaces d'un libelle."""
     return re.sub(r"\s+", " ", str(text or "").strip())
 
 
 def _looks_nested(raw_label: str) -> bool:
+    """Detecte si un libelle brut est indente (sous-element hierarchique)."""
     return bool(re.match(r"^\s{1,}", str(raw_label or "")))
 
 
 def _classify_rbc_row(row: list[str]) -> tuple[str, str]:
+    """Classifie une ligne RBC en (kind, label) : indicator_row, group_label, noise, etc."""
     raw_label = str(row[0] if row else "" or "")
     label = _clean_label(raw_label)
     if not label:
@@ -160,6 +175,7 @@ def _classify_rbc_row(row: list[str]) -> tuple[str, str]:
 
 
 def _fallback_indicator_rows(raw_indicators: list[str]) -> list[str]:
+    """Filtre les indicateurs bruts en excluant les lignes de bruit."""
     filtered: list[str] = []
     for raw in raw_indicators:
         label = _clean_label(raw)
@@ -179,7 +195,16 @@ def build_rbc_first_column_signals(
     rows: list[list[str]] | None,
     raw_indicators: list[str] | None,
 ) -> RbcFirstColumnSignals:
-    """Split RBC first-column content into true indicators and structural groups."""
+    """Separe le contenu de la premiere colonne RBC en indicateurs et groupes structurels.
+
+    Args:
+        rows: Lignes du tableau sous forme de listes de chaines.
+        raw_indicators: Indicateurs bruts extraits du modele (repli si rows insuffisants).
+
+    Returns:
+        Instance de :class:`RbcFirstColumnSignals` avec les indicateurs nettoyes,
+        les groupes et la signature hierarchique.
+    """
     candidate_rows = [
         list(row) for row in (rows or []) if isinstance(row, list) and row
     ]

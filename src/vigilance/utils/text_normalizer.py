@@ -1,4 +1,4 @@
-"""Text normalizer used by legacy comparison modules."""
+"""Normaliseur de texte utilise par les modules de comparaison historiques."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from vigilance.utils.matching_normalizer import normalize_for_matching
 
 
 class TextNormalizer:
-    """Compatibility wrapper for legacy static normalization helpers."""
+    """Wrapper de compatibilite pour les utilitaires de normalisation statique historiques."""
 
     @staticmethod
     def normalize(
@@ -18,6 +18,17 @@ class TextNormalizer:
         remove_notes: bool = False,
         lowercase: bool = True,
     ) -> str:
+        """Normalise un texte pour la comparaison.
+
+        Args:
+            text: Texte brut a normaliser.
+            aggressive: Si ``True``, supprime les mots-outils francais courants.
+            remove_notes: Si ``True``, supprime les marqueurs de notes de bas de page.
+            lowercase: Si ``False``, retourne en majuscules au lieu de minuscules.
+
+        Returns:
+            Texte normalise.
+        """
         value = text or ""
         if remove_notes:
             # Extended: strip all footnote marker formats
@@ -36,6 +47,7 @@ class TextNormalizer:
 
     @staticmethod
     def normalize_indicator(text: str) -> str:
+        """Normalise un indicateur de maniere agressive (notes supprimees, mots-outils retires)."""
         return TextNormalizer.normalize(
             text,
             aggressive=True,

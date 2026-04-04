@@ -1,4 +1,4 @@
-"""Composant cartes metriques."""
+"""Composant cartes metriques pour le tableau de bord Dash."""
 
 from __future__ import annotations
 
@@ -7,7 +7,16 @@ from dash import html
 
 
 def metric_card(title: str, value: str | int, delta: str | None = None) -> dbc.Card:
-    """Carte metrique simple."""
+    """Construit une carte metrique compacte avec titre, valeur et delta optionnel.
+
+    Args:
+        title: Libelle de la metrique affiche sous la valeur.
+        value: Valeur principale (chiffre ou texte).
+        delta: Badge optionnel indiquant la variation.
+
+    Returns:
+        Une carte Bootstrap affichant la metrique.
+    """
     body = [
         html.H5(str(value), className="card-title"),
         html.P(title, className="card-text small"),
@@ -22,10 +31,14 @@ def metric_card(title: str, value: str | int, delta: str | None = None) -> dbc.C
 
 
 def metrics_row(metrics: list[dict]) -> html.Div:
-    """
-    Ligne de metriques.
+    """Construit une rangee horizontale de cartes metriques.
 
-    metrics: [{"title": "...", "value": ..., "delta": "..."}]
+    Args:
+        metrics: Liste de dictionnaires ``{"title": ..., "value": ...,
+            "delta": ...}`` decrivant chaque carte.
+
+    Returns:
+        Une ``Row`` Bootstrap contenant les cartes.
     """
     cols = []
     for m in metrics:

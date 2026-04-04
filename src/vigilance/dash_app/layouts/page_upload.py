@@ -7,7 +7,12 @@ from dash import html
 
 
 def build_page_upload() -> html.Div:
-    """Contenu quand aucun PDF detecte."""
+    """Construit le layout de la page d'accueil lorsqu'aucun PDF n'est detecte.
+
+    Returns:
+        Composant ``html.Div`` affichant les instructions de telechargement
+        et un message d'information.
+    """
     return html.Div(
         [
             html.H4("Comparateur de Rapports Bancaires"),

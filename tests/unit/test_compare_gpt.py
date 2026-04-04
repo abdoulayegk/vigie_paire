@@ -167,16 +167,10 @@ def test_compare_reports_gpt4o_uses_canonical_prompt_cards_and_gpt_diff(
         ],
         "match_inspector": [
             {
-                "verdicts": [
-                    {
-                        "previous_table_id": "prev_capital",
-                        "current_table_id": "curr_capital",
-                        "verdict": "confirmed",
-                        "shared_indicators": ["Ratio CET1"],
-                        "confidence": 0.95,
-                        "reason": "Shared indicator Ratio CET1.",
-                    }
-                ]
+                "verdict": "confirmed",
+                "shared_indicators": ["Ratio CET1"],
+                "confidence": 0.95,
+                "reason": "Shared indicator Ratio CET1.",
             },
         ],
         "devil_advocate": [
@@ -241,9 +235,7 @@ def test_compare_reports_gpt4o_uses_canonical_prompt_cards_and_gpt_diff(
         seen_prompts.append((kind, prompt))
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -371,16 +363,10 @@ def test_compare_reports_gpt4o_allows_cross_section_matching_in_single_pass(
         ],
         "match_inspector": [
             {
-                "verdicts": [
-                    {
-                        "previous_table_id": "prev_lcr",
-                        "current_table_id": "curr_lcr",
-                        "verdict": "confirmed",
-                        "shared_indicators": ["Total des actifs liquides", "LCR"],
-                        "confidence": 0.92,
-                        "reason": "Both indicators match.",
-                    }
-                ]
+                "verdict": "confirmed",
+                "shared_indicators": ["Total des actifs liquides", "LCR"],
+                "confidence": 0.92,
+                "reason": "Both indicators match.",
             },
         ],
         "diff_indicators": [
@@ -401,9 +387,7 @@ def test_compare_reports_gpt4o_allows_cross_section_matching_in_single_pass(
             seen_modes.append(prompt["task"])
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -486,16 +470,10 @@ def test_compare_reports_gpt4o_retries_invalid_matching_output(
         ],
         "match_inspector": [
             {
-                "verdicts": [
-                    {
-                        "previous_table_id": "prev_1",
-                        "current_table_id": "curr_1",
-                        "verdict": "confirmed",
-                        "shared_indicators": ["Ratio CET1"],
-                        "confidence": 0.96,
-                        "reason": "Same indicator.",
-                    }
-                ]
+                "verdict": "confirmed",
+                "shared_indicators": ["Ratio CET1"],
+                "confidence": 0.96,
+                "reason": "Same indicator.",
             },
         ],
         "diff_indicators": [
@@ -517,9 +495,7 @@ def test_compare_reports_gpt4o_retries_invalid_matching_output(
                 feedbacks.append(prompt["validation_feedback"])
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -620,16 +596,10 @@ def test_compare_reports_gpt4o_rejects_duplicate_pairs_without_local_scoring(
         ],
         "match_inspector": [
             {
-                "verdicts": [
-                    {
-                        "previous_table_id": "prev_a",
-                        "current_table_id": "curr_a",
-                        "verdict": "confirmed",
-                        "shared_indicators": ["Alpha"],
-                        "confidence": 0.95,
-                        "reason": "Shared indicator Alpha.",
-                    }
-                ]
+                "verdict": "confirmed",
+                "shared_indicators": ["Alpha"],
+                "confidence": 0.95,
+                "reason": "Shared indicator Alpha.",
             },
         ],
         "devil_advocate": [
@@ -768,9 +738,7 @@ def test_compare_reports_gpt4o_recovers_unresolved_pairs_in_second_matching_stag
             stages.append(str(prompt.get("stage", "")))
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -915,9 +883,7 @@ def test_compare_reports_gpt4o_retries_incomplete_matching_coverage(
                 feedbacks.append(prompt["validation_feedback"])
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1054,18 +1020,10 @@ def test_compare_reports_gpt4o_separates_artifacts_and_extraction_suspects(
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == [
-        "curr_real_add"
-    ]
-    assert [item["table_id"] for item in payload["matching"]["tables_removed"]] == [
-        "prev_biz"
-    ]
-    assert [
-        item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]
-    ] == ["prev_artifact"]
-    assert [
-        item["table_id"] for item in payload["matching"]["extraction_suspects_current"]
-    ] == ["curr_suspect"]
+    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == ["curr_real_add"]
+    assert [item["table_id"] for item in payload["matching"]["tables_removed"]] == ["prev_biz"]
+    assert [item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]] == ["prev_artifact"]
+    assert [item["table_id"] for item in payload["matching"]["extraction_suspects_current"]] == ["curr_suspect"]
     assert "extraction_status=suspect_unresolved" in (
         payload["matching"]["extraction_suspects_current"][0].get("reason") or ""
     )
@@ -1126,9 +1084,7 @@ def test_compare_reports_gpt4o_preclassifies_artifacts_and_suspects_before_audit
         call_kinds.append(kwargs["call_kind"])
         return {}
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1142,12 +1098,8 @@ def test_compare_reports_gpt4o_preclassifies_artifacts_and_suspects_before_audit
     assert call_kinds == []
     assert payload["matching"]["tables_added"] == []
     assert payload["matching"]["tables_removed"] == []
-    assert [
-        item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]
-    ] == ["prev_artifact"]
-    assert [
-        item["table_id"] for item in payload["matching"]["extraction_suspects_current"]
-    ] == ["curr_suspect"]
+    assert [item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]] == ["prev_artifact"]
+    assert [item["table_id"] for item in payload["matching"]["extraction_suspects_current"]] == ["curr_suspect"]
 
 
 def test_compare_reports_gpt4o_sends_trivial_ok_tables_to_business_matching(
@@ -1189,9 +1141,7 @@ def test_compare_reports_gpt4o_sends_trivial_ok_tables_to_business_matching(
         call_kinds.append(kwargs["call_kind"])
         return {}
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1266,16 +1216,10 @@ def test_compare_reports_gpt4o_always_uses_gpt_for_unchanged_diff(
         ],
         "match_inspector": [
             {
-                "verdicts": [
-                    {
-                        "previous_table_id": "prev_same",
-                        "current_table_id": "curr_same",
-                        "verdict": "confirmed",
-                        "shared_indicators": ["Ratio CET1"],
-                        "confidence": 0.99,
-                        "reason": "Identical indicator.",
-                    }
-                ]
+                "verdict": "confirmed",
+                "shared_indicators": ["Ratio CET1"],
+                "confidence": 0.99,
+                "reason": "Identical indicator.",
             },
         ],
         "diff_indicators": [
@@ -1301,9 +1245,7 @@ def test_compare_reports_gpt4o_always_uses_gpt_for_unchanged_diff(
         call_kinds.append(kind)
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1320,10 +1262,7 @@ def test_compare_reports_gpt4o_always_uses_gpt_for_unchanged_diff(
         "diff_footnotes",
     ]
     assert payload["pair_comparisons"][0]["diff_mode"] == "gpt"
-    assert (
-        payload["pair_comparisons"][0]["technical_diff"]["table_level_change"]
-        == "inchange"
-    )
+    assert payload["pair_comparisons"][0]["technical_diff"]["table_level_change"] == "inchange"
     assert payload["run_metrics"]["comparison_calls_total"] == 4
 
 
@@ -1387,16 +1326,10 @@ def test_compare_reports_gpt4o_runs_visual_sanity_for_footnote_only_diff(
         ],
         "match_inspector": [
             {
-                "verdicts": [
-                    {
-                        "previous_table_id": "prev_same",
-                        "current_table_id": "curr_same",
-                        "verdict": "confirmed",
-                        "shared_indicators": ["Ratio CET1"],
-                        "confidence": 0.99,
-                        "reason": "Identical indicator.",
-                    }
-                ]
+                "verdict": "confirmed",
+                "shared_indicators": ["Ratio CET1"],
+                "confidence": 0.99,
+                "reason": "Identical indicator.",
             },
         ],
         "diff_indicators": [
@@ -1457,16 +1390,12 @@ def test_compare_reports_gpt4o_runs_visual_sanity_for_footnote_only_diff(
             "visual_sanity_render_status": "ok",
         }
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
     monkeypatch.setattr(
         "vigilance.compare_gpt.render_visual_sanity_proof",
         fake_render_visual_sanity_proof,
     )
-    monkeypatch.setattr(
-        "vigilance.compare_gpt.visual_sanity_check", fake_visual_sanity_check
-    )
+    monkeypatch.setattr("vigilance.compare_gpt.visual_sanity_check", fake_visual_sanity_check)
 
     source_pdf_previous = tmp_path / "prev.pdf"
     source_pdf_current = tmp_path / "curr.pdf"
@@ -1590,9 +1519,7 @@ def test_compare_reports_gpt4o_filters_table_added_removed_with_visual_sanity(
             "visual_sanity_render_status": "ok",
         }
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
     monkeypatch.setattr(
         "vigilance.compare_gpt.render_visual_sanity_proof",
         fake_render_visual_sanity_proof,
@@ -1704,20 +1631,14 @@ def test_compare_reports_gpt4o_skips_table_visual_sanity_without_anchor(
         kind = kwargs["call_kind"]
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
     monkeypatch.setattr(
         "vigilance.compare_gpt.render_visual_sanity_proof",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("unexpected render")
-        ),
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected render")),
     )
     monkeypatch.setattr(
         "vigilance.compare_gpt.visual_sanity_check_table_event",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("unexpected sanity")
-        ),
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected sanity")),
     )
 
     source_pdf_previous = tmp_path / "prev.pdf"
@@ -1737,14 +1658,8 @@ def test_compare_reports_gpt4o_skips_table_visual_sanity_without_anchor(
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
     assert len(payload["matching"]["tables_added"]) == 1
     assert len(payload["matching"]["tables_removed"]) == 1
-    assert (
-        payload["matching"]["tables_added"][0]["visual_sanity_render_status"]
-        == "skipped_missing_anchor"
-    )
-    assert (
-        payload["matching"]["tables_removed"][0]["visual_sanity_render_status"]
-        == "skipped_missing_anchor"
-    )
+    assert payload["matching"]["tables_added"][0]["visual_sanity_render_status"] == "skipped_missing_anchor"
+    assert payload["matching"]["tables_removed"][0]["visual_sanity_render_status"] == "skipped_missing_anchor"
     assert "confirmed" not in payload["matching"]["tables_added"][0]
     assert "confirmed" not in payload["matching"]["tables_removed"][0]
 
@@ -1809,16 +1724,10 @@ def test_compare_reports_gpt4o_recomputes_table_level_change_after_noise_filter(
         ],
         "match_inspector": [
             {
-                "verdicts": [
-                    {
-                        "previous_table_id": "prev_same",
-                        "current_table_id": "curr_same",
-                        "verdict": "confirmed",
-                        "shared_indicators": ["Ratio CET1"],
-                        "confidence": 0.99,
-                        "reason": "Identical indicator.",
-                    }
-                ]
+                "verdict": "confirmed",
+                "shared_indicators": ["Ratio CET1"],
+                "confidence": 0.99,
+                "reason": "Identical indicator.",
             },
         ],
         "diff_indicators": [
@@ -1855,9 +1764,7 @@ def test_compare_reports_gpt4o_recomputes_table_level_change_after_noise_filter(
         kind = kwargs["call_kind"]
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
-    )
+    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1868,10 +1775,7 @@ def test_compare_reports_gpt4o_recomputes_table_level_change_after_noise_filter(
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
     assert payload["pair_comparisons"][0]["technical_diff"]["footnotes_renamed"] == []
-    assert (
-        payload["pair_comparisons"][0]["technical_diff"]["table_level_change"]
-        == "inchange"
-    )
+    assert payload["pair_comparisons"][0]["technical_diff"]["table_level_change"] == "inchange"
 
 
 def test_compare_reports_gpt4o_rejects_non_schema_7_tables_json(tmp_path: Path) -> None:

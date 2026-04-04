@@ -1,4 +1,4 @@
-"""Export and download callbacks: Excel, TXT, export tab rendering."""
+"""Callbacks d'export et de telechargement : Excel, TXT, rendu de l'onglet export."""
 
 from __future__ import annotations
 

@@ -1,7 +1,7 @@
-"""Review navigation, selection, and filtering helpers for Dash callbacks.
+"""Navigation, selection et filtrage de la revue pour les callbacks Dash.
 
-Extracted from dash_app/app.py. app.py re-exports all names from this module
-so that all existing monkeypatches (setattr on dash_app) continue to work.
+Extrait de ``dash_app/app.py``. ``app.py`` reexporte tous les noms de ce
+module afin que les monkey-patches existants continuent de fonctionner.
 """
 
 from __future__ import annotations
@@ -23,7 +23,17 @@ from vigilance.review_models_v2 import ChangeType
 def _build_kpi_card(
     title: str, value: str | int, delta_icon: str | None = None, color: str = "light"
 ) -> dbc.Card:
-    """Build a single KPI card for the analyst panel."""
+    """Construit une carte KPI individuelle pour le panneau analyste.
+
+    Args:
+        title: Libelle affiche au-dessus de la valeur.
+        value: Valeur principale du KPI (texte ou entier).
+        delta_icon: Icone optionnelle de variation.
+        color: Classe de couleur Bootstrap pour le fond de la carte.
+
+    Returns:
+        Composant ``dbc.Card`` representant la carte KPI.
+    """
     body_children = [
         html.P(title, className="text-muted mb-1 small"),
         html.H3(str(value), className="mb-0 fw-bold"),
@@ -37,7 +47,7 @@ def _build_kpi_card(
 
 
 def _format_duration(seconds: int | None) -> str:
-    """Format seconds as MM:SS."""
+    """Formate une duree en secondes sous la forme ``MM:SS``."""
     if seconds is None:
         return "--:--"
     mm = seconds // 60
@@ -46,10 +56,12 @@ def _format_duration(seconds: int | None) -> str:
 
 
 def _review_id(table: dict) -> str:
+    """Extrait l'identifiant de revue d'un tableau."""
     return str(table.get("review_id") or table.get("table_key") or "")
 
 
 def _table_matches_filters(table: dict, filters: dict | None) -> bool:
+    """Verifie si un tableau correspond aux filtres de section et de statut."""
     active_section = (filters or {}).get("section", "all")
     active_status = (filters or {}).get("status", "all")
     if active_section and active_section != "all":
@@ -62,6 +74,7 @@ def _table_matches_filters(table: dict, filters: dict | None) -> bool:
 
 
 def _visible_review_ids(queue: list[dict], filters: dict | None) -> list[str]:
+    """Retourne les identifiants de revue visibles apres application des filtres."""
     return [
         _review_id(table)
         for table in queue
@@ -72,6 +85,7 @@ def _visible_review_ids(queue: list[dict], filters: dict | None) -> list[str]:
 def _get_table_by_review_id(
     queue: list[dict], review_id: str | None
 ) -> tuple[int, dict | None]:
+    """Recherche un tableau par son identifiant de revue dans la file."""
     if not queue:
         return -1, None
     rid = str(review_id or "")
@@ -83,6 +97,7 @@ def _get_table_by_review_id(
 
 
 def _normalize_last_positions(data: dict | None) -> dict[str, str]:
+    """Normalise le dictionnaire des dernieres positions de selection."""
     if not isinstance(data, dict):
         return {}
 
@@ -99,6 +114,7 @@ def _remember_selection(
     last_positions: dict | None,
     selection: dict | None,
 ) -> dict[str, str]:
+    """Met a jour les dernieres positions avec la selection courante."""
     remembered = dict(_normalize_last_positions(last_positions))
     if not isinstance(selection, dict):
         return remembered
@@ -115,6 +131,7 @@ def _resolve_change_id(
     preferred_change_id: str | None = None,
     last_positions: dict | None = None,
 ) -> str | None:
+    """Resout l'identifiant du changement actif pour un tableau donne."""
     changes = table.get("changes", []) or []
     preferred = str(preferred_change_id or "")
     if preferred and any(str(c.get("change_id", "")) == preferred for c in changes):
@@ -143,6 +160,20 @@ def _resolve_selection(
     filters: dict | None = None,
     last_positions: dict | None = None,
 ) -> tuple[dict, int, int]:
+    """Resout la selection courante dans la file de revue.
+
+    Prend en compte les filtres actifs et les dernieres positions
+    memorisees pour determiner le tableau et le changement selectionnes.
+
+    Args:
+        queue: File de revue des tableaux.
+        selection: Selection courante (``review_id``, ``change_id``).
+        filters: Filtres actifs de section et de statut.
+        last_positions: Dernieres positions memorisees par tableau.
+
+    Returns:
+        Tuple ``(selection_resolue, index_tableau, index_changement)``.
+    """
     if not queue:
         return {"review_id": None, "change_id": None}, 0, 0
 
@@ -179,6 +210,7 @@ def _resolve_selection(
 
 
 def _display_label_from_v2(change_type: str) -> str:
+    """Convertit un type de changement V2 en libelle d'affichage legacy."""
     ctype = str(change_type or "")
     if ctype in (ChangeType.TABLE_ADDED.value, "table_added"):
         return CHANGE_TYPE_TABLE_ADDED
@@ -196,6 +228,7 @@ def _display_label_from_v2(change_type: str) -> str:
 
 
 def _selected_change_from_table(table: dict, selection: dict | None) -> dict | None:
+    """Retourne le changement selectionne dans un tableau ou le premier par defaut."""
     changes = table.get("changes", []) or []
     selected_change_id = str((selection or {}).get("change_id") or "")
     for change in changes:
@@ -209,6 +242,7 @@ def _effective_proof_display_mode(
     selection: dict | None,
     requested_mode: str | None,
 ) -> str:
+    """Determine le mode d'affichage effectif de la preuve selon le contexte."""
     mode = (requested_mode or "crop").strip().lower()
     if mode not in {"crop", "full", "footnote"}:
         mode = "crop"
@@ -230,6 +264,7 @@ def _effective_proof_display_mode(
 
 
 def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
+    """Convertit un tableau de la file de revue en dictionnaire compatible avec le rendu de preuve."""
     changes = table.get("changes", []) or []
     selected_change = _selected_change_from_table(table, selection)
     selected_change_type = (
@@ -282,6 +317,7 @@ def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
 
 
 def _table_decision_bucket(table: dict) -> str:
+    """Determine le statut global de decision d'un tableau (approved, rejected ou pending)."""
     changes = table.get("changes", []) or []
     if not changes:
         return "pending"

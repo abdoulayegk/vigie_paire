@@ -1,7 +1,7 @@
-"""Review state persistence helpers for Dash callbacks.
+"""Fonctions de persistence de l'etat de revue pour les callbacks Dash.
 
-Extracted from dash_app/app.py. app.py re-exports all names from this module
-so that all existing monkeypatches (setattr on dash_app) continue to work.
+Extrait de ``dash_app/app.py``. ``app.py`` reexporte tous les noms de ce
+module afin que les monkey-patches existants continuent de fonctionner.
 """
 
 from __future__ import annotations
@@ -24,7 +24,20 @@ def _persist_review_state(
     preferred_store: str = "review_queue",
     source: str = "dash",
 ) -> None:
-    """Persist review state next to the comparison JSON when possible."""
+    """Persiste l'etat de revue a cote du fichier JSON de comparaison si possible.
+
+    Args:
+        indicator_meta: Metadonnees de la comparaison active.
+        indicator_result: Resultat de comparaison (secours pour le chemin).
+        review_items: Elements de revue serialises (format legacy).
+        review_queue: File de revue V2.
+        review_selection: Selection courante de l'analyste.
+        review_current_idx: Index du tableau courant.
+        current_change_idx: Index du changement courant dans le tableau.
+        current_indicator_idx: Index de l'indicateur courant.
+        preferred_store: Nom du store de preference (``review_queue`` par defaut).
+        source: Origine de la sauvegarde (ex. ``dash``).
+    """
     compare_path = _comparison_path_from_meta(indicator_meta, indicator_result)
     if not compare_path:
         return
@@ -52,7 +65,15 @@ def _load_review_state_for_comparison(
     indicator_meta: dict | None,
     indicator_result: dict | None = None,
 ) -> dict | None:
-    """Load persisted review state for the active comparison when possible."""
+    """Charge l'etat de revue persiste pour la comparaison active si disponible.
+
+    Args:
+        indicator_meta: Metadonnees de la comparaison active.
+        indicator_result: Resultat de comparaison (secours pour le chemin).
+
+    Returns:
+        Dictionnaire d'etat de revue ou ``None`` si introuvable.
+    """
     compare_path = _comparison_path_from_meta(indicator_meta, indicator_result)
     if not compare_path:
         return None
@@ -61,7 +82,14 @@ def _load_review_state_for_comparison(
 
 
 def _stored_review_items_from_state(state: dict | None) -> list[dict] | None:
-    """Return persisted review items, rebuilding them from a saved queue if needed."""
+    """Retourne les elements de revue persistes, reconstruits depuis la file si necessaire.
+
+    Args:
+        state: Dictionnaire d'etat de revue charge depuis le disque.
+
+    Returns:
+        Liste de dictionnaires d'elements de revue ou ``None`` si indisponible.
+    """
     if not isinstance(state, dict):
         return None
 

@@ -1,4 +1,4 @@
-"""Dash orchestration for section-targeted extraction + GPT comparison."""
+"""Orchestration Dash pour l'extraction ciblee par section et la comparaison GPT."""
 
 from __future__ import annotations
 
@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 def _coerce_int(value: Any) -> int:
+    """Convertir une valeur en entier avec repli sur 0."""
     try:
         return int(value or 0)
     except (TypeError, ValueError):
@@ -41,6 +42,7 @@ def _coerce_int(value: Any) -> int:
 
 
 def _empty_extraction_metrics(*, mode: str) -> dict[str, Any]:
+    """Retourner un dictionnaire de metriques d'extraction avec des valeurs nulles."""
     return {
         "mode": mode,
         "runtime_sec": 0.0,
@@ -61,6 +63,7 @@ def _extract_metrics_from_tables(
     runtime_sec: float,
     mode: str,
 ) -> dict[str, Any]:
+    """Agreger les metriques d'extraction depuis les debug_metrics de chaque table."""
     metrics = _empty_extraction_metrics(mode=mode)
     metrics["runtime_sec"] = round(max(0.0, float(runtime_sec or 0.0)), 3)
     metrics["tables_total"] = len(tables)
@@ -95,11 +98,13 @@ def _extract_metrics_from_tables(
 
 
 def _quarter_label(quarter: str, year: int) -> str:
+    """Formater un libelle de trimestre lisible (ex. ``T2 2025``)."""
     code = normalize_quarter(quarter)
     return format_quarter_label(code, year)
 
 
 def _extract_year(value: Any) -> int | None:
+    """Extraire une annee (19xx ou 20xx) depuis une valeur textuelle."""
     text = str(value or "").strip()
     match = re.search(r"((?:19|20)\d{2})", text)
     if match:
@@ -108,6 +113,7 @@ def _extract_year(value: Any) -> int | None:
 
 
 def _build_section_ranges(sections: Any) -> list[dict[str, Any]]:
+    """Convertir une liste brute de sections en plages canoniques pour l'extraction."""
     ranges: list[dict[str, Any]] = []
     for entry in list(sections or []):
         if not isinstance(entry, dict):
@@ -125,6 +131,7 @@ def _build_section_ranges(sections: Any) -> list[dict[str, Any]]:
 
 
 def _artifact_paths(out_dir: Path) -> dict[str, Path]:
+    """Retourner les chemins canoniques des artefacts d'extraction."""
     return {
         "tables": out_dir / "tables.json",
         "indicators": out_dir / "indicators.json",
@@ -133,6 +140,7 @@ def _artifact_paths(out_dir: Path) -> dict[str, Path]:
 
 
 def _load_json(path: Path) -> dict[str, Any]:
+    """Charger et valider un fichier JSON en tant que dictionnaire."""
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise ValueError(f"JSON invalide: {path}")
@@ -140,6 +148,7 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 
 def _resolve_pdf_input_path(value: Any, *, label: str) -> str:
+    """Valider et resoudre un chemin PDF fourni par l'utilisateur."""
     raw = str(value or "").strip()
     if not raw:
         logger.warning(
@@ -170,6 +179,7 @@ def _extract_tables(
     use_stored_extraction_if_available: bool = False,
     return_provenance: bool = False,
 ) -> Any:
+    """Extraire les tableaux d'un rapport, avec support du cache stocke."""
     from vigilance.extraction.docling_processor import (
         extract_tables_docling_by_sections,
     )
@@ -260,6 +270,7 @@ def _empty_result(
     *,
     quarter_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """Construire un payload de comparaison vide avec un message explicatif."""
     payload = new_empty_ui_comparison_payload()
     payload["bank_code"] = str(bank_code).lower()
     payload["year"] = int(year)
@@ -323,7 +334,40 @@ def run_comparison_with_sections(
     use_stored_extraction_if_available: bool = False,
     **_: Any,
 ) -> dict[str, Any]:
-    """Extract validated sections, run GPT comparison, and return Dash canonical payload."""
+    """Extraire les sections validees, lancer la comparaison GPT et retourner le payload Dash canonique.
+
+    Point d'entree principal appele par l'interface Dash. Orchestre l'extraction
+    des deux rapports (precedent et courant), puis la comparaison GPT-4o, et
+    retourne un payload canonique pret pour l'affichage.
+
+    Args:
+        pdf_path_previous: Chemin du PDF du rapport precedent (alias de pdf_path_t1).
+        pdf_path_current: Chemin du PDF du rapport courant (alias de pdf_path_t2).
+        pdf_path_t1: Alias de pdf_path_previous.
+        pdf_path_t2: Alias de pdf_path_current.
+        bank_code: Code identifiant la banque (ex. ``rbc``).
+        sections_previous: Sections detectees pour le rapport precedent.
+        sections_current: Sections detectees pour le rapport courant.
+        sections_t1: Alias de sections_previous.
+        sections_t2: Alias de sections_current.
+        current_quarter: Trimestre courant (ex. ``T2``).
+        previous_quarter: Trimestre precedent (deduit automatiquement si absent).
+        current_year: Annee du rapport courant.
+        previous_year: Annee du rapport precedent.
+        use_genai: Activer les appels GenAI pour la comparaison.
+        api_key: Cle API OpenAI optionnelle.
+        use_vision_extraction: Forcer ou desactiver l'extraction Vision.
+        include_footnotes: Inclure les notes de bas de page dans la comparaison.
+        include_genai_classification: Activer la classification GenAI des changements.
+        use_stored_extraction_if_available: Reutiliser les artefacts stockes.
+
+    Returns:
+        Payload de comparaison canonique pour l'affichage Dash.
+
+    Raises:
+        RuntimeError: Si la cle API OpenAI est absente et use_genai est actif.
+        ValueError: Si les chemins PDF sont invalides ou les sections absentes.
+    """
     del include_footnotes, include_genai_classification
 
     path_previous = _resolve_pdf_input_path(

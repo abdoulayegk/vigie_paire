@@ -1,9 +1,9 @@
-"""Visual Sanity Check — final proof-render verification using GPT-4o Vision.
+"""Verification visuelle de coherence (Visual Sanity Check) via GPT-4o Vision.
 
-This module verifies already-computed comparison changes against the final proof
-renders used by the product: full-page images with the target table bbox
-highlighted. It acts as a conservative last-pass filter and removes only visual
-false positives.
+Ce module verifie les changements de comparaison deja calcules en les confrontant
+aux rendus finaux (epreuves) utilises par le produit : images pleine page avec la
+zone du tableau cible mise en evidence. Il agit comme un filtre conservateur de
+derniere passe et ne retire que les faux positifs visuels.
 """
 
 from __future__ import annotations
@@ -69,6 +69,7 @@ def _default_meta(
     rejected_count: int,
     render_status: str,
 ) -> dict[str, Any]:
+    """Construit le dictionnaire de metadonnees par defaut pour le controle visuel."""
     return {
         "visual_sanity_applied": applied,
         "visual_sanity_rejected_count": int(rejected_count),
@@ -84,11 +85,18 @@ def render_visual_sanity_proof(
     bbox: Any,
     scale: float = 1.5,
 ) -> tuple[bytes | None, str]:
-    """Render a final proof image for visual sanity checking.
+    """Genere une image d'epreuve finale pour le controle visuel de coherence.
 
-    Returns ``(image_bytes, status)`` where status is one of:
-    ``ok``, ``skipped_missing_pdf``, ``skipped_missing_bbox``, or
-    ``skipped_render_failed``.
+    Args:
+        pdf_path: Chemin vers le fichier PDF source. ``None`` si indisponible.
+        page: Numero ou reference de la page cible.
+        bbox: Coordonnees de la zone du tableau (bounding box).
+        scale: Facteur d'echelle pour le rendu.
+
+    Returns:
+        Tuple ``(image_bytes, status)`` ou *status* est l'un de :
+        ``ok``, ``skipped_missing_pdf``, ``skipped_missing_bbox`` ou
+        ``skipped_render_failed``.
     """
     raw, status, _ = render_full_proof_bytes(
         pdf_path,
@@ -107,11 +115,13 @@ def render_visual_sanity_proof(
 
 
 def _build_item_id(prefix: str, *parts: str) -> str:
+    """Construit un identifiant unique pour un element de verification."""
     clean = [str(part or "").strip() for part in parts]
     return prefix + "::" + " | ".join(clean)
 
 
 def _build_sanity_items_from_diff(technical_diff: dict[str, Any]) -> list[dict[str, Any]]:
+    """Extrait les elements a verifier visuellement depuis le diff technique."""
     items: list[dict[str, Any]] = []
 
     for entry in list(technical_diff.get("indicators_added", []) or []):
@@ -202,6 +212,7 @@ def _build_table_event_item(
     table_id: str,
     table_title: str,
 ) -> list[dict[str, Any]]:
+    """Construit l'element de verification pour un evenement tableau (ajout/suppression)."""
     normalized_type = str(event_type or "").strip().lower()
     if normalized_type not in {"table_added", "table_removed"}:
         return []
@@ -224,6 +235,7 @@ def _call_visual_sanity_llm(
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any] | None:
+    """Appelle le LLM Vision pour verifier les elements contre les epreuves."""
     pq_b64 = base64.standard_b64encode(previous_render_bytes).decode("ascii")
     cq_b64 = base64.standard_b64encode(current_render_bytes).decode("ascii")
     messages: list[dict[str, Any]] = [
@@ -273,6 +285,7 @@ def _call_visual_sanity_llm(
 
 
 def _rejected_item_ids(data: dict[str, Any] | None) -> set[str]:
+    """Extrait les identifiants des elements rejetes par le LLM."""
     rejected: set[str] = set()
     if not isinstance(data, dict):
         return rejected
@@ -296,7 +309,20 @@ def visual_sanity_check(
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Filter pair diff false positives using final proof renders."""
+    """Filtre les faux positifs du diff de paire en utilisant les epreuves finales.
+
+    Args:
+        previous_render_bytes: Image PNG du rendu du trimestre precedent.
+        current_render_bytes: Image PNG du rendu du trimestre courant.
+        diff_result: Resultat de comparaison contenant le ``technical_diff``.
+        model: Identifiant du modele OpenAI a utiliser.
+        call_openai_json: Fonction injectable pour les appels OpenAI.
+        usage_recorder: Liste optionnelle pour enregistrer la consommation API.
+
+    Returns:
+        Dictionnaire de resultat enrichi avec les metadonnees de verification
+        visuelle et le diff filtre.
+    """
     technical_diff = dict(diff_result.get("technical_diff", {}) or {})
     items = _build_sanity_items_from_diff(technical_diff)
     if not items:
@@ -426,7 +452,22 @@ def visual_sanity_check_table_event(
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Validate a standalone table-added/table-removed event."""
+    """Valide un evenement autonome d'ajout ou de suppression de tableau.
+
+    Args:
+        previous_render_bytes: Image PNG du rendu du trimestre precedent.
+        current_render_bytes: Image PNG du rendu du trimestre courant.
+        event_type: Type d'evenement (``table_added`` ou ``table_removed``).
+        table_id: Identifiant unique du tableau.
+        table_title: Titre du tableau.
+        model: Identifiant du modele OpenAI a utiliser.
+        call_openai_json: Fonction injectable pour les appels OpenAI.
+        usage_recorder: Liste optionnelle pour enregistrer la consommation API.
+
+    Returns:
+        Dictionnaire contenant ``confirmed`` (bool) et les metadonnees de
+        verification visuelle.
+    """
     items = _build_table_event_item(
         event_type=event_type,
         table_id=table_id,

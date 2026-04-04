@@ -1,4 +1,4 @@
-"""Dashboard rendering callbacks: results, KPIs, sections tab, table tab, init review items."""
+"""Callbacks de rendu du tableau de bord : resultats, KPIs, onglet sections, onglet tableau, initialisation des items de revue."""
 
 from __future__ import annotations
 
@@ -340,7 +340,7 @@ def render_results(comparison, indicator, show_results):
     Input("store-indicator-result", "data"),
 )
 def render_main_kpis(indicator_result):
-    """Render the main KPI cards."""
+    """Afficher les cartes KPI principales."""
     if not indicator_result:
         return (
             _build_kpi_card(t("kpi_matched"), 0),
@@ -372,7 +372,7 @@ def render_main_kpis(indicator_result):
     Input("store-validation-duration-sec", "data"),
 )
 def render_secondary_kpis(indicator_result, validation_duration_sec):
-    """Render the secondary KPI row with validation time."""
+    """Afficher la rangee de KPIs secondaires avec le temps de validation."""
     if not indicator_result:
         return (
             f"Differences d'indicateurs (0 {t('tables')} avec changements)",
@@ -422,7 +422,7 @@ def render_secondary_kpis(indicator_result, validation_duration_sec):
     prevent_initial_call=True,
 )
 def render_sections_tab(indicator_result, show_results):
-    """Render the section-based changes tab with accordion."""
+    """Afficher l'onglet des changements par section avec accordeon."""
     if not show_results:
         raise PreventUpdate
     from vigilance.dash_app.layouts.page_results import build_section_accordion_item
@@ -510,7 +510,7 @@ def render_sections_tab(indicator_result, show_results):
 def init_review_items(indicator_result, paths, indicator_meta):
     """Construire les ReviewItems depuis indicator_result pour la revue.
 
-    Also builds the V2 deduplicated review queue.
+    Construit egalement la file de revue V2 dedupliquee.
     """
     if not indicator_result:
         raise PreventUpdate

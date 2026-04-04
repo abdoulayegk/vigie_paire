@@ -1,4 +1,4 @@
-"""Proof display, review meta, and progress banner callbacks."""
+"""Callbacks d'affichage des preuves, metadonnees de revue et banniere de progression."""
 
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 def update_review_proofs(
     review_queue_data, selection, paths, show_results, proof_display_mode
 ):
-    """Update proof images section only (table-scoped; stable across indicator navigation)."""
+    """Mettre a jour la section des preuves visuelles (portee tableau ; stable lors de la navigation entre indicateurs)."""
     if not show_results:
         raise PreventUpdate
     if not review_queue_data:
@@ -95,9 +95,11 @@ def update_review_proofs(
         }
 
         def _extended_bbox(bbox: list[float]) -> list[float]:
+            """Etendre la bbox vers le bas pour couvrir les notes de bas de tableau."""
             return [bbox[0], bbox[1], bbox[2], min(1.0, bbox[3] + 0.25)]
 
         def _texts_for_change(change: dict) -> tuple[str, str]:
+            """Extraire les textes de recherche T1/T2 depuis un changement."""
             payload = change.get("payload") or {}
             ct = str(change.get("change_type", "") or "")
             if ct in ("indicator_renamed", "INDICATOR_RENAMED"):
@@ -195,7 +197,7 @@ def update_review_proofs(
     prevent_initial_call=True,
 )
 def update_review_meta(review_queue_data, selection, show_results):
-    """Update V2 metadata + per-change validation section."""
+    """Mettre a jour les metadonnees V2 et la section de validation par changement."""
     if not show_results:
         raise PreventUpdate
     if not review_queue_data:
@@ -231,7 +233,7 @@ def update_review_meta(review_queue_data, selection, show_results):
     prevent_initial_call=True,
 )
 def update_progress_banner(review_queue_data, show_results, indicator_meta):
-    """Render global progress banner above proof images."""
+    """Afficher la banniere de progression globale au-dessus des preuves visuelles."""
     if not show_results:
         return html.Div()
     if not review_queue_data:

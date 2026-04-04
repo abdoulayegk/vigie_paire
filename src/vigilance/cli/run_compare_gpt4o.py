@@ -1,4 +1,4 @@
-"""CLI entrypoint for GPT-4o comparison on canonical extraction artifacts."""
+"""Point d'entree CLI pour la comparaison GPT-4o sur les artefacts d'extraction canoniques."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ DEFAULT_OUT_ROOT = "outputs/comparisons"
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Construire le parseur d'arguments pour la comparaison GPT-4o."""
     parser = argparse.ArgumentParser(
         description="Compare two extracted reports with GPT-4o using canonical tables.json artifacts."
     )
@@ -48,6 +49,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Executer la comparaison GPT-4o entre deux repertoires d'extraction."""
     parser = build_parser()
     args = parser.parse_args(argv)
 

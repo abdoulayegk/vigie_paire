@@ -10,7 +10,15 @@ from vigilance.ui_config import AVAILABLE_BANKS
 
 
 def build_sidebar() -> dbc.Col:
-    """Construire la sidebar de configuration."""
+    """Construit la barre laterale de configuration de l'analyse.
+
+    La sidebar contient les champs de contexte analyste (nom, banque, annee,
+    trimestre), le selecteur de source de donnees (analyse enregistree ou
+    telechargement PDF) et les options avancees.
+
+    Returns:
+        Composant ``dbc.Col`` representant la barre laterale complete.
+    """
     bank_options = [
         {"label": f"{k.upper()} - {v}", "value": k} for k, v in AVAILABLE_BANKS.items()
     ]

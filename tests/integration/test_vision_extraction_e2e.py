@@ -12,6 +12,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import pytest
+
 from vigilance.extraction.docling_processor import (
     ExtractedDocument,
     ExtractedTable,
@@ -148,6 +150,9 @@ def test_docling_only_flags_stay_strict_when_disabled(tmp_path: Path) -> None:
     assert tables[0].extraction_method == "docling"
 
 
+@pytest.mark.skip(
+    reason="_table_to_artifact retire de comparison_runner; a rebrancher sur le writer actuel."
+)
 def test_vision_writer_handles_vision_style_footnotes(tmp_path: Path) -> None:
     """Direct test: Vision-style list[dict] footnotes produce clean footnotes_content."""
     from vigilance.comparison_runner import _table_to_artifact

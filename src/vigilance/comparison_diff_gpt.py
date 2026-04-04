@@ -1,10 +1,11 @@
-"""GPT-backed semantic diff for already-matched canonical financial tables."""
+"""Diff semantique via GPT pour des tableaux financiers canoniques deja apparies."""
 
 from __future__ import annotations
 
 import json
 import logging
 import re
+import unicodedata
 from typing import Any, Callable
 
 from vigilance.models.comparison_models import (
@@ -148,6 +149,7 @@ Output must be valid JSON following the response_schema.
 
 
 def _normalize_footnotes(raw: Any) -> list[dict[str, str]]:
+    """Normalise une liste brute de notes de bas de page en dicts ``{id, text}``."""
     if not isinstance(raw, list):
         return []
     normalized: list[dict[str, str]] = []
@@ -162,19 +164,16 @@ def _normalize_footnotes(raw: Any) -> list[dict[str, str]]:
     return normalized
 
 
-
 # ---------------------------------------------------------------------------
 # Deterministic diff helpers (safety net)
 # ---------------------------------------------------------------------------
 
 _FOOTNOTE_MARKER_RE = re.compile(r"\s*[\(\[]\d{1,2}[\)\]]\s*")
-_SUPERSCRIPT_DIGITS = str.maketrans(
-    "", "", "\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079\u2070"
-)
+_SUPERSCRIPT_DIGITS = str.maketrans("", "", "\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079\u2070")
 
 
 def _normalize_indicator_text(name: str) -> str:
-    """Normalise an indicator name for deterministic set comparison."""
+    """Normalise un nom d'indicateur pour la comparaison deterministe par ensemble."""
     text = str(name or "").strip()
     text = _FOOTNOTE_MARKER_RE.sub("", text)
     text = text.translate(_SUPERSCRIPT_DIGITS)
@@ -183,7 +182,7 @@ def _normalize_indicator_text(name: str) -> str:
 
 
 def _token_overlap_ratio(a: str, b: str) -> float:
-    """Return Jaccard-like token overlap ratio between two normalised strings."""
+    """Retourne le ratio de chevauchement de tokens (type Jaccard) entre deux chaines normalisees."""
     tokens_a = set(a.split())
     tokens_b = set(b.split())
     if not tokens_a or not tokens_b:
@@ -199,7 +198,7 @@ def _deterministic_indicator_diff(
     *,
     fuzzy_threshold: float = 0.80,
 ) -> dict[str, Any]:
-    """Compute set-based indicator diff before GPT call."""
+    """Calcule le diff d'indicateurs par ensemble avant l'appel GPT."""
     prev_norm = {_normalize_indicator_text(ind): ind for ind in prev_indicators}
     curr_norm = {_normalize_indicator_text(ind): ind for ind in curr_indicators}
 
@@ -224,9 +223,7 @@ def _deterministic_indicator_diff(
                 best_score = score
                 best_ckey = ckey
         if best_score >= fuzzy_threshold and best_ckey:
-            det_renamed.append(
-                {"previous": prev_norm[pkey], "current": curr_norm[best_ckey]}
-            )
+            det_renamed.append({"previous": prev_norm[pkey], "current": curr_norm[best_ckey]})
             matched_prev.add(pkey)
             matched_curr.add(best_ckey)
 
@@ -251,7 +248,7 @@ _PAGE_REF_RE_DET = re.compile(r"pages?\s+\d+\s*[àa]\s*\d+", re.IGNORECASE)
 
 
 def _normalize_footnote_text(text: str) -> str:
-    """Normalise footnote text for deterministic comparison (strip dates/pages/whitespace)."""
+    """Normalise le texte d'une note de bas de page pour comparaison deterministe (retire dates/pages/espaces)."""
     text = str(text or "").strip()
     text = _DATE_QUARTER_RE.sub("__DATE__", text)
     text = _PAGE_REF_RE_DET.sub("__PAGE__", text)
@@ -263,7 +260,7 @@ def _deterministic_footnote_diff(
     prev_footnotes: list[dict[str, str]],
     curr_footnotes: list[dict[str, str]],
 ) -> dict[str, Any]:
-    """Compute set-based footnote diff before GPT call."""
+    """Calcule le diff de notes de bas de page par ensemble avant l'appel GPT."""
     prev_by_id: dict[str, dict[str, str]] = {}
     for fn in prev_footnotes:
         fid = str(fn.get("id", "") or "").strip()
@@ -328,6 +325,7 @@ def _deterministic_footnote_diff(
 
 
 def _table_context(entry: dict[str, Any]) -> dict[str, Any]:
+    """Extrait le contexte normalise d'un tableau pour les prompts GPT."""
     indicators = list(entry.get("indicators", []) or [])
     return {
         "table_id": str(entry.get("table_id", "") or ""),
@@ -336,14 +334,8 @@ def _table_context(entry: dict[str, Any]) -> dict[str, Any]:
         "table_summary": str(entry.get("table_summary", "") or ""),
         "page": entry.get("page"),
         "row_count": int(entry.get("row_count", len(indicators)) or 0),
-        "headers": [
-            str(value).strip()
-            for value in list(entry.get("headers", []) or [])
-            if str(value).strip()
-        ],
-        "indicators": [
-            str(value).strip() for value in indicators if str(value).strip()
-        ],
+        "headers": [str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
+        "indicators": [unicodedata.normalize("NFC", str(value).strip()) for value in indicators if str(value).strip()],
         "footnotes": _normalize_footnotes(entry.get("footnotes", [])),
     }
 
@@ -360,6 +352,25 @@ def _call_validated_diff_json(
     max_validation_attempts: int,
     response_model: type | None = None,
 ) -> dict[str, Any]:
+    """Appelle GPT et valide que la reponse contient les champs liste requis, avec re-essais.
+
+    Args:
+        system_prompt: Prompt systeme a envoyer a GPT.
+        prompt: Corps du prompt utilisateur (serialise en JSON).
+        required_list_fields: Noms des champs qui doivent etre des listes dans la reponse.
+        model: Identifiant du modele OpenAI.
+        call_kind: Etiquette pour le suivi d'utilisation.
+        call_openai_json: Fonction injectee pour l'appel OpenAI.
+        usage_recorder: Accumulateur optionnel de metriques d'utilisation.
+        max_validation_attempts: Nombre maximal de tentatives de validation.
+        response_model: Modele Pydantic optionnel pour la validation structuree.
+
+    Returns:
+        Dictionnaire JSON valide retourne par GPT.
+
+    Raises:
+        RuntimeError: Si la reponse reste structurellement invalide apres les re-essais.
+    """
     validation_feedback = ""
     data: dict[str, Any] | None = None
     for attempt in range(max_validation_attempts):
@@ -384,14 +395,9 @@ def _call_validated_diff_json(
         )
         if all(isinstance(data.get(field, []), list) for field in required_list_fields):
             return data
-        validation_feedback = (
-            "Diff response must contain list-valued fields for: "
-            + ", ".join(required_list_fields)
-        )
+        validation_feedback = "Diff response must contain list-valued fields for: " + ", ".join(required_list_fields)
         if attempt + 1 >= max_validation_attempts:
-            raise RuntimeError(
-                f"GPT {call_kind} output remained structurally invalid after retries."
-            )
+            raise RuntimeError(f"GPT {call_kind} output remained structurally invalid after retries.")
     raise RuntimeError("Unreachable diff validation loop")
 
 
@@ -404,6 +410,23 @@ def diff_indicators_pair_gpt(
     usage_recorder: list[dict[str, Any]] | None = None,
     max_validation_attempts: int = 3,
 ) -> dict[str, Any]:
+    """Compare les indicateurs de deux tableaux apparies via GPT.
+
+    Effectue un pre-diff deterministe puis envoie le contexte a GPT pour
+    une analyse semantique des ajouts, suppressions et renommages d'indicateurs.
+
+    Args:
+        previous_table: Tableau du trimestre precedent.
+        current_table: Tableau du trimestre courant.
+        model: Identifiant du modele OpenAI.
+        call_openai_json: Fonction injectee pour l'appel OpenAI.
+        usage_recorder: Accumulateur optionnel de metriques d'utilisation.
+        max_validation_attempts: Nombre maximal de tentatives de validation.
+
+    Returns:
+        Dictionnaire contenant les listes ``indicators_added``,
+        ``indicators_removed``, ``indicators_renamed`` et ``reason``.
+    """
     prev_ctx = _table_context(previous_table)
     curr_ctx = _table_context(current_table)
 
@@ -419,8 +442,7 @@ def diff_indicators_pair_gpt(
                 "mechanically_absent_from_current": det_diff["det_removed"],
                 "mechanically_absent_from_previous": det_diff["det_added"],
                 "potential_renames_by_similarity": [
-                    {"previous": r["previous"], "current": r["current"]}
-                    for r in det_diff["det_renamed"]
+                    {"previous": r["previous"], "current": r["current"]} for r in det_diff["det_renamed"]
                 ],
             }
         }
@@ -444,9 +466,7 @@ def diff_indicators_pair_gpt(
         )
 
     prompt: dict[str, Any] = {
-        "task": (
-            "Compare two already-matched banking tables and report only meaningful semantic indicator changes."
-        ),
+        "task": ("Compare two already-matched banking tables and report only meaningful semantic indicator changes."),
         "rules": rules,
         "response_schema": {
             "indicators_added": [
@@ -482,12 +502,8 @@ def diff_indicators_pair_gpt(
             ],
             "reason": "string",
         },
-        "previous_table": {
-            key: value for key, value in prev_ctx.items() if key != "footnotes"
-        },
-        "current_table": {
-            key: value for key, value in curr_ctx.items() if key != "footnotes"
-        },
+        "previous_table": {key: value for key, value in prev_ctx.items() if key != "footnotes"},
+        "current_table": {key: value for key, value in curr_ctx.items() if key != "footnotes"},
     }
     if det_hints:
         prompt.update(det_hints)
@@ -525,6 +541,24 @@ def diff_footnotes_pair_gpt(
     usage_recorder: list[dict[str, Any]] | None = None,
     max_validation_attempts: int = 3,
 ) -> dict[str, Any]:
+    """Compare les notes de bas de page de deux tableaux apparies via GPT.
+
+    Gere les cas triviaux (aucune note, notes uniquement dans un trimestre)
+    de facon deterministe et delegue les cas complexes a GPT.
+
+    Args:
+        previous_table: Tableau du trimestre precedent.
+        current_table: Tableau du trimestre courant.
+        indicator_diff: Resultat du diff d'indicateurs (pour contexte).
+        model: Identifiant du modele OpenAI.
+        call_openai_json: Fonction injectee pour l'appel OpenAI.
+        usage_recorder: Accumulateur optionnel de metriques d'utilisation.
+        max_validation_attempts: Nombre maximal de tentatives de validation.
+
+    Returns:
+        Dictionnaire contenant les listes ``footnotes_added``,
+        ``footnotes_removed``, ``footnotes_renamed`` et ``reason``.
+    """
     previous_footnotes = _normalize_footnotes(previous_table.get("footnotes", []))
     current_footnotes = _normalize_footnotes(current_table.get("footnotes", []))
 
@@ -577,20 +611,14 @@ def diff_footnotes_pair_gpt(
     # --- Deterministic footnote pre-diff (safety net) ---
     det_fn_diff = _deterministic_footnote_diff(previous_footnotes, current_footnotes)
     det_fn_hints: dict[str, Any] = {}
-    if (
-        det_fn_diff["det_added"]
-        or det_fn_diff["det_removed"]
-        or det_fn_diff["det_modified"]
-    ):
+    if det_fn_diff["det_added"] or det_fn_diff["det_removed"] or det_fn_diff["det_modified"]:
         det_fn_hints = {
             "deterministic_footnote_analysis": {
                 "footnotes_only_in_current": [
-                    {"id": fn.get("id", ""), "text": fn.get("text", "")}
-                    for fn in det_fn_diff["det_added"]
+                    {"id": fn.get("id", ""), "text": fn.get("text", "")} for fn in det_fn_diff["det_added"]
                 ],
                 "footnotes_only_in_previous": [
-                    {"id": fn.get("id", ""), "text": fn.get("text", "")}
-                    for fn in det_fn_diff["det_removed"]
+                    {"id": fn.get("id", ""), "text": fn.get("text", "")} for fn in det_fn_diff["det_removed"]
                 ],
                 "footnotes_with_text_changes": [
                     {
@@ -666,12 +694,8 @@ def diff_footnotes_pair_gpt(
         "examples": [
             {
                 "description": "Pure footnote renumbering should not produce a published change.",
-                "previous_footnotes": [
-                    {"id": "7", "text": "Comprennent les engagements de la Banque."}
-                ],
-                "current_footnotes": [
-                    {"id": "8", "text": "Comprennent les engagements de la Banque."}
-                ],
+                "previous_footnotes": [{"id": "7", "text": "Comprennent les engagements de la Banque."}],
+                "current_footnotes": [{"id": "8", "text": "Comprennent les engagements de la Banque."}],
                 "expected_output": {
                     "footnotes_added": [],
                     "footnotes_removed": [],
@@ -680,9 +704,7 @@ def diff_footnotes_pair_gpt(
             },
             {
                 "description": "Material semantic wording update should be exposed as footnotes_renamed.",
-                "previous_footnotes": [
-                    {"id": "7", "text": "Comprennent les engagements de la Banque."}
-                ],
+                "previous_footnotes": [{"id": "7", "text": "Comprennent les engagements de la Banque."}],
                 "current_footnotes": [
                     {
                         "id": "8",
@@ -758,10 +780,10 @@ def _inspect_diff_artifacts_gpt(
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Use a GPT Inspector call to filter extraction artifacts from indicator diff.
+    """Filtre les artefacts d'extraction du diff d'indicateurs via un appel GPT Inspector.
 
-    Returns a cleaned indicator_diff with artifacts removed and artifact pairs
-    optionally promoted to renames.
+    Returns:
+        Copie nettoyee de *indicator_diff* dont les artefacts ont ete retires.
     """
     added = list(indicator_diff.get("indicators_added", []) or [])
     removed = list(indicator_diff.get("indicators_removed", []) or [])
@@ -800,9 +822,7 @@ def _inspect_diff_artifacts_gpt(
                     "reason": "string",
                 }
             ],
-            "artifact_pairs": [
-                {"removed": "string", "added": "string", "reason": "string"}
-            ],
+            "artifact_pairs": [{"removed": "string", "added": "string", "reason": "string"}],
         },
         "added_indicators": [item.get("value", "") for item in added],
         "removed_indicators": [item.get("value", "") for item in removed],
@@ -820,8 +840,7 @@ def _inspect_diff_artifacts_gpt(
     renamed = list(indicator_diff.get("indicators_renamed", []) or [])
     if renamed:
         prompt["already_renamed"] = [
-            {"previous": r.get("previous", ""), "current": r.get("current", "")}
-            for r in renamed
+            {"previous": r.get("previous", ""), "current": r.get("current", "")} for r in renamed
         ]
 
     data = call_openai_json(
@@ -839,27 +858,21 @@ def _inspect_diff_artifacts_gpt(
     )
 
     # --- Parse verdicts and filter ---
-    artifact_added = {
-        v["value"] for v in data["added_verdicts"] if v["verdict"].lower() == "artifact"
-    }
-    artifact_removed = {
-        v["value"] for v in data["removed_verdicts"] if v["verdict"].lower() == "artifact"
-    }
+    try:
+        artifact_added = {
+            v["value"] for v in data.get("added_verdicts", []) if v.get("verdict", "").lower() == "artifact"
+        }
+        artifact_removed = {
+            v["value"] for v in data.get("removed_verdicts", []) if v.get("verdict", "").lower() == "artifact"
+        }
+    except (KeyError, TypeError, AttributeError):
+        logger.warning("Inspector returned malformed response — skipping artifact filtering.")
+        return indicator_diff
 
-    filtered_added = [
-        item
-        for item in added
-        if str(item.get("value", "")).strip() not in artifact_added
-    ]
-    filtered_removed = [
-        item
-        for item in removed
-        if str(item.get("value", "")).strip() not in artifact_removed
-    ]
+    filtered_added = [item for item in added if str(item.get("value", "")).strip() not in artifact_added]
+    filtered_removed = [item for item in removed if str(item.get("value", "")).strip() not in artifact_removed]
 
-    n_filtered = (len(added) - len(filtered_added)) + (
-        len(removed) - len(filtered_removed)
-    )
+    n_filtered = (len(added) - len(filtered_added)) + (len(removed) - len(filtered_removed))
     if n_filtered:
         logger.info(
             "Inspector filtered %d artifact(s) from indicator diff.",
@@ -880,6 +893,7 @@ def _compose_pair_reason(
     has_indicator_changes: bool,
     has_footnote_changes: bool,
 ) -> str:
+    """Compose la raison globale d'une paire a partir des raisons indicateurs et notes."""
     indicator_reason = str(indicator_reason or "").strip()
     footnote_reason = str(footnote_reason or "").strip()
     if has_indicator_changes and has_footnote_changes:
@@ -890,15 +904,9 @@ def _compose_pair_reason(
             return " ".join(parts)
         return "Des changements sémantiques ont été détectés sur les indicateurs et les notes de bas de page."
     if has_indicator_changes:
-        return (
-            indicator_reason
-            or "Des changements sémantiques ont été détectés sur les indicateurs."
-        )
+        return indicator_reason or "Des changements sémantiques ont été détectés sur les indicateurs."
     if has_footnote_changes:
-        return (
-            footnote_reason
-            or "Des changements sémantiques ont été détectés sur les notes de bas de page."
-        )
+        return footnote_reason or "Des changements sémantiques ont été détectés sur les notes de bas de page."
     return indicator_reason or footnote_reason or "Aucun changement sémantique détecté."
 
 
@@ -911,6 +919,23 @@ def diff_table_pair_gpt(
     usage_recorder: list[dict[str, Any]] | None = None,
     max_validation_attempts: int = 3,
 ) -> dict[str, Any]:
+    """Orchestre le diff complet (indicateurs + notes + inspection) d'une paire de tableaux.
+
+    Enchaine le diff d'indicateurs, le diff de notes de bas de page et
+    l'inspection des artefacts pour produire le ``technical_diff`` final.
+
+    Args:
+        previous_table: Tableau du trimestre precedent.
+        current_table: Tableau du trimestre courant.
+        model: Identifiant du modele OpenAI.
+        call_openai_json: Fonction injectee pour l'appel OpenAI.
+        usage_recorder: Accumulateur optionnel de metriques d'utilisation.
+        max_validation_attempts: Nombre maximal de tentatives de validation.
+
+    Returns:
+        Dictionnaire contenant ``technical_diff``, ``reason``, ``diff_mode``
+        et ``diff_calls_total``.
+    """
     indicator_diff = diff_indicators_pair_gpt(
         previous_table,
         current_table,
@@ -980,7 +1005,5 @@ def diff_table_pair_gpt(
         "technical_diff": technical_diff,
         "reason": reason,
         "diff_mode": "gpt",
-        "diff_calls_total": (
-            (2 if footnote_gpt_called else 1) + (1 if inspector_called else 0)
-        ),
+        "diff_calls_total": ((2 if footnote_gpt_called else 1) + (1 if inspector_called else 0)),
     }

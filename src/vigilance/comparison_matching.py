@@ -1,12 +1,13 @@
-"""Two-stage matching subsystem for the comparison pipeline.
+"""Sous-systeme d'appariement en deux etapes pour le pipeline de comparaison.
 
-Extracted from compare_gpt.py. compare_gpt.py re-exports all names from this module
-so that all existing imports remain valid.
+Extrait de compare_gpt.py. compare_gpt.py re-exporte tous les noms de ce module
+afin que les imports existants restent valides.
 
-Key design: _run_matching_stage, _match_tables, and _run_table_matching receive
-`call_openai_json` as an injected callable. This preserves monkeypatch compatibility
-— tests patch "vigilance.compare_gpt._call_openai_json", and compare_reports_gpt4o()
-passes that name from its own namespace at call time.
+Conception cle : _run_matching_stage, _match_tables et _run_table_matching
+recoivent ``call_openai_json`` comme callable injecte. Cela preserve la
+compatibilite avec monkeypatch -- les tests patchent
+"vigilance.compare_gpt._call_openai_json", et compare_reports_gpt4o() passe
+ce nom depuis son propre namespace au moment de l'appel.
 """
 
 from __future__ import annotations
@@ -140,6 +141,8 @@ Output must be valid JSON following the response_schema.
 
 
 class MatchedPair(TypedDict):
+    """Paire de tableaux apparies entre le trimestre precedent et le trimestre courant."""
+
     previous_table_id: str
     current_table_id: str
     match_confidence: float
@@ -147,6 +150,8 @@ class MatchedPair(TypedDict):
 
 
 class MatchingResult(TypedDict):
+    """Resultat complet du processus d'appariement des tableaux."""
+
     executed: bool
     matched_pairs: list[MatchedPair]
     tables_added: list[dict[str, str]]
@@ -161,6 +166,8 @@ class MatchingResult(TypedDict):
 
 
 class _MatchingValidationError(ValueError):
+    """Erreur de validation structurelle de la reponse d'appariement du LLM."""
+
     def __init__(
         self,
         message: str,
@@ -179,6 +186,7 @@ class _MatchingValidationError(ValueError):
 
 
 def _normalize_matching_warnings(items: Any) -> list[str]:
+    """Filtre et normalise une liste brute d'avertissements d'appariement."""
     if not isinstance(items, list):
         return []
     out: list[str] = []
@@ -193,6 +201,7 @@ def _sort_matched_pairs(
     pairs: list[dict[str, Any]],
     previous_cards: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
+    """Trie les paires appariees selon l'ordre d'apparition des tableaux precedents."""
     order = {
         str(card.get("table_id", "") or ""): index
         for index, card in enumerate(previous_cards)
@@ -215,6 +224,27 @@ def _normalize_matching_response(
     allowed_decisions: set[str],
     consumed_previous_ids: set[str] | None = None,
 ) -> dict[str, Any]:
+    """Valide et normalise la reponse JSON brute du LLM pour l'appariement.
+
+    Verifie les contraintes d'unicite, les identifiants valides et la
+    couverture complete des tableaux courants. Leve ``_MatchingValidationError``
+    en cas de violation.
+
+    Args:
+        data: Reponse JSON brute du LLM contenant ``current_table_decisions``.
+        previous_ids: Ensemble des identifiants de tableaux du trimestre precedent.
+        current_ids: Ensemble des identifiants de tableaux du trimestre courant.
+        allowed_decisions: Decisions autorisees (ex. ``{"matched", "unresolved"}``).
+        consumed_previous_ids: Identifiants precedents deja consommes par une
+            etape anterieure.
+
+    Returns:
+        Dictionnaire normalise avec ``current_table_decisions``, ``warnings``
+        et metriques de doublons/deduplication.
+
+    Raises:
+        _MatchingValidationError: Si la reponse viole les contraintes structurelles.
+    """
     current_table_decisions: list[dict[str, Any]] = []
     used_previous: set[str] = set()
     used_current: set[str] = set()
@@ -317,6 +347,7 @@ def _normalize_matching_response(
 def _matching_decisions_to_pairs(
     decisions: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
+    """Extrait les paires appariees depuis la liste des decisions d'appariement."""
     out: list[dict[str, Any]] = []
     for item in decisions:
         if item.get("decision") != "matched":
@@ -337,6 +368,7 @@ def _matching_decisions_to_table_refs(
     *,
     decision: str,
 ) -> list[dict[str, str]]:
+    """Extrait les references de tableaux pour un type de decision donne."""
     out: list[dict[str, str]] = []
     for item in decisions:
         if item.get("decision") != decision:
@@ -354,6 +386,7 @@ def _empty_matching_result(
     *,
     tables_removed: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
+    """Construit un resultat d'appariement vide avec toutes les metriques a zero."""
     return {
         "executed": False,
         "matched_pairs": [],
@@ -390,6 +423,21 @@ def _build_matching_stage_prompt(
     allowed_decisions: set[str],
     validation_feedback: str,
 ) -> dict[str, Any]:
+    """Construit le prompt utilisateur JSON pour une etape d'appariement.
+
+    Args:
+        stage: Etape d'appariement (``"primary"`` ou ``"recovery"``).
+        previous_cards: Fiches des tableaux du trimestre precedent.
+        current_cards: Fiches des tableaux du trimestre courant.
+        current_ids: Identifiants des tableaux courants.
+        previous_ids: Identifiants des tableaux precedents.
+        allowed_decisions: Decisions autorisees pour cette etape.
+        validation_feedback: Retour de validation a inclure si la tentative
+            precedente a echoue.
+
+    Returns:
+        Dictionnaire JSON representant le prompt utilisateur complet.
+    """
     decision_values = sorted(allowed_decisions)
     response_item: dict[str, Any] = {
         "current_table_id": "string",
@@ -466,6 +514,29 @@ def _run_matching_stage(
     usage_recorder: list[dict[str, Any]] | None = None,
     consumed_previous_ids: set[str] | None = None,
 ) -> dict[str, Any]:
+    """Execute une etape d'appariement (primaire ou recuperation) avec validation.
+
+    Appelle le LLM via ``call_openai_json`` et valide la reponse. En cas
+    d'echec de validation, re-essaie jusqu'a ``_MATCHING_VALIDATION_ATTEMPTS``
+    fois en injectant le retour d'erreur dans le prompt.
+
+    Args:
+        previous_cards: Fiches des tableaux du trimestre precedent.
+        current_cards: Fiches des tableaux du trimestre courant.
+        stage: Etape d'appariement (``"primary"`` ou ``"recovery"``).
+        allowed_decisions: Decisions autorisees pour cette etape.
+        model: Identifiant du modele OpenAI a utiliser.
+        call_openai_json: Callable injecte pour appeler l'API OpenAI.
+        usage_recorder: Liste optionnelle pour enregistrer les metriques d'utilisation.
+        consumed_previous_ids: Identifiants precedents deja consommes.
+
+    Returns:
+        Dictionnaire normalise contenant les decisions, avertissements et
+        metriques de validation.
+
+    Raises:
+        RuntimeError: Si la reponse reste invalide apres toutes les tentatives.
+    """
     previous_ids = {card["table_id"] for card in previous_cards}
     current_ids = {card["table_id"] for card in current_cards}
     system_prompt = (
@@ -539,6 +610,23 @@ def _match_tables(
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    """Orchestre l'appariement complet en deux etapes avec inspection intermediaire.
+
+    Etape 1 (primaire) : appariement strict precision-first.
+    Etape 1.5 : inspection GenAI des paires appariees (rejet des faux positifs).
+    Etape 2 (recuperation) : resolution des tableaux non resolus restants.
+
+    Args:
+        previous_cards: Fiches des tableaux du trimestre precedent.
+        current_cards: Fiches des tableaux du trimestre courant.
+        model: Identifiant du modele OpenAI a utiliser.
+        call_openai_json: Callable injecte pour appeler l'API OpenAI.
+        usage_recorder: Liste optionnelle pour enregistrer les metriques d'utilisation.
+
+    Returns:
+        Dictionnaire contenant les paires appariees, tableaux ajoutes/supprimes,
+        avertissements et metriques detaillees des deux etapes.
+    """
     if not previous_cards and not current_cards:
         return _empty_matching_result()
 
@@ -716,6 +804,22 @@ def _run_table_matching(
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    """Point d'entree principal de l'appariement des tableaux.
+
+    Appelle ``_match_tables`` puis trie les paires et structure le resultat
+    final avec toutes les metriques de suivi.
+
+    Args:
+        previous_cards: Fiches des tableaux du trimestre precedent.
+        current_cards: Fiches des tableaux du trimestre courant.
+        model: Identifiant du modele OpenAI a utiliser.
+        call_openai_json: Callable injecte pour appeler l'API OpenAI.
+        usage_recorder: Liste optionnelle pour enregistrer les metriques d'utilisation.
+
+    Returns:
+        Dictionnaire structure contenant ``matched_pairs``, ``tables_added``,
+        ``tables_removed``, ``warnings`` et toutes les metriques de suivi.
+    """
     result = _match_tables(
         previous_cards,
         current_cards,

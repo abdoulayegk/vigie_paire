@@ -1,4 +1,8 @@
-"""Debug sidecar writer for extraction metrics. Does not affect pipeline or comparison output."""
+"""Ecrivain JSON de metriques de debogage pour l'extraction.
+
+Produit un fichier sidecar sous ``outputs/debug_extractions/`` sans
+affecter le pipeline principal ni les sorties de comparaison.
+"""
 
 from __future__ import annotations
 
@@ -18,17 +22,26 @@ def write_extraction_debug(
     year: int,
     tables: list[Any],
 ) -> Path | None:
-    """
-    Write extraction debug JSON to outputs/debug_extractions/.
-    Only runs if ENABLE_EXTRACTION_DEBUG=1. Otherwise returns None immediately.
+    """Ecrire le JSON de debogage d'extraction dans ``outputs/debug_extractions/``.
 
-    Filename: {bank}_{quarter}_{year}_{timestamp}.json
+    Ne s'execute que si ``ENABLE_EXTRACTION_DEBUG=1`` ; retourne ``None``
+    immediatement sinon.
 
-    Each table record includes:
-    page_number, section, table_id, title_raw, title_clean,
-    row_count_before_merge, row_count_after_merge, merge_count,
-    footnote_row_filtered_count, indicator_count, duplicate_ratio,
+    Nom de fichier : ``{bank}_{quarter}_{year}_{timestamp}.json``
+
+    Chaque enregistrement de tableau inclut : page_number, section, table_id,
+    title_raw, title_clean, row_count_before_merge, row_count_after_merge,
+    merge_count, footnote_row_filtered_count, indicator_count, duplicate_ratio,
     header_like_ratio, first_column_raw, first_column_clean.
+
+    Args:
+        bank: Code de la banque (ex. ``"rbc"``).
+        quarter: Trimestre (ex. ``"t2"``).
+        year: Annee du rapport.
+        tables: Liste d'objets tableaux avec attributs ``debug_metrics``, etc.
+
+    Returns:
+        Chemin du fichier JSON ecrit, ou ``None`` si desactive / en erreur.
     """
     if os.environ.get("ENABLE_EXTRACTION_DEBUG") != "1":
         return None

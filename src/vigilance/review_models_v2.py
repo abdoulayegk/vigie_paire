@@ -1,13 +1,13 @@
-"""Review queue models V2 with deduplication support.
+"""Modeles de file de revue V2 avec support de deduplication.
 
-This module provides the new data model for the review queue:
-- ReviewTableItem: One item per table (or matched pair), grouping all changes
-- ChangeItem: A single atomic change (indicator/footnote/structural)
+Ce module fournit le nouveau modele de donnees pour la file de revue :
+- ReviewTableItem : un element par table (ou paire appariee), regroupant tous les changements
+- ChangeItem : un changement atomique (indicateur/note de bas de page/structurel)
 
-Key features:
-- Stable table_key for deduplication
-- Grouped changes under one queue item
-- Per-change validation tracking
+Fonctionnalites cles :
+- table_key stable pour la deduplication
+- changements regroupes sous un seul element de file
+- suivi de validation par changement
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from typing import Any
 
 
 class ChangeType(str, Enum):
-    """Types of changes that can occur in a table."""
+    """Types de changements pouvant survenir dans une table."""
 
     INDICATOR_ADDED = "indicator_added"
     INDICATOR_REMOVED = "indicator_removed"
@@ -37,7 +37,7 @@ class ChangeType(str, Enum):
 
 
 class ValidationStatus(str, Enum):
-    """Validation status for a change."""
+    """Statut de validation d'un changement."""
 
     PENDING = "pending"
     APPROVED = "approved"
@@ -68,21 +68,22 @@ def compute_table_key(
     page_t1: int | None = None,
     page_t2: int | None = None,
 ) -> str:
-    """Compute a deterministic unique key for a table or matched pair.
+    """Calculer une cle unique deterministe pour une table ou paire appariee.
 
-    The key uniquely identifies a table across the pipeline, enabling
-    deduplication when the same table appears multiple times (e.g.,
-    once for indicator changes, once for footnote changes).
+    La cle identifie de maniere unique une table dans le pipeline, permettant
+    la deduplication quand la meme table apparait plusieurs fois.
 
     Args:
-        bank_code: Bank identifier (e.g., "rbc", "td")
-        section: Section name (e.g., "Credit Risk")
-        table_id_t1: Table ID from T1 document (may be empty)
-        table_id_t2: Table ID from T2 document (may be empty)
-        table_title: Table title for fallback hashing
+        bank_code: Identifiant de la banque (ex. "rbc", "td").
+        section: Nom de la section (ex. "Credit Risk").
+        table_id_t1: ID de la table du document T1 (peut etre vide).
+        table_id_t2: ID de la table du document T2 (peut etre vide).
+        table_title: Titre de la table pour le hachage de repli.
+        page_t1: Numero de page dans le document T1 (optionnel).
+        page_t2: Numero de page dans le document T2 (optionnel).
 
     Returns:
-        Stable unique key string
+        Chaine de cle unique et stable.
     """
     normalized_section = (section or "").lower().strip()
 
@@ -106,10 +107,11 @@ def compute_table_key(
 
 @dataclass(slots=True)
 class ChangeItem:
-    """A single atomic change within a table.
+    """Changement atomique au sein d'une table.
 
-    Represents one indicator added/removed/renamed, one footnote change,
-    or one structural change. Each change can be validated independently.
+    Represente un indicateur ajoute/supprime/renomme, un changement de note
+    de bas de page ou un changement structurel. Chaque changement peut etre
+    valide independamment.
     """
 
     change_id: str
@@ -123,7 +125,7 @@ class ChangeItem:
     validated_by: str = ""
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize to dictionary for dcc.Store."""
+        """Serialiser en dictionnaire pour dcc.Store."""
         return {
             "change_id": self.change_id,
             "change_type": self.change_type,
@@ -138,7 +140,7 @@ class ChangeItem:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ChangeItem":
-        """Deserialize from dictionary."""
+        """Deserialiser depuis un dictionnaire."""
         return cls(
             change_id=str(data.get("change_id", "")),
             change_type=str(data.get("change_type", "indicator_added")),
@@ -152,17 +154,17 @@ class ChangeItem:
         )
 
     def is_validated(self) -> bool:
-        """Check if this change has been validated (approved/rejected/skipped)."""
+        """Verifier si ce changement a ete valide (approuve/rejete/ignore)."""
         return self.validation_status in ("approved", "rejected", "skipped")
 
 
 @dataclass(slots=True)
 class ReviewTableItem:
-    """A single table/pair in the review queue, grouping all its changes.
+    """Table ou paire dans la file de revue, regroupant tous ses changements.
 
-    This is the canonical unit in the review queue. Each table appears
-    exactly once, with all its changes (indicators, footnotes, structural)
-    grouped in the `changes` list.
+    Unite canonique de la file de revue. Chaque table apparait exactement
+    une fois, avec tous ses changements (indicateurs, notes de bas de page,
+    structurels) regroupes dans la liste ``changes``.
     """
 
     table_key: str  # Canonical unique key
@@ -202,7 +204,7 @@ class ReviewTableItem:
     risk_level: str = ""  # ELEVE, MODERE, FAIBLE
 
     def compute_summary(self) -> dict[str, int]:
-        """Compute summary counts for display."""
+        """Calculer les compteurs de synthese pour l'affichage."""
         counts = {
             "total_changes": len(self.changes),
             "indicators_added": 0,
@@ -238,14 +240,14 @@ class ReviewTableItem:
         return counts
 
     def is_complete(self) -> bool:
-        """Check if all required changes are validated."""
+        """Verifier si tous les changements requis sont valides."""
         for c in self.changes:
             if c.is_required and not c.is_validated():
                 return False
         return True
 
     def update_status(self) -> None:
-        """Update table_status based on changes validation state."""
+        """Mettre a jour table_status selon l'etat de validation des changements."""
         if not self.changes:
             self.table_status = "completed"
             return
@@ -259,7 +261,7 @@ class ReviewTableItem:
             self.table_status = "pending"
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize to dictionary for dcc.Store."""
+        """Serialiser en dictionnaire pour dcc.Store."""
         changes_dict = [c.to_dict() for c in self.changes]
         change_types = {c.get("change_type", "") for c in changes_dict}
         view_mode = (
@@ -304,7 +306,7 @@ class ReviewTableItem:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ReviewTableItem":
-        """Deserialize from dictionary."""
+        """Deserialiser depuis un dictionnaire."""
         changes_raw = data.get("changes", [])
         changes = [ChangeItem.from_dict(c) for c in changes_raw]
 
@@ -337,14 +339,14 @@ class ReviewTableItem:
 
 
 def legacy_change_type_to_new(item_type: str, ind_type: str) -> str:
-    """Convert legacy change type to new ChangeType value.
+    """Convertir un type de changement ancien vers la nouvelle valeur ChangeType.
 
     Args:
-        item_type: "indicator" or "footnote"
-        ind_type: The type field from indicators list ("added", "removed", "renamed", etc.)
+        item_type: "indicator" ou "footnote".
+        ind_type: Champ type de la liste d'indicateurs ("added", "removed", "renamed", etc.).
 
     Returns:
-        New ChangeType value as string
+        Valeur ChangeType sous forme de chaine.
     """
     if item_type == "footnote":
         if ind_type == "added":

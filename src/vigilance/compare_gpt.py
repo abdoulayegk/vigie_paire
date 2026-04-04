@@ -1,4 +1,4 @@
-"""GPT-4o comparison pipeline on canonical tables.json artifacts."""
+"""Pipeline de comparaison GPT-4o sur les artefacts canoniques tables.json."""
 
 from __future__ import annotations
 
@@ -76,6 +76,7 @@ def _visual_sanity_meta(
     rejected_count: int,
     render_status: str,
 ) -> dict[str, Any]:
+    """Construire le bloc de metadonnees de la verification visuelle."""
     return {
         "visual_sanity_applied": applied,
         "visual_sanity_rejected_count": int(rejected_count),
@@ -86,6 +87,7 @@ def _visual_sanity_meta(
 
 
 def _normalize_table_anchor_section(value: Any) -> str:
+    """Normaliser le nom de section pour l'ancrage visuel d'une table."""
     raw = str(value or "").strip()
     if not raw:
         return ""
@@ -97,6 +99,7 @@ def _normalize_table_anchor_section(value: Any) -> str:
 
 
 def _normalize_table_anchor_title(value: Any) -> str:
+    """Normaliser le titre d'une table pour l'ancrage visuel."""
     raw = strip_temporal_expressions(str(value or ""), target="title", aggressive=True)
     return normalize_for_matching(raw, target="title")
 
@@ -112,12 +115,12 @@ def _call_openai_json(
     call_kind: str = "comparison",
     response_model: type | None = None,
 ) -> dict[str, Any]:
-    """Call OpenAI with JSON output.
+    """Appeler l'API OpenAI avec sortie JSON.
 
-    When *response_model* is a ``pydantic.BaseModel`` subclass, the call uses
-    OpenAI **Structured Outputs** (``client.beta.chat.completions.parse``) to
-    guarantee schema compliance.  The validated model is converted back to a
-    dict so callers keep an identical interface.
+    Quand *response_model* est une sous-classe de ``pydantic.BaseModel``, l'appel
+    utilise les **Structured Outputs** OpenAI pour garantir la conformite au schema.
+    Le modele valide est reconverti en dict pour que les appelants gardent une
+    interface identique.
     """
     api_key = get_openai_api_key()
     if not api_key:
@@ -199,31 +202,31 @@ def compare_reports_gpt4o(
     runtime_extraction_sec: float | None = None,
     extraction_run_metrics: dict[str, Any] | None = None,
 ) -> Path:
-    """Run the full report-to-report comparison pipeline and write the artifact.
+    """Executer le pipeline complet de comparaison rapport-a-rapport et ecrire l'artefact.
 
-    This is the public entry point used by the CLI and Dash app. It loads the
-    canonical ``tables.json`` artifacts for both quarters, enriches the tables
-    for matching, runs the layered matcher, computes pair-level semantic diffs,
-    aggregates summaries and metrics, and finally writes ``comparison.json`` to
-    a timestamped output directory.
+    Point d'entree public utilise par le CLI et l'application Dash. Charge les
+    artefacts canoniques ``tables.json`` des deux trimestres, enrichit les tables
+    pour le matching, execute le matcher multicouche, calcule les diffs semantiques
+    par paire, agregue les resumes et metriques, puis ecrit ``comparison.json``
+    dans un repertoire de sortie.
 
     Args:
-        previous_dir: Extraction directory for the reference quarter.
-        current_dir: Extraction directory for the current quarter.
-        out_root: Root directory where the comparison run folder is created.
-        model: Optional OpenAI model override.
-        config_path: Optional model configuration path.
-        reference_resolution: Optional metadata describing how the reference
-            quarter was resolved.
-        source_pdf_previous: Optional source PDF path for the previous report.
-        source_pdf_current: Optional source PDF path for the current report.
-        runtime_extraction_sec: Optional extraction runtime propagated to final
-            run metrics.
-        extraction_run_metrics: Optional extraction metrics merged into final
-            run metrics.
+        previous_dir: Repertoire d'extraction du trimestre de reference.
+        current_dir: Repertoire d'extraction du trimestre courant.
+        out_root: Repertoire racine ou le dossier de comparaison est cree.
+        model: Surcharge optionnelle du modele OpenAI.
+        config_path: Chemin optionnel de la configuration des modeles.
+        reference_resolution: Metadonnees optionnelles decrivant la resolution
+            du trimestre de reference.
+        source_pdf_previous: Chemin PDF optionnel du rapport precedent.
+        source_pdf_current: Chemin PDF optionnel du rapport courant.
+        runtime_extraction_sec: Temps d'extraction optionnel propage dans les
+            metriques finales.
+        extraction_run_metrics: Metriques d'extraction optionnelles fusionnees
+            dans les metriques finales.
 
     Returns:
-        The path to the generated ``comparison.json`` artifact.
+        Chemin vers l'artefact ``comparison.json`` genere.
     """
     comparison_started_at = time.monotonic()
     previous_dir_path = _coerce_pathlike(previous_dir, "previous_dir")

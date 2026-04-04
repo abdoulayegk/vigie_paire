@@ -1,4 +1,4 @@
-"""Persistence helpers for analyst review state."""
+"""Utilitaires de persistance pour l'etat de revue analyste."""
 
 from __future__ import annotations
 
@@ -12,7 +12,14 @@ REVIEW_STATE_SCHEMA_VERSION = "review_state_v1"
 
 
 def build_review_items_signature(review_items: list[dict[str, Any]] | None) -> str:
-    """Return a stable digest for a persisted review-items payload."""
+    """Retourne un digest stable pour un payload d'elements de revue persiste.
+
+    Args:
+        review_items: Liste de dictionnaires d'elements de revue.
+
+    Returns:
+        Hash SHA-256 hexadecimal, ou chaine vide si aucun element valide.
+    """
     if not isinstance(review_items, list) or not review_items:
         return ""
 
@@ -61,7 +68,7 @@ def is_review_state_compatible(
     review_items: list[dict[str, Any]] | None = None,
     stored_review_items: list[dict[str, Any]] | None = None,
 ) -> bool:
-    """Return True when a persisted state still matches the current comparison-derived items."""
+    """Retourne True si l'etat persiste correspond encore aux elements derives de la comparaison courante."""
     if not state:
         return False
     if review_items is None:
@@ -87,7 +94,7 @@ def is_review_state_compatible(
 
 
 def get_review_state_path(compare_path: str | Path | None) -> Path | None:
-    """Return the sidecar review-state path for a comparison JSON."""
+    """Retourne le chemin du fichier sidecar d'etat de revue pour un JSON de comparaison."""
     if not compare_path:
         return None
     target = Path(compare_path)
@@ -99,7 +106,14 @@ def get_review_state_path(compare_path: str | Path | None) -> Path | None:
 
 
 def load_review_state(compare_path: str | Path | None) -> dict[str, Any] | None:
-    """Load persisted review state if present and valid."""
+    """Charge l'etat de revue persiste s'il est present et valide.
+
+    Args:
+        compare_path: Chemin du fichier JSON de comparaison.
+
+    Returns:
+        Dictionnaire d'etat ou ``None`` si absent/invalide.
+    """
     state_path = get_review_state_path(compare_path)
     if state_path is None or not state_path.exists():
         return None
@@ -116,7 +130,7 @@ def is_review_state_stale(
     state: dict[str, Any] | None,
     current_run_id: str,
 ) -> bool:
-    """Return True if the persisted state does not match the current run_id."""
+    """Retourne True si l'etat persiste ne correspond pas au run_id courant."""
     if not state or not current_run_id:
         return False
     stored_run_id = state.get("comparison_run_id", "")
@@ -139,7 +153,23 @@ def save_review_state(
     source: str = "dash",
     comparison_run_id: str = "",
 ) -> Path | None:
-    """Persist the current analyst review state next to the comparison JSON."""
+    """Persiste l'etat de revue analyste courant a cote du JSON de comparaison.
+
+    Args:
+        compare_path: Chemin du fichier JSON de comparaison.
+        review_items: Elements de revue a persister.
+        review_queue: File de revue normalisee.
+        review_selection: Selection courante de l'analyste.
+        review_current_idx: Index de l'element courant.
+        current_change_idx: Index du changement courant.
+        current_indicator_idx: Index de l'indicateur courant.
+        preferred_store: Nom du store prefere (``review_queue`` par defaut).
+        source: Source de la sauvegarde (``dash`` par defaut).
+        comparison_run_id: Identifiant du run de comparaison.
+
+    Returns:
+        Chemin du fichier d'etat sauvegarde, ou ``None`` si impossible.
+    """
     state_path = get_review_state_path(compare_path)
     if state_path is None:
         return None

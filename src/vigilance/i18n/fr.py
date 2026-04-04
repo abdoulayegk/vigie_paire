@@ -1,4 +1,4 @@
-"""French i18n - Desjardins professional terminology."""
+"""Traductions francaises -- terminologie professionnelle bancaire."""
 
 from __future__ import annotations
 
@@ -103,7 +103,7 @@ TABLE_STATUS: dict[str, str] = {
 
 
 def status_fr(code: str) -> str:
-    """Map table_status or indicator status code to French display string."""
+    """Convertit un code de statut de tableau ou d'indicateur en libelle francais."""
     if not code:
         return ""
     c = str(code).strip().lower()
@@ -157,7 +157,7 @@ REASON_MAP: dict[str, str] = {
 
 
 def reason_fr(code: str) -> str:
-    """Map reason_code to French display string. Unknown codes fall back to original."""
+    """Convertit un code de raison en libelle francais. Les codes inconnus sont retournes tels quels."""
     if not code:
         return ""
     c = str(code).strip()
@@ -177,7 +177,7 @@ SOURCE_METHOD_MAP: dict[str, str] = {
 
 
 def source_method_fr(method: str) -> str:
-    """Map source_method to French display string."""
+    """Convertit une methode source en libelle francais."""
     if not method:
         return ""
     m = str(method).strip()
@@ -188,7 +188,7 @@ def source_method_fr(method: str) -> str:
 # E) Generic translation helper
 # -----------------------------------------------------------------------------
 def t(key: str, default: str | None = None) -> str:
-    """Return French string for key, or default, or key if unknown."""
+    """Retourne la traduction francaise pour une cle, ou la valeur par defaut, ou la cle elle-meme."""
     if not key:
         return ""
     val = UI_LABELS.get(key)

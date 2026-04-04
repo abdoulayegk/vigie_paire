@@ -1,4 +1,4 @@
-"""Helpers to resolve semantic table titles from nearby text lines."""
+"""Fonctions utilitaires pour resoudre les titres semantiques de tableaux a partir des lignes de texte avoisinantes."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ _UNIT_RE = re.compile(
 
 
 def _clean_line(value: str | None) -> str:
+    """Nettoyer une ligne de texte (espaces, tirets, ponctuation peripherique)."""
     line = re.sub(r"\s+", " ", str(value or "")).strip()
     return line.strip(" -:;,")
 
@@ -23,7 +24,14 @@ def _clean_line(value: str | None) -> str:
 def extract_table_number_and_inline_title(
     line: str | None,
 ) -> tuple[str | None, str | None]:
-    """Extract table number and optional inline title from one line."""
+    """Extraire le numero de tableau et le titre inline optionnel d'une ligne.
+
+    Args:
+        line: Ligne de texte brute.
+
+    Returns:
+        Tuple ``(numero_tableau, titre_inline)`` ; chaque element peut etre ``None``.
+    """
     value = _clean_line(line)
     if not value:
         return None, None
@@ -38,13 +46,13 @@ def extract_table_number_and_inline_title(
 
 
 def is_table_number_line(line: str | None) -> bool:
-    """Return True when the line starts with a table number marker."""
+    """Retourner ``True`` si la ligne commence par un marqueur de numero de tableau."""
     number, _ = extract_table_number_and_inline_title(line)
     return bool(number)
 
 
 def is_unit_context_line(line: str | None) -> bool:
-    """Return True for lines that mostly carry unit context."""
+    """Retourner ``True`` pour les lignes portant principalement un contexte d'unite."""
     value = _clean_line(line)
     if not value:
         return False
@@ -56,7 +64,17 @@ def resolve_title_from_lines(
     bank_code: str | None = None,
     first_row_cells: list[str] | None = None,
 ) -> dict[str, str]:
-    """Resolve title metadata from a text window around a table."""
+    """Resoudre les metadonnees du titre a partir d'une fenetre de texte autour d'un tableau.
+
+    Args:
+        lines: Lignes de texte proches du tableau.
+        bank_code: Code banque (reserve pour regles specifiques futures).
+        first_row_cells: Cellules de la premiere ligne du tableau (fallback).
+
+    Returns:
+        Dictionnaire avec ``title``, ``title_raw``, ``table_number``,
+        ``unit_context`` et ``resolution_method``.
+    """
     _ = bank_code  # Reserved for future bank-specific rules.
 
     normalized_lines = [_clean_line(line) for line in lines if _clean_line(line)]

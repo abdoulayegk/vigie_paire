@@ -1,5 +1,4 @@
-"""
-Application Dash - Comparateur de Rapports Bancaires.
+"""Application Dash - Comparateur de Rapports Bancaires.
 
 Pour lancer:
     uv run python -m vigilance.dash_app.app

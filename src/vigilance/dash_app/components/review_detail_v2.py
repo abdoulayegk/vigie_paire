@@ -1,10 +1,10 @@
-"""Review Detail Component V2 - Per-change validation UI.
+"""Composant de detail de revue V2 -- interface de validation par changement.
 
-This component renders the right panel of the review UI showing:
-- Proof images (T1 and T2)
-- List of changes for the current table
-- Per-change validation buttons
-- Navigation controls
+Ce composant genere le panneau droit de l'interface de revue et affiche :
+- Les images de preuve (T1 et T2)
+- La liste des changements pour le tableau courant
+- Les boutons de validation par changement
+- Les controles de navigation
 """
 
 from __future__ import annotations
@@ -76,23 +76,25 @@ _FOOTNOTE_CHANGE_TYPES = {
 
 
 def _format_section(section: str) -> str:
-    """Format section name for display."""
+    """Formate le nom de section pour l'affichage."""
     return section_display_label(section)
 
 
 def _normalize_text(value: object) -> str:
+    """Normalise une valeur en chaine nettoyee."""
     return str(value or "").strip()
 
 
 def _is_footnote_change(change_type: str) -> bool:
+    """Verifie si le type de changement concerne une note de bas de page."""
     return str(change_type or "") in _FOOTNOTE_CHANGE_TYPES
 
 
 def _get_change_row_summary(change: dict) -> str:
-    """Get compact, scan-friendly label for the change row.
+    """Retourne un libelle compact et lisible pour la ligne de changement.
 
-    The row summary intentionally stays short. Full text for long footnotes is
-    rendered separately for the currently selected change.
+    Le resume reste volontairement court. Le texte integral des notes longues
+    est affiche separement pour le changement selectionne.
     """
     change_type = str(change.get("change_type", "") or "")
     payload = change.get("payload", {}) or {}
@@ -131,6 +133,7 @@ def _get_change_row_summary(change: dict) -> str:
 
 
 def _build_detail_block(label: str, text: str, muted: bool = False) -> html.Div:
+    """Construit un bloc de detail avec libelle et texte."""
     content = text or "Élément absent"
     text_class = "text-muted fst-italic" if muted or not text else "text-dark"
     return html.Div(
@@ -152,6 +155,7 @@ def _build_detail_block(label: str, text: str, muted: bool = False) -> html.Div:
 
 
 def _build_change_full_detail(change: dict) -> html.Div | None:
+    """Construit le detail complet d'un changement de note de bas de page."""
     change_type = str(change.get("change_type", "") or "")
     if not _is_footnote_change(change_type):
         return None
@@ -177,7 +181,7 @@ def _build_change_full_detail(change: dict) -> html.Div | None:
 
 
 def _build_fallback_genai_message(table: dict) -> str:
-    """Build analyst-friendly fallback when GenAI classification is unavailable."""
+    """Construit un message de repli lorsque la classification GenAI est indisponible."""
     change_types = {
         str(change.get("change_type", ""))
         for change in (table.get("changes", []) or [])
@@ -217,7 +221,7 @@ def _build_fallback_genai_message(table: dict) -> str:
 
 
 def _build_genai_section(table: dict) -> html.Div:
-    """Render concise GenAI explanation block for analyst review."""
+    """Genere le bloc d'explication GenAI concis pour la revue par l'analyste."""
     ga = table.get("genai_analysis") or {}
     relevance = str(ga.get("relevance", "") or "")
     risk = str(ga.get("risk_level", "") or "")
@@ -340,14 +344,14 @@ def build_change_list_v2(
     changes: list[dict],
     current_change_idx: int,
 ) -> dbc.ListGroup:
-    """Build the list of changes for a table.
+    """Construit la liste des changements pour un tableau.
 
     Args:
-        changes: List of ChangeItem dicts
-        current_change_idx: Index of currently selected change
+        changes: Liste de dictionnaires ``ChangeItem``.
+        current_change_idx: Index du changement actuellement selectionne.
 
     Returns:
-        Div containing the change list
+        Un ``Div`` contenant la liste des changements.
     """
     if not changes:
         return html.Div(
@@ -470,14 +474,14 @@ def build_validation_panel_v2(
     table: dict,
     current_change_idx: int,
 ) -> html.Div:
-    """Build the validation buttons and notes input for current change.
+    """Construit les boutons de validation et le champ de notes pour le changement courant.
 
     Args:
-        table: Current ReviewTableItem dict
-        current_change_idx: Index of current change in the table
+        table: Dictionnaire ``ReviewTableItem`` courant.
+        current_change_idx: Index du changement courant dans le tableau.
 
     Returns:
-        Div containing validation controls
+        Un ``Div`` contenant les controles de validation.
     """
     changes = table.get("changes", [])
     n_changes = len(changes)
@@ -626,16 +630,17 @@ def build_review_detail_v2(
     proof_image_t2_b64: str = "",
     show_proofs: bool = True,
 ) -> html.Div:
-    """Build the complete review detail panel V2.
+    """Construit le panneau complet de detail de revue V2.
 
     Args:
-        table: Current ReviewTableItem dict
-        current_change_idx: Index of current change
-        proof_image_t1_b64: Base64 encoded T1 proof image
-        proof_image_t2_b64: Base64 encoded T2 proof image
+        table: Dictionnaire ``ReviewTableItem`` courant.
+        current_change_idx: Index du changement courant.
+        proof_image_t1_b64: Image de preuve T1 encodee en base64.
+        proof_image_t2_b64: Image de preuve T2 encodee en base64.
+        show_proofs: Si ``True``, affiche la section des preuves visuelles.
 
     Returns:
-        Complete review detail panel
+        Le panneau de detail de revue complet.
     """
     if not table:
         return html.Div(

@@ -1,4 +1,4 @@
-"""Shared proof-rendering helpers used by Dash and comparison pipelines."""
+"""Utilitaires partages de rendu de preuves utilises par Dash et les pipelines de comparaison."""
 
 from __future__ import annotations
 
@@ -10,7 +10,14 @@ from vigilance.utils.pdf_crop import render_page_with_bbox_highlight_to_bytes
 
 
 def normalize_proof_bbox(bbox: Any) -> list[float] | None:
-    """Return [l, t, r, b] in 0..1 when usable for proof rendering."""
+    """Retourne [l, t, r, b] dans 0..1 si exploitable pour le rendu de preuve.
+
+    Args:
+        bbox: Bounding box brute (liste, tuple ou autre).
+
+    Returns:
+        Liste normalisee ``[l, t, r, b]`` ou ``None`` si invalide.
+    """
     if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
         return None
     try:
@@ -43,14 +50,21 @@ def render_full_proof_bytes(
     scale: float = 1.5,
     allow_full_page_fallback: bool = False,
 ) -> tuple[bytes | None, str, str]:
-    """Render a full-page proof image with bbox highlight when available.
+    """Rend une image de preuve pleine page avec surlignage de bbox si disponible.
 
-    Returns ``(image_bytes, status, mode_effective)`` where status is one of:
-    ``ok``, ``pdf_missing``, ``page_missing``, ``bbox_missing``, or ``render_failed``.
-    ``mode_effective`` is ``full`` or ``full_without_bbox`` when a page-only fallback
-    is used because the bbox is unavailable.
+    Args:
+        pdf_path: Chemin du fichier PDF source.
+        page: Numero de page (base 1).
+        bbox: Bounding box brute pour le surlignage.
+        scale: Echelle de rendu (defaut 1.5).
+        allow_full_page_fallback: Si ``True``, rend la page sans bbox en cas d'absence.
+
+    Returns:
+        Tuple ``(image_bytes, status, mode_effective)`` ou status est l'un de :
+        ``ok``, ``pdf_missing``, ``page_missing``, ``bbox_missing`` ou ``render_failed``.
+        ``mode_effective`` vaut ``full`` ou ``full_without_bbox`` quand un repli
+        page seule est utilise car la bbox n'est pas disponible.
     """
-
     pdf = str(pdf_path or "").strip()
     if not pdf:
         return None, "pdf_missing", "full"

@@ -1,7 +1,8 @@
-"""Review Queue Component V2 - Deduplicated grouped tables.
+"""Composant de file de revue V2 -- tableaux groupes et dedupliques.
 
-This component renders the left panel of the review UI showing
-one item per table (not per change), with progress indicators.
+Ce composant genere le panneau gauche de l'interface de revue, affichant
+un element par tableau (et non par changement) avec indicateurs de
+progression.
 """
 
 from __future__ import annotations
@@ -125,6 +126,7 @@ _CHANGE_FAMILY_ORDER = ("structure", "indicators", "footnotes", "other")
 
 
 def _tone_class(color: str) -> str:
+    """Retourne la classe Bootstrap valide pour la couleur donnee."""
     tone = str(color or "secondary").strip().lower()
     if tone in {"primary", "secondary", "success", "danger", "warning", "info"}:
         return tone
@@ -132,12 +134,12 @@ def _tone_class(color: str) -> str:
 
 
 def _format_section(section: str) -> str:
-    """Format section name for display."""
+    """Formate le nom de section pour l'affichage."""
     return section_display_label(section)
 
 
 def _queue_page_summary_v2(table: dict) -> str:
-    """Return concise page context string for queue items."""
+    """Retourne un resume concis du contexte de pages pour les elements de la file."""
     page_t1 = table.get("page_t1")
     page_t2 = table.get("page_t2")
 
@@ -162,19 +164,23 @@ def _queue_page_summary_v2(table: dict) -> str:
 
 
 def _get_change_payload(change: dict) -> dict:
+    """Extrait le payload d'un changement de maniere securisee."""
     payload = change.get("payload", {})
     return payload if isinstance(payload, dict) else {}
 
 
 def _normalize_text(value: object) -> str:
+    """Normalise une valeur en chaine nettoyee."""
     return str(value or "").strip()
 
 
 def _collapse_spaces(value: object) -> str:
+    """Normalise et reduit les espaces multiples en un seul."""
     return " ".join(_normalize_text(value).split())
 
 
 def _truncate_text(value: object, max_length: int = 110) -> str:
+    """Tronque le texte a *max_length* caracteres avec ellipse."""
     text = _collapse_spaces(value)
     if len(text) <= max_length:
         return text
@@ -182,6 +188,7 @@ def _truncate_text(value: object, max_length: int = 110) -> str:
 
 
 def _get_review_priority(table: dict) -> str:
+    """Extrait la priorite de revue depuis les metadonnees ou l'analyse GenAI."""
     match_meta = table.get("match_metadata") or {}
     genai = table.get("genai_analysis") or {}
     priority = (
@@ -193,6 +200,7 @@ def _get_review_priority(table: dict) -> str:
 
 
 def _build_signal_chip(label: str, color: str) -> html.Span:
+    """Construit un badge signal avec la couleur Bootstrap indiquee."""
     return html.Span(
         label,
         className=f"review-queue-signal review-queue-signal--{_tone_class(color)}",
@@ -200,6 +208,7 @@ def _build_signal_chip(label: str, color: str) -> html.Span:
 
 
 def _build_metric_chip(label: str, value: int, tone: str) -> html.Span:
+    """Construit un badge metrique avec libelle et valeur."""
     return html.Span(
         [
             html.Span(label, className="review-queue-metric-label"),
@@ -210,6 +219,7 @@ def _build_metric_chip(label: str, value: int, tone: str) -> html.Span:
 
 
 def _build_detail_panel(label: str, text: str, empty_message: str) -> html.Div:
+    """Construit un panneau de detail avec message de repli si vide."""
     content = text or empty_message
     content_class = (
         "review-queue-change-text"
@@ -226,6 +236,7 @@ def _build_detail_panel(label: str, text: str, empty_message: str) -> html.Div:
 
 
 def _get_change_family(change: dict) -> str:
+    """Determine la famille du changement (structure, indicateurs, notes, autre)."""
     change_type = str(change.get("change_type", "") or "")
     if change_type in {
         ChangeType.TABLE_ADDED.value,
@@ -262,6 +273,7 @@ def _get_change_family(change: dict) -> str:
 
 
 def _get_change_status_rank(change: dict) -> int:
+    """Retourne un rang numerique pour trier les changements par statut."""
     status = str(change.get("validation_status", "pending") or "pending")
     if status == "pending":
         return 0
@@ -277,6 +289,7 @@ def _get_change_status_rank(change: dict) -> int:
 def _ordered_changes(
     changes: list[dict], current_change_id: str | None = None
 ) -> list[dict]:
+    """Trie les changements avec priorite au changement courant puis par statut."""
     current_id = str(current_change_id or "")
     return sorted(
         changes,
@@ -289,6 +302,7 @@ def _ordered_changes(
 
 
 def _get_change_preview(change: dict, max_length: int = 96) -> str:
+    """Genere un apercu textuel tronque du changement pour la file."""
     change_type = str(change.get("change_type", "") or "")
     payload = _get_change_payload(change)
 
@@ -324,6 +338,7 @@ def _get_change_preview(change: dict, max_length: int = 96) -> str:
 
 
 def _build_change_preview_item(change: dict, is_current: bool) -> html.Div:
+    """Construit un element d'apercu compact pour un changement."""
     change_type = str(change.get("change_type", "") or "")
     family = _get_change_family(change)
 
@@ -353,6 +368,7 @@ def _build_change_preview_item(change: dict, is_current: bool) -> html.Div:
 def _build_preview_band(
     changes: list[dict], current_change_id: str | None
 ) -> html.Div | None:
+    """Construit la bande d'apercu des changements pour une carte de tableau."""
     if not changes:
         return None
 
@@ -404,6 +420,7 @@ def _build_preview_band(
 
 
 def _build_change_panels(change: dict) -> html.Div:
+    """Construit les panneaux de detail textuels pour un changement."""
     change_type = str(change.get("change_type", "") or "")
     payload = _get_change_payload(change)
     indicator_name = _normalize_text(
@@ -489,6 +506,7 @@ def _build_change_panels(change: dict) -> html.Div:
 
 
 def _get_change_description(change: dict) -> str:
+    """Retourne la description courte d'un changement pour l'affichage."""
     change_type = str(change.get("change_type", "") or "")
     payload = _get_change_payload(change)
 
@@ -516,6 +534,7 @@ def _get_change_description(change: dict) -> str:
 
 
 def _get_change_state_label(change: dict) -> str:
+    """Retourne le libelle d'etat de validation du changement."""
     status = str(change.get("validation_status", "pending") or "pending")
     if status == "approved":
         return "Valide"
@@ -527,6 +546,7 @@ def _get_change_state_label(change: dict) -> str:
 
 
 def _build_change_card(change: dict, is_current: bool) -> html.Button:
+    """Construit la carte interactive d'un changement dans la file."""
     change_id = str(change.get("change_id", "") or "")
     change_type = str(change.get("change_type", "") or "")
     status = str(change.get("validation_status", "pending") or "pending")
@@ -629,6 +649,7 @@ def _build_change_group(
     current_change_id: str | None,
     is_active: bool,
 ) -> html.Div:
+    """Construit un groupe de changements par famille pour un tableau."""
     if not changes:
         return html.Div()
 
@@ -666,7 +687,7 @@ def _build_change_group(
 
 
 def _build_genai_summary_row(table: dict) -> html.Div | None:
-    """Build the GenAI action badge + category badge + narrative line for a queue card."""
+    """Construit le badge d'action GenAI, le badge categorie et la ligne narrative pour une carte de la file."""
     ga = table.get("genai_analysis")
     if not isinstance(ga, dict) or not ga:
         return None
@@ -712,6 +733,7 @@ def _build_genai_summary_row(table: dict) -> html.Div | None:
 
 
 def _build_table_metric_badges(summary: dict) -> list[html.Span]:
+    """Construit les badges metriques (ajoutes, supprimes, renommes, notes) pour un tableau."""
     badges: list[html.Span] = []
     n_added = int(summary.get("indicators_added", 0) or 0)
     n_removed = int(summary.get("indicators_removed", 0) or 0)
@@ -744,6 +766,7 @@ def _build_table_metric_badges(summary: dict) -> list[html.Span]:
 def _build_progress_pill(
     validated: int, total: int, table_status: str, is_active: bool
 ) -> html.Span | None:
+    """Construit la pastille de progression valides/total pour un tableau."""
     if total <= 0:
         return None
 
@@ -766,15 +789,17 @@ def build_review_queue_v2(
     current_change_id: str | None = None,
     active_filters: dict | None = None,
 ) -> html.Div:
-    """Build the left-side review queue panel V2 with grouped tables.
+    """Construit le panneau de file de revue V2 avec tableaux groupes.
 
     Args:
-        tables: List of ReviewTableItem dicts (from store-review-queue)
-        current_review_id: Currently selected review_id
-        active_filters: Optional filters (section, status)
+        tables: Liste de dictionnaires ``ReviewTableItem``
+            (provenant de ``store-review-queue``).
+        current_review_id: Identifiant du tableau actuellement selectionne.
+        current_change_id: Identifiant du changement actuellement selectionne.
+        active_filters: Filtres optionnels (section, statut).
 
     Returns:
-        Div containing the queue panel
+        Un ``Div`` contenant le panneau complet de la file de revue.
     """
     if not tables:
         return html.Div(
@@ -791,6 +816,7 @@ def build_review_queue_v2(
     active_status = (active_filters or {}).get("status", "all")
 
     def _matches_filters(table: dict) -> bool:
+        """Verifie si un tableau correspond aux filtres actifs."""
         if active_section and active_section != "all":
             if table.get("section") != active_section:
                 return False

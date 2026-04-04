@@ -1,4 +1,4 @@
-"""UI flattening helpers for indicator change tables."""
+"""Utilitaires d'aplatissement UI pour les tables de changements d'indicateurs."""
 
 from __future__ import annotations
 
@@ -9,10 +9,16 @@ from vigilance.utils.matching_normalizer import _classify_excluded_line
 
 
 def get_display_indicators(item: dict) -> list[str]:
-    """Return Vision raw indicators when available, else normalized compare labels.
+    """Retourne les indicateurs bruts Vision si disponibles, sinon les libelles normalises.
 
-    This helper is UI-only. Matching/diff still use the normalized comparison
-    labels stored in ``first_column_indicators``.
+    Utilitaire UI uniquement. Le matching/diff continue d'utiliser
+    les libelles normalises de ``first_column_indicators``.
+
+    Args:
+        item: Dictionnaire d'un tableau extrait.
+
+    Returns:
+        Liste de libelles d'indicateurs pour affichage.
     """
     raw = item.get("first_column_indicators_raw") or item.get(
         "first_column_indicators_raw_list"
@@ -29,7 +35,16 @@ def build_indicator_change_rows(
     include_uncertain: bool = False,
     include_review_status: bool = False,
 ) -> list[dict[str, Any]]:
-    """Flatten canonical comparison payload into table rows for Dash."""
+    """Aplatit le payload canonique de comparaison en lignes tabulaires pour Dash.
+
+    Args:
+        payload: Payload canonique de comparaison.
+        include_uncertain: Inclure les diff incertains.
+        include_review_status: Ajouter la colonne de statut de revue.
+
+    Returns:
+        Liste de dictionnaires representant chaque ligne de changement.
+    """
     rows: list[dict[str, Any]] = []
 
     for comp in payload.get("table_comparisons", []) or []:
@@ -155,7 +170,7 @@ def build_indicator_change_rows(
 
 
 def run_indicator_auto_pipeline(payload: dict[str, Any]) -> dict[str, Any]:
-    """Small helper kept for backward compatibility with older callbacks."""
+    """Utilitaire conserve pour compatibilite avec les anciens callbacks."""
     rows = build_indicator_change_rows(
         payload, include_uncertain=True, include_review_status=False
     )

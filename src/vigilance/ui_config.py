@@ -1,4 +1,4 @@
-"""UI/runtime configuration shared by Dash helpers."""
+"""Configuration UI/runtime partagee par les utilitaires Dash."""
 
 from __future__ import annotations
 

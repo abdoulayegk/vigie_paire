@@ -12,8 +12,7 @@ _FOOTNOTE_ROW_RE = re.compile(
 
 
 def _find_table_title_in_text(page_text: str, table_idx: int) -> str | None:
-    """
-    Chercher un titre de tableau dans le texte de la page.
+    """Chercher un titre de tableau dans le texte de la page.
 
     Args:
         page_text: Texte de la page
@@ -38,11 +37,16 @@ def _find_table_title_in_text(page_text: str, table_idx: int) -> str | None:
 
 
 def _reconstruct_table_rows(table_data: list) -> list:
-    """
-    Reconstruire les lignes d'un tableau en fusionnant les cellules fragmentees.
+    """Reconstruire les lignes d'un tableau en fusionnant les cellules fragmentees.
 
-    Probleme: pdfplumber peut fragmenter une ligne sur plusieurs lignes
-    Solution: Fusionner les lignes qui semblent etre des continuations
+    pdfplumber peut fragmenter une ligne sur plusieurs lignes ; cette fonction
+    fusionne les lignes qui semblent etre des continuations.
+
+    Args:
+        table_data: Donnees brutes du tableau (liste de listes de cellules).
+
+    Returns:
+        Liste de lignes reconstruites (chaque ligne = liste de chaines).
     """
     if not table_data:
         return []
@@ -85,12 +89,17 @@ def _reconstruct_table_rows(table_data: list) -> list:
 
 
 def _merge_fragmented_cells(rows: list[list[str]]) -> list[list[str]]:
-    """
-    Fusionner les cellules fragmentees par Docling (texte coupe entre lignes).
+    """Fusionner les cellules fragmentees par Docling (texte coupe entre lignes).
 
     Si une ligne a la premiere cellule vide ou tres courte et que la suivante
     semble etre une continuation (pas de majuscule en debut, pas de chiffre seul),
     fusionner avec la ligne precedente.
+
+    Args:
+        rows: Lignes du tableau (chaque ligne = liste de chaines).
+
+    Returns:
+        Lignes fusionnees.
     """
     if not rows:
         return []
@@ -139,11 +148,16 @@ def _merge_fragmented_cells(rows: list[list[str]]) -> list[list[str]]:
 
 
 def _is_footnote_row(row: list[str]) -> bool:
-    """
-    Detecter les lignes de notes de bas de tableau dans le grid Docling.
+    """Detecter les lignes de notes de bas de tableau dans le grid Docling.
 
-    Retourne True pour les lignes dont la premiere cellule ressemble a
-    une definition de note: (1), [2], 1), etc.
+    Retourne ``True`` pour les lignes dont la premiere cellule ressemble a
+    une definition de note : ``(1)``, ``[2]``, ``1)``, etc.
+
+    Args:
+        row: Cellules d'une ligne de tableau.
+
+    Returns:
+        ``True`` si la ligne est une note de bas de tableau.
     """
     if not row:
         return True
@@ -155,8 +169,14 @@ def _is_footnote_row(row: list[str]) -> bool:
 
 
 def _extract_table_context(page_text: str, table_title: str | None) -> str:
-    """
-    Extraire le contexte textuel autour d'un tableau.
+    """Extraire le contexte textuel autour d'un tableau.
+
+    Args:
+        page_text: Texte complet de la page.
+        table_title: Titre du tableau (ou ``None``).
+
+    Returns:
+        Fragment de texte entourant le titre du tableau.
     """
     if not table_title or not page_text:
         return ""
@@ -179,8 +199,7 @@ def _extract_table_context_split(
     chars_before: int = 300,
     chars_after: int = 400,
 ) -> tuple[str, str]:
-    """
-    Extraire le contexte avant et apres un tableau (pour table_type_classifier).
+    """Extraire le contexte avant et apres un tableau (pour table_type_classifier).
 
     Returns:
         Tuple (context_before, context_after)

@@ -1,4 +1,4 @@
-"""Page-local structure metadata for tables (vertical order, role) for same-page matching."""
+"""Metadonnees de structure locale par page pour les tableaux (ordre vertical, role) pour l'appariement intra-page."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from typing import Any
 
 
 def _page_for_table(t: Any) -> int | None:
+    """Extrait le numero de page d'un objet tableau."""
     page = getattr(t, "page_pdf", None)
     if page is not None:
         try:
@@ -22,7 +23,7 @@ def _page_for_table(t: Any) -> int | None:
 
 
 def _bbox_top_left(t: Any) -> tuple[float, float]:
-    """Return (top, left) from table bbox for sorting. Top = y_min, left = x_min."""
+    """Retourne (top, left) depuis la bbox du tableau pour le tri."""
     bbox = getattr(t, "bbox", None)
     if bbox is None:
         return (0.0, 0.0)
@@ -39,6 +40,7 @@ def _bbox_top_left(t: Any) -> tuple[float, float]:
 
 
 def _bbox_top_only(t: Any) -> float | None:
+    """Extrait uniquement la coordonnee haute (top) de la bbox d'un tableau."""
     bbox = getattr(t, "bbox", None)
     if bbox is None:
         return None
@@ -57,16 +59,20 @@ def _bbox_top_only(t: Any) -> float | None:
 def derive_page_local_structure(
     tables: list[Any],
 ) -> dict[tuple[str, int], dict[str, Any]]:
-    """Compute page-local structure per table: index, count, bbox_top, role.
+    """Calcule la structure locale par page pour chaque tableau : index, compteur, bbox_top, role.
 
-    Input: list of table-like objects with table_id, page (page_pdf or page_number), bbox.
-    Output: for each (table_id, page), a dict with:
-      - table_index_on_page: 1-based vertical order
-      - tables_on_page: number of tables on that page
-      - bbox_top: normalized top y (from bbox)
-      - page_local_role: "single" | "first" | "middle" | "last"
+    Args:
+        tables: Liste d'objets table-like avec ``table_id``, ``page``
+            (``page_pdf`` ou ``page_number``) et ``bbox``.
 
-    Sort within page: bbox_top ascending, then bbox_left, then input order.
+    Returns:
+        Pour chaque ``(table_id, page)``, un dictionnaire avec :
+        - ``table_index_on_page`` : ordre vertical (base 1)
+        - ``tables_on_page`` : nombre de tableaux sur la page
+        - ``bbox_top`` : coordonnee y haute normalisee (depuis bbox)
+        - ``page_local_role`` : ``"single"`` | ``"first"`` | ``"middle"`` | ``"last"``
+
+        Tri intra-page : bbox_top croissant, puis bbox_left, puis ordre d'entree.
     """
     key_to_page: dict[tuple[str, int], int] = {}
     by_page: dict[int, list[tuple[int, str, float, float]]] = {}

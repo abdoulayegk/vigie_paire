@@ -1,1 +1,1 @@
-"""CLI entry points for vigilance."""
+"""Points d'entree CLI pour vigilance."""

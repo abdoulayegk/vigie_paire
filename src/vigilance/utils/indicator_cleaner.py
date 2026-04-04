@@ -1,4 +1,4 @@
-"""Helpers to clean indicator labels and table titles."""
+"""Utilitaires de nettoyage des libelles d'indicateurs et titres de tableaux."""
 
 from __future__ import annotations
 
@@ -136,7 +136,7 @@ _REDUNDANT_SEPARATOR_EXPANSION_RE = re.compile(
 
 
 def _normalized_phrase_key(text: str) -> str:
-    """Lightweight phrase key for structural prefix checks."""
+    """Cle de phrase legere pour les verifications de prefixe structurel."""
     if not text:
         return ""
     value = unicodedata.normalize("NFD", text)
@@ -146,14 +146,20 @@ def _normalized_phrase_key(text: str) -> str:
 
 
 def collapse_redundant_parenthetical_expansion(text: str) -> str:
-    """Collapse ``X (X ...)`` into the expanded form ``X ...``.
+    """Reduit ``X (X ...)`` en la forme developpee ``X ...``.
 
-    Example:
+    Exemple :
     - ``Fonds propres de categorie 1 (fonds propres de categorie 1 sous forme ...)``
       -> ``fonds propres de categorie 1 sous forme ...``
 
-    This neutralizes explanatory parentheticals that repeat the same semantic
-    prefix and would otherwise inflate fuzzy rename scores.
+    Neutralise les parenthetiques explicatives qui repetent le meme prefixe
+    semantique et gonfleraient sinon les scores de renommage flou.
+
+    Args:
+        text: Texte potentiellement contenant une expansion parenthetique redondante.
+
+    Returns:
+        Texte reduit si une redondance est detectee, sinon le texte original.
     """
     if not text or "(" not in text or ")" not in text:
         return text or ""
@@ -179,11 +185,17 @@ def collapse_redundant_parenthetical_expansion(text: str) -> str:
 
 
 def collapse_redundant_separator_expansion(text: str) -> str:
-    """Collapse ``X : X ...`` or ``X - X ...`` into the expanded suffix.
+    """Reduit ``X : X ...`` ou ``X - X ...`` en le suffixe developpe.
 
-    OCR/layout extraction sometimes produces a short heading followed by a
-    repeated explanatory segment separated by ``:``, ``-`` or an em dash.
-    We keep the expanded form when the suffix clearly restates the same prefix.
+    L'extraction OCR/layout produit parfois un titre court suivi d'un segment
+    explicatif repete, separe par ``:``, ``-`` ou un tiret cadratin.
+    On conserve la forme developpee quand le suffixe reexprime clairement le meme prefixe.
+
+    Args:
+        text: Texte potentiellement contenant une expansion separee par un separateur.
+
+    Returns:
+        Texte reduit si une redondance est detectee, sinon le texte original.
     """
     if not text:
         return ""
@@ -209,12 +221,17 @@ def collapse_redundant_separator_expansion(text: str) -> str:
 
 
 def strip_dates_from_indicator_label(text: str) -> str:
-    """
-    Remove date/temporal fragments from indicator labels (first column).
+    """Supprime les fragments de date/temporels des libelles d'indicateurs (premiere colonne).
 
-    Handles: standalone dates ("Au 30 avril 2025"), suffix ("Prets garantis au 30 avril 2025"),
-    prefix, and multiple formats (FR, ISO, numeric, abbreviations, periods).
-    Returns empty string when the label is purely a date expression.
+    Gere : dates autonomes (``Au 30 avril 2025``), suffixes (``Prets garantis au 30 avril 2025``),
+    prefixes et formats multiples (FR, ISO, numerique, abreviations, periodes).
+    Retourne une chaine vide si le libelle est purement une expression de date.
+
+    Args:
+        text: Libelle d'indicateur potentiellement contamine par des dates.
+
+    Returns:
+        Libelle nettoye sans fragments temporels.
     """
     if not text or not (text or "").strip():
         return text or ""
@@ -229,11 +246,16 @@ def strip_dates_from_indicator_label(text: str) -> str:
 
 
 def strip_units_currency_from_indicator_label(text: str) -> str:
-    """
-    Remove unit/currency phrases from indicator labels (first column).
+    """Supprime les mentions d'unite/devise des libelles d'indicateurs (premiere colonne).
 
-    Strips: "en millions de dollars", "(M$)", "(CAD)", "(%)", "en milliers",
-    "points de base", etc. Preserves semantic core (e.g. "Ratio CET1" from "Ratio CET1 (%)").
+    Retire : ``en millions de dollars``, ``(M$)``, ``(CAD)``, ``(%)``, ``en milliers``,
+    ``points de base``, etc. Preserve le noyau semantique (ex. ``Ratio CET1`` de ``Ratio CET1 (%)``).
+
+    Args:
+        text: Libelle d'indicateur potentiellement contamine par des unites.
+
+    Returns:
+        Libelle nettoye sans mentions d'unite ou de devise.
     """
     if not text or not (text or "").strip():
         return text or ""
@@ -245,7 +267,15 @@ def strip_units_currency_from_indicator_label(text: str) -> str:
 
 
 def is_header_footer_table_title(title: str, bank_code: str | None = None) -> bool:
-    """Return True if title is a header/footer (page num + bank + quarter), not semantic."""
+    """Retourne True si le titre est un en-tete/pied de page (num page + banque + trimestre), non semantique.
+
+    Args:
+        title: Titre de tableau a verifier.
+        bank_code: Code de la banque (ex. ``rbc``) pour les heuristiques specifiques.
+
+    Returns:
+        True si le titre est un artefact d'en-tete/pied de page.
+    """
     if not title or not (title or "").strip():
         return False
     t = (title or "").strip()
@@ -257,11 +287,17 @@ def is_header_footer_table_title(title: str, bank_code: str | None = None) -> bo
 
 
 def clean_spaced_out_text(text: str) -> str:
-    """Recombine single-letter 'words' from OCR: 'T o t a l' -> 'Total', 'A s s e t s' -> 'Assets'.
+    """Recombine les lettres isolees issues de l'OCR : ``T o t a l`` -> ``Total``, ``A s s e t s`` -> ``Assets``.
 
-    Handles OCR artifacts where letters are improperly separated by spaces.
-    Only merges consecutive single-letter alphabetic tokens (preserves 'A' in 'Section A' etc.
-    when followed by a multi-char token).
+    Gere les artefacts OCR ou les lettres sont incorrectement separees par des espaces.
+    Fusionne uniquement les jetons alphabetiques mono-caractere consecutifs (preserve ``A``
+    dans ``Section A``, etc., quand il est suivi d'un jeton multi-caractere).
+
+    Args:
+        text: Texte potentiellement contamine par un espacement lettre a lettre.
+
+    Returns:
+        Texte avec les lettres isolees recombinees en mots.
     """
     if not text or not text.strip():
         return text or ""
@@ -285,10 +321,16 @@ def clean_spaced_out_text(text: str) -> str:
 
 
 def strip_trailing_note_or_column_value(text: str) -> str:
-    """Remove trailing note markers and numeric column residue.
+    """Supprime les marqueurs de note en fin de chaine et les residus de colonnes numeriques.
 
-    Includes Jad-style removal of digits attached to the last word (no space):
-    e.g. 'Total des actifs1' -> 'Total des actifs', 'Revenue2024' -> 'Revenue'.
+    Inclut la suppression (style Jad) des chiffres colles au dernier mot (sans espace) :
+    ex. ``Total des actifs1`` -> ``Total des actifs``, ``Revenue2024`` -> ``Revenue``.
+
+    Args:
+        text: Libelle d'indicateur brut.
+
+    Returns:
+        Libelle nettoye sans marqueurs de note ni residus numeriques.
     """
     value = text or ""
     value = _TRAILING_WORD_DIGITS_RE.sub(r"\1", value)
@@ -298,7 +340,14 @@ def strip_trailing_note_or_column_value(text: str) -> str:
 
 
 def is_trailing_number_semantic(text: str) -> bool:
-    """Detect cases where trailing numbers are semantically relevant."""
+    """Detecte les cas ou les nombres en fin de chaine sont semantiquement pertinents.
+
+    Args:
+        text: Libelle d'indicateur a analyser.
+
+    Returns:
+        True si les nombres finaux font partie du sens (ex. ``Pilier 1``, ``CET1``).
+    """
     value = normalize_label(text)
     if not value:
         return False
@@ -316,9 +365,15 @@ def is_trailing_number_semantic(text: str) -> bool:
 
 
 def strip_dates_from_table_title(title: str) -> str:
-    """Remove date-like fragments from table titles (CIBC, RBC).
+    """Supprime les fragments de type date des titres de tableaux (CIBC, RBC).
 
-    Handles: "au 31 octobre...", "31 janvier 2025", "30 avril 2025" at start/end.
+    Gere : ``au 31 octobre...``, ``31 janvier 2025``, ``30 avril 2025`` en debut/fin.
+
+    Args:
+        title: Titre de tableau brut.
+
+    Returns:
+        Titre nettoye sans fragments de date.
     """
     value = title or ""
     value = _DATE_IN_TITLE_RE.sub("", value)
@@ -331,7 +386,14 @@ def strip_dates_from_table_title(title: str) -> str:
 
 
 def strip_note_refs_from_title(title: str) -> str:
-    """Remove trailing note references from table titles (e.g. NOTATIONS DE CREDIT1)."""
+    """Supprime les references de notes en fin de titre de tableau (ex. ``NOTATIONS DE CREDIT1``).
+
+    Args:
+        title: Titre de tableau brut.
+
+    Returns:
+        Titre nettoye sans references de notes.
+    """
     value = title or ""
     # Trailing (1), [2], 1), or bare digit 1, 2 when likely a ref
     value = re.sub(r"\s*[\(\[]\d+[\)\]]\s*$", "", value)
@@ -365,7 +427,7 @@ _CONTAMINATION_TRAILING_NUMBERS_MIN = 2
 
 
 def _token_is_numeric(tok: str) -> bool:
-    """True if token is purely numeric (digits, commas, dots, spaces)."""
+    """True si le jeton est purement numerique (chiffres, virgules, points, espaces)."""
     if not tok or not tok.strip():
         return False
     # Normalize: remove spaces, then check
@@ -380,10 +442,19 @@ def is_table_title_contaminated(
     trailing_numbers_min: int = _CONTAMINATION_TRAILING_NUMBERS_MIN,
     long_run_min: int = _NUMERIC_RUN_MIN_LENGTH,
 ) -> bool:
-    """
-    Return True if the table title looks contaminated by numeric values (amounts/column data).
+    """Retourne True si le titre de tableau semble contamine par des valeurs numeriques (montants/colonnes).
 
-    Contamination: long numeric run (3+ numbers), or >40% tokens are numbers, or ends with 2+ numbers.
+    Contamination : longue suite numerique (3+ nombres), ou >40 % des jetons sont des nombres,
+    ou se termine par 2+ nombres.
+
+    Args:
+        title: Titre de tableau a verifier.
+        numeric_ratio_threshold: Ratio maximal de jetons numeriques avant contamination.
+        trailing_numbers_min: Nombre minimal de jetons numeriques en fin de titre.
+        long_run_min: Longueur minimale d'une suite consecutive de jetons numeriques.
+
+    Returns:
+        True si le titre est considere comme contamine.
     """
     value = (title or "").strip()
     if not value:
@@ -427,13 +498,18 @@ def is_table_title_contaminated(
 
 
 def clean_table_title_contamination(title: str) -> str:
-    """
-    Remove amount/column-value contamination from table title.
+    """Supprime la contamination par montants/valeurs de colonnes d'un titre de tableau.
 
-    - Strips trailing numeric runs (multiple numbers at end, e.g. "79 772 76 163").
-    - Strips leading numeric runs if present.
-    - Preserves real footnote markers: single (1), (2) at end are kept (handled by caller or strip_note_refs).
-    - Applies strip_dates_from_table_title and strip_note_refs_from_title for consistency.
+    - Retire les suites numeriques en fin (nombres multiples, ex. ``79 772 76 163``).
+    - Retire les suites numeriques en debut si presentes.
+    - Preserve les vrais marqueurs de note : ``(1)``, ``(2)`` en fin sont conserves
+      (geres par l'appelant ou ``strip_note_refs``).
+
+    Args:
+        title: Titre de tableau brut.
+
+    Returns:
+        Titre nettoye sans contamination numerique.
     """
     value = (title or "").strip()
     if not value:
@@ -461,7 +537,7 @@ _LINE_MERGE_MAX_COMBINED_LENGTH = 120
 
 
 def _normalize_for_dedupe(text: str) -> str:
-    """Whitespace normalization for dedupe key."""
+    """Normalisation des espaces pour la cle de deduplication."""
     return re.sub(r"\s+", " ", (text or "").strip())
 
 
@@ -470,11 +546,16 @@ def dedupe_indicators(
     *,
     duplicate_ratio_threshold: float = _DEDUPE_DUPLICATE_RATIO_THRESHOLD,
 ) -> tuple[list[str], float, int]:
-    """
-    Remove exact duplicates while preserving order. Normalize whitespace for comparison.
+    """Supprime les doublons exacts en preservant l'ordre. Normalise les espaces pour la comparaison.
 
-    Returns (deduped_list, duplicate_ratio, removed_count).
-    duplicate_ratio = 1 - unique/total. Apply dedupe only if ratio >= threshold.
+    Args:
+        indicators: Liste de libelles d'indicateurs bruts.
+        duplicate_ratio_threshold: Seuil de ratio de doublons pour appliquer la deduplication.
+
+    Returns:
+        Tuple ``(liste_dedoublonnee, ratio_doublons, nombre_supprimes)``.
+        ``ratio_doublons = 1 - unique/total``. La deduplication n'est appliquee que si
+        le ratio >= seuil.
     """
     if not indicators:
         return [], 0.0, 0
@@ -502,7 +583,15 @@ def merge_line_split_indicators(
     *,
     max_combined_length: int = _LINE_MERGE_MAX_COMBINED_LENGTH,
 ) -> tuple[list[str], int]:
-    """Merge indicator lines when the next line is likely a split continuation."""
+    """Fusionne les lignes d'indicateurs lorsque la ligne suivante est probablement une continuation.
+
+    Args:
+        indicators: Liste de libelles d'indicateurs potentiellement fragmentes.
+        max_combined_length: Longueur maximale du libelle fusionne.
+
+    Returns:
+        Tuple ``(liste_fusionnee, nombre_fusions)``.
+    """
     cfg = IndicatorLineMergeConfig(
         max_next_tokens=6,
         max_combined_length=max_combined_length,
@@ -511,9 +600,16 @@ def merge_line_split_indicators(
 
 
 def strip_units_from_table_title(title: str, bank_code: str | None = None) -> str:
-    """Remove unit phrases from table titles for semantic comparison (e.g. RBC).
+    """Supprime les mentions d'unite des titres de tableaux pour la comparaison semantique (ex. RBC).
 
-    Strips leading/trailing fragments like '(en millions)', 'en $', '(en millions de dollars)'.
+    Retire les fragments en debut/fin comme ``(en millions)``, ``en $``, ``(en millions de dollars)``.
+
+    Args:
+        title: Titre de tableau brut.
+        bank_code: Code de la banque pour les heuristiques specifiques (ex. ``rbc``).
+
+    Returns:
+        Titre nettoye sans mentions d'unite.
     """
     value = title or ""
     value = _UNITS_IN_TITLE_RE.sub(" ", value)
@@ -527,7 +623,14 @@ def strip_units_from_table_title(title: str, bank_code: str | None = None) -> st
 
 
 def normalize_indicator_variants(text: str) -> str:
-    """Normalize indicator variants into a canonical string."""
+    """Normalise les variantes d'indicateur en une chaine canonique.
+
+    Args:
+        text: Libelle d'indicateur brut.
+
+    Returns:
+        Libelle canonique apres suppression des marqueurs de notes et normalisation.
+    """
     value = text or ""
     value = _TRAILING_NOTE_CLUSTER_RE.sub("", value)
     value = _TRAILING_NOTE_RE.sub("", value)
@@ -538,7 +641,7 @@ def normalize_indicator_variants(text: str) -> str:
 
 
 def _word_char_count(s: str) -> int:
-    """Count alphanumeric characters for fallback logic."""
+    """Compte les caracteres alphanumeriques pour la logique de repli."""
     return len(re.findall(r"\w", s or ""))
 
 
@@ -547,10 +650,15 @@ _CAMEL_BOUNDARY_RE = re.compile(r"([a-z])([A-Z])")
 
 
 def split_camel_case_concatenation(text: str) -> tuple[str, bool]:
-    """Insert space at lowercase-to-uppercase boundaries.
+    """Insere un espace aux frontieres minuscule-majuscule.
 
-    Handles concatenated tokens like "impotAJOUTactions" or "fondsPropresTier1".
-    Returns (cleaned_text, True if any split was applied).
+    Gere les jetons concatenes comme ``impotAJOUTactions`` ou ``fondsPropresTier1``.
+
+    Args:
+        text: Texte potentiellement en camelCase.
+
+    Returns:
+        Tuple ``(texte_nettoye, True si un decoupage a ete applique)``.
     """
     if not text:
         return text or "", False
@@ -565,10 +673,15 @@ _CHANGE_TAG_PREFIX_RE = re.compile(
 
 
 def insert_space_after_change_tag(text: str) -> tuple[str, bool]:
-    """Insert space after AJOUT/SUPPRESSION/RENOMMAGE if directly followed by a letter.
+    """Insere un espace apres AJOUT/SUPPRESSION/RENOMMAGE si directement suivi d'une lettre.
 
-    Handles indicators like "AJOUTactions ordinaires" -> "AJOUT actions ordinaires".
-    Returns (cleaned_text, True if correction was applied).
+    Gere les indicateurs comme ``AJOUTactions ordinaires`` -> ``AJOUT actions ordinaires``.
+
+    Args:
+        text: Texte potentiellement contenant un tag de changement colle.
+
+    Returns:
+        Tuple ``(texte_nettoye, True si une correction a ete appliquee)``.
     """
     if not text:
         return text or "", False
@@ -577,10 +690,15 @@ def insert_space_after_change_tag(text: str) -> tuple[str, bool]:
 
 
 def post_normalize_indicator(text: str) -> tuple[str, bool, bool]:
-    """Apply camelCase split and change-tag space fix after canonical normalization.
+    """Applique le decoupage camelCase et la correction d'espace de tag apres normalisation canonique.
 
-    Returns (text, camel_split_triggered, tag_space_triggered).
-    Must be called on the *cleaned* indicator value, not raw.
+    Doit etre appele sur la valeur d'indicateur *nettoyee*, pas brute.
+
+    Args:
+        text: Libelle d'indicateur deja normalise.
+
+    Returns:
+        Tuple ``(texte, camel_split_declenche, tag_space_declenche)``.
     """
     if not text:
         return "", False, False
@@ -638,11 +756,17 @@ _SINGULAR_EXCEPTIONS = frozenset(
 
 
 def singularize_words(text: str) -> str:
-    """Strip trailing 's' from words to neutralize plural/singular variations.
+    """Retire le 's' final des mots pour neutraliser les variations pluriel/singulier.
 
-    Handles: "actions" -> "action", "actifs" -> "actif", "garantis" -> "garanti".
-    Preserves words where the trailing 's' is inherent (frais, cours, mois, fonds, etc.).
-    Only operates on words longer than 3 characters to avoid breaking short words.
+    Gere : ``actions`` -> ``action``, ``actifs`` -> ``actif``, ``garantis`` -> ``garanti``.
+    Preserve les mots ou le 's' final est inherent (frais, cours, mois, fonds, etc.).
+    N'opere que sur les mots de plus de 3 caracteres pour eviter de casser les mots courts.
+
+    Args:
+        text: Texte a singulariser.
+
+    Returns:
+        Texte avec les pluriels neutralises.
     """
     if not text:
         return ""
@@ -657,18 +781,23 @@ def singularize_words(text: str) -> str:
 
 
 def normalize_indicator_for_comparison(text: str) -> str:
-    """
-    Single canonical key for indicator (first column) comparison.
+    """Cle canonique unique pour la comparaison d'indicateurs (premiere colonne).
 
-    Used by comparison_runner and structural_comparator so that the same
-    semantic label (e.g. "Metaux precieux" vs "Metaux precieux :") produces
-    one key and avoids false additions/deletions in the change detail.
+    Utilisee par ``comparison_runner`` et ``structural_comparator`` pour que le meme
+    libelle semantique (ex. ``Metaux precieux`` vs ``Metaux precieux :``) produise
+    une seule cle et evite les faux ajouts/suppressions dans le detail des changements.
 
-    - Unicode NFD and normalize all whitespace (including U+00A0) to space
-    - Strip dates and units/currency from label (e.g. "au 30 avril 2025", "(M$)")
-    - Variants (CET-1, Tier-1, trailing notes)
-    - Strip accents, note refs (1) [2] a) *, exposants
-    - Normalize punctuation and spaces, lowercase
+    - Unicode NFD et normalisation de tous les espaces (y compris U+00A0) en espace simple
+    - Suppression des dates et unites/devises du libelle (ex. ``au 30 avril 2025``, ``(M$)``)
+    - Variantes (CET-1, Tier-1, notes de fin)
+    - Suppression des accents, refs de notes ``(1)`` ``[2]`` ``a)`` ``*``, exposants
+    - Normalisation de la ponctuation et des espaces, mise en minuscules
+
+    Args:
+        text: Libelle d'indicateur brut a normaliser.
+
+    Returns:
+        Cle canonique en minuscules, sans accents, prete pour la comparaison.
     """
     if not text:
         return ""
