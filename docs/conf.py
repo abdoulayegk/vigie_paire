@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
 _root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_root / "src"))
+
+# GitHub Project Pages: https://<owner>.github.io/<repo>/
+_base_url = (os.environ.get("SPHINX_HTML_BASEURL") or "").strip().rstrip("/")
+if _base_url:
+    html_baseurl = _base_url + "/"
 
 project = "bank-peer-vigilance"
 copyright = "2026"
