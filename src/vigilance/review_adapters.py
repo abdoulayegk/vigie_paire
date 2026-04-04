@@ -249,6 +249,10 @@ def build_review_items_from_indicator_result(
                 if isinstance(ren_raw, dict):
                     old_raw = str(ren_raw.get("previous", "")).strip()
                     new_raw = str(ren_raw.get("current", "")).strip()
+                    if not old_raw:
+                        old_raw = str(ren_raw.get("from", "")).strip()
+                    if not new_raw:
+                        new_raw = str(ren_raw.get("to", "")).strip()
                     if old_raw:
                         old_val = old_raw
                     if new_raw:

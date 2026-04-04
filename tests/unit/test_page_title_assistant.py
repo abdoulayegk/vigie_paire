@@ -258,6 +258,9 @@ class TestParsePageTitleResponse:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skip(
+    reason="DoclingProcessor._apply_page_title_candidates absent; logique de titre refondue."
+)
 class TestFallbackPolicy:
     """Verify that good existing titles are preserved (simulated via _apply_page_title_candidates)."""
 

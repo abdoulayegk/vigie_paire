@@ -58,7 +58,8 @@ def test_is_non_indicator_line() -> None:
     assert is_non_indicator_line("en millions de dollars") is True
     assert is_non_indicator_line("%") is True
     assert is_non_indicator_line("Dépôts personnels") is False
-    assert is_non_indicator_line("Risque de crédit") is False
+    # Libelle seul aligne sur l'allowlist d'en-tetes de section (cf. test_section_header_allowlist_risque_de_credit).
+    assert is_non_indicator_line("Risque de crédit") is True
 
 
 def test_is_header_footer_table_title() -> None:

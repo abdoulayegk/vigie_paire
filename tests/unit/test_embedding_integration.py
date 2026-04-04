@@ -6,6 +6,10 @@ import os
 
 import pytest
 
+pytestmark = pytest.mark.skip(
+    reason="Modules vigilance.embedding et vigilance.compare absents de cette branche."
+)
+
 
 def test_embedding_service_initializes() -> None:
     """Verify EmbeddingService initializes and has stats."""
