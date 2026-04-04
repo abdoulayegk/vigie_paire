@@ -1,0 +1,13 @@
+{
+  "bank": "BNC",
+  "current": {
+    "year": 2025,
+    "quarter": "T2"
+  },
+  "previous": {
+    "year": 2025,
+    "quarter": "T1"
+  },
+  "status": "completed",
+  "generated_at": "2026-04-02T15:00:55.923865+00:00"
+}

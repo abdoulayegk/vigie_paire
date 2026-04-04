@@ -1,0 +1,508 @@
+[
+  {
+    "table_id": "tbl_p024_i01",
+    "title": "TABLEAU 11",
+    "indicators": [
+      "Ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires",
+      "Ratio des fonds propres de catégorie 1",
+      "Ratio du total des fonds propres",
+      "Ratio TLAC",
+      "Ratio de levier",
+      "Ratio de levier TLAC"
+    ]
+  },
+  {
+    "table_id": "tbl_p024_i02",
+    "title": "TABLEAU 12",
+    "indicators": [
+      "Montant brut des fonds propres sous forme d’actions ordinaires¹",
+      "Ajustements réglementaires appliqués aux fonds propres sous forme d’actions ordinaires",
+      "Fonds propres de catégorie 1 sous forme d’actions ordinaires",
+      "Fonds propres de catégorie 1 supplémentaires admissibles²",
+      "Ajustements réglementaires appliqués aux fonds propres de catégorie 1",
+      "Fonds propres de catégorie 1 supplémentaires",
+      "Fonds propres de catégorie 1 (fonds propres de catégorie 1 sous forme d’actions ordinaires et fonds propres de catégorie 1 supplémentaires)",
+      "Fonds propres de catégorie 2 admissibles³",
+      "Ajustements réglementaires appliqués aux fonds propres de catégorie 2",
+      "Fonds propres de catégorie 2",
+      "Total des fonds propres (fonds propres de catégorie 1 et 2)",
+      "Autres instruments TLAC⁴",
+      "Ajustements appliqués aux autres instruments TLAC",
+      "Autres instruments TLAC disponibles après ajustements",
+      "TLAC",
+      "Actifs pondérés en fonction des risques⁵",
+      "Exposition aux fins du ratio de levier",
+      "Ratios des fonds propres, de levier et de la TLAC (%)",
+      "Ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires",
+      "Ratio des fonds propres de catégorie 1",
+      "Ratio du total des fonds propres",
+      "Ratio TLAC",
+      "Ratio de levier",
+      "Ratio de levier TLAC"
+    ]
+  },
+  {
+    "table_id": "tbl_p025_i01",
+    "title": "Actions en circulation et titres convertibles en actions ordinaires¹ TABLEAU 13",
+    "indicators": [
+      "Actions ordinaires",
+      "Actions privilégiées de catégorie B²",
+      "Série 33",
+      "Série 44",
+      "Série 50",
+      "Série 52",
+      "Autres instruments de capitaux propres²",
+      "Billets subordonnés à 4,800 % aux termes des fonds propres de catégorie 1 supplémentaires³",
+      "Billets avec remboursement de capital à recours limité, série 1 à 4,300 %",
+      "Billets avec remboursement de capital à recours limité, série 2 à 5,625 %",
+      "Billets avec remboursement de capital à recours limité, série 3 à 7,325 %",
+      "Billets avec remboursement de capital à recours limité, série 4 à 7,700 %",
+      "Billets avec remboursement de capital à recours limité, série 5 à 7,300 %",
+      "Billets avec remboursement de capital à recours limité, série 6 à 6,875 %",
+      "Billets à moyen terme",
+      "Billets subordonnés à 3,803 % échéant en 2032",
+      "Série K – première tranche",
+      "Billets subordonnés à 3,088 % échéant en 2037",
+      "Série L – première tranche",
+      "Série M – première tranche",
+      "Série M – deuxième tranche",
+      "Série N – première tranche",
+      "Options sur actions",
+      "Droits acquis",
+      "Droits non acquis"
+    ]
+  },
+  {
+    "table_id": "tbl_p043_i01",
+    "title": "TABLEAU 21",
+    "indicators": [
+      "A. Activité transfrontière",
+      "B. Taille",
+      "C. Interdépendance",
+      "D. Substituabilité / Infrastructure de l’institution financière",
+      "E. Complexité"
+    ]
+  },
+  {
+    "table_id": "tbl_p044_i01",
+    "title": "TABLEAU 22",
+    "indicators": []
+  },
+  {
+    "table_id": "tbl_p044_i02",
+    "title": "TABLEAU 23",
+    "indicators": [
+      "Région²",
+      "Atlantique",
+      "Québec",
+      "Ontario",
+      "Alberta",
+      "Colombie-Britannique",
+      "Ailleurs au Canada",
+      "Total au Canada",
+      "États-Unis",
+      "Total"
+    ]
+  },
+  {
+    "table_id": "tbl_p044_i03",
+    "title": "TABLEAU 24",
+    "indicators": [
+      "Atlantique",
+      "Québec",
+      "Ontario",
+      "Alberta",
+      "Colombie-Britannique",
+      "Ailleurs au Canada",
+      "Total au Canada",
+      "États-Unis",
+      "Total"
+    ]
+  },
+  {
+    "table_id": "tbl_p045_i01",
+    "title": "TABLEAU 25",
+    "indicators": [
+      "Canada³",
+      "États-Unis⁴",
+      "Total"
+    ]
+  },
+  {
+    "table_id": "tbl_p045_i02",
+    "title": "",
+    "indicators": [
+      "Canada³",
+      "États-Unis⁴",
+      "Total"
+    ]
+  },
+  {
+    "table_id": "tbl_p045_i03",
+    "title": "TABLEAU 26",
+    "indicators": [
+      "Europe (excl. Royaume-Uni)",
+      "Royaume-Uni",
+      "Amérique latine",
+      "Asie-Pacifique",
+      "Afrique et Moyen-Orient",
+      "Autres¹",
+      "Total"
+    ]
+  },
+  {
+    "table_id": "tbl_p046_i01",
+    "title": "TABLEAU 27",
+    "indicators": [
+      "Actifs exposés au risque de marché",
+      "Trésorerie et équivalents de trésorerie",
+      "Dépôts productifs d’intérêts à d’autres banques",
+      "Valeurs mobilières",
+      "Titres pris en pension ou empruntés",
+      "Prêts et acceptations (déduction faite de la provision pour pertes sur créances)",
+      "Instruments dérivés",
+      "Engagements des clients aux termes",
+      "d’acceptations",
+      "Actifs divers",
+      "Total des actifs",
+      "Passifs exposés au risque de marché",
+      "Dépôts",
+      "Instruments dérivés",
+      "Acceptations",
+      "Titres vendus à découvert",
+      "Titres mis en pension ou prêtés",
+      "Passifs divers",
+      "Dette subordonnée",
+      "Total des passifs"
+    ]
+  },
+  {
+    "table_id": "tbl_p046_i02",
+    "title": "TABLEAU 28",
+    "indicators": [
+      "VaR liée aux produits de base",
+      "VaR liée aux actions",
+      "VaR liée au change",
+      "VaR liée aux taux d’intérêt²",
+      "Diversification",
+      "Total de la VaR – Négociation"
+    ]
+  },
+  {
+    "table_id": "tbl_p047_i01",
+    "title": "TABLEAU 29",
+    "indicators": [
+      "Hausse de 100 points de base",
+      "Baisse de 100 points de base"
+    ]
+  },
+  {
+    "table_id": "tbl_p047_i02",
+    "title": "TABLEAU 30",
+    "indicators": [
+      "Sensibilité aux taux d’intérêt¹,²",
+      "Hausse de 50 points de base",
+      "Baisse de 50 points de base",
+      "Sensibilité aux marchés boursiers³",
+      "Hausse de 10 %",
+      "Baisse de 10 %"
+    ]
+  },
+  {
+    "table_id": "tbl_p048_i01",
+    "title": "TABLEAU 31",
+    "indicators": [
+      "Trésorerie et équivalents de trésorerie",
+      "Dépôts à d’autres banques",
+      "Valeurs mobilières et titres pris en pension ou empruntés",
+      "États souverains, banques centrales ou banques multilatérales de développement",
+      "Titres adossés à des créances hypothécaires en vertu de la LNH et titres adossés à des créances hypothécaires émis par des agences américaines et titres garantis par des créances hypothécaires",
+      "Titres de créance d’entreprises et autres",
+      "Titres de participation d’entreprises",
+      "Total des valeurs mobilières et des titres pris en pension ou empruntés",
+      "Titres adossés à des créances hypothécaires en vertu de la LNH (présentés comme des prêts au coût amorti)³",
+      "Total des actifs liquides"
+    ]
+  },
+  {
+    "table_id": "tbl_p049_i01",
+    "title": "TABLEAU 32",
+    "indicators": [
+      "Trésorerie et dépôts à d’autres banques",
+      "Valeurs mobilières⁵",
+      "Prêts",
+      "Autres actifs",
+      "Instruments dérivés",
+      "Engagements de clients aux termes d’acceptations",
+      "Bureaux et matériel",
+      "Écart d’acquisition",
+      "Immobilisations incorporelles",
+      "Actifs d’impôt exigible",
+      "Actifs d’impôt différé",
+      "Montants à recevoir des courtiers, des contrepartistes et des clients",
+      "Actifs divers",
+      "Total des autres actifs",
+      "Total des actifs"
+    ]
+  },
+  {
+    "table_id": "tbl_p049_i02",
+    "title": "",
+    "indicators": [
+      "Trésorerie et dépôts à d’autres banques",
+      "Valeurs mobilières⁵",
+      "Prêts",
+      "Autres actifs",
+      "Instruments dérivés",
+      "Engagements de clients aux termes d’acceptations",
+      "Bureaux et matériel",
+      "Écart d’acquisition",
+      "Immobilisations incorporelles",
+      "Actifs d’impôt exigible",
+      "Actifs d’impôt différé",
+      "Montants à recevoir des courtiers, des contrepartistes et des clients",
+      "Actifs divers",
+      "Total des autres actifs",
+      "Total des actifs"
+    ]
+  },
+  {
+    "table_id": "tbl_p049_i03",
+    "title": "TABLEAU 33",
+    "indicators": [
+      "BMO (société mère)",
+      "BMO Bank N.A.",
+      "Courtiers",
+      "Total des actifs nets liquides non grevés par entité juridique"
+    ]
+  },
+  {
+    "table_id": "tbl_p050_i01",
+    "title": "TABLEAU 34",
+    "indicators": [
+      "Dépôts d’autres banques",
+      "Certificats de dépôt et papier commercial",
+      "Billets de dépôt au porteur",
+      "Papier commercial adossé à des actifs",
+      "Billets à moyen terme non garantis",
+      "de premier rang",
+      "Billets structurés non garantis de",
+      "premier rang²",
+      "Financement garanti",
+      "Titrisations de créances hypothécaires et de marges de crédit sur valeur domiciliaire",
+      "Obligations couvertes",
+      "Autres titrisations adossées à des actifs³",
+      "Avances de la Federal Home Loan Bank",
+      "Dette subordonnée",
+      "Total",
+      "Composé de ce qui suit :",
+      "Financement garanti",
+      "Financement non garanti",
+      "Total⁴"
+    ]
+  },
+  {
+    "table_id": "tbl_p051_i01",
+    "title": "TABLEAU 35",
+    "indicators": [
+      "Moody’s",
+      "S&P",
+      "Fitch",
+      "DBRS"
+    ]
+  },
+  {
+    "table_id": "tbl_p052_i01",
+    "title": "TABLEAU 36",
+    "indicators": [
+      "Actifs liquides de haute qualité",
+      "Total des actifs liquides de haute qualité",
+      "Sorties de trésorerie",
+      "Dépôts de détail et dépôts de petites entreprises, dont :",
+      "Dépôts stables",
+      "Dépôts moins stables",
+      "Financement de gros non garanti, dont :",
+      "Dépôts opérationnels (toutes les contreparties) et dépôts dans les réseaux de banques coopératives",
+      "Dépôts non opérationnels (toutes les contreparties)",
+      "Dettes non garanties",
+      "Financement de gros garanti",
+      "Exigences supplémentaires, dont :",
+      "Sorties associées aux expositions sur dérivés et autres sûretés exigées",
+      "Sorties associées à une perte de financement sur produits de dette",
+      "Facilités de crédit et de liquidité",
+      "Autres obligations de financement contractuelles",
+      "Autres obligations de financement conditionnelles",
+      "Total des sorties de trésorerie",
+      "Entrées de trésorerie",
+      "Prêts garantis (p. ex., prises en pension)",
+      "Entrées liées aux expositions parfaitement productives",
+      "Autres entrées de trésorerie",
+      "Total des entrées de trésorerie",
+      "Total des actifs liquides de haute qualité (bloc 2)",
+      "Total des sorties nettes de trésorerie",
+      "Ratio de liquidité à court terme (%)²",
+      "Total des actifs liquides de haute qualité (bloc 3)",
+      "Total des sorties nettes de trésorerie (bloc 2)",
+      "Ratio de liquidité à court terme (%)"
+    ]
+  },
+  {
+    "table_id": "tbl_p053_i01",
+    "title": "TABLEAU 37",
+    "indicators": [
+      "Élément de financement stable disponible (FSD)",
+      "Fonds propres :",
+      "Fonds propres réglementaires",
+      "Autres instruments de fonds propres",
+      "Dépôts des particuliers et dépôts des petites entreprises :",
+      "Dépôts stables",
+      "Dépôts moins stables",
+      "Financement de gros :",
+      "Dépôts opérationnels",
+      "Autres financements de gros",
+      "Passifs et leurs actifs interdépendants correspondants",
+      "Autres passifs :",
+      "Passifs d’instruments dérivés du RSLT",
+      "Tous les autres passifs ou fonds propres non couverts par les catégories ci-dessus",
+      "FSD total",
+      "Élément de financement stable requis (FSR)",
+      "Total des actifs liquides de haute qualité du RSLT",
+      "Dépôts détenus auprès d’autres institutions financières à des fins opérationnelles",
+      "Prêts et titres productifs :",
+      "Prêts productifs à des institutions financières garantis par des actifs liquides de haute qualité de niveau 1",
+      "Prêts productifs à des institutions financières garantis par des actifs liquides de haute qualité autres que de niveau 1 et prêts productifs à des institutions non garantis",
+      "Prêts productifs à des entreprises non financières, prêts aux particuliers et aux petites entreprises, et prêts à des entités souveraines, des banques centrales et des organismes publics, dont :",
+      "Prêts présentant un risque pondéré inférieur ou égal à 35 % dans l’approche standard de Bâle II pour le risque de crédit",
+      "Crédits hypothécaires au logement productifs, dont :",
+      "Prêts présentant un risque pondéré inférieur ou égal à 35 % dans l’approche standard de Bâle II pour le risque de crédit",
+      "Titres qui ne sont pas en défaut et qui ne remplissent pas les critères définissant les HQLA, y compris les actions négociées sur les marchés organisés",
+      "Actifs et leurs passifs interdépendants correspondants",
+      "Autres actifs :",
+      "Produits de base physiques, y compris l’or",
+      "Actifs versés en tant que marge initiale dans le cadre de contrats dérivés et contributions à des fonds de garantie de contreparties centrales",
+      "Actifs d’instruments dérivés du RSLT",
+      "Passifs d’instruments dérivés du RSLT avant déduction de la marge de variation versée",
+      "Tous les autres actifs non couverts par les catégories ci-dessus",
+      "Éléments hors bilan",
+      "FSR total",
+      "Ratio structurel de liquidité à long terme (%)",
+      "FSD total (bloc 2)",
+      "FSR total (bloc 2)",
+      "Ratio structurel de liquidité à long terme (%) (bloc 2)"
+    ]
+  },
+  {
+    "table_id": "tbl_p054_i01",
+    "title": "TABLEAU 38",
+    "indicators": [
+      "Actifs",
+      "Trésorerie et équivalents de trésorerie",
+      "Dépôts productifs d’intérêts à d’autres banques",
+      "Valeurs mobilières",
+      "Titres pris en pension ou empruntés",
+      "Prêts¹",
+      "Prêts hypothécaires à l’habitation",
+      "Prêts à tempérament et autres prêts aux particuliers",
+      "Prêts sur cartes de crédit",
+      "Prêts aux entreprises et aux administrations publiques",
+      "Provision pour pertes sur créances",
+      "Total des prêts, déduction faite de la provision",
+      "Autres actifs",
+      "Instruments dérivés",
+      "Engagements de clients aux termes d’acceptations",
+      "Montants à recevoir des courtiers, des contrepartistes et des clients",
+      "Divers",
+      "Total des autres actifs",
+      "Total des actifs"
+    ]
+  },
+  {
+    "table_id": "tbl_p054_i02",
+    "title": "TABLEAU 39",
+    "indicators": [
+      "Passifs et capitaux propres",
+      "Dépôts²,³",
+      "Autres passifs",
+      "Instruments dérivés",
+      "Acceptations",
+      "Titres vendus à découvert⁴",
+      "Titres mis en pension ou prêtés⁴",
+      "Passifs liés à la titrisation et aux entités structurées",
+      "Passifs liés à l’assurance",
+      "Montants à payer aux courtiers, aux contrepartistes et aux clients",
+      "Divers",
+      "Total des autres passifs",
+      "Dette subordonnée",
+      "Total des capitaux propres",
+      "Total des passifs et des capitaux propres"
+    ]
+  },
+  {
+    "table_id": "tbl_p055_i01",
+    "title": "TABLEAU 40",
+    "indicators": [
+      "Engagements hors bilan",
+      "Crédits fermes¹",
+      "Lettres de crédit²",
+      "Concours de trésorerie",
+      "Autres engagements³"
+    ]
+  },
+  {
+    "table_id": "tbl_p055_i02",
+    "title": "TABLEAU 41",
+    "indicators": [
+      "Actifs",
+      "Trésorerie et équivalents de trésorerie",
+      "Dépôts productifs d’intérêts à d’autres banques",
+      "Valeurs mobilières",
+      "Titres pris en pension ou empruntés",
+      "Prêts¹",
+      "Prêts hypothécaires à l’habitation",
+      "Prêts à tempérament et autres prêts aux particuliers",
+      "Prêts sur cartes de crédit",
+      "Prêts aux entreprises et aux administrations publiques",
+      "Provision pour pertes sur créances",
+      "Total des prêts, déduction faite de la provision",
+      "Autres actifs",
+      "Instruments dérivés",
+      "Engagements de clients aux termes d’acceptations",
+      "Montants à recevoir des courtiers, des contrepartistes et des clients",
+      "Divers",
+      "Total des autres actifs",
+      "Total des actifs"
+    ]
+  },
+  {
+    "table_id": "tbl_p055_i03",
+    "title": "TABLEAU 42",
+    "indicators": [
+      "Passifs et capitaux propres",
+      "Dépôts²,³",
+      "Autres passifs",
+      "Instruments dérivés",
+      "Acceptations",
+      "Titres vendus à découvert⁴",
+      "Titres mis en pension ou prêtés⁴",
+      "Passifs liés à la titrisation et aux entités structurées",
+      "Passifs liés à l’assurance",
+      "Montants à payer aux courtiers, aux contrepartistes et aux clients",
+      "Divers",
+      "Total des autres passifs",
+      "Dette subordonnée",
+      "Total des capitaux propres",
+      "Total des passifs et des capitaux propres"
+    ]
+  },
+  {
+    "table_id": "tbl_p056_i01",
+    "title": "TABLEAU 43",
+    "indicators": [
+      "Engagements hors bilan",
+      "Crédits fermes¹",
+      "Lettres de crédit²",
+      "Concours de trésorerie",
+      "Autres engagements³"
+    ]
+  }
+]

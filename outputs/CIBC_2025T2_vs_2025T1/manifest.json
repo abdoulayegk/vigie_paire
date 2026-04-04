@@ -1,0 +1,13 @@
+{
+  "bank": "CIBC",
+  "current": {
+    "year": 2025,
+    "quarter": "T2"
+  },
+  "previous": {
+    "year": 2025,
+    "quarter": "T1"
+  },
+  "status": "completed",
+  "generated_at": "2026-04-03T16:47:31.121855+00:00"
+}

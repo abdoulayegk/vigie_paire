@@ -142,6 +142,7 @@ def _aggregate_extraction_run_metrics(
 
 _MATCHING_METRIC_KEYS = (
     "matching_passes_total",
+    "inspector_passes_total",
     "audit_passes_total",
     "matching_output_retries_total",
     "matching_validation_failures_total",
@@ -153,6 +154,8 @@ _MATCHING_METRIC_KEYS = (
     "unmatched_after_rescue_total",
     "matching_pairs_llm_duplicates_total",
     "matching_pairs_llm_deduped_total",
+    "inspector_rejected_total",
+    "inspector_confirmed_total",
 )
 
 
@@ -174,6 +177,7 @@ def _build_run_metrics(
     comparison_metrics["comparison_calls_total"] = max(
         _coerce_int(comparison_metrics.get("comparison_calls_total")),
         comparison_metrics["matching_passes_total"]
+        + comparison_metrics["inspector_passes_total"]
         + comparison_metrics["audit_passes_total"]
         + diff_calls_total,
     )

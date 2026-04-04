@@ -15,6 +15,7 @@ import json
 import logging
 from typing import Any, Callable, TypedDict
 
+from vigilance.comparison_inspector import _inspect_matched_pairs
 from vigilance.comparison_io import _coerce_float, _coerce_int, _require_string
 
 logger = logging.getLogger(__name__)
@@ -368,6 +369,9 @@ def _empty_matching_result(
         "unresolved_after_stage1_total": 0,
         "matched_in_stage2_total": 0,
         "matching_passes_total": 0,
+        "inspector_passes_total": 0,
+        "inspector_rejected_total": 0,
+        "inspector_confirmed_total": 0,
     }
 
 
@@ -559,16 +563,38 @@ def _match_tables(
     )
     stage1_decisions = list(stage1.get("current_table_decisions", []) or [])
     stage1_pairs = _matching_decisions_to_pairs(stage1_decisions)
+
+    # --- Stage 1.5: Match Inspector (pair-level GenAI verification) ----------
+    inspector_result = _inspect_matched_pairs(
+        stage1_pairs,
+        previous_cards,
+        current_cards,
+        model=model,
+        call_openai_json=call_openai_json,
+        usage_recorder=usage_recorder,
+    )
+    confirmed_stage1_pairs = inspector_result["confirmed_pairs"]
+    rejected_stage1_pairs = inspector_result["rejected_pairs"]
+    inspector_stats = inspector_result.get("inspection_stats", {})
+
+    if rejected_stage1_pairs:
+        logger.info(
+            "Match Inspector rejected %d pairs — returning to unresolved pool",
+            len(rejected_stage1_pairs),
+        )
+
+    # Use only confirmed pairs as consumed; rejected pairs go back to pools
     used_previous_stage1 = {
         item["previous_table_id"]
-        for item in stage1_pairs
+        for item in confirmed_stage1_pairs
         if str(item.get("previous_table_id", "") or "").strip()
     }
+    # Unresolved = original unresolved + rejected CQ tables
     unresolved_ids = [
         item["current_table_id"]
         for item in stage1_decisions
         if item.get("decision") == "unresolved"
-    ]
+    ] + [item["current_table_id"] for item in rejected_stage1_pairs]
     unresolved_lookup = {card["table_id"]: card for card in current_cards}
     unresolved_current_cards = [
         unresolved_lookup[table_id]
@@ -620,7 +646,9 @@ def _match_tables(
             if item.get("decision") == "unresolved"
         ]
 
-    matched_pairs = stage1_pairs + _matching_decisions_to_pairs(stage2_decisions)
+    matched_pairs = confirmed_stage1_pairs + _matching_decisions_to_pairs(
+        stage2_decisions
+    )
     used_previous_all = {
         str(item.get("previous_table_id", "") or "").strip()
         for item in matched_pairs
@@ -671,9 +699,12 @@ def _match_tables(
         ),
         "matching_passes_total": int(bool(stage1.get("executed")))
         + int(bool(stage2_metrics.get("executed"))),
+        "inspector_passes_total": _coerce_int(inspector_stats.get("total_inspected")),
         "unmatched_after_primary_total": len(unresolved_current_cards)
         + len(remaining_previous_cards),
         "unmatched_after_rescue_total": len(tables_added) + len(tables_removed),
+        "inspector_rejected_total": _coerce_int(inspector_stats.get("rejected")),
+        "inspector_confirmed_total": _coerce_int(inspector_stats.get("confirmed")),
     }
 
 
@@ -702,6 +733,7 @@ def _run_table_matching(
         "tables_added": tables_added,
         "tables_removed": tables_removed,
         "matching_passes_total": _coerce_int(result.get("matching_passes_total")),
+        "inspector_passes_total": _coerce_int(result.get("inspector_passes_total")),
         "audit_passes_total": 0,
         "matching_output_retries_total": _coerce_int(
             result.get("validation_retries_total")
@@ -732,6 +764,10 @@ def _run_table_matching(
         ),
         "matching_pairs_llm_deduped_total": _coerce_int(
             result.get("matching_pairs_llm_deduped_total")
+        ),
+        "inspector_rejected_total": _coerce_int(result.get("inspector_rejected_total")),
+        "inspector_confirmed_total": _coerce_int(
+            result.get("inspector_confirmed_total")
         ),
         "warnings": _normalize_matching_warnings(result.get("warnings", [])),
     }

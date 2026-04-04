@@ -2702,6 +2702,63 @@ class VisionFullExtractor:
                 ),
             )
             assert best_result is not None
+
+            # --- Post-rescue QA inspection ---
+            # The QA Inspector only ran on `first` when it had zero rejection
+            # reasons (in which case we already returned above).  Every path
+            # that reaches this point means the selected candidate has NEVER
+            # been QA-verified.  Run a targeted QA pass now and, if it finds
+            # missing elements, do one additional rescue with a precise instruction.
+            try:
+                import dataclasses as _dataclasses
+
+                from vigilance.extraction.vision_qa_inspector import (
+                    VisionTableInspector as _VisionTableInspector,
+                )
+
+                _best_dict = _dataclasses.asdict(best_result)
+                _post_qa_inspector = _VisionTableInspector(model="gpt-4o")
+                _post_qa_result = _post_qa_inspector.inspect_extraction(
+                    crop_bytes, _best_dict
+                )
+
+                if not _post_qa_result.is_perfect and _post_qa_result.missing_elements:
+                    _missing_str = ", ".join(_post_qa_result.missing_elements)
+                    logger.info(
+                        "Post-rescue QA: candidate '%s' is incomplete — missing: %s",
+                        best_name,
+                        _missing_str,
+                    )
+                    _targeted_instr = (
+                        f"CRITICAL WARNING: The rigid QA Inspector found you missed "
+                        f"required first-column row labels or footnotes: [{_missing_str}].\n"
+                        "You MUST extract again and GUARANTEE every missing FIRST-COLUMN "
+                        "row label and footnote is included. "
+                        "Do NOT add text from non-leftmost columns. "
+                        "Reread the image carefully, line-by-line, top to bottom."
+                    )
+                    _targeted = _run_pass(
+                        crop_bytes_for_pass=crop_bytes,
+                        bottom_extension_used=initial_bottom_extension,
+                        rescue_mode=True,
+                        rescue_instruction=_targeted_instr,
+                    )
+                    if _targeted is not None and _is_viable_result(_targeted):
+                        best_result = _targeted
+                        best_name = "qa_targeted_rescue"
+                        logger.info(
+                            "Post-rescue QA: targeted rescue produced a viable result."
+                        )
+                else:
+                    logger.debug(
+                        "Post-rescue QA: candidate '%s' passed inspection.", best_name
+                    )
+            except Exception as _post_qa_exc:
+                logger.error(
+                    "Post-rescue QA inspection failed (non-fatal): %s", _post_qa_exc
+                )
+            # --- End post-rescue QA ---
+
             final_status = (
                 "ok"
                 if best_name == "initial" and not initial_rejection_reasons

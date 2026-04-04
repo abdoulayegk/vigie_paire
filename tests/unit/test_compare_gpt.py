@@ -135,65 +135,115 @@ def test_compare_reports_gpt4o_uses_canonical_prompt_cards_and_gpt_diff(
         ],
     )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_capital",
-                    "decision": "matched",
-                    "previous_table_id": "prev_capital",
-                    "match_confidence": 0.98,
-                    "reason": "Même sujet et mêmes indicateurs principaux.",
-                },
-                {
-                    "current_table_id": "curr_added",
-                    "decision": "unresolved",
-                    "reason": "Aucune contrepartie précédente assez solide au pass strict.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_added",
-                    "decision": "added",
-                    "reason": "Aucun équivalent clair dans le rapport précédent.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "indicators_added": [
-                {"value": "Ratio de levier", "reason": "Nouvel indicateur courant."}
-            ],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "reason": "Le tableau gagne un indicateur.",
-        },
-        {
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [
-                {
-                    "previous_id": "1",
-                    "current_id": "1",
-                    "previous_text": "Note A",
-                    "current_text": "Note A mise à jour",
-                    "reason": "Même note avec reformulation matérielle.",
-                }
-            ],
-            "reason": "La note est reformulée matériellement.",
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_capital",
+                        "decision": "matched",
+                        "previous_table_id": "prev_capital",
+                        "match_confidence": 0.98,
+                        "reason": "Même sujet et mêmes indicateurs principaux.",
+                    },
+                    {
+                        "current_table_id": "curr_added",
+                        "decision": "unresolved",
+                        "reason": "Aucune contrepartie précédente assez solide au pass strict.",
+                    },
+                ],
+                "warnings": [],
+            },
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_added",
+                        "decision": "added",
+                        "reason": "Aucun équivalent clair dans le rapport précédent.",
+                    }
+                ],
+                "warnings": [],
+            },
+        ],
+        "match_inspector": [
+            {
+                "verdicts": [
+                    {
+                        "previous_table_id": "prev_capital",
+                        "current_table_id": "curr_capital",
+                        "verdict": "confirmed",
+                        "shared_indicators": ["Ratio CET1"],
+                        "confidence": 0.95,
+                        "reason": "Shared indicator Ratio CET1.",
+                    }
+                ]
+            },
+        ],
+        "devil_advocate": [
+            {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []},
+        ],
+        "diff_indicators": [
+            {
+                "indicators_added": [
+                    {
+                        "value": "Ratio de levier",
+                        "reason": "Nouvel indicateur courant.",
+                        "analyst_assessment": {
+                            "relevance_level": 2,
+                            "justification": "Nouvel indicateur",
+                        },
+                    }
+                ],
+                "indicators_removed": [],
+                "indicators_renamed": [],
+                "reason": "Le tableau gagne un indicateur.",
+            },
+        ],
+        "diff_footnotes": [
+            {
+                "footnotes_added": [],
+                "footnotes_removed": [],
+                "footnotes_renamed": [
+                    {
+                        "previous_id": "1",
+                        "current_id": "1",
+                        "previous_text": "Note A",
+                        "current_text": "Note A mise à jour",
+                        "reason": "Même note avec reformulation matérielle.",
+                        "analyst_assessment": {
+                            "relevance_level": 3,
+                            "justification": "Reformulation",
+                        },
+                    }
+                ],
+                "reason": "La note est reformulée matériellement.",
+            },
+        ],
+        "inspect_artifacts": [
+            {
+                "added_verdicts": [
+                    {
+                        "value": "Ratio de levier",
+                        "verdict": "real",
+                        "reason": "Nouvel indicateur réel.",
+                    }
+                ],
+                "removed_verdicts": [],
+                "artifact_pairs": [],
+            },
+        ],
+    }
     seen_prompts: list[tuple[str, dict]] = []
 
     def fake_call_openai_json(**kwargs):
         prompt = json.loads(kwargs["messages"][-1]["content"])
-        seen_prompts.append((kwargs["call_kind"], prompt))
-        return responses.pop(0)
+        kind = kwargs["call_kind"]
+        seen_prompts.append((kind, prompt))
+        return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -217,7 +267,14 @@ def test_compare_reports_gpt4o_uses_canonical_prompt_cards_and_gpt_diff(
     assert payload["prompt_version_diff"] == DIFF_PROMPT_VERSION
     assert payload["pair_comparisons"][0]["diff_mode"] == "gpt"
     assert payload["pair_comparisons"][0]["technical_diff"]["indicators_added"] == [
-        {"value": "Ratio de levier", "reason": "Nouvel indicateur courant."}
+        {
+            "value": "Ratio de levier",
+            "reason": "Nouvel indicateur courant.",
+            "analyst_assessment": {
+                "relevance_level": 2,
+                "justification": "Nouvel indicateur",
+            },
+        }
     ]
     assert payload["pair_comparisons"][0]["technical_diff"]["footnotes_renamed"] == [
         {
@@ -226,6 +283,10 @@ def test_compare_reports_gpt4o_uses_canonical_prompt_cards_and_gpt_diff(
             "previous_text": "Note A",
             "current_text": "Note A mise à jour",
             "reason": "Même note avec reformulation matérielle.",
+            "analyst_assessment": {
+                "relevance_level": 3,
+                "justification": "Reformulation",
+            },
         }
     ]
     assert payload["run_metrics"]["matching_passes_total"] == 2
@@ -241,6 +302,8 @@ def test_compare_reports_gpt4o_uses_canonical_prompt_cards_and_gpt_diff(
         "table_summary",
         "page",
         "row_count",
+        "first_indicator",
+        "footnote_count",
         "headers",
         "indicators",
         "footnotes",
@@ -291,38 +354,56 @@ def test_compare_reports_gpt4o_allows_cross_section_matching_in_single_pass(
         ],
     )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_lcr",
-                    "decision": "matched",
-                    "previous_table_id": "prev_lcr",
-                    "match_confidence": 0.91,
-                    "reason": "Même tableau malgré la section différente.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "indicators_added": [],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [],
-            "reason": "Aucun changement sémantique détecté.",
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_lcr",
+                        "decision": "matched",
+                        "previous_table_id": "prev_lcr",
+                        "match_confidence": 0.91,
+                        "reason": "Même tableau malgré la section différente.",
+                    }
+                ],
+                "warnings": [],
+            },
+        ],
+        "match_inspector": [
+            {
+                "verdicts": [
+                    {
+                        "previous_table_id": "prev_lcr",
+                        "current_table_id": "curr_lcr",
+                        "verdict": "confirmed",
+                        "shared_indicators": ["Total des actifs liquides", "LCR"],
+                        "confidence": 0.92,
+                        "reason": "Both indicators match.",
+                    }
+                ]
+            },
+        ],
+        "diff_indicators": [
+            {
+                "indicators_added": [],
+                "indicators_removed": [],
+                "indicators_renamed": [],
+                "reason": "Aucun changement sémantique détecté.",
+            },
+        ],
+    }
     seen_modes: list[str] = []
 
     def fake_call_openai_json(**kwargs):
-        if kwargs["call_kind"] == "matching":
+        kind = kwargs["call_kind"]
+        if kind == "matching":
             prompt = json.loads(kwargs["messages"][-1]["content"])
             seen_modes.append(prompt["task"])
-        return responses.pop(0)
+        return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -363,51 +444,82 @@ def test_compare_reports_gpt4o_retries_invalid_matching_output(
         headers=["Indicateur", "Valeur"],
         indicators=["Ratio CET1"],
     )
-    _write_tables_json(previous_dir / "tables.json", bank="td", year=2025, quarter="t1", tables=[table_prev])
-    _write_tables_json(current_dir / "tables.json", bank="td", year=2025, quarter="t2", tables=[table_curr])
+    _write_tables_json(
+        previous_dir / "tables.json",
+        bank="td",
+        year=2025,
+        quarter="t1",
+        tables=[table_prev],
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="td",
+        year=2025,
+        quarter="t2",
+        tables=[table_curr],
+    )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_unknown",
-                    "decision": "matched",
-                    "previous_table_id": "prev_1",
-                    "match_confidence": 0.90,
-                    "reason": "Réponse invalide.",
-                }
-            ]
-        },
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_1",
-                    "decision": "matched",
-                    "previous_table_id": "prev_1",
-                    "match_confidence": 0.96,
-                    "reason": "Même tableau.",
-                }
-            ],
-        },
-        {
-            "indicators_added": [],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [],
-            "reason": "Aucun changement.",
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_unknown",
+                        "decision": "matched",
+                        "previous_table_id": "prev_1",
+                        "match_confidence": 0.90,
+                        "reason": "Réponse invalide.",
+                    }
+                ]
+            },
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_1",
+                        "decision": "matched",
+                        "previous_table_id": "prev_1",
+                        "match_confidence": 0.96,
+                        "reason": "Même tableau.",
+                    }
+                ],
+            },
+        ],
+        "match_inspector": [
+            {
+                "verdicts": [
+                    {
+                        "previous_table_id": "prev_1",
+                        "current_table_id": "curr_1",
+                        "verdict": "confirmed",
+                        "shared_indicators": ["Ratio CET1"],
+                        "confidence": 0.96,
+                        "reason": "Same indicator.",
+                    }
+                ]
+            },
+        ],
+        "diff_indicators": [
+            {
+                "indicators_added": [],
+                "indicators_removed": [],
+                "indicators_renamed": [],
+                "reason": "Aucun changement.",
+            },
+        ],
+    }
     feedbacks: list[str] = []
 
     def fake_call_openai_json(**kwargs):
-        prompt = json.loads(kwargs["messages"][-1]["content"])
-        if "validation_feedback" in prompt:
-            feedbacks.append(prompt["validation_feedback"])
-        return responses.pop(0)
+        kind = kwargs["call_kind"]
+        if kind == "matching":
+            prompt = json.loads(kwargs["messages"][-1]["content"])
+            if "validation_feedback" in prompt:
+                feedbacks.append(prompt["validation_feedback"])
+        return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -472,52 +584,70 @@ def test_compare_reports_gpt4o_rejects_duplicate_pairs_without_local_scoring(
         ],
     )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_a",
-                    "decision": "matched",
-                    "previous_table_id": "prev_a",
-                    "match_confidence": 0.95,
-                    "reason": "Première paire valide.",
-                },
-                {
-                    "current_table_id": "curr_a",
-                    "decision": "matched",
-                    "previous_table_id": "prev_b",
-                    "match_confidence": 0.94,
-                    "reason": "Doublon à rejeter.",
-                },
-            ],
-            "warnings": [],
-        },
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_a",
-                    "decision": "matched",
-                    "previous_table_id": "prev_a",
-                    "match_confidence": 0.95,
-                    "reason": "Première paire valide.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "indicators_added": [],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [],
-            "reason": "Aucun changement.",
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_a",
+                        "decision": "matched",
+                        "previous_table_id": "prev_a",
+                        "match_confidence": 0.95,
+                        "reason": "Première paire valide.",
+                    },
+                    {
+                        "current_table_id": "curr_a",
+                        "decision": "matched",
+                        "previous_table_id": "prev_b",
+                        "match_confidence": 0.94,
+                        "reason": "Doublon à rejeter.",
+                    },
+                ],
+                "warnings": [],
+            },
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_a",
+                        "decision": "matched",
+                        "previous_table_id": "prev_a",
+                        "match_confidence": 0.95,
+                        "reason": "Première paire valide.",
+                    }
+                ],
+                "warnings": [],
+            },
+        ],
+        "match_inspector": [
+            {
+                "verdicts": [
+                    {
+                        "previous_table_id": "prev_a",
+                        "current_table_id": "curr_a",
+                        "verdict": "confirmed",
+                        "shared_indicators": ["Alpha"],
+                        "confidence": 0.95,
+                        "reason": "Shared indicator Alpha.",
+                    }
+                ]
+            },
+        ],
+        "devil_advocate": [
+            {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []},
+        ],
+        "diff_indicators": [
+            {
+                "indicators_added": [],
+                "indicators_removed": [],
+                "indicators_renamed": [],
+                "reason": "Aucun changement.",
+            },
+        ],
+    }
 
     monkeypatch.setattr(
         "vigilance.compare_gpt._call_openai_json",
-        lambda **kwargs: responses.pop(0),
+        lambda **kwargs: responses_by_kind[kwargs["call_kind"]].pop(0),
     )
 
     comparison_path = compare_reports_gpt4o(
@@ -560,21 +690,20 @@ def test_compare_reports_gpt4o_recovers_unresolved_pairs_in_second_matching_stag
                 section="risk_management",
                 title="Liquidité",
                 table_summary="Mesures de liquidité",
-                    headers=["Indicateur", "Valeur"],
-                    indicators=["LCR"],
-                )
-                ,
-                _table(
-                    table_id="prev_y",
-                    page=11,
-                    section="risk_management",
-                    title="Liquidité secondaire",
-                    table_summary="Mesures de liquidité secondaires",
-                    headers=["Indicateur", "Valeur"],
-                    indicators=["NSFR"],
-                )
-            ],
-        )
+                headers=["Indicateur", "Valeur"],
+                indicators=["LCR"],
+            ),
+            _table(
+                table_id="prev_y",
+                page=11,
+                section="risk_management",
+                title="Liquidité secondaire",
+                table_summary="Mesures de liquidité secondaires",
+                headers=["Indicateur", "Valeur"],
+                indicators=["NSFR"],
+            ),
+        ],
+    )
     _write_tables_json(
         current_dir / "tables.json",
         bank="rbc",
@@ -593,48 +722,55 @@ def test_compare_reports_gpt4o_recovers_unresolved_pairs_in_second_matching_stag
         ],
     )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_x",
-                    "decision": "unresolved",
-                    "reason": "Deux candidats précédents restent plausibles au pass strict.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_x",
-                    "decision": "matched",
-                    "previous_table_id": "prev_x",
-                    "match_confidence": 0.93,
-                    "reason": "Réconcilié dans le pass de récupération.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "indicators_added": [],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [],
-            "reason": "Aucun changement.",
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_x",
+                        "decision": "unresolved",
+                        "reason": "Deux candidats précédents restent plausibles au pass strict.",
+                    }
+                ],
+                "warnings": [],
+            },
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_x",
+                        "decision": "matched",
+                        "previous_table_id": "prev_x",
+                        "match_confidence": 0.93,
+                        "reason": "Réconcilié dans le pass de récupération.",
+                    }
+                ],
+                "warnings": [],
+            },
+        ],
+        "devil_advocate": [
+            {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []},
+        ],
+        "diff_indicators": [
+            {
+                "indicators_added": [],
+                "indicators_removed": [],
+                "indicators_renamed": [],
+                "reason": "Aucun changement.",
+            },
+        ],
+    }
     stages: list[str] = []
 
     def fake_call_openai_json(**kwargs):
-        prompt = json.loads(kwargs["messages"][-1]["content"])
-        if kwargs["call_kind"] == "matching":
+        kind = kwargs["call_kind"]
+        if kind == "matching":
+            prompt = json.loads(kwargs["messages"][-1]["content"])
             stages.append(str(prompt.get("stage", "")))
-        return responses.pop(0)
+        return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -710,70 +846,78 @@ def test_compare_reports_gpt4o_retries_incomplete_matching_coverage(
         ],
     )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_unmatched_a",
-                    "decision": "unresolved",
-                    "reason": "Nouveau tableau réel A.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_unmatched_a",
-                    "decision": "unresolved",
-                    "reason": "Nouveau tableau réel A.",
-                },
-                {
-                    "current_table_id": "curr_unmatched_b",
-                    "decision": "unresolved",
-                    "reason": "Nouveau tableau réel B.",
-                },
-                {
-                    "current_table_id": "curr_unmatched_c",
-                    "decision": "unresolved",
-                    "reason": "Nouveau tableau réel C.",
-                },
-            ],
-            "warnings": [],
-        },
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_unmatched_a",
-                    "decision": "added",
-                    "reason": "Nouveau tableau réel A.",
-                },
-                {
-                    "current_table_id": "curr_unmatched_b",
-                    "decision": "added",
-                    "reason": "Nouveau tableau réel B.",
-                },
-                {
-                    "current_table_id": "curr_unmatched_c",
-                    "decision": "added",
-                    "reason": "Nouveau tableau réel C.",
-                },
-            ],
-            "warnings": [],
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_unmatched_a",
+                        "decision": "unresolved",
+                        "reason": "Nouveau tableau réel A.",
+                    }
+                ],
+                "warnings": [],
+            },
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_unmatched_a",
+                        "decision": "unresolved",
+                        "reason": "Nouveau tableau réel A.",
+                    },
+                    {
+                        "current_table_id": "curr_unmatched_b",
+                        "decision": "unresolved",
+                        "reason": "Nouveau tableau réel B.",
+                    },
+                    {
+                        "current_table_id": "curr_unmatched_c",
+                        "decision": "unresolved",
+                        "reason": "Nouveau tableau réel C.",
+                    },
+                ],
+                "warnings": [],
+            },
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_unmatched_a",
+                        "decision": "added",
+                        "reason": "Nouveau tableau réel A.",
+                    },
+                    {
+                        "current_table_id": "curr_unmatched_b",
+                        "decision": "added",
+                        "reason": "Nouveau tableau réel B.",
+                    },
+                    {
+                        "current_table_id": "curr_unmatched_c",
+                        "decision": "added",
+                        "reason": "Nouveau tableau réel C.",
+                    },
+                ],
+                "warnings": [],
+            },
+        ],
+        "devil_advocate": [
+            {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []},
+        ],
+    }
     feedbacks: list[str] = []
     required_ids: list[list[str]] = []
 
     def fake_call_openai_json(**kwargs):
-        prompt = json.loads(kwargs["messages"][-1]["content"])
-        if kwargs["call_kind"] == "matching":
+        kind = kwargs["call_kind"]
+        if kind == "matching":
+            prompt = json.loads(kwargs["messages"][-1]["content"])
             required_ids.append(list(prompt.get("required_current_table_ids", [])))
-        if kwargs["call_kind"] == "matching" and "validation_feedback" in prompt:
-            feedbacks.append(prompt["validation_feedback"])
-        return responses.pop(0)
+            if "validation_feedback" in prompt:
+                feedbacks.append(prompt["validation_feedback"])
+        return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -867,38 +1011,39 @@ def test_compare_reports_gpt4o_separates_artifacts_and_extraction_suspects(
         ],
     )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_suspect",
-                    "decision": "matched",
-                    "previous_table_id": "prev_biz",
-                    "reason": "Ancre commune.",
-                    "match_confidence": 0.82,
-                },
-                {
-                    "current_table_id": "curr_real_add",
-                    "decision": "unresolved",
-                    "reason": "Vrai nouveau tableau.",
-                },
-            ],
-            "warnings": [],
-        },
-        {
-            "indicators_added": [],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [],
-            "reason": "Aucun changement.",
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            # Stage 1: primary — curr_real_add unresolved
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_real_add",
+                        "decision": "unresolved",
+                        "reason": "Vrai nouveau tableau, aucune correspondance solide.",
+                    },
+                ],
+                "warnings": [],
+            },
+            # Stage 2: recovery — curr_real_add added
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_real_add",
+                        "decision": "added",
+                        "reason": "Vrai nouveau tableau.",
+                    },
+                ],
+                "warnings": [],
+            },
+        ],
+        "devil_advocate": [
+            {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []},
+        ],
+    }
 
     monkeypatch.setattr(
         "vigilance.compare_gpt._call_openai_json",
-        lambda **kwargs: responses.pop(0),
+        lambda **kwargs: responses_by_kind[kwargs["call_kind"]].pop(0),
     )
 
     comparison_path = compare_reports_gpt4o(
@@ -912,18 +1057,20 @@ def test_compare_reports_gpt4o_separates_artifacts_and_extraction_suspects(
     assert [item["table_id"] for item in payload["matching"]["tables_added"]] == [
         "curr_real_add"
     ]
-    assert payload["matching"]["tables_removed"] == []
-    assert [item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]] == [
-        "prev_artifact"
+    assert [item["table_id"] for item in payload["matching"]["tables_removed"]] == [
+        "prev_biz"
     ]
-    assert [item["table_id"] for item in payload["matching"]["extraction_suspects_current"]] == [
-        "curr_suspect"
-    ]
+    assert [
+        item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]
+    ] == ["prev_artifact"]
+    assert [
+        item["table_id"] for item in payload["matching"]["extraction_suspects_current"]
+    ] == ["curr_suspect"]
     assert "extraction_status=suspect_unresolved" in (
         payload["matching"]["extraction_suspects_current"][0].get("reason") or ""
     )
     assert payload["summary"]["tables_added_total"] == 1
-    assert payload["summary"]["tables_removed_total"] == 0
+    assert payload["summary"]["tables_removed_total"] == 1
     assert payload["summary"]["artifacts_confirmed_previous_total"] == 1
     assert payload["summary"]["extraction_suspects_current_total"] == 1
 
@@ -974,24 +1121,14 @@ def test_compare_reports_gpt4o_preclassifies_artifacts_and_suspects_before_audit
     )
 
     call_kinds: list[str] = []
-    responses: list[dict] = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_suspect",
-                    "decision": "unresolved",
-                    "reason": "Pas de tableau precedent business comparable.",
-                }
-            ],
-            "warnings": [],
-        },
-    ]
 
     def fake_call_openai_json(**kwargs):
         call_kinds.append(kwargs["call_kind"])
-        return responses.pop(0)
+        return {}
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1001,15 +1138,16 @@ def test_compare_reports_gpt4o_preclassifies_artifacts_and_suspects_before_audit
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    assert call_kinds == ["matching"]
-    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == ["curr_suspect"]
+    # Both tables are ghost (0 indicators, 0 headers) → no matching call
+    assert call_kinds == []
+    assert payload["matching"]["tables_added"] == []
     assert payload["matching"]["tables_removed"] == []
-    assert [item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]] == [
-        "prev_artifact"
-    ]
-    assert [item["table_id"] for item in payload["matching"]["extraction_suspects_current"]] == [
-        "curr_suspect"
-    ]
+    assert [
+        item["table_id"] for item in payload["matching"]["artifacts_confirmed_previous"]
+    ] == ["prev_artifact"]
+    assert [
+        item["table_id"] for item in payload["matching"]["extraction_suspects_current"]
+    ] == ["curr_suspect"]
 
 
 def test_compare_reports_gpt4o_sends_trivial_ok_tables_to_business_matching(
@@ -1046,24 +1184,14 @@ def test_compare_reports_gpt4o_sends_trivial_ok_tables_to_business_matching(
     )
 
     call_kinds: list[str] = []
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_trivial_ok",
-                    "decision": "unresolved",
-                    "reason": "Tableau business non apparie.",
-                }
-            ],
-            "warnings": [],
-        },
-    ]
 
     def fake_call_openai_json(**kwargs):
         call_kinds.append(kwargs["call_kind"])
-        return responses.pop(0)
+        return {}
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1073,10 +1201,9 @@ def test_compare_reports_gpt4o_sends_trivial_ok_tables_to_business_matching(
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    assert call_kinds == ["matching"]
-    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == [
-        "curr_trivial_ok"
-    ]
+    # Ghost filter: 0 indicators + 0 headers → no business tables → no matching call
+    assert call_kinds == []
+    assert payload["matching"]["tables_added"] == []
     assert payload["matching"]["artifacts_confirmed_current"] == []
 
 
@@ -1106,42 +1233,77 @@ def test_compare_reports_gpt4o_always_uses_gpt_for_unchanged_diff(
         indicators=["Ratio CET1"],
         footnotes=[{"id": "1", "text": "Note stable"}],
     )
-    _write_tables_json(previous_dir / "tables.json", bank="bnc", year=2025, quarter="t1", tables=[table_prev])
-    _write_tables_json(current_dir / "tables.json", bank="bnc", year=2025, quarter="t2", tables=[table_curr])
+    _write_tables_json(
+        previous_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t1",
+        tables=[table_prev],
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t2",
+        tables=[table_curr],
+    )
 
     call_kinds: list[str] = []
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_same",
-                    "decision": "matched",
-                    "previous_table_id": "prev_same",
-                    "match_confidence": 0.99,
-                    "reason": "Même tableau.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "indicators_added": [],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "reason": "Aucun changement sémantique sur les indicateurs.",
-        },
-        {
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [],
-            "reason": "Aucun changement sémantique sur les notes.",
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_same",
+                        "decision": "matched",
+                        "previous_table_id": "prev_same",
+                        "match_confidence": 0.99,
+                        "reason": "Même tableau.",
+                    }
+                ],
+                "warnings": [],
+            },
+        ],
+        "match_inspector": [
+            {
+                "verdicts": [
+                    {
+                        "previous_table_id": "prev_same",
+                        "current_table_id": "curr_same",
+                        "verdict": "confirmed",
+                        "shared_indicators": ["Ratio CET1"],
+                        "confidence": 0.99,
+                        "reason": "Identical indicator.",
+                    }
+                ]
+            },
+        ],
+        "diff_indicators": [
+            {
+                "indicators_added": [],
+                "indicators_removed": [],
+                "indicators_renamed": [],
+                "reason": "Aucun changement sémantique sur les indicateurs.",
+            },
+        ],
+        "diff_footnotes": [
+            {
+                "footnotes_added": [],
+                "footnotes_removed": [],
+                "footnotes_renamed": [],
+                "reason": "Aucun changement sémantique sur les notes.",
+            },
+        ],
+    }
 
     def fake_call_openai_json(**kwargs):
-        call_kinds.append(kwargs["call_kind"])
-        return responses.pop(0)
+        kind = kwargs["call_kind"]
+        call_kinds.append(kind)
+        return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1151,10 +1313,18 @@ def test_compare_reports_gpt4o_always_uses_gpt_for_unchanged_diff(
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    assert call_kinds == ["matching", "diff_indicators", "diff_footnotes"]
+    assert call_kinds == [
+        "matching",
+        "match_inspector",
+        "diff_indicators",
+        "diff_footnotes",
+    ]
     assert payload["pair_comparisons"][0]["diff_mode"] == "gpt"
-    assert payload["pair_comparisons"][0]["technical_diff"]["table_level_change"] == "inchange"
-    assert payload["run_metrics"]["comparison_calls_total"] == 3
+    assert (
+        payload["pair_comparisons"][0]["technical_diff"]["table_level_change"]
+        == "inchange"
+    )
+    assert payload["run_metrics"]["comparison_calls_total"] == 4
 
 
 def test_compare_reports_gpt4o_runs_visual_sanity_for_footnote_only_diff(
@@ -1200,43 +1370,68 @@ def test_compare_reports_gpt4o_runs_visual_sanity_for_footnote_only_diff(
         tables=[table_curr],
     )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_same",
-                    "decision": "matched",
-                    "previous_table_id": "prev_same",
-                    "match_confidence": 0.99,
-                    "reason": "Même tableau.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "indicators_added": [],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "reason": "Aucun changement indicateur.",
-        },
-        {
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [
-                {
-                    "previous_id": "1",
-                    "current_id": "2",
-                    "previous_text": "Note A",
-                    "current_text": "Note A mise à jour",
-                    "reason": "Même note, wording mis à jour.",
-                }
-            ],
-            "reason": "Une note change.",
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_same",
+                        "decision": "matched",
+                        "previous_table_id": "prev_same",
+                        "match_confidence": 0.99,
+                        "reason": "Même tableau.",
+                    }
+                ],
+                "warnings": [],
+            },
+        ],
+        "match_inspector": [
+            {
+                "verdicts": [
+                    {
+                        "previous_table_id": "prev_same",
+                        "current_table_id": "curr_same",
+                        "verdict": "confirmed",
+                        "shared_indicators": ["Ratio CET1"],
+                        "confidence": 0.99,
+                        "reason": "Identical indicator.",
+                    }
+                ]
+            },
+        ],
+        "diff_indicators": [
+            {
+                "indicators_added": [],
+                "indicators_removed": [],
+                "indicators_renamed": [],
+                "reason": "Aucun changement indicateur.",
+            },
+        ],
+        "diff_footnotes": [
+            {
+                "footnotes_added": [],
+                "footnotes_removed": [],
+                "footnotes_renamed": [
+                    {
+                        "previous_id": "1",
+                        "current_id": "2",
+                        "previous_text": "Note A",
+                        "current_text": "Note A mise à jour",
+                        "reason": "Même note, wording mis à jour.",
+                        "analyst_assessment": {
+                            "relevance_level": 3,
+                            "justification": "Reformulation",
+                        },
+                    }
+                ],
+                "reason": "Une note change.",
+            },
+        ],
+    }
 
     def fake_call_openai_json(**kwargs):
-        return responses.pop(0)
+        kind = kwargs["call_kind"]
+        return responses_by_kind[kind].pop(0)
 
     sanity_calls: list[dict] = []
 
@@ -1262,12 +1457,16 @@ def test_compare_reports_gpt4o_runs_visual_sanity_for_footnote_only_diff(
             "visual_sanity_render_status": "ok",
         }
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
     monkeypatch.setattr(
         "vigilance.compare_gpt.render_visual_sanity_proof",
         fake_render_visual_sanity_proof,
     )
-    monkeypatch.setattr("vigilance.compare_gpt.visual_sanity_check", fake_visual_sanity_check)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt.visual_sanity_check", fake_visual_sanity_check
+    )
 
     source_pdf_previous = tmp_path / "prev.pdf"
     source_pdf_current = tmp_path / "curr.pdf"
@@ -1333,31 +1532,37 @@ def test_compare_reports_gpt4o_filters_table_added_removed_with_visual_sanity(
         ],
     )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_added",
-                    "decision": "unresolved",
-                    "reason": "Aucune contrepartie.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_added",
-                    "decision": "added",
-                    "reason": "Nouveau tableau.",
-                }
-            ],
-            "warnings": [],
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_added",
+                        "decision": "unresolved",
+                        "reason": "Aucune contrepartie.",
+                    }
+                ],
+                "warnings": [],
+            },
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_added",
+                        "decision": "added",
+                        "reason": "Nouveau tableau.",
+                    }
+                ],
+                "warnings": [],
+            },
+        ],
+        "devil_advocate": [
+            {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []},
+        ],
+    }
 
     def fake_call_openai_json(**kwargs):
-        return responses.pop(0)
+        kind = kwargs["call_kind"]
+        return responses_by_kind[kind].pop(0)
 
     render_calls: list[tuple[str, int]] = []
 
@@ -1385,7 +1590,9 @@ def test_compare_reports_gpt4o_filters_table_added_removed_with_visual_sanity(
             "visual_sanity_render_status": "ok",
         }
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
     monkeypatch.setattr(
         "vigilance.compare_gpt.render_visual_sanity_proof",
         fake_render_visual_sanity_proof,
@@ -1465,40 +1672,52 @@ def test_compare_reports_gpt4o_skips_table_visual_sanity_without_anchor(
         ],
     )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_added",
-                    "decision": "unresolved",
-                    "reason": "Aucune contrepartie.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_added",
-                    "decision": "added",
-                    "reason": "Nouveau tableau.",
-                }
-            ],
-            "warnings": [],
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_added",
+                        "decision": "unresolved",
+                        "reason": "Aucune contrepartie.",
+                    }
+                ],
+                "warnings": [],
+            },
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_added",
+                        "decision": "added",
+                        "reason": "Nouveau tableau.",
+                    }
+                ],
+                "warnings": [],
+            },
+        ],
+        "devil_advocate": [
+            {"new_matches": [], "confirmed_low_confidence": [], "contested_pairs": []},
+        ],
+    }
 
     def fake_call_openai_json(**kwargs):
-        return responses.pop(0)
+        kind = kwargs["call_kind"]
+        return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
     monkeypatch.setattr(
         "vigilance.compare_gpt.render_visual_sanity_proof",
-        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected render")),
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            AssertionError("unexpected render")
+        ),
     )
     monkeypatch.setattr(
         "vigilance.compare_gpt.visual_sanity_check_table_event",
-        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected sanity")),
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            AssertionError("unexpected sanity")
+        ),
     )
 
     source_pdf_previous = tmp_path / "prev.pdf"
@@ -1518,8 +1737,14 @@ def test_compare_reports_gpt4o_skips_table_visual_sanity_without_anchor(
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
     assert len(payload["matching"]["tables_added"]) == 1
     assert len(payload["matching"]["tables_removed"]) == 1
-    assert payload["matching"]["tables_added"][0]["visual_sanity_render_status"] == "skipped_missing_anchor"
-    assert payload["matching"]["tables_removed"][0]["visual_sanity_render_status"] == "skipped_missing_anchor"
+    assert (
+        payload["matching"]["tables_added"][0]["visual_sanity_render_status"]
+        == "skipped_missing_anchor"
+    )
+    assert (
+        payload["matching"]["tables_removed"][0]["visual_sanity_render_status"]
+        == "skipped_missing_anchor"
+    )
     assert "confirmed" not in payload["matching"]["tables_added"][0]
     assert "confirmed" not in payload["matching"]["tables_removed"][0]
 
@@ -1567,45 +1792,72 @@ def test_compare_reports_gpt4o_recomputes_table_level_change_after_noise_filter(
         tables=[table_curr],
     )
 
-    responses = [
-        {
-            "current_table_decisions": [
-                {
-                    "current_table_id": "curr_same",
-                    "decision": "matched",
-                    "previous_table_id": "prev_same",
-                    "match_confidence": 0.99,
-                    "reason": "Même tableau.",
-                }
-            ],
-            "warnings": [],
-        },
-        {
-            "indicators_added": [],
-            "indicators_removed": [],
-            "indicators_renamed": [],
-            "reason": "Aucun changement indicateur.",
-        },
-        {
-            "footnotes_added": [],
-            "footnotes_removed": [],
-            "footnotes_renamed": [
-                {
-                    "previous_id": "1",
-                    "current_id": "1",
-                    "previous_text": "Voir pages 10 à 11",
-                    "current_text": "Voir pages 12 à 13",
-                    "reason": "Référence de page modifiée.",
-                }
-            ],
-            "reason": "Une note change.",
-        },
-    ]
+    responses_by_kind: dict[str, list[dict]] = {
+        "matching": [
+            {
+                "current_table_decisions": [
+                    {
+                        "current_table_id": "curr_same",
+                        "decision": "matched",
+                        "previous_table_id": "prev_same",
+                        "match_confidence": 0.99,
+                        "reason": "Même tableau.",
+                    }
+                ],
+                "warnings": [],
+            },
+        ],
+        "match_inspector": [
+            {
+                "verdicts": [
+                    {
+                        "previous_table_id": "prev_same",
+                        "current_table_id": "curr_same",
+                        "verdict": "confirmed",
+                        "shared_indicators": ["Ratio CET1"],
+                        "confidence": 0.99,
+                        "reason": "Identical indicator.",
+                    }
+                ]
+            },
+        ],
+        "diff_indicators": [
+            {
+                "indicators_added": [],
+                "indicators_removed": [],
+                "indicators_renamed": [],
+                "reason": "Aucun changement indicateur.",
+            },
+        ],
+        "diff_footnotes": [
+            {
+                "footnotes_added": [],
+                "footnotes_removed": [],
+                "footnotes_renamed": [
+                    {
+                        "previous_id": "1",
+                        "current_id": "1",
+                        "previous_text": "Voir pages 10 à 11",
+                        "current_text": "Voir pages 12 à 13",
+                        "reason": "Référence de page modifiée.",
+                        "analyst_assessment": {
+                            "relevance_level": 3,
+                            "justification": "Page ref",
+                        },
+                    }
+                ],
+                "reason": "Une note change.",
+            },
+        ],
+    }
 
     def fake_call_openai_json(**kwargs):
-        return responses.pop(0)
+        kind = kwargs["call_kind"]
+        return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._call_openai_json", fake_call_openai_json
+    )
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1616,7 +1868,10 @@ def test_compare_reports_gpt4o_recomputes_table_level_change_after_noise_filter(
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
     assert payload["pair_comparisons"][0]["technical_diff"]["footnotes_renamed"] == []
-    assert payload["pair_comparisons"][0]["technical_diff"]["table_level_change"] == "inchange"
+    assert (
+        payload["pair_comparisons"][0]["technical_diff"]["table_level_change"]
+        == "inchange"
+    )
 
 
 def test_compare_reports_gpt4o_rejects_non_schema_7_tables_json(tmp_path: Path) -> None:
