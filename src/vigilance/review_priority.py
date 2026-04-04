@@ -1,4 +1,4 @@
-"""Priority helpers for review queue ordering and GenAI signal normalization."""
+"""Utilitaires de priorite pour le tri de la file de revue et la normalisation des signaux GenAI."""
 
 from __future__ import annotations
 
@@ -28,6 +28,14 @@ _RISK_PRIORITY = {
 
 
 def normalize_relevance(value: str) -> str:
+    """Normalise un code de pertinence anglais vers la terminologie francaise.
+
+    Args:
+        value: Code de pertinence brut (ex. ``"REGULATORY"``, ``"NEW_DISCLOSURE"``).
+
+    Returns:
+        Code normalise en francais (ex. ``"REGLEMENTAIRE"``).
+    """
     raw = str(value or "").strip().upper()
     if raw == "REGULATORY":
         return "REGLEMENTAIRE"
@@ -43,6 +51,14 @@ def normalize_relevance(value: str) -> str:
 
 
 def normalize_risk(value: str) -> str:
+    """Normalise un code de niveau de risque anglais vers le francais.
+
+    Args:
+        value: Code de risque brut (ex. ``"HIGH"``, ``"MODERATE"``).
+
+    Returns:
+        Code normalise en francais (ex. ``"ELEVE"``).
+    """
     raw = str(value or "").strip().upper()
     if raw == "HIGH":
         return "ELEVE"
@@ -54,7 +70,14 @@ def normalize_risk(value: str) -> str:
 
 
 def get_priority_signals(item: dict) -> tuple[str, str, str, float]:
-    """Return (action_requise, relevance, risk, confidence) for a queue item."""
+    """Extrait les signaux de priorite d'un element de la file de revue.
+
+    Args:
+        item: Dictionnaire representant un element de revue.
+
+    Returns:
+        Tuple ``(action_requise, relevance, risk, confidence)``.
+    """
     ga = item.get("genai_analysis")
     if not isinstance(ga, dict):
         ga = {}
@@ -81,17 +104,24 @@ def get_priority_signals(item: dict) -> tuple[str, str, str, float]:
 
 
 def sort_review_items_by_priority(items: list[dict]) -> list[dict]:
-    """Sort queue items by analyst urgency.
+    """Trie les elements de la file de revue par urgence analyste.
 
-    Primary key  : action_requise (escalade → investigation → confirmation → information → aucune)
-    Secondary    : relevance category (REGLEMENTAIRE → … → NON_SIGNIFICATIF)
-    Tertiary     : risk level (ELEVE → MODERE → FAIBLE)
-    Quaternary   : confidence (descending)
-    Stable       : original index
+    Cle primaire : action_requise (escalade > investigation > confirmation > information > aucune).
+    Secondaire   : pertinence (REGLEMENTAIRE > ... > NON_SIGNIFICATIF).
+    Tertiaire    : niveau de risque (ELEVE > MODERE > FAIBLE).
+    Quaternaire  : confiance (descendant).
+    Stable       : index d'origine.
+
+    Args:
+        items: Elements de revue sous forme de dictionnaires.
+
+    Returns:
+        Liste triee par priorite decroissante.
     """
     indexed: list[tuple[int, dict]] = list(enumerate(items))
 
     def _priority_key(entry: tuple[int, dict]) -> tuple[int, int, int, float, int]:
+        """Calcule la cle de tri composite pour un element indexe."""
         idx, item = entry
         action, relevance, risk, confidence = get_priority_signals(item)
         action_rank = _ACTION_PRIORITY.get(action, 5)

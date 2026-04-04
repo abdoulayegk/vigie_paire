@@ -1,4 +1,4 @@
-"""Page exclusion logic based on YAML-configured regex patterns."""
+"""Logique d'exclusion de pages basee sur des patterns regex configures en YAML."""
 
 from __future__ import annotations
 
@@ -10,18 +10,14 @@ import pdfplumber
 
 
 def compile_exclusion_patterns(cfg: dict) -> list[re.Pattern]:
-    """Compile regex patterns from the exclusions config block.
+    """Compile les patterns regex depuis le bloc de configuration des exclusions.
 
-    Parameters
-    ----------
-    cfg : dict
-        Bank configuration dict that must contain
-        ``cfg["exclusions"]["block_title_patterns"]``.
+    Args:
+        cfg: Dictionnaire de configuration bancaire contenant
+            ``cfg["exclusions"]["block_title_patterns"]``.
 
-    Returns
-    -------
-    list[re.Pattern]
-        Compiled patterns (case-insensitive).
+    Returns:
+        Patterns compiles (insensibles a la casse).
     """
     raw_patterns: list[str] = cfg["exclusions"]["block_title_patterns"]
     return [re.compile(p, re.IGNORECASE) for p in raw_patterns]
@@ -32,25 +28,19 @@ def get_skipped_pages(
     cfg: dict,
     max_pages: int | None = None,
 ) -> list[int]:
-    """Return sorted list of 0-based page indices that should be skipped.
+    """Retourne la liste triee des indices de pages (0-indexe) a ignorer.
 
-    A page is skipped when the number of distinct exclusion patterns
-    that match its text meets or exceeds the configured
-    ``min_hits_to_skip`` threshold.
+    Une page est ignoree lorsque le nombre de patterns d'exclusion distincts
+    qui correspondent a son texte atteint ou depasse le seuil
+    ``min_hits_to_skip`` configure.
 
-    Parameters
-    ----------
-    pdf_path : str
-        Path to the PDF file.
-    cfg : dict
-        Bank configuration dict with ``exclusions`` block.
-    max_pages : int | None
-        If given, only inspect the first *max_pages* pages.
+    Args:
+        pdf_path: Chemin du fichier PDF.
+        cfg: Dictionnaire de configuration bancaire avec bloc ``exclusions``.
+        max_pages: Si fourni, n'inspecte que les *max_pages* premieres pages.
 
-    Returns
-    -------
-    list[int]
-        Sorted 0-based page indices to skip.
+    Returns:
+        Indices de pages 0-indexes a ignorer, tries.
     """
     patterns = compile_exclusion_patterns(cfg)
     min_hits = cfg["exclusions"]["page_skip_rules"]["min_hits_to_skip"]

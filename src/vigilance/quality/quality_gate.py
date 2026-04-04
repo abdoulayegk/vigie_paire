@@ -1,4 +1,4 @@
-"""Strict Quality Gate for extraction outputs rooted in canonical ``tables.json``."""
+"""Porte de qualite stricte pour les sorties d'extraction basees sur le ``tables.json`` canonique."""
 
 from __future__ import annotations
 
@@ -73,6 +73,7 @@ _SUPERSCRIPT_TO_DIGIT = str.maketrans(
 
 
 def _merge_config(config: dict[str, Any] | None) -> dict[str, Any]:
+    """Fusionne la configuration utilisateur avec les valeurs par defaut."""
     merged = dict(_DEFAULT_CONFIG)
     if isinstance(config, dict):
         merged.update(config)
@@ -85,8 +86,15 @@ def evaluate_extraction_quality(
     config: dict[str, Any] | None = None,
     max_suspect_evidence: int = 50,
 ) -> dict[str, Any]:
-    """
-    Evaluate extraction quality from canonical extraction_status values only.
+    """Evalue la qualite d'extraction a partir des statuts d'extraction canoniques.
+
+    Args:
+        tables: Liste d'artefacts de tableau avec attribut ``extraction_status``.
+        config: Surcharges de configuration optionnelles.
+        max_suspect_evidence: Nombre maximal de preuves suspectes a collecter.
+
+    Returns:
+        Rapport de qualite d'extraction avec statut PASS/FAIL.
     """
     cfg = dict(_DEFAULT_EXTRACTION_CONFIG)
     if isinstance(config, dict):
@@ -167,6 +175,7 @@ def evaluate_extraction_quality(
 
 
 def _safe_read_json(path: Path) -> dict[str, Any]:
+    """Lit un fichier JSON et retourne un dictionnaire valide."""
     with open(path, encoding="utf-8") as fh:
         data = json.load(fh)
     if not isinstance(data, dict):
@@ -177,6 +186,7 @@ def _safe_read_json(path: Path) -> dict[str, Any]:
 def _project_quality_payloads_from_tables(
     tables_payload: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Projette les payloads indicateurs et footnotes depuis tables.json."""
     top = {
         "bank_code": str(tables_payload.get("bank_code", "") or ""),
         "year": int(tables_payload.get("year", 0) or 0),
@@ -222,16 +232,19 @@ def _project_quality_payloads_from_tables(
 
 
 def _normalize_text(value: str) -> str:
+    """Normalise un texte en supprimant les espaces multiples."""
     text = str(value or "").strip()
     return re.sub(r"\s+", " ", text)
 
 
 def _looks_numeric_token(tok: str) -> bool:
+    """Verifie si un token ressemble a une valeur numerique."""
     value = str(tok or "").replace("\u00a0", "").strip()
     return bool(value) and bool(_NUMERIC_TOKEN_RE.match(value))
 
 
 def _title_numeric_density(title: str) -> float:
+    """Calcule la proportion de tokens numeriques dans un titre."""
     tokens = [t for t in str(title or "").split() if t.strip()]
     if not tokens:
         return 0.0
@@ -240,6 +253,7 @@ def _title_numeric_density(title: str) -> float:
 
 
 def _has_trailing_numeric_run(title: str, min_run: int = 2) -> bool:
+    """Detecte une suite de tokens numeriques en fin de titre."""
     tokens = [t for t in str(title or "").split() if t.strip()]
     if not tokens:
         return False
@@ -255,6 +269,7 @@ def _has_trailing_numeric_run(title: str, min_run: int = 2) -> bool:
 
 
 def _is_repr_like(text: str) -> bool:
+    """Detecte si un texte ressemble a un repr Python serialise."""
     value = str(text or "").strip()
     if not value:
         return False
@@ -274,6 +289,7 @@ def _is_repr_like(text: str) -> bool:
 
 
 def _duplicate_ratio(lines: list[str]) -> float:
+    """Calcule le ratio de duplication parmi une liste de lignes."""
     cleaned = [_normalize_text(x) for x in lines if _normalize_text(x)]
     if not cleaned:
         return 0.0
@@ -282,6 +298,7 @@ def _duplicate_ratio(lines: list[str]) -> float:
 
 
 def _normalize_marker(marker: str) -> str:
+    """Normalise un marqueur de footnote (superscripts, parentheses)."""
     raw = str(marker or "").translate(_SUPERSCRIPT_TO_DIGIT).strip()
     raw = raw.replace("\u00a0", " ")
     raw = re.sub(r"^[\(\[\{]\s*", "", raw)
@@ -291,10 +308,12 @@ def _normalize_marker(marker: str) -> str:
 
 
 def _words(text: str) -> list[str]:
+    """Extrait les mots alphanumeriques d'un texte."""
     return re.findall(r"[A-Za-zÀ-ÿ0-9¹²³⁴⁵⁶⁷⁸⁹⁰]+", str(text or ""))
 
 
 def _ascii_fold(text: str) -> str:
+    """Supprime les accents et passe en minuscules."""
     return "".join(
         c
         for c in unicodedata.normalize("NFKD", str(text or ""))
@@ -303,6 +322,7 @@ def _ascii_fold(text: str) -> str:
 
 
 def _is_line_split_suspicious(text: str) -> bool:
+    """Detecte une ligne suspecte de split OCR (marqueur isole, ponctuation seule)."""
     value = _normalize_text(text)
     if not value:
         return False
@@ -335,7 +355,7 @@ def _is_line_split_suspicious(text: str) -> bool:
 
 
 def _is_date_header_title(title: str) -> bool:
-    """Return True if title looks like a date header rather than a semantic title."""
+    """Retourne True si le titre ressemble a un en-tete de date plutot qu'a un titre semantique."""
     folded = _ascii_fold(_normalize_text(title))
     if not folded:
         return False
@@ -377,6 +397,7 @@ def _is_date_header_title(title: str) -> bool:
 
 
 def _is_title_contaminated_basic(title: str, *, title_density_threshold: float) -> bool:
+    """Verifie si un titre est contamine par des donnees numeriques ou tabulaires."""
     return bool(
         is_table_title_contaminated(title)
         or _has_trailing_numeric_run(title, min_run=2)
@@ -393,12 +414,10 @@ def _assess_title_quality(
     title_density_threshold: float,
     allow_date_header_titles: bool,
 ) -> tuple[bool, bool, bool, str]:
-    """
-    Return (title_contaminated, date_header_title, title_auto_cleaned, title_effective).
+    """Evalue la qualite d'un titre de tableau.
 
-    - date_header_title: date-like heading (allowed, does not fail contamination gate)
-    - title_auto_cleaned: contamination detected on raw title but removed by canonical cleaner
-    - title_effective: cleaned title used for quality decision
+    Returns:
+        Tuple ``(title_contaminated, date_header_title, title_auto_cleaned, title_effective)``.
     """
     raw = _normalize_text(title)
     if not raw:
@@ -437,6 +456,7 @@ def _make_footnote_index(
     dict[tuple[str, int, str], dict[str, Any]],
     dict[str, list[dict[str, Any]]],
 ]:
+    """Construit un index de lookup pour les entrees de footnotes."""
     exact: dict[tuple[str, int, str], dict[str, Any]] = {}
     by_table_id: dict[str, list[dict[str, Any]]] = {}
     for entry in foot_tables:
@@ -454,6 +474,7 @@ def _find_footnote_entry(
     exact_idx: dict[tuple[str, int, str], dict[str, Any]],
     by_table_id: dict[str, list[dict[str, Any]]],
 ) -> dict[str, Any] | None:
+    """Recherche l'entree footnote correspondant a un tableau d'indicateurs."""
     table_id = str(indicators_entry.get("table_id", "") or "")
     page = int(indicators_entry.get("page", 0) or 0)
     section = str(indicators_entry.get("section", "") or "unknown_section")
@@ -469,6 +490,7 @@ def _find_footnote_entry(
 def _footnote_list(
     foot_entry: dict[str, Any] | None,
 ) -> list[dict[str, Any]] | None:
+    """Extrait la liste des footnotes d'une entree, ou None si invalide."""
     if not isinstance(foot_entry, dict):
         return None
     footnotes = foot_entry.get("footnotes", [])
@@ -484,6 +506,7 @@ def _analyze_footnote_integrity(
     *,
     missing_marker_majority_threshold: float,
 ) -> tuple[str, list[str]]:
+    """Analyse l'integrite structurelle des footnotes d'un tableau."""
     if not foot_entry:
         return "pass", []
 
@@ -518,6 +541,7 @@ def _analyze_footnote_integrity(
 
 
 def _indicators_for_quality(entry: dict[str, Any]) -> list[str]:
+    """Extrait les libelles d'indicateurs d'un tableau pour l'analyse qualite."""
     row_labels = entry.get("indicators", [])
     candidates = (
         row_labels
@@ -537,6 +561,7 @@ def _score_table(
     suspicious_line_splits: int,
     footnote_integrity: str,
 ) -> int:
+    """Calcule un score de qualite sur 100 pour un tableau."""
     score = 100.0
     if title_contaminated:
         score -= 20.0
@@ -559,6 +584,16 @@ def evaluate_quality(
     *,
     config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """Evalue la qualite structurelle des indicateurs et footnotes extraits.
+
+    Args:
+        indicators_payload: Payload projete des indicateurs.
+        footnotes_payload: Payload projete des footnotes.
+        config: Surcharges de configuration optionnelles.
+
+    Returns:
+        Rapport de qualite avec statut PASS/FAIL, scores par tableau et actions recommandees.
+    """
     cfg = _merge_config(config)
     duplicate_threshold = float(cfg["duplicate_ratio_threshold"])
     max_dup = int(cfg["max_tables_duplicate_excess"])
@@ -751,6 +786,7 @@ def evaluate_quality(
 
 
 def _report_markdown(report: dict[str, Any]) -> str:
+    """Genere un rapport Markdown lisible a partir du rapport de qualite."""
     status = str(report.get("status", "FAIL"))
     summary = report.get("summary", {}) or {}
     thresholds = report.get("thresholds", {}) or {}
@@ -845,7 +881,18 @@ def run_quality_gate(
     run_id: str,
     config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Run quality checks and write quality_report.json/.md + quality_gate_status.json."""
+    """Execute les controles qualite et ecrit les fichiers de rapport et de statut.
+
+    Args:
+        tables_path: Chemin du fichier ``tables.json`` canonique.
+        out_dir: Repertoire de sortie pour les rapports.
+        bank_code: Code de la banque.
+        run_id: Identifiant du run d'extraction.
+        config: Surcharges de configuration optionnelles.
+
+    Returns:
+        Dictionnaire de statut avec chemins des rapports generes.
+    """
     cfg = _merge_config(config)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1024,6 +1071,7 @@ def run_quality_gate(
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
+    """Construit le parseur d'arguments pour l'execution en ligne de commande."""
     parser = argparse.ArgumentParser(description="Run extraction quality gate.")
     parser.add_argument(
         "--run-dir",
@@ -1036,6 +1084,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Point d'entree CLI pour la porte de qualite d'extraction."""
     args = _build_arg_parser().parse_args(argv)
     run_dir = Path(args.run_dir)
     tables_path = run_dir / "tables.json"

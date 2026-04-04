@@ -1,11 +1,12 @@
-"""Helpers for the canonical UI/export comparison payload used by Dash.
+"""Fonctions utilitaires pour le payload canonique UI/export de comparaison utilise par Dash.
 
-Important distinction:
-- ``TableArtifact`` is the canonical in-memory comparison object.
-- This module handles the canonical UI/export payload shape consumed by Dash.
+Distinction importante :
+- ``TableArtifact`` est l'objet de comparaison canonique en memoire.
+- Ce module gere la forme du payload canonique UI/export consomme par Dash.
 
-The legacy function names are kept as wrappers for compatibility, but the
-preferred names in this module explicitly mention the UI payload role.
+Les anciens noms de fonctions sont conserves comme wrappers pour la
+compatibilite, mais les noms preferes dans ce module mentionnent
+explicitement le role de payload UI.
 """
 
 from __future__ import annotations
@@ -43,11 +44,12 @@ _RELEVANCE_TO_PRIORITY: dict[str, str] = {
 
 
 def _map_genai_triage_to_ui(triage: dict[str, Any]) -> dict[str, Any]:
-    """Map genai_triage fields to the keys expected by Dash UI components.
+    """Mappe les champs genai_triage vers les cles attendues par les composants Dash.
 
-    Dash components read: relevance, risk_level, confidence, justification,
-    review_priority, analyst_summary, impact_type, project_phase,
-    action_requise, reference_reglementaire, impact_description.
+    Les composants Dash lisent : relevance, risk_level, confidence,
+    justification, review_priority, analyst_summary, impact_type,
+    project_phase, action_requise, reference_reglementaire,
+    impact_description.
     """
     if not triage:
         return {}
@@ -80,10 +82,11 @@ def _map_genai_triage_to_ui(triage: dict[str, Any]) -> dict[str, Any]:
 
 
 def _is_comparison_changed(c: dict[str, Any]) -> bool:
-    """Return True when a matched-pair comparison entry has any detected change.
+    """Retourne True lorsqu'une entree de comparaison appariee a un changement detecte.
 
-    Covers indicator-level diffs (table_status != 'stable') and footnote-only
-    changes that do not alter table_status.
+    Couvre les diffs au niveau des indicateurs (table_status != 'stable')
+    et les changements de notes de bas de page qui n'alterent pas le
+    table_status.
     """
     if c.get("table_status", "stable") != "stable":
         return True
@@ -92,14 +95,15 @@ def _is_comparison_changed(c: dict[str, Any]) -> bool:
 
 
 def compute_changed_tables_t1(result: dict[str, Any]) -> int:
-    """Count distinct T1 tables involved in at least one change.
+    """Compte les tableaux T1 distincts impliques dans au moins un changement.
 
-    A T1 table is "changed" if it participates in:
-    - a matched pair with indicator/footnote diffs or structure change,
-    - OR it was removed (present in T1, absent in T2).
+    Un tableau T1 est considere comme « modifie » s'il participe a :
+    - une paire appariee avec des diffs d'indicateurs/notes ou un changement
+      de structure,
+    - OU s'il a ete supprime (present en T1, absent en T2).
 
-    Uses ``table_id_t1`` (matched pairs) and ``table_id`` (tables_removed)
-    as stable de-duplication keys.
+    Utilise ``table_id_t1`` (paires appariees) et ``table_id``
+    (tables_removed) comme cles de deduplication stables.
     """
     changed: set[str] = set()
     for c in result.get("table_comparisons", []):
@@ -115,14 +119,15 @@ def compute_changed_tables_t1(result: dict[str, Any]) -> int:
 
 
 def compute_changed_tables_t2(result: dict[str, Any]) -> int:
-    """Count distinct T2 tables involved in at least one change.
+    """Compte les tableaux T2 distincts impliques dans au moins un changement.
 
-    A T2 table is "changed" if it participates in:
-    - a matched pair with indicator/footnote diffs or structure change,
-    - OR it was added (absent in T1, present in T2).
+    Un tableau T2 est considere comme « modifie » s'il participe a :
+    - une paire appariee avec des diffs d'indicateurs/notes ou un changement
+      de structure,
+    - OU s'il a ete ajoute (absent en T1, present en T2).
 
-    Uses ``table_id_t2`` (matched pairs) and ``table_id`` (tables_added)
-    as stable de-duplication keys.
+    Utilise ``table_id_t2`` (paires appariees) et ``table_id``
+    (tables_added) comme cles de deduplication stables.
     """
     changed: set[str] = set()
     for c in result.get("table_comparisons", []):
@@ -138,17 +143,20 @@ def compute_changed_tables_t2(result: dict[str, Any]) -> int:
 
 
 def get_meta_value(meta: dict[str, Any] | None, *keys: str) -> Any:
-    """Safely fetch a nested value from metadata.
+    """Recupere une valeur imbriquee depuis les metadonnees de maniere securisee.
 
-    Walks the nested dict path given by keys. Returns None if meta is None,
-    if any intermediate value is not a dict, or if any key is missing.
+    Parcourt le chemin de cles dans le dict imbrique. Retourne ``None`` si
+    ``meta`` est ``None``, si une valeur intermediaire n'est pas un dict,
+    ou si une cle est absente.
 
     Args:
-        meta: Metadata dict, or None (treated as empty).
-        *keys: One or more keys for nested lookup (e.g., ``("section", "title")``).
+        meta: Dictionnaire de metadonnees, ou ``None`` (traite comme vide).
+        *keys: Une ou plusieurs cles pour la recherche imbriquee
+            (ex. ``("section", "title")``).
 
     Returns:
-        The value at the nested path, or None if the path cannot be traversed.
+        La valeur au chemin imbrique, ou ``None`` si le chemin ne peut etre
+        parcouru.
     """
     cur: Any = meta or {}
     for key in keys:
@@ -159,7 +167,7 @@ def get_meta_value(meta: dict[str, Any] | None, *keys: str) -> Any:
 
 
 def is_ui_comparison_payload(payload: Any) -> bool:
-    """Return True when payload follows the canonical Dash/UI comparison contract."""
+    """Retourne True lorsque le payload suit le contrat canonique Dash/UI de comparaison."""
     return (
         isinstance(payload, dict)
         and payload.get("schema_version") == UI_COMPARISON_PAYLOAD_SCHEMA_VERSION
@@ -167,17 +175,18 @@ def is_ui_comparison_payload(payload: Any) -> bool:
 
 
 def new_empty_ui_comparison_payload() -> dict[str, Any]:
-    """Build a fresh canonical UI comparison payload with default structure.
+    """Construit un payload canonique UI de comparaison vide avec la structure par defaut.
 
-    Returns a dict containing all required top-level keys for the Dash app:
-    schema_version, bank_code, quarter fields, summary (zeroed counts and
-    status_counts), empty lists for table_comparisons/tables_added/tables_removed
-    and their variants, and meta (generated_at, provenance, source_format,
-    executive_summary). The executive_summary defaults to a French message
-    indicating no comparison is available.
+    Retourne un dict contenant toutes les cles de premier niveau requises
+    par l'application Dash : schema_version, bank_code, champs de trimestre,
+    summary (compteurs a zero et status_counts), listes vides pour
+    table_comparisons/tables_added/tables_removed et leurs variantes, et
+    meta (generated_at, provenance, source_format, executive_summary).
+    Le executive_summary est un message en francais indiquant qu'aucune
+    comparaison n'est disponible.
 
     Returns:
-        A fully-initialized payload dict conforming to the canonical schema.
+        Dictionnaire entierement initialise conforme au schema canonique.
     """
     now = datetime.now().isoformat(timespec="seconds")
     return {
@@ -257,6 +266,7 @@ def new_empty_ui_comparison_payload() -> dict[str, Any]:
 
 
 def _quarter_label(quarter: str, year: int) -> str:
+    """Formate un libelle de trimestre lisible a partir du code et de l'annee."""
     return format_quarter_label(quarter, year)
 
 
@@ -271,6 +281,21 @@ def _build_report_comparison_summary_text(
     footnote_changes: int,
     high_priority_items: int,
 ) -> str:
+    """Genere le texte du resume executif de la comparaison entre deux trimestres.
+
+    Args:
+        current_label: Libelle du trimestre courant.
+        previous_label: Libelle du trimestre precedent.
+        matched_pairs: Nombre de paires appariees.
+        tables_added: Nombre de tableaux ajoutes.
+        tables_removed: Nombre de tableaux supprimes.
+        indicator_changes: Nombre total de changements d'indicateurs.
+        footnote_changes: Nombre total de changements de notes de bas de page.
+        high_priority_items: Nombre d'elements a priorite elevee.
+
+    Returns:
+        Texte du resume executif en francais.
+    """
     parts = [
         f"Comparaison {current_label} vs {previous_label} : {matched_pairs} tableau(x) apparié(s)."
     ]
@@ -288,6 +313,17 @@ def _build_report_comparison_summary_text(
 def _build_footnotes_diff(
     technical_diff: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, int]]:
+    """Construit le diff structure des notes de bas de page pour le payload UI.
+
+    Args:
+        technical_diff: Dictionnaire du diff technique contenant
+            ``footnotes_added``, ``footnotes_removed`` et ``footnotes_renamed``.
+
+    Returns:
+        Tuple ``(diff_dict, counts_dict)`` ou ``diff_dict`` contient les listes
+        ``added``, ``removed``, ``modified`` et ``counts``, et ``counts_dict``
+        est le sous-dictionnaire des compteurs.
+    """
     added_items = [
         {
             "footnote_ref": str(item.get("id", "") or ""),
@@ -355,6 +391,7 @@ def _warn_missing_visual_context(
     previous_table: dict[str, Any],
     current_table: dict[str, Any],
 ) -> None:
+    """Journalise un avertissement si le contexte visuel (page/bbox) est absent."""
     missing_page = []
     missing_bbox = []
 
@@ -380,6 +417,17 @@ def _warn_missing_visual_context(
 
 
 def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Convertit un payload ``report_comparison`` brut en payload canonique UI Dash.
+
+    Peuple les comparaisons de tableaux, les tableaux ajoutes/supprimes,
+    les artefacts, les suspects d'extraction, le resume et les metadonnees.
+
+    Args:
+        payload: Payload brut avec ``artifact_type == "report_comparison"``.
+
+    Returns:
+        Dictionnaire conforme au schema canonique UI de comparaison.
+    """
     ui_payload = new_empty_ui_comparison_payload()
     bank_code = str(payload.get("bank_code", "") or "").lower()
     year_previous = int(payload.get("year_previous", 0) or 0)
@@ -535,6 +583,7 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
         )
 
     def _table_side_items(items: list[Any], side: str) -> list[dict[str, Any]]:
+        """Construit les lignes UI pour les tableaux d'un cote (previous/current)."""
         out: list[dict[str, Any]] = []
         for item in items:
             if not isinstance(item, dict):
@@ -790,22 +839,23 @@ def _report_comparison_to_ui_payload(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def to_ui_comparison_payload(payload: Any) -> dict[str, Any]:
-    """Best-effort conversion to the canonical payload used by the Dash app.
+    """Conversion best-effort vers le payload canonique utilise par l'application Dash.
 
-    If the payload is already canonical (has schema_version matching
-    UI_COMPARISON_PAYLOAD_SCHEMA_VERSION), returns a deep copy.
-    If it is a legacy ``metier_tableaux`` result, converts to the canonical
-    shape and populates table_comparisons from the ``changes`` list.
-    Otherwise, returns an empty canonical payload with basic fields filled
-    from the input when possible.
+    Si le payload est deja canonique (schema_version correspondant a
+    ``UI_COMPARISON_PAYLOAD_SCHEMA_VERSION``), retourne une copie profonde.
+    S'il s'agit d'un resultat legacy ``metier_tableaux``, convertit vers la
+    forme canonique et peuple table_comparisons depuis la liste ``changes``.
+    Sinon, retourne un payload canonique vide avec les champs de base
+    remplis a partir de l'entree lorsque possible.
 
     Args:
-        payload: Raw comparison data. May be a canonical dict, a legacy
-            metier dict with result_type ``metier_tableaux``, or any other
-            dict/object. Non-dict inputs yield an empty canonical payload.
+        payload: Donnees de comparaison brutes. Peut etre un dict canonique,
+            un dict legacy metier avec result_type ``metier_tableaux``, ou
+            tout autre dict/objet. Les entrees non-dict produisent un payload
+            canonique vide.
 
     Returns:
-        A dict conforming to the canonical Dash UI comparison schema.
+        Dictionnaire conforme au schema canonique UI Dash de comparaison.
     """
     if is_ui_comparison_payload(payload):
         return deepcopy(payload)
@@ -908,15 +958,15 @@ def to_ui_comparison_payload(payload: Any) -> dict[str, Any]:
 
 
 def is_canonical_comparison(payload: Any) -> bool:
-    """Backward-compatible alias for :func:`is_ui_comparison_payload`."""
+    """Alias retro-compatible pour :func:`is_ui_comparison_payload`."""
     return is_ui_comparison_payload(payload)
 
 
 def _empty_canonical() -> dict[str, Any]:
-    """Backward-compatible alias for :func:`new_empty_ui_comparison_payload`."""
+    """Alias retro-compatible pour :func:`new_empty_ui_comparison_payload`."""
     return new_empty_ui_comparison_payload()
 
 
 def to_canonical_payload(payload: Any) -> dict[str, Any]:
-    """Backward-compatible alias for :func:`to_ui_comparison_payload`."""
+    """Alias retro-compatible pour :func:`to_ui_comparison_payload`."""
     return to_ui_comparison_payload(payload)

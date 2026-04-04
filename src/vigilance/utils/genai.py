@@ -1,4 +1,4 @@
-"""GenAI environment helpers."""
+"""Utilitaires d'environnement pour l'IA generative."""
 
 from __future__ import annotations
 
@@ -13,11 +13,15 @@ except ImportError:
 
 
 def get_openai_api_key() -> str | None:
-    """Read OpenAI API key from environment (.env is loaded at import if dotenv available)."""
+    """Lit la cle API OpenAI depuis l'environnement (.env charge a l'import si dotenv est disponible).
+
+    Returns:
+        La cle API nettoyee, ou None si absente.
+    """
     raw = os.getenv("OPENAI_API_KEY") or ""
     return raw.strip() if isinstance(raw, str) else None
 
 
 def is_genai_configured() -> bool:
-    """Return True when a GenAI API key is available."""
+    """Retourne True lorsqu'une cle API GenAI est disponible."""
     return bool(get_openai_api_key())

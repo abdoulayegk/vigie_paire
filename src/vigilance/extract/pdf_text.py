@@ -1,4 +1,4 @@
-"""Extract text from PDF pages using pdfplumber."""
+"""Extraction de texte depuis des pages PDF via pdfplumber."""
 
 from __future__ import annotations
 
@@ -6,19 +6,14 @@ import pdfplumber
 
 
 def extract_page_text(pdf_path: str, page_index: int) -> str:
-    """Extract the text content of a single PDF page.
+    """Extrait le contenu textuel d'une page PDF unique.
 
-    Parameters
-    ----------
-    pdf_path : str
-        Path to the PDF file.
-    page_index : int
-        0-based page index.
+    Args:
+        pdf_path: Chemin du fichier PDF.
+        page_index: Index de page 0-indexe.
 
-    Returns
-    -------
-    str
-        Extracted text, or ``""`` if pdfplumber returns ``None``.
+    Returns:
+        Texte extrait, ou ``""`` si pdfplumber retourne ``None``.
     """
     with pdfplumber.open(pdf_path) as pdf:
         page = pdf.pages[page_index]
@@ -27,19 +22,14 @@ def extract_page_text(pdf_path: str, page_index: int) -> str:
 
 
 def extract_pages_text(pdf_path: str, page_indices: list[int]) -> dict[int, str]:
-    """Extract text from multiple PDF pages in a single open call.
+    """Extrait le texte de plusieurs pages PDF en un seul appel d'ouverture.
 
-    Parameters
-    ----------
-    pdf_path : str
-        Path to the PDF file.
-    page_indices : list[int]
-        0-based page indices to extract.
+    Args:
+        pdf_path: Chemin du fichier PDF.
+        page_indices: Indices de pages 0-indexes a extraire.
 
-    Returns
-    -------
-    dict[int, str]
-        Mapping of ``{page_index: extracted_text}``.
+    Returns:
+        Dictionnaire ``{index_de_page: texte_extrait}``.
     """
     result: dict[int, str] = {}
     with pdfplumber.open(pdf_path) as pdf:

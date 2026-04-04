@@ -1,4 +1,4 @@
-"""Deterministic merge of split indicator lines (OCR/Docling safe heuristics)."""
+"""Fusion deterministe de lignes d'indicateurs fragmentees (heuristiques OCR/Docling securitaires)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ _MARKER_CHARS = set("¹²³⁴⁵⁶⁷⁸⁹⁰*†‡[](){}<>.,;:-–—/\\")
 
 @dataclass(frozen=True)
 class IndicatorLineMergeConfig:
-    """Configuration for deterministic line merge."""
+    """Configuration pour la fusion deterministe de lignes."""
 
     max_next_tokens: int = 6
     max_combined_length: int = 120
@@ -72,19 +72,23 @@ _CONTINUATION_WORDS = {
 
 
 def _normalize_spaces(text: str) -> str:
+    """Normalise les espaces multiples en un seul espace."""
     return re.sub(r"\s+", " ", (text or "").strip())
 
 
 def _tokenize(text: str) -> list[str]:
+    """Decoupe le texte en jetons alphanumeriques."""
     return _TOKEN_RE.findall(text or "")
 
 
 def _starts_with_lowercase(text: str) -> bool:
+    """Retourne True si le texte commence par une minuscule."""
     value = (text or "").strip()
     return bool(value) and value[0].islower()
 
 
 def _is_mostly_markers_or_superscripts(text: str, *, ratio_threshold: float) -> bool:
+    """Retourne True si le texte est majoritairement compose de marqueurs ou exposants."""
     value = (text or "").strip()
     if not value:
         return False
@@ -96,6 +100,7 @@ def _is_mostly_markers_or_superscripts(text: str, *, ratio_threshold: float) -> 
 
 
 def _looks_like_new_item(text: str, *, config: IndicatorLineMergeConfig) -> bool:
+    """Retourne True si le texte ressemble au debut d'un nouvel indicateur."""
     value = _normalize_spaces(text)
     if not value:
         return False
@@ -117,6 +122,7 @@ def _looks_like_new_item(text: str, *, config: IndicatorLineMergeConfig) -> bool
 
 
 def _looks_like_continuation_word_list(text: str) -> bool:
+    """Retourne True si tous les jetons sont des mots de continuation."""
     tokens = [t.lower() for t in _tokenize(text)]
     if not tokens:
         return False
@@ -126,6 +132,7 @@ def _looks_like_continuation_word_list(text: str) -> bool:
 def _can_merge(
     previous: str, current: str, *, config: IndicatorLineMergeConfig
 ) -> bool:
+    """Determine si la ligne courante peut etre fusionnee avec la precedente."""
     prev = _normalize_spaces(previous)
     cur = _normalize_spaces(current)
     if not prev or not cur:
@@ -156,7 +163,15 @@ def _can_merge(
 def merge_indicator_lines(
     indicators: list[str], *, config: IndicatorLineMergeConfig | None = None
 ) -> tuple[list[str], int]:
-    """Merge split indicator lines using deterministic, conservative rules."""
+    """Fusionne les lignes d'indicateurs fragmentees avec des regles deterministes et conservatrices.
+
+    Args:
+        indicators: Liste de libelles d'indicateurs potentiellement fragmentes.
+        config: Configuration de fusion ; utilise les valeurs par defaut si None.
+
+    Returns:
+        Tuple ``(liste_fusionnee, nombre_fusions)``.
+    """
     if not indicators:
         return [], 0
     if len(indicators) < 2:

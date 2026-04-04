@@ -1,5 +1,4 @@
-"""
-Processeur PDF principal basé sur Docling pour l'extraction structurée des rapports bancaires.
+"""Processeur PDF principal basé sur Docling pour l'extraction structurée des rapports bancaires.
 
 Ce module est le moteur d'extraction du pipeline. Il utilise IBM Docling pour
 détecter la structure des tableaux (boîtes englobantes, en-têtes, lignes) dans
@@ -98,6 +97,7 @@ _REFERENCE_TEXT_SPLIT_RE = re.compile(r"\s{2,}|\t+|\s+\|\s+")
 
 
 def _coerce_pdf_path(pdf_path: str | Path | os.PathLike[str] | None) -> Path:
+    """Valider et convertir un chemin PDF en objet Path."""
     if pdf_path is None:
         raise ValueError("Chemin PDF requis pour l'extraction.")
     try:
@@ -114,6 +114,7 @@ _ENV_FALSE = {"0", "false", "no", "off"}
 
 
 def _looks_short_textual_header_fragment(value: str) -> bool:
+    """Determiner si une valeur ressemble a un fragment d'en-tete textuel court."""
     text = re.sub(r"\s+", " ", str(value or "").strip())
     if not text:
         return False
@@ -132,12 +133,21 @@ def _build_indicator_reference_text(
     *,
     max_chars: int,
 ) -> str | None:
-    """Return a safer OCR dictionary for indicator extraction.
+    """Retourner un dictionnaire OCR filtre pour l'extraction d'indicateurs.
 
-    For multi-column textual tables, Docling's full ``table.text`` often mixes
-    the whole row across columns. Feeding that text back to Vision during rescue
-    can turn right-column content into fake first-column indicators. When the
-    top lines look like multiple short textual headers, disable the dictionary.
+    Pour les tableaux textuels multi-colonnes, le ``table.text`` complet de
+    Docling melange souvent toute la ligne sur plusieurs colonnes. Renvoyer
+    ce texte a Vision lors du sauvetage peut transformer le contenu des
+    colonnes de droite en faux indicateurs de premiere colonne. Lorsque les
+    premieres lignes ressemblent a plusieurs en-tetes textuels courts, le
+    dictionnaire est desactive.
+
+    Args:
+        raw_text: Texte brut du tableau Docling.
+        max_chars: Nombre maximal de caracteres a conserver.
+
+    Returns:
+        Texte tronque a ``max_chars`` ou ``None`` si le dictionnaire est desactive.
     """
     text = str(raw_text or "").strip()
     if len(text) <= 20 or max_chars <= 0:
@@ -163,7 +173,7 @@ def _build_indicator_reference_text(
 
 
 def _env_bool(*names: str) -> bool | None:
-    """Parse bool-like env var from the first provided var that exists."""
+    """Lire une variable d'environnement booleenne parmi les noms fournis."""
     for name in names:
         raw = os.environ.get(name)
         if raw is None:
@@ -177,7 +187,7 @@ def _env_bool(*names: str) -> bool | None:
 
 
 def _resolve_vision_extraction_enabled(bank_code: str, explicit: bool | None) -> bool:
-    """Resolution order: explicit arg > env > bank config."""
+    """Resoudre l'activation de l'extraction Vision : argument explicite > env > config banque."""
     if explicit is not None:
         return bool(explicit)
 
@@ -350,6 +360,11 @@ class ExtractedTable:
     fragmentation_detected: bool = False
 
     def to_dict(self) -> dict:
+        """Convertir le tableau extrait en dictionnaire serialisable.
+
+        Returns:
+            Dictionnaire contenant tous les attributs du tableau.
+        """
         return asdict(self)
 
 
@@ -384,6 +399,11 @@ class ExtractedSection:
     phase: int | None = None
 
     def to_dict(self) -> dict:
+        """Convertir la section extraite en dictionnaire serialisable.
+
+        Returns:
+            Dictionnaire contenant tous les attributs de la section et ses tableaux.
+        """
         result = asdict(self)
         result["tables"] = [t.to_dict() for t in self.tables]
         return result
@@ -424,6 +444,12 @@ class ExtractedDocument:
     metadata: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
+        """Convertir le document extrait en dictionnaire serialisable.
+
+        Returns:
+            Dictionnaire contenant tous les attributs du document, ses sections
+            et ses tableaux.
+        """
         return {
             "file_path": self.file_path,
             "bank_code": self.bank_code,
@@ -436,6 +462,14 @@ class ExtractedDocument:
         }
 
     def to_json(self, indent: int = 2) -> str:
+        """Serialiser le document extrait en chaine JSON.
+
+        Args:
+            indent: Niveau d'indentation pour le formatage JSON.
+
+        Returns:
+            Chaine JSON representant le document complet.
+        """
         return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)
 
 
@@ -555,6 +589,15 @@ class DoclingProcessor:
         use_cache: bool = False,
         cache_dir: str | None = None,
     ):
+        """Initialiser le processeur Docling avec les options d'extraction.
+
+        Args:
+            use_ocr: Active l'OCR Docling pour les PDF numerises.
+            enhance_images: Applique une amelioration d'image avant traitement.
+            openai_api_key: Cle API OpenAI pour l'extraction Vision GPT-4o.
+            use_cache: Active le cache des extractions.
+            cache_dir: Repertoire du cache (defaut : repertoire systeme).
+        """
         self.use_ocr = use_ocr
         self.enhance_images = enhance_images
         self.openai_api_key = openai_api_key
@@ -667,8 +710,7 @@ class DoclingProcessor:
         labels_only: bool = False,
         use_vision_extraction: bool | None = None,
     ) -> ExtractedDocument:
-        """
-        Extraire tout le contenu d'un document PDF.
+        """Extraire tout le contenu d'un document PDF.
 
         Args:
             labels_only: Si True, ne stocker que la premiere colonne (pas de montants)
@@ -851,8 +893,7 @@ class DoclingProcessor:
         labels_only: bool = False,
         use_vision_extraction: bool = False,
     ) -> ExtractedDocument:
-        """
-        Extraction par chunks pour gros documents.
+        """Extraction par chunks pour gros documents.
 
         Traite le document par groupes de pages pour eviter les depassements memoire.
 
@@ -862,6 +903,8 @@ class DoclingProcessor:
             quarter: Trimestre
             year: Annee
             total_pages: Nombre total de pages
+            labels_only: Extraire uniquement les etiquettes sans valeurs.
+            use_vision_extraction: Utiliser l'extraction par vision (OCR avance).
 
         Returns:
             ExtractedDocument avec tout le contenu
@@ -1115,7 +1158,15 @@ class DoclingProcessor:
         item: tuple[int, int, list[float] | None, str, str | None],
         shared: dict[str, Any],
     ) -> tuple[int, ExtractedTable, int]:
-        """Extrait un tableau via Vision (crop + API). Retourne (idx, ExtractedTable, page_num)."""
+        """Extraire un tableau via Vision (recadrage + appel API).
+
+        Args:
+            item: Tuple (index, page, bbox, table_id, texte_reference).
+            shared: Dictionnaire partage contenant le contexte d'extraction.
+
+        Returns:
+            Tuple (index, ExtractedTable, numero_page).
+        """
         idx, page_num, table_bbox, table_id, reference_text = item
         pdf_path = shared["pdf_path"]
         bank_code = shared["bank_code"]
@@ -1462,7 +1513,20 @@ class DoclingProcessor:
         labels_only: bool = False,
         use_vision_extraction: bool = False,
     ) -> ExtractedDocument:
-        """Extraire en utilisant la bibliotheque Docling avec pipeline de prétraitement."""
+        """Extraire en utilisant la bibliotheque Docling avec pipeline de pretraitement.
+
+        Args:
+            pdf_path: Chemin vers le fichier PDF.
+            bank_code: Code identifiant la banque.
+            quarter: Identifiant du trimestre.
+            year: Annee du rapport.
+            page_ranges: Plages de pages optionnelles pour extraction ciblee.
+            labels_only: Si True, ne stocker que la premiere colonne.
+            use_vision_extraction: Si True, utiliser Vision GPT-4o pour le contenu.
+
+        Returns:
+            ExtractedDocument contenant les tableaux et metadonnees extraits.
+        """
         try:
             normalized_page_ranges = self._normalize_page_ranges(page_ranges)
             effective_page_ranges = normalized_page_ranges or None
@@ -1475,6 +1539,7 @@ class DoclingProcessor:
             doc = result.document
 
             def _get_vision_extraction_config(bank: str) -> dict:
+                """Charger la configuration d'extraction Vision pour une banque."""
                 try:
                     from ..config import get_vision_extraction_config as _gvec
 
@@ -1607,6 +1672,7 @@ class DoclingProcessor:
                 )
 
             def _bbox_area(b: list[float]) -> float:
+                """Calculer l'aire d'une boite englobante."""
                 if not b or len(b) < 4:
                     return 0.0
                 w = max(0.0, float(b[2]) - float(b[0]))
@@ -1614,6 +1680,7 @@ class DoclingProcessor:
                 return w * h
 
             def _bbox_overlap_ratio(a: list[float], b: list[float]) -> float:
+                """Calculer le ratio de chevauchement entre deux boites englobantes."""
                 if len(a) < 4 or len(b) < 4:
                     return 0.0
                 x0 = max(a[0], b[0])
@@ -1632,6 +1699,7 @@ class DoclingProcessor:
             def _detect_overlapping_bboxes(
                 items: list[tuple[int, int, list[float] | None, str, str | None]],
             ) -> list[tuple[int, int, int, float]]:
+                """Detecter les paires de boites englobantes qui se chevauchent par page."""
                 by_page: dict[int, list[tuple[int, list[float]]]] = {}
                 for idx, page_num, bbox, table_id, _ in items:
                     if bbox and len(bbox) >= 4:
@@ -1866,8 +1934,7 @@ class DoclingProcessor:
             first_row_cells=first_row_cells,
         )
     def _title_quality_score(self, title: str | None) -> int:
-        """
-        Evaluer la qualite d'un titre.
+        """Evaluer la qualite d'un titre.
 
         Les lignes purement meta (TABLEAU N seul, unite, date) ont un score faible.
         """
@@ -1961,8 +2028,7 @@ class DoclingProcessor:
         return None
 
     def _find_table_titles_in_text(self, text_content: str) -> dict[int, list[str]]:
-        """
-        Cherche les titres de tableaux (TABLEAU N, TABLE N, TN) dans le texte par page.
+        """Cherche les titres de tableaux (TABLEAU N, TABLE N, TN) dans le texte par page.
 
         Args:
             text_content: Contenu textuel complet avec marqueurs de page
@@ -2007,8 +2073,7 @@ class DoclingProcessor:
     def _enrich_tables_with_titles(
         self, tables: list[ExtractedTable], pdf_path: Path
     ) -> list[ExtractedTable]:
-        """
-        Enrichit les tableaux sans titre en cherchant dans le texte PDF.
+        """Enrichit les tableaux sans titre en cherchant dans le texte PDF.
 
         Args:
             tables: Liste des tableaux extraits
@@ -2136,8 +2201,14 @@ class DoclingProcessor:
     def _enrich_tables_with_context(
         self, tables: list[ExtractedTable], pdf_path: Path
     ) -> list[ExtractedTable]:
-        """
-        Enrichit les tableaux avec context_before et context_after (pour table_type_classifier).
+        """Enrichir les tableaux avec le contexte textuel avant/apres (pour table_type_classifier).
+
+        Args:
+            tables: Liste des tableaux extraits a enrichir.
+            pdf_path: Chemin vers le PDF source.
+
+        Returns:
+            Liste des tableaux avec ``context_before`` et ``context_after`` renseignes.
         """
         try:
             import pdfplumber
@@ -2166,8 +2237,7 @@ class DoclingProcessor:
         return tables
 
     def _extract_table_number(self, title: str | None) -> tuple[str | None, str | None]:
-        """
-        Extrait le numéro du tableau depuis le titre.
+        """Extrait le numéro du tableau depuis le titre.
 
         Formats supportés:
         - TD/BMO: TABLEAU 28 : Titre..., TABLE 31 - Title..., TABLEAU 1
@@ -2188,8 +2258,7 @@ class DoclingProcessor:
         return table_number, (None if table_number else title)
 
     def _detect_sections_in_text(self, text_content: str) -> list[dict]:
-        """
-        Détecte les titres de sections dans le texte du document.
+        """Détecte les titres de sections dans le texte du document.
 
         Args:
             text_content: Contenu textuel du document
@@ -2224,8 +2293,7 @@ class DoclingProcessor:
     def _associate_tables_with_sections(
         self, tables: list[ExtractedTable], text_content: str
     ) -> list[ExtractedTable]:
-        """
-        Associe chaque tableau à sa section parente basée sur la position dans le document.
+        """Associe chaque tableau à sa section parente basée sur la position dans le document.
 
         Args:
             tables: Liste des tableaux extraits
@@ -2481,6 +2549,7 @@ def extract_tables_docling_by_sections(
 
 
 def _page_role_from_index(index_on_page: int, tables_on_page: int) -> str:
+    """Determiner le role positionnel d'un tableau sur sa page (single/first/middle/last)."""
     if tables_on_page <= 1:
         return "single"
     if index_on_page <= 1:
@@ -2491,7 +2560,7 @@ def _page_role_from_index(index_on_page: int, tables_on_page: int) -> str:
 
 
 def _assign_canonical_table_ids(tables: list[ExtractedTable]) -> None:
-    """Assign deterministic ids based on page and local table order."""
+    """Assigner des identifiants deterministes bases sur la page et l'ordre local des tableaux."""
     if not tables:
         return
 

@@ -1,4 +1,4 @@
-"""Analyst-facing change assessment helpers for comparison outputs."""
+"""Fonctions d'evaluation des changements destinees a l'analyste pour les sorties de comparaison."""
 
 from __future__ import annotations
 
@@ -151,6 +151,7 @@ _INDICATOR_THEME_RULES: list[tuple[str, tuple[str, ...]]] = [
 
 
 def _ascii_fold(text: str) -> str:
+    """Supprime les accents et passe en minuscules via decomposition NFKD."""
     return "".join(
         c
         for c in unicodedata.normalize("NFKD", str(text or ""))
@@ -159,6 +160,7 @@ def _ascii_fold(text: str) -> str:
 
 
 def _theme_text(*parts: Any) -> str:
+    """Concatene et normalise les parties de texte pour la detection de theme."""
     raw = " ".join(str(part or "") for part in parts if str(part or "").strip())
     folded = _ascii_fold(raw)
     folded = re.sub(r"[^a-z0-9\s]+", " ", folded)
@@ -169,6 +171,7 @@ def _match_theme_from_text(
     text: str,
     rules: list[tuple[str, tuple[str, ...]]],
 ) -> str | None:
+    """Retourne le premier theme dont un jeton apparait dans le texte, ou ``None``."""
     for theme, tokens in rules:
         if any(token in text for token in tokens):
             return theme
@@ -182,6 +185,20 @@ def _classify_theme(
     indicators: list[str],
     footnotes: list[dict[str, str]],
 ) -> str:
+    """Classifie le theme reglementaire d'un tableau a partir de ses metadonnees.
+
+    Applique une hierarchie de regles : titre, section, indicateurs, puis
+    notes de bas de page. Retourne ``"autre"`` si aucun theme n'est detecte.
+
+    Args:
+        section: Nom de la section du rapport.
+        title: Titre du tableau.
+        indicators: Liste des libelles d'indicateurs.
+        footnotes: Liste de dicts ``{"id": ..., "text": ...}`` des notes de bas de page.
+
+    Returns:
+        Identifiant du theme (ex. ``"capital"``, ``"liquidite"``, ``"autre"``).
+    """
     title_theme = _match_theme_from_text(_theme_text(title), _TITLE_THEME_RULES)
     if title_theme:
         return title_theme
@@ -212,6 +229,11 @@ def _classify_theme(
 
 
 def _technical_change_counts(technical_diff: dict[str, Any]) -> tuple[int, int, int]:
+    """Calcule les compteurs de changements techniques depuis le diff.
+
+    Returns:
+        Tuple ``(ajout_suppression_indicateurs, renommages, ajout_suppression_footnotes)``.
+    """
     indicator_add_remove = len(technical_diff.get("indicators_added", []) or []) + len(
         technical_diff.get("indicators_removed", []) or []
     )
@@ -230,6 +252,17 @@ def _build_analyst_summary(
     change_kind: str,
     technical_diff: dict[str, Any],
 ) -> str:
+    """Genere un resume textuel en francais destine a l'analyste.
+
+    Args:
+        theme: Theme reglementaire du tableau.
+        change_kind: Type de changement (``"ajoute"``, ``"supprime"`` ou autre).
+        technical_diff: Dictionnaire du diff technique contenant les listes
+            d'indicateurs et de notes modifies.
+
+    Returns:
+        Phrase resumant les changements detectes.
+    """
     if change_kind == "ajoute":
         return f"Nouveau tableau sur le theme {theme} a revoir par l'analyste."
     if change_kind == "supprime":
@@ -258,6 +291,21 @@ def build_analyst_assessment(
     technical_diff: dict[str, Any],
     change_kind: str,
 ) -> dict[str, str]:
+    """Produit l'evaluation analyste complete pour un tableau compare.
+
+    Combine la classification de theme, le calcul de significance du
+    changement et la priorite de revision.
+
+    Args:
+        table_context: Metadonnees du tableau (section, titre, indicateurs,
+            notes de bas de page).
+        technical_diff: Dictionnaire du diff technique.
+        change_kind: Type de changement (``"ajoute"``, ``"supprime"`` ou autre).
+
+    Returns:
+        Dictionnaire avec ``theme``, ``change_significance``,
+        ``review_priority`` et ``analyst_summary``.
+    """
     theme = _classify_theme(
         section=str(table_context.get("section", "") or ""),
         title=str(table_context.get("title", "") or ""),

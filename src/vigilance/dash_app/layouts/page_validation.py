@@ -7,7 +7,12 @@ from dash import html
 
 
 def build_page_validation() -> html.Div:
-    """Contenu pour la validation des sections (placeholder dynamique)."""
+    """Construit le layout de la page de validation des sections detectees.
+
+    Returns:
+        Composant ``html.Div`` contenant le formulaire de validation
+        avec un conteneur dynamique pour les sections et le bouton d'analyse.
+    """
     return html.Div(
         id="validation-content",
         children=[

@@ -1,5 +1,4 @@
-"""
-Façade CLI pour la détection des plages de sections dans un PDF bancaire.
+r"""Façade CLI pour la détection des plages de sections dans un PDF bancaire.
 
 Ce module constitue la première étape du pipeline d'extraction en ligne de
 commande. Il analyse un rapport PDF pour identifier les pages correspondant

@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260403_152825",
   "review_items_signature": "f853158d89178cd126eb212a7a7f4dc8750c98a62c2f6402f144b1430911974e",
-  "saved_at": "2026-04-04T05:36:39+00:00",
+  "saved_at": "2026-04-04T07:49:01+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bns::risk_management::tbl_p044_i01|tbl_p051_i01",
-    "change_id": "chg_00015"
+    "review_id": "bns::risk_management::tbl_p034_i02|tbl_p040_i02",
+    "change_id": "chg_00002"
   },
-  "review_current_idx": 6,
-  "current_change_idx": 0,
+  "review_current_idx": 2,
+  "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T05:35:16.236175+00:00",
+      "review_timestamp": "2026-04-04T07:48:42.965258+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -50,7 +50,7 @@
         {
           "name": "Fonds propres réglementaires",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Autres instruments de fonds propres",
@@ -157,7 +157,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T05:35:33.296107+00:00",
+      "review_timestamp": "2026-04-04T07:48:55.286511+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -251,7 +251,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T05:36:28.033613+00:00",
+      "review_timestamp": "2026-04-04T07:49:01.088400+00:00",
       "edited_value": "",
       "confidence": 0.92,
       "proof_image_path": "",
@@ -335,10 +335,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T05:36:33.609864+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -348,7 +348,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T33 Indicateurs de BISm",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -486,10 +486,10 @@
       "page_t2": 46,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T05:36:39.887091+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -499,14 +499,14 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Total des sorties de trésorerie -> Sorties de trésorerie – Total des sorties de trésorerie",
           "type": "renamed",
           "from": "Total des sorties de trésorerie",
           "to": "Sorties de trésorerie – Total des sorties de trésorerie",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'T28 Ratio de liquidité à court terme moyen de la Banque'; indicators: same liquidity ratios; row_count 29 vs 29; headers identical.",
@@ -746,7 +746,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T05:35:15.826378+00:00",
+          "validated_at": "2026-04-04T07:48:42.965258+00:00",
           "validated_by": "analyst"
         },
         {
@@ -756,12 +756,12 @@
             "indicator_name": "Fonds propres réglementaires",
             "indicator_name_clean": "fonds propres réglementaires"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T05:35:16.236175+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00007",
@@ -914,8 +914,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 2,
-        "pending": 8
+        "validated": 1,
+        "pending": 9
       }
     },
     {
@@ -959,7 +959,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T05:35:33.296107+00:00",
+          "validated_at": "2026-04-04T07:48:55.286511+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1078,7 +1078,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T05:36:28.033613+00:00",
+          "validated_at": "2026-04-04T07:49:01.088400+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1170,15 +1170,15 @@
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T05:36:33.609864+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1212,8 +1212,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1348,15 +1348,15 @@
             "from_clean": "Total des sorties de trésorerie",
             "to_clean": "Sorties de trésorerie – Total des sorties de trésorerie"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T05:36:39.887091+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Title identical: 'T28 Ratio de liquidité à court terme moyen de la Banque'; indicators: same liquidity ratios; row_count 29 vs 29; headers identical.",
       "genai_analysis": {
@@ -1394,8 +1394,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 1,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {

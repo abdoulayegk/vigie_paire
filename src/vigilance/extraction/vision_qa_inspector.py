@@ -1,8 +1,9 @@
-"""Module for deep QA inspection of Vision extractions.
+"""Module d'inspection QA approfondie des extractions Vision.
 
-This module implements the "Second Brain" (Dual QA Pipeline). It takes an image crop
-and the generated JSON from the primary Vision extractor, and cross-checks them to
-ensure absolute exhaustiveness (zero dropped lines or forgotten footnotes).
+Ce module implemente le "Second Cerveau" (pipeline QA dual). Il prend un crop
+d'image et le JSON genere par l'extracteur Vision primaire, puis les croise
+afin de garantir une exhaustivite absolue (zero ligne oubliee, zero note
+de bas de page manquante).
 """
 
 from __future__ import annotations
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 class QAResult(BaseModel):
-    """Result of a deep QA inspection on an extracted table."""
+    """Resultat d'une inspection QA approfondie sur un tableau extrait."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -48,19 +49,21 @@ class QAResult(BaseModel):
 # ---------------------------------------------------------------------------
 
 class VisionTableInspector:
-    """Intransigent QA Inspector for GPT-4o Vision extractions."""
+    """Inspecteur QA intransigeant pour les extractions GPT-4o Vision."""
 
     def __init__(self, model: str = "gpt-4o") -> None:
-        """Initialize the QA Inspector.
-        
+        """Initialiser l'inspecteur QA.
+
         Args:
-            model: The OpenAI model to use. Default is 'gpt-4o' for maximum reliability,
-                   but can be set to 'gpt-4o-mini' to save costs.
+            model: Modele OpenAI a utiliser. ``gpt-4o`` par defaut pour une
+                fiabilite maximale ; peut etre ``gpt-4o-mini`` pour reduire
+                les couts.
         """
         self.model = model
         self.api_key = get_openai_api_key()
         
     def _build_qa_prompt(self, extracted_json: str) -> str:
+        """Construire le prompt systeme pour l'audit QA."""
         return f"""You are an intransigent, highly meticulous financial data auditor.
 Your ONLY job is to compare an image of a financial table against a provided JSON payload that claims to contain 100% of the required extracted fields.
 
@@ -87,15 +90,17 @@ PROVIDED JSON TO AUDIT:
 Respond STRICTLY using the required JSON schema format."""
 
     def inspect_extraction(self, image_bytes: bytes, extracted_json: dict[str, Any]) -> QAResult:
-        """Inspect the extraction for missing elements.
-        
+        """Inspecter l'extraction pour detecter les elements manquants.
+
         Args:
-            image_bytes: Raw bytes of the cropped table image.
-            extracted_json: The raw JSON output from the primary extractor.
-            
+            image_bytes: Octets bruts de l'image recadree du tableau.
+            extracted_json: Sortie JSON brute de l'extracteur primaire.
+
         Returns:
-            QAResult: The result of the rigorous QA check.
-            Raises exception if OpenAI fails.
+            Resultat de la verification QA rigoureuse.
+
+        Raises:
+            Exception: Si l'appel OpenAI echoue apres toutes les tentatives.
         """
         # Convert JSON structure to a clean string for the prompt
         json_str = json.dumps(extracted_json, ensure_ascii=False, indent=2)

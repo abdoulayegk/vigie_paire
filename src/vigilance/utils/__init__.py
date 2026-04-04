@@ -1,4 +1,4 @@
-"""Utility helpers shared by comparison modules."""
+"""Utilitaires partages par les modules de comparaison."""
 
 from vigilance.utils.footnotes_utils import (
     footnotes_list_to_dict,

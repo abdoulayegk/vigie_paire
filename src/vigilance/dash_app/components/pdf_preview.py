@@ -1,4 +1,4 @@
-"""Composant affichage PDF (images base64)."""
+"""Composant d'affichage de pages PDF converties en images base64."""
 
 from __future__ import annotations
 
@@ -8,12 +8,16 @@ from dash import html
 def pdf_images_from_base64(
     images: list[str], captions: list[str] | None = None
 ) -> html.Div:
-    """
-    Afficher des images PDF (base64) dans une grille.
+    """Affiche des images PDF encodees en base64 dans une grille verticale.
 
     Args:
-        images: Liste de chaines base64 (PNG)
-        captions: Captions optionnels pour chaque image
+        images: Liste de chaines base64 representant des images PNG.
+        captions: Legendes optionnelles pour chaque image. Si absent,
+            des legendes ``Page 1``, ``Page 2``, ... sont generees.
+
+    Returns:
+        Un ``Div`` contenant les images avec leurs legendes, ou un
+        message de repli si *images* est vide.
     """
     if not images:
         return html.Div("Aucune image disponible", className="text-muted")

@@ -1,6 +1,7 @@
-"""Extract row-level bounding boxes from PDF tables for visual proof cropping.
+"""Extraction des bounding boxes par ligne depuis les tableaux PDF.
 
-Uses pdfplumber to get cell positions and matches them to indicator texts.
+Utilise pdfplumber pour obtenir les positions des cellules et les
+associer aux textes d'indicateurs, en vue du recadrage visuel de preuve.
 """
 
 from __future__ import annotations
@@ -26,7 +27,7 @@ def _bbox_overlap_ratio(
     bbox1: tuple[float, float, float, float],
     bbox2: tuple[float, float, float, float],
 ) -> float:
-    """Compute overlap ratio (intersection / min area)."""
+    """Calculer le ratio de chevauchement (intersection / aire minimale)."""
     x0_1, y0_1, x1_1, y1_1 = bbox1
     x0_2, y0_2, x1_2, y1_2 = bbox2
     xi0 = max(x0_1, x0_2)
@@ -44,7 +45,7 @@ def _bbox_overlap_ratio(
 
 
 def _normalize_for_match(text: str) -> str:
-    """Normalize text for matching (accents, apostrophes, whitespace, lower)."""
+    """Normaliser le texte pour la correspondance (accents, apostrophes, espaces, minuscules)."""
     return normalize_text_base(text or "")
 
 
@@ -54,16 +55,17 @@ def extract_row_bboxes_from_pdf(
     table_bbox: tuple[float, float, float, float] | None,
     indicator_texts: list[str],
 ) -> list[tuple[str, float, float]]:
-    """Extract row bboxes (indicator, y0_pdf, y1_pdf) for first-column cells.
+    """Extraire les bboxes par ligne (indicateur, y0_pdf, y1_pdf) pour les cellules de premiere colonne.
 
     Args:
-        pdf_path: Path to PDF
-        page_num: Page number (1-indexed)
-        table_bbox: Optional table bbox (x0,y0,x1,y1) to find matching table
-        indicator_texts: List of indicator texts to match
+        pdf_path: Chemin vers le PDF.
+        page_num: Numero de page (1-indexed).
+        table_bbox: Bbox optionnel du tableau ``(x0, y0, x1, y1)`` pour
+            identifier le tableau correspondant.
+        indicator_texts: Liste des textes d'indicateurs a associer.
 
     Returns:
-        List of (indicator_text, y0_pdf, y1_pdf)
+        Liste de tuples ``(texte_indicateur, y0_pdf, y1_pdf)``.
     """
     if not PDFPLUMBER_AVAILABLE:
         return []

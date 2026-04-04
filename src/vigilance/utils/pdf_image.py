@@ -1,8 +1,8 @@
-"""Convert a PDF page to a numpy RGB image for Vision fallback.
+"""Conversion d'une page PDF en image numpy RGB pour le repli Vision.
 
-Used by docling_processor to render a page before calling GPT-4 Vision
-on tables that Docling failed to extract. Returns None if PyMuPDF or
-numpy is unavailable or on any error.
+Utilise par docling_processor pour rendre une page avant d'appeler GPT-4 Vision
+sur les tableaux que Docling n'a pas reussi a extraire. Retourne None si PyMuPDF
+ou numpy n'est pas disponible, ou en cas d'erreur.
 """
 
 from __future__ import annotations
@@ -18,16 +18,16 @@ def pdf_page_to_image(
     page_number: int,
     dpi: int = 300,
 ) -> "np.ndarray | None":
-    """Render a single PDF page as a numpy RGB image.
+    """Rend une page PDF unique sous forme d'image numpy RGB.
 
     Args:
-        pdf_path: Path to the PDF file.
-        page_number: 1-based page index (same as docling_processor page_num).
-        dpi: Resolution for rendering (default 300, same as gpt4_vision_fallback).
+        pdf_path: Chemin du fichier PDF.
+        page_number: Index de page (base 1, meme convention que docling_processor).
+        dpi: Resolution de rendu (defaut 300, identique a gpt4_vision_fallback).
 
     Returns:
-        RGB image as numpy array (height, width, 3), or None on error or
-        if PyMuPDF/numpy is unavailable.
+        Image RGB sous forme de tableau numpy (hauteur, largeur, 3), ou ``None``
+        en cas d'erreur ou si PyMuPDF/numpy n'est pas disponible.
     """
     try:
         import numpy as np

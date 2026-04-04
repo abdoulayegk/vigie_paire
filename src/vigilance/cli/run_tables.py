@@ -1,5 +1,4 @@
-"""
-Façade CLI pour l'extraction de tableaux sur des plages de pages pré-détectées.
+r"""Façade CLI pour l'extraction de tableaux sur des plages de pages pré-détectées.
 
 Ce module constitue la deuxième étape du pipeline d'extraction en ligne de
 commande. Il prend en entrée un fichier ``section_ranges.json`` (produit par
@@ -152,7 +151,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _infer_year(quarter: str) -> int:
-    """Déduire l'année depuis le libellé de trimestre, avec repli sur 2025.
+    r"""Déduire l'année depuis le libellé de trimestre, avec repli sur 2025.
 
     Recherche un motif ``(19|20)\\d{2}`` dans la chaîne fournie.
     Retourne 2025 si aucune année n'est trouvée.

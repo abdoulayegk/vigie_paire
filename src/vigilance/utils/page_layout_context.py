@@ -1,8 +1,8 @@
-"""Page-level layout context for dynamic crop extensions.
+"""Contexte de mise en page pour les extensions dynamiques de recadrage.
 
-Uses Docling-detected table bounding boxes to compute optimal top/bottom
-extensions for each table crop, avoiding collision with neighboring tables
-while capturing titles and footnotes.
+Utilise les bounding boxes de tableaux detectes par Docling pour calculer les
+extensions optimales haut/bas de chaque recadrage, en evitant les collisions
+avec les tableaux voisins tout en capturant titres et notes de bas de page.
 """
 
 from __future__ import annotations
@@ -21,13 +21,13 @@ PageBboxEntry = tuple[int, list[float]]  # (table_index, [l, t, r, b])
 def build_page_table_map(
     vision_items: list[tuple[int, int, list[float] | None, str, str | None]],
 ) -> dict[int, list[PageBboxEntry]]:
-    """Group table bboxes by page, sorted top-to-bottom by vertical position.
+    """Regroupe les bboxes de tableaux par page, tries de haut en bas.
 
     Args:
-        vision_items: list of (idx, page_num, bbox_norm, table_id, ref_text)
+        vision_items: Liste de (idx, page_num, bbox_norm, table_id, ref_text).
 
     Returns:
-        {page_num: [(idx, [l, t, r, b]), ...]} sorted by ``t`` (top).
+        ``{page_num: [(idx, [l, t, r, b]), ...]}`` trie par ``t`` (haut).
     """
     by_page: dict[int, list[PageBboxEntry]] = {}
     for idx, page_num, bbox, _table_id, _ref in vision_items:
@@ -51,21 +51,21 @@ def compute_dynamic_extensions(
     title_proximity_threshold: float = 0.08,
     min_gap_for_footnotes: float = 0.02,
 ) -> tuple[float, float]:
-    """Compute dynamic top and bottom extensions for a table crop.
+    """Calcule les extensions dynamiques haut et bas pour un recadrage de tableau.
 
     Args:
-        table_idx: Index of the current table in the vision_items list.
-        page_num: Page number of the current table.
-        table_bbox: Normalized bbox [l, t, r, b] of the current table.
-        page_table_map: Output of :func:`build_page_table_map`.
-        default_bottom: Fallback bottom extension (config default).
-        default_top: Fallback top extension (config default).
-        page_bottom_margin: Safety margin from page bottom (normalized).
-        title_proximity_threshold: Max gap above table to look for a title.
-        min_gap_for_footnotes: Minimum gap to leave between tables.
+        table_idx: Index du tableau courant dans la liste vision_items.
+        page_num: Numero de page du tableau courant.
+        table_bbox: Bbox normalisee [l, t, r, b] du tableau courant.
+        page_table_map: Sortie de :func:`build_page_table_map`.
+        default_bottom: Extension bas par defaut (config).
+        default_top: Extension haut par defaut (config).
+        page_bottom_margin: Marge de securite depuis le bas de la page (normalisee).
+        title_proximity_threshold: Ecart maximal au-dessus du tableau pour chercher un titre.
+        min_gap_for_footnotes: Ecart minimal a laisser entre les tableaux.
 
     Returns:
-        (top_extension, bottom_extension) in normalized page units.
+        ``(top_extension, bottom_extension)`` en unites de page normalisees.
     """
     _l, t, _r, b = table_bbox
     page_tables = page_table_map.get(page_num, [])

@@ -7,7 +7,15 @@ from dash import dcc, html
 
 
 def build_page_load(options: list[dict]) -> html.Div:
-    """Contenu pour charger une analyse enregistrée."""
+    """Construit le layout de la page de chargement d'une analyse enregistree.
+
+    Args:
+        options: Liste de dictionnaires ``{label, value}`` pour le menu deroulant
+            de selection des comparaisons sauvegardees.
+
+    Returns:
+        Composant ``html.Div`` contenant le formulaire de chargement.
+    """
     return html.Div(
         id="load-content",
         children=[

@@ -1,9 +1,10 @@
-"""Image preprocessing for GPT-4o Vision extraction.
+"""Pre-traitement d'image pour l'extraction GPT-4o Vision.
 
-Applies contrast enhancement, sharpening, and background normalization
-to improve OCR accuracy on Canadian banking PDF tables.
+Applique l'amelioration du contraste, la nettete et la normalisation
+de l'arriere-plan afin d'ameliorer la precision OCR sur les tableaux
+de rapports bancaires canadiens.
 
-Controlled via VISION_PREPROCESS env var (default: enabled).
+Active par la variable d'environnement ``VISION_PREPROCESS`` (defaut : active).
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ _PREPROCESS_ENV = "VISION_PREPROCESS"
 
 
 def _is_enabled() -> bool:
+    """Verifier si le pre-traitement Vision est active via la variable d'environnement."""
     val = os.environ.get(_PREPROCESS_ENV)
     if val is None:
         return True
@@ -29,21 +31,25 @@ def _is_enabled() -> bool:
 
 
 def preprocess_for_vision(image_bytes: bytes, *, enabled: bool | None = None) -> bytes:
-    """Apply contrast/sharpness preprocessing to a PNG image for Vision.
+    """Appliquer le pre-traitement contraste/nettete a une image PNG pour Vision.
 
-    Pipeline (Pillow-only, no OpenCV dependency):
-    1. Convert to grayscale then back to RGB to drop colored borders/backgrounds
-    2. CLAHE-like contrast boost via autocontrast
-    3. Unsharp mask for text sharpness
-    4. Background normalization (near-white pixels -> pure white)
+    Pipeline (Pillow uniquement, sans dependance OpenCV) :
+    1. Conversion en niveaux de gris puis retour en RGB pour supprimer les
+       bordures / arriere-plans colores
+    2. Amelioration du contraste via autocontrast (similaire a CLAHE)
+    3. Masque flou (Unsharp Mask) pour la nettete du texte
+    4. Normalisation de l'arriere-plan (pixels quasi-blancs -> blanc pur)
 
     Args:
-        enabled: Explicit override. ``None`` (default) falls back to the
-                 ``VISION_PREPROCESS`` env var. Pass ``True``/``False`` for
-                 thread-safe control from config without mutating env.
+        image_bytes: Octets PNG de l'image source.
+        enabled: Surcharge explicite. ``None`` (defaut) utilise la variable
+                 ``VISION_PREPROCESS``. Passer ``True``/``False`` pour un
+                 controle thread-safe sans modifier l'environnement.
 
-    Returns the original bytes unchanged when preprocessing is disabled or
-    if any step fails (never raises).
+    Returns:
+        Octets de l'image pre-traitee, ou les octets originaux si le
+        pre-traitement est desactive ou en cas d'echec (ne leve jamais
+        d'exception).
     """
     if enabled is not None:
         if not enabled:
@@ -81,9 +87,16 @@ def preprocess_for_vision(image_bytes: bytes, *, enabled: bool | None = None) ->
 
 
 def preprocess_pil_image(img: Image) -> Image:
-    """Same pipeline as preprocess_for_vision but accepts/returns a PIL Image.
+    """Meme pipeline que ``preprocess_for_vision`` mais accepte/retourne un objet PIL Image.
 
-    Used by GPT4VisionFallback._encode_image which already has a PIL object.
+    Utilise par ``GPT4VisionFallback._encode_image`` qui dispose deja d'un
+    objet PIL.
+
+    Args:
+        img: Image PIL source.
+
+    Returns:
+        Image PIL pre-traitee (ou originale si desactive / en erreur).
     """
     if not _is_enabled():
         return img
@@ -117,7 +130,7 @@ def preprocess_pil_image(img: Image) -> Image:
 
 
 def _normalize_background(img: Image, threshold: int = 240) -> Image:
-    """Replace near-white pixels with pure white to remove gray backgrounds."""
+    """Remplacer les pixels quasi-blancs par du blanc pur pour supprimer les fonds gris."""
     import numpy as np
 
     arr = np.array(img)

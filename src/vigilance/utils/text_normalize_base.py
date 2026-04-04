@@ -1,9 +1,10 @@
-"""Shared base normalization for text comparison across indicators and footnotes.
+"""Normalisation de base partagee pour la comparaison de texte entre indicateurs et notes.
 
-Single source of truth for: accent stripping, apostrophe canonicalization,
-elision+space collapse, and whitespace normalization. Used by indicator_cleaner,
-footnote_comparator, row_bbox_extractor, vision_indicator_added_validator,
-and footnotes_utils to eliminate false positives from character/encoding variance.
+Source unique de verite pour : suppression des accents, canonicalisation des
+apostrophes, reduction elision+espace, et normalisation des espaces. Utilise
+par indicator_cleaner, footnote_comparator, row_bbox_extractor,
+vision_indicator_added_validator et footnotes_utils pour eliminer les faux
+positifs lies a la variance de caracteres/encodages.
 """
 
 from __future__ import annotations
@@ -18,18 +19,25 @@ _ELISION_SPACE_RE = re.compile(r"\b([dljscnmt])'\s+", re.IGNORECASE)
 
 
 def normalize_text_base(text: str, *, lowercase: bool = True) -> str:
-    """Normalize text for stable comparison: accents, apostrophes, elision, whitespace.
+    """Normalise le texte pour une comparaison stable : accents, apostrophes, elision, espaces.
 
-    When lowercase=True (default), also lowercases (matching, footnotes, bbox).
-    When lowercase=False, preserves case for indicator_cleaner early pass so
-    downstream regexes (dates, units, row numbers) keep expected behavior.
+    Quand ``lowercase=True`` (defaut), met aussi en minuscules (matching, notes, bbox).
+    Quand ``lowercase=False``, preserve la casse pour la passe initiale d'indicator_cleaner
+    afin que les regex en aval (dates, unites, numeros de lignes) conservent le comportement attendu.
 
-    Order of operations:
-    1. NFD + encode ascii ignore (strip accents)
-    2. Normalize apostrophe variants to ASCII '
-    3. Collapse elision+space (e.g. "d' actions" -> "d'actions")
-    4. Collapse all whitespace (including U+00A0) to single space, strip
-    5. Lowercase if lowercase=True
+    Ordre des operations :
+    1. NFD + encode ascii ignore (suppression des accents)
+    2. Normalisation des variantes d'apostrophes vers ASCII ``'``
+    3. Reduction elision+espace (ex. ``"d' actions"`` -> ``"d'actions"``)
+    4. Reduction de tous les espaces (y compris U+00A0) en espace simple, strip
+    5. Mise en minuscules si ``lowercase=True``
+
+    Args:
+        text: Texte brut a normaliser.
+        lowercase: Si ``True``, convertit en minuscules.
+
+    Returns:
+        Texte normalise.
     """
     if not text:
         return ""

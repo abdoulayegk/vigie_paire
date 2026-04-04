@@ -1,4 +1,4 @@
-"""Review queue navigation, filtering, and validation callbacks."""
+"""Callbacks de navigation, filtrage et validation de la file de revue."""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ def update_review_queue(
     show_results,
     filters,
 ):
-    """Update the left-side review queue and top KPIs."""
+    """Mettre a jour la file de revue laterale gauche et les KPIs en haut de page."""
     if not show_results:
         raise PreventUpdate
 
@@ -128,7 +128,7 @@ def update_review_queue(
     prevent_initial_call=True,
 )
 def sync_review_selection(queue, filters, selection, last_positions):
-    """Keep selection stable on queue refresh/filter changes, with safe fallback."""
+    """Garder la selection stable lors du rafraichissement de la file ou du changement de filtres."""
     if queue is None:
         raise PreventUpdate
     resolved_selection, _, change_idx = _resolve_selection(
@@ -146,7 +146,7 @@ def sync_review_selection(queue, filters, selection, last_positions):
     prevent_initial_call=True,
 )
 def remember_review_position_v2(selection, last_positions):
-    """Remember the last visited change for each table in the active review."""
+    """Memoriser le dernier changement visite pour chaque tableau dans la revue active."""
     updated = _remember_selection(last_positions, selection)
     if updated == _normalize_last_positions(last_positions):
         raise PreventUpdate
@@ -160,7 +160,7 @@ def remember_review_position_v2(selection, last_positions):
     prevent_initial_call=True,
 )
 def on_filter_section(n_clicks, current_filters):
-    """Update section filter when a filter button is clicked."""
+    """Mettre a jour le filtre de section quand un bouton de filtre est clique."""
     if not ctx.triggered_id:
         raise PreventUpdate
 
@@ -201,7 +201,7 @@ def on_validate_change_v2(
     notes,
     indicator_meta,
 ):
-    """Apply validation to current change in V2 queue, auto-advance."""
+    """Appliquer la validation au changement courant de la file V2 et avancer automatiquement."""
     from datetime import datetime, timezone
 
     if not ctx.triggered_id or not queue:
@@ -351,7 +351,7 @@ def on_validate_change_v2(
 def on_reset_change_decision(
     n_clicks, queue, selection, filters, last_positions, indicator_meta
 ):
-    """Reset a validated change back to pending so the analyst can re-decide."""
+    """Reinitialiser un changement valide a l'etat en attente pour permettre a l'analyste de re-decider."""
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
     if not any(nc for nc in (n_clicks or [])):
@@ -442,7 +442,7 @@ def on_reset_change_decision(
     prevent_initial_call=True,
 )
 def on_navigate_change_v2(prev, next_c, queue, selection, filters, last_positions):
-    """Navigate prev/next within current table's changes (V2)."""
+    """Naviguer precedent/suivant parmi les changements du tableau courant (V2)."""
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
 
@@ -498,7 +498,7 @@ def on_navigate_change_v2(prev, next_c, queue, selection, filters, last_position
     prevent_initial_call=True,
 )
 def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
-    """Select a specific change row by stable change_id."""
+    """Selectionner une ligne de changement specifique par son change_id stable."""
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
     if not any(nc for nc in (n_clicks or [])):
@@ -549,7 +549,7 @@ def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
 def on_navigate_table_v2(
     prev, next_t, clicks, queue, selection, filters, last_positions
 ):
-    """Navigate between tables or jump directly from the review queue."""
+    """Naviguer entre les tableaux ou sauter directement depuis la file de revue."""
     if not queue:
         raise PreventUpdate
 
@@ -614,7 +614,7 @@ def on_navigate_table_v2(
     Input("store-review-filters", "data"),
 )
 def block_table_navigation_v2(queue, selection, filters):
-    """Disable table navigation buttons only at visible boundaries."""
+    """Desactiver les boutons de navigation entre tableaux aux limites visibles."""
     if not queue:
         return True, True
 

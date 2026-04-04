@@ -1,4 +1,4 @@
-"""YAML configuration loader for bank profiles."""
+"""Chargeur de configuration YAML pour les profils bancaires."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ DEFAULT_CONFIG_RELATIVE_PATH = Path("configs") / "bank_profiles.yaml"
 
 
 def _repo_root() -> Path:
-    """Return repository root (directory containing pyproject.toml)."""
+    """Retourne la racine du depot (repertoire contenant pyproject.toml)."""
     current = Path(__file__).resolve()
     for parent in current.parents:
         if (parent / "pyproject.toml").exists():
@@ -21,7 +21,7 @@ def _repo_root() -> Path:
 
 
 def _resolve_config_path(path: str | Path | None) -> Path:
-    """Resolve config path robustly across different working directories."""
+    """Resout le chemin de configuration de facon robuste quel que soit le repertoire de travail."""
     raw_path = str(path or "").strip()
     config_path = Path(raw_path) if raw_path else DEFAULT_CONFIG_RELATIVE_PATH
     if config_path.is_absolute():
@@ -37,14 +37,17 @@ def _resolve_config_path(path: str | Path | None) -> Path:
 
 
 def load_config(path: str | Path) -> dict[str, Any]:
-    """Load YAML configuration from *path*.
+    """Charge la configuration YAML depuis *path*.
 
-    Raises
-    ------
-    FileNotFoundError
-        If the file does not exist.
-    ValueError
-        If YAML is invalid or does not produce a dictionary.
+    Args:
+        path: Chemin du fichier YAML de configuration.
+
+    Returns:
+        Dictionnaire de configuration.
+
+    Raises:
+        FileNotFoundError: Si le fichier n'existe pas.
+        ValueError: Si le YAML est invalide ou ne produit pas un dictionnaire.
     """
     config_path = _resolve_config_path(path)
     if not config_path.exists():
@@ -68,7 +71,18 @@ def load_config(path: str | Path) -> dict[str, Any]:
 
 
 def get_bank_cfg(cfg: dict[str, Any], bank_code: str) -> dict[str, Any]:
-    """Return the configuration block for a bank code."""
+    """Retourne le bloc de configuration pour un code bancaire.
+
+    Args:
+        cfg: Configuration globale chargee.
+        bank_code: Code de la banque (ex. ``"rbc"``).
+
+    Returns:
+        Dictionnaire de configuration specifique a la banque.
+
+    Raises:
+        ValueError: Si le code bancaire est absent ou invalide.
+    """
     if not isinstance(cfg, dict):
         raise ValueError(f"Invalid config: expected dict, got {type(cfg).__name__}")
 

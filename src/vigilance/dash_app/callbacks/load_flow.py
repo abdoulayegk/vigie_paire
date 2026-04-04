@@ -1,4 +1,4 @@
-"""Load comparison from file system callbacks."""
+"""Callbacks de chargement de comparaison depuis le systeme de fichiers."""
 
 from __future__ import annotations
 

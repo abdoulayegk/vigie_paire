@@ -1,4 +1,4 @@
-"""Utility callbacks: sidebar, options, timer, reset, proof display mode."""
+"""Callbacks utilitaires : barre laterale, options, minuterie, reinitialisation, mode d'affichage des preuves."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ from vigilance.i18n import t
     prevent_initial_call=True,
 )
 def update_sidebar_collapsed_state(toggle_clicks, show_results, is_collapsed):
-    """Collapse the sidebar for review by default while keeping manual toggle control."""
+    """Replier la barre laterale pour la revue par defaut tout en gardant le controle de basculement manuel."""
     if ctx.triggered_id == "btn-toggle-sidebar":
         return not bool(is_collapsed)
     if ctx.triggered_id == "store-show-results-page" and bool(show_results):
@@ -45,6 +45,7 @@ def update_sidebar_collapsed_state(toggle_clicks, show_results, is_collapsed):
     Input("store-sidebar-collapsed", "data"),
 )
 def sync_sidebar_layout(is_collapsed):
+    """Synchroniser les classes CSS de la barre laterale et du contenu principal selon l'etat replie/deplie."""
     collapsed = bool(is_collapsed)
     sidebar_class = "analysis-sidebar bg-light border-end p-3"
     body_class = "analysis-sidebar-body"
@@ -68,7 +69,7 @@ def sync_sidebar_layout(is_collapsed):
     Input("proof-display-mode", "value"),
 )
 def on_proof_display_mode_change(value):
-    """Persist proof display mode (crop vs full page + bbox)."""
+    """Persister le mode d'affichage des preuves (recadrage vs page entiere + bbox)."""
     if value in ("crop", "full", "footnote"):
         return value
     return no_update
@@ -84,6 +85,7 @@ def on_proof_display_mode_change(value):
     prevent_initial_call=True,
 )
 def update_validation_time_footer(duration_sec, show_results):
+    """Afficher le temps de validation dans le pied de page des statistiques."""
     if not show_results:
         raise PreventUpdate
     if duration_sec is None:
@@ -137,6 +139,7 @@ def on_reset(n_clicks):
     prevent_initial_call=True,
 )
 def toggle_options(n, is_open):
+    """Basculer l'affichage du panneau d'options."""
     if n:
         return not is_open
     return is_open
@@ -149,6 +152,7 @@ def toggle_options(n, is_open):
     prevent_initial_call=True,
 )
 def toggle_stats(n, is_open):
+    """Basculer l'affichage du panneau de statistiques."""
     if n:
         return not is_open
     return is_open

@@ -1,4 +1,4 @@
-"""Helpers for configuring PyMuPDF / MuPDF process-wide behavior."""
+"""Utilitaires de configuration du comportement global de PyMuPDF / MuPDF."""
 
 from __future__ import annotations
 
@@ -10,7 +10,11 @@ _MUPDF_CONFIGURED = False
 
 
 def configure_mupdf_runtime(fitz: Any) -> None:
-    """Reduce noisy MuPDF stderr warnings while keeping Python exceptions intact."""
+    """Reduit les avertissements stderr bruyants de MuPDF tout en preservant les exceptions Python.
+
+    Args:
+        fitz: Module PyMuPDF (fitz) importe par l'appelant.
+    """
     global _MUPDF_CONFIGURED
     if _MUPDF_CONFIGURED:
         return

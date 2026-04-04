@@ -1,7 +1,7 @@
-"""vigie_extract_v1 schema: single-JSON-per-PDF output format.
+"""Schema vigie_extract_v1 : format de sortie JSON unique par PDF.
 
-Defines typed structures, transformation helpers, builder, writer,
-and loader (JSON -> TableArtifact adapter).
+Definit les structures typees, les utilitaires de transformation,
+le constructeur, l'ecrivain et le chargeur (JSON -> TableArtifact).
 """
 
 from __future__ import annotations
@@ -47,6 +47,8 @@ SLUG_TO_CANONICAL: dict[str, str] = {v: k for k, v in CANONICAL_TO_SLUG.items()}
 
 
 class FirstColumnEntry(TypedDict):
+    """Entree de la premiere colonne d'un tableau."""
+
     row_idx: int
     text: str
     text_norm: str
@@ -54,6 +56,8 @@ class FirstColumnEntry(TypedDict):
 
 
 class FootnoteEntry(TypedDict):
+    """Entree de note de bas de page extraite."""
+
     marker: str
     raw_text: str
     text: str
@@ -62,12 +66,16 @@ class FootnoteEntry(TypedDict):
 
 
 class TableFeatures(TypedDict):
+    """Caracteristiques calculees d'un tableau extrait."""
+
     n_indicators: int
     indicator_set_hash: str
     anchors: list[str]
 
 
 class TablePayload(TypedDict, total=False):
+    """Payload complet d'un tableau extrait pour le schema Vigie."""
+
     table_uid: str
     table_id: str
     page_number: int
@@ -86,6 +94,8 @@ class TablePayload(TypedDict, total=False):
 
 
 class SectionPayload(TypedDict):
+    """Payload d'une section contenant ses tableaux."""
+
     section_title_pdf: str
     start_page: int
     end_page: int
@@ -93,6 +103,8 @@ class SectionPayload(TypedDict):
 
 
 class ExtractionMeta(TypedDict, total=False):
+    """Metadonnees de l'extraction (source, banque, trimestre, etc.)."""
+
     source_pdf: str
     pdf_hash: str
     bank_code: str
@@ -105,6 +117,8 @@ class ExtractionMeta(TypedDict, total=False):
 
 
 class VigieExtractPayload(TypedDict):
+    """Payload racine du schema d'extraction Vigie."""
+
     schema_version: str
     extraction_meta: ExtractionMeta
     sections: dict[str, SectionPayload]
@@ -124,7 +138,7 @@ _SERIES_SUFFIX_RE = re.compile(
 
 
 def normalize_text(raw: str) -> str:
-    """Accent-stripped, lower-cased, whitespace-collapsed normalisation."""
+    """Normalisation sans accents, en minuscules, avec espaces reduits."""
     text = unicodedata.normalize("NFD", raw or "")
     text = text.encode("ascii", "ignore").decode("utf-8")
     text = text.lower()
@@ -166,13 +180,16 @@ _SUPERSCRIPT_MAP = str.maketrans("¹²³⁴⁵⁶⁷⁸⁹⁰", "1234567890")
 
 
 def _extract_note_refs(label: str) -> tuple[str, list[str]]:
-    """Return (cleaned_text, [ref_markers]) from a label like 'Ratio (1)' or 'Ratio¹'.
+    """Extrait les references de notes d'un libelle d'indicateur.
 
-    Handles multiple marker formats from Vision extraction:
-    - (1), (2) -> '1', '2'
-    - ¹, ² -> '1', '2'
-    - *, †, ‡ -> '*', '†', '‡'
-    - (a), a) -> 'a'
+    Gere les formats de marqueurs issus de l'extraction Vision :
+    ``(1)``, ``(2)`` ; ``superscripts`` ; ``*``, ``dagger``, ``double-dagger`` ; ``(a)``, ``a)``.
+
+    Args:
+        label: Libelle brut contenant potentiellement des references.
+
+    Returns:
+        Tuple ``(texte_nettoye, [marqueurs_references])``.
     """
     refs: list[str] = []
     cleaned = label
@@ -212,7 +229,14 @@ def _extract_note_refs(label: str) -> tuple[str, list[str]]:
 
 
 def parse_first_column(indicators: list[str]) -> list[FirstColumnEntry]:
-    """Transform raw first_column_indicators into structured entries."""
+    """Transforme les indicateurs bruts de premiere colonne en entrees structurees.
+
+    Args:
+        indicators: Liste de libelles bruts d'indicateurs.
+
+    Returns:
+        Liste de ``FirstColumnEntry`` avec texte nettoye et references de notes.
+    """
     entries: list[FirstColumnEntry] = []
     for idx, raw in enumerate(indicators):
         text, note_refs = _extract_note_refs(raw.strip())
@@ -238,7 +262,14 @@ _FOOTNOTE_MARKER_RE = re.compile(r"^\s*\(?(\d+)\)?\s*[.:\-–—]?\s*")
 
 
 def parse_footnotes(raw_footnotes: list[str]) -> list[FootnoteEntry]:
-    """Transform raw footnote strings into structured entries."""
+    """Transforme les chaines brutes de footnotes en entrees structurees.
+
+    Args:
+        raw_footnotes: Liste de chaines brutes de footnotes.
+
+    Returns:
+        Liste de ``FootnoteEntry`` avec marqueur et texte normalise.
+    """
     entries: list[FootnoteEntry] = []
     for raw in raw_footnotes:
         raw_stripped = raw.strip()
@@ -273,7 +304,7 @@ def make_table_uid(
     page_number: int,
     table_index: int,
 ) -> str:
-    """Deterministic unique id for a table within a PDF extraction."""
+    """Genere un identifiant unique deterministe pour un tableau dans une extraction PDF."""
     q = quarter.lower().replace("-", "")
     tbl = f"tbl{table_number}" if table_number else f"idx{table_index}"
     return f"{bank_code}_{year}_{q}_{section_slug}_{tbl}_p{page_number}"
@@ -285,7 +316,14 @@ def make_table_uid(
 
 
 def compute_features(first_column: list[FirstColumnEntry]) -> TableFeatures:
-    """Compute table features from the parsed first column."""
+    """Calcule les caracteristiques d'un tableau a partir de la premiere colonne parsee.
+
+    Args:
+        first_column: Liste de ``FirstColumnEntry`` parsees.
+
+    Returns:
+        ``TableFeatures`` avec hash d'indicateurs et ancres.
+    """
     norms = sorted(entry["text_norm"] for entry in first_column if entry["text_norm"])
     hash_input = "|".join(norms)
     indicator_hash = "sha1:" + hashlib.sha1(hash_input.encode("utf-8")).hexdigest()
@@ -302,12 +340,12 @@ def compute_features(first_column: list[FirstColumnEntry]) -> TableFeatures:
 
 
 def canonical_to_slug(canonical: str) -> str:
-    """Map a canonical section key to the output slug."""
+    """Convertit une cle de section canonique en slug de sortie."""
     return CANONICAL_TO_SLUG.get(canonical, canonical)
 
 
 def section_title_for_slug(slug: str, evidence_title: str | None = None) -> str:
-    """Return a human-readable section title, preferring the PDF evidence."""
+    """Retourne un titre de section lisible, en privilegiant l'evidence PDF."""
     if evidence_title:
         return evidence_title
     return SLUG_TO_DEFAULT_TITLE.get(slug, slug.replace("_", " ").title())
@@ -319,10 +357,12 @@ def section_title_for_slug(slug: str, evidence_title: str | None = None) -> str:
 
 
 def compute_pdf_hash(pdf_path: str | Path) -> str:
+    """Calcule le hash SHA-256 du fichier PDF."""
     return "sha256:" + hashlib.sha256(Path(pdf_path).read_bytes()).hexdigest()
 
 
 def get_docling_version() -> str:
+    """Retourne la version de docling installee, ou ``"unknown"``."""
     try:
         import docling
 
@@ -346,18 +386,20 @@ def build_vigie_extract(
     section_ranges: list[dict[str, Any]],
     tables: list[Any],
 ) -> VigieExtractPayload:
-    """Build the vigie_extract_v1 payload from extraction outputs.
+    """Construit le payload vigie_extract_v1 a partir des sorties d'extraction.
 
-    Parameters
-    ----------
-    pdf_path : path to the source PDF
-    bank_code : e.g. "cibc"
-    quarter : e.g. "t2-2025" or "t2_2025"
-    year : fiscal year
-    language : ISO language code (default "fr")
-    section_ranges : list of dicts with keys "section", "start", "end",
-        and optionally "evidence" (dict with "title_found").
-    tables : list of ExtractedTable objects (or anything with matching attrs).
+    Args:
+        pdf_path: Chemin du PDF source.
+        bank_code: Code de la banque (ex. ``"cibc"``).
+        quarter: Trimestre (ex. ``"t2-2025"`` ou ``"t2_2025"``).
+        year: Annee fiscale.
+        language: Code langue ISO (defaut ``"fr"``).
+        section_ranges: Liste de dictionnaires avec cles ``"section"``, ``"start"``,
+            ``"end"`` et optionnellement ``"evidence"``.
+        tables: Liste d'objets ExtractedTable ou equivalents.
+
+    Returns:
+        Payload complet ``VigieExtractPayload``.
     """
     pdf_p = Path(pdf_path)
     extraction_meta = ExtractionMeta(
@@ -465,7 +507,16 @@ def write_vigie_extract(
     payload: VigieExtractPayload,
     filename: str | None = None,
 ) -> Path:
-    """Write the vigie_extract_v1 JSON to *out_dir* and return its path."""
+    """Ecrit le JSON vigie_extract_v1 dans *out_dir* et retourne son chemin.
+
+    Args:
+        out_dir: Repertoire de sortie.
+        payload: Payload vigie_extract_v1 a ecrire.
+        filename: Nom de fichier optionnel (genere automatiquement si absent).
+
+    Returns:
+        Chemin du fichier JSON ecrit.
+    """
     target = Path(out_dir)
     target.mkdir(parents=True, exist_ok=True)
 
@@ -490,18 +541,20 @@ def write_vigie_extract(
 
 
 def _slug_to_canonical(slug: str) -> str:
-    """Reverse-map an output slug back to the canonical section key."""
+    """Convertit un slug de sortie vers la cle de section canonique."""
     return SLUG_TO_CANONICAL.get(slug, slug)
 
 
 def load_artifacts_from_vigie_extract(
     source: str | Path | dict[str, Any],
 ) -> list[TableArtifact]:
-    """Load a vigie_extract_v1 JSON and return a list of TableArtifact.
+    """Charge un JSON vigie_extract_v1 et retourne une liste de TableArtifact.
 
-    Parameters
-    ----------
-    source : path to a JSON file, or an already-parsed dict (payload).
+    Args:
+        source: Chemin d'un fichier JSON, ou dictionnaire deja parse.
+
+    Returns:
+        Liste de ``TableArtifact`` reconstruits depuis le payload.
     """
     if isinstance(source, dict):
         payload = source

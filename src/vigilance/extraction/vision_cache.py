@@ -1,4 +1,7 @@
-"""Cache layer for Vision first-column extraction results. JSON files per key."""
+"""Couche de cache pour les resultats d'extraction Vision (premiere colonne).
+
+Stocke un fichier JSON par cle dans le repertoire de cache configure.
+"""
 
 from __future__ import annotations
 
@@ -19,17 +22,24 @@ DEFAULT_CROP_DIR = "outputs/debug_crops/vision_fallback"
 
 
 def get_vision_cache_dir() -> str:
-    """Return Vision cache directory (VISION_CACHE_DIR env or default)."""
+    """Retourner le repertoire de cache Vision (``VISION_CACHE_DIR`` ou defaut)."""
     return os.environ.get("VISION_CACHE_DIR", DEFAULT_CACHE_DIR)
 
 
 def get_vision_crop_dir() -> str:
-    """Return Vision crop output directory (VISION_CROP_DIR env or default)."""
+    """Retourner le repertoire de sortie des crops Vision (``VISION_CROP_DIR`` ou defaut)."""
     return os.environ.get("VISION_CROP_DIR", DEFAULT_CROP_DIR)
 
 
 def compute_pdf_sha256(pdf_path: str) -> str:
-    """Compute SHA256 hash of PDF file contents."""
+    """Calculer le hash SHA-256 du contenu d'un fichier PDF.
+
+    Args:
+        pdf_path: Chemin vers le fichier PDF.
+
+    Returns:
+        Hash hexadecimal ou chaine vide si le fichier est absent.
+    """
     h = hashlib.sha256()
     raw = str(pdf_path or "").strip()
     if not raw:
@@ -49,10 +59,20 @@ def make_cache_key(
     bbox_norm: list[float],
     max_completion_tokens: int | None = None,
 ) -> str:
-    """
-    Create a cache key from PDF hash, page number, and normalized bbox.
-    Bbox values are rounded to 4 decimal places for stability.
-    Includes _VISION_CACHE_VERSION so prompt/schema changes invalidate stale entries.
+    """Creer une cle de cache a partir du hash PDF, du numero de page et du bbox normalise.
+
+    Les valeurs du bbox sont arrondies a 4 decimales pour la stabilite.
+    Inclut ``_VISION_CACHE_VERSION`` afin que les changements de prompt /
+    schema invalident les entrees obsoletes.
+
+    Args:
+        pdf_sha: Hash SHA-256 du PDF.
+        page_number: Numero de page (1-indexed).
+        bbox_norm: Bbox normalise ``[l, t, r, b]``.
+        max_completion_tokens: Limite de tokens (optionnel, inclus dans la cle).
+
+    Returns:
+        Chaine de cle de cache, ou chaine vide si le bbox est invalide.
     """
     if not bbox_norm or len(bbox_norm) != 4:
         return ""
@@ -67,8 +87,14 @@ def make_cache_key(
 
 
 def cache_get(cache_dir: str, key: str) -> dict | None:
-    """
-    Load a cached payload by key. Returns None if not found or invalid.
+    """Charger un payload en cache par cle.
+
+    Args:
+        cache_dir: Repertoire de cache.
+        key: Cle de cache.
+
+    Returns:
+        Dictionnaire du payload ou ``None`` si introuvable / invalide.
     """
     if not key or ".." in key or "/" in key or "\\" in key:
         return None
@@ -83,8 +109,12 @@ def cache_get(cache_dir: str, key: str) -> dict | None:
 
 
 def cache_put(cache_dir: str, key: str, payload: dict) -> None:
-    """
-    Store a payload in the cache. Overwrites if key exists.
+    """Stocker un payload dans le cache. Ecrase si la cle existe deja.
+
+    Args:
+        cache_dir: Repertoire de cache.
+        key: Cle de cache.
+        payload: Dictionnaire a persister.
     """
     if (
         not key

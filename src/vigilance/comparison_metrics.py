@@ -1,7 +1,7 @@
-"""Metrics aggregation and quality signal functions for the comparison pipeline.
+"""Agregation de metriques et fonctions de signaux qualite pour le pipeline de comparaison.
 
-Extracted from compare_gpt.py. compare_gpt.py re-exports all names from this module
-so that all existing imports remain valid.
+Extrait de compare_gpt.py. compare_gpt.py re-exporte tous les noms de ce module
+afin que les imports existants restent valides.
 """
 
 from __future__ import annotations
@@ -19,6 +19,8 @@ from vigilance.utils.model_cost import (
 
 
 class UsageMetrics(TypedDict):
+    """Metriques d'utilisation des tokens pour les appels OpenAI."""
+
     prompt_tokens_total: int
     completion_tokens_total: int
     total_tokens_total: int
@@ -33,6 +35,14 @@ class UsageMetrics(TypedDict):
 def _count_pair_changes(
     pair_comparisons: list[dict[str, Any]],
 ) -> tuple[int, int]:
+    """Compte le nombre total de changements d'indicateurs et de notes pour une liste de paires.
+
+    Args:
+        pair_comparisons: Liste de resultats de comparaison par paire.
+
+    Returns:
+        Tuple ``(indicateur_total, note_total)``.
+    """
     indicator_total = 0
     footnote_total = 0
     for item in pair_comparisons:
@@ -51,6 +61,16 @@ def _count_high_priority_items(
     tables_added: list[dict[str, Any]],
     tables_removed: list[dict[str, Any]],
 ) -> int:
+    """Compte les elements a priorite haute (prioritaire ou critique).
+
+    Args:
+        pair_comparisons: Liste de resultats de comparaison par paire.
+        tables_added: Tableaux presents uniquement dans le trimestre courant.
+        tables_removed: Tableaux presents uniquement dans le trimestre precedent.
+
+    Returns:
+        Nombre total d'elements a priorite haute.
+    """
     total = 0
     for item in pair_comparisons:
         assessment = item.get("analyst_assessment", {}) or {}
@@ -75,6 +95,15 @@ def _count_high_priority_items(
 
 
 def _aggregate_usage_metrics(records: list[dict[str, Any]]) -> dict[str, int]:
+    """Agregue les metriques d'utilisation de tokens a partir des enregistrements bruts.
+
+    Args:
+        records: Liste de dicts contenant ``prompt_tokens``, ``completion_tokens``
+            et ``total_tokens``.
+
+    Returns:
+        Dictionnaire avec les totaux agreg es et le nombre d'appels.
+    """
     prompt_tokens = 0
     completion_tokens = 0
     total_tokens = 0
@@ -99,6 +128,16 @@ def _aggregate_extraction_run_metrics(
     *,
     runtime_extraction_sec: float,
 ) -> dict[str, Any]:
+    """Agregue les metriques d'extraction (previous + current) en un seul dictionnaire.
+
+    Args:
+        extraction_run_metrics: Metriques brutes d'extraction contenant les cles
+            ``previous`` et ``current``.
+        runtime_extraction_sec: Duree totale de l'extraction en secondes.
+
+    Returns:
+        Dictionnaire agrege des metriques d'extraction.
+    """
     previous = dict((extraction_run_metrics or {}).get("previous") or {})
     current = dict((extraction_run_metrics or {}).get("current") or {})
     vision_calls_total = _coerce_int(previous.get("vision_calls_total")) + _coerce_int(
@@ -169,7 +208,20 @@ def _build_run_metrics(
     extraction_run_metrics: dict[str, Any] | None,
     runtime_extraction_sec: float,
 ) -> dict[str, Any]:
-    """Assemble the final ``run_metrics`` dict for ``comparison.json``."""
+    """Assemble le dictionnaire final ``run_metrics`` pour ``comparison.json``.
+
+    Args:
+        usage_records: Enregistrements bruts d'utilisation des appels OpenAI.
+        match_result: Resultat de l'etape d'appariement contenant les compteurs.
+        diff_calls_total: Nombre total d'appels GPT pour les diffs.
+        comparison_runtime_sec: Duree de la comparaison en secondes.
+        model_name: Nom du modele OpenAI utilise.
+        extraction_run_metrics: Metriques brutes d'extraction (optionnel).
+        runtime_extraction_sec: Duree de l'extraction en secondes.
+
+    Returns:
+        Dictionnaire ``run_metrics`` complet pret pour la serialisation.
+    """
     comparison_metrics = _aggregate_usage_metrics(usage_records)
     comparison_metrics["runtime_comparison_sec"] = comparison_runtime_sec
     for key in _MATCHING_METRIC_KEYS:

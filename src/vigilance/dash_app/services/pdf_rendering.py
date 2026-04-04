@@ -1,7 +1,7 @@
-"""PDF proof rendering helpers for Dash callbacks.
+"""Fonctions de rendu de preuves PDF pour les callbacks Dash.
 
-Extracted from dash_app/app.py. app.py re-exports all names from this module
-so that all existing monkeypatches (setattr on dash_app) continue to work.
+Extrait de ``dash_app/app.py``. ``app.py`` reexporte tous les noms de ce
+module afin que les monkey-patches existants continuent de fonctionner.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def _filter_noise(items: list[str]) -> list[str]:
-    """Filter out noise lines (dates, units, footnotes) using normalize_indicator_for_comparison."""
+    """Filtre les lignes de bruit (dates, unites, notes) via la normalisation d'indicateurs."""
     return [
         x for x in items if x and normalize_indicator_for_comparison(str(x).strip())
     ]
@@ -41,7 +41,7 @@ def _cached_render_or_crop(
     highlight_rects: list[list[float]] | None = None,
     secondary_highlight_rects: list[list[float]] | None = None,
 ) -> bytes:
-    """Return PNG bytes based on display_mode: crop, full (page + bbox highlight), or footnote."""
+    """Retourne les octets PNG selon le mode d'affichage : crop, full ou footnote."""
     from vigilance.utils.pdf_crop import (
         crop_footnote_region_to_bytes,
         crop_table_region_to_bytes,
@@ -83,13 +83,14 @@ def _cached_render_or_crop(
 
 
 def _normalize_proof_bbox(bbox: Any) -> list[float] | None:
-    """Return [l, t, r, b] in 0..1 when usable for proof rendering."""
+    """Retourne ``[l, t, r, b]`` normalise entre 0 et 1 si exploitable pour le rendu."""
     return _shared_normalize_proof_bbox(bbox)
 
 
 def _proof_render_result(
     image_b64: str | None, status: str, mode_effective: str
 ) -> dict[str, str | None]:
+    """Construit le dictionnaire de resultat de rendu de preuve."""
     return {
         "image_b64": image_b64,
         "status": status,
@@ -106,7 +107,19 @@ def _get_proof_render_result_for_item(
     highlight_rects: list[list[float]] | None = None,
     secondary_highlight_rects: list[list[float]] | None = None,
 ) -> dict[str, str | None]:
-    """Return proof image + availability status for one side."""
+    """Retourne l'image de preuve et le statut de disponibilite pour un cote.
+
+    Args:
+        item_dict: Dictionnaire de l'element de revue contenant les pages et bbox.
+        side: Cote du trimestre (``t1`` pour precedent, ``t2`` pour courant).
+        paths: Dictionnaire des chemins PDF.
+        proof_display_mode: Mode d'affichage (``crop``, ``full`` ou ``footnote``).
+        highlight_rects: Rectangles de surbrillance primaires.
+        secondary_highlight_rects: Rectangles de surbrillance secondaires.
+
+    Returns:
+        Dictionnaire avec ``image_b64``, ``status`` et ``mode_effective``.
+    """
     display_mode = (proof_display_mode or "crop").strip().lower()
     if display_mode not in {"crop", "full", "footnote"}:
         display_mode = "crop"
@@ -170,7 +183,12 @@ def _get_proof_image_b64_for_item(
     highlight_rects: list[list[float]] | None = None,
     secondary_highlight_rects: list[list[float]] | None = None,
 ) -> str | None:
-    """Get proof image base64. With proof_display_mode='full' skip crop (full page); with 'crop' use bbox; with 'footnote' show only footnote region."""
+    """Obtient l'image de preuve en base64 avec annotation des changements.
+
+    En mode ``full``, affiche la page entiere ; en mode ``crop``, decoupe
+    selon la bbox ; en mode ``footnote``, affiche uniquement la zone de
+    notes de bas de page.
+    """
     display_mode = (proof_display_mode or "crop").strip().lower()
 
     table_status = (item_dict.get("table_status") or "").strip().lower()
@@ -308,7 +326,7 @@ def _get_proof_image_b64_for_item(
 
 
 def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
-    """Obtenir l'image base64 pour T1 ou T2 (PDF page ou fichier PNG)."""
+    """Obtient l'image base64 simplifiee pour T1 ou T2 (PDF page ou fichier PNG)."""
     import base64 as _base64
 
     proof_image_path = item_dict.get("proof_image_path", "") or ""

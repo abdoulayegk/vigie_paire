@@ -1,1 +1,1 @@
-"""Vigilance facade package."""
+"""Package facade de vigilance."""

@@ -1,4 +1,4 @@
-"""Core table models used by extraction, storage, and comparison."""
+"""Modeles de tables utilises par l'extraction, le stockage et la comparaison."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ TABLE_EXTRACTION_STATUSES = frozenset(
 
 
 def normalize_extraction_status(value: Any) -> str:
-    """Return a canonical extraction_status value."""
+    """Retourner une valeur canonique d'extraction_status."""
     status = str(value or "").strip().lower()
     if status in TABLE_EXTRACTION_STATUSES:
         return status
@@ -49,15 +49,15 @@ def normalize_extraction_status(value: Any) -> str:
 def infer_content_source(
     extraction_method: str | None, explicit: str | None = None
 ) -> str:
-    """Infer the content source from extraction method or explicit override.
+    """Inferer la source de contenu depuis la methode d'extraction ou une surcharge explicite.
 
     Args:
-        extraction_method: The extraction method string (e.g. "vision_full_gpt4o").
-        explicit: Optional explicit content source override; takes precedence.
+        extraction_method: Chaine de la methode d'extraction (ex. "vision_full_gpt4o").
+        explicit: Surcharge explicite optionnelle de la source de contenu ; prioritaire.
 
     Returns:
-        The content source string: VISION_CONTENT_SOURCE for vision-based
-        extraction, UNKNOWN_CONTENT_SOURCE otherwise.
+        Chaine de la source de contenu : VISION_CONTENT_SOURCE pour l'extraction
+        par Vision, UNKNOWN_CONTENT_SOURCE sinon.
     """
     value = str(explicit or "").strip()
     if value:
@@ -75,17 +75,17 @@ def derive_comparison_blockers(
     *,
     extraction_status: str,
 ) -> list[str]:
-    """Derive matching-path blocker codes from canonical extraction_status only.
+    """Deriver les codes bloquants de matching depuis l'extraction_status canonique.
 
-    Only ``confirmed_no_table`` blocks inclusion in GPT table matching.
-    ``suspect_unresolved`` is not a blocker here; quality is signaled via
-    ``extraction_status`` and the extraction quality gate.
+    Seul ``confirmed_no_table`` bloque l'inclusion dans le matching GPT.
+    ``suspect_unresolved`` n'est pas bloquant ici ; la qualite est signalee
+    via ``extraction_status`` et le portail qualite.
 
     Args:
-        extraction_status: Canonical extraction status value.
+        extraction_status: Valeur canonique du statut d'extraction.
 
     Returns:
-        Non-empty list only for ``confirmed_no_table``; otherwise empty.
+        Liste non vide uniquement pour ``confirmed_no_table`` ; sinon vide.
     """
     status = normalize_extraction_status(extraction_status)
     if status == TABLE_EXTRACTION_STATUS_CONFIRMED_NO_TABLE:
@@ -96,31 +96,31 @@ def derive_comparison_blockers(
 def is_comparison_eligible(
     extraction_status: str,
 ) -> bool:
-    """Whether the table is eligible for the report matching path (GPT cards).
+    """Determiner si la table est eligible pour le matching de rapports (cartes GPT).
 
-    Eligible for all statuses except ``confirmed_no_table`` (``ok``, ``rescued``,
-    and ``suspect_unresolved``). Suspect tables still participate in matching;
-    ``extraction_status`` remains the quality flag for review and certification.
+    Eligible pour tous les statuts sauf ``confirmed_no_table``. Les tables
+    suspectes participent au matching ; ``extraction_status`` reste l'indicateur
+    de qualite pour la revue et la certification.
 
     Args:
-        extraction_status: Canonical extraction status value.
+        extraction_status: Valeur canonique du statut d'extraction.
 
     Returns:
-        False only for ``confirmed_no_table`` after normalization.
+        False uniquement pour ``confirmed_no_table`` apres normalisation.
     """
     status = normalize_extraction_status(extraction_status)
     return status != TABLE_EXTRACTION_STATUS_CONFIRMED_NO_TABLE
 
 
 def get_vision_raw_indicators(table: Any) -> list[str]:
-    """Return Vision raw first-column labels from a table-like object.
+    """Retourner les libelles bruts Vision de la premiere colonne.
 
     Args:
-        table: Table-like object with vision_raw_indicators or
-            first_column_indicators_raw attribute.
+        table: Objet table avec attribut vision_raw_indicators ou
+            first_column_indicators_raw.
 
     Returns:
-        List of non-empty stripped indicator strings; empty list if None or missing.
+        Liste de chaines d'indicateurs non vides ; liste vide si absent.
     """
     if table is None:
         return []
@@ -131,14 +131,14 @@ def get_vision_raw_indicators(table: Any) -> list[str]:
 
 
 def get_comparison_indicators(table: Any) -> list[str]:
-    """Return normalized first-column labels used by the comparator.
+    """Retourner les libelles normalises de la premiere colonne pour la comparaison.
 
     Args:
-        table: Table-like object with comparison_normalized_indicators or
-            first_column_indicators attribute.
+        table: Objet table avec attribut comparison_normalized_indicators ou
+            first_column_indicators.
 
     Returns:
-        List of non-empty stripped indicator strings; empty list if None or missing.
+        Liste de chaines d'indicateurs non vides ; liste vide si absent.
     """
     if table is None:
         return []
@@ -149,14 +149,14 @@ def get_comparison_indicators(table: Any) -> list[str]:
 
 
 def get_canonical_footnotes(table: Any) -> FootnoteList:
-    """Return canonical footnotes from a table-like object.
+    """Retourner les notes de bas de page canoniques d'un objet table.
 
     Args:
-        table: Table-like object with canonical_footnotes or footnotes attribute.
+        table: Objet table avec attribut canonical_footnotes ou footnotes.
 
     Returns:
-        Canonical footnote list ``[{"id": str, "text": str}, ...]``;
-        legacy formats are normalized at ingestion.
+        Liste canonique ``[{"id": str, "text": str}, ...]`` ; les formats
+        anciens sont normalises a l'ingestion.
     """
     if table is None:
         return []
@@ -171,17 +171,17 @@ def get_canonical_footnotes(table: Any) -> FootnoteList:
 
 
 def get_extraction_confidence(table: Any) -> float:
-    """Return extraction confidence from a table's debug_metrics (0.0--1.0).
+    """Retourner la confiance d'extraction depuis les debug_metrics (0.0--1.0).
 
-    Prefers vision_extraction_confidence; falls back to vision_primary_confidence.
-    When metrics are missing but the table has Vision content and raw indicators,
-    assumes certified-level confidence so stored extractions do not false-block.
+    Privilegie vision_extraction_confidence ; repli sur vision_primary_confidence.
+    Quand les metriques sont absentes mais la table a du contenu Vision et des
+    indicateurs bruts, assume une confiance certifiee pour ne pas bloquer.
 
     Args:
-        table: Table-like object with debug_metrics and optional content_source.
+        table: Objet table avec debug_metrics et content_source optionnel.
 
     Returns:
-        Confidence score in [0.0, 1.0]; 0.0 when table is None or metrics invalid.
+        Score de confiance dans [0.0, 1.0] ; 0.0 si table est None ou metriques invalides.
     """
     if table is None:
         return 0.0
@@ -207,16 +207,16 @@ def get_extraction_confidence(table: Any) -> float:
 
 
 def get_extraction_quality_flags(table: Any) -> dict[str, bool]:
-    """Return a normalized set of quality flags from a table's debug_metrics.
+    """Retourner un ensemble normalise de drapeaux qualite depuis les debug_metrics.
 
-    When metrics are missing but the table has Vision content and raw indicators,
-    assumes vision_extraction_applied=True so stored extractions do not false-block.
+    Quand les metriques sont absentes mais la table a du contenu Vision et des
+    indicateurs bruts, assume vision_extraction_applied=True pour ne pas bloquer.
 
     Args:
-        table: Table-like object with debug_metrics and optional content_source.
+        table: Objet table avec debug_metrics et content_source optionnel.
 
     Returns:
-        Dict of flag names to booleans: recrop_attempted,
+        Dictionnaire de noms de drapeaux vers booleens : recrop_attempted,
         recrop_used, recrop_failed_incomplete, vision_extraction_applied,
         crop_rejected, partial_result, rows_missing_from_fallback.
     """
@@ -255,16 +255,16 @@ def get_extraction_quality_flags(table: Any) -> dict[str, bool]:
 
 
 def get_extraction_quality_profile(table: Any) -> dict[str, Any]:
-    """Return a normalized quality profile for a table.
+    """Retourner un profil qualite normalise pour une table.
 
-    Aggregates confidence, flags, bbox_sanity_profile, and related metadata.
-    Use for matcher and observability; avoids ad hoc debug_metrics access.
+    Agregue la confiance, les drapeaux, le bbox_sanity_profile et les metadonnees
+    associees. Utilise par le matcher et l'observabilite.
 
     Args:
-        table: Table-like object with debug_metrics.
+        table: Objet table avec debug_metrics.
 
     Returns:
-        Dict with keys: confidence, flags, bbox_sanity_profile,
+        Dictionnaire avec les cles : confidence, flags, bbox_sanity_profile,
         page_title_assist_used, page_title_assist_match_method, warnings.
     """
     if table is None:
@@ -285,41 +285,41 @@ def get_extraction_quality_profile(table: Any) -> dict[str, Any]:
 
 @dataclass(slots=True)
 class TableArtifact:
-    """Canonical in-memory representation of one extracted table.
+    """Representation canonique en memoire d'une table extraite.
 
     Attributes:
-        bank_code: Bank identifier.
-        section: Document section (e.g. balance sheet, income statement).
-        page_pdf: 1-based PDF page number.
-        table_id: Unique table identifier.
-        title: Table title; may include amounts.
-        headers: Column header strings.
-        rows: Table rows as list of cell lists when available.
-        first_column_indicators: Normalized first-column labels for comparison.
-        extraction_method: Method used (e.g. vision_full_gpt4o).
-        title_clean: Cleaned title without amounts; used for display/pairing.
-        table_summary: Short semantic summary used as a secondary pairing signal.
-        title_raw: Original title for traceability.
-        table_number: Table number if present.
-        bbox: Bounding box as dict or list of floats.
-        table_index_on_page: Index of this table on the page.
-        tables_on_page: Total tables on the page.
-        bbox_top: Top coordinate of bounding box.
-        page_local_role: Role of this table on the page.
-        quarter: Reporting quarter if applicable.
-        pdf_path: Path to source PDF.
-        first_column_indicators_raw: Raw Vision first-column labels.
-        first_column_groups: Grouped indicator labels.
-        hierarchical_indicator_signature: Hierarchical indicator structure.
-        title_reliability: Reliability of title extraction.
-        footnotes: Canonical footnote list.
-        fragmentation_detected: Whether table was detected as fragmented.
-        fragment_near_merge_hint: Hints for fragment merging.
-        debug_metrics: Extraction metrics and quality flags.
-        content_source: Content source (vision_gpt4o or unknown).
-    comparison_eligible: Eligible for GPT table matching (all except confirmed_no_table).
-    comparison_blockers: Non-empty only when not a business table (confirmed_no_table).
-        extraction_status: Rescue-state classification; suspect_unresolved flags quality.
+        bank_code: Identifiant de la banque.
+        section: Section du document (ex. bilan, compte de resultat).
+        page_pdf: Numero de page PDF (base 1).
+        table_id: Identifiant unique de la table.
+        title: Titre de la table ; peut contenir des montants.
+        headers: En-tetes de colonnes.
+        rows: Lignes de la table sous forme de listes de cellules.
+        first_column_indicators: Indicateurs normalises de la premiere colonne.
+        extraction_method: Methode utilisee (ex. vision_full_gpt4o).
+        title_clean: Titre nettoye sans montants ; pour affichage et appariement.
+        table_summary: Resume semantique court utilise comme signal d'appariement.
+        title_raw: Titre original pour tracabilite.
+        table_number: Numero de table si present.
+        bbox: Boite englobante (dict ou liste de floats).
+        table_index_on_page: Index de cette table sur la page.
+        tables_on_page: Nombre total de tables sur la page.
+        bbox_top: Coordonnee superieure de la boite englobante.
+        page_local_role: Role de cette table sur la page.
+        quarter: Trimestre du rapport si applicable.
+        pdf_path: Chemin vers le PDF source.
+        first_column_indicators_raw: Indicateurs bruts Vision de la premiere colonne.
+        first_column_groups: Groupes d'indicateurs.
+        hierarchical_indicator_signature: Structure hierarchique des indicateurs.
+        title_reliability: Fiabilite de l'extraction du titre.
+        footnotes: Liste canonique de notes de bas de page.
+        fragmentation_detected: Table detectee comme fragmentee.
+        fragment_near_merge_hint: Indices pour la fusion de fragments.
+        debug_metrics: Metriques d'extraction et drapeaux qualite.
+        content_source: Source de contenu (vision_gpt4o ou unknown).
+        comparison_eligible: Eligible pour le matching GPT.
+        comparison_blockers: Non vide uniquement pour confirmed_no_table.
+        extraction_status: Classification de l'etat de rescue.
     """
 
     bank_code: str
@@ -359,12 +359,7 @@ class TableArtifact:
     extraction_status: str = TABLE_EXTRACTION_STATUS_OK
 
     def __post_init__(self) -> None:
-        """Initialize derived fields from extraction state.
-
-        Sets content_source from extraction_method, normalizes extraction_status,
-        recomputes comparison_blockers from the canonical status, and updates
-        comparison_eligible.
-        """
+        """Initialiser les champs derives depuis l'etat d'extraction."""
         self.content_source = infer_content_source(
             self.extraction_method,
             self.content_source,
@@ -388,16 +383,12 @@ class TableArtifact:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize the artifact to a plain dict for storage or JSON export.
-
-        Returns:
-            Dict with all dataclass fields as key-value pairs.
-        """
+        """Serialiser l'artefact en dictionnaire pour le stockage ou l'export JSON."""
         return asdict(self)
 
     @property
     def vision_raw_indicators(self) -> list[str]:
-        """Return GPT-4o Vision raw first-column labels."""
+        """Retourner les libelles bruts Vision GPT-4o de la premiere colonne."""
         return [
             str(item)
             for item in (self.first_column_indicators_raw or [])
@@ -406,7 +397,7 @@ class TableArtifact:
 
     @property
     def comparison_normalized_indicators(self) -> list[str]:
-        """Return normalized first-column labels used by the comparator."""
+        """Retourner les libelles normalises de la premiere colonne pour la comparaison."""
         return [
             str(item)
             for item in (self.first_column_indicators or [])
@@ -415,12 +406,12 @@ class TableArtifact:
 
     @property
     def canonical_footnotes(self) -> FootnoteList:
-        """Return footnotes in canonical ``[{id, text}]`` form."""
+        """Retourner les notes de bas de page sous forme canonique ``[{id, text}]``."""
         return list(self.footnotes or [])
 
     @property
     def is_vision_sourced(self) -> bool:
-        """Return True when table content used for comparison comes from Vision."""
+        """Retourner True quand le contenu de la table provient de Vision."""
         return self.content_source == VISION_CONTENT_SOURCE
 
 

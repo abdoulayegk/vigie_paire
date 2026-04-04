@@ -1,4 +1,4 @@
-"""Public model exports for vigilance."""
+"""Exports publics des modeles de vigilance."""
 
 from vigilance.models.section_models import SectionRange, SectionRangesResult
 from vigilance.models.table_models import TableArtifact, TableCandidate

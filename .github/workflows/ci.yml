@@ -3,10 +3,12 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
-  test-and-audit:
+  test-and-lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,6 +23,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --group dev
 
+      - name: Ruff (docstrings)
+        run: uv run ruff check src/
+
       - name: Check test environment imports
         run: uv run python -c "import pytest; import reportlab; print('test_env_imports_ok')"
 
@@ -29,6 +34,7 @@ jobs:
 
       - name: Run strict intra-section audit
         run: |
+          mkdir -p artifacts
           uv run python scripts/audit_intra_section.py \
             --input tests/fixtures/strict_intra_section_sample.json \
             --output artifacts/intra_section_audit.json \
@@ -39,3 +45,51 @@ jobs:
         with:
           name: intra-section-audit
           path: artifacts/intra_section_audit.json
+
+  build-docs:
+    needs: test-and-lint
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Setup Python
+        run: uv python install 3.11
+
+      - name: Install dependencies (incl. docs)
+        run: uv sync --group dev --group docs
+
+      - name: Build Sphinx HTML
+        run: uv run sphinx-build -b html docs docs/_build/html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_build/html
+
+  deploy-docs:
+    needs: build-docs
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

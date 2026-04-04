@@ -1,8 +1,9 @@
-"""Quarter deduction and PDF discovery utilities for the batch pipeline.
+"""Deduction de trimestres et decouverte de PDF pour le pipeline batch.
 
-Reuses the canonical ``resolve_reference_period`` from compare_gpt but adds
-directory-crawling helpers that locate PDF pairs inside the standardised
-``Inputs/{BANK}/{YEAR}/`` tree **or** the legacy ``data/{bank}/`` tree.
+Reutilise le ``resolve_reference_period`` canonique de compare_gpt mais ajoute
+des helpers de parcours de repertoire qui localisent les paires de PDF dans
+l'arborescence standardisee ``Inputs/{BANK}/{YEAR}/`` ou l'ancienne
+arborescence ``data/{bank}/``.
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ _QUARTER_RE = re.compile(r"[qtQT]\s*([1-4])")
 
 
 def normalize_quarter(value: str) -> str:
-    """Return canonical form ``t1``…``t4``."""
+    """Retourner la forme canonique ``t1``..``t4``."""
     m = _QUARTER_RE.search(str(value or "").strip())
     if m:
         return f"t{m.group(1)}"
@@ -28,14 +29,10 @@ def normalize_quarter(value: str) -> str:
 
 
 def resolve_previous_quarter(year: int, quarter: str) -> Tuple[int, str]:
-    """Deduce the previous quarter from the current one.
+    """Deduire le trimestre precedent a partir du trimestre courant.
 
-    Rules
-    -----
-    T2-2025 → T1-2025
-    T3-2025 → T2-2025
-    T1-2025 → T3-2024  (year N-1)
-    T4-2025 → T3-2025
+    Regles de resolution : T2 -> T1 meme annee, T3 -> T2 meme annee,
+    T1 -> T3 annee N-1, T4 -> T3 meme annee.
     """
     q = normalize_quarter(quarter)
     mapping = {
@@ -55,11 +52,11 @@ def resolve_previous_quarter(year: int, quarter: str) -> Tuple[int, str]:
 # ---------------------------------------------------------------------------
 
 def _find_pdf_in_dir(directory: Path, bank: str, year: int, quarter: str) -> Path | None:
-    """Search *directory* for a PDF matching the bank/year/quarter.
+    """Chercher dans *directory* un PDF correspondant a la banque/annee/trimestre.
 
-    Priority order:
-    1. Strict canonical name:  ``{BANK}_{YEAR}_{Q}.pdf``  (e.g. BNC_2025_T2.pdf)
-    2. Regex fallback for legacy names.
+    Ordre de priorite :
+    1. Nom canonique strict : ``{BANK}_{YEAR}_{Q}.pdf`` (ex. BNC_2025_T2.pdf)
+    2. Repli par regex pour les noms anciens.
     """
     if not directory.is_dir():
         return None
@@ -100,14 +97,17 @@ def find_pdf_pair(
     inputs_root: Path | None = None,
     legacy_data_root: Path | None = None,
 ) -> Tuple[Path, Path]:
-    """Locate the *current* and *previous* PDF files.
+    """Localiser les fichiers PDF du trimestre courant et precedent.
 
-    Search order per quarter:
-    1. ``inputs_root / BANK / YEAR / *.pdf``   (the new Inputs/ tree)
-    2. ``legacy_data_root / BANK / *.pdf``      (the flat data/ tree)
+    Ordre de recherche par trimestre :
+    1. ``inputs_root / BANK / YEAR / *.pdf`` (nouvelle arborescence Inputs/)
+    2. ``legacy_data_root / BANK / *.pdf`` (ancienne arborescence data/)
 
-    Returns ``(previous_pdf, current_pdf)``.
-    Raises ``FileNotFoundError`` when either file cannot be found.
+    Returns:
+        Tuple ``(previous_pdf, current_pdf)``.
+
+    Raises:
+        FileNotFoundError: Si l'un des deux fichiers est introuvable.
     """
     q_cur = normalize_quarter(quarter_current)
     year_prev, q_prev = resolve_previous_quarter(year_current, q_cur)

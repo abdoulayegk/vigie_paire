@@ -1,5 +1,4 @@
-"""
-Détecteur de Table des Matières utilisant GPT-4 Vision.
+"""Détecteur de Table des Matières utilisant GPT-4 Vision.
 
 Ce module est utilisé en FALLBACK lorsque les méthodes déterministes
 du SectionLocator échouent à détecter les sections cibles.
@@ -42,8 +41,7 @@ class SectionDetectionResult:
 
 
 class GenAITOCDetector:
-    """
-    Détecteur GenAI de Table des Matières pour rapports bancaires.
+    """Détecteur GenAI de Table des Matières pour rapports bancaires.
 
     Utilisé comme fallback lorsque les règles déterministes échouent.
     """
@@ -128,8 +126,7 @@ Réponds en JSON :
 }"""
 
     def __init__(self, api_key: str | None = None, model: str = "gpt-4o"):
-        """
-        Initialiser le détecteur GenAI.
+        """Initialiser le détecteur GenAI.
 
         Args:
             api_key: Clé API OpenAI (ou depuis OPENAI_API_KEY)
@@ -144,7 +141,7 @@ Réponds en JSON :
 
     @property
     def client(self):
-        """Client OpenAI (lazy loading)."""
+        """Client OpenAI (chargement paresseux)."""
         if self._client is None:
             try:
                 from openai import OpenAI
@@ -156,8 +153,7 @@ Réponds en JSON :
         return self._client
 
     def _page_to_base64(self, pdf_path: Path, page_num: int) -> str | None:
-        """
-        Convertir une page PDF en image base64.
+        """Convertir une page PDF en image base64.
 
         Args:
             pdf_path: Chemin vers le PDF
@@ -185,8 +181,7 @@ Réponds en JSON :
             return None
 
     def _call_vision_api(self, prompt: str, image_base64: str) -> dict | None:
-        """
-        Appeler l'API GPT-4 Vision avec un prompt et une image.
+        """Appeler l'API GPT-4 Vision avec un prompt et une image.
 
         Args:
             prompt: Prompt système
@@ -235,8 +230,7 @@ Réponds en JSON :
     def detect_toc_page(
         self, pdf_path: str | Path, page_num: int
     ) -> TOCDetectionResult:
-        """
-        Détecter si une page contient une Table des Matières.
+        """Détecter si une page contient une Table des Matières.
 
         Args:
             pdf_path: Chemin vers le PDF
@@ -278,8 +272,7 @@ Réponds en JSON :
     def extract_toc_entries(
         self, pdf_path: str | Path, page_num: int
     ) -> TOCDetectionResult:
-        """
-        Extraire les entrées d'une Table des Matières.
+        """Extraire les entrées d'une Table des Matières.
 
         Args:
             pdf_path: Chemin vers le PDF
@@ -321,8 +314,7 @@ Réponds en JSON :
     def detect_target_sections(
         self, pdf_path: str | Path, toc_page: int
     ) -> list[SectionDetectionResult]:
-        """
-        Détecter les sections cibles dans une TDM.
+        """Détecter les sections cibles dans une TDM.
 
         Args:
             pdf_path: Chemin vers le PDF
@@ -361,8 +353,7 @@ Réponds en JSON :
     def find_and_extract_sections(
         self, pdf_path: str | Path, search_pages: list[int] | None = None
     ) -> list[SectionDetectionResult]:
-        """
-        Processus complet : trouver la TDM et extraire les sections cibles.
+        """Processus complet : trouver la TDM et extraire les sections cibles.
 
         Args:
             pdf_path: Chemin vers le PDF

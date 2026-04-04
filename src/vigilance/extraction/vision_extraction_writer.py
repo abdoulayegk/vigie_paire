@@ -1,4 +1,4 @@
-"""Writers for the canonical extraction contract and its derived review artifacts."""
+"""Ecrivains pour le contrat d'extraction canonique et les artefacts de revue derives."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 COMPACT_REPORT_SCHEMA_VERSION = 7
 
 def _compact_table_section(table: Any) -> str:
-    """Return canonical compact section value with a defensive fallback."""
+    """Retourner la valeur de section canonique compacte avec fallback defensif."""
     raw = str(getattr(table, "section", "") or "").strip()
     if not raw:
         return "unknown_section"
@@ -35,12 +35,12 @@ def _compact_table_section(table: Any) -> str:
     return str(normalized or "unknown_section").strip() or "unknown_section"
 
 def _table_page(table: Any) -> int:
-    """Return the PDF page number for a table-like object."""
+    """Retourner le numero de page PDF pour un objet de type tableau."""
     return int(getattr(table, "page_pdf", 0) or getattr(table, "page_number", 0) or 0)
 
 
 def _compact_table_title(table: Any) -> str:
-    """Return compact title value; empty string is preserved when no title exists."""
+    """Retourner la valeur de titre compacte ; chaine vide si aucun titre n'existe."""
     title = getattr(table, "title_clean", None)
     if title is None:
         title = getattr(table, "title", None)
@@ -48,6 +48,7 @@ def _compact_table_title(table: Any) -> str:
 
 
 def _compact_created_at(meta: dict[str, Any] | None = None) -> str:
+    """Retourner le timestamp de creation depuis les metadonnees ou l'horodatage courant."""
     metadata = dict(meta or {})
     return str(
         metadata.get("created_at")
@@ -64,6 +65,7 @@ def _compact_top_level(
     created_at: str,
     meta: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """Construire le dictionnaire de niveau superieur pour le JSON compact."""
     return {
         "bank_code": str(bank_code),
         "year": int(year),
@@ -74,6 +76,7 @@ def _compact_top_level(
 
 
 def _stable_sort_tables(tables: list[Any]) -> list[Any]:
+    """Trier les tableaux de maniere stable par page puis par index sur la page."""
     indexed = list(enumerate(tables))
     indexed.sort(
         key=lambda item: (
@@ -86,6 +89,7 @@ def _stable_sort_tables(tables: list[Any]) -> list[Any]:
 
 
 def _validate_unique_table_ids(tables: list[Any]) -> None:
+    """Valider l'unicite des ``table_id`` ; lever ``ValueError`` en cas de doublon."""
     seen: dict[str, tuple[int, int]] = {}
     for index, table in enumerate(tables):
         table_id = str(getattr(table, "table_id", "") or "").strip()
@@ -107,6 +111,7 @@ def _validate_unique_table_ids(tables: list[Any]) -> None:
 
 
 def _compact_footnotes(table: Any) -> list[dict[str, str]]:
+    """Extraire les notes de bas de tableau sous forme compacte."""
     return [
         {
             "id": str(item.get("id") or "").strip(),
@@ -118,7 +123,7 @@ def _compact_footnotes(table: Any) -> list[dict[str, str]]:
 
 
 def _compact_indicator_rows(table: Any) -> list[str]:
-    """Return the minimal raw indicator rows for compact readability exports."""
+    """Retourner les lignes d'indicateurs bruts minimaux pour les exports compacts."""
     indicators = get_vision_raw_indicators(table)
     if not indicators:
         indicators = get_comparison_indicators(table)
@@ -126,7 +131,7 @@ def _compact_indicator_rows(table: Any) -> list[str]:
 
 
 def _compact_table_bbox(table: Any) -> list[float] | None:
-    """Return normalized bbox [l, t, r, b] when valid, else None."""
+    """Retourner le bbox normalise ``[l, t, r, b]`` si valide, sinon ``None``."""
     bbox = getattr(table, "bbox", None)
     try:
         if isinstance(bbox, (list, tuple)) and len(bbox) >= 4:
@@ -175,6 +180,7 @@ def _compact_table_bbox(table: Any) -> list[float] | None:
 
 
 def _compact_table_common_entry(table: Any) -> dict[str, Any]:
+    """Construire l'entree commune (id, page, section, titre, bbox) d'un tableau."""
     return {
         "table_id": str(getattr(table, "table_id", "") or ""),
         "page": _table_page(table),
@@ -185,6 +191,7 @@ def _compact_table_common_entry(table: Any) -> dict[str, Any]:
 
 
 def _compact_table_entry(table: Any) -> dict[str, Any]:
+    """Construire l'entree complete d'un tableau pour ``tables.json``."""
     entry = _compact_table_common_entry(table)
     entry["extraction_status"] = str(
         getattr(table, "extraction_status", "") or "ok"
@@ -201,6 +208,7 @@ def _compact_table_entry(table: Any) -> dict[str, Any]:
 
 
 def _compact_indicator_entry(table_entry: dict[str, Any]) -> dict[str, Any]:
+    """Construire l'entree indicateurs a partir d'une entree de tableau."""
     return {
         "table_id": str(table_entry.get("table_id", "") or ""),
         "page": int(table_entry.get("page", 0) or 0),
@@ -215,6 +223,7 @@ def _compact_indicator_entry(table_entry: dict[str, Any]) -> dict[str, Any]:
 
 
 def _compact_footnote_entry(table_entry: dict[str, Any]) -> dict[str, Any]:
+    """Construire l'entree notes de bas de page a partir d'une entree de tableau."""
     return {
         "table_id": str(table_entry.get("table_id", "") or ""),
         "page": int(table_entry.get("page", 0) or 0),
@@ -235,6 +244,7 @@ def _compact_footnote_entry(table_entry: dict[str, Any]) -> dict[str, Any]:
 
 
 def _atomic_write_json(out_path: Path, payload: dict[str, Any]) -> Path:
+    """Ecrire un fichier JSON de maniere atomique (via fichier temporaire)."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = out_path.with_name(out_path.name + ".tmp")
     tmp_path.write_text(
@@ -248,7 +258,7 @@ def _table_entry_indicators(
     table: Any,
     source: str,
 ) -> dict[str, Any]:
-    """Build indicators entry for one table."""
+    """Construire l'entree indicateurs pour un tableau."""
     table_id = str(getattr(table, "table_id", "") or "")
     title = getattr(table, "title_clean", None) or getattr(table, "title", None) or ""
     page = int(getattr(table, "page_pdf", 0) or getattr(table, "page_number", 0) or 0)
@@ -281,7 +291,7 @@ def _table_entry_footnotes(
     table: Any,
     source: str,
 ) -> dict[str, Any]:
-    """Build footnotes entry for one table."""
+    """Construire l'entree notes de bas de page pour un tableau."""
     table_id = str(getattr(table, "table_id", "") or "")
     title = getattr(table, "title_clean", None) or getattr(table, "title", None) or ""
     page = int(getattr(table, "page_pdf", 0) or getattr(table, "page_number", 0) or 0)
@@ -310,10 +320,20 @@ def write_indicators_json(
     bank_code: str,
     run_id: str,
 ) -> Path:
-    """
-    Write indicators.json for audit.
+    """Ecrire ``indicators.json`` pour l'audit.
 
-    Each entry: table_id, title, date_reference, page, source (t1/t2), sections.
+    Chaque entree contient : table_id, title, date_reference, page, source
+    (t1/t2), sections.
+
+    Args:
+        tables_t1: Tableaux du trimestre T1.
+        tables_t2: Tableaux du trimestre T2.
+        out_dir: Repertoire de sortie.
+        bank_code: Code de la banque.
+        run_id: Identifiant de l'execution.
+
+    Returns:
+        Chemin du fichier ``indicators.json`` ecrit.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     entries: list[dict[str, Any]] = []
@@ -347,11 +367,20 @@ def write_footnotes_json(
     bank_code: str,
     run_id: str,
 ) -> Path:
-    """
-    Write footnotes.json for audit.
+    """Ecrire ``footnotes.json`` pour l'audit.
 
-    Each entry: table_id, title, page, source (t1/t2), has_footnotes,
-    footnote_markers, footnotes_content.
+    Chaque entree contient : table_id, title, page, source (t1/t2),
+    has_footnotes, footnote_markers, footnotes_content.
+
+    Args:
+        tables_t1: Tableaux du trimestre T1.
+        tables_t2: Tableaux du trimestre T2.
+        out_dir: Repertoire de sortie.
+        bank_code: Code de la banque.
+        run_id: Identifiant de l'execution.
+
+    Returns:
+        Chemin du fichier ``footnotes.json`` ecrit.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     entries: list[dict[str, Any]] = []
@@ -411,7 +440,19 @@ def write_compact_tables_json(
     *,
     meta: dict[str, Any] | None = None,
 ) -> Path:
-    """Write the compact canonical tables.json used by the minimal extraction flow."""
+    """Ecrire le ``tables.json`` canonique compact utilise par le flux d'extraction minimal.
+
+    Args:
+        tables: Liste d'objets tableaux.
+        out_dir: Repertoire de sortie.
+        bank_code: Code de la banque.
+        year: Annee du rapport.
+        quarter: Trimestre (ex. ``"t2"``).
+        meta: Metadonnees optionnelles (``created_at``, etc.).
+
+    Returns:
+        Chemin du fichier ``tables.json`` ecrit.
+    """
     created_at = _compact_created_at(meta)
     ordered_tables = _stable_sort_tables(tables)
     _validate_unique_table_ids(ordered_tables)
@@ -432,6 +473,7 @@ def write_compact_tables_json(
 
 
 def _load_tables_payload(tables_json_path: Path) -> dict[str, Any]:
+    """Charger le payload ``tables.json`` depuis le disque."""
     payload = json.loads(tables_json_path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError(f"Invalid tables.json payload at {tables_json_path}")
@@ -439,6 +481,7 @@ def _load_tables_payload(tables_json_path: Path) -> dict[str, Any]:
 
 
 def _projection_top_level_from_tables(payload: dict[str, Any]) -> dict[str, Any]:
+    """Extraire le dictionnaire de niveau superieur depuis un payload ``tables.json``."""
     return {
         "bank_code": str(payload.get("bank_code", "") or ""),
         "year": int(payload.get("year", 0) or 0),
@@ -452,7 +495,15 @@ def write_compact_indicators_json(
     tables_json_path: Path,
     out_dir: Path,
 ) -> Path:
-    """Write indicators.json as a direct projection of tables.json."""
+    """Ecrire ``indicators.json`` comme projection directe de ``tables.json``.
+
+    Args:
+        tables_json_path: Chemin vers le fichier ``tables.json`` source.
+        out_dir: Repertoire de sortie.
+
+    Returns:
+        Chemin du fichier ``indicators.json`` ecrit.
+    """
     tables_payload = _load_tables_payload(tables_json_path)
     payload: dict[str, Any] = {
         **_projection_top_level_from_tables(tables_payload),
@@ -472,7 +523,15 @@ def write_compact_footnotes_json(
     tables_json_path: Path,
     out_dir: Path,
 ) -> Path:
-    """Write footnotes.json as a direct projection of tables.json."""
+    """Ecrire ``footnotes.json`` comme projection directe de ``tables.json``.
+
+    Args:
+        tables_json_path: Chemin vers le fichier ``tables.json`` source.
+        out_dir: Repertoire de sortie.
+
+    Returns:
+        Chemin du fichier ``footnotes.json`` ecrit.
+    """
     tables_payload = _load_tables_payload(tables_json_path)
     payload: dict[str, Any] = {
         **_projection_top_level_from_tables(tables_payload),
@@ -497,7 +556,19 @@ def write_compact_report_artifacts(
     *,
     meta: dict[str, Any] | None = None,
 ) -> dict[str, Path]:
-    """Write tables.json first, then derive indicators.json and footnotes.json from it."""
+    """Ecrire ``tables.json`` puis en deriver ``indicators.json`` et ``footnotes.json``.
+
+    Args:
+        tables: Liste d'objets tableaux.
+        out_dir: Repertoire de sortie.
+        bank_code: Code de la banque.
+        year: Annee du rapport.
+        quarter: Trimestre (ex. ``"t2"``).
+        meta: Metadonnees optionnelles.
+
+    Returns:
+        Dictionnaire ``{"tables": Path, "indicators": Path, "footnotes": Path}``.
+    """
     metadata = dict(meta or {})
     metadata["created_at"] = _compact_created_at(metadata)
     tables_path = write_compact_tables_json(

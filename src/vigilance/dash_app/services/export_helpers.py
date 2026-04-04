@@ -1,7 +1,7 @@
-"""Export and review item helpers for Dash callbacks.
+"""Fonctions utilitaires d'export et de construction des elements de revue.
 
-Extracted from dash_app/app.py. app.py re-exports all names from this module
-so that all existing monkeypatches (setattr on dash_app) continue to work.
+Extrait de ``dash_app/app.py``. ``app.py`` reexporte tous les noms de ce
+module afin que les monkey-patches existants continuent de fonctionner.
 """
 
 from __future__ import annotations
@@ -31,6 +31,7 @@ from vigilance.review_models_v2 import ChangeType
 
 
 def _indicator_change_total(comp: dict) -> int:
+    """Compte le nombre total de changements d'indicateurs."""
     return (
         len(comp.get("added_indicators", []) or [])
         + len(comp.get("removed_indicators", []) or [])
@@ -39,6 +40,7 @@ def _indicator_change_total(comp: dict) -> int:
 
 
 def _footnote_change_total(comp: dict) -> int:
+    """Compte le nombre total de changements de notes de bas de page."""
     footnotes = comp.get("footnotes_counts", {}) or {}
     return sum(
         int(footnotes.get(key, 0) or 0) for key in ("added", "removed", "modified")
@@ -46,14 +48,17 @@ def _footnote_change_total(comp: dict) -> int:
 
 
 def _comparison_change_total(comp: dict) -> int:
+    """Retourne le total des changements (indicateurs + notes de bas de page)."""
     return _indicator_change_total(comp) + _footnote_change_total(comp)
 
 
 def _comparison_has_changes(comp: dict) -> bool:
+    """Indique si la comparaison contient au moins un changement."""
     return _comparison_change_total(comp) > 0
 
 
 def _review_priority_of(item: dict) -> str:
+    """Extrait la priorite de revue normalisee en minuscules."""
     match_meta = item.get("match_metadata", {}) or {}
     genai = item.get("genai_analysis", {}) or {}
     return (
@@ -64,10 +69,12 @@ def _review_priority_of(item: dict) -> str:
 
 
 def _is_high_priority_item(item: dict) -> bool:
+    """Indique si l'element est de priorite haute (critique ou prioritaire)."""
     return _review_priority_of(item) in {"critique", "prioritaire"}
 
 
 def _is_low_confidence_comparison(comp: dict) -> bool:
+    """Indique si la comparaison a un score de confiance faible ou un statut incertain."""
     try:
         match_score = float(comp.get("match_score", 0.0) or 0.0)
     except (TypeError, ValueError):
@@ -82,7 +89,14 @@ def _is_low_confidence_comparison(comp: dict) -> bool:
 
 
 def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
-    """Convert canonical V2 queue to legacy ReviewItem list for exports."""
+    """Convertit la file de revue canonique V2 en liste de ``ReviewItem`` pour l'export.
+
+    Args:
+        queue: Liste de dictionnaires representant les tableaux de la file V2.
+
+    Returns:
+        Liste de ``ReviewItem`` compatibles avec les exports.
+    """
     items: list[ReviewItem] = []
     for idx, table in enumerate(queue or [], start=1):
         review_id = _review_id(table) or f"tbl_{idx:04d}"
@@ -252,7 +266,17 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
 def _resolve_export_review_items(
     review_items_data, review_queue_data, indicator_result, paths
 ):
-    """Resolve export items from the current review state with queue priority."""
+    """Resout les elements d'export depuis l'etat de revue courant avec priorite a la file.
+
+    Args:
+        review_items_data: Elements de revue serialises (format legacy).
+        review_queue_data: File de revue V2 (prioritaire si presente).
+        indicator_result: Resultat de comparaison pour reconstruction de secours.
+        paths: Dictionnaire des chemins PDF.
+
+    Returns:
+        Liste de ``ReviewItem`` resolus pour l'export.
+    """
     ir = indicator_result or {}
     items = []
     if review_queue_data:

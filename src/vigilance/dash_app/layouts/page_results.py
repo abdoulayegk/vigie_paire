@@ -1,4 +1,4 @@
-"""Page resultats de comparaison - Modern Design."""
+"""Page des resultats de comparaison avec design moderne et onglets par section."""
 
 from __future__ import annotations
 
@@ -15,7 +15,18 @@ def build_analyst_kpi_card(
     color: str = "light",
     helper_text: str | None = None,
 ) -> dbc.Card:
-    """Build a single KPI card for the analyst panel."""
+    """Construit une carte KPI individuelle pour le panneau analyste.
+
+    Args:
+        title: Libelle affiche au-dessus de la valeur.
+        value: Valeur principale du KPI (texte ou entier).
+        delta_icon: Icone optionnelle de variation affichee sous la valeur.
+        color: Classe de couleur Bootstrap pour le fond de la carte.
+        helper_text: Texte d'aide optionnel affiche sous la valeur.
+
+    Returns:
+        Composant ``dbc.Card`` representant la carte KPI.
+    """
     body_children = [
         html.P(title, className="text-muted mb-1 small"),
         html.H3(str(value), className="mb-0 fw-bold"),
@@ -31,6 +42,7 @@ def build_analyst_kpi_card(
 
 
 def _format_priority_badge(raw_priority: str) -> dbc.Badge | None:
+    """Retourne un badge Bootstrap correspondant au niveau de priorite."""
     priority = str(raw_priority or "").strip().lower()
     if not priority:
         return None
@@ -45,6 +57,7 @@ def _format_priority_badge(raw_priority: str) -> dbc.Badge | None:
 
 
 def _format_confidence_badge(score: float | int | None) -> dbc.Badge | None:
+    """Retourne un badge colore selon le score de confiance."""
     if score is None:
         return None
     try:
@@ -62,6 +75,7 @@ def _format_confidence_badge(score: float | int | None) -> dbc.Badge | None:
 
 
 def _build_change_badges(comp: dict) -> list[dbc.Badge]:
+    """Construit la liste de badges resumant les changements d'une comparaison."""
     badges: list[dbc.Badge] = []
     added = len(comp.get("added_indicators", []) or [])
     removed = len(comp.get("removed_indicators", []) or [])
@@ -87,6 +101,7 @@ def _build_change_badges(comp: dict) -> list[dbc.Badge]:
 
 
 def _build_indicator_detail_lines(comp: dict) -> list:
+    """Construit les lignes de detail des indicateurs ajoutes, supprimes et renommes."""
     details: list = []
     added = [
         str(v).strip()
@@ -157,6 +172,7 @@ def _build_indicator_detail_lines(comp: dict) -> list:
 
 
 def _build_comparison_overview_card(comp: dict) -> dbc.Card:
+    """Construit une carte resume pour un tableau avec changements."""
     title = (
         comp.get("title_t2")
         or comp.get("title_t1")
@@ -213,6 +229,7 @@ def _build_comparison_overview_card(comp: dict) -> dbc.Card:
 def _build_table_presence_card(
     table: dict, *, change_label: str, color: str
 ) -> dbc.Card:
+    """Construit une carte pour un tableau ajoute ou retire."""
     title = (
         table.get("title")
         or table.get("table_title")
@@ -261,7 +278,18 @@ def build_section_accordion_item(
     tables_removed: list,
     item_id: str,
 ) -> dbc.AccordionItem:
-    """Build one accordion item for the section-based changes tab."""
+    """Construit un element d'accordeon pour l'onglet des changements par section.
+
+    Args:
+        section_name: Nom de la section affiche dans le titre de l'accordeon.
+        tables_with_changes: Comparaisons de tableaux comportant des changements.
+        tables_added: Tableaux presents uniquement dans le trimestre courant.
+        tables_removed: Tableaux presents uniquement dans le trimestre precedent.
+        item_id: Identifiant HTML de l'element d'accordeon.
+
+    Returns:
+        Composant ``dbc.AccordionItem`` representant la section.
+    """
     parts = []
     if tables_with_changes:
         n = len(tables_with_changes)
@@ -344,7 +372,14 @@ def build_section_accordion_item(
 
 
 def build_page_results() -> html.Div:
-    """Contenu pour les resultats avec design moderne et onglets par section."""
+    """Construit le layout principal de la page de resultats.
+
+    Inclut les KPI, la vue par section, le panneau de revue analyste
+    et les statistiques de validation.
+
+    Returns:
+        Composant ``html.Div`` contenant l'ensemble de la page de resultats.
+    """
     return html.Div(
         id="results-content",
         children=[

@@ -1,12 +1,12 @@
-"""Batch GenAI triage — offline LLM relevance analysis for comparison results.
+"""Triage GenAI par lots -- analyse de pertinence LLM hors-ligne pour les resultats de comparaison.
 
-This module runs **after** the technical diff and **before** deployment to Dash.
-It enriches each pair_comparison / added / removed table with an LLM-generated
-relevance classification and explanation, then produces a global executive
-summary.
+Ce module s'execute **apres** le diff technique et **avant** le deploiement vers Dash.
+Il enrichit chaque pair_comparison / tableau ajoute / tableau supprime avec une
+classification de pertinence et une explication generees par LLM, puis produit un
+resume executif global.
 
-All LLM calls happen here in batch mode (pipeline de nuit).  Dash never calls
-this module — it only reads the pre-computed fields from comparison.json.
+Tous les appels LLM ont lieu ici en mode batch (pipeline de nuit). Dash n'appelle
+jamais ce module -- il ne lit que les champs pre-calcules dans comparison.json.
 """
 
 from __future__ import annotations
@@ -158,7 +158,15 @@ IMPORTANT :
 
 
 def _build_change_prompt(change: dict[str, Any], change_type: str) -> str:
-    """Build a user prompt describing a single detected change for the LLM."""
+    """Construit un prompt utilisateur decrivant un changement detecte pour le LLM.
+
+    Args:
+        change: Dictionnaire du changement (paire, tableau ajoute ou supprime).
+        change_type: Type de changement : ``"pair"``, ``"added"`` ou ``"removed"``.
+
+    Returns:
+        Texte du prompt formate pour l'appel LLM de triage.
+    """
     parts: list[str] = []
     section = (
         change.get("section")
@@ -232,19 +240,28 @@ def _build_change_prompt(change: dict[str, Any], change_type: str) -> str:
 
 
 def _indicator_label(ind: Any) -> str:
+    """Extrait le libelle textuel d'un indicateur."""
     if isinstance(ind, dict):
         return str(ind.get("value") or ind.get("name") or ind.get("text") or "")[:80]
     return str(ind)[:80]
 
 
 def _footnote_text(fn: Any) -> str:
+    """Extrait le texte d'une note de bas de page."""
     if isinstance(fn, dict):
         return str(fn.get("text") or fn.get("value") or "")[:120]
     return str(fn)[:120]
 
 
 def _build_summary_prompt(relevant_changes: list[dict[str, Any]]) -> str:
-    """Build the user prompt for the global summary LLM call."""
+    """Construit le prompt utilisateur pour l'appel LLM de resume global.
+
+    Args:
+        relevant_changes: Liste des changements juges pertinents par le triage.
+
+    Returns:
+        Texte du prompt formate pour l'appel LLM de synthese.
+    """
     parts: list[str] = []
     parts.append(f"Nombre total de changements pertinents : {len(relevant_changes)}\n")
     for i, item in enumerate(relevant_changes[:60], 1):
@@ -275,7 +292,19 @@ async def _call_openai_json_async(
     temperature: float = 0.1,
     max_tokens: int = 500,
 ) -> dict[str, Any] | None:
-    """Single async OpenAI call returning parsed JSON."""
+    """Appel asynchrone unique a OpenAI retournant du JSON parse.
+
+    Args:
+        client: Instance ``AsyncOpenAI``.
+        system: Contenu du message systeme.
+        user: Contenu du message utilisateur.
+        model: Identifiant du modele OpenAI.
+        temperature: Temperature d'echantillonnage.
+        max_tokens: Nombre maximal de tokens de completion.
+
+    Returns:
+        Dictionnaire JSON parse ou ``None`` en cas d'echec.
+    """
     try:
         response = await client.chat.completions.create(
             model=model,
@@ -295,7 +324,14 @@ async def _call_openai_json_async(
 
 
 def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
-    """Validate and normalise a single triage LLM response."""
+    """Valide et normalise une reponse LLM de triage individuelle.
+
+    Args:
+        data: Dictionnaire brut retourne par le LLM, ou ``None``.
+
+    Returns:
+        Dictionnaire valide avec toutes les cles attendues et des valeurs par defaut.
+    """
     if not data or not isinstance(data, dict):
         return {
             "is_relevant": False,
@@ -365,7 +401,15 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
 
 
 def _validate_summary_response(data: dict[str, Any] | None) -> dict[str, Any]:
-    """Validate and normalise the global summary LLM response."""
+    """Valide et normalise la reponse LLM du resume global.
+
+    Args:
+        data: Dictionnaire brut retourne par le LLM, ou ``None``.
+
+    Returns:
+        Dictionnaire valide avec les cles ``executive_overview``,
+        ``key_highlights``, ``pertinence_globale``, ``par_phase``, ``par_action``.
+    """
     if not data or not isinstance(data, dict):
         return {
             "executive_overview": "",
@@ -437,7 +481,7 @@ def _validate_summary_response(data: dict[str, Any] | None) -> dict[str, Any]:
 
 
 def _has_meaningful_diff(pair: dict[str, Any]) -> bool:
-    """Return True if a pair_comparison has any actual change to analyse."""
+    """Retourne ``True`` si une paire de comparaison contient un changement reel a analyser."""
     diff = pair.get("technical_diff") or {}
     status = diff.get("table_level_change", "inchange")
     if status not in ("inchange", "stable"):
@@ -461,7 +505,7 @@ async def _triage_all_changes(
     model: str = "gpt-4o",
     max_concurrency: int = 20,
 ) -> dict[str, Any]:
-    """Run LLM triage on every change in comparison, enrich in-place, return summary."""
+    """Execute le triage LLM sur chaque changement de la comparaison, enrichit en place et retourne le resume."""
     from openai import AsyncOpenAI
 
     from vigilance.utils.genai import get_openai_api_key
@@ -620,7 +664,14 @@ async def _triage_all_changes(
 
 
 def _fallback_enrich(comparison: dict[str, Any]) -> dict[str, Any]:
-    """Heuristic fallback when no API key is available."""
+    """Enrichissement heuristique de repli lorsqu'aucune cle API n'est disponible.
+
+    Args:
+        comparison: Dictionnaire de comparaison a enrichir en place.
+
+    Returns:
+        Le meme dictionnaire ``comparison``, enrichi avec des valeurs heuristiques.
+    """
     for pair in comparison.get("pair_comparisons") or []:
         if not pair.get("genai_triage"):
             meaningful = _has_meaningful_diff(pair)
@@ -694,22 +745,17 @@ def enrich_comparison_with_genai_triage(
     model: str = "gpt-4o",
     max_concurrency: int = 20,
 ) -> Path:
-    """Read a comparison.json, enrich it with GenAI triage, write it back.
+    """Lit un comparison.json, l'enrichit avec le triage GenAI et le reecrit.
 
-    This is the main entry point called by ``run_pipeline.py``.
+    Point d'entree principal appele par ``run_pipeline.py``.
 
-    Parameters
-    ----------
-    comparison_path:
-        Path to the comparison.json file on disk.
-    model:
-        OpenAI model to use for triage calls.
-    max_concurrency:
-        Maximum number of parallel LLM requests.
+    Args:
+        comparison_path: Chemin vers le fichier comparison.json sur disque.
+        model: Modele OpenAI a utiliser pour les appels de triage.
+        max_concurrency: Nombre maximal de requetes LLM en parallele.
 
-    Returns
-    -------
-    Path to the enriched comparison.json (same file, overwritten).
+    Returns:
+        Chemin vers le comparison.json enrichi (meme fichier, reecrit).
     """
     path = Path(comparison_path)
     logger.info("GenAI triage: lecture de %s", path)

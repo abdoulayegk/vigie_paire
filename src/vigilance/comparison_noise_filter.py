@@ -1,4 +1,4 @@
-"""Post-filter helpers that remove cosmetic noise from technical diffs."""
+"""Filtres post-traitement pour retirer le bruit cosmetique des diffs techniques."""
 
 from __future__ import annotations
 
@@ -26,23 +26,33 @@ _DATE_REF_RE = re.compile(
 
 
 def _strip_footnote_markers(text: str) -> str:
+    """Retire les marqueurs de notes de bas de page (ex. ``(1)``, ``(2)``) du texte."""
     return _FOOTNOTE_MARKER_RE.sub("", text).strip()
 
 
 def _strip_page_and_date_refs(text: str) -> str:
+    """Remplace les references de pages et de dates par des jetons generiques."""
     text = _PAGE_REF_RE.sub("__PAGE__", text)
     text = _DATE_REF_RE.sub("__DATE__", text)
     return text.strip()
 
 
 def recompute_table_level_change(technical_diff: dict[str, Any]) -> str:
-    """Return the canonical table-level status for a filtered diff."""
+    """Retourne le statut canonique au niveau du tableau pour un diff filtre."""
     has_changes = any(technical_diff.get(key) for key in _TABLE_LEVEL_CHANGE_KEYS)
     return "modifie" if has_changes else "inchange"
 
 
 def _filter_noise_from_diff(technical_diff: dict[str, Any]) -> dict[str, Any]:
-    """Remove cosmetic renames (footnote markers, page numbers) from diff."""
+    """Retire les renommages cosmetiques (marqueurs de notes, numeros de page) du diff.
+
+    Args:
+        technical_diff: Dictionnaire du diff technique contenant les listes de
+            changements d'indicateurs et de notes de bas de page.
+
+    Returns:
+        Copie du diff avec les renommages cosmetiques retires.
+    """
     # Filter indicator renames where only footnote marker differs
     clean_ind_renamed = []
     for item in technical_diff.get("indicators_renamed", []):

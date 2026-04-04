@@ -1,7 +1,7 @@
-"""GenAI executive summary and relevance tagging for comparison results.
+"""Resume executif GenAI et etiquetage de pertinence pour les resultats de comparaison.
 
-Feature-flagged via ``genai_settings`` in ``bank_profiles.yaml``.
-Requires ``OPENAI_API_KEY`` in environment.
+Active par feature flag via ``genai_settings`` dans ``bank_profiles.yaml``.
+Necessite ``OPENAI_API_KEY`` dans l'environnement.
 """
 
 from __future__ import annotations
@@ -58,7 +58,7 @@ _EN_TO_FR_OVERALL: dict[str, str] = {
 
 
 def _load_genai_settings() -> dict[str, Any]:
-    """Read genai_settings from bank_profiles.yaml."""
+    """Charge les parametres GenAI depuis bank_profiles.yaml."""
     cfg_path = Path(__file__).resolve().parents[2] / "configs" / "bank_profiles.yaml"
     if not cfg_path.exists():
         return {}
@@ -71,15 +71,28 @@ def _load_genai_settings() -> dict[str, Any]:
 
 
 def is_genai_enabled() -> bool:
+    """Indique si le resume GenAI est active dans la configuration.
+
+    Returns:
+        ``True`` si le flag ``enable_genai_summary`` est actif.
+    """
     cfg = _load_genai_settings()
     return bool(cfg.get("enable_genai_summary", False))
 
 
 def _build_genai_input(result: dict[str, Any], max_tables: int = 50) -> str:
-    """Build a compact text prompt from the canonical comparison result.
+    """Construit un prompt textuel compact a partir du resultat de comparaison canonique.
 
-    Excludes raw numeric values per spec; includes titles, indicator names,
-    footnote changes, and structural signals.
+    Exclut les valeurs numeriques brutes conformement a la specification ; inclut
+    les titres, noms d'indicateurs, changements de notes de bas de page et
+    signaux structurels.
+
+    Args:
+        result: Resultat de comparaison canonique.
+        max_tables: Nombre maximal de tableaux a inclure dans le prompt.
+
+    Returns:
+        Chaine de texte formatee pour le prompt utilisateur LLM.
     """
     parts: list[str] = []
     summary = result.get("summary", {})
@@ -216,7 +229,15 @@ Schema :
 
 
 def _call_openai(prompt: str, cfg: dict[str, Any]) -> dict[str, Any] | None:
-    """Call OpenAI chat completion. Returns parsed JSON or None on failure."""
+    """Appelle l'API OpenAI chat completion.
+
+    Args:
+        prompt: Texte du prompt utilisateur.
+        cfg: Parametres GenAI (modele, timeout, etc.).
+
+    Returns:
+        Dictionnaire JSON parse ou ``None`` en cas d'echec.
+    """
     try:
         from vigilance.utils.genai import get_openai_api_key
 
@@ -256,10 +277,17 @@ def _call_openai(prompt: str, cfg: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def _validate_genai_response(data: dict[str, Any]) -> dict[str, Any]:
-    """Validate and sanitize GenAI response. Fills defaults for missing fields.
+    """Valide et nettoie la reponse GenAI. Remplit les valeurs par defaut pour les champs manquants.
 
-    Accepts both French keys (``resume_executif``) and legacy English keys
-    (``executive_summary_bullets``). Relevance labels are normalised to French.
+    Accepte les cles en francais (``resume_executif``) et les cles heritees en
+    anglais (``executive_summary_bullets``). Les etiquettes de pertinence sont
+    normalisees en francais.
+
+    Args:
+        data: Dictionnaire brut retourne par le LLM.
+
+    Returns:
+        Dictionnaire valide et normalise avec les cles francaises.
     """
     bullets = data.get("resume_executif") or data.get("executive_summary_bullets")
     if not isinstance(bullets, list):
@@ -314,7 +342,14 @@ def _validate_genai_response(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def _heuristic_fallback(result: dict[str, Any]) -> dict[str, Any]:
-    """Produce a basic summary when GenAI is unavailable or fails."""
+    """Produit un resume basique lorsque GenAI est indisponible ou echoue.
+
+    Args:
+        result: Resultat de comparaison canonique.
+
+    Returns:
+        Dictionnaire de resume heuristique avec les cles standard.
+    """
     summary = result.get("summary", {})
     bullets = []
     matched = summary.get("tables_matched", 0)
@@ -397,9 +432,15 @@ def generate_genai_summary(result: dict[str, Any]) -> dict[str, Any]:
 
 
 def enrich_result_with_genai(result: dict[str, Any]) -> dict[str, Any]:
-    """Enrich a canonical comparison result with GenAI summary and per-table relevance.
+    """Enrichit un resultat de comparaison canonique avec le resume GenAI et la pertinence par tableau.
 
-    Mutates ``result`` in place and returns it.
+    Modifie ``result`` en place et le retourne.
+
+    Args:
+        result: Resultat de comparaison canonique a enrichir.
+
+    Returns:
+        Le meme dictionnaire ``result``, enrichi avec les champs GenAI.
     """
     genai_output = generate_genai_summary(result)
 

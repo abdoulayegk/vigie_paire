@@ -1,4 +1,4 @@
-"""Reporting helpers for vigilance outputs."""
+"""Utilitaires de reporting pour les sorties de vigilance."""
 
 from vigilance.report.export_json import write_section_ranges, write_tables_docling
 from vigilance.report.vigie_extract_schema import (

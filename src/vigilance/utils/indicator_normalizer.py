@@ -1,4 +1,4 @@
-"""Order-invariant indicator normalization for matching (canonical + token-sorted)."""
+"""Normalisation d'indicateurs invariante a l'ordre pour l'appariement (canonique + tri par jetons)."""
 
 from __future__ import annotations
 
@@ -60,9 +60,15 @@ _UNIT_TOKENS = frozenset(
 
 
 def strip_footnote_markers_from_indicator(text: str) -> str:
-    """Remove trailing footnote markers; preserves semantic numbers (Tier 1, CET1, etc.).
+    """Supprime les marqueurs de note de bas de page en fin de chaine ; preserve les nombres semantiques (Tier 1, CET1, etc.).
 
-    Single shared implementation used by comparison_runner and get_canonical_text.
+    Implementation unique partagee par ``comparison_runner`` et ``get_canonical_text``.
+
+    Args:
+        text: Libelle d'indicateur brut.
+
+    Returns:
+        Libelle nettoye sans marqueurs de note.
     """
     if not text:
         return ""
@@ -84,9 +90,15 @@ def strip_footnote_markers_from_indicator(text: str) -> str:
 
 
 def get_canonical_text(text: str) -> str:
-    """
-    Current normalized indicator text: strip footnote markers, then full normalization.
-    Consistent with existing pipeline (lower, whitespace, strip dates/units, accents).
+    """Texte d'indicateur normalise : suppression des marqueurs de note puis normalisation complete.
+
+    Coherent avec le pipeline existant (minuscules, espaces, suppression dates/unites, accents).
+
+    Args:
+        text: Libelle d'indicateur brut.
+
+    Returns:
+        Cle canonique normalisee pour la comparaison.
     """
     if not text or not (text or "").strip():
         return ""
@@ -95,7 +107,7 @@ def get_canonical_text(text: str) -> str:
 
 
 def _is_mostly_digit_token(token: str) -> bool:
-    """Drop tokens that are mostly digits (e.g. 2025, 30); keep short semantic (1, 2, 3, 9)."""
+    """Elimine les jetons majoritairement numeriques (ex. 2025, 30) ; conserve les courts semantiques (1, 2, 3, 9)."""
     if not token or not token.strip():
         return True
     if len(token) <= 1 and token.isdigit():
@@ -107,10 +119,18 @@ def _is_mostly_digit_token(token: str) -> bool:
 
 
 def get_token_sorted_text(text: str) -> str:
-    """
-    Order-invariant form: tokenize canonical_text, remove stopwords and units-only tokens,
-    drop tokens with mostly digits, sort alphabetically, join with single space.
-    Deterministic and French-safe (canonical already NFD/ASCII).
+    """Produire une forme invariante a l'ordre pour un libelle d'indicateur.
+
+    Tokenise le texte canonique, supprime les mots vides et jetons d'unite,
+    elimine les jetons majoritairement numeriques, trie alphabetiquement,
+    joint avec un espace. Deterministe et compatible avec le francais
+    (le canonique est deja en NFD/ASCII).
+
+    Args:
+        text: Libelle d'indicateur brut.
+
+    Returns:
+        Chaine de jetons tries alphabetiquement, sans mots vides ni unites.
     """
     canonical = get_canonical_text(text)
     if not canonical:
@@ -131,5 +151,12 @@ def get_token_sorted_text(text: str) -> str:
 
 
 def get_normalized_forms(text: str) -> tuple[str, str]:
-    """Return (canonical_text, token_sorted_text). Convenience for callers that need both."""
+    """Retourne ``(texte_canonique, texte_trie_par_jetons)``. Raccourci pour les appelants ayant besoin des deux formes.
+
+    Args:
+        text: Libelle d'indicateur brut.
+
+    Returns:
+        Tuple ``(texte_canonique, texte_trie_par_jetons)``.
+    """
     return get_canonical_text(text), get_token_sorted_text(text)

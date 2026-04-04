@@ -1,4 +1,4 @@
-"""Vision-based minimal extraction: title, summary, headers, indicators, and footnotes."""
+"""Extraction minimale par Vision : titre, resume, en-tetes, indicateurs et notes de bas de page."""
 
 from __future__ import annotations
 
@@ -347,7 +347,7 @@ Apply these overrides:
 
 
 class VisionFootnoteItem(BaseModel):
-    """Strict item schema for one footnote entry."""
+    """Schema strict pour une entree de note de bas de page."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -357,6 +357,7 @@ class VisionFootnoteItem(BaseModel):
     @field_validator("id", "text", mode="before")
     @classmethod
     def _coerce_non_empty_str(cls, v: Any) -> str:
+        """Convertit en chaine non vide ou leve une erreur."""
         s = str(v or "").strip()
         if not s:
             raise ValueError("must be non-empty")
@@ -364,7 +365,7 @@ class VisionFootnoteItem(BaseModel):
 
 
 class VisionResponseCommonSchema(BaseModel):
-    """Common schema for full and fallback Vision responses."""
+    """Schema commun pour les reponses Vision completes et de repli."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -395,10 +396,10 @@ class VisionResponseCommonSchema(BaseModel):
     @field_validator("indicators", mode="before")
     @classmethod
     def _coerce_indicators(cls, v: Any) -> list[str]:
-        """Accept both string and legacy object indicator formats.
+        """Accepte les formats d'indicateurs chaine et objet legacy.
 
-        Uses ``.rstrip()`` instead of ``.strip()`` so that leading whitespace
-        encoding visual indentation (hierarchy depth) is preserved.
+        Utilise ``.rstrip()`` au lieu de ``.strip()`` pour que les espaces de tete
+        encodant l'indentation visuelle (profondeur hierarchique) soient preserves.
         """
         if not isinstance(v, list):
             return []
@@ -417,17 +418,20 @@ class VisionResponseCommonSchema(BaseModel):
     @field_validator("table_summary", mode="after")
     @classmethod
     def _normalize_table_summary(cls, v: str) -> str:
+        """Normalise le resume du tableau en le tronquant a 15 mots."""
         words = [word for word in str(v or "").split() if word.strip()]
         return " ".join(words[:15]).strip()
 
     @field_validator("headers", mode="after")
     @classmethod
     def _normalize_headers(cls, v: list[str]) -> list[str]:
+        """Normalise les en-tetes en supprimant les espaces superflus."""
         return [str(x).strip() for x in v]
 
     @field_validator("footnotes_content", mode="before")
     @classmethod
     def _coerce_footnotes_content(cls, v: Any) -> list[dict[str, str]]:
+        """Convertit les formats legacy de notes de bas de page en liste ordonnee."""
         # Migration shim: accept legacy dict marker->text and normalize to ordered list.
         # The dict form loses visual order — items are added in insertion order.
         if isinstance(v, dict):
@@ -454,15 +458,15 @@ class VisionResponseCommonSchema(BaseModel):
 
 
 class VisionFullResponseSchema(VisionResponseCommonSchema):
-    """Strict schema for normal Vision extraction output."""
+    """Schema strict pour la sortie d'extraction Vision normale."""
 
 
 class VisionSchemaContractError(RuntimeError):
-    """Raised when OpenAI Structured Outputs schema contract is invalid."""
+    """Levee lorsque le contrat de schema OpenAI Structured Outputs est invalide."""
 
 
 def _build_openai_json_schema() -> dict[str, Any]:
-    """Build OpenAI json_schema format from Pydantic model for Structured Outputs (full schema only)."""
+    """Construit le format json_schema OpenAI a partir du modele Pydantic pour Structured Outputs (schema complet uniquement)."""
     return build_strict_openai_response_format(
         VisionFullResponseSchema,
         name="vision_full_extraction",
@@ -471,7 +475,7 @@ def _build_openai_json_schema() -> dict[str, Any]:
 
 
 def _validate_openai_strict_schema_contract(schema: dict[str, Any]) -> None:
-    """Validate local Structured Outputs strict contract before API call."""
+    """Valide le contrat strict Structured Outputs en local avant l'appel API."""
     validate_strict_openai_response_format(
         schema,
         error_cls=VisionSchemaContractError,
@@ -479,7 +483,7 @@ def _validate_openai_strict_schema_contract(schema: dict[str, Any]) -> None:
 
 
 def _classify_openai_error(exc: Exception) -> str:
-    """Classify OpenAI API error to choose deterministic handling."""
+    """Classifie une erreur API OpenAI pour choisir un traitement deterministe."""
     msg = str(exc).lower()
     if (
         "could not parse the json body of your request" in msg
@@ -510,7 +514,7 @@ def _classify_openai_error(exc: Exception) -> str:
 
 @dataclass
 class VisionFullResult:
-    """Result of Vision minimal extraction."""
+    """Resultat de l'extraction minimale par Vision."""
 
     table_title: str
     table_summary: str
@@ -542,6 +546,7 @@ class VisionFullResult:
     qa_inspected: bool = False
 
     def to_footnotes_list(self) -> list[dict[str, str]]:
+        """Retourne une copie de la liste des notes de bas de page."""
         return list(self.footnotes_content)
 
 
@@ -552,7 +557,7 @@ def _build_prompt(
     *,
     rescue_mode: bool = False,
 ) -> str:
-    """Build prompt with bank-specific footnote marker hints and OCR reference text (always injected when provided)."""
+    """Construit le prompt avec les indices de marqueurs de notes specifiques a la banque et le texte de reference OCR (toujours injecte lorsque fourni)."""
     marker_type = str(vision_cfg.get("footnote_marker_type", "")).strip().lower()
     expected = vision_cfg.get("expected_markers")
     hints = []
@@ -615,6 +620,7 @@ def _build_prompt(
 
 
 def _build_content(prompt: str, image_b64: str) -> list[Any]:
+    """Construit le contenu multimodal (texte + image) pour l'appel API."""
     return [
         {"type": "text", "text": prompt},
         {
@@ -628,6 +634,7 @@ def _build_content(prompt: str, image_b64: str) -> list[Any]:
 
 
 def _build_repair_prompt(base_prompt: str, raw_content: str) -> str:
+    """Construit un prompt de reparation a partir de la reponse precedente invalide."""
     return (
         "Le contenu precedent n'etait pas exploitable. "
         "Retourne UNIQUEMENT un objet JSON valide conforme au schema demande, "
@@ -639,7 +646,7 @@ def _build_repair_prompt(base_prompt: str, raw_content: str) -> str:
 
 
 def _strip_markdown_fences(text: str) -> str:
-    """Remove markdown code fences from GPT response and find JSON boundaries."""
+    """Retire les balises markdown de la reponse GPT et localise les limites JSON."""
     stripped = text.strip()
 
     # Étape 1 : Retirer les balises markdown si présentes
@@ -662,7 +669,7 @@ def _strip_markdown_fences(text: str) -> str:
 
 
 def _parse_json_response(raw: str) -> dict[str, Any] | None:
-    """Parse JSON from response. Returns None on failure."""
+    """Parse le JSON d'une reponse. Retourne None en cas d'echec."""
     try:
         cleaned = _strip_markdown_fences(raw)
         data = json.loads(cleaned)
@@ -672,7 +679,7 @@ def _parse_json_response(raw: str) -> dict[str, Any] | None:
 
 
 def _preview_response_text(raw: str, limit: int = 500) -> str:
-    """Return a compact response preview suitable for logs."""
+    """Retourne un apercu compact de la reponse adapte aux logs."""
     text = (raw or "").strip()
     if len(text) <= limit:
         return text
@@ -682,7 +689,7 @@ def _preview_response_text(raw: str, limit: int = 500) -> str:
 
 
 def _extract_usage_metrics(response: Any) -> tuple[int | None, int | None, int | None]:
-    """Best-effort extraction of token usage from OpenAI responses."""
+    """Extraction best-effort de l'utilisation de tokens a partir des reponses OpenAI."""
     usage = getattr(response, "usage", None)
     if usage is None:
         return None, None, None
@@ -712,7 +719,7 @@ def _with_attempt_metadata(
     total_tokens: int | None,
     rescue_used: bool = False,
 ) -> VisionFullResult:
-    """Return a result carrying per-attempt metadata."""
+    """Retourne un resultat enrichi des metadonnees de la tentative."""
     return replace(
         result,
         requested_max_completion_tokens=requested_max_completion_tokens,
@@ -732,7 +739,7 @@ def _make_truncated_placeholder_result(
     completion_tokens: int | None,
     total_tokens: int | None,
 ) -> VisionFullResult:
-    """Return a minimal partial result so higher-level rescue logic can retry with more budget."""
+    """Retourne un resultat partiel minimal pour que la logique de sauvetage de niveau superieur puisse retenter avec plus de budget."""
     return VisionFullResult(
         table_title="",
         table_summary="",
@@ -765,7 +772,7 @@ _FULL_REQUIRED_KEYS = frozenset({"table_summary", "indicators"})
 
 
 def _extract_embedded_schema_candidate(raw: dict[str, Any]) -> dict[str, Any] | None:
-    """Return the most likely nested payload matching the expected Vision full schema."""
+    """Retourne le payload imbrique le plus probable correspondant au schema Vision complet attendu."""
     if not isinstance(raw, dict):
         return None
     response_keys = _FULL_RESPONSE_KEYS
@@ -806,7 +813,7 @@ def _extract_embedded_schema_candidate(raw: dict[str, Any]) -> dict[str, Any] | 
 def _parse_vision_result(
     raw: str | dict[str, Any],
 ) -> VisionFullResult | None:
-    """Parse and validate JSON into VisionFullResult via Pydantic. Returns None on validation error."""
+    """Parse et valide le JSON en VisionFullResult via Pydantic. Retourne None en cas d'erreur de validation."""
     try:
         if isinstance(raw, dict):
             validated = VisionFullResponseSchema.model_validate(raw)
@@ -862,7 +869,7 @@ def _parse_vision_result(
 
 
 def _try_parse_truncated_result(raw_content: str) -> VisionFullResult | None:
-    """Best-effort parse of truncated JSON for the minimal extraction contract."""
+    """Parsing best-effort de JSON tronque pour le contrat d'extraction minimale."""
     data = _parse_json_response(raw_content)
     if not data or not isinstance(data, dict):
         return None
@@ -911,11 +918,13 @@ def _try_parse_truncated_result(raw_content: str) -> VisionFullResult | None:
 
 
 def _is_generic_page_title(value: str) -> bool:
+    """Verifie si le titre correspond a un titre de page generique."""
     title = " ".join(str(value or "").strip().lower().split())
     return title in _GENERIC_PAGE_TITLES
 
 
 def _bbox_area(bbox_norm: list[float] | None) -> float:
+    """Calcule l'aire normalisee d'une bounding box."""
     if not bbox_norm or len(bbox_norm) < 4:
         return 0.0
     try:
@@ -932,6 +941,7 @@ def _is_trivial_result(
     *,
     bbox_norm: list[float] | None = None,
 ) -> bool:
+    """Determine si le resultat d'extraction est trivial ou vide."""
     if result is None:
         return True
     indicators = [
@@ -952,10 +962,12 @@ def _is_trivial_result(
 
 
 def _normalized_signal_text(value: str) -> str:
+    """Normalise un texte signal en minuscules avec espaces simples."""
     return " ".join(str(value or "").strip().lower().split())
 
 
 def _is_period_like_indicator(text: str) -> bool:
+    """Verifie si l'indicateur ressemble a une date ou periode."""
     normalized = _normalized_signal_text(text)
     if not normalized:
         return True
@@ -967,6 +979,7 @@ def _is_period_like_indicator(text: str) -> bool:
 
 
 def _is_weak_indicator(text: str) -> bool:
+    """Verifie si l'indicateur est un libelle faible ou generique."""
     normalized = _normalized_signal_text(text)
     if not normalized:
         return True
@@ -983,6 +996,7 @@ def _is_weak_indicator(text: str) -> bool:
 
 
 def _looks_narrative_indicator(text: str) -> bool:
+    """Verifie si l'indicateur ressemble a du texte narratif plutot qu'un libelle de tableau."""
     normalized = _normalized_signal_text(text)
     if not normalized:
         return False
@@ -998,6 +1012,7 @@ def _looks_narrative_indicator(text: str) -> bool:
 
 
 def _looks_compact_textual_header(text: str) -> bool:
+    """Verifie si le texte ressemble a un en-tete de colonne textuel compact."""
     normalized = re.sub(r"\s+", " ", str(text or "").strip())
     if not normalized:
         return False
@@ -1012,6 +1027,7 @@ def _looks_compact_textual_header(text: str) -> bool:
 
 
 def _has_multi_textual_headers(result: VisionFullResult | None) -> bool:
+    """Verifie si le resultat contient plusieurs en-tetes textuels."""
     if result is None:
         return False
     headers = [str(v).strip() for v in list(result.headers or []) if str(v).strip()]
@@ -1021,10 +1037,12 @@ def _has_multi_textual_headers(result: VisionFullResult | None) -> bool:
 
 
 def _token_count(text: str) -> int:
+    """Compte le nombre de tokens (mots) dans un texte."""
     return len(re.findall(r"\w+", str(text or ""), flags=re.UNICODE))
 
 
 def _looks_like_right_column_bleed_indicator(text: str) -> bool:
+    """Verifie si l'indicateur semble provenir d'un debordement de colonne droite."""
     normalized = _normalized_signal_text(text)
     if not normalized:
         return False
@@ -1045,6 +1063,7 @@ def _right_column_bleed_score(
     *,
     baseline_result: VisionFullResult | None = None,
 ) -> int:
+    """Calcule un score de contamination par debordement de colonne droite."""
     if result is None or baseline_result is None:
         return 0
     if not _has_multi_textual_headers(result):
@@ -1077,6 +1096,7 @@ def _right_column_bleed_score(
 
 
 def _viable_indicator_count(result: VisionFullResult | None) -> int:
+    """Compte les indicateurs viables (ni faibles, ni narratifs, ni generiques)."""
     if result is None:
         return 0
     count = 0
@@ -1097,6 +1117,7 @@ def _viable_indicator_count(result: VisionFullResult | None) -> int:
 
 
 def _weak_indicator_count(result: VisionFullResult | None) -> int:
+    """Compte les indicateurs consideres comme faibles."""
     if result is None:
         return 0
     return sum(
@@ -1107,6 +1128,7 @@ def _weak_indicator_count(result: VisionFullResult | None) -> int:
 
 
 def _narrative_indicator_count(result: VisionFullResult | None) -> int:
+    """Compte les indicateurs de type narratif."""
     if result is None:
         return 0
     return sum(
@@ -1117,6 +1139,7 @@ def _narrative_indicator_count(result: VisionFullResult | None) -> int:
 
 
 def _contamination_score(result: VisionFullResult | None) -> int:
+    """Calcule un score de contamination combine (titres generiques, indicateurs faibles/narratifs)."""
     if result is None:
         return 99
     title = str(result.table_title or "").strip()
@@ -1129,6 +1152,7 @@ def _contamination_score(result: VisionFullResult | None) -> int:
 
 
 def _has_dominant_contamination(result: VisionFullResult | None) -> bool:
+    """Verifie si la contamination domine les indicateurs viables."""
     if result is None:
         return True
     viable_count = _viable_indicator_count(result)
@@ -1137,6 +1161,7 @@ def _has_dominant_contamination(result: VisionFullResult | None) -> bool:
 
 
 def _has_generic_title_without_support(result: VisionFullResult | None) -> bool:
+    """Verifie si le resultat a un titre generique sans en-tetes ni notes de support."""
     if result is None:
         return True
     title = str(result.table_title or "").strip()
@@ -1153,6 +1178,7 @@ def _has_generic_title_without_support(result: VisionFullResult | None) -> bool:
 
 
 def _has_strong_non_summary_signals(result: VisionFullResult | None) -> bool:
+    """Verifie la presence de signaux forts (indicateurs, en-tetes, notes) hors resume."""
     if result is None:
         return False
     if _has_dominant_contamination(result):
@@ -1178,6 +1204,7 @@ def _has_strong_non_summary_signals(result: VisionFullResult | None) -> bool:
 
 
 def _is_viable_result(result: VisionFullResult | None) -> bool:
+    """Verifie si le resultat est viable (indicateurs presents et contamination faible)."""
     if result is None:
         return False
     if result.no_table_detected:
@@ -1195,7 +1222,7 @@ _NUMBER_RE = re.compile(r"^\s*[\(\-]?[\d\s.,]+[\)%]?\s*$")
 
 
 def _count_real_indicators(indicators: list[Any]) -> int:
-    """Count indicators that are real business labels (not dates, numbers, or blanks)."""
+    """Compte les indicateurs qui sont de vrais libelles metier (ni dates, ni nombres, ni vides)."""
     count = 0
     for ind in indicators:
         text = str(ind).strip() if isinstance(ind, str) else str(ind).strip()
@@ -1210,6 +1237,7 @@ def _count_real_indicators(indicators: list[Any]) -> int:
 
 
 def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
+    """Evalue la qualite de l'extraction et retourne une liste de critiques."""
     import re
 
     if result is None:
@@ -1288,6 +1316,7 @@ def _collect_incompleteness_reasons(
     bbox_norm: list[float] | None = None,
     expected_footnote_ids: set[str] | None = None,
 ) -> list[str]:
+    """Collecte les raisons d'incompletude d'un resultat d'extraction."""
     if result is None:
         return ["missing_result"]
     reasons: list[str] = []
@@ -1338,6 +1367,7 @@ def _candidate_quality_score(
     expected_footnote_ids: set[str] | None = None,
     baseline_result: VisionFullResult | None = None,
 ) -> tuple[int, int, int, int, int, int, int, int]:
+    """Calcule un tuple de score de qualite pour classer les candidats d'extraction."""
     if result is None:
         return (0, 0, 0, 0, 0, 0, 0, 0)
     viable_indicators = _viable_indicator_count(result)
@@ -1375,6 +1405,7 @@ def _finalize_selected_candidate(
     bbox_norm: list[float] | None = None,
     expected_footnote_ids: set[str] | None = None,
 ) -> VisionFullResult | None:
+    """Finalise le candidat selectionne en evaluant son acceptabilite."""
     selected_rejection_reasons = _collect_incompleteness_reasons(
         selected,
         bbox_norm=bbox_norm,
@@ -1447,6 +1478,7 @@ def _build_result_debug_metadata(
     bbox_norm: list[float] | None = None,
     expected_footnote_ids: set[str] | None = None,
 ) -> VisionFullResult:
+    """Enrichit le resultat avec les metadonnees de debug (raisons, scores, compteurs)."""
     quality_rank = list(
         _candidate_quality_score(
             result,
@@ -1470,6 +1502,7 @@ def _build_result_debug_metadata(
 
 
 def _cache_payload_from_result(result: VisionFullResult) -> dict[str, Any]:
+    """Construit le payload de cache a partir d'un resultat d'extraction."""
     return {
         "table_title": result.table_title,
         "table_summary": result.table_summary,
@@ -1498,11 +1531,10 @@ def _cache_payload_from_result(result: VisionFullResult) -> dict[str, Any]:
 
 
 class VisionFullExtractor:
-    """
-    Extract indicators + footnotes from a table crop image via OpenAI Vision.
+    """Extrait les indicateurs et notes de bas de page d'une image de tableau recadree via OpenAI Vision.
 
-    One call per table minimum. Supports retry on invalid JSON, deterministic recrop,
-    and cache via vision_cache (pdf_sha + page + bbox).
+    Un appel par tableau au minimum. Supporte la re-tentative sur JSON invalide,
+    le recadrage deterministe et le cache via vision_cache (pdf_sha + page + bbox).
     """
 
     def __init__(
@@ -1523,16 +1555,16 @@ class VisionFullExtractor:
 
     @property
     def model_name(self) -> str:
-        """Return the resolved extraction model name."""
+        """Retourne le nom du modele d'extraction resolu."""
         return self._model
 
     @property
     def model_role(self) -> str:
-        """Return the logical role used for model resolution."""
+        """Retourne le role logique utilise pour la resolution du modele."""
         return _MODEL_ROLE
 
     def _ensure_schema_validated(self, schema: dict[str, Any] | None = None) -> None:
-        """Validate schema once and mark as checked. Raises VisionSchemaContractError if invalid."""
+        """Valide le schema une seule fois et le marque comme verifie. Raises VisionSchemaContractError si invalide."""
         if "full" in self._schema_contract_checked:
             return
         schema = schema if schema is not None else _build_openai_json_schema()
@@ -1551,10 +1583,11 @@ class VisionFullExtractor:
             raise
 
     def validate_schema(self) -> None:
-        """Pre-validate OpenAI Structured Outputs schema. Raises VisionSchemaContractError if invalid."""
+        """Pre-valide le schema OpenAI Structured Outputs. Raises VisionSchemaContractError si invalide."""
         self._ensure_schema_validated()
 
     def _ensure_client(self) -> None:
+        """Initialise le client OpenAI si pas encore cree."""
         if self._client is not None:
             return
         try:
@@ -1581,21 +1614,24 @@ class VisionFullExtractor:
         rescue_instruction: str = "",
         temperature: float = 0.0,
     ) -> VisionFullResult | None:
-        """
-        Extract indicators and footnotes from a table crop.
+        """Extrait les indicateurs et notes de bas de page d'un recadrage de tableau.
 
         Args:
-            crop_bytes: PNG bytes of the cropped table image
-            bank_code: Bank code for prompt hints (bnc, rbc, td, etc.)
-            pdf_sha: PDF hash for cache key (optional)
-            page_number: Page number for cache key (optional)
-            bbox_norm: Normalized bbox for cache key (optional)
-            vision_cfg: Config overrides (footnote_marker_type, expected_markers)
-            bottom_extension_used: Bottom extension already applied (for cache key variant)
-            max_completion_tokens_override: Explicit output budget for this extraction pass
+            crop_bytes: Octets PNG de l'image du tableau recadre.
+            bank_code: Code banque pour les indices du prompt (bnc, rbc, td, etc.).
+            pdf_sha: Hash du PDF pour la cle de cache (optionnel).
+            page_number: Numero de page pour la cle de cache (optionnel).
+            bbox_norm: Bbox normalisee pour la cle de cache (optionnel).
+            vision_cfg: Surcharges de configuration (footnote_marker_type, expected_markers).
+            bottom_extension_used: Extension basse deja appliquee (pour la variante de cle de cache).
+            reference_text: Texte de reference pour guider l'extraction (optionnel).
+            max_completion_tokens_override: Budget de sortie explicite pour cette passe d'extraction.
+            rescue_mode: Activer le mode de sauvetage pour les extractions echouees.
+            rescue_instruction: Instruction specifique pour le mode de sauvetage.
+            temperature: Temperature de generation du modele.
 
         Returns:
-            VisionFullResult or None on failure
+            VisionFullResult ou None en cas d'echec.
         """
         if self._disabled_reason:
             raise VisionSchemaContractError(self._disabled_reason)
@@ -2216,14 +2252,14 @@ class VisionFullExtractor:
         rescue_instruction: str = "",
         temperatures: tuple[float, ...] | None = None,
     ) -> VisionFullResult | None:
-        """Multi-shot extraction with consensus voting.
+        """Extraction multi-tir avec vote par consensus.
 
-        Dispatches ``len(temperatures)`` parallel extractions at different
-        temperatures, then selects the result with the best consensus on
-        indicator count and label overlap.
+        Lance ``len(temperatures)`` extractions paralleles a differentes
+        temperatures, puis selectionne le resultat avec le meilleur consensus
+        sur le nombre d'indicateurs et le recouvrement des libelles.
 
-        Falls back to a single temperature-0 extraction when the consensus
-        is unanimous or only one shot succeeds.
+        Se rabat sur une extraction unique a temperature 0 lorsque le consensus
+        est unanime ou qu'un seul tir reussit.
         """
         temps = temperatures or self._CONSENSUS_TEMPERATURES
         if len(temps) <= 1:
@@ -2289,15 +2325,15 @@ class VisionFullExtractor:
         *,
         bbox_norm: list[float] | None = None,
     ) -> VisionFullResult:
-        """Pick the result with the best consensus on indicator labels.
+        """Selectionne le resultat avec le meilleur consensus sur les libelles d'indicateurs.
 
-        Strategy:
-        1. Compute *median* indicator count across all shots.
-        2. Build a superset of normalised indicator labels from all shots and
-           compute per-label vote counts.
-        3. Score each result by: (a) closeness to median count, (b) sum of
-           vote counts for its indicators (label popularity).
-        4. Return the result with the highest composite score.
+        Strategie :
+        1. Calcule le nombre *median* d'indicateurs sur tous les tirs.
+        2. Construit un sur-ensemble de libelles normalises et compte les votes
+           par libelle.
+        3. Note chaque resultat selon : (a) proximite au compte median, (b) somme
+           des votes pour ses indicateurs (popularite des libelles).
+        4. Retourne le resultat avec le score composite le plus eleve.
         """
         import statistics
 
@@ -2356,14 +2392,13 @@ class VisionFullExtractor:
         get_variant_crop_fn: Any = None,
         reference_text: str | None = None,
     ) -> VisionFullResult | None:
-        """
-        Extract with a deterministic quality pass.
+        """Extraction avec passe de qualite deterministe.
 
-        Flow:
-        - initial crop at configured budget (64k by default)
-        - same-crop rescue at 128k only when truncation is detected
-        - optional recrop at configured budget
-        - recrop rescue at 128k only when truncation is detected
+        Flux :
+        - recadrage initial au budget configure (64k par defaut)
+        - sauvetage sur le meme recadrage a 128k uniquement si troncature detectee
+        - recadrage optionnel au budget configure
+        - sauvetage du recadrage a 128k uniquement si troncature detectee
 
         get_recrop_fn(bottom_extension: float) -> bytes | None
         """

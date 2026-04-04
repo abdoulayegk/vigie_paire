@@ -1,4 +1,4 @@
-"""Canonical section taxonomy helpers."""
+"""Fonctions utilitaires pour la taxonomie canonique des sections."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import unicodedata
 
 
 def _normalize_text(raw: str) -> str:
+    """Normaliser le texte brut (accents, casse, caracteres speciaux)."""
     text = unicodedata.normalize("NFD", raw or "")
     text = text.encode("ascii", "ignore").decode("utf-8")
     text = text.lower()
@@ -15,6 +16,7 @@ def _normalize_text(raw: str) -> str:
 
 
 def _to_snake_case(raw: str) -> str:
+    """Convertir le texte normalise en snake_case."""
     normalized = _normalize_text(raw)
     if not normalized:
         return ""
@@ -22,7 +24,14 @@ def _to_snake_case(raw: str) -> str:
 
 
 def canonicalize_section(raw: str) -> str:
-    """Map section labels to canonical values."""
+    """Associer les libelles de section a leurs valeurs canoniques.
+
+    Args:
+        raw: Libelle brut de la section.
+
+    Returns:
+        Valeur canonique (ex. ``"capital_management"``, ``"risk_management"``).
+    """
     snake = _to_snake_case(raw)
     spaced = snake.replace("_", " ")
 

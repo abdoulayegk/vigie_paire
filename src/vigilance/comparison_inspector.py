@@ -1,23 +1,25 @@
-"""Match Inspector — pair-level GenAI verification (Stage 1.5).
+"""Match Inspector -- verification GenAI paire par paire (Etape 1.5).
 
-After Stage 1 batch matching, this module reviews each matched pair individually
-with a focused 1-on-1 GPT call. The reduced context window eliminates the
-batch-level confusion that causes hallucinated matches (e.g., GPT claiming
-"indicators match exactly" when they share 0% overlap).
+Apres l'appariement par lot de l'Etape 1, ce module reexamine chaque paire
+individuellement via un appel GPT dedie. La fenetre de contexte reduite elimine
+la confusion par lot qui cause des appariements hallucines (par ex., GPT affirmant
+que les indicateurs correspondent exactement alors qu'ils partagent 0 % de recouvrement).
 
-Rejected pairs are returned to the unresolved pool for Stage 2 recovery.
+Les paires rejetees sont retournees au bassin non resolu pour la recuperation en Etape 2.
 
-Same injection pattern as comparison_matching.py: call_openai_json is injected
-so that monkeypatching "vigilance.compare_gpt._call_openai_json" continues to work.
+Meme patron d'injection que comparison_matching.py : ``call_openai_json`` est injecte
+afin que le monkeypatching de ``vigilance.compare_gpt._call_openai_json`` continue de
+fonctionner.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import unicodedata
 from typing import Any, Callable
 
-from vigilance.models.comparison_models import MatchInspectorResponse
+from vigilance.models.comparison_models import SinglePairInspectorResponse
 
 logger = logging.getLogger(__name__)
 
@@ -49,20 +51,68 @@ DECISION RULES:
 CRITICAL ANTI-HALLUCINATION RULE:
 You MUST list the actual shared indicator labels in `shared_indicators`. Do NOT fabricate indicator names. If you cannot find real shared indicators in the provided data, the list must be empty and the verdict must be "rejected".
 
+GROUND TRUTH ANCHOR:
+The payload includes `system_computed_facts` with pre-computed metrics based on exact string matching.
+- `exact_indicator_overlap`: number of indicator labels that appear verbatim in BOTH tables.
+- `shared_indicator_names`: the actual verbatim labels found in both tables.
+- `pq_indicator_count` / `cq_indicator_count`: total indicators per side.
+- `row_count_delta`: absolute difference in row_count.
+- `title_exact_match`: whether the titles match exactly (case-insensitive).
+These numbers are OBJECTIVE TRUTH. Use them as your starting point:
+- If `exact_indicator_overlap` is 0, you may ONLY add semantic equivalents to `shared_indicators` if you can explicitly name the PQ and CQ labels that mean the same thing. Simple thematic proximity (e.g. "liquidité" appearing in both summaries) is NOT a semantic equivalence.
+- If `row_count_delta` > 10 AND `exact_indicator_overlap` < 3, this is an extremely strong rejection signal.
+- If `exact_indicator_overlap` >= 5 AND `row_count_delta` <= 3, this is a strong confirmation signal.
+
 Output must follow the response_schema strictly.
+Return a SINGLE verdict object (not a list). Do NOT include table IDs in your response — the system already knows which pair you are inspecting.
 """
+
+
+def _compute_pair_facts(prev_card: dict[str, Any], cur_card: dict[str, Any]) -> dict[str, Any]:
+    """Pre-compute objective metrics for a single matched pair."""
+    pq_inds = [
+        unicodedata.normalize("NFC", str(i).strip().lower())
+        for i in (prev_card.get("indicators") or [])
+        if str(i).strip()
+    ]
+    cq_inds = [
+        unicodedata.normalize("NFC", str(i).strip().lower())
+        for i in (cur_card.get("indicators") or [])
+        if str(i).strip()
+    ]
+    pq_set = set(pq_inds)
+    cq_set = set(cq_inds)
+    exact_overlap = sorted(pq_set & cq_set)
+
+    pq_title = str(prev_card.get("title", "")).strip().lower()
+    cq_title = str(cur_card.get("title", "")).strip().lower()
+    title_match = pq_title == cq_title and pq_title != ""
+
+    pq_rows = int(prev_card.get("row_count", 0) or 0)
+    cq_rows = int(cur_card.get("row_count", 0) or 0)
+
+    return {
+        "exact_indicator_overlap": len(exact_overlap),
+        "pq_indicator_count": len(pq_inds),
+        "cq_indicator_count": len(cq_inds),
+        "row_count_delta": abs(pq_rows - cq_rows),
+        "title_exact_match": title_match,
+        "shared_indicator_names": exact_overlap,
+    }
 
 
 def _build_single_pair_payload(
     pair_with_card: dict[str, Any],
 ) -> dict[str, Any]:
-    """Build the user prompt for a single pair to inspect."""
+    """Construit le prompt utilisateur pour une paire unique a inspecter."""
+    facts = _compute_pair_facts(pair_with_card["previous_card"], pair_with_card["current_card"])
     return {
         "pair_to_inspect": {
             "previous_table": pair_with_card["previous_card"],
             "current_table": pair_with_card["current_card"],
             "original_confidence": pair_with_card["match_confidence"],
             "original_reason": pair_with_card["reason"],
+            "system_computed_facts": facts,
         }
     }
 
@@ -76,13 +126,19 @@ def _inspect_matched_pairs(
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Inspect all Stage 1 matched pairs and return confirmed/rejected lists.
+    """Inspecte toutes les paires appariees de l'Etape 1 et retourne les listes confirmees/rejetees.
 
-    Returns a dict with:
-      - confirmed_pairs: list of original pair dicts that passed inspection
-      - rejected_pairs: list of original pair dicts that failed inspection
-      - inspector_verdicts: raw verdicts for logging/debugging
-      - inspection_stats: summary counters
+    Args:
+        matched_pairs: Paires appariees issues de l'Etape 1.
+        previous_cards: Fiches resumees des tableaux du trimestre precedent.
+        current_cards: Fiches resumees des tableaux du trimestre courant.
+        model: Identifiant du modele OpenAI.
+        call_openai_json: Fonction injectee pour l'appel OpenAI.
+        usage_recorder: Accumulateur optionnel de metriques d'utilisation.
+
+    Returns:
+        Dictionnaire contenant ``confirmed_pairs``, ``rejected_pairs``,
+        ``inspector_verdicts`` et ``inspection_stats``.
     """
     if not matched_pairs:
         return {
@@ -108,9 +164,7 @@ def _inspect_matched_pairs(
         prev_card = prev_card_map.get(prev_id)
         cur_card = cur_card_map.get(cur_id)
         if not prev_card or not cur_card:
-            logger.warning(
-                "Inspector: skipping pair %s <-> %s — card not found", prev_id, cur_id
-            )
+            logger.warning("Inspector: skipping pair %s <-> %s — card not found", prev_id, cur_id)
             continue
         pairs_with_cards.append(
             {
@@ -163,9 +217,12 @@ def _inspect_matched_pairs(
                 temperature=0.0,
                 usage_recorder=usage_recorder,
                 call_kind="match_inspector",
-                response_model=MatchInspectorResponse,
+                response_model=SinglePairInspectorResponse,
             )
-            all_verdicts.extend(result.get("verdicts", []))
+            # Scalar response — inject the IDs we already know
+            result["previous_table_id"] = prev_id
+            result["current_table_id"] = cur_id
+            all_verdicts.append(result)
         except Exception as exc:
             logger.warning(
                 "Match Inspector: API call failed for %s <-> %s (%s) — keeping as confirmed",

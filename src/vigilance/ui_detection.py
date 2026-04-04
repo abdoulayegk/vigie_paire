@@ -1,4 +1,4 @@
-"""Section detection and PDF preview helpers for Dash."""
+"""Detection de sections et generation d'apercus PDF pour Dash."""
 
 from __future__ import annotations
 
@@ -25,10 +25,12 @@ _SECTION_LABELS = {
 
 
 def _label_for(section_type: str) -> str:
+    """Retourne le libelle francais pour un type de section."""
     return _SECTION_LABELS.get(section_type, section_type.replace("_", " ").title())
 
 
 def _normalize_section_type(value: str) -> str:
+    """Normalise un libelle de section vers une cle interne snake_case."""
     raw = (value or "").strip()
     if not raw:
         return "unknown_section"
@@ -45,6 +47,7 @@ def _normalize_section_type(value: str) -> str:
 
 
 def _fallback_sections(total_pages: int) -> list[dict[str, Any]]:
+    """Genere des sections par defaut quand la detection echoue."""
     if total_pages <= 0:
         total_pages = 1
     midpoint = max(1, total_pages // 2)
@@ -67,7 +70,7 @@ def _fallback_sections(total_pages: int) -> list[dict[str, Any]]:
 def _detect_sections_core(
     pdf_path: str | Path, bank_code: str | None = None
 ) -> dict[str, Any]:
-    """Detect key sections in a PDF and return UI-friendly ranges."""
+    """Detecte les sections cles d'un PDF et retourne des plages adaptees a l'UI."""
     path = str(pdf_path or "").strip()
     if not path:
         return {"sections": _fallback_sections(1), "total_pages": 1}
@@ -112,7 +115,16 @@ def _detect_sections_core(
 def get_pdf_preview(
     pdf_path: str | Path, page: int, scale: float = 1.5
 ) -> bytes | None:
-    """Render one page as bytes for inline display."""
+    """Rend une page PDF sous forme de bytes pour affichage en ligne.
+
+    Args:
+        pdf_path: Chemin du fichier PDF.
+        page: Numero de page (1-indexe).
+        scale: Facteur d'echelle du rendu.
+
+    Returns:
+        Bytes de l'image PNG, ou ``None`` si la page est absente.
+    """
     if page is None:
         return None
     return render_pdf_page(pdf_path=pdf_path, page_number=int(page), scale=scale)
@@ -125,7 +137,17 @@ def get_section_preview_images(
     max_pages: int = 5,
     scale: float = 1.2,
 ) -> list[str]:
-    """Render section pages and return base64 PNG images for Dash."""
+    """Rend les pages d'une section et retourne les images PNG en base64 pour Dash.
+
+    Args:
+        pdf_path: Chemin du fichier PDF.
+        section: Dictionnaire de section avec ``start_page`` et ``end_page``.
+        max_pages: Nombre maximal de pages a rendre.
+        scale: Facteur d'echelle du rendu.
+
+    Returns:
+        Liste de chaines base64 encodant les images PNG.
+    """
     start = int(section.get("start_page", 1) or 1)
     end = int(section.get("end_page", start) or start)
     if end < start:

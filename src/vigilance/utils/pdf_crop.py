@@ -1,4 +1,4 @@
-"""PDF table cropping utility using PyMuPDF. Renders a cropped region to PNG."""
+"""Utilitaire de recadrage de tableaux PDF via PyMuPDF. Rend une region recadree en PNG."""
 
 from __future__ import annotations
 
@@ -18,18 +18,18 @@ def crop_table_image(
     dpi: int = 300,
     bottom_extension: float = 0.0,
 ) -> bool:
-    """
-    Crop a table region from a PDF page and save as PNG.
+    """Recadre une region de tableau d'une page PDF et sauvegarde en PNG.
 
     Args:
-        pdf_path: Path to the PDF file.
-        page_number: 1-based page number.
-        bbox_norm: Normalized bounding box [l, t, r, b] in 0..1 (left, top, right, bottom).
-        out_path: Output path for the PNG file.
-        dpi: Resolution for rendering (default 300).
+        pdf_path: Chemin du fichier PDF.
+        page_number: Numero de page (base 1).
+        bbox_norm: Bounding box normalisee [l, t, r, b] dans 0..1 (gauche, haut, droite, bas).
+        out_path: Chemin de sortie pour le fichier PNG.
+        dpi: Resolution de rendu (defaut 300).
+        bottom_extension: Extension supplementaire sous la bbox (normalisee 0..1).
 
     Returns:
-        True on success, False on failure. Does not raise exceptions.
+        ``True`` en cas de succes, ``False`` en cas d'echec. Ne leve pas d'exception.
     """
     if not _validate_bbox(bbox_norm):
         return False
@@ -70,7 +70,7 @@ def crop_table_image(
 
 
 def _validate_bbox(bbox_norm: list[float]) -> bool:
-    """Validate normalized bbox: len=4, each in [0,1], x1>x0, y1>y0."""
+    """Valide une bbox normalisee : longueur=4, chaque valeur dans [0,1], x1>x0, y1>y0."""
     if not isinstance(bbox_norm, list) or len(bbox_norm) != 4:
         return False
     try:
@@ -92,9 +92,17 @@ def _validate_bbox(bbox_norm: list[float]) -> bool:
 
 
 def bbox_sanity_profile(bbox_norm: list[float]) -> dict:
-    """
-    Compute a sanity profile for a normalized bbox [l, t, r, b].
-    Used to gate Vision: reject too small, near-full-page, or extreme aspect ratio.
+    """Calcule un profil de coherence pour une bbox normalisee [l, t, r, b].
+
+    Utilise pour filtrer la Vision : rejette les bbox trop petites, quasi pleine page
+    ou avec un ratio d'aspect extreme.
+
+    Args:
+        bbox_norm: Bounding box normalisee [l, t, r, b] dans 0..1.
+
+    Returns:
+        Dictionnaire contenant les dimensions, l'aire, le ratio d'aspect et
+        eventuellement la raison de rejet.
     """
     if not _validate_bbox(bbox_norm):
         return {
@@ -125,10 +133,16 @@ def bbox_sanity_profile(bbox_norm: list[float]) -> dict:
 def is_bbox_sane(
     bbox_norm: list[float], cfg: dict | None = None
 ) -> tuple[bool, str | None, dict]:
-    """
-    Return (sane, reject_reason, profile). If sane is False, reject_reason is set.
-    cfg may contain: bbox_min_width, bbox_min_height, bbox_min_area, bbox_max_area,
-    bbox_near_full_page_threshold (all optional; defaults used if missing).
+    """Verifie si une bbox normalisee est exploitable pour la Vision.
+
+    Args:
+        bbox_norm: Bounding box normalisee [l, t, r, b] dans 0..1.
+        cfg: Configuration optionnelle (``bbox_min_width``, ``bbox_min_height``,
+            ``bbox_min_area``, ``bbox_max_area``, ``bbox_near_full_page_threshold``).
+
+    Returns:
+        Tuple ``(sane, reject_reason, profile)``. Si ``sane`` est ``False``,
+        ``reject_reason`` indique la cause du rejet.
     """
     profile = bbox_sanity_profile(bbox_norm)
     if profile.get("reject_reason") == "invalid_bbox":
@@ -184,25 +198,24 @@ def crop_table_region_to_bytes(
     highlight_rects: list[list[float]] | None = None,
     secondary_highlight_rects: list[list[float]] | None = None,
 ) -> bytes:
-    """
-    Crop a table region from a PDF page and return PNG bytes.
+    """Recadre une region de tableau d'une page PDF et retourne les octets PNG.
 
     Args:
-        pdf_path: Path to the PDF file.
-        page_number: 1-based page number (matches render_pdf_page convention).
-        bbox_norm: Normalized bounding box [l, t, r, b] in 0..1.
-        scale: Render scale when dpi is not set (default 1.5, same as proof previews).
-        bottom_extension: Extra height below bbox (e.g. for footnotes), in normalized 0..1.
-        top_extension: Extra height above bbox (e.g. for title or missed rows), in normalized 0..1.
-        horizontal_padding: Symmetric horizontal padding (normalized 0..1), clamped to page.
-        dpi: If set, render at this resolution (72 * zoom); overrides scale. Use 300 for Vision/OCR.
-        highlight_rects: Primary highlights in magenta — the active change being validated.
-        secondary_highlight_rects: Secondary highlights in yellow — other changes in the table
-            (context only, dimmer so the active change stays visually dominant).
+        pdf_path: Chemin du fichier PDF.
+        page_number: Numero de page (base 1, meme convention que render_pdf_page).
+        bbox_norm: Bounding box normalisee [l, t, r, b] dans 0..1.
+        scale: Echelle de rendu quand dpi n'est pas defini (defaut 1.5, comme les previsualisations).
+        bottom_extension: Hauteur supplementaire sous la bbox (ex. notes de bas de page), normalisee 0..1.
+        top_extension: Hauteur supplementaire au-dessus de la bbox (ex. titre ou lignes manquees), normalisee 0..1.
+        horizontal_padding: Padding horizontal symetrique (normalise 0..1), borne a la page.
+        dpi: Si defini, rendu a cette resolution (72 * zoom) ; ecrase scale. Utiliser 300 pour Vision/OCR.
+        highlight_rects: Surlignages primaires en magenta -- le changement actif en cours de validation.
+        secondary_highlight_rects: Surlignages secondaires en jaune -- autres changements du tableau
+            (contexte seulement, plus discrets pour que le changement actif reste visuellement dominant).
 
     Returns:
-        PNG bytes of the cropped region. Returns b"" on invalid bbox, page out of range,
-        import failure, or any crop exception (no full-page fallback).
+        Octets PNG de la region recadree. Retourne ``b""`` si bbox invalide, page hors limites,
+        import echoue ou toute exception de recadrage (pas de repli pleine page).
     """
     zoom = (dpi / 72.0) if dpi is not None else scale
 
@@ -282,19 +295,18 @@ def render_page_with_bbox_highlight_to_bytes(
     bottom_extension: float = 0.0,
     dpi: int | None = None,
 ) -> bytes:
-    """
-    Render a full PDF page to PNG with a red bounding box around the table.
+    """Rend une page PDF complete en PNG avec un rectangle rouge autour du tableau.
 
     Args:
-        pdf_path: Path to the PDF file.
-        page_number: 1-based page number.
-        bbox_norm: Normalized bounding box [l, t, r, b] in 0..1.
-        scale: Render scale when dpi is not set.
-        bottom_extension: Extra height included in the red box (e.g. for footnotes), in normalized 0..1.
-        dpi: If set, render at this resolution (72 * zoom); overrides scale. Use 300 for Vision/OCR.
+        pdf_path: Chemin du fichier PDF.
+        page_number: Numero de page (base 1).
+        bbox_norm: Bounding box normalisee [l, t, r, b] dans 0..1.
+        scale: Echelle de rendu quand dpi n'est pas defini.
+        bottom_extension: Hauteur supplementaire incluse dans le rectangle rouge (normalisee 0..1).
+        dpi: Si defini, rendu a cette resolution (72 * zoom) ; ecrase scale. Utiliser 300 pour Vision/OCR.
 
     Returns:
-        PNG bytes of the full page with a red highlight box, or normal full page if bbox invalid.
+        Octets PNG de la page complete avec un rectangle rouge, ou page normale si bbox invalide.
     """
     from vigilance.extraction.pdf_preview import render_pdf_page
 
@@ -352,19 +364,18 @@ def crop_footnote_region_to_bytes(
     footnote_height: float = 0.25,
     dpi: int | None = None,
 ) -> bytes:
-    """
-    Crop only the footnote region below a table from a PDF page.
+    """Recadre uniquement la region de notes de bas de page sous un tableau.
 
     Args:
-        pdf_path: Path to the PDF file.
-        page_number: 1-based page number.
-        table_bbox_norm: Normalized bounding box of the table [l, t, r, b] in 0..1.
-        scale: Render scale when dpi is not set.
-        footnote_height: Height of footnote region as fraction of page (default 0.25 = 25%).
-        dpi: If set, render at this resolution; overrides scale.
+        pdf_path: Chemin du fichier PDF.
+        page_number: Numero de page (base 1).
+        table_bbox_norm: Bounding box normalisee du tableau [l, t, r, b] dans 0..1.
+        scale: Echelle de rendu quand dpi n'est pas defini.
+        footnote_height: Hauteur de la region de notes en fraction de page (defaut 0.25 = 25 %).
+        dpi: Si defini, rendu a cette resolution ; ecrase scale.
 
     Returns:
-        PNG bytes of the footnote region below the table.
+        Octets PNG de la region de notes sous le tableau.
     """
     from vigilance.extraction.pdf_preview import render_pdf_page
 

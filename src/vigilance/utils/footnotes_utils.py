@@ -1,4 +1,4 @@
-"""Footnote conversion helpers."""
+"""Utilitaires de conversion des notes de bas de page."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ _DICT_LIKE_RE = re.compile(r"^\s*\{.*\}\s*$", re.DOTALL)
 
 
 def _parse_possible_mapping(value: Any) -> dict[str, Any] | None:
-    """Parse a dict payload from dict or stringified-dict, else return None."""
+    """Parse un payload dict depuis un dict ou un dict sous forme de chaine, sinon retourne None."""
     if isinstance(value, dict):
         return value
     if not isinstance(value, str):
@@ -34,7 +34,7 @@ def _parse_possible_mapping(value: Any) -> dict[str, Any] | None:
 
 
 def _normalize_id_text(mapping: dict[str, Any], index: int) -> tuple[str, str]:
-    """Normalize marker/text with priority rules and anti-corruption fallback."""
+    """Normalise le marqueur/texte avec regles de priorite et repli anti-corruption."""
     key = str(
         mapping.get("id") or mapping.get("ref") or mapping.get("marker") or index
     ).strip()
@@ -55,7 +55,14 @@ def _normalize_id_text(mapping: dict[str, Any], index: int) -> tuple[str, str]:
 
 
 def count_stringified_dict_suspects(items: list[Any] | None) -> int:
-    """Count entries that look like stringified dict payloads (audit metric)."""
+    """Compte les entrees qui ressemblent a des payloads dict sous forme de chaine (metrique d'audit).
+
+    Args:
+        items: Liste d'elements a analyser, ou None.
+
+    Returns:
+        Nombre d'entrees suspectes detectees.
+    """
     suspects = 0
     for item in items or []:
         if isinstance(item, str) and _parse_possible_mapping(item) is not None:
@@ -76,13 +83,19 @@ def count_stringified_dict_suspects(items: list[Any] | None) -> int:
 def normalize_footnotes_to_canonical(
     items: list[Any] | None,
 ) -> list[FootnoteItem]:
-    """Convert footnotes from various formats to canonical list[dict] with id and text.
+    """Convertit les notes de bas de page de divers formats vers une liste canonique de dicts avec id et text.
 
-    Handles:
-    - None or empty -> []
-    - list[str] (Docling legacy) -> [{"id": "1", "text": s}, ...] preserving order
-    - list[dict] (Vision extraction) -> preserve id/marker and text; no repr strings
-    - mixed types -> normalize each item safely
+    Gere :
+    - None ou vide -> []
+    - list[str] (Docling legacy) -> [{"id": "1", "text": s}, ...] en preservant l'ordre
+    - list[dict] (extraction Vision) -> preserve id/marker et text ; pas de chaines repr
+    - types mixtes -> normalise chaque element de facon securitaire
+
+    Args:
+        items: Liste brute de notes (divers formats) ou None.
+
+    Returns:
+        Liste canonique de dicts ``{"id": ..., "text": ...}``.
     """
     result: list[FootnoteItem] = []
     for i, item in enumerate(items or [], start=1):
@@ -99,7 +112,14 @@ def normalize_footnotes_to_canonical(
 
 
 def footnotes_list_to_dict(items: list[Any]) -> dict[str, str]:
-    """Convert a list-based footnote payload to a stable dict."""
+    """Convertit un payload de notes sous forme de liste en un dict stable.
+
+    Args:
+        items: Liste brute de notes de bas de page.
+
+    Returns:
+        Dictionnaire ``{id: text}`` pour chaque note valide.
+    """
     return {
         str(item.get("id") or "").strip(): str(item.get("text") or "").strip()
         for item in normalize_footnotes_to_canonical(items)

@@ -1,4 +1,4 @@
-"""Helpers for estimating OpenAI token costs for known model routes."""
+"""Utilitaires d'estimation des couts de tokens OpenAI pour les modeles connus."""
 
 from __future__ import annotations
 
@@ -16,12 +16,19 @@ def estimate_openai_cost_usd(
     prompt_tokens: Any = 0,
     completion_tokens: Any = 0,
 ) -> float:
-    """Estimate API cost for known model names.
+    """Estime le cout API pour les noms de modeles connus.
 
-    Unknown models return ``0.0`` so observability remains safe even when the
-    active model route is not priced locally yet.
+    Les modeles inconnus retournent ``0.0`` afin que l'observabilite reste
+    sure meme lorsque le modele actif n'est pas encore tarifie localement.
+
+    Args:
+        model: Nom du modele OpenAI (ex. ``"gpt-4o"``).
+        prompt_tokens: Nombre de tokens en entree.
+        completion_tokens: Nombre de tokens en sortie.
+
+    Returns:
+        Cout estime en USD, arrondi a 6 decimales.
     """
-
     model_name = str(model or "").strip()
     pricing = _OPENAI_MODEL_PRICING_USD_PER_MILLION.get(model_name)
     if not pricing:

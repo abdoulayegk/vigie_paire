@@ -1,4 +1,4 @@
-"""Quarter pairing helpers for current-vs-previous comparisons."""
+"""Helpers d'appariement de trimestres pour les comparaisons courant-vs-precedent."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ def format_quarter_label(
     quarter: "QuarterRef | int | str | None",
     year: int | str | None = None,
 ) -> str:
-    """Return the canonical repo label like ``Q2-2025``."""
+    """Retourner le libelle canonique du depot comme ``Q2-2025``."""
     if isinstance(quarter, QuarterRef):
         return f"Q{quarter.quarter}-{quarter.year}"
 
@@ -39,22 +39,26 @@ def format_quarter_label(
 
 @dataclass(frozen=True, slots=True)
 class QuarterRef:
+    """Reference immutable a un trimestre (numero + annee)."""
+
     quarter: int
     year: int
 
     @property
     def code(self) -> str:
+        """Retourner le code canonique (ex. ``t2``)."""
         return f"t{self.quarter}"
 
     @property
     def label(self) -> str:
+        """Retourner le libelle formate (ex. ``Q2-2025``)."""
         return format_quarter_label(self)
 
 
 def parse_quarter_ref(
     value: str | None, *, year: int | str | None = None
 ) -> QuarterRef:
-    """Parse a quarter reference from formats like ``T2 2025``, ``Q2-2025`` or ``T2``."""
+    """Parser une reference de trimestre depuis des formats comme ``T2 2025``, ``Q2-2025`` ou ``T2``."""
     text = str(value or "").strip()
     if not text:
         raise ValueError("Quarter value is required.")
@@ -74,13 +78,10 @@ def parse_quarter_ref(
 
 
 def previous_comparable_quarter(current: QuarterRef) -> QuarterRef:
-    """Return the previous comparable quarter.
+    """Retourner le trimestre comparable precedent.
 
-    Business rule:
-    - T2 -> T1 (same year)
-    - T3 -> T2 (same year)
-    - T1 -> T3 (previous year)
-    - T4 -> T4 (previous year)
+    Regle metier : T2 -> T1 meme annee, T3 -> T2 meme annee,
+    T1 -> T3 annee N-1, T4 -> T4 annee N-1.
     """
     if current.quarter == 1:
         return QuarterRef(quarter=3, year=current.year - 1)
@@ -95,7 +96,7 @@ def build_quarter_context(
     year: int | str | None = None,
     previous_quarter: str | None = None,
 ) -> dict[str, Any]:
-    """Build a canonical current/previous quarter context."""
+    """Construire un contexte canonique de trimestres courant/precedent."""
     current_ref = parse_quarter_ref(current_quarter, year=year)
     previous_ref = (
         parse_quarter_ref(previous_quarter)
@@ -121,7 +122,7 @@ def build_quarter_context(
 
 
 def get_payload_quarter_context(payload: dict[str, Any] | None) -> dict[str, Any]:
-    """Best-effort quarter context from a comparison payload."""
+    """Extraire le contexte de trimestres depuis un payload de comparaison (meilleur effort)."""
     data = payload or {}
     meta = data.get("meta") if isinstance(data, dict) else {}
     if isinstance(meta, dict):
@@ -199,7 +200,7 @@ def get_payload_quarter_context(payload: dict[str, Any] | None) -> dict[str, Any
 
 
 def quarter_label_from_payload(payload: dict[str, Any] | None, role: str) -> str:
-    """Return ``current`` or ``previous`` quarter label for display."""
+    """Retourner le libelle du trimestre ``current`` ou ``previous`` pour l'affichage."""
     ctx = get_payload_quarter_context(payload)
     if role == "current":
         return str(ctx.get("current", {}).get("label") or "Trimestre courant")
