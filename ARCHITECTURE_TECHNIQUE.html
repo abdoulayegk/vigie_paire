@@ -1,0 +1,938 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture technique du système de vigilance bancaire &mdash; Documentation bank-peer-vigilance </title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/ARCHITECTURE_TECHNIQUE.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d1a510d7"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/translations.js?v=e6b791cb"></script>
+      <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+      <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}`;
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        all_mermaids.forEach((el) => {
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+        await mermaid.run();
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+const load = async () => {
+    initStyles();
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...JSON.parse(
+                    `{"startOnLoad": false}`
+                ),
+                ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...JSON.parse(
+        `{"startOnLoad": false}`
+    ),
+    ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Recherche" href="search.html" />
+    <link rel="next" title="Convention docstrings – Vigie Paire" href="CONVENTION_DOCSTRINGS.html" />
+    <link rel="prev" title="bank-peer-vigilance" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            bank-peer-vigilance
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture technique du système de vigilance bancaire</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#metadonnees-du-document">Métadonnées du document</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resume-executif">Résumé exécutif</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#principe-directeur">Principe directeur</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture-cible">Architecture cible</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#couches-du-systeme">Couches du système</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#couche-d-entree-documentaire">1. Couche d’entrée documentaire</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#couche-de-production-batch">2. Couche de production batch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#couche-d-artefacts-canoniques">3. Couche d’artefacts canoniques</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#couche-de-revue-analyste">4. Couche de revue analyste</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#contrats-de-donnees">Contrats de données</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hierarchie-de-verite">Hiérarchie de vérité</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#flux-de-bout-en-bout">Flux de bout en bout</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#etape-1-constitution-de-la-paire-documentaire">Étape 1. Constitution de la paire documentaire</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#etape-2-extraction-trimestrielle">Étape 2. Extraction trimestrielle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#etape-3-comparaison-inter-trimestres">Étape 3. Comparaison inter-trimestres</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#etape-4-revue-dans-dash">Étape 4. Revue dans Dash</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#lecture-experte-du-besoin-metier">Lecture experte du besoin métier</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pourquoi-dash-ne-doit-pas-recalculer">Pourquoi Dash ne doit pas recalculer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pourquoi-les-json-doivent-etre-le-contrat-central">Pourquoi les JSON doivent être le contrat central</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#etat-observe-dans-le-depot">État observé dans le dépôt</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mode-conforme-a-l-architecture-cible">Mode conforme à l’architecture cible</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mode-herite-ou-de-developpement">Mode hérité ou de développement</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture-recommandee">Architecture recommandée</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#decision-1-le-batch-devient-le-seul-producteur-officiel-des-artefacts-metier">Décision 1. Le batch devient le seul producteur officiel des artefacts métier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#decision-2-dash-devient-officiellement-read-only-sur-la-donnee-metier">Décision 2. Dash devient officiellement read-only sur la donnée métier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#decision-3-les-runs-deviennent-immuables">Décision 3. Les runs deviennent immuables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#decision-4-les-projections-restent-des-derives-jamais-des-sources">Décision 4. Les projections restent des dérivés, jamais des sources</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#decision-5-l-ux-doit-refleter-cette-separation">Décision 5. L’UX doit refléter cette séparation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#recommandations-de-mise-en-oeuvre">Recommandations de mise en oeuvre</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conclusion">Conclusion</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CONVENTION_DOCSTRINGS.html">Convention docstrings – Vigie Paire</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">Reference API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">bank-peer-vigilance</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Architecture technique du système de vigilance bancaire</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ARCHITECTURE_TECHNIQUE.md.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="architecture-technique-du-systeme-de-vigilance-bancaire">
+<h1>Architecture technique du système de vigilance bancaire<a class="headerlink" href="#architecture-technique-du-systeme-de-vigilance-bancaire" title="Lien vers cette rubrique"></a></h1>
+<section id="metadonnees-du-document">
+<h2>Métadonnées du document<a class="headerlink" href="#metadonnees-du-document" title="Lien vers cette rubrique"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Champ</p></th>
+<th class="head"><p>Valeur</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Titre</p></td>
+<td><p>Architecture cible du pipeline de vigilance bancaire</p></td>
+</tr>
+<tr class="row-odd"><td><p>Périmètre</p></td>
+<td><p>Extraction de tableaux réglementaires depuis des PDF, comparaison inter-trimestres, stockage d’artefacts JSON, revue analyste dans Dash</p></td>
+</tr>
+<tr class="row-even"><td><p>Positionnement</p></td>
+<td><p>Document d’architecture cible, ancré sur l’implémentation observée dans le dépôt</p></td>
+</tr>
+<tr class="row-odd"><td><p>Date</p></td>
+<td><p>Mars 2026</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="resume-executif">
+<h2>Résumé exécutif<a class="headerlink" href="#resume-executif" title="Lien vers cette rubrique"></a></h2>
+<p>Le système doit être conçu comme une chaîne batch de production d’artefacts, et non comme une application interactive qui calcule en direct pendant la revue. En pratique, la valeur métier n’est pas dans Dash lui-même. Elle est dans la fabrication, l’historisation et l’auditabilité des fichiers produits en amont : <code class="docutils literal notranslate"><span class="pre">tables.json</span></code>, <code class="docutils literal notranslate"><span class="pre">indicators.json</span></code>, <code class="docutils literal notranslate"><span class="pre">footnotes.json</span></code>, <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code> et <code class="docutils literal notranslate"><span class="pre">manifest.json</span></code>.</p>
+<p>Du point de vue d’un analyste bancaire, c’est la bonne architecture. Une analyse réglementaire doit être rejouable, traçable, stable et revue a posteriori. Si l’interface recalcule à la volée, on introduit un risque de non-reproductibilité : deux analystes peuvent ne pas revoir exactement le même résultat sur la même paire de rapports. Ce mode de fonctionnement est faible en gouvernance et faible en audit.</p>
+<p>L’architecture cible est donc la suivante :</p>
+<ol class="arabic simple">
+<li><p>Les rapports PDF sont déposés dans <code class="docutils literal notranslate"><span class="pre">Inputs/</span></code>.</p></li>
+<li><p>Le backend batch génère tous les artefacts JSON de manière déterministe dans leur emplacement de run.</p></li>
+<li><p>Dash ne fait que lire ces artefacts persistés pour la revue.</p></li>
+<li><p>La seule écriture autorisée côté Dash est l’état de revue analyste, stocké en sidecar à côté du <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code>.</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="principe-directeur">
+<h2>Principe directeur<a class="headerlink" href="#principe-directeur" title="Lien vers cette rubrique"></a></h2>
+<p>Le principe de conception doit être formulé sans ambiguïté :</p>
+<p><strong>Le système de production fabrique des preuves. Dash ne fabrique pas les preuves, il les consulte.</strong></p>
+<p>Conséquences directes :</p>
+<ul class="simple">
+<li><p>Le moteur d’extraction et le moteur de comparaison sont des composants backend hors UI.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tables.json</span></code> est la source canonique d’un trimestre.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">indicators.json</span></code> et <code class="docutils literal notranslate"><span class="pre">footnotes.json</span></code> sont des projections dérivées, utiles pour audit et inspection, mais non canoniques.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">comparison.json</span></code> est le livrable analytique officiel d’un run.</p></li>
+<li><p>Le dossier de run est l’unité de traçabilité métier.</p></li>
+<li><p>Dash est un consommateur de <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code>, pas un producteur de calculs métier.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="architecture-cible">
+<h2>Architecture cible<a class="headerlink" href="#architecture-cible" title="Lien vers cette rubrique"></a></h2>
+<pre  class="mermaid">
+        flowchart LR
+  subgraph inputs [Entrées métier]
+    PDFprev[PDF trimestre précédent]
+    PDFcur[PDF trimestre courant]
+  end
+
+  subgraph batch [Plan de production hors Dash]
+    ORCH[run_pipeline.py ou CLI dédiées]
+    LOC[Localisation des sections]
+    EXT[Extraction documentaire + Vision]
+    STOREX[Stockage extraction par trimestre]
+    CMP[Matching et diff sémantique]
+    STORERUN[Écriture du run de comparaison]
+  end
+
+  subgraph artifacts [Artefacts persistés]
+    TPREV[tables.json précédent]
+    TCUR[tables.json courant]
+    IPREV[indicators.json précédent]
+    ICUR[indicators.json courant]
+    FPREV[footnotes.json précédent]
+    FCUR[footnotes.json courant]
+    COMP[comparison.json]
+    MANI[manifest.json]
+    REVIEW[comparison.review_state.json]
+  end
+
+  subgraph ui [Dash]
+    DASH[Lecture, tri, justification, revue]
+  end
+
+  PDFprev --&gt; ORCH
+  PDFcur --&gt; ORCH
+  ORCH --&gt; LOC
+  LOC --&gt; EXT
+  EXT --&gt; STOREX
+  STOREX --&gt; TPREV
+  STOREX --&gt; TCUR
+  STOREX --&gt; IPREV
+  STOREX --&gt; ICUR
+  STOREX --&gt; FPREV
+  STOREX --&gt; FCUR
+  TPREV --&gt; CMP
+  TCUR --&gt; CMP
+  CMP --&gt; STORERUN
+  STORERUN --&gt; COMP
+  STORERUN --&gt; MANI
+  COMP --&gt; DASH
+  MANI --&gt; DASH
+  DASH --&gt; REVIEW
+    </pre><p>Ce schéma sépare volontairement :</p>
+<ul class="simple">
+<li><p>le plan de calcul ;</p></li>
+<li><p>le plan de stockage ;</p></li>
+<li><p>le plan de consultation.</p></li>
+</ul>
+<p>Cette séparation est la bonne réponse à un besoin de gouvernance bancaire, de contrôlabilité et de réduction des ambiguïtés opérationnelles.</p>
+</section>
+<hr class="docutils" />
+<section id="couches-du-systeme">
+<h2>Couches du système<a class="headerlink" href="#couches-du-systeme" title="Lien vers cette rubrique"></a></h2>
+<section id="couche-d-entree-documentaire">
+<h3>1. Couche d’entrée documentaire<a class="headerlink" href="#couche-d-entree-documentaire" title="Lien vers cette rubrique"></a></h3>
+<p>Les sources sont les PDF trimestriels déposés sous <code class="docutils literal notranslate"><span class="pre">Inputs/{BANK}/{YEAR}/</span></code>. La logique métier de référence temporelle est résolue en amont : <code class="docutils literal notranslate"><span class="pre">T2</span> <span class="pre">-&gt;</span> <span class="pre">T1</span></code>, <code class="docutils literal notranslate"><span class="pre">T3</span> <span class="pre">-&gt;</span> <span class="pre">T2</span></code>, <code class="docutils literal notranslate"><span class="pre">T1</span> <span class="pre">-&gt;</span> <span class="pre">T3</span> <span class="pre">de</span> <span class="pre">l'année</span> <span class="pre">précédente</span></code>, <code class="docutils literal notranslate"><span class="pre">T4</span> <span class="pre">-&gt;</span> <span class="pre">T4</span> <span class="pre">de</span> <span class="pre">l'année</span> <span class="pre">précédente</span></code>.</p>
+<p>Cette couche ne contient aucune intelligence d’analyse. Elle garantit seulement que le couple documentaire est correct.</p>
+</section>
+<section id="couche-de-production-batch">
+<h3>2. Couche de production batch<a class="headerlink" href="#couche-de-production-batch" title="Lien vers cette rubrique"></a></h3>
+<p>Le point d’entrée naturel est <code class="docutils literal notranslate"><span class="pre">run_pipeline.py</span></code>. Il orchestre :</p>
+<ol class="arabic simple">
+<li><p>la résolution du couple de trimestres ;</p></li>
+<li><p>la localisation des PDF ;</p></li>
+<li><p>l’extraction des deux rapports ;</p></li>
+<li><p>la génération des artefacts trimestriels ;</p></li>
+<li><p>la comparaison entre les deux extractions ;</p></li>
+<li><p>l’écriture du dossier de run final.</p></li>
+</ol>
+<p>Cette couche doit porter l’ensemble des appels LLM, des règles de matching, de la logique de diff, des métriques d’usage et de la persistance des résultats.</p>
+</section>
+<section id="couche-d-artefacts-canoniques">
+<h3>3. Couche d’artefacts canoniques<a class="headerlink" href="#couche-d-artefacts-canoniques" title="Lien vers cette rubrique"></a></h3>
+<p>Cette couche est le coeur du système. Chaque période produit un jeu d’artefacts d’extraction ; chaque paire de périodes produit un artefact de comparaison.</p>
+<p>Le point fondamental est le suivant : <strong>tout composant aval doit consommer des fichiers, jamais des objets en mémoire issus d’une session Dash non persistée</strong>.</p>
+</section>
+<section id="couche-de-revue-analyste">
+<h3>4. Couche de revue analyste<a class="headerlink" href="#couche-de-revue-analyste" title="Lien vers cette rubrique"></a></h3>
+<p>Dash doit être traité comme une couche de consultation métier :</p>
+<ul class="simple">
+<li><p>chargement d’un <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code> existant ;</p></li>
+<li><p>normalisation UI du payload si nécessaire ;</p></li>
+<li><p>affichage des changements et des preuves ;</p></li>
+<li><p>écriture éventuelle d’un fichier de revue sidecar.</p></li>
+</ul>
+<p>Autrement dit, Dash peut enrichir l’expérience de revue, mais il ne doit pas recalculer la vérité métier.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="contrats-de-donnees">
+<h2>Contrats de données<a class="headerlink" href="#contrats-de-donnees" title="Lien vers cette rubrique"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Artefact</p></th>
+<th class="head"><p>Producteur</p></th>
+<th class="head"><p>Nature</p></th>
+<th class="head"><p>Rôle</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">tables.json</span></code></p></td>
+<td><p>extraction batch</p></td>
+<td><p>canonique</p></td>
+<td><p>vérité d’extraction d’un trimestre</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">indicators.json</span></code></p></td>
+<td><p>projection depuis <code class="docutils literal notranslate"><span class="pre">tables.json</span></code></p></td>
+<td><p>dérivé</p></td>
+<td><p>audit rapide des libellés de lignes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">footnotes.json</span></code></p></td>
+<td><p>projection depuis <code class="docutils literal notranslate"><span class="pre">tables.json</span></code></p></td>
+<td><p>dérivé</p></td>
+<td><p>audit rapide des notes de bas de page</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">comparison.json</span></code></p></td>
+<td><p>moteur de comparaison batch</p></td>
+<td><p>officiel</p></td>
+<td><p>vérité de comparaison pour une paire de trimestres</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">manifest.json</span></code></p></td>
+<td><p>orchestrateur batch</p></td>
+<td><p>administratif</p></td>
+<td><p>traçabilité du run et statut de génération</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">comparison.review_state.json</span></code></p></td>
+<td><p>Dash</p></td>
+<td><p>sidecar UI</p></td>
+<td><p>état de revue analyste, sans impact sur la vérité métier</p></td>
+</tr>
+</tbody>
+</table>
+<section id="hierarchie-de-verite">
+<h3>Hiérarchie de vérité<a class="headerlink" href="#hierarchie-de-verite" title="Lien vers cette rubrique"></a></h3>
+<p>La hiérarchie doit être explicite :</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tables.json</span></code> est la vérité source de l’extraction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">comparison.json</span></code> est la vérité source de la comparaison.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">indicators.json</span></code> et <code class="docutils literal notranslate"><span class="pre">footnotes.json</span></code> ne sont que des vues dérivées.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">comparison.review_state.json</span></code> n’est qu’un état utilisateur.</p></li>
+</ol>
+<p>Cette hiérarchie est essentielle pour éviter qu’une UI, un export secondaire ou un cache local ne se mette à concurrencer la donnée officielle.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="flux-de-bout-en-bout">
+<h2>Flux de bout en bout<a class="headerlink" href="#flux-de-bout-en-bout" title="Lien vers cette rubrique"></a></h2>
+<section id="etape-1-constitution-de-la-paire-documentaire">
+<h3>Étape 1. Constitution de la paire documentaire<a class="headerlink" href="#etape-1-constitution-de-la-paire-documentaire" title="Lien vers cette rubrique"></a></h3>
+<p>Le système identifie le PDF courant et le PDF précédent selon la règle métier de référence. Cette étape relève de l’orchestration, pas de Dash.</p>
+</section>
+<section id="etape-2-extraction-trimestrielle">
+<h3>Étape 2. Extraction trimestrielle<a class="headerlink" href="#etape-2-extraction-trimestrielle" title="Lien vers cette rubrique"></a></h3>
+<p>Chaque PDF est traité isolément :</p>
+<ul class="simple">
+<li><p>localisation des sections utiles ;</p></li>
+<li><p>extraction des tableaux sur le périmètre utile ;</p></li>
+<li><p>sérialisation dans un répertoire trimestriel ;</p></li>
+<li><p>génération de <code class="docutils literal notranslate"><span class="pre">tables.json</span></code> ;</p></li>
+<li><p>dérivation de <code class="docutils literal notranslate"><span class="pre">indicators.json</span></code> et <code class="docutils literal notranslate"><span class="pre">footnotes.json</span></code>.</p></li>
+</ul>
+<p>À ce stade, chaque trimestre devient un objet autonome, stable et rechargeable sans relire le PDF.</p>
+</section>
+<section id="etape-3-comparaison-inter-trimestres">
+<h3>Étape 3. Comparaison inter-trimestres<a class="headerlink" href="#etape-3-comparaison-inter-trimestres" title="Lien vers cette rubrique"></a></h3>
+<p>Le moteur de comparaison ne doit pas relire les PDF. Il doit charger uniquement les deux <code class="docutils literal notranslate"><span class="pre">tables.json</span></code> canoniques, puis exécuter :</p>
+<ul class="simple">
+<li><p>la préparation des cartes de matching ;</p></li>
+<li><p>le matching des tableaux ;</p></li>
+<li><p>le diff sémantique paire par paire ;</p></li>
+<li><p>l’agrégation des tableaux ajoutés, retirés et modifiés ;</p></li>
+<li><p>l’écriture de <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code>.</p></li>
+</ul>
+<p>Cela garantit que la comparaison se fait à partir d’une base figée et auditée.</p>
+</section>
+<section id="etape-4-revue-dans-dash">
+<h3>Étape 4. Revue dans Dash<a class="headerlink" href="#etape-4-revue-dans-dash" title="Lien vers cette rubrique"></a></h3>
+<p>Dash charge le <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code> déjà présent sur disque, l’adapte si besoin au format canonical UI, puis présente :</p>
+<ul class="simple">
+<li><p>les tableaux appariés ;</p></li>
+<li><p>les tableaux ajoutés ou retirés ;</p></li>
+<li><p>les changements d’indicateurs ;</p></li>
+<li><p>les changements de footnotes ;</p></li>
+<li><p>les preuves et le contexte de revue.</p></li>
+</ul>
+<p>La seule persistance légitime côté Dash est un sidecar de revue analyste.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="lecture-experte-du-besoin-metier">
+<h2>Lecture experte du besoin métier<a class="headerlink" href="#lecture-experte-du-besoin-metier" title="Lien vers cette rubrique"></a></h2>
+<p>Pour un usage de vigie bancaire, la séparation batch / revue n’est pas un détail technique. C’est une exigence de qualité analytique.</p>
+<section id="pourquoi-dash-ne-doit-pas-recalculer">
+<h3>Pourquoi Dash ne doit pas recalculer<a class="headerlink" href="#pourquoi-dash-ne-doit-pas-recalculer" title="Lien vers cette rubrique"></a></h3>
+<p>Si Dash lance lui-même extraction et comparaison, on crée quatre faiblesses :</p>
+<ol class="arabic simple">
+<li><p><strong>Non-reproductibilité</strong> : un même dossier peut être recalculé à des moments différents avec un état de code, de prompt ou de modèle différent.</p></li>
+<li><p><strong>Confusion de responsabilité</strong> : l’outil de revue devient en même temps un outil de production.</p></li>
+<li><p><strong>Traçabilité affaiblie</strong> : le point officiel de production n’est plus unique.</p></li>
+<li><p><strong>Risque de modèle</strong> : l’utilisateur peut croire qu’il lit un résultat stable alors qu’il visualise en fait une exécution opportuniste.</p></li>
+</ol>
+<p>Dans un contexte de lecture de rapports réglementaires, c’est une mauvaise architecture de contrôle.</p>
+</section>
+<section id="pourquoi-les-json-doivent-etre-le-contrat-central">
+<h3>Pourquoi les JSON doivent être le contrat central<a class="headerlink" href="#pourquoi-les-json-doivent-etre-le-contrat-central" title="Lien vers cette rubrique"></a></h3>
+<p>Le bon niveau de vérité n’est ni la session Python, ni l’état navigateur, ni les structures Dash. Le bon niveau de vérité est le fichier persisté. C’est lui qui supporte :</p>
+<ul class="simple">
+<li><p>l’audit ;</p></li>
+<li><p>la preuve ;</p></li>
+<li><p>le rechargement ;</p></li>
+<li><p>la comparaison de runs ;</p></li>
+<li><p>la reprise après incident ;</p></li>
+<li><p>l’industrialisation nocturne.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="etat-observe-dans-le-depot">
+<h2>État observé dans le dépôt<a class="headerlink" href="#etat-observe-dans-le-depot" title="Lien vers cette rubrique"></a></h2>
+<p>À la lecture du code actuel, on observe deux modes de fonctionnement coexistants.</p>
+<section id="mode-conforme-a-l-architecture-cible">
+<h3>Mode conforme à l’architecture cible<a class="headerlink" href="#mode-conforme-a-l-architecture-cible" title="Lien vers cette rubrique"></a></h3>
+<p>Le dépôt possède déjà les briques correctes pour un modèle batch + lecture seule :</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">run_pipeline.py</span></code> orchestre l’extraction, la comparaison et la génération du run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/vigilance/cli/run_compare_gpt4o.py</span></code> consomme des artefacts déjà extraits.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/app/ui_io.py</span></code> sait lister et charger des <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code> déjà présents dans <code class="docutils literal notranslate"><span class="pre">outputs/comparisons/</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/app/review_storage.py</span></code> persiste un état de revue sidecar à côté du fichier de comparaison.</p></li>
+</ul>
+</section>
+<section id="mode-herite-ou-de-developpement">
+<h3>Mode hérité ou de développement<a class="headerlink" href="#mode-herite-ou-de-developpement" title="Lien vers cette rubrique"></a></h3>
+<p>Le code Dash contient encore une capacité de lancer extraction et comparaison depuis l’interface, via <code class="docutils literal notranslate"><span class="pre">run_comparison_with_sections</span></code>.</p>
+<p>Cette capacité peut être utile en développement, en démonstration ou en diagnostic. En revanche, elle ne doit pas être considérée comme le mode d’exploitation cible si l’objectif est bien :</p>
+<p><strong>générer tous les JSON en amont, puis laisser Dash lire uniquement les fichiers enregistrés.</strong></p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="architecture-recommandee">
+<h2>Architecture recommandée<a class="headerlink" href="#architecture-recommandee" title="Lien vers cette rubrique"></a></h2>
+<section id="decision-1-le-batch-devient-le-seul-producteur-officiel-des-artefacts-metier">
+<h3>Décision 1. Le batch devient le seul producteur officiel des artefacts métier<a class="headerlink" href="#decision-1-le-batch-devient-le-seul-producteur-officiel-des-artefacts-metier" title="Lien vers cette rubrique"></a></h3>
+<p>Tous les appels d’extraction et de comparaison doivent partir de <code class="docutils literal notranslate"><span class="pre">run_pipeline.py</span></code> ou de CLIs backend équivalentes.</p>
+</section>
+<section id="decision-2-dash-devient-officiellement-read-only-sur-la-donnee-metier">
+<h3>Décision 2. Dash devient officiellement read-only sur la donnée métier<a class="headerlink" href="#decision-2-dash-devient-officiellement-read-only-sur-la-donnee-metier" title="Lien vers cette rubrique"></a></h3>
+<p>Dash peut charger, filtrer, annoter, exporter et sauvegarder un état de revue. Dash ne doit pas produire <code class="docutils literal notranslate"><span class="pre">tables.json</span></code>, <code class="docutils literal notranslate"><span class="pre">indicators.json</span></code>, <code class="docutils literal notranslate"><span class="pre">footnotes.json</span></code> ou <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code> en mode production.</p>
+</section>
+<section id="decision-3-les-runs-deviennent-immuables">
+<h3>Décision 3. Les runs deviennent immuables<a class="headerlink" href="#decision-3-les-runs-deviennent-immuables" title="Lien vers cette rubrique"></a></h3>
+<p>Un run doit être interprétable comme une photographie complète d’une analyse à date, avec son <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code>, ses artefacts trimestriels et son <code class="docutils literal notranslate"><span class="pre">manifest.json</span></code>.</p>
+</section>
+<section id="decision-4-les-projections-restent-des-derives-jamais-des-sources">
+<h3>Décision 4. Les projections restent des dérivés, jamais des sources<a class="headerlink" href="#decision-4-les-projections-restent-des-derives-jamais-des-sources" title="Lien vers cette rubrique"></a></h3>
+<p>Tout recalcul d’indicateurs ou de footnotes doit repartir de <code class="docutils literal notranslate"><span class="pre">tables.json</span></code>, pas d’une version enrichie côté UI.</p>
+</section>
+<section id="decision-5-l-ux-doit-refleter-cette-separation">
+<h3>Décision 5. L’UX doit refléter cette séparation<a class="headerlink" href="#decision-5-l-ux-doit-refleter-cette-separation" title="Lien vers cette rubrique"></a></h3>
+<p>Dans l’interface cible, le premier geste utilisateur n’est pas d’uploader deux PDF pour lancer un traitement. Le premier geste est de choisir un run déjà produit et de l’examiner.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="recommandations-de-mise-en-oeuvre">
+<h2>Recommandations de mise en oeuvre<a class="headerlink" href="#recommandations-de-mise-en-oeuvre" title="Lien vers cette rubrique"></a></h2>
+<ol class="arabic simple">
+<li><p>Conserver <code class="docutils literal notranslate"><span class="pre">run_pipeline.py</span></code> comme point d’entrée principal de production.</p></li>
+<li><p>Considérer les capacités de calcul dans Dash comme un mode debug et les masquer en production.</p></li>
+<li><p>Renforcer le dossier de run comme unité d’audit complète.</p></li>
+<li><p>Afficher dans Dash les métadonnées de run, de modèle et d’horodatage pour chaque <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code> chargé.</p></li>
+<li><p>Interdire toute ambiguïté sur la source affichée : la vue doit toujours mentionner le chemin ou l’identifiant du run lu.</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Lien vers cette rubrique"></a></h2>
+<p>L’architecture correcte pour ce système n’est pas une architecture Dash centric. C’est une architecture backend centric, artifact first, review second.</p>
+<p>Le backend génère la matière analytique. Le stockage la fige. Dash la rend exploitable pour l’analyste. C’est cette séparation qui donne au système sa crédibilité opérationnelle, sa robustesse de contrôle et sa valeur dans un contexte de vigie bancaire.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="index.html" class="btn btn-neutral float-left" title="bank-peer-vigilance" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="CONVENTION_DOCSTRINGS.html" class="btn btn-neutral float-right" title="Convention docstrings – Vigie Paire" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2026.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

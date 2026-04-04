@@ -1,0 +1,525 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vigilance.cli package &mdash; Documentation bank-peer-vigilance </title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/api/vigilance.cli.html" />
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d1a510d7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=e6b791cb"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+    <link rel="next" title="vigilance.config package" href="vigilance.config.html" />
+    <link rel="prev" title="vigilance package" href="vigilance.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            bank-peer-vigilance
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique du système de vigilance bancaire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention docstrings – Vigie Paire</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">vigilance</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vigilance.html">vigilance package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vigilance.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">vigilance.compare_gpt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">vigilance.comparison_analyst module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">vigilance.comparison_canonical module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">vigilance.comparison_devil_advocate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">vigilance.comparison_diff_gpt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">vigilance.comparison_inspector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">vigilance.comparison_io module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">vigilance.comparison_matching module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">vigilance.comparison_metrics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">vigilance.comparison_noise_filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">vigilance.comparison_runner module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">vigilance.comparison_visual_sanity module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">vigilance.extraction_storage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">vigilance.genai_summary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">vigilance.genai_triage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">vigilance.quarter_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">vigilance.review_adapters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">vigilance.review_export module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">vigilance.review_models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">vigilance.review_models_v2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">vigilance.review_priority module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">vigilance.review_queue_normalizer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">vigilance.review_state module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">vigilance.review_storage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">vigilance.ui_config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">vigilance.ui_detection module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">vigilance.ui_indicators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">vigilance.ui_io module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">bank-peer-vigilance</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Reference API</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">vigilance</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.html">vigilance package</a></li>
+      <li class="breadcrumb-item active">vigilance.cli package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/vigilance.cli.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="vigilance-cli-package">
+<h1>vigilance.cli package<a class="headerlink" href="#vigilance-cli-package" title="Lien vers cette rubrique"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Lien vers cette rubrique"></a></h2>
+</section>
+<section id="module-vigilance.cli.output_builder">
+<span id="vigilance-cli-output-builder-module"></span><h2>vigilance.cli.output_builder module<a class="headerlink" href="#module-vigilance.cli.output_builder" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires de construction de l’arborescence de sortie standardisee.</p>
+<p>Cree l’arbre de repertoires et ecrit les fichiers d’audit fractionnes
+(indicators.json, footnotes.json) depuis un tables.json maitre.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.output_builder.build_run_dir">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.output_builder.</span></span><span class="sig-name descname"><span class="pre">build_run_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_previous</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.output_builder.build_run_dir" title="Lien vers cette définition"></a></dt>
+<dd><p>Creer et retourner le repertoire d’execution (Run).</p>
+<p>Arborescence:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">out_root</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">BANK</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">YEAR</span><span class="p">}{</span><span class="n">Q_CUR</span><span class="p">}</span><span class="n">_vs_</span><span class="p">{</span><span class="n">YEAR</span><span class="p">}{</span><span class="n">Q_PREV</span><span class="p">}</span><span class="o">/</span>
+    <span class="p">{</span><span class="n">Q_CUR</span><span class="p">}</span><span class="o">-</span><span class="p">{</span><span class="n">YEAR_CUR</span><span class="p">}</span><span class="o">/</span>
+    <span class="p">{</span><span class="n">Q_PREV</span><span class="p">}</span><span class="o">-</span><span class="p">{</span><span class="n">YEAR_PREV</span><span class="p">}</span><span class="o">/</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.output_builder.split_audit_files">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.output_builder.</span></span><span class="sig-name descname"><span class="pre">split_audit_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tables_json_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.output_builder.split_audit_files" title="Lien vers cette définition"></a></dt>
+<dd><p>Lire un <code class="docutils literal notranslate"><span class="pre">tables.json</span></code> et le fractionner en fichiers d’audit separes.</p>
+<p>Produit :
+- <code class="docutils literal notranslate"><span class="pre">indicators.json</span></code> – liste plate des indicateurs par table
+- <code class="docutils literal notranslate"><span class="pre">footnotes.json</span></code> – liste plate des notes de bas de page par table</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>]</span></p>
+</dd>
+<dt class="field-even">Renvoie<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionnaire associant le type de fichier au chemin ecrit.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.output_builder.write_run_manifest">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.output_builder.</span></span><span class="sig-name descname"><span class="pre">write_run_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'completed'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.output_builder.write_run_manifest" title="Lien vers cette définition"></a></dt>
+<dd><p>Ecrire un fichier <code class="docutils literal notranslate"><span class="pre">manifest.json</span></code> a la racine du repertoire d’execution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.cli.quarter_logic">
+<span id="vigilance-cli-quarter-logic-module"></span><h2>vigilance.cli.quarter_logic module<a class="headerlink" href="#module-vigilance.cli.quarter_logic" title="Lien vers cette rubrique"></a></h2>
+<p>Deduction de trimestres et decouverte de PDF pour le pipeline batch.</p>
+<p>Reutilise le <code class="docutils literal notranslate"><span class="pre">resolve_reference_period</span></code> canonique de compare_gpt mais ajoute
+des helpers de parcours de repertoire qui localisent les paires de PDF dans
+l’arborescence standardisee <code class="docutils literal notranslate"><span class="pre">Inputs/{BANK}/{YEAR}/</span></code> ou l’ancienne
+arborescence <code class="docutils literal notranslate"><span class="pre">data/{bank}/</span></code>.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.quarter_logic.find_pdf_pair">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.quarter_logic.</span></span><span class="sig-name descname"><span class="pre">find_pdf_pair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legacy_data_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.quarter_logic.find_pdf_pair" title="Lien vers cette définition"></a></dt>
+<dd><p>Localiser les fichiers PDF du trimestre courant et precedent.</p>
+<p>Ordre de recherche par trimestre :
+1. <code class="docutils literal notranslate"><span class="pre">inputs_root</span> <span class="pre">/</span> <span class="pre">BANK</span> <span class="pre">/</span> <span class="pre">YEAR</span> <span class="pre">/</span> <span class="pre">*.pdf</span></code> (nouvelle arborescence Inputs/)
+2. <code class="docutils literal notranslate"><span class="pre">legacy_data_root</span> <span class="pre">/</span> <span class="pre">BANK</span> <span class="pre">/</span> <span class="pre">*.pdf</span></code> (ancienne arborescence data/)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>]</span></p>
+</dd>
+<dt class="field-even">Renvoie<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(previous_pdf,</span> <span class="pre">current_pdf)</span></code>.</p>
+</dd>
+<dt class="field-odd">Lève<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>FileNotFoundError</strong> – Si l’un des deux fichiers est introuvable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.quarter_logic.normalize_quarter">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.quarter_logic.</span></span><span class="sig-name descname"><span class="pre">normalize_quarter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.quarter_logic.normalize_quarter" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourner la forme canonique <code class="docutils literal notranslate"><span class="pre">t1</span></code>..``t4``.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.quarter_logic.resolve_previous_quarter">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.quarter_logic.</span></span><span class="sig-name descname"><span class="pre">resolve_previous_quarter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.quarter_logic.resolve_previous_quarter" title="Lien vers cette définition"></a></dt>
+<dd><p>Deduire le trimestre precedent a partir du trimestre courant.</p>
+<p>Regles de resolution : T2 -&gt; T1 meme annee, T3 -&gt; T2 meme annee,
+T1 -&gt; T3 annee N-1, T4 -&gt; T3 meme annee.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.cli.run_compare_gpt4o">
+<span id="vigilance-cli-run-compare-gpt4o-module"></span><h2>vigilance.cli.run_compare_gpt4o module<a class="headerlink" href="#module-vigilance.cli.run_compare_gpt4o" title="Lien vers cette rubrique"></a></h2>
+<p>Point d’entree CLI pour la comparaison GPT-4o sur les artefacts d’extraction canoniques.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.run_compare_gpt4o.build_parser">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.run_compare_gpt4o.</span></span><span class="sig-name descname"><span class="pre">build_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.run_compare_gpt4o.build_parser" title="Lien vers cette définition"></a></dt>
+<dd><p>Construire le parseur d’arguments pour la comparaison GPT-4o.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArgumentParser</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.run_compare_gpt4o.main">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.run_compare_gpt4o.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.run_compare_gpt4o.main" title="Lien vers cette définition"></a></dt>
+<dd><p>Executer la comparaison GPT-4o entre deux repertoires d’extraction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.cli.run_extract_report">
+<span id="vigilance-cli-run-extract-report-module"></span><h2>vigilance.cli.run_extract_report module<a class="headerlink" href="#module-vigilance.cli.run_extract_report" title="Lien vers cette rubrique"></a></h2>
+<p>CLI minimal pour l’extraction ciblee par section des artefacts de rapport.</p>
+<p>Ce point d’entree preserve le pipeline d’extraction existant :
+- detecter les sections pertinentes dans le PDF
+- extraire les tableaux uniquement sur les plages de pages ciblees
+- ecrire les artefacts compacts <code class="docutils literal notranslate"><span class="pre">tables.json</span></code>, <code class="docutils literal notranslate"><span class="pre">indicators.json</span></code> et <code class="docutils literal notranslate"><span class="pre">footnotes.json</span></code></p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.run_extract_report.build_parser">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.run_extract_report.</span></span><span class="sig-name descname"><span class="pre">build_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.run_extract_report.build_parser" title="Lien vers cette définition"></a></dt>
+<dd><p>Construire le parseur d’arguments pour l’extraction de rapport.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArgumentParser</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.run_extract_report.main">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.run_extract_report.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.run_extract_report.main" title="Lien vers cette définition"></a></dt>
+<dd><p>Detecter les sections d’un PDF et extraire les artefacts compacts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.cli.run_ranges">
+<span id="vigilance-cli-run-ranges-module"></span><h2>vigilance.cli.run_ranges module<a class="headerlink" href="#module-vigilance.cli.run_ranges" title="Lien vers cette rubrique"></a></h2>
+<p>Façade CLI pour la détection des plages de sections dans un PDF bancaire.</p>
+<p>Ce module constitue la première étape du pipeline d’extraction en ligne de
+commande. Il analyse un rapport PDF pour identifier les pages correspondant
+à chaque section réglementaire (gestion du capital, gestion des risques, etc.)
+et écrit le résultat dans un fichier <code class="docutils literal notranslate"><span class="pre">section_ranges.json</span></code> canonique.</p>
+<p>Ce fichier JSON est ensuite utilisé comme entrée par <code class="docutils literal notranslate"><span class="pre">run_tables.py</span></code> pour
+cibler l’extraction Docling sur les bonnes pages.</p>
+<section id="usage-typique">
+<h3>Usage typique<a class="headerlink" href="#usage-typique" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>vigilance.cli.run_ranges<span class="w"> </span><span class="se">\\</span>
+<span class="w">    </span>--bank<span class="w"> </span>rbc<span class="w"> </span><span class="se">\\</span>
+<span class="w">    </span>--pdf<span class="w"> </span>/data/rbc_q1_2025.pdf<span class="w"> </span><span class="se">\\</span>
+<span class="w">    </span>--quarter<span class="w"> </span>t1-2025<span class="w"> </span><span class="se">\\</span>
+<span class="w">    </span>--out_root<span class="w"> </span>outputs/runs
+</pre></div>
+</div>
+<p>Le chemin du fichier JSON produit est affiché sur la sortie standard.</p>
+</section>
+<section id="pipeline-complet">
+<h3>Pipeline complet<a class="headerlink" href="#pipeline-complet" title="Lien vers cette rubrique"></a></h3>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">run_ranges</span></code> → <code class="docutils literal notranslate"><span class="pre">section_ranges.json</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run_tables</span></code> (utilise <code class="docutils literal notranslate"><span class="pre">section_ranges.json</span></code>) → <code class="docutils literal notranslate"><span class="pre">tables_docling.json</span></code></p></li>
+</ol>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.run_ranges.build_parser">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.run_ranges.</span></span><span class="sig-name descname"><span class="pre">build_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.run_ranges.build_parser" title="Lien vers cette définition"></a></dt>
+<dd><p>Construire le parseur CLI de détection des plages de sections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArgumentParser</span></code></span></p>
+</dd>
+</dl>
+<section id="arguments-obligatoires">
+<h3>Arguments obligatoires<a class="headerlink" href="#arguments-obligatoires" title="Lien vers cette rubrique"></a></h3>
+<dl class="simple">
+<dt>–bank:</dt><dd><p>Code identifiant la banque (ex. <code class="docutils literal notranslate"><span class="pre">rbc</span></code>).</p>
+</dd>
+<dt>–pdf:</dt><dd><p>Chemin vers le fichier PDF à analyser.</p>
+</dd>
+<dt>–quarter:</dt><dd><p>Libellé du trimestre (ex. <code class="docutils literal notranslate"><span class="pre">t1-2025</span></code>).</p>
+</dd>
+</dl>
+</section>
+<section id="arguments-optionnels">
+<h3>Arguments optionnels<a class="headerlink" href="#arguments-optionnels" title="Lien vers cette rubrique"></a></h3>
+<dl class="simple">
+<dt>–config:</dt><dd><p>Chemin vers le fichier YAML de configuration. Défaut :
+<code class="docutils literal notranslate"><span class="pre">configs/bank_profiles.yaml</span></code>.</p>
+</dd>
+<dt>–out_root:</dt><dd><p>Répertoire racine pour les fichiers de sortie. Le fichier JSON sera
+écrit dans <code class="docutils literal notranslate"><span class="pre">&lt;out_root&gt;/&lt;quarter&gt;/&lt;bank&gt;/section_ranges.json</span></code>.
+Défaut : <code class="docutils literal notranslate"><span class="pre">outputs/runs</span></code>.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.run_ranges.main">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.run_ranges.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.run_ranges.main" title="Lien vers cette définition"></a></dt>
+<dd><p>Détecter les sections d’un PDF puis écrire le JSON canonique des plages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+<section id="etapes-executees">
+<h3>Étapes exécutées<a class="headerlink" href="#etapes-executees" title="Lien vers cette rubrique"></a></h3>
+<ol class="arabic simple">
+<li><p>Chargement et validation de la configuration YAML (banque reconnue).</p></li>
+<li><p>Import du backend de détection (<code class="docutils literal notranslate"><span class="pre">locate_sections_in_pdf</span></code>). Lève
+<code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code> si le module d’extraction n’est pas disponible
+dans l’environnement courant.</p></li>
+<li><p>Exécution de la détection de sections sur le PDF.</p></li>
+<li><p>Conversion du résultat brut en <code class="docutils literal notranslate"><span class="pre">SectionRangesResult</span></code> canonique.</p></li>
+<li><p>Écriture du fichier <code class="docutils literal notranslate"><span class="pre">section_ranges.json</span></code> dans
+<code class="docutils literal notranslate"><span class="pre">&lt;out_root&gt;/&lt;quarter&gt;/&lt;bank&gt;/</span></code>.</p></li>
+<li><p>Affichage du chemin du fichier produit sur la sortie standard.</p></li>
+</ol>
+</section>
+<section id="parametres">
+<h3>Paramètres<a class="headerlink" href="#parametres" title="Lien vers cette rubrique"></a></h3>
+<dl class="simple">
+<dt>argv:</dt><dd><p>Liste d’arguments CLI. Si <code class="docutils literal notranslate"><span class="pre">None</span></code>, utilise <code class="docutils literal notranslate"><span class="pre">sys.argv[1:]</span></code>.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.cli.run_tables">
+<span id="vigilance-cli-run-tables-module"></span><h2>vigilance.cli.run_tables module<a class="headerlink" href="#module-vigilance.cli.run_tables" title="Lien vers cette rubrique"></a></h2>
+<p>Façade CLI pour l’extraction de tableaux sur des plages de pages pré-détectées.</p>
+<p>Ce module constitue la deuxième étape du pipeline d’extraction en ligne de
+commande. Il prend en entrée un fichier <code class="docutils literal notranslate"><span class="pre">section_ranges.json</span></code> (produit par
+<code class="docutils literal notranslate"><span class="pre">run_ranges.py</span></code>) et extrait les tableaux financiers des pages correspondantes
+via Docling (et optionnellement GPT-4o Vision).</p>
+<p>Les tableaux extraits sont convertis en <code class="docutils literal notranslate"><span class="pre">TableArtifact</span></code> canoniques et écrits
+dans un fichier <code class="docutils literal notranslate"><span class="pre">tables_docling.json</span></code>. Avec <code class="docutils literal notranslate"><span class="pre">--save-extraction</span></code>, les memes
+artefacts que l’app (<code class="docutils literal notranslate"><span class="pre">tables.json</span></code>, <code class="docutils literal notranslate"><span class="pre">indicators.json</span></code>, <code class="docutils literal notranslate"><span class="pre">footnotes.json</span></code>,
+etc.) sont aussi ecrits sous <code class="docutils literal notranslate"><span class="pre">--extraction-root</span></code>. Optionnellement, un fichier
+<code class="docutils literal notranslate"><span class="pre">vigie_extract_v1.json</span></code> peut egalement etre produit (format d’export enrichi).</p>
+<section id="id1">
+<h3>Usage typique<a class="headerlink" href="#id1" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>vigilance.cli.run_tables<span class="w"> </span><span class="se">\\</span>
+<span class="w">    </span>--bank<span class="w"> </span>rbc<span class="w"> </span><span class="se">\\</span>
+<span class="w">    </span>--pdf<span class="w"> </span>/data/rbc_q1_2025.pdf<span class="w"> </span><span class="se">\\</span>
+<span class="w">    </span>--quarter<span class="w"> </span>t1-2025<span class="w"> </span><span class="se">\\</span>
+<span class="w">    </span>--ranges_json<span class="w"> </span>outputs/runs/t1-2025/rbc/section_ranges.json<span class="w"> </span><span class="se">\\</span>
+<span class="w">    </span>--out_root<span class="w"> </span>outputs/runs<span class="w"> </span><span class="se">\\</span>
+<span class="w">    </span>--vigie_extract
+</pre></div>
+</div>
+<p>Le chemin du fichier JSON produit est affiché sur la sortie standard.</p>
+</section>
+<section id="formats-json-de-plages-acceptes">
+<h3>Formats JSON de plages acceptés<a class="headerlink" href="#formats-json-de-plages-acceptes" title="Lien vers cette rubrique"></a></h3>
+<p>La fonction <code class="docutils literal notranslate"><span class="pre">_load_section_ranges</span></code> reconnaît trois formats différents pour
+le fichier <code class="docutils literal notranslate"><span class="pre">section_ranges.json</span></code> (rétrocompatibilité) :
+- Clé <code class="docutils literal notranslate"><span class="pre">section_ranges</span></code> avec champs <code class="docutils literal notranslate"><span class="pre">section</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">end</span></code>.
+- Clé <code class="docutils literal notranslate"><span class="pre">ranges</span></code> avec champs <code class="docutils literal notranslate"><span class="pre">section</span></code>, <code class="docutils literal notranslate"><span class="pre">start_page_pdf</span></code>, <code class="docutils literal notranslate"><span class="pre">end_page_pdf</span></code>.
+- Clé <code class="docutils literal notranslate"><span class="pre">sections</span></code> (dictionnaire) avec champs <code class="docutils literal notranslate"><span class="pre">section</span></code>, <code class="docutils literal notranslate"><span class="pre">start_page</span></code>, <code class="docutils literal notranslate"><span class="pre">end_page</span></code>.</p>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.run_tables.build_parser">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.run_tables.</span></span><span class="sig-name descname"><span class="pre">build_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.run_tables.build_parser" title="Lien vers cette définition"></a></dt>
+<dd><p>Construire le parseur CLI d’extraction des tableaux sur plages ciblées.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArgumentParser</span></code></span></p>
+</dd>
+</dl>
+<section id="id2">
+<h3>Arguments obligatoires<a class="headerlink" href="#id2" title="Lien vers cette rubrique"></a></h3>
+<dl class="simple">
+<dt>–bank:</dt><dd><p>Code identifiant la banque (ex. <code class="docutils literal notranslate"><span class="pre">rbc</span></code>).</p>
+</dd>
+<dt>–pdf:</dt><dd><p>Chemin vers le fichier PDF à extraire.</p>
+</dd>
+<dt>–quarter:</dt><dd><p>Libellé du trimestre (ex. <code class="docutils literal notranslate"><span class="pre">t1-2025</span></code>).</p>
+</dd>
+<dt>–ranges_json:</dt><dd><p>Chemin vers le fichier <code class="docutils literal notranslate"><span class="pre">section_ranges.json</span></code> produit par <code class="docutils literal notranslate"><span class="pre">run_ranges</span></code>.</p>
+</dd>
+</dl>
+</section>
+<section id="id3">
+<h3>Arguments optionnels<a class="headerlink" href="#id3" title="Lien vers cette rubrique"></a></h3>
+<dl class="simple">
+<dt>–config:</dt><dd><p>Chemin vers le fichier YAML de configuration. Défaut :
+<code class="docutils literal notranslate"><span class="pre">configs/bank_profiles.yaml</span></code>.</p>
+</dd>
+<dt>–out_root:</dt><dd><p>Répertoire racine pour les fichiers de sortie. Défaut : <code class="docutils literal notranslate"><span class="pre">outputs/runs</span></code>.</p>
+</dd>
+<dt>–vigie_extract:</dt><dd><p>Si présent, produit également un fichier <code class="docutils literal notranslate"><span class="pre">vigie_extract_v1.json</span></code> en
+plus du fichier <code class="docutils literal notranslate"><span class="pre">tables_docling.json</span></code>.</p>
+</dd>
+<dt>–language:</dt><dd><p>Code de langue pour le fichier <code class="docutils literal notranslate"><span class="pre">vigie_extract_v1</span></code> (défaut : <code class="docutils literal notranslate"><span class="pre">fr</span></code>).</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.cli.run_tables.main">
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.run_tables.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.run_tables.main" title="Lien vers cette définition"></a></dt>
+<dd><p>Extraire les tableaux sur les plages fournies puis écrire les artefacts JSON.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+<section id="id4">
+<h3>Étapes exécutées<a class="headerlink" href="#id4" title="Lien vers cette rubrique"></a></h3>
+<ol class="arabic simple">
+<li><p>Chargement et validation de la configuration YAML.</p></li>
+<li><p>Chargement des plages de sections depuis <code class="docutils literal notranslate"><span class="pre">--ranges_json</span></code>.</p></li>
+<li><p>Import du backend Docling (<code class="docutils literal notranslate"><span class="pre">extract_tables_docling_by_sections</span></code>). Lève
+<code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code> si Docling n’est pas disponible.</p></li>
+<li><p>Extraction des tableaux sur les plages de pages ciblées.</p></li>
+<li><p>Conversion des tables brutes en <code class="docutils literal notranslate"><span class="pre">TableArtifact</span></code> canoniques.</p></li>
+<li><p>Écriture du fichier <code class="docutils literal notranslate"><span class="pre">tables_docling.json</span></code> dans
+<code class="docutils literal notranslate"><span class="pre">&lt;out_root&gt;/&lt;quarter&gt;/&lt;bank&gt;/</span></code>.</p></li>
+<li><p>Si <code class="docutils literal notranslate"><span class="pre">--vigie_extract</span></code> est activé, production d’un fichier
+<code class="docutils literal notranslate"><span class="pre">vigie_extract_v1.json</span></code> supplémentaire.</p></li>
+<li><p>Affichage du/des chemin(s) des fichiers produits sur la sortie standard.</p></li>
+</ol>
+</section>
+<section id="id5">
+<h3>Paramètres<a class="headerlink" href="#id5" title="Lien vers cette rubrique"></a></h3>
+<dl class="simple">
+<dt>argv:</dt><dd><p>Liste d’arguments CLI. Si <code class="docutils literal notranslate"><span class="pre">None</span></code>, utilise <code class="docutils literal notranslate"><span class="pre">sys.argv[1:]</span></code>.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.cli">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vigilance.cli" title="Lien vers cette rubrique"></a></h2>
+<p>Points d’entree CLI pour vigilance.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="vigilance.html" class="btn btn-neutral float-left" title="vigilance package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigilance.config.html" class="btn btn-neutral float-right" title="vigilance.config package" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2026.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

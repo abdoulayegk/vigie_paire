@@ -1,0 +1,442 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vigilance.dash_app.services package &mdash; Documentation bank-peer-vigilance </title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/api/vigilance.dash_app.services.html" />
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d1a510d7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=e6b791cb"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+    <link rel="next" title="vigilance.extract package" href="vigilance.extract.html" />
+    <link rel="prev" title="vigilance.dash_app.layouts package" href="vigilance.dash_app.layouts.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            bank-peer-vigilance
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique du système de vigilance bancaire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention docstrings – Vigie Paire</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">vigilance</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vigilance.html">vigilance package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vigilance.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">vigilance.compare_gpt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">vigilance.comparison_analyst module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">vigilance.comparison_canonical module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">vigilance.comparison_devil_advocate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">vigilance.comparison_diff_gpt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">vigilance.comparison_inspector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">vigilance.comparison_io module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">vigilance.comparison_matching module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">vigilance.comparison_metrics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">vigilance.comparison_noise_filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">vigilance.comparison_runner module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">vigilance.comparison_visual_sanity module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">vigilance.extraction_storage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">vigilance.genai_summary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">vigilance.genai_triage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">vigilance.quarter_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">vigilance.review_adapters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">vigilance.review_export module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">vigilance.review_models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">vigilance.review_models_v2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">vigilance.review_priority module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">vigilance.review_queue_normalizer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">vigilance.review_state module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">vigilance.review_storage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">vigilance.ui_config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">vigilance.ui_detection module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">vigilance.ui_indicators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">vigilance.ui_io module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">bank-peer-vigilance</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Reference API</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">vigilance</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.html">vigilance package</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.dash_app.html">vigilance.dash_app package</a></li>
+      <li class="breadcrumb-item active">vigilance.dash_app.services package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/vigilance.dash_app.services.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="vigilance-dash-app-services-package">
+<h1>vigilance.dash_app.services package<a class="headerlink" href="#vigilance-dash-app-services-package" title="Lien vers cette rubrique"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Lien vers cette rubrique"></a></h2>
+</section>
+<section id="module-vigilance.dash_app.services.comparison_context">
+<span id="vigilance-dash-app-services-comparison-context-module"></span><h2>vigilance.dash_app.services.comparison_context module<a class="headerlink" href="#module-vigilance.dash_app.services.comparison_context" title="Lien vers cette rubrique"></a></h2>
+<p>Fonctions utilitaires de contexte pour les callbacks Dash.</p>
+<p>Fournit la resolution des chemins PDF, le contexte trimestriel et les noms
+d’export. Extrait de <code class="docutils literal notranslate"><span class="pre">dash_app/app.py</span></code> ; <code class="docutils literal notranslate"><span class="pre">app.py</span></code> reexporte tous les
+noms de ce module afin que les monkey-patches existants continuent de
+fonctionner.</p>
+</section>
+<section id="module-vigilance.dash_app.services.comparison_store">
+<span id="vigilance-dash-app-services-comparison-store-module"></span><h2>vigilance.dash_app.services.comparison_store module<a class="headerlink" href="#module-vigilance.dash_app.services.comparison_store" title="Lien vers cette rubrique"></a></h2>
+<p>Magasin de comparaisons (fichier d’abord) utilise par Dash.</p>
+<p>Ce module centralise tous les acces Dash aux artefacts de comparaison
+sauvegardes afin que l’interface utilisateur ne se couple plus directement
+aux helpers du systeme de fichiers. Le backend initial est l’arborescence
+locale <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code>, mais l’interface est concue pour qu’un futur
+backend base de donnees puisse le remplacer sans reecrire chaque callback.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.services.comparison_store.</span></span><span class="sig-name descname"><span class="pre">ComparisonPayloadBundle</span></span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle" title="Lien vers cette définition"></a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<p>Payload canonique et contexte systeme de fichiers resolu pour Dash.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.compare_path">
+<span class="sig-name descname"><span class="pre">compare_path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.compare_path" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.indicator_meta">
+<span class="sig-name descname"><span class="pre">indicator_meta</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.indicator_meta" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.indicator_result">
+<span class="sig-name descname"><span class="pre">indicator_result</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.indicator_result" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.pdf_paths">
+<span class="sig-name descname"><span class="pre">pdf_paths</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.pdf_paths" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.raw_data">
+<span class="sig-name descname"><span class="pre">raw_data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.raw_data" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.warning">
+<span class="sig-name descname"><span class="pre">warning</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.warning" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonStore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.services.comparison_store.</span></span><span class="sig-name descname"><span class="pre">ComparisonStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonStore" title="Lien vers cette définition"></a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
+<p>Interface de persistence des comparaisons utilisee par Dash.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonStore.list_comparison_options">
+<span class="sig-name descname"><span class="pre">list_comparison_options</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonStore.list_comparison_options" title="Lien vers cette définition"></a></dt>
+<dd><p>Lister les options de comparaison disponibles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonStore.list_saved_run_options">
+<span class="sig-name descname"><span class="pre">list_saved_run_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_quarter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonStore.list_saved_run_options" title="Lien vers cette définition"></a></dt>
+<dd><p>Lister les executions sauvegardees pour une banque et un trimestre.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonStore.load_dash_payload">
+<span class="sig-name descname"><span class="pre">load_dash_payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonStore.load_dash_payload" title="Lien vers cette définition"></a></dt>
+<dd><p>Charger le payload de comparaison depuis un artefact cible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle" title="vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle"><code class="xref py py-class docutils literal notranslate"><span class="pre">ComparisonPayloadBundle</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonStore.load_review_state">
+<span class="sig-name descname"><span class="pre">load_review_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonStore.load_review_state" title="Lien vers cette définition"></a></dt>
+<dd><p>Charger l’etat de revue associe a une comparaison.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonStore.save_review_state">
+<span class="sig-name descname"><span class="pre">save_review_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonStore.save_review_state" title="Lien vers cette définition"></a></dt>
+<dd><p>Persister l’etat de revue pour une comparaison.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.FileComparisonStore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.services.comparison_store.</span></span><span class="sig-name descname"><span class="pre">FileComparisonStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore" title="Lien vers cette définition"></a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Magasin de comparaisons supporte par les artefacts locaux <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.FileComparisonStore.list_comparison_options">
+<span class="sig-name descname"><span class="pre">list_comparison_options</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore.list_comparison_options" title="Lien vers cette définition"></a></dt>
+<dd><p>Liste toutes les comparaisons disponibles sous forme d’options <code class="docutils literal notranslate"><span class="pre">{label,</span> <span class="pre">value}</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
+</dd>
+<dt class="field-even">Renvoie<span class="colon">:</span></dt>
+<dd class="field-even"><p>Liste de dictionnaires triee par date de modification decroissante.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.FileComparisonStore.list_saved_run_options">
+<span class="sig-name descname"><span class="pre">list_saved_run_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_quarter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore.list_saved_run_options" title="Lien vers cette définition"></a></dt>
+<dd><p>Liste les executions sauvegardees filtrees par banque, annee et trimestre.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bank_code</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Code de la banque (ex. <code class="docutils literal notranslate"><span class="pre">bnc</span></code>, <code class="docutils literal notranslate"><span class="pre">rbc</span></code>).</p></li>
+<li><p><strong>year</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Annee de l’analyse.</p></li>
+<li><p><strong>current_quarter</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Trimestre courant selectionne (ex. <code class="docutils literal notranslate"><span class="pre">T2</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Liste d’options <code class="docutils literal notranslate"><span class="pre">{label,</span> <span class="pre">value}</span></code> triee par valeur decroissante.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.FileComparisonStore.load_dash_payload">
+<span class="sig-name descname"><span class="pre">load_dash_payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore.load_dash_payload" title="Lien vers cette définition"></a></dt>
+<dd><p>Charge un artefact de comparaison et construit le bundle Dash.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – Chemin relatif ou absolu vers le fichier <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code>.</p></li>
+<li><p><strong>source</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Identifiant interne de la source (ex. <code class="docutils literal notranslate"><span class="pre">analyse_enregistree</span></code>).</p></li>
+<li><p><strong>source_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle affiche a l’utilisateur pour la source.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle" title="vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle"><code class="xref py py-class docutils literal notranslate"><span class="pre">ComparisonPayloadBundle</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Bundle contenant le payload canonique, les metadonnees et les
+chemins PDF resolus, ou <code class="docutils literal notranslate"><span class="pre">None</span></code> si le fichier est invalide.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.FileComparisonStore.load_review_state">
+<span class="sig-name descname"><span class="pre">load_review_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore.load_review_state" title="Lien vers cette définition"></a></dt>
+<dd><p>Charge l’etat de revue persiste pour une comparaison donnee.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>compare_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Chemin vers le fichier de comparaison.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionnaire d’etat de revue ou <code class="docutils literal notranslate"><span class="pre">None</span></code> si introuvable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.FileComparisonStore.resolve_path">
+<span class="sig-name descname"><span class="pre">resolve_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore.resolve_path" title="Lien vers cette définition"></a></dt>
+<dd><p>Resout un chemin relatif ou absolu vers un chemin absolu.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>target</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – Chemin relatif au repertoire racine ou chemin absolu.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Chemin absolu resolu.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.FileComparisonStore.save_review_state">
+<span class="sig-name descname"><span class="pre">save_review_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore.save_review_state" title="Lien vers cette définition"></a></dt>
+<dd><p>Persiste l’etat de revue a cote du fichier de comparaison.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>compare_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Chemin vers le fichier de comparaison.</p></li>
+<li><p><strong>**kwargs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Donnees d’etat de revue a sauvegarder.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Chemin du fichier d’etat sauvegarde ou <code class="docutils literal notranslate"><span class="pre">None</span></code> en cas d’echec.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.build_file_comparison_store">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.services.comparison_store.</span></span><span class="sig-name descname"><span class="pre">build_file_comparison_store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.build_file_comparison_store" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne le magasin local supporte par fichiers utilise par Dash.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>root_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Repertoire racine optionnel. Par defaut, utilise la
+configuration globale <code class="docutils literal notranslate"><span class="pre">INDICATOR_COMPARISON_DIR</span></code>.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore" title="vigilance.dash_app.services.comparison_store.FileComparisonStore"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileComparisonStore</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Instance de <code class="docutils literal notranslate"><span class="pre">FileComparisonStore</span></code> configuree.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.dash_app.services.export_helpers">
+<span id="vigilance-dash-app-services-export-helpers-module"></span><h2>vigilance.dash_app.services.export_helpers module<a class="headerlink" href="#module-vigilance.dash_app.services.export_helpers" title="Lien vers cette rubrique"></a></h2>
+<p>Fonctions utilitaires d’export et de construction des elements de revue.</p>
+<p>Extrait de <code class="docutils literal notranslate"><span class="pre">dash_app/app.py</span></code>. <code class="docutils literal notranslate"><span class="pre">app.py</span></code> reexporte tous les noms de ce
+module afin que les monkey-patches existants continuent de fonctionner.</p>
+</section>
+<section id="module-vigilance.dash_app.services.pdf_rendering">
+<span id="vigilance-dash-app-services-pdf-rendering-module"></span><h2>vigilance.dash_app.services.pdf_rendering module<a class="headerlink" href="#module-vigilance.dash_app.services.pdf_rendering" title="Lien vers cette rubrique"></a></h2>
+<p>Fonctions de rendu de preuves PDF pour les callbacks Dash.</p>
+<p>Extrait de <code class="docutils literal notranslate"><span class="pre">dash_app/app.py</span></code>. <code class="docutils literal notranslate"><span class="pre">app.py</span></code> reexporte tous les noms de ce
+module afin que les monkey-patches existants continuent de fonctionner.</p>
+</section>
+<section id="module-vigilance.dash_app.services.review_navigation">
+<span id="vigilance-dash-app-services-review-navigation-module"></span><h2>vigilance.dash_app.services.review_navigation module<a class="headerlink" href="#module-vigilance.dash_app.services.review_navigation" title="Lien vers cette rubrique"></a></h2>
+<p>Navigation, selection et filtrage de la revue pour les callbacks Dash.</p>
+<p>Extrait de <code class="docutils literal notranslate"><span class="pre">dash_app/app.py</span></code>. <code class="docutils literal notranslate"><span class="pre">app.py</span></code> reexporte tous les noms de ce
+module afin que les monkey-patches existants continuent de fonctionner.</p>
+</section>
+<section id="module-vigilance.dash_app.services.review_persistence">
+<span id="vigilance-dash-app-services-review-persistence-module"></span><h2>vigilance.dash_app.services.review_persistence module<a class="headerlink" href="#module-vigilance.dash_app.services.review_persistence" title="Lien vers cette rubrique"></a></h2>
+<p>Fonctions de persistence de l’etat de revue pour les callbacks Dash.</p>
+<p>Extrait de <code class="docutils literal notranslate"><span class="pre">dash_app/app.py</span></code>. <code class="docutils literal notranslate"><span class="pre">app.py</span></code> reexporte tous les noms de ce
+module afin que les monkey-patches existants continuent de fonctionner.</p>
+</section>
+<section id="module-vigilance.dash_app.services">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vigilance.dash_app.services" title="Lien vers cette rubrique"></a></h2>
+<p>Sous-paquet des services metier utilises par les callbacks Dash.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="vigilance.dash_app.layouts.html" class="btn btn-neutral float-left" title="vigilance.dash_app.layouts package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigilance.extract.html" class="btn btn-neutral float-right" title="vigilance.extract package" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2026.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

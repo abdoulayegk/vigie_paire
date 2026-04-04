@@ -1,0 +1,464 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vigilance.dash_app.callbacks package &mdash; Documentation bank-peer-vigilance </title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/api/vigilance.dash_app.callbacks.html" />
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d1a510d7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=e6b791cb"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+    <link rel="next" title="vigilance.dash_app.components package" href="vigilance.dash_app.components.html" />
+    <link rel="prev" title="vigilance.dash_app package" href="vigilance.dash_app.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            bank-peer-vigilance
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique du système de vigilance bancaire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention docstrings – Vigie Paire</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">vigilance</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vigilance.html">vigilance package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vigilance.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">vigilance.compare_gpt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">vigilance.comparison_analyst module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">vigilance.comparison_canonical module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">vigilance.comparison_devil_advocate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">vigilance.comparison_diff_gpt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">vigilance.comparison_inspector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">vigilance.comparison_io module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">vigilance.comparison_matching module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">vigilance.comparison_metrics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">vigilance.comparison_noise_filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">vigilance.comparison_runner module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">vigilance.comparison_visual_sanity module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">vigilance.extraction_storage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">vigilance.genai_summary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">vigilance.genai_triage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">vigilance.quarter_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">vigilance.review_adapters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">vigilance.review_export module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">vigilance.review_models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">vigilance.review_models_v2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">vigilance.review_priority module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">vigilance.review_queue_normalizer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">vigilance.review_state module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">vigilance.review_storage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">vigilance.ui_config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">vigilance.ui_detection module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">vigilance.ui_indicators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">vigilance.ui_io module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">bank-peer-vigilance</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Reference API</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">vigilance</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.html">vigilance package</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.dash_app.html">vigilance.dash_app package</a></li>
+      <li class="breadcrumb-item active">vigilance.dash_app.callbacks package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/vigilance.dash_app.callbacks.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="vigilance-dash-app-callbacks-package">
+<h1>vigilance.dash_app.callbacks package<a class="headerlink" href="#vigilance-dash-app-callbacks-package" title="Lien vers cette rubrique"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Lien vers cette rubrique"></a></h2>
+</section>
+<section id="module-vigilance.dash_app.callbacks.dashboard_flow">
+<span id="vigilance-dash-app-callbacks-dashboard-flow-module"></span><h2>vigilance.dash_app.callbacks.dashboard_flow module<a class="headerlink" href="#module-vigilance.dash_app.callbacks.dashboard_flow" title="Lien vers cette rubrique"></a></h2>
+<p>Callbacks de rendu du tableau de bord : resultats, KPIs, onglet sections, onglet tableau, initialisation des items de revue.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.dashboard_flow.init_review_items">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.dashboard_flow.</span></span><span class="sig-name descname"><span class="pre">init_review_items</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicator_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator_meta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.dashboard_flow.init_review_items" title="Lien vers cette définition"></a></dt>
+<dd><p>Construire les ReviewItems depuis indicator_result pour la revue.</p>
+<p>Construit egalement la file de revue V2 dedupliquee.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.dashboard_flow.render_main_kpis">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.dashboard_flow.</span></span><span class="sig-name descname"><span class="pre">render_main_kpis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicator_result</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.dashboard_flow.render_main_kpis" title="Lien vers cette définition"></a></dt>
+<dd><p>Afficher les cartes KPI principales.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.dashboard_flow.render_results">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.dashboard_flow.</span></span><span class="sig-name descname"><span class="pre">render_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comparison</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.dashboard_flow.render_results" title="Lien vers cette définition"></a></dt>
+<dd><p>Afficher les resultats.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.dashboard_flow.render_secondary_kpis">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.dashboard_flow.</span></span><span class="sig-name descname"><span class="pre">render_secondary_kpis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicator_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_duration_sec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.dashboard_flow.render_secondary_kpis" title="Lien vers cette définition"></a></dt>
+<dd><p>Afficher la rangee de KPIs secondaires avec le temps de validation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.dashboard_flow.render_sections_tab">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.dashboard_flow.</span></span><span class="sig-name descname"><span class="pre">render_sections_tab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicator_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.dashboard_flow.render_sections_tab" title="Lien vers cette définition"></a></dt>
+<dd><p>Afficher l’onglet des changements par section avec accordeon.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.dashboard_flow.render_table_tab">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.dashboard_flow.</span></span><span class="sig-name descname"><span class="pre">render_table_tab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicator_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comparison_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.dashboard_flow.render_table_tab" title="Lien vers cette définition"></a></dt>
+<dd><p>Rendre l’onglet Tableau Analyse avec les changements.</p>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.dash_app.callbacks.export_flow">
+<span id="vigilance-dash-app-callbacks-export-flow-module"></span><h2>vigilance.dash_app.callbacks.export_flow module<a class="headerlink" href="#module-vigilance.dash_app.callbacks.export_flow" title="Lien vers cette rubrique"></a></h2>
+<p>Callbacks d’export et de telechargement : Excel, TXT, rendu de l’onglet export.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.export_flow.on_download_excel">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.export_flow.</span></span><span class="sig-name descname"><span class="pre">on_download_excel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">review_items_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">review_queue_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.export_flow.on_download_excel" title="Lien vers cette définition"></a></dt>
+<dd><p>Telecharger le fichier Excel de validation (.xlsx).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.export_flow.on_download_txt">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.export_flow.</span></span><span class="sig-name descname"><span class="pre">on_download_txt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">review_items_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">review_queue_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.export_flow.on_download_txt" title="Lien vers cette définition"></a></dt>
+<dd><p>Telecharger le rapport TXT de revue expert.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.export_flow.render_export_tab">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.export_flow.</span></span><span class="sig-name descname"><span class="pre">render_export_tab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">review_items_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.export_flow.render_export_tab" title="Lien vers cette définition"></a></dt>
+<dd><p>Rendre l’onglet Export avec boutons de telechargement.</p>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.dash_app.callbacks.load_flow">
+<span id="vigilance-dash-app-callbacks-load-flow-module"></span><h2>vigilance.dash_app.callbacks.load_flow module<a class="headerlink" href="#module-vigilance.dash_app.callbacks.load_flow" title="Lien vers cette rubrique"></a></h2>
+<p>Callbacks de chargement de comparaison depuis le systeme de fichiers.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.load_flow.on_load_comparison">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.load_flow.</span></span><span class="sig-name descname"><span class="pre">on_load_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.load_flow.on_load_comparison" title="Lien vers cette définition"></a></dt>
+<dd><p>Charger une analyse enregistrée (canonique ou métier).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.load_flow.populate_load_options">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.load_flow.</span></span><span class="sig-name descname"><span class="pre">populate_load_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_detection</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.load_flow.populate_load_options" title="Lien vers cette définition"></a></dt>
+<dd><p>Remplir le menu des analyses enregistrées disponibles.</p>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.dash_app.callbacks.proof_flow">
+<span id="vigilance-dash-app-callbacks-proof-flow-module"></span><h2>vigilance.dash_app.callbacks.proof_flow module<a class="headerlink" href="#module-vigilance.dash_app.callbacks.proof_flow" title="Lien vers cette rubrique"></a></h2>
+<p>Callbacks d’affichage des preuves, metadonnees de revue et banniere de progression.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.proof_flow.update_progress_banner">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.proof_flow.</span></span><span class="sig-name descname"><span class="pre">update_progress_banner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">review_queue_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator_meta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.proof_flow.update_progress_banner" title="Lien vers cette définition"></a></dt>
+<dd><p>Afficher la banniere de progression globale au-dessus des preuves visuelles.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.proof_flow.update_review_meta">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.proof_flow.</span></span><span class="sig-name descname"><span class="pre">update_review_meta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">review_queue_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.proof_flow.update_review_meta" title="Lien vers cette définition"></a></dt>
+<dd><p>Mettre a jour les metadonnees V2 et la section de validation par changement.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.proof_flow.update_review_proofs">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.proof_flow.</span></span><span class="sig-name descname"><span class="pre">update_review_proofs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">review_queue_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proof_display_mode</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.proof_flow.update_review_proofs" title="Lien vers cette définition"></a></dt>
+<dd><p>Mettre a jour la section des preuves visuelles (portee tableau ; stable lors de la navigation entre indicateurs).</p>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.dash_app.callbacks.review_flow">
+<span id="vigilance-dash-app-callbacks-review-flow-module"></span><h2>vigilance.dash_app.callbacks.review_flow module<a class="headerlink" href="#module-vigilance.dash_app.callbacks.review_flow" title="Lien vers cette rubrique"></a></h2>
+<p>Callbacks de navigation, filtrage et validation de la file de revue.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.review_flow.block_table_navigation_v2">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.review_flow.</span></span><span class="sig-name descname"><span class="pre">block_table_navigation_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.review_flow.block_table_navigation_v2" title="Lien vers cette définition"></a></dt>
+<dd><p>Desactiver les boutons de navigation entre tableaux aux limites visibles.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.review_flow.on_change_row_click">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.review_flow.</span></span><span class="sig-name descname"><span class="pre">on_change_row_click</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_positions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.review_flow.on_change_row_click" title="Lien vers cette définition"></a></dt>
+<dd><p>Selectionner une ligne de changement specifique par son change_id stable.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.review_flow.on_filter_section">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.review_flow.</span></span><span class="sig-name descname"><span class="pre">on_filter_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_filters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.review_flow.on_filter_section" title="Lien vers cette définition"></a></dt>
+<dd><p>Mettre a jour le filtre de section quand un bouton de filtre est clique.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.review_flow.on_navigate_change_v2">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.review_flow.</span></span><span class="sig-name descname"><span class="pre">on_navigate_change_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">next_c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_positions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.review_flow.on_navigate_change_v2" title="Lien vers cette définition"></a></dt>
+<dd><p>Naviguer precedent/suivant parmi les changements du tableau courant (V2).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.review_flow.on_navigate_table_v2">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.review_flow.</span></span><span class="sig-name descname"><span class="pre">on_navigate_table_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">next_t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_positions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.review_flow.on_navigate_table_v2" title="Lien vers cette définition"></a></dt>
+<dd><p>Naviguer entre les tableaux ou sauter directement depuis la file de revue.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.review_flow.on_reset_change_decision">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.review_flow.</span></span><span class="sig-name descname"><span class="pre">on_reset_change_decision</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator_meta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.review_flow.on_reset_change_decision" title="Lien vers cette définition"></a></dt>
+<dd><p>Reinitialiser un changement valide a l’etat en attente pour permettre a l’analyste de re-decider.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.review_flow.on_validate_change_v2">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.review_flow.</span></span><span class="sig-name descname"><span class="pre">on_validate_change_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approve</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator_meta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.review_flow.on_validate_change_v2" title="Lien vers cette définition"></a></dt>
+<dd><p>Appliquer la validation au changement courant de la file V2 et avancer automatiquement.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.review_flow.remember_review_position_v2">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.review_flow.</span></span><span class="sig-name descname"><span class="pre">remember_review_position_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_positions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.review_flow.remember_review_position_v2" title="Lien vers cette définition"></a></dt>
+<dd><p>Memoriser le dernier changement visite pour chaque tableau dans la revue active.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.review_flow.sync_review_selection">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.review_flow.</span></span><span class="sig-name descname"><span class="pre">sync_review_selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_positions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.review_flow.sync_review_selection" title="Lien vers cette définition"></a></dt>
+<dd><p>Garder la selection stable lors du rafraichissement de la file ou du changement de filtres.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.review_flow.update_review_queue">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.review_flow.</span></span><span class="sig-name descname"><span class="pre">update_review_queue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">review_queue_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicator_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.review_flow.update_review_queue" title="Lien vers cette définition"></a></dt>
+<dd><p>Mettre a jour la file de revue laterale gauche et les KPIs en haut de page.</p>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.dash_app.callbacks.upload_flow">
+<span id="vigilance-dash-app-callbacks-upload-flow-module"></span><h2>vigilance.dash_app.callbacks.upload_flow module<a class="headerlink" href="#module-vigilance.dash_app.callbacks.upload_flow" title="Lien vers cette rubrique"></a></h2>
+<p>Callbacks de televersement, detection, validation des sections et analyse.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.compile_adjusted_sections">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">compile_adjusted_sections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">starts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ends</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.compile_adjusted_sections" title="Lien vers cette définition"></a></dt>
+<dd><p>Compiler les valeurs Debut/Fin dans store-adjusted-sections.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.load_saved_comparison">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">load_saved_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.load_saved_comparison" title="Lien vers cette définition"></a></dt>
+<dd><p>Charger une analyse enregistrée depuis la bibliothèque locale.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.on_analyze">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">on_analyze</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjusted_sections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">footnotes_opt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genai_classification_opt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_reextract_opt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_start_ms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.on_analyze" title="Lien vers cette définition"></a></dt>
+<dd><p>Valider et lancer l’analyse.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.on_detect">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">on_detect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upl_t1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upl_t2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.on_detect" title="Lien vers cette définition"></a></dt>
+<dd><p>Détecter les sections sur le couple courant/précédent.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.on_upload_t1">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">on_upload_t1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.on_upload_t1" title="Lien vers cette définition"></a></dt>
+<dd><p>Stocker l’upload T1.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.on_upload_t2">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">on_upload_t2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.on_upload_t2" title="Lien vers cette définition"></a></dt>
+<dd><p>Stocker l’upload T2.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.populate_saved_runs">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">populate_saved_runs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_quarter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.populate_saved_runs" title="Lien vers cette définition"></a></dt>
+<dd><p>Remplir le menu déroulant des analyses enregistrées locales.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.render_validation_sections">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">render_validation_sections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">detection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjusted_sections</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.render_validation_sections" title="Lien vers cette définition"></a></dt>
+<dd><p>Afficher les sections detectees avec inputs d’ajustement et preview PDF.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.sync_quarter_context">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">sync_quarter_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_quarter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.sync_quarter_context" title="Lien vers cette définition"></a></dt>
+<dd><p>Deriver le trimestre precedent a partir du trimestre courant selectionne.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.toggle_data_source">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">toggle_data_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.toggle_data_source" title="Lien vers cette définition"></a></dt>
+<dd><p>Afficher soit la bibliothèque locale, soit la section de téléversement.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.toggle_section_preview">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">toggle_section_preview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_open</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.toggle_section_preview" title="Lien vers cette définition"></a></dt>
+<dd><p>Basculer l’affichage du preview PDF d’une section.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.upload_flow.update_adjusted_indicator">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.upload_flow.</span></span><span class="sig-name descname"><span class="pre">update_adjusted_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adjusted_sections</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.upload_flow.update_adjusted_indicator" title="Lien vers cette définition"></a></dt>
+<dd><p>Afficher le nombre de sections ajustees pres du bouton Analyser.</p>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.dash_app.callbacks.utility_flow">
+<span id="vigilance-dash-app-callbacks-utility-flow-module"></span><h2>vigilance.dash_app.callbacks.utility_flow module<a class="headerlink" href="#module-vigilance.dash_app.callbacks.utility_flow" title="Lien vers cette rubrique"></a></h2>
+<p>Callbacks utilitaires : barre laterale, options, minuterie, reinitialisation, mode d’affichage des preuves.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.utility_flow.on_proof_display_mode_change">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.utility_flow.</span></span><span class="sig-name descname"><span class="pre">on_proof_display_mode_change</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.utility_flow.on_proof_display_mode_change" title="Lien vers cette définition"></a></dt>
+<dd><p>Persister le mode d’affichage des preuves (recadrage vs page entiere + bbox).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.utility_flow.on_reset">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.utility_flow.</span></span><span class="sig-name descname"><span class="pre">on_reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_clicks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.utility_flow.on_reset" title="Lien vers cette définition"></a></dt>
+<dd><p>Reinitialiser pour nouvelle analyse.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.utility_flow.sync_sidebar_layout">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.utility_flow.</span></span><span class="sig-name descname"><span class="pre">sync_sidebar_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_collapsed</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.utility_flow.sync_sidebar_layout" title="Lien vers cette définition"></a></dt>
+<dd><p>Synchroniser les classes CSS de la barre laterale et du contenu principal selon l’etat replie/deplie.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.utility_flow.toggle_options">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.utility_flow.</span></span><span class="sig-name descname"><span class="pre">toggle_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_open</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.utility_flow.toggle_options" title="Lien vers cette définition"></a></dt>
+<dd><p>Basculer l’affichage du panneau d’options.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.utility_flow.toggle_stats">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.utility_flow.</span></span><span class="sig-name descname"><span class="pre">toggle_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_open</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.utility_flow.toggle_stats" title="Lien vers cette définition"></a></dt>
+<dd><p>Basculer l’affichage du panneau de statistiques.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.utility_flow.update_sidebar_collapsed_state">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.utility_flow.</span></span><span class="sig-name descname"><span class="pre">update_sidebar_collapsed_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toggle_clicks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_collapsed</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.utility_flow.update_sidebar_collapsed_state" title="Lien vers cette définition"></a></dt>
+<dd><p>Replier la barre laterale pour la revue par defaut tout en gardant le controle de basculement manuel.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.utility_flow.update_validation_time_footer">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.utility_flow.</span></span><span class="sig-name descname"><span class="pre">update_validation_time_footer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration_sec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.utility_flow.update_validation_time_footer" title="Lien vers cette définition"></a></dt>
+<dd><p>Afficher le temps de validation dans le pied de page des statistiques.</p>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.dash_app.callbacks">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vigilance.dash_app.callbacks" title="Lien vers cette rubrique"></a></h2>
+<p>Modules de callbacks pour l’application Dash.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.dash_app.callbacks.register_all_callbacks">
+<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.callbacks.</span></span><span class="sig-name descname"><span class="pre">register_all_callbacks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.callbacks.register_all_callbacks" title="Lien vers cette définition"></a></dt>
+<dd><p>Force l’import de chaque module de callback pour que Dash enregistre les decorateurs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="vigilance.dash_app.html" class="btn btn-neutral float-left" title="vigilance.dash_app package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigilance.dash_app.components.html" class="btn btn-neutral float-right" title="vigilance.dash_app.components package" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2026.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

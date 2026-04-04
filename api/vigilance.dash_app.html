@@ -1,0 +1,362 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vigilance.dash_app package &mdash; Documentation bank-peer-vigilance </title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/api/vigilance.dash_app.html" />
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d1a510d7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=e6b791cb"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+    <link rel="next" title="vigilance.dash_app.callbacks package" href="vigilance.dash_app.callbacks.html" />
+    <link rel="prev" title="vigilance.config package" href="vigilance.config.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            bank-peer-vigilance
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique du système de vigilance bancaire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention docstrings – Vigie Paire</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">vigilance</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vigilance.html">vigilance package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vigilance.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">vigilance.compare_gpt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">vigilance.comparison_analyst module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">vigilance.comparison_canonical module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">vigilance.comparison_devil_advocate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">vigilance.comparison_diff_gpt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">vigilance.comparison_inspector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">vigilance.comparison_io module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">vigilance.comparison_matching module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">vigilance.comparison_metrics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">vigilance.comparison_noise_filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">vigilance.comparison_runner module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">vigilance.comparison_visual_sanity module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">vigilance.extraction_storage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">vigilance.genai_summary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">vigilance.genai_triage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">vigilance.quarter_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">vigilance.review_adapters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">vigilance.review_export module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">vigilance.review_models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">vigilance.review_models_v2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">vigilance.review_priority module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">vigilance.review_queue_normalizer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">vigilance.review_state module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">vigilance.review_storage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">vigilance.ui_config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">vigilance.ui_detection module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">vigilance.ui_indicators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">vigilance.ui_io module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">bank-peer-vigilance</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Reference API</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">vigilance</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.html">vigilance package</a></li>
+      <li class="breadcrumb-item active">vigilance.dash_app package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/vigilance.dash_app.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="vigilance-dash-app-package">
+<h1>vigilance.dash_app package<a class="headerlink" href="#vigilance-dash-app-package" title="Lien vers cette rubrique"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Lien vers cette rubrique"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="vigilance.dash_app.callbacks.html">vigilance.dash_app.callbacks package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.callbacks.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.callbacks.html#module-vigilance.dash_app.callbacks.dashboard_flow">vigilance.dash_app.callbacks.dashboard_flow module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.dashboard_flow.init_review_items"><code class="docutils literal notranslate"><span class="pre">init_review_items()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.dashboard_flow.render_main_kpis"><code class="docutils literal notranslate"><span class="pre">render_main_kpis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.dashboard_flow.render_results"><code class="docutils literal notranslate"><span class="pre">render_results()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.dashboard_flow.render_secondary_kpis"><code class="docutils literal notranslate"><span class="pre">render_secondary_kpis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.dashboard_flow.render_sections_tab"><code class="docutils literal notranslate"><span class="pre">render_sections_tab()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.dashboard_flow.render_table_tab"><code class="docutils literal notranslate"><span class="pre">render_table_tab()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.callbacks.html#module-vigilance.dash_app.callbacks.export_flow">vigilance.dash_app.callbacks.export_flow module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.export_flow.on_download_excel"><code class="docutils literal notranslate"><span class="pre">on_download_excel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.export_flow.on_download_txt"><code class="docutils literal notranslate"><span class="pre">on_download_txt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.export_flow.render_export_tab"><code class="docutils literal notranslate"><span class="pre">render_export_tab()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.callbacks.html#module-vigilance.dash_app.callbacks.load_flow">vigilance.dash_app.callbacks.load_flow module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.load_flow.on_load_comparison"><code class="docutils literal notranslate"><span class="pre">on_load_comparison()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.load_flow.populate_load_options"><code class="docutils literal notranslate"><span class="pre">populate_load_options()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.callbacks.html#module-vigilance.dash_app.callbacks.proof_flow">vigilance.dash_app.callbacks.proof_flow module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.proof_flow.update_progress_banner"><code class="docutils literal notranslate"><span class="pre">update_progress_banner()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.proof_flow.update_review_meta"><code class="docutils literal notranslate"><span class="pre">update_review_meta()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.proof_flow.update_review_proofs"><code class="docutils literal notranslate"><span class="pre">update_review_proofs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.callbacks.html#module-vigilance.dash_app.callbacks.review_flow">vigilance.dash_app.callbacks.review_flow module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.review_flow.block_table_navigation_v2"><code class="docutils literal notranslate"><span class="pre">block_table_navigation_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.review_flow.on_change_row_click"><code class="docutils literal notranslate"><span class="pre">on_change_row_click()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.review_flow.on_filter_section"><code class="docutils literal notranslate"><span class="pre">on_filter_section()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.review_flow.on_navigate_change_v2"><code class="docutils literal notranslate"><span class="pre">on_navigate_change_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.review_flow.on_navigate_table_v2"><code class="docutils literal notranslate"><span class="pre">on_navigate_table_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.review_flow.on_reset_change_decision"><code class="docutils literal notranslate"><span class="pre">on_reset_change_decision()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.review_flow.on_validate_change_v2"><code class="docutils literal notranslate"><span class="pre">on_validate_change_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.review_flow.remember_review_position_v2"><code class="docutils literal notranslate"><span class="pre">remember_review_position_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.review_flow.sync_review_selection"><code class="docutils literal notranslate"><span class="pre">sync_review_selection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.review_flow.update_review_queue"><code class="docutils literal notranslate"><span class="pre">update_review_queue()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.callbacks.html#module-vigilance.dash_app.callbacks.upload_flow">vigilance.dash_app.callbacks.upload_flow module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.compile_adjusted_sections"><code class="docutils literal notranslate"><span class="pre">compile_adjusted_sections()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.load_saved_comparison"><code class="docutils literal notranslate"><span class="pre">load_saved_comparison()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.on_analyze"><code class="docutils literal notranslate"><span class="pre">on_analyze()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.on_detect"><code class="docutils literal notranslate"><span class="pre">on_detect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.on_upload_t1"><code class="docutils literal notranslate"><span class="pre">on_upload_t1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.on_upload_t2"><code class="docutils literal notranslate"><span class="pre">on_upload_t2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.populate_saved_runs"><code class="docutils literal notranslate"><span class="pre">populate_saved_runs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.render_validation_sections"><code class="docutils literal notranslate"><span class="pre">render_validation_sections()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.sync_quarter_context"><code class="docutils literal notranslate"><span class="pre">sync_quarter_context()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.toggle_data_source"><code class="docutils literal notranslate"><span class="pre">toggle_data_source()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.toggle_section_preview"><code class="docutils literal notranslate"><span class="pre">toggle_section_preview()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.upload_flow.update_adjusted_indicator"><code class="docutils literal notranslate"><span class="pre">update_adjusted_indicator()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.callbacks.html#module-vigilance.dash_app.callbacks.utility_flow">vigilance.dash_app.callbacks.utility_flow module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.utility_flow.on_proof_display_mode_change"><code class="docutils literal notranslate"><span class="pre">on_proof_display_mode_change()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.utility_flow.on_reset"><code class="docutils literal notranslate"><span class="pre">on_reset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.utility_flow.sync_sidebar_layout"><code class="docutils literal notranslate"><span class="pre">sync_sidebar_layout()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.utility_flow.toggle_options"><code class="docutils literal notranslate"><span class="pre">toggle_options()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.utility_flow.toggle_stats"><code class="docutils literal notranslate"><span class="pre">toggle_stats()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.utility_flow.update_sidebar_collapsed_state"><code class="docutils literal notranslate"><span class="pre">update_sidebar_collapsed_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.utility_flow.update_validation_time_footer"><code class="docutils literal notranslate"><span class="pre">update_validation_time_footer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.callbacks.html#module-vigilance.dash_app.callbacks">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.callbacks.html#vigilance.dash_app.callbacks.register_all_callbacks"><code class="docutils literal notranslate"><span class="pre">register_all_callbacks()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vigilance.dash_app.components.html">vigilance.dash_app.components package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.components.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.components.html#module-vigilance.dash_app.components.indicator_table">vigilance.dash_app.components.indicator_table module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.indicator_table.indicator_diff_table"><code class="docutils literal notranslate"><span class="pre">indicator_diff_table()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.components.html#module-vigilance.dash_app.components.metrics_cards">vigilance.dash_app.components.metrics_cards module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.metrics_cards.metric_card"><code class="docutils literal notranslate"><span class="pre">metric_card()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.metrics_cards.metrics_row"><code class="docutils literal notranslate"><span class="pre">metrics_row()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.components.html#module-vigilance.dash_app.components.pdf_preview">vigilance.dash_app.components.pdf_preview module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.pdf_preview.pdf_images_from_base64"><code class="docutils literal notranslate"><span class="pre">pdf_images_from_base64()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.components.html#module-vigilance.dash_app.components.review_detail_v2">vigilance.dash_app.components.review_detail_v2 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.review_detail_v2.build_change_list_v2"><code class="docutils literal notranslate"><span class="pre">build_change_list_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.review_detail_v2.build_review_detail_v2"><code class="docutils literal notranslate"><span class="pre">build_review_detail_v2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.review_detail_v2.build_validation_panel_v2"><code class="docutils literal notranslate"><span class="pre">build_validation_panel_v2()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.components.html#module-vigilance.dash_app.components.review_display_shared">vigilance.dash_app.components.review_display_shared module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.review_display_shared.build_proofs_section"><code class="docutils literal notranslate"><span class="pre">build_proofs_section()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.review_display_shared.compute_flag_state"><code class="docutils literal notranslate"><span class="pre">compute_flag_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.review_display_shared.section_display_label"><code class="docutils literal notranslate"><span class="pre">section_display_label()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.review_display_shared.table_display_label"><code class="docutils literal notranslate"><span class="pre">table_display_label()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.components.html#module-vigilance.dash_app.components.review_queue_v2">vigilance.dash_app.components.review_queue_v2 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.components.html#vigilance.dash_app.components.review_queue_v2.build_review_queue_v2"><code class="docutils literal notranslate"><span class="pre">build_review_queue_v2()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.components.html#module-vigilance.dash_app.components">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vigilance.dash_app.layouts.html">vigilance.dash_app.layouts package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.layouts.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.layouts.html#module-vigilance.dash_app.layouts.page_load">vigilance.dash_app.layouts.page_load module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.page_load.build_page_load"><code class="docutils literal notranslate"><span class="pre">build_page_load()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.layouts.html#module-vigilance.dash_app.layouts.page_results">vigilance.dash_app.layouts.page_results module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.page_results.build_analyst_kpi_card"><code class="docutils literal notranslate"><span class="pre">build_analyst_kpi_card()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.page_results.build_page_results"><code class="docutils literal notranslate"><span class="pre">build_page_results()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.page_results.build_section_accordion_item"><code class="docutils literal notranslate"><span class="pre">build_section_accordion_item()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.layouts.html#module-vigilance.dash_app.layouts.page_upload">vigilance.dash_app.layouts.page_upload module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.page_upload.build_page_upload"><code class="docutils literal notranslate"><span class="pre">build_page_upload()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.layouts.html#module-vigilance.dash_app.layouts.page_validation">vigilance.dash_app.layouts.page_validation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.page_validation.build_page_validation"><code class="docutils literal notranslate"><span class="pre">build_page_validation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.layouts.html#module-vigilance.dash_app.layouts.sidebar">vigilance.dash_app.layouts.sidebar module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.sidebar.build_sidebar"><code class="docutils literal notranslate"><span class="pre">build_sidebar()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.layouts.html#module-vigilance.dash_app.layouts">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.build_page_load"><code class="docutils literal notranslate"><span class="pre">build_page_load()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.build_page_results"><code class="docutils literal notranslate"><span class="pre">build_page_results()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.build_page_upload"><code class="docutils literal notranslate"><span class="pre">build_page_upload()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.build_page_validation"><code class="docutils literal notranslate"><span class="pre">build_page_validation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.build_sidebar"><code class="docutils literal notranslate"><span class="pre">build_sidebar()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vigilance.dash_app.services.html">vigilance.dash_app.services package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.services.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.services.html#module-vigilance.dash_app.services.comparison_context">vigilance.dash_app.services.comparison_context module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.services.html#module-vigilance.dash_app.services.comparison_store">vigilance.dash_app.services.comparison_store module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle"><code class="docutils literal notranslate"><span class="pre">ComparisonPayloadBundle</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.compare_path"><code class="docutils literal notranslate"><span class="pre">ComparisonPayloadBundle.compare_path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.indicator_meta"><code class="docutils literal notranslate"><span class="pre">ComparisonPayloadBundle.indicator_meta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.indicator_result"><code class="docutils literal notranslate"><span class="pre">ComparisonPayloadBundle.indicator_result</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.pdf_paths"><code class="docutils literal notranslate"><span class="pre">ComparisonPayloadBundle.pdf_paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.raw_data"><code class="docutils literal notranslate"><span class="pre">ComparisonPayloadBundle.raw_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.warning"><code class="docutils literal notranslate"><span class="pre">ComparisonPayloadBundle.warning</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonStore"><code class="docutils literal notranslate"><span class="pre">ComparisonStore</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonStore.list_comparison_options"><code class="docutils literal notranslate"><span class="pre">ComparisonStore.list_comparison_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonStore.list_saved_run_options"><code class="docutils literal notranslate"><span class="pre">ComparisonStore.list_saved_run_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonStore.load_dash_payload"><code class="docutils literal notranslate"><span class="pre">ComparisonStore.load_dash_payload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonStore.load_review_state"><code class="docutils literal notranslate"><span class="pre">ComparisonStore.load_review_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonStore.save_review_state"><code class="docutils literal notranslate"><span class="pre">ComparisonStore.save_review_state()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.FileComparisonStore"><code class="docutils literal notranslate"><span class="pre">FileComparisonStore</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.FileComparisonStore.list_comparison_options"><code class="docutils literal notranslate"><span class="pre">FileComparisonStore.list_comparison_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.FileComparisonStore.list_saved_run_options"><code class="docutils literal notranslate"><span class="pre">FileComparisonStore.list_saved_run_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.FileComparisonStore.load_dash_payload"><code class="docutils literal notranslate"><span class="pre">FileComparisonStore.load_dash_payload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.FileComparisonStore.load_review_state"><code class="docutils literal notranslate"><span class="pre">FileComparisonStore.load_review_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.FileComparisonStore.resolve_path"><code class="docutils literal notranslate"><span class="pre">FileComparisonStore.resolve_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.FileComparisonStore.save_review_state"><code class="docutils literal notranslate"><span class="pre">FileComparisonStore.save_review_state()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.build_file_comparison_store"><code class="docutils literal notranslate"><span class="pre">build_file_comparison_store()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.services.html#module-vigilance.dash_app.services.export_helpers">vigilance.dash_app.services.export_helpers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.services.html#module-vigilance.dash_app.services.pdf_rendering">vigilance.dash_app.services.pdf_rendering module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.services.html#module-vigilance.dash_app.services.review_navigation">vigilance.dash_app.services.review_navigation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.services.html#module-vigilance.dash_app.services.review_persistence">vigilance.dash_app.services.review_persistence module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vigilance.dash_app.services.html#module-vigilance.dash_app.services">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Lien vers cette rubrique"></a></h2>
+</section>
+<section id="module-vigilance.dash_app.app">
+<span id="vigilance-dash-app-app-module"></span><h2>vigilance.dash_app.app module<a class="headerlink" href="#module-vigilance.dash_app.app" title="Lien vers cette rubrique"></a></h2>
+<p>Application Dash - Comparateur de Rapports Bancaires.</p>
+<dl class="simple">
+<dt>Pour lancer:</dt><dd><p>uv run python -m vigilance.dash_app.app
+ou: uv run dash run vigilance.dash_app.app –port 8050</p>
+</dd>
+</dl>
+</section>
+<section id="module-vigilance.dash_app">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vigilance.dash_app" title="Lien vers cette rubrique"></a></h2>
+<p>Application Dash pour la comparaison de rapports bancaires.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="vigilance.config.html" class="btn btn-neutral float-left" title="vigilance.config package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigilance.dash_app.callbacks.html" class="btn btn-neutral float-right" title="vigilance.dash_app.callbacks package" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2026.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

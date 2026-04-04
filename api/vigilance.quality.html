@@ -1,0 +1,256 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vigilance.quality package &mdash; Documentation bank-peer-vigilance </title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/api/vigilance.quality.html" />
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d1a510d7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=e6b791cb"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+    <link rel="next" title="vigilance.report package" href="vigilance.report.html" />
+    <link rel="prev" title="vigilance.models package" href="vigilance.models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            bank-peer-vigilance
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique du système de vigilance bancaire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention docstrings – Vigie Paire</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference API</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">vigilance</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vigilance.html">vigilance package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vigilance.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">vigilance.compare_gpt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">vigilance.comparison_analyst module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">vigilance.comparison_canonical module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">vigilance.comparison_devil_advocate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">vigilance.comparison_diff_gpt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">vigilance.comparison_inspector module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">vigilance.comparison_io module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">vigilance.comparison_matching module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">vigilance.comparison_metrics module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">vigilance.comparison_noise_filter module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">vigilance.comparison_runner module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">vigilance.comparison_visual_sanity module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">vigilance.extraction_storage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">vigilance.genai_summary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">vigilance.genai_triage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">vigilance.quarter_utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">vigilance.review_adapters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">vigilance.review_export module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">vigilance.review_models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">vigilance.review_models_v2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">vigilance.review_priority module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">vigilance.review_queue_normalizer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">vigilance.review_state module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">vigilance.review_storage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">vigilance.ui_config module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">vigilance.ui_detection module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">vigilance.ui_indicators module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">vigilance.ui_io module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">bank-peer-vigilance</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Reference API</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">vigilance</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.html">vigilance package</a></li>
+      <li class="breadcrumb-item active">vigilance.quality package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/vigilance.quality.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="vigilance-quality-package">
+<h1>vigilance.quality package<a class="headerlink" href="#vigilance-quality-package" title="Lien vers cette rubrique"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Lien vers cette rubrique"></a></h2>
+</section>
+<section id="module-vigilance.quality.quality_gate">
+<span id="vigilance-quality-quality-gate-module"></span><h2>vigilance.quality.quality_gate module<a class="headerlink" href="#module-vigilance.quality.quality_gate" title="Lien vers cette rubrique"></a></h2>
+<p>Porte de qualite stricte pour les sorties d’extraction basees sur le <code class="docutils literal notranslate"><span class="pre">tables.json</span></code> canonique.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.quality.quality_gate.evaluate_extraction_quality">
+<span class="sig-prename descclassname"><span class="pre">vigilance.quality.quality_gate.</span></span><span class="sig-name descname"><span class="pre">evaluate_extraction_quality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tables</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_suspect_evidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.quality.quality_gate.evaluate_extraction_quality" title="Lien vers cette définition"></a></dt>
+<dd><p>Evalue la qualite d’extraction a partir des statuts d’extraction canoniques.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tables</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Liste d’artefacts de tableau avec attribut <code class="docutils literal notranslate"><span class="pre">extraction_status</span></code>.</p></li>
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Surcharges de configuration optionnelles.</p></li>
+<li><p><strong>max_suspect_evidence</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Nombre maximal de preuves suspectes a collecter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Rapport de qualite d’extraction avec statut PASS/FAIL.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.quality.quality_gate.evaluate_quality">
+<span class="sig-prename descclassname"><span class="pre">vigilance.quality.quality_gate.</span></span><span class="sig-name descname"><span class="pre">evaluate_quality</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators_payload</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">footnotes_payload</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.quality.quality_gate.evaluate_quality" title="Lien vers cette définition"></a></dt>
+<dd><p>Evalue la qualite structurelle des indicateurs et footnotes extraits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indicators_payload</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Payload projete des indicateurs.</p></li>
+<li><p><strong>footnotes_payload</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Payload projete des footnotes.</p></li>
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Surcharges de configuration optionnelles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Rapport de qualite avec statut PASS/FAIL, scores par tableau et actions recommandees.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.quality.quality_gate.main">
+<span class="sig-prename descclassname"><span class="pre">vigilance.quality.quality_gate.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.quality.quality_gate.main" title="Lien vers cette définition"></a></dt>
+<dd><p>Point d’entree CLI pour la porte de qualite d’extraction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.quality.quality_gate.run_quality_gate">
+<span class="sig-prename descclassname"><span class="pre">vigilance.quality.quality_gate.</span></span><span class="sig-name descname"><span class="pre">run_quality_gate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tables_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.quality.quality_gate.run_quality_gate" title="Lien vers cette définition"></a></dt>
+<dd><p>Execute les controles qualite et ecrit les fichiers de rapport et de statut.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tables_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – Chemin du fichier <code class="docutils literal notranslate"><span class="pre">tables.json</span></code> canonique.</p></li>
+<li><p><strong>out_dir</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – Repertoire de sortie pour les rapports.</p></li>
+<li><p><strong>bank_code</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Code de la banque.</p></li>
+<li><p><strong>run_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Identifiant du run d’extraction.</p></li>
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Surcharges de configuration optionnelles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionnaire de statut avec chemins des rapports generes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.quality">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vigilance.quality" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires de porte de qualite pour les sorties d’extraction.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.quality.run_quality_gate">
+<span class="sig-prename descclassname"><span class="pre">vigilance.quality.</span></span><span class="sig-name descname"><span class="pre">run_quality_gate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.quality.run_quality_gate" title="Lien vers cette définition"></a></dt>
+<dd><p>Wrapper a import differe pour eviter le chargement du module a l’import du package.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="vigilance.models.html" class="btn btn-neutral float-left" title="vigilance.models package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigilance.report.html" class="btn btn-neutral float-right" title="vigilance.report package" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2026.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
