@@ -1,21 +1,24 @@
 name: Deploy GitHub Pages
 
+# Pousse le HTML Sphinx sur la branche `gh-pages`.
+# Sur GitHub : Settings -> Pages -> Source : Deploy from a branch
+# -> Branch : gh-pages -> Folder : / (root)
+# (Pas "GitHub Actions" pour ce mode ; la branche contient index.html.)
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,19 +41,9 @@ jobs:
           touch docs/_build/html/.nojekyll
           test -f docs/_build/html/index.html
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+      - name: Deploy to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: docs/_build/html
-          include-hidden-files: true
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          branch: gh-pages
+          folder: docs/_build/html
+          clean: true
