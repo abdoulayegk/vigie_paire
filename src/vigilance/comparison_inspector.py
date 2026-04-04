@@ -53,21 +53,18 @@ Output must follow the response_schema strictly.
 """
 
 
-def _build_inspector_payload(
-    pairs_with_cards: list[dict[str, Any]],
+def _build_single_pair_payload(
+    pair_with_card: dict[str, Any],
 ) -> dict[str, Any]:
-    """Build the user prompt for a batch of pairs to inspect."""
-    inspection_items = []
-    for item in pairs_with_cards:
-        inspection_items.append(
-            {
-                "previous_table": item["previous_card"],
-                "current_table": item["current_card"],
-                "original_confidence": item["match_confidence"],
-                "original_reason": item["reason"],
-            }
-        )
-    return {"pairs_to_inspect": inspection_items}
+    """Build the user prompt for a single pair to inspect."""
+    return {
+        "pair_to_inspect": {
+            "previous_table": pair_with_card["previous_card"],
+            "current_table": pair_with_card["current_card"],
+            "original_confidence": pair_with_card["match_confidence"],
+            "original_reason": pair_with_card["reason"],
+        }
+    }
 
 
 def _inspect_matched_pairs(
@@ -138,45 +135,48 @@ def _inspect_matched_pairs(
             },
         }
 
-    user_payload = _build_inspector_payload(pairs_with_cards)
+    logger.info(
+        "Match Inspector: reviewing %d matched pairs (1 call per pair)",
+        len(pairs_with_cards),
+    )
 
-    logger.info("Match Inspector: reviewing %d matched pairs", len(pairs_with_cards))
+    # --- Per-pair GPT calls (no batch confusion possible) ---
+    all_verdicts: list[dict[str, Any]] = []
+    api_errors: list[str] = []
 
-    try:
-        result = call_openai_json(
-            model=model,
-            messages=[
-                {"role": "system", "content": MATCH_INSPECTOR_SYSTEM_PROMPT},
-                {
-                    "role": "user",
-                    "content": json.dumps(user_payload, ensure_ascii=False),
-                },
-            ],
-            max_completion_tokens=4000,
-            temperature=0.0,
-            usage_recorder=usage_recorder,
-            call_kind="match_inspector",
-            response_model=MatchInspectorResponse,
-        )
-    except Exception as exc:
-        logger.warning(
-            "Match Inspector: API call failed (%s) — keeping all pairs as confirmed",
-            exc,
-        )
-        return {
-            "confirmed_pairs": list(matched_pairs),
-            "rejected_pairs": [],
-            "inspector_verdicts": [],
-            "inspection_stats": {
-                "total_inspected": len(pairs_with_cards),
-                "confirmed": len(matched_pairs),
-                "rejected": 0,
-                "api_error": str(exc),
-            },
-        }
+    for item in pairs_with_cards:
+        prev_id = item["previous_table_id"]
+        cur_id = item["current_table_id"]
+        user_payload = _build_single_pair_payload(item)
 
-    # Parse verdicts
-    verdicts = result.get("verdicts", [])
+        try:
+            result = call_openai_json(
+                model=model,
+                messages=[
+                    {"role": "system", "content": MATCH_INSPECTOR_SYSTEM_PROMPT},
+                    {
+                        "role": "user",
+                        "content": json.dumps(user_payload, ensure_ascii=False),
+                    },
+                ],
+                max_completion_tokens=800,
+                temperature=0.0,
+                usage_recorder=usage_recorder,
+                call_kind="match_inspector",
+                response_model=MatchInspectorResponse,
+            )
+            all_verdicts.extend(result.get("verdicts", []))
+        except Exception as exc:
+            logger.warning(
+                "Match Inspector: API call failed for %s <-> %s (%s) — keeping as confirmed",
+                prev_id,
+                cur_id,
+                exc,
+            )
+            api_errors.append(f"{prev_id}<->{cur_id}: {exc}")
+
+    # Parse verdicts from all per-pair calls
+    verdicts = all_verdicts
     rejected_keys: set[tuple[str, str]] = set()
     for verdict in verdicts:
         prev_id = str(verdict.get("previous_table_id", "")).strip()

@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260404_030545",
   "review_items_signature": "46163c7c18d55370ca50e8c402929c7a716f8771a5a5962bf790fd2e45b40908",
-  "saved_at": "2026-04-04T07:16:08+00:00",
+  "saved_at": "2026-04-04T07:27:56+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "rbc::risk_management::tbl_p033_i02|tbl_p039_i02",
-    "change_id": "chg_00014"
+    "review_id": "rbc::risk_management::tbl_p037_i01|",
+    "change_id": "chg_00025"
   },
-  "review_current_idx": 2,
-  "current_change_idx": 3,
+  "review_current_idx": 1,
+  "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T07:14:11.402936+00:00",
+      "review_timestamp": "2026-04-04T07:27:56.610326+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -164,7 +164,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T07:16:08.014460+00:00",
+      "review_timestamp": "2026-04-04T07:26:45.407133+00:00",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -174,7 +174,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p039_i02",
-      "table_status": "partial",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "Autres prêts",
@@ -194,7 +194,7 @@
         {
           "name": "[5] Avec prise d’effet au premier trimestre de 2025, les titres  -> Le montant des actifs donnés en garantie représente les gara",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
@@ -442,7 +442,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T07:13:06.208532+00:00",
+      "review_timestamp": "2026-04-04T07:26:53.675215+00:00",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -591,7 +591,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T07:13:13.146997+00:00",
+      "review_timestamp": "2026-04-04T07:27:12.053440+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -725,7 +725,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T07:14:32.427977+00:00",
+      "review_timestamp": "2026-04-04T07:27:17.258844+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -856,10 +856,10 @@
       "page_t2": 45,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/rbc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T07:15:37.364994+00:00",
+      "review_timestamp": "2026-04-04T07:27:32.521553+00:00",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -869,7 +869,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p045_i02",
-      "table_status": "partial",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "[5] Les actifs et passifs interdépendants représentent le passif des titres hypothécaires garantis par la Loi nationale sur ",
@@ -884,7 +884,7 @@
         {
           "name": "[4] Les dépôts opérationnels de clients qui ne sont pas des dépô -> Les dépôts opérationnels de clients qui ne sont pas des dépô",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Both tables discuss the long-term liquidity ratio. Indicators and headers are identical.",
@@ -988,7 +988,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T07:15:52.062041+00:00",
+      "review_timestamp": "2026-04-04T07:27:43.580509+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -1124,7 +1124,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T07:14:11.402936+00:00",
+          "validated_at": "2026-04-04T07:27:56.610326+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1329,15 +1329,15 @@
             "old_text": "Avec prise d’effet au premier trimestre de 2025, les titres hypothécaires, les prêts hypothécaires et les autres prêts sont présentés déduction faite de la correction de valeur pour pertes sur prêts. Les montants correspondants ont été révisés par rapport à ceux présentés précédemment afin qu’ils soient conformes à la présentation adoptée pour la période considérée.",
             "new_text": "Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ont été fournis en lien avec des transactions visant des dérivés négociés hors cote et en Bourse."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T07:26:45.407133+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "partial",
+      "table_status": "completed",
       "confidence": 0.98,
       "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
       "genai_analysis": {
@@ -1375,8 +1375,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 3,
-        "pending": 1
+        "validated": 4,
+        "pending": 0
       }
     },
     {
@@ -1649,7 +1649,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T07:13:06.208532+00:00",
+          "validated_at": "2026-04-04T07:26:53.675215+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1809,7 +1809,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T07:13:13.146997+00:00",
+          "validated_at": "2026-04-04T07:27:12.053440+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1965,7 +1965,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T07:14:32.427977+00:00",
+          "validated_at": "2026-04-04T07:27:17.258844+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -2180,15 +2180,15 @@
             "old_text": "Les dépôts opérationnels de clients qui ne sont pas des dépôts de détail ou des dépôts de petites ou moyennes entreprises constituent des dépôts que les clients doivent laisser à la banque afin d’y accéder plus aisément et d’être en mesure d’utiliser les systèmes de paiement et de règlement, principalement pour la compensation, la garde et la gestion de trésorerie.",
             "new_text": "Les dépôts opérationnels de clients qui ne sont pas des dépôts de détail ou des dépôts de petites ou moyennes entreprises constituent des dépôts que les clients doivent laisser à la banque afin d’y accéder plus aisément et d’être en mesure d’utiliser les systèmes de paiement et de règlement, principalement pour la compensation, la garde et la"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T07:27:32.521553+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "partial",
+      "table_status": "completed",
       "confidence": 0.98,
       "match_method": "Both tables discuss the long-term liquidity ratio. Indicators and headers are identical.",
       "genai_analysis": {},
@@ -2201,8 +2201,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 3,
-        "validated": 2,
-        "pending": 1
+        "validated": 3,
+        "pending": 0
       }
     },
     {
@@ -2331,7 +2331,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T07:15:52.062041+00:00",
+          "validated_at": "2026-04-04T07:27:43.580509+00:00",
           "validated_by": "analyst"
         }
       ],

@@ -699,7 +699,7 @@ def _match_tables(
         ),
         "matching_passes_total": int(bool(stage1.get("executed")))
         + int(bool(stage2_metrics.get("executed"))),
-        "inspector_passes_total": int(inspector_stats.get("total_inspected", 0) > 0),
+        "inspector_passes_total": _coerce_int(inspector_stats.get("total_inspected")),
         "unmatched_after_primary_total": len(unresolved_current_cards)
         + len(remaining_previous_cards),
         "unmatched_after_rescue_total": len(tables_added) + len(tables_removed),
