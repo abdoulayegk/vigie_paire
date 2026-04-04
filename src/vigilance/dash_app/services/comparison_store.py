@@ -161,26 +161,24 @@ class FileComparisonStore:
                     time_part = time_part[:5]
                     day_parts = date_part.split("-")
                     if len(day_parts) == 3:
-                        timestamp_label = (
-                            f"Le {day_parts[2]}/{day_parts[1]} à {time_part}"
-                        )
+                        timestamp_label = f"Le {day_parts[2]}/{day_parts[1]} à {time_part}"
 
             compare_path = self.resolve_path(value)
             run_dir = compare_path.parent
-            has_pdfs = (run_dir / "previous_report.pdf").exists() and (
-                run_dir / "current_report.pdf"
-            ).exists()
+            # Check for PDFs: either archived locally (legacy) or referenced via source paths.
+            has_pdfs = (run_dir / "previous_report.pdf").exists() and (run_dir / "current_report.pdf").exists()
+            if not has_pdfs and payload is not None:
+                pdf_paths = payload.get("pdf_paths") or {}
+                src_prev = str(pdf_paths.get("pdf_previous") or "").strip()
+                src_cur = str(pdf_paths.get("pdf_current") or "").strip()
+                has_pdfs = bool(src_prev and Path(src_prev).exists() and src_cur and Path(src_cur).exists())
             pdf_icon = "✅" if has_pdfs else "⚠️"
             try:
                 relative_parent = compare_path.relative_to(self.root_dir).parent.as_posix()
             except ValueError:
                 relative_parent = compare_path.parent.as_posix()
             pretty_parent = relative_parent.replace("_", " ").replace("vs", " vs ")
-            label = (
-                f"{pdf_icon} {bank_code.upper()} - "
-                f"{pretty_parent} "
-                f"({timestamp_label})"
-            )
+            label = f"{pdf_icon} {bank_code.upper()} - {pretty_parent} ({timestamp_label})"
             filtered_options.append({"label": label, "value": value})
 
         filtered_options.sort(key=lambda item: str(item["value"]), reverse=True)
@@ -256,16 +254,12 @@ class FileComparisonStore:
         if not is_canonical_comparison(canonical):
             canonical = raw_data
 
-        indicator_meta = (
-            dict(canonical.get("meta", {})) if isinstance(canonical, dict) else {}
-        )
+        indicator_meta = dict(canonical.get("meta", {})) if isinstance(canonical, dict) else {}
         indicator_meta["compare_path"] = str(compare_path)
         indicator_meta["source"] = source
         indicator_meta["source_label"] = source_label
         indicator_meta["storage_backend"] = "fichier_local"
-        pdf_paths = _normalize_pdf_paths_store(
-            _pdf_paths_from_comparison_meta(indicator_meta, canonical)
-        )
+        pdf_paths = _normalize_pdf_paths_store(_pdf_paths_from_comparison_meta(indicator_meta, canonical))
         indicator_meta["pdf_paths"] = pdf_paths
         warning = _missing_pdf_warning(pdf_paths)
         return {
@@ -277,9 +271,7 @@ class FileComparisonStore:
             "warning": warning,
         }
 
-    def load_review_state(
-        self, compare_path: str | Path | None
-    ) -> dict[str, Any] | None:
+    def load_review_state(self, compare_path: str | Path | None) -> dict[str, Any] | None:
         """Charge l'etat de revue persiste pour une comparaison donnee.
 
         Args:
@@ -307,9 +299,7 @@ class FileComparisonStore:
         return save_review_state(compare_path, **kwargs)
 
 
-def build_file_comparison_store(
-    *, root_dir: str | Path | None = None
-) -> FileComparisonStore:
+def build_file_comparison_store(*, root_dir: str | Path | None = None) -> FileComparisonStore:
     """Retourne le magasin local supporte par fichiers utilise par Dash.
 
     Args:

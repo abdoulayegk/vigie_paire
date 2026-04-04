@@ -3,14 +3,14 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260404_063342",
   "review_items_signature": "0153b05ca9eecc309b59cecbcce339721f0308fd12062d9980e66a72e5808673",
-  "saved_at": "2026-04-04T10:40:50+00:00",
+  "saved_at": "2026-04-04T11:14:24+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::risk_management::tbl_p028_i01|tbl_p031_i01",
-    "change_id": "chg_00011"
+    "review_id": "bnc::capital_management::tbl_p026_i01|tbl_p030_i01",
+    "change_id": "chg_00008"
   },
-  "review_current_idx": 5,
+  "review_current_idx": 0,
   "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
@@ -27,10 +27,10 @@
       "page_t2": 30,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:40:38.113813+00:00",
+      "review_timestamp": "2026-04-04T11:14:24.405019+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -40,7 +40,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
-      "table_status": "completed",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Ratios des fonds propres –   catégorie 1",
@@ -50,17 +50,17 @@
         {
           "name": "Ratios des fonds propres –   CET1",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Ratios des fonds propres –   total",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[3] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same 14 rows; row_count 14 vs 14.",
@@ -127,7 +127,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:36:39.804990+00:00",
+      "review_timestamp": "2026-04-04T11:13:43.517280+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -193,8 +193,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T11:13:45.153240+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -204,12 +204,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Série 47",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "Série 49",
@@ -286,7 +286,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:39:28.358632+00:00",
+      "review_timestamp": "2026-04-04T11:13:49.479553+00:00",
       "edited_value": "",
       "confidence": 0.92,
       "proof_image_path": "",
@@ -378,7 +378,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:40:50.474520+00:00",
+      "review_timestamp": "2026-04-04T11:14:14.532108+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -388,7 +388,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)",
-      "table_status": "completed",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Risque opérationnel – Variation des niveaux de risque",
@@ -398,7 +398,7 @@
         {
           "name": "[3] Au cours du deuxième trimestre de 2025, la variation du risque opérationnel est liée à l’inclusion de CWB qui a été calc",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same 20 rows; row_count 20 vs 20.",
@@ -465,7 +465,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:37:01.533376+00:00",
+      "review_timestamp": "2026-04-04T11:13:55.630116+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -634,7 +634,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:39:43.449254+00:00",
+      "review_timestamp": "2026-04-04T11:14:03.153888+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -691,7 +691,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:39:32.458659+00:00",
+      "review_timestamp": "2026-04-04T11:13:57.179493+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -745,10 +745,10 @@
       "page_t2": 42,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:38:27.129124+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -758,12 +758,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p042_i01",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[1] Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date ",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Table summary, indicators, and headers match exactly with PQ table 'tbl_p041_i01'. Both describe 'Échéances des actifs financiers'.",
@@ -832,7 +832,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:36:01.979030+00:00",
+          "validated_at": "2026-04-04T11:14:24.405019+00:00",
           "validated_by": "analyst"
         },
         {
@@ -842,12 +842,12 @@
             "indicator_name": "Ratios des fonds propres –   CET1",
             "indicator_name_clean": "ratios des fonds propres –   cet1"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:36:02.144989+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00009",
@@ -856,12 +856,12 @@
             "indicator_name": "Ratios des fonds propres –   total",
             "indicator_name_clean": "ratios des fonds propres –   total"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:36:20.783113+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00016",
@@ -873,15 +873,15 @@
             "old_text": "Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
             "new_text": ""
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:40:38.113813+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "partial",
       "confidence": 0.95,
       "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same 14 rows; row_count 14 vs 14.",
       "genai_analysis": {
@@ -919,8 +919,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 4,
-        "pending": 0
+        "validated": 1,
+        "pending": 3
       }
     },
     {
@@ -959,7 +959,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:36:39.804990+00:00",
+          "validated_at": "2026-04-04T11:13:43.517280+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1038,12 +1038,12 @@
             "indicator_name": "Série 47",
             "indicator_name_clean": "série 47"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T11:13:45.153240+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00002",
@@ -1074,7 +1074,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.9,
       "match_method": "Title and indicators are highly similar to PQ table 'tbl_p023_i01'. Both focus on 'Actions, autres instruments de capitaux propres et options d’achat d’actions'. Row count is similar (13 vs 12).",
       "genai_analysis": {
@@ -1112,8 +1112,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 3
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -1157,7 +1157,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:39:28.358632+00:00",
+          "validated_at": "2026-04-04T11:13:49.479553+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1275,7 +1275,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:36:53.038952+00:00",
+          "validated_at": "2026-04-04T11:14:14.532108+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1288,15 +1288,15 @@
             "old_text": "",
             "new_text": "Au cours du deuxième trimestre de 2025, la variation du risque opérationnel est liée à l’inclusion de CWB qui a été calculé selon l’approche standardisée conformément à l’approche utilisée par la Banque."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:40:50.474520+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "partial",
       "confidence": 0.95,
       "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same 20 rows; row_count 20 vs 20.",
       "genai_analysis": {
@@ -1334,8 +1334,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 2,
-        "pending": 0
+        "validated": 1,
+        "pending": 1
       }
     },
     {
@@ -1379,7 +1379,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:37:01.533376+00:00",
+          "validated_at": "2026-04-04T11:13:55.630116+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1570,7 +1570,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:39:43.449254+00:00",
+          "validated_at": "2026-04-04T11:14:03.153888+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1635,7 +1635,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:39:32.458659+00:00",
+          "validated_at": "2026-04-04T11:13:57.179493+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1696,15 +1696,15 @@
             "old_text": "",
             "new_text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les soldes au 30 avril 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:38:27.129124+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Table summary, indicators, and headers match exactly with PQ table 'tbl_p041_i01'. Both describe 'Échéances des actifs financiers'.",
       "genai_analysis": {},
@@ -1717,8 +1717,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     }
   ]

@@ -32,7 +32,6 @@ if str(_SRC) not in sys.path:
 
 from vigilance.cli.output_builder import (
     build_run_dir,
-    split_audit_files,
     write_run_manifest,
 )
 from vigilance.cli.quarter_logic import (
@@ -64,18 +63,10 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     p.add_argument("--bank", required=True, help="Code de la banque (ex: BNC, RBC, TD)")
-    p.add_argument(
-        "--year", required=True, type=int, help="Année du rapport courant (ex: 2025)"
-    )
-    p.add_argument(
-        "--quarter", required=True, help="Trimestre courant (ex: T1, T2, T3)"
-    )
-    p.add_argument(
-        "--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration"
-    )
-    p.add_argument(
-        "--inputs-root", default=DEFAULT_INPUTS_ROOT, help="Répertoire racine des PDFs"
-    )
+    p.add_argument("--year", required=True, type=int, help="Année du rapport courant (ex: 2025)")
+    p.add_argument("--quarter", required=True, help="Trimestre courant (ex: T1, T2, T3)")
+    p.add_argument("--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration")
+    p.add_argument("--inputs-root", default=DEFAULT_INPUTS_ROOT, help="Répertoire racine des PDFs")
     p.add_argument(
         "--outputs-root",
         default=DEFAULT_OUTPUTS_ROOT,
@@ -131,9 +122,7 @@ def _step_extract(
     extraction_dir = extraction_root / bank.lower() / str(year) / quarter
     tables_json = extraction_dir / "tables.json"
     if not tables_json.exists():
-        raise FileNotFoundError(
-            f"Extraction terminée mais tables.json introuvable: {tables_json}"
-        )
+        raise FileNotFoundError(f"Extraction terminée mais tables.json introuvable: {tables_json}")
     return tables_json
 
 
@@ -172,9 +161,7 @@ def _step_compare(
         # Also check for any JSON output
         candidates = sorted(comparison_dir.rglob("*.json"))
     if not candidates:
-        raise FileNotFoundError(
-            f"Comparaison terminée mais aucun fichier de sortie trouvé dans: {out_root}"
-        )
+        raise FileNotFoundError(f"Comparaison terminée mais aucun fichier de sortie trouvé dans: {out_root}")
     return candidates[-1]
 
 
@@ -201,9 +188,7 @@ def main(argv: list[str] | None = None) -> int:
     print("  VIGILANCE — Pipeline Batch")
     print(f"  Banque:              {bank}")
     print(f"  Trimestre courant:   {q_current.upper()}-{year_current}")
-    print(
-        f"  Trimestre précédent: {q_previous.upper()}-{year_previous}  (déduit automatiquement)"
-    )
+    print(f"  Trimestre précédent: {q_previous.upper()}-{year_previous}  (déduit automatiquement)")
     print("=" * 70)
 
     # ── Locate PDFs ──────────────────────────────────────────────────────
@@ -227,14 +212,15 @@ def main(argv: list[str] | None = None) -> int:
         year_previous=year_previous,
         quarter_previous=q_previous,
     )
-    cur_sub = run_dir / f"{q_current.upper()}-{year_current}"
-    prev_sub = run_dir / f"{q_previous.upper()}-{year_previous}"
 
     print(f"\n📁 Dossier du Run: {run_dir}")
 
-    # ── Step 1: Extraction ───────────────────────────────────────────────
-    extraction_root = run_dir / "_extractions"
+    # ── Canonical extraction root (shared across all runs) ───────────────
+    extraction_root = project_root / "outputs" / "extractions"
     extraction_root.mkdir(parents=True, exist_ok=True)
+
+    cur_extraction_dir = extraction_root / bank.lower() / str(year_current) / q_current
+    prev_extraction_dir = extraction_root / bank.lower() / str(year_previous) / q_previous
 
     if not args.skip_extraction:
         print("\n" + "─" * 70)
@@ -242,19 +228,11 @@ def main(argv: list[str] | None = None) -> int:
         print("─" * 70)
 
         t0 = time.time()
-        print(
-            f"\n   Extraction du rapport courant ({q_current.upper()}-{year_current})…"
-        )
-        cur_tables = _step_extract(
-            current_pdf, bank.lower(), year_current, q_current, config, extraction_root
-        )
-        shutil.copy2(cur_tables, cur_sub / "tables.json")
-        split_audit_files(cur_tables, cur_sub)
-        print(f"   ✓ tables.json, indicators.json, footnotes.json → {cur_sub}")
+        print(f"\n   Extraction du rapport courant ({q_current.upper()}-{year_current})…")
+        cur_tables = _step_extract(current_pdf, bank.lower(), year_current, q_current, config, extraction_root)
+        print(f"   ✓ tables.json → {cur_extraction_dir}")
 
-        print(
-            f"\n   Extraction du rapport précédent ({q_previous.upper()}-{year_previous})…"
-        )
+        print(f"\n   Extraction du rapport précédent ({q_previous.upper()}-{year_previous})…")
         prev_tables = _step_extract(
             previous_pdf,
             bank.lower(),
@@ -263,9 +241,7 @@ def main(argv: list[str] | None = None) -> int:
             config,
             extraction_root,
         )
-        shutil.copy2(prev_tables, prev_sub / "tables.json")
-        split_audit_files(prev_tables, prev_sub)
-        print(f"   ✓ tables.json, indicators.json, footnotes.json → {prev_sub}")
+        print(f"   ✓ tables.json → {prev_extraction_dir}")
 
         elapsed = time.time() - t0
         print(f"\n   ⏱  Extraction terminée en {elapsed:.1f}s")
@@ -273,13 +249,21 @@ def main(argv: list[str] | None = None) -> int:
         print("\n⏩ Extraction ignorée (--skip-extraction)")
 
     # ── Step 2: Comparison ───────────────────────────────────────────────
+    dash_target_dir = (
+        project_root
+        / "outputs"
+        / "comparisons"
+        / bank.lower()
+        / f"{year_current}_{q_current.lower()}_vs_{year_previous}_{q_previous.lower()}"
+    )
+
     if not args.skip_comparison:
         print("\n" + "─" * 70)
         print("🔍 ÉTAPE 2 — Comparaison sémantique (GPT-4o)")
         print("─" * 70)
 
         t0 = time.time()
-        comparison_out = run_dir / "_comparisons"
+        comparison_out = project_root / "outputs" / "comparisons"
         comparison_path = _step_compare(
             bank=bank.lower(),
             year_current=year_current,
@@ -288,21 +272,17 @@ def main(argv: list[str] | None = None) -> int:
             extraction_root=extraction_root,
             out_root=comparison_out,
         )
-        # Copy comparison.json to run root
+        # Also copy comparison.json to the run dir for convenience
         final_comparison = run_dir / "comparison.json"
         shutil.copy2(comparison_path, final_comparison)
         elapsed = time.time() - t0
-        print(f"\n   ✓ comparison.json → {final_comparison}")
+        print(f"\n   ✓ comparison.json → {dash_target_dir}")
         print(f"   ⏱  Comparaison terminée en {elapsed:.1f}s")
     else:
         print("\n⏩ Comparaison ignorée (--skip-comparison)")
 
     # ── Step 2.5: GenAI Triage (Batch LLM Analysis) ────────────────────
-    if (
-        not args.skip_comparison
-        and "final_comparison" in locals()
-        and final_comparison.exists()
-    ):
+    if not args.skip_comparison and "final_comparison" in locals() and final_comparison.exists():
         print("\n" + "─" * 70)
         print("🧠 ÉTAPE 2.5 — Analyse GenAI (Triage de pertinence)")
         print("─" * 70)
@@ -310,7 +290,9 @@ def main(argv: list[str] | None = None) -> int:
         from vigilance.genai_triage import enrich_comparison_with_genai_triage
 
         t0 = time.time()
-        enrich_comparison_with_genai_triage(final_comparison)
+        # Enrich the canonical Dash comparison first, then sync to run dir.
+        enrich_comparison_with_genai_triage(comparison_path)
+        shutil.copy2(comparison_path, final_comparison)
         elapsed = time.time() - t0
         print("   ✓ comparison.json enrichi avec l'analyse GenAI")
         print(f"   ⏱  Triage GenAI terminé en {elapsed:.1f}s")
@@ -328,39 +310,20 @@ def main(argv: list[str] | None = None) -> int:
         year_previous=year_previous,
         quarter_previous=q_previous,
         status="completed",
+        extraction_dir_current=cur_extraction_dir,
+        extraction_dir_previous=prev_extraction_dir,
+        pdf_path_current=current_pdf,
+        pdf_path_previous=previous_pdf,
     )
     print(f"   ✓ manifest.json → {run_dir / 'manifest.json'}")
-
-    # ── Step 4: Deploy to Dash ───────────────────────────────────────────
-    print("\n" + "─" * 70)
-    print("🚀 ÉTAPE 4 — Déploiement vers le Dashboard (Dash)")
-    print("─" * 70)
-    if (
-        not args.skip_comparison
-        and "final_comparison" in locals()
-        and final_comparison.exists()
-    ):
-        dash_target_dir = (
-            project_root
-            / "outputs"
-            / "comparisons"
-            / bank.lower()
-            / f"{year_current}_{q_current.lower()}_vs_{year_previous}_{q_previous.lower()}"
-        )
-        dash_target_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(final_comparison, dash_target_dir / "comparison.json")
-        if current_pdf and current_pdf.exists():
-            shutil.copy2(current_pdf, dash_target_dir / "current_report.pdf")
-        if previous_pdf and previous_pdf.exists():
-            shutil.copy2(previous_pdf, dash_target_dir / "previous_report.pdf")
-        print(
-            f"   ✓ Données déployées et prêtes pour Dash dans: {dash_target_dir.relative_to(project_root)}"
-        )
 
     # ── Final Summary ────────────────────────────────────────────────────
     print("\n" + "=" * 70)
     print("✅ PIPELINE TERMINÉ AVEC SUCCÈS")
-    print(f"   Dossier du Run: {run_dir}")
+    print(f"   Dossier du Run:    {run_dir}")
+    print(f"   Extractions:       {extraction_root}")
+    if not args.skip_comparison:
+        print(f"   Comparaison Dash:  {dash_target_dir}")
     print("=" * 70)
 
     return 0

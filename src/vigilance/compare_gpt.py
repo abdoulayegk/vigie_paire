@@ -15,7 +15,6 @@ from vigilance.comparison_devil_advocate import (
 )
 from vigilance.comparison_diff_gpt import diff_table_pair_gpt
 from vigilance.comparison_io import (
-    _archive_pdf,
     _atomic_write_json,
     _coerce_int,
     _coerce_pathlike,
@@ -64,10 +63,7 @@ DIFF_PROMPT_VERSION = "table_diff_v4"
 COMPARISON_SCHEMA_VERSION = 2
 
 
-REFERENCE_RESOLUTION_RULE = (
-    "t2->t1 meme annee; t3->t2 meme annee; "
-    "t1->t3 annee precedente; t4->t4 annee precedente"
-)
+REFERENCE_RESOLUTION_RULE = "t2->t1 meme annee; t3->t2 meme annee; t1->t3 annee precedente; t4->t4 annee precedente"
 
 
 def _visual_sanity_meta(
@@ -160,9 +156,7 @@ def _call_openai_json(
                 if not isinstance(data, dict):
                     raise ValueError("OpenAI response is not a JSON object")
             if usage_recorder is not None:
-                prompt_tokens, completion_tokens, total_tokens = _extract_usage_metrics(
-                    response
-                )
+                prompt_tokens, completion_tokens, total_tokens = _extract_usage_metrics(response)
                 usage_recorder.append(
                     {
                         "model": model,
@@ -236,16 +230,8 @@ def compare_reports_gpt4o(
     previous_payload = _load_tables_payload(previous_dir_path)
     current_payload = _load_tables_payload(current_dir_path)
 
-    previous_tables = [
-        entry
-        for entry in list(previous_payload.get("tables", []) or [])
-        if isinstance(entry, dict)
-    ]
-    current_tables = [
-        entry
-        for entry in list(current_payload.get("tables", []) or [])
-        if isinstance(entry, dict)
-    ]
+    previous_tables = [entry for entry in list(previous_payload.get("tables", []) or []) if isinstance(entry, dict)]
+    current_tables = [entry for entry in list(current_payload.get("tables", []) or []) if isinstance(entry, dict)]
     (
         previous_business_tables,
         previous_artifact_refs,
@@ -268,14 +254,8 @@ def compare_reports_gpt4o(
         return (
             [_table_card(entry) for entry in previous_business_tables],
             [_table_card(entry) for entry in current_business_tables],
-            {
-                entry["table_id"]: _table_detail(entry)
-                for entry in previous_business_tables
-            },
-            {
-                entry["table_id"]: _table_detail(entry)
-                for entry in current_business_tables
-            },
+            {entry["table_id"]: _table_detail(entry) for entry in previous_business_tables},
+            {entry["table_id"]: _table_detail(entry) for entry in current_business_tables},
             {entry["table_id"]: _table_snapshot(entry) for entry in previous_tables},
             {entry["table_id"]: _table_snapshot(entry) for entry in current_tables},
         )
@@ -289,18 +269,14 @@ def compare_reports_gpt4o(
         current_snapshots,
     ) = _build_views()
 
-    bank_code = str(
-        current_payload.get("bank_code") or previous_payload.get("bank_code") or ""
-    )
+    bank_code = str(current_payload.get("bank_code") or previous_payload.get("bank_code") or "")
     if not bank_code:
         raise ValueError("Missing bank_code in tables.json payloads")
     year_previous = int(previous_payload.get("year", 0) or 0)
     year_current = int(current_payload.get("year", 0) or 0)
     quarter_previous = str(previous_payload.get("quarter", "") or "")
     quarter_current = str(current_payload.get("quarter", "") or "")
-    model_name = str(
-        model or resolve_openai_model("default_genai", config_path=config_path)
-    )
+    model_name = str(model or resolve_openai_model("default_genai", config_path=config_path))
     usage_records: list[dict[str, Any]] = []
 
     match_result = _run_table_matching(
@@ -360,25 +336,17 @@ def compare_reports_gpt4o(
 
     # --- Devil's Advocate: second-opinion review on unmatched / low-confidence ---
     low_confidence_pairs = [
-        p
-        for p in match_result.get("matched_pairs", [])
-        if float(p.get("match_confidence", 1.0)) < 0.90
+        p for p in match_result.get("matched_pairs", []) if float(p.get("match_confidence", 1.0)) < 0.90
     ]
     da_added_cards = [
         _table_card(entry)
         for entry in current_business_tables
-        if any(
-            a.get("table_id") == entry.get("table_id")
-            for a in match_result.get("tables_added", [])
-        )
+        if any(a.get("table_id") == entry.get("table_id") for a in match_result.get("tables_added", []))
     ]
     da_removed_cards = [
         _table_card(entry)
         for entry in previous_business_tables
-        if any(
-            r.get("table_id") == entry.get("table_id")
-            for r in match_result.get("tables_removed", [])
-        )
+        if any(r.get("table_id") == entry.get("table_id") for r in match_result.get("tables_removed", []))
     ]
     da_result = _devil_advocate_review(
         da_added_cards,
@@ -395,9 +363,7 @@ def compare_reports_gpt4o(
         if not prev_id or not cur_id:
             continue
         if prev_id not in previous_snapshots or cur_id not in current_snapshots:
-            logger.warning(
-                "Devil's Advocate: skipping invalid match %s <-> %s", prev_id, cur_id
-            )
+            logger.warning("Devil's Advocate: skipping invalid match %s <-> %s", prev_id, cur_id)
             continue
         # Add to matched_pairs
         match_result["matched_pairs"].append(
@@ -423,15 +389,10 @@ def compare_reports_gpt4o(
         prev_id = str(contested.get("previous_table_id", "") or "").strip()
         cur_id = str(contested.get("current_table_id", "") or "").strip()
         for pair in match_result["matched_pairs"]:
-            if (
-                pair.get("previous_table_id") == prev_id
-                and pair.get("current_table_id") == cur_id
-            ):
+            if pair.get("previous_table_id") == prev_id and pair.get("current_table_id") == cur_id:
                 pair["review_required"] = True
                 pair["devil_advocate_reason"] = str(contested.get("reason", ""))
-                logger.info(
-                    "Devil's Advocate contested pair: %s <-> %s", prev_id, cur_id
-                )
+                logger.info("Devil's Advocate contested pair: %s <-> %s", prev_id, cur_id)
 
     artifacts_confirmed_previous: list[dict[str, Any]] = []
     for item in previous_artifact_refs:
@@ -489,8 +450,7 @@ def compare_reports_gpt4o(
             snapshot
             for snapshot in opposite_snapshots.values()
             if _snapshot_has_render_anchor(snapshot)
-            and _normalize_table_anchor_section(snapshot.get("section"))
-            == normalized_section
+            and _normalize_table_anchor_section(snapshot.get("section")) == normalized_section
             and _normalize_table_anchor_title(snapshot.get("title")) == normalized_title
         ]
         if len(candidates) != 1:
@@ -637,16 +597,10 @@ def compare_reports_gpt4o(
                 ),
                 "reason": diff["reason"],
                 "visual_sanity_applied": bool(diff.get("visual_sanity_applied", False)),
-                "visual_sanity_rejected_count": _coerce_int(
-                    diff.get("visual_sanity_rejected_count")
-                ),
+                "visual_sanity_rejected_count": _coerce_int(diff.get("visual_sanity_rejected_count")),
                 "visual_sanity_scope": list(diff.get("visual_sanity_scope") or []),
-                "visual_sanity_render_mode": str(
-                    diff.get("visual_sanity_render_mode", "") or ""
-                ),
-                "visual_sanity_render_status": str(
-                    diff.get("visual_sanity_render_status", "") or ""
-                ),
+                "visual_sanity_render_mode": str(diff.get("visual_sanity_render_mode", "") or ""),
+                "visual_sanity_render_status": str(diff.get("visual_sanity_render_status", "") or ""),
             }
         )
 
@@ -713,17 +667,13 @@ def compare_reports_gpt4o(
                 filtered_tables_removed.append(item)
         tables_removed = filtered_tables_removed
 
-    indicator_changes_total, footnote_changes_total = _count_pair_changes(
-        pair_comparisons
-    )
+    indicator_changes_total, footnote_changes_total = _count_pair_changes(pair_comparisons)
     high_priority_items_total = _count_high_priority_items(
         pair_comparisons,
         tables_added,
         tables_removed,
     )
-    comparison_runtime_sec = round(
-        max(0.0, time.monotonic() - comparison_started_at), 3
-    )
+    comparison_runtime_sec = round(max(0.0, time.monotonic() - comparison_started_at), 3)
     run_metrics = _build_run_metrics(
         usage_records=usage_records,
         match_result=match_result,
@@ -734,23 +684,12 @@ def compare_reports_gpt4o(
         runtime_extraction_sec=float(runtime_extraction_sec or 0.0),
     )
 
-    out_dir = (
-        out_root_path
-        / bank_code
-        / f"{year_current}_{quarter_current}_vs_{year_previous}_{quarter_previous}"
-    )
+    out_dir = out_root_path / bank_code / f"{year_current}_{quarter_current}_vs_{year_previous}_{quarter_previous}"
     out_dir.mkdir(parents=True, exist_ok=True)
     run_id = _make_run_id()
-    archived_pdf_previous = _archive_pdf(
-        source_pdf_previous,
-        out_dir,
-        "previous_report.pdf",
-    )
-    archived_pdf_current = _archive_pdf(
-        source_pdf_current,
-        out_dir,
-        "current_report.pdf",
-    )
+    # Store PDF source paths as references instead of copying them.
+    archived_pdf_previous = str(source_pdf_previous or "").strip()
+    archived_pdf_current = str(source_pdf_current or "").strip()
     payload = {
         "schema_version": COMPARISON_SCHEMA_VERSION,
         "artifact_type": "report_comparison",
