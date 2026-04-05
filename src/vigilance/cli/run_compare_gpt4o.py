@@ -45,6 +45,16 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Optional OpenAI model override (defaults to config role default_genai)",
     )
+    parser.add_argument(
+        "--pdf-previous",
+        default="",
+        help="Path to the previous quarter PDF report (used for visual evidence in the UI)",
+    )
+    parser.add_argument(
+        "--pdf-current",
+        default="",
+        help="Path to the current quarter PDF report (used for visual evidence in the UI)",
+    )
     return parser
 
 
@@ -73,6 +83,8 @@ def main(argv: list[str] | None = None) -> int:
             "quarter_previous": previous_quarter,
             "rule": REFERENCE_RESOLUTION_RULE,
         },
+        source_pdf_previous=str(args.pdf_previous or "").strip() or None,
+        source_pdf_current=str(args.pdf_current or "").strip() or None,
     )
     print(str(comparison_path))
     return 0

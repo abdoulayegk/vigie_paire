@@ -194,8 +194,8 @@ def test_quality_pass_marks_suspect_when_no_summary_and_structure_remains_weak(
     )
 
     assert result is not None
-    assert result.extraction_status == "suspect_unresolved"
-    assert result.acceptance_reason == "suspect_unresolved_after_rescue_exhaustion"
+    assert result.extraction_status == "rescued"
+    assert result.acceptance_reason == "data_richness_override_rescue_exhaustion"
 
 
 def test_quality_pass_rejects_non_empty_summary_with_weak_indicator_only(
@@ -223,8 +223,7 @@ def test_quality_pass_rejects_non_empty_summary_with_weak_indicator_only(
     )
 
     assert result is not None
-    assert result.extraction_status == "suspect_unresolved"
-    assert "weak_indicator_only" in result.rejection_reasons
+    assert result.extraction_status == "rescued"
 
 
 def test_quality_pass_rejects_generic_title_contamination_even_with_summary(
@@ -252,9 +251,204 @@ def test_quality_pass_rejects_generic_title_contamination_even_with_summary(
     )
 
     assert result is not None
-    assert result.extraction_status == "suspect_unresolved"
-    assert "generic_page_title" in result.rejection_reasons
+    assert result.extraction_status == "rescued"
+    assert (
+        "generic_page_title" in result.rejection_reasons or "generic_title_without_support" in result.rejection_reasons
+    )
     assert "dominant_contamination" in result.rejection_reasons
+
+
+# ---------------------------------------------------------------------------
+# Guardrail tests: tables with extracted data must NEVER be confirmed_no_table
+# ---------------------------------------------------------------------------
+
+
+class TestDataRichnessOverrideGuardrail:
+    """Verrouille le comportement: toute table avec des donnees extraites
+    (indicators ou headers non-vides) ne doit JAMAIS etre classee
+    confirmed_no_table.  Ces tests sont des garde-fous de non-regression."""
+
+    def test_single_indicator_prevents_confirmed_no_table(self, monkeypatch) -> None:
+        """Meme 1 seul indicator suffit a empecher confirmed_no_table."""
+        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+
+        def fake_extract(**kwargs):
+            return _result(
+                title="Tableau 99",
+                summary="",
+                indicators=["Total"],
+                headers=[],
+                no_table_detected=True,
+            )
+
+        monkeypatch.setattr(extractor, "extract", fake_extract)
+
+        result = extractor.extract_with_quality_pass(
+            crop_bytes=b"initial",
+            bank_code="bnc",
+            bbox_norm=[0.1, 0.2, 0.9, 0.8],
+            vision_cfg={},
+            get_variant_crop_fn=lambda **kwargs: None,
+        )
+
+        assert result is not None
+        assert result.extraction_status != "confirmed_no_table", (
+            "BUG REGRESSION: une table avec des indicators ne doit JAMAIS etre confirmed_no_table"
+        )
+
+    def test_single_header_prevents_confirmed_no_table(self, monkeypatch) -> None:
+        """Meme 1 seul header suffit a empecher confirmed_no_table."""
+        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+
+        def fake_extract(**kwargs):
+            return _result(
+                title="Tableau X",
+                summary="",
+                indicators=[],
+                headers=["T2-2025"],
+                no_table_detected=True,
+            )
+
+        monkeypatch.setattr(extractor, "extract", fake_extract)
+
+        result = extractor.extract_with_quality_pass(
+            crop_bytes=b"initial",
+            bank_code="bmo",
+            bbox_norm=[0.1, 0.1, 0.9, 0.7],
+            vision_cfg={},
+            get_variant_crop_fn=lambda **kwargs: None,
+        )
+
+        assert result is not None
+        assert result.extraction_status != "confirmed_no_table", (
+            "BUG REGRESSION: une table avec des headers ne doit JAMAIS etre confirmed_no_table"
+        )
+
+    def test_rich_table_rescued_not_discarded(self, monkeypatch) -> None:
+        """Simule un tableau riche (24 indicators, 3 headers) comme le
+        TABLEAU 12 de BMO — doit etre rescued, jamais confirmed_no_table."""
+        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+
+        def fake_extract(**kwargs):
+            return _result(
+                title="TABLEAU 12",
+                summary="Fonds propres réglementaires et TLAC",
+                indicators=[f"Indicateur {i}" for i in range(24)],
+                headers=["T2-2025", "T1-2025", "T2-2024"],
+                no_table_detected=True,
+            )
+
+        monkeypatch.setattr(extractor, "extract", fake_extract)
+
+        result = extractor.extract_with_quality_pass(
+            crop_bytes=b"initial",
+            bank_code="bmo",
+            bbox_norm=[0.05, 0.4, 0.94, 0.7],
+            vision_cfg={},
+            get_variant_crop_fn=lambda **kwargs: None,
+        )
+
+        assert result is not None
+        assert result.extraction_status != "confirmed_no_table", (
+            "BUG REGRESSION: un tableau riche ne doit JAMAIS etre confirmed_no_table"
+        )
+        assert result.extraction_status in ("ok", "rescued")
+
+    def test_truly_empty_table_remains_confirmed_no_table(self, monkeypatch) -> None:
+        """Contre-test: une table VIDE (0 indicators, 0 headers) doit rester
+        confirmed_no_table. Le garde-fou ne doit pas tout laisser passer."""
+        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+
+        def fake_extract(**kwargs):
+            return _result(
+                title="Rapport de gestion",
+                summary="",
+                indicators=[],
+                headers=[],
+                no_table_detected=True,
+            )
+
+        monkeypatch.setattr(extractor, "extract", fake_extract)
+
+        result = extractor.extract_with_quality_pass(
+            crop_bytes=b"initial",
+            bank_code="bnc",
+            bbox_norm=[0.1, 0.1, 0.9, 0.75],
+            vision_cfg={},
+            get_variant_crop_fn=lambda **kwargs: None,
+        )
+
+        assert result is not None
+        assert result.extraction_status == "confirmed_no_table", (
+            "Une table VIDE sans indicators ni headers DOIT rester confirmed_no_table"
+        )
+
+    def test_whitespace_only_indicators_count_as_empty(self, monkeypatch) -> None:
+        """Des indicators qui ne contiennent que des espaces = vide."""
+        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+
+        def fake_extract(**kwargs):
+            return _result(
+                title="Tableau vide",
+                summary="",
+                indicators=["", "  ", "\n"],
+                headers=["", " "],
+                no_table_detected=True,
+            )
+
+        monkeypatch.setattr(extractor, "extract", fake_extract)
+
+        result = extractor.extract_with_quality_pass(
+            crop_bytes=b"initial",
+            bank_code="bmo",
+            bbox_norm=[0.1, 0.1, 0.9, 0.7],
+            vision_cfg={},
+            get_variant_crop_fn=lambda **kwargs: None,
+        )
+
+        assert result is not None
+        assert result.extraction_status == "confirmed_no_table", (
+            "Des indicators/headers whitespace-only comptent comme vides"
+        )
+
+    @pytest.mark.parametrize(
+        "indicators,headers",
+        [
+            (["Ratio CET1"], []),
+            ([], ["T1-2025"]),
+            (["Ratio CET1", "Ratio Tier 1"], ["T1-2025", "T2-2025"]),
+            ([f"Ind {i}" for i in range(39)], ["Sans échéance", "< 6 mois", "6-12 mois", "> 1 an"]),
+        ],
+        ids=["one_indicator", "one_header", "small_table", "large_nsfr_table"],
+    )
+    def test_any_non_empty_data_is_never_confirmed_no_table(self, monkeypatch, indicators, headers) -> None:
+        """Parametrise: toute combinaison non-vide doit survivre au garde-fou."""
+        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+
+        def fake_extract(**kwargs):
+            return _result(
+                title="Tableau X",
+                summary="",
+                indicators=indicators,
+                headers=headers,
+                no_table_detected=True,
+            )
+
+        monkeypatch.setattr(extractor, "extract", fake_extract)
+
+        result = extractor.extract_with_quality_pass(
+            crop_bytes=b"initial",
+            bank_code="cibc",
+            bbox_norm=[0.05, 0.2, 0.94, 0.8],
+            vision_cfg={},
+            get_variant_crop_fn=lambda **kwargs: None,
+        )
+
+        assert result is not None
+        assert result.extraction_status != "confirmed_no_table", (
+            f"BUG REGRESSION: indicators={len(indicators)}, headers={len(headers)} "
+            f"ne doit JAMAIS etre confirmed_no_table"
+        )
 
 
 def test_quality_pass_prefers_top_trim_candidate_with_summary_over_noisier_candidate(

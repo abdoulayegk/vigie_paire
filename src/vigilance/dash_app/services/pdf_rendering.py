@@ -18,6 +18,7 @@ from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
 from vigilance.dash_app.services.comparison_context import _normalize_pdf_paths_store
 from vigilance.utils.proof_rendering import (
+    PROOF_RENDER_DPI,
     normalize_proof_bbox as _shared_normalize_proof_bbox,
     render_full_proof_bytes,
 )
@@ -35,7 +36,7 @@ def _filter_noise(items: list[str]) -> list[str]:
 def _cached_render_or_crop(
     pdf_path: str,
     page: int,
-    scale: float,
+    dpi: int,
     bbox_key: str,
     display_mode: str = "crop",
     highlight_rects: list[list[float]] | None = None,
@@ -61,7 +62,7 @@ def _cached_render_or_crop(
             pdf_path,
             page=page,
             bbox=bbox,
-            scale=scale,
+            dpi=dpi,
             allow_full_page_fallback=True,
         )
         return raw if raw else b""
@@ -71,10 +72,13 @@ def _cached_render_or_crop(
 
     try:
         if display_mode == "footnote":
-            return crop_footnote_region_to_bytes(pdf_path, page, bbox, scale=scale)
+            return crop_footnote_region_to_bytes(pdf_path, page, bbox, dpi=dpi)
         else:  # "crop" (default)
             return crop_table_region_to_bytes(
-                pdf_path, page, bbox, scale=scale,
+                pdf_path,
+                page,
+                bbox,
+                dpi=dpi,
                 highlight_rects=highlight_rects,
                 secondary_highlight_rects=secondary_highlight_rects,
             )
@@ -151,7 +155,7 @@ def _get_proof_render_result_for_item(
             pdf_path,
             page=page,
             bbox=None,
-            scale=1.5,
+            dpi=PROOF_RENDER_DPI,
             allow_full_page_fallback=True,
         )
         if raw_bytes:
@@ -226,7 +230,7 @@ def _get_proof_image_b64_for_item(
             raw_bytes = _cached_render_or_crop(
                 str(pdf_path),
                 page_effective,
-                1.5,
+                PROOF_RENDER_DPI,
                 bbox_key,
                 display_mode,
                 highlight_rects=highlight_rects,
@@ -285,7 +289,7 @@ def _get_proof_image_b64_for_item(
             raw_bytes = _cached_render_or_crop(
                 str(pdf_path),
                 page_effective,
-                1.5,
+                PROOF_RENDER_DPI,
                 bbox_key,
                 display_mode,
                 highlight_rects=highlight_rects,
@@ -370,7 +374,9 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
 
     if pdf_path and page is not None:
         page_effective = max(1, int(page))
-        raw = get_pdf_preview(pdf_path, page_effective, scale=1.5)
+        raw = get_pdf_preview(
+            pdf_path, page_effective, scale=PROOF_RENDER_DPI / 72.0
+        )
         if raw:
             return _base64.b64encode(raw).decode("ascii")
     return None

@@ -1,13 +1,13 @@
 {
   "schema_version": 2,
   "artifact_type": "report_comparison",
-  "run_id": "20260331_114648",
+  "run_id": "20260404_083907",
   "bank_code": "bmo",
   "year_previous": 2025,
   "quarter_previous": "t3",
   "year_current": 2026,
   "quarter_current": "t1",
-  "created_at": "2026-03-31T11:46:48",
+  "created_at": "2026-04-04T08:39:07",
   "source_pdf_previous": "",
   "source_pdf_current": "",
   "archived_pdf_previous": "",
@@ -44,140 +44,140 @@
       {
         "previous_table_id": "tbl_p044_i02",
         "current_table_id": "tbl_p039_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 10 vs 10; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'TABLEAU 22'; indicators: same 10 rows; row_count 10 vs 10; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p044_i03",
         "current_table_id": "tbl_p039_i02",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 9 vs 9; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'TABLEAU 23'; indicators: same 9 rows; row_count 9 vs 9; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p045_i01",
         "current_table_id": "tbl_p039_i03",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 3 vs 3; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'TABLEAU 24'; indicators: same 3 rows; row_count 3 vs 3; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p045_i02",
         "current_table_id": "tbl_p039_i04",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 3 vs 3; similar table summary."
+        "match_confidence": 0.9,
+        "reason": "Indicators and headers match; row_count 3 vs 3; footnotes provide additional context."
       },
       {
         "previous_table_id": "tbl_p045_i03",
         "current_table_id": "tbl_p040_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 7 vs 7; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'TABLEAU 25'; indicators: same 7 rows; row_count 7 vs 7; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p046_i01",
         "current_table_id": "tbl_p041_i01",
-        "match_confidence": 0.9,
-        "reason": "Indicators and headers match; row_count 19 vs 20; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'TABLEAU 26'; indicators: same 19 rows; row_count 19 vs 20; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p046_i02",
         "current_table_id": "tbl_p041_i02",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 6 vs 6; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'TABLEAU 27'; indicators: same 6 rows; row_count 6 vs 6; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p047_i01",
         "current_table_id": "tbl_p042_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 2 vs 2; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'TABLEAU 28'; indicators: same 2 rows; row_count 2 vs 2; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p048_i01",
         "current_table_id": "tbl_p043_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 10 vs 10; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'TABLEAU 29'; indicators: same 10 rows; row_count 10 vs 10; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p049_i01",
         "current_table_id": "tbl_p043_i02",
         "match_confidence": 0.9,
-        "reason": "Indicators and headers match; row_count 17 vs 15; similar table summary."
+        "reason": "Title identical: 'TABLEAU 30'; indicators: same 17 rows; row_count 17 vs 15; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p049_i02",
         "current_table_id": "tbl_p043_i03",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 15 vs 15; similar table summary."
+        "match_confidence": 0.9,
+        "reason": "Indicators and headers match; row_count 15 vs 15; footnotes provide additional context."
       },
       {
         "previous_table_id": "tbl_p049_i03",
         "current_table_id": "tbl_p044_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 4 vs 4; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'TABLEAU 31'; indicators: same 4 rows; row_count 4 vs 4; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p050_i01",
         "current_table_id": "tbl_p044_i02",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 19 vs 19; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'TABLEAU 32'; indicators: same 19 rows; row_count 19 vs 19; headers similar structure."
       },
       {
         "previous_table_id": "tbl_p051_i01",
         "current_table_id": "tbl_p045_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 4 vs 4; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title and indicators identical: 'Cotes de crédit par agence de notation'; headers and footnotes match exactly; row_count 4 vs 4."
       },
       {
         "previous_table_id": "tbl_p052_i01",
         "current_table_id": "tbl_p046_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 29 vs 29; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title and indicators highly similar: 'Ratio de liquidité à court terme'; headers and footnotes match exactly; row_count 29 vs 29."
       },
       {
         "previous_table_id": "tbl_p053_i01",
         "current_table_id": "tbl_p047_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 39 vs 39; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title and indicators highly similar: 'Ratio structurel de liquidité à long terme'; headers and footnotes match exactly; row_count 39 vs 39."
       },
       {
         "previous_table_id": "tbl_p054_i01",
         "current_table_id": "tbl_p048_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 19 vs 19; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title and indicators highly similar: 'Échéances contractuelles des actifs'; headers match exactly; row_count 19 vs 19."
       },
       {
         "previous_table_id": "tbl_p054_i02",
         "current_table_id": "tbl_p048_i02",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 15 vs 15; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title and indicators highly similar: 'Échéances des passifs et capitaux propres'; headers and footnotes match exactly; row_count 15 vs 15."
       },
       {
         "previous_table_id": "tbl_p055_i01",
         "current_table_id": "tbl_p049_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 5 vs 5; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title and indicators highly similar: 'Échéances des engagements hors bilan'; headers and footnotes match exactly; row_count 5 vs 5."
       },
       {
         "previous_table_id": "tbl_p055_i02",
         "current_table_id": "tbl_p049_i02",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 19 vs 19; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title and indicators highly similar: 'Échéances contractuelles des actifs'; headers match exactly; row_count 19 vs 19."
       },
       {
         "previous_table_id": "tbl_p055_i03",
         "current_table_id": "tbl_p049_i03",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 15 vs 15; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title and indicators highly similar: 'Échéances des passifs et capitaux propres'; headers and footnotes match exactly; row_count 15 vs 15."
       },
       {
         "previous_table_id": "tbl_p056_i01",
         "current_table_id": "tbl_p050_i01",
-        "match_confidence": 0.92,
-        "reason": "Indicators and headers match; row_count 5 vs 5; similar table summary."
+        "match_confidence": 0.95,
+        "reason": "Title and indicators highly similar: 'Échéances des engagements hors bilan'; headers and footnotes match exactly; row_count 5 vs 5."
       },
       {
         "previous_table_id": "tbl_p044_i01",
         "current_table_id": "tbl_p038_i01",
         "match_confidence": 0.8,
-        "reason": "Both tables share identical headers related to 'Prêts garantis par un bien immobilier au Canada'. The CQ table appears to be a truncated version with updated date indicators.",
+        "reason": "Both tables share the same headers related to 'Prêts garantis par un bien immobilier au Canada'. The CQ table appears to be a truncated version of the PQ table, focusing on specific dates.",
         "source": "devil_advocate"
       }
     ],
@@ -292,14 +292,14 @@
           "is_relevant": true,
           "category": "RISQUE",
           "relevance_score": "ELEVEE",
-          "risk_level": "MODERE",
+          "risk_level": "ELEVE",
           "confidence": 0.9,
           "explanation": "La suppression du tableau sur la sensibilité aux taux d'intérêt et aux marchés boursiers est pertinente car elle affecte la transparence sur la gestion des risques financiers.",
           "impact_type": "structurel",
           "project_phase": "rapport_gestion",
-          "action_requise": "investigation",
+          "action_requise": "escalade",
           "reference_reglementaire": "",
-          "impact_description": "La suppression du tableau réduit la visibilité sur la sensibilité de la banque aux fluctuations des taux d'intérêt et des marchés boursiers.",
+          "impact_description": "La suppression du tableau réduit la visibilité sur l'exposition de la banque aux fluctuations des taux d'intérêt et des marchés boursiers.",
           "source": "llm"
         }
       }
@@ -886,7 +886,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their core business meaning and role, with no additions, removals, or renames identified.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators in the current table match those in the previous table by name and position, indicating no additions, removals, or renames.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -1059,7 +1068,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are consistent in their business meaning and role, with no additions, removals, or renames identified.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction artifacts.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -1200,59 +1218,39 @@
         ]
       },
       "technical_diff": {
-        "indicators_added": [],
+        "indicators_added": [
+          {
+            "value": "Série 33",
+            "reason": "This indicator is present in the previous table but not in the current table, indicating it has been removed.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "The removal of 'Série 33' could indicate a structural change in the capital instruments offered by the bank, potentially affecting the capital structure and investor options."
+            }
+          }
+        ],
         "indicators_removed": [
           {
             "value": "Billets avec remboursement de capital à recours limité, série 1 à 4,300 %",
-            "reason": "This indicator is present in the previous table but absent in the current table.",
+            "reason": "This indicator is present in the previous table but not in the current table, indicating it has been removed.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The removal of this indicator suggests a structural change in the capital instruments being reported, which could impact the bank's capital structure and risk profile."
-            }
-          },
-          {
-            "value": "Série 33",
-            "reason": "This indicator is present in the previous table but absent in the current table.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "The removal of this series may indicate a minor adjustment in the categorization of equity instruments, with limited impact on overall capital management."
+              "justification": "The removal of 'Billets avec remboursement de capital à recours limité, série 1 à 4,300 %' suggests a change in the bank's debt instruments, which could impact the bank's funding strategy and interest obligations."
             }
           }
         ],
-        "indicators_renamed": [
-          {
-            "previous": "Série K – première tranche",
-            "current": "Série K - première tranche",
-            "reason": "The only difference between the previous and current indicators is a typographical change in the dash character.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "This change is purely cosmetic and does not affect the meaning or role of the indicator in the table."
-            }
-          }
-        ],
+        "indicators_renamed": [],
         "footnotes_added": [],
         "footnotes_removed": [],
         "footnotes_renamed": [
-          {
-            "previous_id": "1",
-            "current_id": "1",
-            "previous_text": "Des détails sur les billets à moyen terme sont présentés à la note 16 des états financiers consolidés audités du Rapport annuel de BMO pour 2024. La note 16 des états financiers consolidés audités du Rapport annuel de BMO pour 2024, traitent en détail du capital social et des autres instruments de capitaux propres.",
-            "current_text": "Des détails sur les billets à moyen terme sont présentés à la note 16 des états financiers consolidés audités du Rapport annuel de BMO pour 2025. La note 16 des états financiers consolidés annuels audités du Rapport annuel de BMO pour 2025, traitent en détail du capital social et des autres instruments convertibles en actions ordinaires.",
-            "reason": "The footnote has been semantically altered to specify that the instruments are now convertible into ordinary shares, which is a material change in the description of the instruments.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "The change in the description of instruments from 'other equity instruments' to 'other instruments convertible into ordinary shares' indicates a structural shift in the nature of the instruments, which could impact the bank's capital structure and investor perception."
-            }
-          },
           {
             "previous_id": "2",
             "current_id": "2",
             "previous_text": "Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actions ordinaires en vertu du recours aux actions privilégiées, série 49, aux actions privilégiées, série 51, aux actions privilégiées, série 53, aux actions privilégiées, série 54 et aux actions privilégiées, capital à recours limité, série 1, série 2, série 3, série 4, série 5 et série 6, respectivement émises en même temps que les billets avec remboursement actuellement les actifs détenus dans une fiducie à recours limité.",
             "current_text": "Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actions ordinaires en vertu du recours aux actions privilégiées, série 51, aux actions privilégiées, série 53, aux actions privilégiées, série 54 et aux actions privilégiées, série 55 au titre des billets avec remboursement de capital à recours limité, série 4, série 5 et série 6, respectivement émises en même temps que les billets avec remboursement de capital à recours limité, qui comprennent actions privilégiées, série 51, aux actions privilégiées, série 53, aux actions privilégiées, série 54 et aux actions privilégiées, série 55 au titre des billets avec remboursement de capital à recours limité, série 4, série 5 et série 6, respectivement émises en même temps que les billets avec remboursement de capital à recours limité.",
-            "reason": "The footnote has been semantically altered by removing series 49 and adding series 55, which changes the scope of convertible instruments.",
+            "reason": "The footnote has been materially revised to reflect changes in the series of preferred shares involved in the conversion process, indicating a structural change in the capital instruments.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The modification in the series of preferred shares involved in the conversion process reflects a significant change in the bank's capital strategy, potentially affecting the risk profile and investor relations."
+              "justification": "The change in the series of preferred shares involved in the conversion process indicates a structural adjustment in the bank's capital instruments, which could affect investor rights and the bank's capital strategy."
             }
           }
         ],
@@ -1262,29 +1260,38 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 2 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The analysis identified two indicators removed from the previous table and one indicator renamed due to a typographical change. No new indicators were added in the current table. The analysis identified two footnotes with semantic changes that impact the understanding of the bank's capital instruments and their convertibility, which are significant for capital management and investor communication.",
+      "reason": "The comparison reveals structural changes in the capital instruments and debt offerings, with specific series being removed, which may affect the bank's capital strategy and investor relations. The analysis identified a material semantic change in footnote 2, reflecting a structural adjustment in the capital instruments, while other changes were purely date-related or non-material.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression des indicateurs liés aux billets avec remboursement de capital à recours limité peut affecter la gestion du capital et les ratios prudentiels.",
+        "explanation": "L'ajout et la suppression d'indicateurs dans la section de gestion du capital peuvent affecter la structure du capital réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "La suppression de ces indicateurs pourrait modifier la composition du capital réglementaire.",
+        "impact_description": "La modification des indicateurs pourrait influencer la composition du capital réglementaire et nécessiter une réévaluation des ratios de capital.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p044_i02",
       "current_table_id": "tbl_p039_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 10 vs 10; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'TABLEAU 22'; indicators: same 10 rows; row_count 10 vs 10; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p044_i02",
@@ -1407,7 +1414,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role, despite potential differences in table metadata such as section titles or summaries. The core indicators remain unchanged, indicating stability in the reporting structure for these regions and categories.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match in both name and position, indicating no additions, removals, or renames.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -1426,8 +1442,8 @@
     {
       "previous_table_id": "tbl_p044_i03",
       "current_table_id": "tbl_p039_i02",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 9 vs 9; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'TABLEAU 23'; indicators: same 9 rows; row_count 9 vs 9; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p044_i03",
@@ -1528,7 +1544,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are present in both tables with identical core business names, indicating no additions, removals, or renames. The tables are consistent in terms of indicator meaning and role.",
+      "reason": "No meaningful semantic changes in indicators were detected between the two tables. All indicators have the same names and positions in both tables, indicating no additions, removals, or renames.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -1547,8 +1572,8 @@
     {
       "previous_table_id": "tbl_p045_i01",
       "current_table_id": "tbl_p039_i03",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 3 vs 3; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'TABLEAU 24'; indicators: same 3 rows; row_count 3 vs 3; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p045_i01",
@@ -1627,7 +1652,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. The indicators 'Canada³', 'États-Unis⁴', and 'Total' are present in both tables without any changes in their meaning or role. Footnote markers and table metadata differences are ignored as per the rules.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match by their normalized forms and positions, indicating no additions, removals, or renames.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -1646,8 +1680,8 @@
     {
       "previous_table_id": "tbl_p045_i02",
       "current_table_id": "tbl_p039_i04",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 3 vs 3; similar table summary.",
+      "match_confidence": 0.9,
+      "match_reason": "Indicators and headers match; row_count 3 vs 3; footnotes provide additional context.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p045_i02",
@@ -1757,10 +1791,10 @@
             "current_id": "3",
             "previous_text": "À la suite des hausses des taux d’intérêt, le portefeuille comprenait des prêts hypothécaires à taux variables à amortissement négatif totalisant 0,1 milliard de dollars (0,1 milliard au 30 avril 2025) les paiements contractuels de la période considérée étant appliqués aux intérêts et la portion des intérêts exigibles non visée par des versements étant appliquée au capital.",
             "current_text": "À la suite des hausses des taux d’intérêt, le portefeuille comprenait des prêts hypothécaires à taux variables à amortissement négatif inférieur à 0,1 milliard de dollars (relativement stable par rapport au 31 octobre 2025) les paiements contractuels de la période considérée étant appliqués aux intérêts et la portion des intérêts exigibles non visée par des versements étant appliquée au capital.",
-            "reason": "The footnote has been semantically altered to indicate a change from a specific amount to a less precise 'less than' amount, which could imply a change in the financial assessment or reporting of the portfolio.",
+            "reason": "The footnote text has been materially revised to indicate a change in the amount and stability of the negative amortization loans.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The change from a specific amount to 'less than' suggests a potential shift in financial reporting or risk assessment, which could impact financial analysis and decision-making processes."
+              "justification": "The change in wording from 'totalisant 0,1 milliard de dollars' to 'inférieur à 0,1 milliard de dollars' and the description of stability indicates a potential shift in the risk profile of the loan portfolio, which is significant for risk management and financial reporting."
             }
           }
         ],
@@ -1772,14 +1806,23 @@
         "review_priority": "normale",
         "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The only meaningful change identified is a semantic alteration in footnote 3, which affects the financial interpretation of the mortgage portfolio's value.",
+      "reason": "The analysis identified a material semantic change in one footnote, indicating a shift in the financial risk profile of the bank's loan portfolio.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 0.9,
-        "explanation": "Le changement détecté dans les notes ne modifie pas le contenu ou la méthodologie, il semble être une répétition sans impact.",
+        "confidence": 1.0,
+        "explanation": "Le changement détecté est purement cosmétique et n'affecte pas le contenu réglementaire ou méthodologique.",
         "impact_type": "cosmetique",
         "project_phase": "autre",
         "action_requise": "aucune",
@@ -1791,8 +1834,8 @@
     {
       "previous_table_id": "tbl_p045_i03",
       "current_table_id": "tbl_p040_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 7 vs 7; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'TABLEAU 25'; indicators: same 7 rows; row_count 7 vs 7; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p045_i03",
@@ -1907,7 +1950,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their core business meaning and role in the table, despite any potential superficial differences such as footnote markers or disambiguation labels.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction disambiguation labels.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -1926,8 +1978,8 @@
     {
       "previous_table_id": "tbl_p046_i01",
       "current_table_id": "tbl_p041_i01",
-      "match_confidence": 0.9,
-      "match_reason": "Indicators and headers match; row_count 19 vs 20; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'TABLEAU 26'; indicators: same 19 rows; row_count 19 vs 20; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p046_i01",
@@ -2049,49 +2101,48 @@
       "technical_diff": {
         "indicators_added": [],
         "indicators_removed": [],
-        "indicators_renamed": [
-          {
-            "previous": "Engagements des clients aux termes",
-            "current": "Engagements des clients aux termes d’acceptations",
-            "reason": "The indicator 'Engagements des clients aux termes' in the previous table has been renamed to 'Engagements des clients aux termes d’acceptations' in the current table, reflecting a more specific scope.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "This renaming provides a clearer description of the commitments, which is a cosmetic change that enhances clarity without altering the underlying financial concept."
-            }
-          }
-        ],
+        "indicators_renamed": [],
         "footnotes_added": [],
         "footnotes_removed": [],
         "footnotes_renamed": [],
-        "table_level_change": "modifie"
+        "table_level_change": "inchange"
       },
       "analyst_assessment": {
         "theme": "risque_credit",
-        "change_significance": "moyen",
+        "change_significance": "faible",
         "review_priority": "normale",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "The analysis identified one indicator removal and one renaming. The removal of 'd’acceptations' suggests a potential structural change, while the renaming of 'Engagements des clients aux termes' to 'Engagements des clients aux termes d’acceptations' clarifies the scope without changing the financial concept.",
+      "reason": "The comparison reveals a structural adjustment in the reporting of acceptances, with a specific indicator removed and another renamed to clarify its scope.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 0.9,
-        "explanation": "Le changement concerne uniquement le renommage d'un indicateur sans impact de fond sur la réglementation ou la gestion des risques.",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
         "impact_type": "cosmetique",
-        "project_phase": "rapport_gestion",
+        "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "Le changement de nom de l'indicateur n'affecte pas les calculs ou les seuils réglementaires.",
-        "source": "llm"
+        "impact_description": "",
+        "source": "skip"
       }
     },
     {
       "previous_table_id": "tbl_p046_i02",
       "current_table_id": "tbl_p041_i02",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 6 vs 6; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'TABLEAU 27'; indicators: same 6 rows; row_count 6 vs 6; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p046_i02",
@@ -2190,7 +2241,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_marche."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in both tables, considering the rules for ignoring footnote markers and disambiguation labels.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction noise.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -2209,8 +2269,8 @@
     {
       "previous_table_id": "tbl_p047_i01",
       "current_table_id": "tbl_p042_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 2 vs 2; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'TABLEAU 28'; indicators: same 2 rows; row_count 2 vs 2; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p047_i01",
@@ -2333,7 +2393,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_marche."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. The indicators 'Hausse de 100 points de base' and 'Baisse de 100 points de base' are present in both tables without any changes in their meaning or role. Therefore, there are no additions, removals, or renames to report.",
+      "reason": "No meaningful semantic changes in indicators between the two tables. Both tables have identical indicators in the same positions, indicating no additions, removals, or renames.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -2352,8 +2421,8 @@
     {
       "previous_table_id": "tbl_p048_i01",
       "current_table_id": "tbl_p043_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 10 vs 10; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'TABLEAU 29'; indicators: same 10 rows; row_count 10 vs 10; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p048_i01",
@@ -2468,7 +2537,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role, considering the rules provided for ignoring footnote markers and disambiguation labels.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction noise.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -2488,7 +2566,7 @@
       "previous_table_id": "tbl_p049_i01",
       "current_table_id": "tbl_p043_i02",
       "match_confidence": 0.9,
-      "match_reason": "Indicators and headers match; row_count 17 vs 15; similar table summary.",
+      "match_reason": "Title identical: 'TABLEAU 30'; indicators: same 17 rows; row_count 17 vs 15; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p049_i01",
@@ -2587,7 +2665,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "The analysis identified two indicators added in the current table that were not present in the previous table. These additions are likely due to a more detailed breakdown of existing categories rather than renames or removals.",
+      "reason": "The analysis identified two new indicators in the current table that do not have corresponding entries in the previous table, indicating potential structural changes or duplications in reporting sections.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -2606,8 +2693,8 @@
     {
       "previous_table_id": "tbl_p049_i02",
       "current_table_id": "tbl_p043_i03",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 15 vs 15; similar table summary.",
+      "match_confidence": 0.9,
+      "match_reason": "Indicators and headers match; row_count 15 vs 15; footnotes provide additional context.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p049_i02",
@@ -2746,7 +2833,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "The deterministic analysis indicates a mechanical absence of 'Valeurs mobilières⁵' from the current table and 'Valeurs mobilières5' from the previous table. However, these differences are solely due to footnote marker changes, which are to be ignored as per the rules. Therefore, there are no meaningful semantic indicator changes to report.",
+      "reason": "All indicators in the current table match those in the previous table based on their normalized forms and positions. No meaningful semantic changes were detected, as differences in footnote markers and minor formatting are ignored according to the rules.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -2765,8 +2861,8 @@
     {
       "previous_table_id": "tbl_p049_i03",
       "current_table_id": "tbl_p044_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 4 vs 4; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'TABLEAU 31'; indicators: same 4 rows; row_count 4 vs 4; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p049_i03",
@@ -2835,7 +2931,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their core business meaning and role in the table, with no additions, removals, or renames identified.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match in both name and position, and no indicators were added, removed, or renamed.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -2854,8 +2959,8 @@
     {
       "previous_table_id": "tbl_p050_i01",
       "current_table_id": "tbl_p044_i02",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 19 vs 19; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'TABLEAU 32'; indicators: same 19 rows; row_count 19 vs 19; headers similar structure.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p050_i01",
@@ -2999,10 +3104,10 @@
             "current_id": "4",
             "previous_text": "Le total du financement de gros était constitué de 55,1 milliards de dollars de fonds libellés en dollars canadiens et de 193,3 milliards de fonds libellés en dollars américains et en d’autres monnaies au 31 juillet 2025.",
             "current_text": "Le total du financement de gros était constitué de 53,8 milliards de dollars de fonds libellés en dollars canadiens (54,3 milliards au 31 octobre 2025) et de 199,8 milliards de fonds libellés en dollars américains et en d’autres monnaies au 31 janvier 2026 (204,3 milliards au 31 octobre 2025).",
-            "reason": "The footnote has been materially revised to include additional financial figures and date references, indicating a change in the financial composition.",
+            "reason": "The footnote has been materially revised to include additional date references and updated figures, which changes the financial context.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The update reflects a significant change in the financial composition of the bank's funding, which could impact financial analysis and risk assessment, necessitating a review of the bank's funding strategy and currency exposure."
+              "justification": "The update in figures and inclusion of additional date references provide a more detailed financial context, impacting the understanding of currency distribution and financial planning."
             }
           }
         ],
@@ -3014,27 +3119,36 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The only meaningful change identified is a material revision in footnote 4, reflecting updated financial figures and additional date references, which impacts the understanding of the bank's funding composition.",
+      "reason": "The only change identified is a material revision in the wording of a footnote, which affects the financial context and understanding.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "RISQUE",
+        "category": "INCONNU",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
         "confidence": 0.9,
-        "explanation": "La modification concerne une variation de valeur numérique propre à la banque sans impact sur les seuils réglementaires.",
+        "explanation": "La modification concerne une variation de valeur numérique propre à la banque sans lien direct avec un seuil réglementaire.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "La modification de la valeur du financement de gros n'affecte pas les exigences réglementaires.",
+        "impact_description": "La modification n'a pas d'impact concret sur la conformité réglementaire.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p051_i01",
       "current_table_id": "tbl_p045_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 4 vs 4; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title and indicators identical: 'Cotes de crédit par agence de notation'; headers and footnotes match exactly; row_count 4 vs 4.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p051_i01",
@@ -3137,7 +3251,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. The indicators remain consistent across both tables, indicating stability in the credit rating agencies being reported. This consistency suggests no changes in the reporting structure or the agencies being monitored, which is crucial for maintaining continuity in risk management assessments.",
+      "reason": "No meaningful semantic indicator changes detected between the two tables. All indicators are present in both tables with identical names and positions.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -3156,8 +3279,8 @@
     {
       "previous_table_id": "tbl_p052_i01",
       "current_table_id": "tbl_p046_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 29 vs 29; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title and indicators highly similar: 'Ratio de liquidité à court terme'; headers and footnotes match exactly; row_count 29 vs 29.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p052_i01",
@@ -3321,7 +3444,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme liquidite."
       },
-      "reason": "The analysis identified one indicator added and one removed, with no clear renames. The changes reflect potential structural adjustments in liquidity ratio reporting.",
+      "reason": "Upon comparing the two tables, all indicators are matched based on their normalized forms and positions. Differences in footnote markers and disambiguation labels such as '(bloc 2)' or '(bloc 3)' are ignored as per the rules, and no meaningful semantic changes are detected. Therefore, there are no indicators added, removed, or renamed.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -3340,8 +3472,8 @@
     {
       "previous_table_id": "tbl_p053_i01",
       "current_table_id": "tbl_p047_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 39 vs 39; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title and indicators highly similar: 'Ratio structurel de liquidité à long terme'; headers and footnotes match exactly; row_count 39 vs 39.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p053_i01",
@@ -3494,54 +3626,17 @@
         ]
       },
       "technical_diff": {
-        "indicators_added": [
-          {
-            "value": "Crédits hypothécaires au logement productifs, dont : Prêts présentant un risque pondéré inférieur ou égal à 35 % dans l’approche standard de Bâle II pour le risque de crédit",
-            "reason": "This indicator is present in the current table but absent in the previous table.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "The addition of this indicator suggests a more granular reporting of mortgage loans, which could impact the assessment of credit risk and liquidity management."
-            }
-          }
-        ],
-        "indicators_removed": [
-          {
-            "value": "Actifs d’instruments dérivés du RSLT",
-            "reason": "This indicator is present in the previous table but absent in the current table.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "The removal of this indicator may be due to a change in terminology or reporting standards, but it does not significantly impact the overall liquidity risk assessment."
-            }
-          }
-        ],
-        "indicators_renamed": [
-          {
-            "previous": "Passifs d’instruments dérivés du RSLT avant déduction de la marge de variation versée",
-            "current": "Passifs d’instruments dérivés du RSLLT avant déduction de la marge de variation versée",
-            "reason": "The indicator has been renamed with a minor change in abbreviation from 'RSLT' to 'RSLLT'.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "This change is likely a correction or standardization of terminology and does not affect the underlying financial concept or risk assessment."
-            }
-          },
-          {
-            "previous": "Total des actifs liquides de haute qualité du RSLT",
-            "current": "Total des actifs liquides de haute qualité du RSLLT",
-            "reason": "The indicator has been renamed with a minor change in abbreviation from 'RSLT' to 'RSLLT'.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "This change is likely a correction or standardization of terminology and does not affect the underlying financial concept or risk assessment."
-            }
-          }
-        ],
+        "indicators_added": [],
+        "indicators_removed": [],
+        "indicators_renamed": [],
         "footnotes_added": [
           {
             "id": "*",
             "text": "Valeur non exigée par la norme régissant les informations à fournir sur le RSLLT.",
-            "reason": "This footnote is present in the current table but absent in the previous table.",
+            "reason": "This footnote is present only in the current table, indicating a new disclosure or clarification.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The addition of this footnote indicates a clarification or exemption in reporting requirements, which could impact compliance and regulatory reporting obligations."
+              "justification": "The addition of this footnote suggests a change in reporting requirements or a clarification of existing standards, which could impact compliance and regulatory reporting."
             }
           }
         ],
@@ -3552,10 +3647,10 @@
             "current_id": "1",
             "previous_text": "Les éléments classés dans la colonne « Sans échéance » ne sont assortis d’aucune échéance stipulée. Ces éléments peuvent inclure notamment des dépôts sans échéance, des positions vendeurs, des positions à échéance ouverte, des titres autres que des actifs liquides de haute qualité, des produits de base physiques et des prêts à vue.",
             "current_text": "Les éléments classés dans la colonne « Sans échéance » ne sont assortis d’aucune échéance stipulée. Ces éléments peuvent inclure notamment des fonds propres à durée indéterminée, des dépôts sans échéance, des positions vendeurs, des positions à échéance ouverte, des titres autres que des actifs liquides de haute qualité, des produits de base physiques et des prêts à vue.",
-            "reason": "The footnote has been semantically revised to include 'fonds propres à durée indéterminée', expanding the scope of items classified under 'Sans échéance'.",
+            "reason": "The footnote has been materially revised to include 'fonds propres à durée indéterminée', expanding the scope of items considered without a stipulated maturity.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The inclusion of 'fonds propres à durée indéterminée' in the footnote expands the classification criteria, potentially affecting liquidity risk assessment and financial stability analysis."
+              "justification": "The inclusion of 'fonds propres à durée indéterminée' in the footnote expands the scope of items considered without a stipulated maturity, which could affect liquidity risk assessments and financial stability analysis."
             }
           }
         ],
@@ -3564,30 +3659,39 @@
       "analyst_assessment": {
         "theme": "liquidite",
         "change_significance": "eleve",
-        "review_priority": "critique",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 4 changement(s) d'indicateur et 2 changement(s) de footnote."
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
-      "reason": "The analysis identified changes in indicator terminology and the addition of a more detailed mortgage loan indicator, reflecting potential shifts in reporting focus or standardization efforts. The analysis identified a new footnote addition and a semantic revision of an existing footnote, both of which have implications for regulatory compliance and risk assessment.",
+      "reason": "The analysis identified a new footnote addition and a material revision to an existing footnote, both of which have implications for regulatory compliance and risk management.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "RISQUE",
-        "relevance_score": "ELEVEE",
+        "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs liés aux prêts présentant un risque et la suppression d'indicateurs dérivés peuvent affecter l'évaluation du risque de crédit et de marché.",
-        "impact_type": "structurel",
+        "explanation": "L'ajout de notes concernant la non-exigence par la norme pour le RSLLT peut indiquer un changement méthodologique ou une clarification importante.",
+        "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
+        "action_requise": "information",
         "reference_reglementaire": "",
-        "impact_description": "Les changements dans les indicateurs de risque peuvent influencer la gestion des risques et nécessitent une analyse approfondie.",
+        "impact_description": "Clarification sur les exigences normatives pour le RSLLT, potentiellement utile pour la conformité.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p054_i01",
       "current_table_id": "tbl_p048_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 19 vs 19; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title and indicators highly similar: 'Échéances contractuelles des actifs'; headers match exactly; row_count 19 vs 19.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p054_i01",
@@ -3703,7 +3807,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are consistent in their business meaning and role, with no additions, removals, or renames identified.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers, extraction disambiguation labels, and other non-semantic differences.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -3722,8 +3835,8 @@
     {
       "previous_table_id": "tbl_p054_i02",
       "current_table_id": "tbl_p048_i02",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 15 vs 15; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title and indicators highly similar: 'Échéances des passifs et capitaux propres'; headers and footnotes match exactly; row_count 15 vs 15.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p054_i02",
@@ -3864,7 +3977,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role, considering the rules provided.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction noise.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -3883,8 +4005,8 @@
     {
       "previous_table_id": "tbl_p055_i01",
       "current_table_id": "tbl_p049_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 5 vs 5; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title and indicators highly similar: 'Échéances des engagements hors bilan'; headers and footnotes match exactly; row_count 5 vs 5.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p055_i01",
@@ -3997,7 +4119,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical when ignoring footnote markers and disambiguation labels.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction noise.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -4016,8 +4147,8 @@
     {
       "previous_table_id": "tbl_p055_i02",
       "current_table_id": "tbl_p049_i02",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 19 vs 19; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title and indicators highly similar: 'Échéances contractuelles des actifs'; headers match exactly; row_count 19 vs 19.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p055_i02",
@@ -4174,26 +4305,35 @@
         "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 3 changement(s) de footnote."
       },
       "reason": "Previous table contains footnotes while current table has none.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression des notes concernant les crédits fermes et les lettres de crédit peut indiquer un changement dans la gestion des risques ou la présentation des engagements.",
+        "explanation": "La suppression des notes de bas de tableau concernant les crédits fermes et les lettres de crédit peut indiquer un changement dans la manière dont ces éléments sont pris en compte dans la gestion des risques.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La suppression des notes peut affecter la compréhension des engagements et des risques associés.",
+        "impact_description": "La suppression des notes pourrait affecter la compréhension des engagements et des risques associés aux crédits et lettres de crédit.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p055_i03",
       "current_table_id": "tbl_p049_i03",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 15 vs 15; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title and indicators highly similar: 'Échéances des passifs et capitaux propres'; headers and footnotes match exactly; row_count 15 vs 15.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p055_i03",
@@ -4334,7 +4474,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are consistent in their meaning and role, with no additions, removals, or renamings identified. Differences in footnote markers and formatting are ignored as per the rules.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, with only footnote and punctuation differences, which are not considered meaningful.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -4353,8 +4502,8 @@
     {
       "previous_table_id": "tbl_p056_i01",
       "current_table_id": "tbl_p050_i01",
-      "match_confidence": 0.92,
-      "match_reason": "Indicators and headers match; row_count 5 vs 5; similar table summary.",
+      "match_confidence": 0.95,
+      "match_reason": "Title and indicators highly similar: 'Échéances des engagements hors bilan'; headers and footnotes match exactly; row_count 5 vs 5.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p056_i01",
@@ -4467,7 +4616,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of business concept, scope, and role, considering the rules provided.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction noise.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -4487,7 +4645,7 @@
       "previous_table_id": "tbl_p044_i01",
       "current_table_id": "tbl_p038_i01",
       "match_confidence": 0.8,
-      "match_reason": "Both tables share identical headers related to 'Prêts garantis par un bien immobilier au Canada'. The CQ table appears to be a truncated version with updated date indicators.",
+      "match_reason": "Both tables share the same headers related to 'Prêts garantis par un bien immobilier au Canada'. The CQ table appears to be a truncated version of the PQ table, focusing on specific dates.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p044_i01",
@@ -4541,76 +4699,71 @@
         "footnotes": []
       },
       "technical_diff": {
-        "indicators_added": [
-          {
-            "value": "Au 31 janvier 2026",
-            "reason": "This indicator is present in the current table but absent in the previous table.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "The addition of a date indicator 'Au 31 janvier 2026' is likely a cosmetic change reflecting the reporting period and does not impact the business concept or structure of the table."
-            }
-          },
-          {
-            "value": "Au 31 octobre 2025",
-            "reason": "This indicator is present in the current table but absent in the previous table.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "The addition of a date indicator 'Au 31 octobre 2025' is likely a cosmetic change reflecting the reporting period and does not impact the business concept or structure of the table."
-            }
-          }
-        ],
+        "indicators_added": [],
         "indicators_removed": [],
         "indicators_renamed": [],
         "footnotes_added": [],
         "footnotes_removed": [],
         "footnotes_renamed": [],
-        "table_level_change": "modifie"
+        "table_level_change": "inchange"
       },
       "analyst_assessment": {
         "theme": "autre",
-        "change_significance": "moyen",
+        "change_significance": "faible",
         "review_priority": "normale",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "The current table includes two date indicators that were not present in the previous table. These additions are likely cosmetic, reflecting the reporting periods, and do not represent a change in the business concept or structure of the table.",
+      "reason": "The current table contains only date headers ('Au 31 janvier 2026' and 'Au 31 octobre 2025') as indicators, which are extraction artifacts and not meaningful business indicators. Therefore, no meaningful semantic indicator changes are reported.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 0.9,
-        "explanation": "Les ajouts de dates dans un tableau existant ne constituent pas un changement réglementaire ou méthodologique.",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
         "impact_type": "cosmetique",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur la réglementation ou la gestion des risques.",
-        "source": "llm"
+        "impact_description": "",
+        "source": "skip"
       }
     }
   ],
   "run_metrics": {
     "runtime_extraction_sec": 0.0,
-    "runtime_comparison_sec": 203.463,
+    "runtime_comparison_sec": 140.688,
     "vision_calls_total": 0,
     "vision_rescue_total": 0,
-    "comparison_calls_total": 54,
+    "comparison_calls_total": 68,
     "matching_passes_total": 2,
+    "inspector_passes_total": 16,
     "audit_passes_total": 0,
     "matching_output_retries_total": 0,
     "matching_validation_failures_total": 0,
     "stage1_validation_retries_total": 0,
     "stage2_validation_retries_total": 0,
-    "unresolved_after_stage1_total": 1,
-    "matched_in_stage2_total": 0,
-    "unmatched_after_primary_total": 4,
+    "unresolved_after_stage1_total": 10,
+    "matched_in_stage2_total": 9,
+    "unmatched_after_primary_total": 22,
     "unmatched_after_rescue_total": 4,
     "matching_pairs_llm_duplicates_total": 0,
     "matching_pairs_llm_deduped_total": 0,
-    "prompt_tokens_total": 120367,
-    "completion_tokens_total": 10002,
-    "total_tokens_total": 130369,
-    "estimated_cost_usd": 0.400938,
+    "inspector_rejected_total": 0,
+    "inspector_confirmed_total": 16,
+    "prompt_tokens_total": 203112,
+    "completion_tokens_total": 11172,
+    "total_tokens_total": 214284,
+    "estimated_cost_usd": 0.6195,
     "extraction": {
       "runtime_extraction_sec": 0.0,
       "vision_calls_total": 0,
@@ -4624,24 +4777,27 @@
       "current": {}
     },
     "comparison": {
-      "prompt_tokens_total": 120367,
-      "completion_tokens_total": 10002,
-      "total_tokens_total": 130369,
-      "comparison_calls_total": 54,
-      "runtime_comparison_sec": 203.463,
+      "prompt_tokens_total": 203112,
+      "completion_tokens_total": 11172,
+      "total_tokens_total": 214284,
+      "comparison_calls_total": 68,
+      "runtime_comparison_sec": 140.688,
       "matching_passes_total": 2,
+      "inspector_passes_total": 16,
       "audit_passes_total": 0,
       "matching_output_retries_total": 0,
       "matching_validation_failures_total": 0,
       "stage1_validation_retries_total": 0,
       "stage2_validation_retries_total": 0,
-      "unresolved_after_stage1_total": 1,
-      "matched_in_stage2_total": 0,
-      "unmatched_after_primary_total": 4,
+      "unresolved_after_stage1_total": 10,
+      "matched_in_stage2_total": 9,
+      "unmatched_after_primary_total": 22,
       "unmatched_after_rescue_total": 4,
       "matching_pairs_llm_duplicates_total": 0,
       "matching_pairs_llm_deduped_total": 0,
-      "estimated_cost_usd": 0.400938
+      "inspector_rejected_total": 0,
+      "inspector_confirmed_total": 16,
+      "estimated_cost_usd": 0.6195
     }
   },
   "summary": {
@@ -4652,28 +4808,28 @@
     "artifacts_confirmed_current_total": 0,
     "extraction_suspects_previous_total": 5,
     "extraction_suspects_current_total": 4,
-    "indicator_changes_total": 10,
-    "footnote_changes_total": 9,
+    "indicator_changes_total": 2,
+    "footnote_changes_total": 8,
     "high_priority_items_total": 6
   },
   "global_summary": {
-    "executive_overview": "Au cours de ce trimestre, plusieurs changements significatifs ont été observés dans la gestion du capital et l'évaluation des risques. La suppression de certains indicateurs clés pourrait influencer la transparence et la gestion des risques financiers. Ces modifications nécessitent une attention particulière pour comprendre leur impact potentiel sur les ratios prudentiels et l'évaluation des risques systémiques.",
+    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été observés dans les rapports bancaires, notamment dans la gestion du capital et des risques. Ces modifications incluent des ajustements dans les indicateurs de capital, des clarifications méthodologiques, et des suppressions de tableaux clés qui pourraient influencer l'évaluation des risques systémiques. Ces évolutions nécessitent une attention particulière pour comprendre leur impact potentiel sur la structure réglementaire et la transparence des risques financiers.",
     "key_highlights": [
-      "Suppression des indicateurs liés aux billets avec remboursement de capital à recours limité.",
-      "Ajout et suppression d'indicateurs affectant l'évaluation du risque de crédit et de marché.",
-      "Changements dans la présentation des crédits fermes et des lettres de crédit.",
-      "Suppression du tableau sur l'activité transfrontière et la complexité.",
+      "Modification des indicateurs de gestion du capital.",
+      "Clarification méthodologique sur le RSLLT.",
+      "Changements dans la gestion des crédits fermes et lettres de crédit.",
+      "Suppression d'indicateurs clés liés à l'activité transfrontière.",
       "Impact sur la transparence de la gestion des risques financiers."
     ],
     "pertinence_globale": "ELEVEE",
     "par_phase": {
       "rapport_gestion": {
         "count": 4,
-        "resume": "Des changements majeurs ont été apportés aux indicateurs de gestion du capital et des risques."
+        "resume": "Des changements importants ont été apportés dans la gestion du capital et des risques."
       },
       "pilier_3": {
         "count": 1,
-        "resume": "Un tableau clé lié à l'activité transfrontière a été supprimé."
+        "resume": "Un tableau clé a été supprimé, affectant l'évaluation des risques systémiques."
       },
       "ifc": {
         "count": 0,
@@ -4685,10 +4841,10 @@
       }
     },
     "par_action": {
-      "escalade": 0,
-      "investigation": 5,
+      "escalade": 1,
+      "investigation": 3,
       "confirmation": 0,
-      "information": 0,
+      "information": 1,
       "aucune": 0
     },
     "source": "llm",

@@ -35,7 +35,7 @@
     "title": "Variation des fonds propres réglementaires (1)",
     "indicators": [
       "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1)",
-      "Solde au début",
+      "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Solde au début",
       "Émission d’actions ordinaires (y compris au titre du régime d’options d’achat d’actions)",
       "Incidence des actions acquises ou vendues à des fins de négociation",
       "Rachat d’actions ordinaires",
@@ -57,7 +57,7 @@
       "Actifs d'impôt différé, sauf s'ils résultent de différences temporaires (déduction faite des passifs d'impôt)",
       "Autres déductions et ajustements réglementaires du CET1 instaurés par le BSIF",
       "Variation des autres ajustements réglementaires",
-      "Solde à la fin",
+      "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Solde à la fin",
       "Autres éléments de fonds propres de catégorie 1",
       "Autres éléments de fonds propres de catégorie 1 – Solde au début",
       "Nouvelles émissions d’instruments admissibles à titre de fonds propres de catégorie 1",
@@ -168,12 +168,10 @@
       "Hypothèques résidentielles",
       "Crédits rotatifs admissibles",
       "Particuliers – autres",
-      "Particuliers – Total (bloc 2)",
       "Autres que particuliers",
       "Entreprises",
       "États souverains",
       "Institutions financières",
-      "Autres que particuliers – Total",
       "Portefeuille de négociation",
       "Titrisation",
       "Total – Risque de crédit brut",
@@ -227,10 +225,10 @@
       "Dépôts",
       "Engagements afférents à des titres vendus à découvert",
       "Engagements afférents à des valeurs mobilières vendues en vertu de conventions de rachat et valeurs mobilières prêtées",
-      "Instruments financiers dérivés",
+      "Instruments financiers dérivés – Instruments financiers dérivés",
       "Passifs relatifs à des créances cédées",
       "Passif au titre des prestations définies",
-      "Autres",
+      "Passifs – Autres",
       "Dette subordonnée"
     ]
   },
@@ -254,8 +252,8 @@
       "Augmentation du taux d'intérêt de 100 points de base",
       "Diminution du taux d'intérêt de 100 points de base",
       "Effet sur le revenu net d'intérêts",
-      "Augmentation du taux d'intérêt de 100 points de base (bloc 2)",
-      "Diminution du taux d'intérêt de 100 points de base (bloc 2)"
+      "Augmentation du taux d'intérêt de 100 points de base",
+      "Diminution du taux d'intérêt de 100 points de base"
     ]
   },
   {
@@ -284,7 +282,7 @@
     "table_id": "tbl_p034_i02",
     "title": "Portefeuille d’actifs liquides (1) – Moyenne (5)",
     "indicators": [
-      "Trésorerie et dépôts auprès d'institutions financières",
+      "Trésorerie et dépôts auprès d’institutions financières",
       "Valeurs mobilières",
       "Émises ou garanties par le gouvernement du Canada, le Trésor et d'autres organismes américains et les gouvernements d'autres pays",
       "Émises ou garanties par les gouvernements provinciaux et municipaux du Canada",
@@ -296,7 +294,7 @@
   },
   {
     "table_id": "tbl_p035_i01",
-    "title": "",
+    "title": "Sommaire des actifs grevés et non grevés (1)",
     "indicators": [
       "Trésorerie et dépôts auprès d'institutions financières",
       "Valeurs mobilières",
@@ -326,7 +324,7 @@
   },
   {
     "table_id": "tbl_p036_i01",
-    "title": "Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2)",
+    "title": "",
     "indicators": [
       "Actifs liquides de haute qualité (HQLA)",
       "Total des HQLA",
@@ -444,7 +442,7 @@
     "title": "",
     "indicators": [
       "Passif et capitaux propres",
-      "Dépôts (1)",
+      "Dépôts (1) (2)",
       "Particuliers",
       "Entreprises et administrations publiques",
       "Institutions de dépôts",
@@ -474,6 +472,10 @@
     "indicators": [
       "Général",
       "1 Localisation de la divulgation concernant les risques",
+      "Rapport de gestion",
+      "États financiers consolidés",
+      "Informations financières complémentaires",
+      "Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3",
       "2 Terminologie relative aux risques et mesures de risque",
       "3 Risques principaux et risques émergents",
       "4 Principaux nouveaux ratios réglementaires",

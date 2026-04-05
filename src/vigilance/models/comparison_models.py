@@ -221,6 +221,17 @@ class InspectorArtifactPair(BaseModel):
     reason: str = ""
 
 
+class InspectorRenamedVerdict(BaseModel):
+    """Verdict pour un indicateur renomme dans la passe d'inspection."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    previous: str
+    current: str
+    verdict: str = Field(description="'real' or 'artifact'")
+    reason: str = ""
+
+
 class InspectorResponse(BaseModel):
     """Schema de reponse strict pour l'inspecteur d'artefacts post-diff."""
 
@@ -228,6 +239,7 @@ class InspectorResponse(BaseModel):
 
     added_verdicts: list[InspectorVerdict] = Field(default_factory=list)
     removed_verdicts: list[InspectorVerdict] = Field(default_factory=list)
+    renamed_verdicts: list[InspectorRenamedVerdict] = Field(default_factory=list)
     artifact_pairs: list[InspectorArtifactPair] = Field(default_factory=list)
 
 

@@ -8,6 +8,10 @@ from typing import Any
 from vigilance.extraction.pdf_preview import render_pdf_page
 from vigilance.utils.pdf_crop import render_page_with_bbox_highlight_to_bytes
 
+# Resolution par defaut pour les preuves ecran (Dash, coherence visuelle).
+# ~108 dpi (scale 1.5) etait trop doux ; 200 dpi reste raisonnable en taille memoire.
+PROOF_RENDER_DPI = 200
+
 
 def normalize_proof_bbox(bbox: Any) -> list[float] | None:
     """Retourne [l, t, r, b] dans 0..1 si exploitable pour le rendu de preuve.
@@ -48,6 +52,7 @@ def render_full_proof_bytes(
     page: Any,
     bbox: Any,
     scale: float = 1.5,
+    dpi: int | None = PROOF_RENDER_DPI,
     allow_full_page_fallback: bool = False,
 ) -> tuple[bytes | None, str, str]:
     """Rend une image de preuve pleine page avec surlignage de bbox si disponible.
@@ -56,7 +61,9 @@ def render_full_proof_bytes(
         pdf_path: Chemin du fichier PDF source.
         page: Numero de page (base 1).
         bbox: Bounding box brute pour le surlignage.
-        scale: Echelle de rendu (defaut 1.5).
+        scale: Echelle PyMuPDF (72 pt) si ``dpi`` est ``None`` (defaut 1.5).
+        dpi: Resolution de rendu ; si defini (defaut :data:`PROOF_RENDER_DPI`), prime sur
+            ``scale``. Passer ``None`` pour n'utiliser que ``scale``.
         allow_full_page_fallback: Si ``True``, rend la page sans bbox en cas d'absence.
 
     Returns:
@@ -76,11 +83,13 @@ def render_full_proof_bytes(
     if page_num < 1:
         return None, "page_missing", "full"
 
+    zoom = (dpi / 72.0) if dpi is not None else scale
+
     bbox_norm = normalize_proof_bbox(bbox)
     if bbox_norm is None:
         if not allow_full_page_fallback:
             return None, "bbox_missing", "full"
-        raw = render_pdf_page(pdf, page_num, scale=scale, format="png")
+        raw = render_pdf_page(pdf, page_num, scale=zoom, format="png")
         if raw:
             return raw, "ok", "full_without_bbox"
         return None, "render_failed", "full_without_bbox"
@@ -90,12 +99,13 @@ def render_full_proof_bytes(
         page_num,
         bbox_norm,
         scale=scale,
+        dpi=dpi,
     )
     if raw:
         return raw, "ok", "full"
     if not allow_full_page_fallback:
         return None, "render_failed", "full"
-    raw = render_pdf_page(pdf, page_num, scale=scale, format="png")
+    raw = render_pdf_page(pdf, page_num, scale=zoom, format="png")
     if raw:
         return raw, "ok", "full"
     return None, "render_failed", "full"

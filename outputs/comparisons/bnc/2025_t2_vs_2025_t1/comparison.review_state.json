@@ -1,373 +1,19 @@
 {
   "schema_version": "review_state_v1",
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/comparison.json",
-  "comparison_run_id": "20260402_110045",
-  "review_items_signature": "4c37937173f0b871947f2e1a41ad2ff9fa2ce9679166236e3035156c2a699793",
-  "saved_at": "2026-04-04T08:34:28+00:00",
+  "comparison_run_id": "20260404_082845",
+  "review_items_signature": "cb64e43309400a48e1801359f45b429822ff8b8623b2608fc92ee80be6e49845",
+  "saved_at": "2026-04-05T01:22:46+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::risk_management::tbl_p044_i01|tbl_p047_i01",
-    "change_id": "chg_00015"
+    "review_id": "bnc::capital_management::tbl_p023_i01|tbl_p027_i01",
+    "change_id": "chg_00002"
   },
-  "review_current_idx": 0,
+  "review_current_idx": 1,
   "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
-    {
-      "change_id": "bnc::risk_management::tbl_p044_i01|tbl_p047_i01",
-      "change_type": "removed",
-      "indicator": "4 ajouté(s), 32 retiré(s)",
-      "section": "risk_management",
-      "table_name": "tbl_p047_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p044_i01",
-      "table_id_t2": "tbl_p047_i01",
-      "page_t1": 44,
-      "page_t2": 47,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T08:34:28.324439+00:00",
-      "edited_value": "",
-      "confidence": 0.9,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "tbl_p047_i01",
-      "table_status": "partial",
-      "indicators": [
-        {
-          "name": "Rapport de gestion",
-          "type": "added",
-          "review_status": "approved"
-        },
-        {
-          "name": "États financiers consolidés",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "Informations financières complémentaires",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "1 Localisation de la divulgation concernant les risques",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "2 Terminologie relative aux risques et mesures de risque",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "3 Risques principaux et risques émergents",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "4 Principaux nouveaux ratios réglementaires",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "5 Structure, processus et principales fonctions de gestion des risques",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "6 Culture de gestion des risques",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "7 Principaux risques par secteur d’exploitation, gestion des risques et appétit pour le risque",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "8 Tests de tension",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "9 Exigences minimales des fonds propres en vertu du Pilier 1",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "10 Rapprochement du bilan comptable et du bilan réglementaire",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "11 Évolution des fonds propres réglementaires",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "12 Planification en matière de capital",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "13 Actif pondéré en fonction des risques par secteur d’exploitation et par type de risque",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "14 Exigences des fonds propres par risque et par méthode de calcul de l’actif pondéré en fonction des risques",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "15 Risque de crédit lié au portefeuille bancaire",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "16 Évolution de l’actif pondéré en fonction des risques par type de risque",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "17 Évaluation de la performance du modèle de risque de crédit",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "18 Gestion de la liquidité et composantes de la réserve de liquidité",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "19 Sommaire des actifs grevés et non grevés",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "20 Échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "21 Stratégie de financement et sources de financement",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "22 Lien entre les mesures de risque de marché et le bilan",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "23 Facteurs de risque de marché",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "24 VaR : hypothèses, limites et processus de validation",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "25 Tests de tension et tests de validité rétroactifs",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "26 Expositions au risque de crédit",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "27 Politiques d'identification des prêts dépréciés",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "28 Évolution des prêts dépréciés et provisions pour pertes de crédit",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "29 Risque de contrepartie lié aux transactions d’instruments financiers dérivés",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "30 Mesures d’atténuation du risque de crédit",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "31 Autres risques : gouvernance, mesure et gestion",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "32 Événements liés aux risques connus publiquement",
-          "type": "removed",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Indicators and headers are highly similar, both summarizing risk disclosures; footnotes identical.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05584987939572802,
-        0.1850152834497317,
-        0.9456840963924633,
-        0.8920364379882814
-      ],
-      "bbox_t2": [
-        0.05596562927844478,
-        0.1850286348901614,
-        0.9460023368885315,
-        0.8538055419921876
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "liquidite",
-        "change_significance": "eleve",
-        "review_priority": "critique",
-        "analyst_summary": "La suppression de nombreux indicateurs clés liés à la gestion des risques et aux exigences réglementaires pourrait affecter la transparence et la conformité aux normes de divulgation.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "ELEVEE",
-        "risk_level": "ELEVE",
-        "confidence": 0.9,
-        "explanation": "La suppression de nombreux indicateurs clés liés à la gestion des risques et aux exigences réglementaires pourrait affecter la transparence et la conformité aux normes de divulgation.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — Exigences de divulgation",
-        "impact_description": "La suppression de ces indicateurs pourrait compromettre la capacité de l'institution à démontrer sa conformité aux exigences réglementaires en matière de gestion des risques.",
-        "source": "llm",
-        "justification": "La suppression de nombreux indicateurs clés liés à la gestion des risques et aux exigences réglementaires pourrait affecter la transparence et la conformité aux normes de divulgation.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "liquidite",
-        "review_priority": "critique",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 36 changement(s) d'indicateur et 0 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "bnc::capital_management::tbl_p026_i01|tbl_p030_i01",
-      "change_type": "added",
-      "indicator": "3 ajouté(s)",
-      "section": "capital_management",
-      "table_name": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
-      "table_number": "",
-      "table_id_t1": "tbl_p026_i01",
-      "table_id_t2": "tbl_p030_i01",
-      "page_t1": 26,
-      "page_t2": 30,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 0.95,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
-      "table_status": "pending",
-      "indicators": [
-        {
-          "name": "Ratios des fonds propres –   catégorie 1",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "Ratios des fonds propres –   CET1",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "Ratios des fonds propres –   total",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "[3] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
-          "type": "modified",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same 14 rows; row_count 14 vs 14.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05372241275762421,
-        0.3563744516083689,
-        0.9413963766659008,
-        0.5477748061671402
-      ],
-      "bbox_t2": [
-        0.053861231585733256,
-        0.39366816511057845,
-        0.9417060403262868,
-        0.58581007369841
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "footnote",
-      "event_type": "footnote_only",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "capital",
-        "change_significance": "eleve",
-        "review_priority": "critique",
-        "analyst_summary": "L'ajout des indicateurs liés aux ratios des fonds propres, notamment le CET1, est pertinent car il touche directement aux exigences réglementaires de fonds propres.",
-        "is_relevant": true,
-        "category": "CAPITAL",
-        "relevance_score": "ELEVEE",
-        "risk_level": "ELEVE",
-        "confidence": 0.9,
-        "explanation": "L'ajout des indicateurs liés aux ratios des fonds propres, notamment le CET1, est pertinent car il touche directement aux exigences réglementaires de fonds propres.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "L'ajout de ces ratios impacte la manière dont la banque doit gérer ses fonds propres pour rester conforme aux exigences réglementaires.",
-        "source": "llm",
-        "justification": "L'ajout des indicateurs liés aux ratios des fonds propres, notamment le CET1, est pertinent car il touche directement aux exigences réglementaires de fonds propres.",
-        "relevance": "Capital"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "capital",
-        "review_priority": "critique",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
-      }
-    },
     {
       "change_id": "bnc::capital_management::tbl_p027_i01|",
       "change_type": "table_removed",
@@ -381,10 +27,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-05T01:22:38.876042+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -394,7 +40,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -415,20 +61,20 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la conformité réglementaire.",
+        "analyst_summary": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la surveillance réglementaire.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
-        "confidence": 0.95,
-        "explanation": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la conformité réglementaire.",
+        "confidence": 0.9,
+        "explanation": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la surveillance réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "escalade",
         "reference_reglementaire": "Bâle III — BISM",
         "impact_description": "La suppression de ce tableau pourrait affecter la transparence et la conformité aux exigences de Bâle III pour les BISM.",
         "source": "llm",
-        "justification": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la conformité réglementaire.",
+        "justification": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la surveillance réglementaire.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -438,9 +84,9 @@
     {
       "change_id": "bnc::capital_management::tbl_p023_i01|tbl_p027_i01",
       "change_type": "added",
-      "indicator": "3 ajouté(s), 1 retiré(s)",
+      "indicator": "2 ajouté(s), 1 retiré(s)",
       "section": "capital_management",
-      "table_name": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
+      "table_name": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
       "table_number": "",
       "table_id_t1": "tbl_p023_i01",
       "table_id_t2": "tbl_p027_i01",
@@ -450,8 +96,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-05T01:22:46.415682+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -460,21 +106,16 @@
       "unit_context_t2": "",
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
-      "table_title_raw": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
-      "table_status": "pending",
+      "table_title_raw": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Série 47",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "Série 49",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "65 500 000",
           "type": "added",
           "review_status": "pending"
         },
@@ -484,7 +125,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title identical: 'Actions, autres instruments de capitaux propres et options d’achat d’actions'; indicators: similar structure with additional series in CQ; headers and footnotes identical.",
+      "match_method": "Title and indicators are highly similar; both tables are about 'Actions, autres instruments de capitaux propres et options d'achat d'actions'. Row count is similar (12 vs 13).",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -518,8 +159,8 @@
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
-        "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "Le changement dans les séries d'instruments de capitaux propres pourrait affecter le calcul des ratios de fonds propres réglementaires.",
+        "reference_reglementaire": "",
+        "impact_description": "La modification des séries d'instruments de capitaux propres peut affecter la composition du capital réglementaire de la banque.",
         "source": "llm",
         "justification": "L'ajout et la suppression de séries d'instruments de capitaux propres peuvent indiquer un changement dans la structure du capital de la banque.",
         "relevance": "Capital"
@@ -529,7 +170,7 @@
         "theme": "capital",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 4 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote."
       }
     },
     {
@@ -561,12 +202,12 @@
       "table_status": "pending",
       "indicators": [
         {
-          "name": "Options de remplacement relatives à l'acquisition de CWB",
+          "name": "Émission d’actions ordinaires relatives à l'acquisition de CWB",
           "type": "added",
           "review_status": "pending"
         },
         {
-          "name": "Émission d’actions ordinaires relatives à l'acquisition de CWB",
+          "name": "Options de remplacement relatives à l'acquisition de CWB",
           "type": "added",
           "review_status": "pending"
         },
@@ -576,7 +217,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: same core structure with minor additions; row_count 42 vs 40.",
+      "match_method": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: same core structure with minor additions in CQ; row_count 42 vs 40.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -600,20 +241,20 @@
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout d'indicateurs liés à l'acquisition de CWB et l'émission d'actions ordinaires peut affecter la structure du capital réglementaire.",
+        "analyst_summary": "L'ajout d'indicateurs liés à l'émission d'actions ordinaires et d'options de remplacement pour une acquisition peut affecter la structure du capital réglementaire.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs liés à l'acquisition de CWB et l'émission d'actions ordinaires peut affecter la structure du capital réglementaire.",
+        "explanation": "L'ajout d'indicateurs liés à l'émission d'actions ordinaires et d'options de remplacement pour une acquisition peut affecter la structure du capital réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "L'acquisition de CWB et l'émission d'actions peuvent modifier les ratios de fonds propres réglementaires.",
+        "impact_description": "L'acquisition de CWB et les émissions d'actions associées peuvent modifier le ratio CET1 de la banque.",
         "source": "llm",
-        "justification": "L'ajout d'indicateurs liés à l'acquisition de CWB et l'émission d'actions ordinaires peut affecter la structure du capital réglementaire.",
+        "justification": "L'ajout d'indicateurs liés à l'émission d'actions ordinaires et d'options de remplacement pour une acquisition peut affecter la structure du capital réglementaire.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -642,7 +283,7 @@
       "review_user": "",
       "review_timestamp": "",
       "edited_value": "",
-      "confidence": 0.85,
+      "confidence": 0.95,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -663,7 +304,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Table summary and indicators are highly similar, both discussing emerging risks related to tariffs; headers identical.",
+      "match_method": "Table summary and indicators are identical; both tables describe 'Risques émergents et description'.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -687,20 +328,20 @@
         "theme": "autre",
         "change_significance": "moyen",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout et la suppression d'indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui est pertinent pour la gestion des risques.",
+        "analyst_summary": "L'ajout et la modification des indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui peut affecter la gestion des risques de la banque.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout et la suppression d'indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui est pertinent pour la gestion des risques.",
+        "explanation": "L'ajout et la modification des indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui peut affecter la gestion des risques de la banque.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Le changement reflète une réévaluation des risques commerciaux liés aux droits de douane, nécessitant une analyse plus approfondie.",
+        "impact_description": "La modification des indicateurs de risques émergents pourrait influencer la stratégie de gestion des risques de la banque.",
         "source": "llm",
-        "justification": "L'ajout et la suppression d'indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui est pertinent pour la gestion des risques.",
+        "justification": "L'ajout et la modification des indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui peut affecter la gestion des risques de la banque.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -709,170 +350,6 @@
         "review_priority": "normale",
         "change_significance": "moyen",
         "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "bnc::risk_management::tbl_p030_i01|tbl_p033_i01",
-      "change_type": "added",
-      "indicator": "1 ajouté(s)",
-      "section": "risk_management",
-      "table_name": "Conciliation du risque de marché avec les éléments du bilan consolidé",
-      "table_number": "",
-      "table_id_t1": "tbl_p030_i01",
-      "table_id_t2": "tbl_p033_i01",
-      "page_t1": 30,
-      "page_t2": 33,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 0.95,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "Conciliation du risque de marché avec les éléments du bilan consolidé",
-      "table_status": "pending",
-      "indicators": [
-        {
-          "name": "Mesures du risque de marché",
-          "type": "added",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Title identical: 'Conciliation du risque de marché avec les éléments du bilan consolidé'; indicators: same 20 rows; row_count 20 vs 20.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05390968821407144,
-        0.28045076312440814,
-        0.940481946359273,
-        0.6651637530086016
-      ],
-      "bbox_t2": [
-        0.0542293810376934,
-        0.24159402558297824,
-        0.9405037873710682,
-        0.626738114790483
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "risque_marche",
-        "change_significance": "moyen",
-        "review_priority": "critique",
-        "analyst_summary": "L'ajout d'indicateurs de mesures du risque de marché dans un tableau de conciliation est pertinent car il peut affecter l'évaluation et la gestion des risques de marché.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs de mesures du risque de marché dans un tableau de conciliation est pertinent car il peut affecter l'évaluation et la gestion des risques de marché.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
-        "reference_reglementaire": "",
-        "impact_description": "L'ajout d'indicateurs de risque de marché peut influencer la stratégie de gestion des risques et la conformité réglementaire.",
-        "source": "llm",
-        "justification": "L'ajout d'indicateurs de mesures du risque de marché dans un tableau de conciliation est pertinent car il peut affecter l'évaluation et la gestion des risques de marché.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "risque_marche",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "bnc::risk_management::tbl_p031_i01|tbl_p034_i01",
-      "change_type": "added",
-      "indicator": "1 ajouté(s)",
-      "section": "risk_management",
-      "table_name": "tbl_p034_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p031_i01",
-      "table_id_t2": "tbl_p034_i01",
-      "page_t1": 31,
-      "page_t2": 34,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 0.95,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "tbl_p034_i01",
-      "table_status": "pending",
-      "indicators": [
-        {
-          "name": "Mesures du risque de marché",
-          "type": "added",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Indicators and headers match; row_count 20 vs 20; footnote count identical.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.053634674720514836,
-        0.09452435464570018,
-        0.9394991008284824,
-        0.47684559677586413
-      ],
-      "bbox_t2": [
-        0.053591908972247755,
-        0.09536373254024622,
-        0.9395447774650225,
-        0.4767940020320392
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "risque_credit",
-        "change_significance": "moyen",
-        "review_priority": "critique",
-        "analyst_summary": "L'ajout d'indicateurs de mesures du risque de marché est pertinent car il peut affecter l'évaluation globale du risque de la banque.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs de mesures du risque de marché est pertinent car il peut affecter l'évaluation globale du risque de la banque.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
-        "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces indicateurs pourrait modifier la perception du risque de marché et nécessiter une réévaluation des stratégies de gestion des risques.",
-        "source": "llm",
-        "justification": "L'ajout d'indicateurs de mesures du risque de marché est pertinent car il peut affecter l'évaluation globale du risque de la banque.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "risque_credit",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
       }
     },
     {
@@ -990,6 +467,63 @@
       "match_metadata": {}
     },
     {
+      "change_id": "bnc::capital_management::tbl_p026_i01|tbl_p030_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "capital_management",
+      "table_name": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
+      "table_number": "",
+      "table_id_t1": "tbl_p026_i01",
+      "table_id_t2": "tbl_p030_i01",
+      "page_t1": 26,
+      "page_t2": 30,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.95,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[3] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same 14 rows; row_count 14 vs 14.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05372241275762421,
+        0.3563744516083689,
+        0.9413963766659008,
+        0.5477748061671402
+      ],
+      "bbox_t2": [
+        0.053861231585733256,
+        0.39366816511057845,
+        0.9417060403262868,
+        0.58581007369841
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {},
+      "match_metadata": {}
+    },
+    {
       "change_id": "bnc::risk_management::tbl_p039_i01|tbl_p042_i01",
       "change_type": "removed",
       "indicator": "",
@@ -1023,7 +557,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match; row_count 19 vs 19; footnote count identical.",
+      "match_method": "Indicators and headers identical; row_count 19 vs 19; footnote_count 1 vs 1.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -1048,715 +582,6 @@
     }
   ],
   "review_queue": [
-    {
-      "review_id": "bnc::risk_management::tbl_p044_i01|tbl_p047_i01",
-      "table_key": "bnc::risk_management::tbl_p044_i01|tbl_p047_i01",
-      "table_title": "tbl_p047_i01",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "tbl_p047_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p044_i01",
-      "table_id_t2": "tbl_p047_i01",
-      "page_t1": 44,
-      "page_t2": 47,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05584987939572802,
-        0.1850152834497317,
-        0.9456840963924633,
-        0.8920364379882814
-      ],
-      "bbox_t2": [
-        0.05596562927844478,
-        0.1850286348901614,
-        0.9460023368885315,
-        0.8538055419921876
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00014",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Rapport de gestion",
-            "indicator_name_clean": "rapport de gestion"
-          },
-          "validation_status": "approved",
-          "is_required": true,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-04T08:34:28.324439+00:00",
-          "validated_by": "analyst"
-        },
-        {
-          "change_id": "chg_00015",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "États financiers consolidés",
-            "indicator_name_clean": "états financiers consolidés"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00016",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Informations financières complémentaires",
-            "indicator_name_clean": "informations financières complémentaires"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00017",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3",
-            "indicator_name_clean": "informations complémentaires sur les fonds propres réglementaires et informations du pilier 3"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00018",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "1 Localisation de la divulgation concernant les risques",
-            "indicator_name_clean": "1 localisation de la divulgation concernant les risques"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00019",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "2 Terminologie relative aux risques et mesures de risque",
-            "indicator_name_clean": "2 terminologie relative aux risques et mesures de risque"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00020",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "3 Risques principaux et risques émergents",
-            "indicator_name_clean": "3 risques principaux et risques émergents"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00021",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "4 Principaux nouveaux ratios réglementaires",
-            "indicator_name_clean": "4 principaux nouveaux ratios réglementaires"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00022",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "5 Structure, processus et principales fonctions de gestion des risques",
-            "indicator_name_clean": "5 structure, processus et principales fonctions de gestion des risques"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00023",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "6 Culture de gestion des risques",
-            "indicator_name_clean": "6 culture de gestion des risques"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00024",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "7 Principaux risques par secteur d’exploitation, gestion des risques et appétit pour le risque",
-            "indicator_name_clean": "7 principaux risques par secteur d’exploitation, gestion des risques et appétit pour le risque"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00025",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "8 Tests de tension",
-            "indicator_name_clean": "8 tests de tension"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00026",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "9 Exigences minimales des fonds propres en vertu du Pilier 1",
-            "indicator_name_clean": "9 exigences minimales des fonds propres en vertu du pilier 1"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00027",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "10 Rapprochement du bilan comptable et du bilan réglementaire",
-            "indicator_name_clean": "10 rapprochement du bilan comptable et du bilan réglementaire"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00028",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "11 Évolution des fonds propres réglementaires",
-            "indicator_name_clean": "11 évolution des fonds propres réglementaires"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00029",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "12 Planification en matière de capital",
-            "indicator_name_clean": "12 planification en matière de capital"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00030",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "13 Actif pondéré en fonction des risques par secteur d’exploitation et par type de risque",
-            "indicator_name_clean": "13 actif pondéré en fonction des risques par secteur d’exploitation et par type de risque"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00031",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "14 Exigences des fonds propres par risque et par méthode de calcul de l’actif pondéré en fonction des risques",
-            "indicator_name_clean": "14 exigences des fonds propres par risque et par méthode de calcul de l’actif pondéré en fonction des risques"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00032",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "15 Risque de crédit lié au portefeuille bancaire",
-            "indicator_name_clean": "15 risque de crédit lié au portefeuille bancaire"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00033",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "16 Évolution de l’actif pondéré en fonction des risques par type de risque",
-            "indicator_name_clean": "16 évolution de l’actif pondéré en fonction des risques par type de risque"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00034",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "17 Évaluation de la performance du modèle de risque de crédit",
-            "indicator_name_clean": "17 évaluation de la performance du modèle de risque de crédit"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00035",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "18 Gestion de la liquidité et composantes de la réserve de liquidité",
-            "indicator_name_clean": "18 gestion de la liquidité et composantes de la réserve de liquidité"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00036",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "19 Sommaire des actifs grevés et non grevés",
-            "indicator_name_clean": "19 sommaire des actifs grevés et non grevés"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00037",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "20 Échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan",
-            "indicator_name_clean": "20 échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00038",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "21 Stratégie de financement et sources de financement",
-            "indicator_name_clean": "21 stratégie de financement et sources de financement"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00039",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "22 Lien entre les mesures de risque de marché et le bilan",
-            "indicator_name_clean": "22 lien entre les mesures de risque de marché et le bilan"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00040",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "23 Facteurs de risque de marché",
-            "indicator_name_clean": "23 facteurs de risque de marché"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00041",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "24 VaR : hypothèses, limites et processus de validation",
-            "indicator_name_clean": "24 var : hypothèses, limites et processus de validation"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00042",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "25 Tests de tension et tests de validité rétroactifs",
-            "indicator_name_clean": "25 tests de tension et tests de validité rétroactifs"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00043",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "26 Expositions au risque de crédit",
-            "indicator_name_clean": "26 expositions au risque de crédit"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00044",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "27 Politiques d'identification des prêts dépréciés",
-            "indicator_name_clean": "27 politiques d'identification des prêts dépréciés"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00045",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "28 Évolution des prêts dépréciés et provisions pour pertes de crédit",
-            "indicator_name_clean": "28 évolution des prêts dépréciés et provisions pour pertes de crédit"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00046",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "29 Risque de contrepartie lié aux transactions d’instruments financiers dérivés",
-            "indicator_name_clean": "29 risque de contrepartie lié aux transactions d’instruments financiers dérivés"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00047",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "30 Mesures d’atténuation du risque de crédit",
-            "indicator_name_clean": "30 mesures d’atténuation du risque de crédit"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00048",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "31 Autres risques : gouvernance, mesure et gestion",
-            "indicator_name_clean": "31 autres risques : gouvernance, mesure et gestion"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00049",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "32 Événements liés aux risques connus publiquement",
-            "indicator_name_clean": "32 événements liés aux risques connus publiquement"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "partial",
-      "confidence": 0.9,
-      "match_method": "Indicators and headers are highly similar, both summarizing risk disclosures; footnotes identical.",
-      "genai_analysis": {
-        "theme": "liquidite",
-        "change_significance": "eleve",
-        "review_priority": "critique",
-        "analyst_summary": "La suppression de nombreux indicateurs clés liés à la gestion des risques et aux exigences réglementaires pourrait affecter la transparence et la conformité aux normes de divulgation.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "ELEVEE",
-        "risk_level": "ELEVE",
-        "confidence": 0.9,
-        "explanation": "La suppression de nombreux indicateurs clés liés à la gestion des risques et aux exigences réglementaires pourrait affecter la transparence et la conformité aux normes de divulgation.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — Exigences de divulgation",
-        "impact_description": "La suppression de ces indicateurs pourrait compromettre la capacité de l'institution à démontrer sa conformité aux exigences réglementaires en matière de gestion des risques.",
-        "source": "llm",
-        "justification": "La suppression de nombreux indicateurs clés liés à la gestion des risques et aux exigences réglementaires pourrait affecter la transparence et la conformité aux normes de divulgation.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "liquidite",
-        "review_priority": "critique",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 36 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "Risque",
-      "risk_level": "ELEVE",
-      "summary": {
-        "total_changes": 36,
-        "indicators_added": 4,
-        "indicators_removed": 32,
-        "indicators_renamed": 0,
-        "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 35
-      }
-    },
-    {
-      "review_id": "bnc::capital_management::tbl_p026_i01|tbl_p030_i01",
-      "table_key": "bnc::capital_management::tbl_p026_i01|tbl_p030_i01",
-      "table_title": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
-      "view_mode": "change_list",
-      "section": "capital_management",
-      "table_name": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
-      "table_number": "",
-      "table_id_t1": "tbl_p026_i01",
-      "table_id_t2": "tbl_p030_i01",
-      "page_t1": 26,
-      "page_t2": 30,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05372241275762421,
-        0.3563744516083689,
-        0.9413963766659008,
-        0.5477748061671402
-      ],
-      "bbox_t2": [
-        0.053861231585733256,
-        0.39366816511057845,
-        0.9417060403262868,
-        0.58581007369841
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00007",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Ratios des fonds propres –   catégorie 1",
-            "indicator_name_clean": "ratios des fonds propres –   catégorie 1"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00008",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Ratios des fonds propres –   CET1",
-            "indicator_name_clean": "ratios des fonds propres –   cet1"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00009",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Ratios des fonds propres –   total",
-            "indicator_name_clean": "ratios des fonds propres –   total"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00053",
-          "change_type": "footnote_removed",
-          "payload": {
-            "indicator_name": "[3] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
-            "indicator_name_clean": "[3] les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
-            "footnote_ref": "3",
-            "old_text": "Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
-            "new_text": ""
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "pending",
-      "confidence": 0.95,
-      "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same 14 rows; row_count 14 vs 14.",
-      "genai_analysis": {
-        "theme": "capital",
-        "change_significance": "eleve",
-        "review_priority": "critique",
-        "analyst_summary": "L'ajout des indicateurs liés aux ratios des fonds propres, notamment le CET1, est pertinent car il touche directement aux exigences réglementaires de fonds propres.",
-        "is_relevant": true,
-        "category": "CAPITAL",
-        "relevance_score": "ELEVEE",
-        "risk_level": "ELEVE",
-        "confidence": 0.9,
-        "explanation": "L'ajout des indicateurs liés aux ratios des fonds propres, notamment le CET1, est pertinent car il touche directement aux exigences réglementaires de fonds propres.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "L'ajout de ces ratios impacte la manière dont la banque doit gérer ses fonds propres pour rester conforme aux exigences réglementaires.",
-        "source": "llm",
-        "justification": "L'ajout des indicateurs liés aux ratios des fonds propres, notamment le CET1, est pertinent car il touche directement aux exigences réglementaires de fonds propres.",
-        "relevance": "Capital"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "capital",
-        "review_priority": "critique",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "relevance": "Capital",
-      "risk_level": "ELEVE",
-      "summary": {
-        "total_changes": 4,
-        "indicators_added": 3,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 4
-      }
-    },
     {
       "review_id": "bnc::capital_management::tbl_p027_i01|",
       "table_key": "bnc::capital_management::tbl_p027_i01|",
@@ -1783,41 +608,41 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00055",
+          "change_id": "chg_00013",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-05T01:22:38.876042+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la conformité réglementaire.",
+        "analyst_summary": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la surveillance réglementaire.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
-        "confidence": 0.95,
-        "explanation": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la conformité réglementaire.",
+        "confidence": 0.9,
+        "explanation": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la surveillance réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "escalade",
         "reference_reglementaire": "Bâle III — BISM",
         "impact_description": "La suppression de ce tableau pourrait affecter la transparence et la conformité aux exigences de Bâle III pour les BISM.",
         "source": "llm",
-        "justification": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la conformité réglementaire.",
+        "justification": "La suppression du tableau des indicateurs pour les Banques d’importance systémique mondiale (BISM) est pertinente car elle affecte la gestion du capital et la surveillance réglementaire.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -1831,17 +656,17 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
       "review_id": "bnc::capital_management::tbl_p023_i01|tbl_p027_i01",
       "table_key": "bnc::capital_management::tbl_p023_i01|tbl_p027_i01",
-      "table_title": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
+      "table_title": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
       "view_mode": "change_list",
       "section": "capital_management",
-      "table_name": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
+      "table_name": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
       "table_number": "",
       "table_id_t1": "tbl_p023_i01",
       "table_id_t2": "tbl_p027_i01",
@@ -1872,12 +697,12 @@
             "indicator_name": "Série 47",
             "indicator_name_clean": "série 47"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-05T01:22:46.415682+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00002",
@@ -1895,20 +720,6 @@
         },
         {
           "change_id": "chg_00003",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "65 500 000",
-            "indicator_name_clean": "65 500 000"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00004",
           "change_type": "indicator_removed",
           "payload": {
             "indicator_name": "Série 32",
@@ -1922,9 +733,9 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.9,
-      "match_method": "Title identical: 'Actions, autres instruments de capitaux propres et options d’achat d’actions'; indicators: similar structure with additional series in CQ; headers and footnotes identical.",
+      "match_method": "Title and indicators are highly similar; both tables are about 'Actions, autres instruments de capitaux propres et options d'achat d'actions'. Row count is similar (12 vs 13).",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
@@ -1939,8 +750,8 @@
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
-        "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "Le changement dans les séries d'instruments de capitaux propres pourrait affecter le calcul des ratios de fonds propres réglementaires.",
+        "reference_reglementaire": "",
+        "impact_description": "La modification des séries d'instruments de capitaux propres peut affecter la composition du capital réglementaire de la banque.",
         "source": "llm",
         "justification": "L'ajout et la suppression de séries d'instruments de capitaux propres peuvent indiquer un changement dans la structure du capital de la banque.",
         "relevance": "Capital"
@@ -1950,18 +761,18 @@
         "theme": "capital",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 4 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote."
       },
       "relevance": "Capital",
       "risk_level": "MODERE",
       "summary": {
-        "total_changes": 4,
-        "indicators_added": 3,
+        "total_changes": 3,
+        "indicators_added": 2,
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 4
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -1995,6 +806,20 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
+          "change_id": "chg_00004",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Émission d’actions ordinaires relatives à l'acquisition de CWB",
+            "indicator_name_clean": "émission d’actions ordinaires relatives à l'acquisition de cwb"
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
           "change_id": "chg_00005",
           "change_type": "indicator_added",
           "payload": {
@@ -2009,21 +834,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00006",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Émission d’actions ordinaires relatives à l'acquisition de CWB",
-            "indicator_name_clean": "émission d’actions ordinaires relatives à l'acquisition de cwb"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00051",
+          "change_id": "chg_00009",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[2] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
@@ -2042,25 +853,25 @@
       ],
       "table_status": "pending",
       "confidence": 0.92,
-      "match_method": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: same core structure with minor additions; row_count 42 vs 40.",
+      "match_method": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: same core structure with minor additions in CQ; row_count 42 vs 40.",
       "genai_analysis": {
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout d'indicateurs liés à l'acquisition de CWB et l'émission d'actions ordinaires peut affecter la structure du capital réglementaire.",
+        "analyst_summary": "L'ajout d'indicateurs liés à l'émission d'actions ordinaires et d'options de remplacement pour une acquisition peut affecter la structure du capital réglementaire.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs liés à l'acquisition de CWB et l'émission d'actions ordinaires peut affecter la structure du capital réglementaire.",
+        "explanation": "L'ajout d'indicateurs liés à l'émission d'actions ordinaires et d'options de remplacement pour une acquisition peut affecter la structure du capital réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "L'acquisition de CWB et l'émission d'actions peuvent modifier les ratios de fonds propres réglementaires.",
+        "impact_description": "L'acquisition de CWB et les émissions d'actions associées peuvent modifier le ratio CET1 de la banque.",
         "source": "llm",
-        "justification": "L'ajout d'indicateurs liés à l'acquisition de CWB et l'émission d'actions ordinaires peut affecter la structure du capital réglementaire.",
+        "justification": "L'ajout d'indicateurs liés à l'émission d'actions ordinaires et d'options de remplacement pour une acquisition peut affecter la structure du capital réglementaire.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -2113,7 +924,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00010",
+          "change_id": "chg_00006",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux",
@@ -2127,7 +938,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00011",
+          "change_id": "chg_00007",
           "change_type": "indicator_removed",
           "payload": {
             "indicator_name": "Risques émergents – Droits de douane sur les importations",
@@ -2142,26 +953,26 @@
         }
       ],
       "table_status": "pending",
-      "confidence": 0.85,
-      "match_method": "Table summary and indicators are highly similar, both discussing emerging risks related to tariffs; headers identical.",
+      "confidence": 0.95,
+      "match_method": "Table summary and indicators are identical; both tables describe 'Risques émergents et description'.",
       "genai_analysis": {
         "theme": "autre",
         "change_significance": "moyen",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout et la suppression d'indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui est pertinent pour la gestion des risques.",
+        "analyst_summary": "L'ajout et la modification des indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui peut affecter la gestion des risques de la banque.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout et la suppression d'indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui est pertinent pour la gestion des risques.",
+        "explanation": "L'ajout et la modification des indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui peut affecter la gestion des risques de la banque.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Le changement reflète une réévaluation des risques commerciaux liés aux droits de douane, nécessitant une analyse plus approfondie.",
+        "impact_description": "La modification des indicateurs de risques émergents pourrait influencer la stratégie de gestion des risques de la banque.",
         "source": "llm",
-        "justification": "L'ajout et la suppression d'indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui est pertinent pour la gestion des risques.",
+        "justification": "L'ajout et la modification des indicateurs de risques émergents signalent un changement dans l'évaluation des risques liés aux droits de douane, ce qui peut affecter la gestion des risques de la banque.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -2181,180 +992,6 @@
         "footnotes_changed": 0,
         "validated": 0,
         "pending": 2
-      }
-    },
-    {
-      "review_id": "bnc::risk_management::tbl_p030_i01|tbl_p033_i01",
-      "table_key": "bnc::risk_management::tbl_p030_i01|tbl_p033_i01",
-      "table_title": "Conciliation du risque de marché avec les éléments du bilan consolidé",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "Conciliation du risque de marché avec les éléments du bilan consolidé",
-      "table_number": "",
-      "table_id_t1": "tbl_p030_i01",
-      "table_id_t2": "tbl_p033_i01",
-      "page_t1": 30,
-      "page_t2": 33,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05390968821407144,
-        0.28045076312440814,
-        0.940481946359273,
-        0.6651637530086016
-      ],
-      "bbox_t2": [
-        0.0542293810376934,
-        0.24159402558297824,
-        0.9405037873710682,
-        0.626738114790483
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00012",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Mesures du risque de marché",
-            "indicator_name_clean": "mesures du risque de marché"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "pending",
-      "confidence": 0.95,
-      "match_method": "Title identical: 'Conciliation du risque de marché avec les éléments du bilan consolidé'; indicators: same 20 rows; row_count 20 vs 20.",
-      "genai_analysis": {
-        "theme": "risque_marche",
-        "change_significance": "moyen",
-        "review_priority": "critique",
-        "analyst_summary": "L'ajout d'indicateurs de mesures du risque de marché dans un tableau de conciliation est pertinent car il peut affecter l'évaluation et la gestion des risques de marché.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs de mesures du risque de marché dans un tableau de conciliation est pertinent car il peut affecter l'évaluation et la gestion des risques de marché.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
-        "reference_reglementaire": "",
-        "impact_description": "L'ajout d'indicateurs de risque de marché peut influencer la stratégie de gestion des risques et la conformité réglementaire.",
-        "source": "llm",
-        "justification": "L'ajout d'indicateurs de mesures du risque de marché dans un tableau de conciliation est pertinent car il peut affecter l'évaluation et la gestion des risques de marché.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "risque_marche",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "Risque",
-      "risk_level": "MODERE",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 1,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
-      }
-    },
-    {
-      "review_id": "bnc::risk_management::tbl_p031_i01|tbl_p034_i01",
-      "table_key": "bnc::risk_management::tbl_p031_i01|tbl_p034_i01",
-      "table_title": "tbl_p034_i01",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "tbl_p034_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p031_i01",
-      "table_id_t2": "tbl_p034_i01",
-      "page_t1": 31,
-      "page_t2": 34,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.053634674720514836,
-        0.09452435464570018,
-        0.9394991008284824,
-        0.47684559677586413
-      ],
-      "bbox_t2": [
-        0.053591908972247755,
-        0.09536373254024622,
-        0.9395447774650225,
-        0.4767940020320392
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00013",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Mesures du risque de marché",
-            "indicator_name_clean": "mesures du risque de marché"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "pending",
-      "confidence": 0.95,
-      "match_method": "Indicators and headers match; row_count 20 vs 20; footnote count identical.",
-      "genai_analysis": {
-        "theme": "risque_credit",
-        "change_significance": "moyen",
-        "review_priority": "critique",
-        "analyst_summary": "L'ajout d'indicateurs de mesures du risque de marché est pertinent car il peut affecter l'évaluation globale du risque de la banque.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs de mesures du risque de marché est pertinent car il peut affecter l'évaluation globale du risque de la banque.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
-        "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces indicateurs pourrait modifier la perception du risque de marché et nécessiter une réévaluation des stratégies de gestion des risques.",
-        "source": "llm",
-        "justification": "L'ajout d'indicateurs de mesures du risque de marché est pertinent car il peut affecter l'évaluation globale du risque de la banque.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "risque_credit",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "Risque",
-      "risk_level": "MODERE",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 1,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
       }
     },
     {
@@ -2388,7 +1025,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00050",
+          "change_id": "chg_00008",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[4] Les ratios au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
@@ -2453,7 +1090,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00052",
+          "change_id": "chg_00010",
           "change_type": "footnote_added",
           "payload": {
             "indicator_name": "[3] Au cours du deuxième trimestre de 2025, la variation du risque opérationnel est liée à l’inclusion de CWB qui a été calc",
@@ -2473,6 +1110,71 @@
       "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same core structure; row_count 20 vs 20.",
+      "genai_analysis": {},
+      "match_metadata": {},
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "bnc::capital_management::tbl_p026_i01|tbl_p030_i01",
+      "table_key": "bnc::capital_management::tbl_p026_i01|tbl_p030_i01",
+      "table_title": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
+      "view_mode": "change_list",
+      "section": "capital_management",
+      "table_name": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
+      "table_number": "",
+      "table_id_t1": "tbl_p026_i01",
+      "table_id_t2": "tbl_p030_i01",
+      "page_t1": 26,
+      "page_t2": 30,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05372241275762421,
+        0.3563744516083689,
+        0.9413963766659008,
+        0.5477748061671402
+      ],
+      "bbox_t2": [
+        0.053861231585733256,
+        0.39366816511057845,
+        0.9417060403262868,
+        0.58581007369841
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00011",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[3] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
+            "indicator_name_clean": "[3] les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
+            "footnote_ref": "3",
+            "old_text": "Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
+            "new_text": ""
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.95,
+      "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same 14 rows; row_count 14 vs 14.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -2518,7 +1220,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00054",
+          "change_id": "chg_00012",
           "change_type": "footnote_added",
           "payload": {
             "indicator_name": "[1] Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date ",
@@ -2537,7 +1239,7 @@
       ],
       "table_status": "pending",
       "confidence": 0.95,
-      "match_method": "Indicators and headers match; row_count 19 vs 19; footnote count identical.",
+      "match_method": "Indicators and headers identical; row_count 19 vs 19; footnote_count 1 vs 1.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",

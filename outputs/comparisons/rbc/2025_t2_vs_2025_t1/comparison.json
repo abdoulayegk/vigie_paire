@@ -1,13 +1,13 @@
 {
   "schema_version": 2,
   "artifact_type": "report_comparison",
-  "run_id": "20260404_042949",
+  "run_id": "20260404_083630",
   "bank_code": "rbc",
   "year_previous": 2025,
   "quarter_previous": "t1",
   "year_current": 2025,
   "quarter_current": "t2",
-  "created_at": "2026-04-04T04:29:49",
+  "created_at": "2026-04-04T08:36:30",
   "source_pdf_previous": "",
   "source_pdf_current": "",
   "archived_pdf_previous": "",
@@ -27,145 +27,145 @@
         "previous_table_id": "tbl_p024_i01",
         "current_table_id": "tbl_p030_i01",
         "match_confidence": 0.99,
-        "reason": "Indicators and headers match exactly; both tables have the same row count and focus on geographic distribution of residential mortgages."
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p024_i02",
         "current_table_id": "tbl_p030_i02",
         "match_confidence": 0.99,
-        "reason": "Indicators and headers match exactly; both tables have the same row count and focus on geographic distribution of residential mortgages with similar footnote details."
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p025_i01",
         "current_table_id": "tbl_p031_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on amortization periods of residential mortgages with similar row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p025_i02",
         "current_table_id": "tbl_p031_i02",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on loan-to-value ratios of residential mortgages with similar row count and footnote details."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p027_i01",
         "current_table_id": "tbl_p033_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on credit loss provisions by sector and loan type with identical row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p028_i01",
         "current_table_id": "tbl_p034_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on VAR and trading activities with identical row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p029_i01",
         "current_table_id": "tbl_p035_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on interest rate sensitivity with similar row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p030_i01",
         "current_table_id": "tbl_p036_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on balance sheet data and market risk with identical row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p031_i01",
         "current_table_id": "tbl_p037_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on market risk exposure of assets and liabilities with identical row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p032_i03",
         "current_table_id": "tbl_p038_i03",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on unencumbered liquid assets by entity with identical row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p033_i01",
         "current_table_id": "tbl_p039_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on encumbered and unencumbered assets with identical row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p033_i02",
         "current_table_id": "tbl_p039_i02",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on encumbered and unencumbered assets with identical row count and similar footnote details."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p035_i01",
         "current_table_id": "tbl_p041_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on wholesale funding composition by maturity with identical row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p035_i02",
         "current_table_id": "tbl_p041_i02",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on deposit maturities with identical row count and similar footnote details."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p036_i01",
         "current_table_id": "tbl_p042_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on credit ratings and outlooks with identical row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p037_i02",
         "current_table_id": "tbl_p043_i02",
         "match_confidence": 0.95,
-        "reason": "Table summary and indicators are identical; both tables have the same footnote count and similar headers, indicating a strong match."
+        "reason": "Identical indicators and headers related to 'Ratio de liquidité à court terme'; footnotes are highly similar."
       },
       {
         "previous_table_id": "tbl_p039_i02",
         "current_table_id": "tbl_p045_i02",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on long-term liquidity ratios with identical row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p041_i01",
         "current_table_id": "tbl_p047_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on contractual maturities of assets and liabilities with identical row count."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters."
       },
       {
         "previous_table_id": "tbl_p042_i01",
         "current_table_id": "tbl_p048_i01",
         "match_confidence": 0.95,
-        "reason": "Table summary, headers, and indicators are identical; both tables have the same footnote count and structure, indicating a strong match."
+        "reason": "Identical indicators and headers for 'Échéances contractuelles des actifs, passifs et éléments hors bilan'; footnotes match."
       },
       {
         "previous_table_id": "tbl_p043_i01",
         "current_table_id": "tbl_p049_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on regulatory capital targets with identical row count."
+        "match_confidence": 0.9,
+        "reason": "Similar indicators and headers related to 'Ratios de fonds propres, de levier et TLAC'; footnotes are highly similar."
       },
       {
         "previous_table_id": "tbl_p044_i01",
         "current_table_id": "tbl_p050_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on regulatory capital and leverage ratios with identical row count."
+        "match_confidence": 0.9,
+        "reason": "Similar indicators and headers related to 'Fonds propres, actif pondéré, ratios de levier et TLAC'; footnotes are highly similar."
       },
       {
         "previous_table_id": "tbl_p045_i01",
         "current_table_id": "tbl_p051_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on capital management activities with identical row count."
+        "match_confidence": 0.9,
+        "reason": "Similar indicators and headers related to 'Principales activités de gestion des fonds propres'; footnotes are highly similar."
       },
       {
         "previous_table_id": "tbl_p046_i01",
         "current_table_id": "tbl_p052_i01",
-        "match_confidence": 0.95,
-        "reason": "Indicators and headers match; both tables focus on share data and equity instruments with identical row count."
+        "match_confidence": 0.9,
+        "reason": "Similar indicators and headers related to 'Données sur actions ordinaires, privilégiées et instruments de capitaux propres'; footnotes are highly similar."
       }
     ],
     "tables_added": [
       {
         "table_id": "tbl_p034_i02",
-        "reason": "Indicators are unique; no remaining previous table has a sufficiently similar indicator structure, title, or business purpose.",
+        "reason": "Indicators are unique to VAR and trading activities; no previous table shares a similar structure or purpose.",
         "title": "",
         "table_summary": "Suite: VAR des activités de négociation et VAR totale",
         "extraction_status": "rescued",
@@ -229,13 +229,13 @@
           "project_phase": "rapport_gestion",
           "action_requise": "investigation",
           "reference_reglementaire": "",
-          "impact_description": "Ce nouveau tableau pourrait refléter une nouvelle approche ou une mise à jour dans l'évaluation des risques de marché et de crédit.",
+          "impact_description": "Ce changement pourrait affecter la compréhension et la gestion des risques par la banque.",
           "source": "llm"
         }
       },
       {
         "table_id": "tbl_p038_i01",
-        "reason": "Indicators and headers are unique; no remaining previous table has a sufficiently similar structure or purpose.",
+        "reason": "No previous table has a similar focus on liquidity reserves and liquid assets; unique indicators and headers.",
         "title": "",
         "table_summary": "Réserve de liquidités et actifs liquides",
         "extraction_status": "rescued",
@@ -275,12 +275,12 @@
           "relevance_score": "ELEVEE",
           "risk_level": "MODERE",
           "confidence": 0.9,
-          "explanation": "L'ajout d'un nouveau tableau dans la section gestion des risques, détaillant les actifs liquides, est pertinent pour la veille réglementaire car il peut influencer l'évaluation de la liquidité et des risques associés.",
+          "explanation": "L'ajout d'un nouveau tableau dans la section gestion des risques, détaillant les actifs liquides, est pertinent car il peut affecter l'évaluation de la liquidité et du risque de la banque.",
           "impact_type": "structurel",
           "project_phase": "rapport_gestion",
           "action_requise": "investigation",
           "reference_reglementaire": "",
-          "impact_description": "Ce changement structurel pourrait affecter l'analyse de la liquidité et la gestion des risques de la banque.",
+          "impact_description": "Ce changement pourrait influencer l'analyse de la liquidité et du risque de la banque.",
           "source": "llm"
         }
       }
@@ -374,12 +374,12 @@
           "relevance_score": "ELEVEE",
           "risk_level": "MODERE",
           "confidence": 0.9,
-          "explanation": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut affecter la transparence et la gestion des risques.",
+          "explanation": "La suppression d'un tableau lié aux exigences contractuelles de financement des dérivés peut indiquer un changement dans la gestion des risques ou la divulgation des risques.",
           "impact_type": "structurel",
           "project_phase": "rapport_gestion",
           "action_requise": "investigation",
           "reference_reglementaire": "",
-          "impact_description": "La suppression pourrait réduire la visibilité sur les engagements financiers liés aux dérivés, nécessitant une vérification de conformité.",
+          "impact_description": "La suppression pourrait affecter la transparence sur les engagements financiers liés aux dérivés.",
           "source": "llm"
         }
       },
@@ -443,13 +443,13 @@
           "category": "RISQUE",
           "relevance_score": "ELEVEE",
           "risk_level": "ELEVE",
-          "confidence": 0.95,
-          "explanation": "La suppression du tableau du ratio de liquidité à court terme (LCR) est pertinente car elle affecte la transparence et le suivi des exigences de liquidité réglementaires.",
+          "confidence": 0.9,
+          "explanation": "La suppression du tableau du ratio de liquidité à court terme est pertinente car elle affecte la transparence et le suivi des indicateurs de liquidité réglementaires.",
           "impact_type": "structurel",
           "project_phase": "pilier_3",
           "action_requise": "escalade",
           "reference_reglementaire": "Bâle III — LCR",
-          "impact_description": "La suppression du tableau LCR pourrait compromettre la capacité à évaluer la conformité aux exigences de liquidité.",
+          "impact_description": "La suppression du tableau pourrait affecter la capacité à évaluer la conformité au ratio de liquidité à court terme requis par Bâle III.",
           "source": "llm"
         }
       },
@@ -532,12 +532,12 @@
           "relevance_score": "ELEVEE",
           "risk_level": "ELEVE",
           "confidence": 0.9,
-          "explanation": "La suppression du tableau des Banques d’importance systémique mondiale pourrait affecter l'évaluation de la taille et de l'interdépendance des banques, ce qui est crucial pour la gestion du capital et la conformité réglementaire.",
+          "explanation": "La suppression du tableau sur les banques d'importance systémique mondiale peut affecter l'évaluation de la stabilité financière et la gestion du capital.",
           "impact_type": "structurel",
           "project_phase": "rapport_gestion",
           "action_requise": "escalade",
           "reference_reglementaire": "Bâle III — Ratio de levier",
-          "impact_description": "La suppression de ce tableau pourrait entraîner une sous-évaluation des risques systémiques et affecter les exigences de capital pour les banques concernées.",
+          "impact_description": "La suppression de ce tableau peut réduire la transparence sur les indicateurs critiques utilisés pour évaluer l'importance systémique des banques.",
           "source": "llm"
         }
       }
@@ -1266,7 +1266,7 @@
       "previous_table_id": "tbl_p024_i01",
       "current_table_id": "tbl_p030_i01",
       "match_confidence": 0.99,
-      "match_reason": "Indicators and headers match exactly; both tables have the same row count and focus on geographic distribution of residential mortgages.",
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p024_i01",
@@ -1362,7 +1362,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the two tables. The indicators in both tables are identical when ignoring footnote markers and disambiguation labels.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction artifacts.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1391,7 +1391,7 @@
       "previous_table_id": "tbl_p024_i02",
       "current_table_id": "tbl_p030_i02",
       "match_confidence": 0.99,
-      "match_reason": "Indicators and headers match exactly; both tables have the same row count and focus on geographic distribution of residential mortgages with similar footnote details.",
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p024_i02",
@@ -1525,10 +1525,10 @@
             "current_id": "2",
             "previous_text": "Comprend des marges de crédit sur valeur nette assurées et non assurées totalisant 40 892 millions de dollars et 17 millions, respectivement (40 998 millions et 17 millions, respectivement, au 31 octobre 2024), et sont présentées dans les prêts aux particuliers. Les montants indiqués pour les États-Unis et les autres pays comprennent les prêts à terme garantis par des immeubles résidentiels.",
             "current_text": "Comprend des marges de crédit sur valeur nette assurées et non assurées totalisant 41 470 millions de dollars et 17 millions, respectivement (40 892 millions et 17 millions, respectivement, au 31 janvier 2025), et sont présentées dans les prêts aux particuliers. Les montants indiqués pour les États-Unis et les autres pays comprennent les prêts à terme garantis par des immeubles résidentiels.",
-            "reason": "The total amount of insured home equity lines of credit has changed, indicating a material financial update.",
+            "reason": "The change in the total amount of credit lines from 40,892 million to 41,470 million represents a significant financial update.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The change in the total amount of insured home equity lines of credit reflects a significant update in financial figures, impacting the bank's exposure and financial reporting."
+              "justification": "The increase in the total amount of credit lines indicates a material change in the bank's financial exposure, which could impact risk assessments and financial planning."
             }
           },
           {
@@ -1536,10 +1536,10 @@
             "current_id": "5",
             "previous_text": "Le total consolidé des prêts hypothécaires résidentiels au Canada de 443 milliards de dollars (441 milliards au 31 octobre 2024) comprend des prêts hypothécaires commerciaux de 12 milliards (12 milliards au 31 octobre 2024) dans le secteur Services bancaires aux entreprises, dont une tranche de 9 milliards (9 milliards au 31 octobre 2024) est assurée, et des prêts hypothécaires résidentiels de 18 milliards (18 milliards au 31 octobre 2024) dans le secteur Marchés des Capitaux, dont un montant de 18 milliards (18 milliards au 31 octobre 2024) est détenu à des fins de titrisation. Tous les prêts hypothécaires résidentiels détenus à des fins de titrisation sont assurés (tous assurés au 31 octobre 2024).",
             "current_text": "Le total consolidé des prêts hypothécaires résidentiels au Canada de 445 milliards de dollars (443 milliards au 31 janvier 2025) comprend des prêts hypothécaires commerciaux de 12 milliards (12 milliards au 31 janvier 2025) dans le secteur Services bancaires aux entreprises, dont une tranche de 9 milliards (9 milliards au 31 janvier 2025) est assurée, et des prêts hypothécaires résidentiels de 17 milliards (18 milliards au 31 janvier 2025) dans le secteur Marchés des capitaux, dont un montant de 17 milliards (18 milliards au 31 janvier 2025) est détenu à des fins de titrisation. Tous les prêts hypothécaires résidentiels détenus à des fins de titrisation sont assurés (tous assurés au 31 janvier 2025).",
-            "reason": "The total consolidated residential mortgage amount and the amount held for securitization have changed, indicating a material financial update.",
+            "reason": "The change in the total consolidated residential mortgage amount from 443 billion to 445 billion and the decrease in capital markets residential mortgages from 18 billion to 17 billion are significant financial updates.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The update in the total consolidated residential mortgage amount and securitization figures reflects a significant change in the bank's financial position and risk exposure."
+              "justification": "The adjustments in the total mortgage amounts reflect changes in the bank's asset portfolio, which are crucial for financial reporting and risk management."
             }
           }
         ],
@@ -1551,7 +1551,7 @@
         "review_priority": "normale",
         "analyst_summary": "Changements semantiques detectes sur le theme autre: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
-      "reason": "The changes identified are material updates to financial figures, impacting the bank's financial reporting and risk management.",
+      "reason": "The footnotes with text changes reflect significant financial updates that impact the bank's financial exposure and asset portfolio, necessitating a detailed analysis.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1567,20 +1567,20 @@
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
         "confidence": 0.9,
-        "explanation": "Les modifications apportées aux notes du tableau sont des corrections mineures de texte et de chiffres qui ne semblent pas affecter les seuils ou méthodologies réglementaires.",
+        "explanation": "Les modifications apportées aux notes sont des corrections mineures de texte sans impact sur la réglementation ou la gestion des risques.",
         "impact_type": "cosmetique",
         "project_phase": "rapport_gestion",
         "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
+        "impact_description": "Aucun impact concret sur les exigences réglementaires ou la gestion des risques.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p025_i01",
       "current_table_id": "tbl_p031_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on amortization periods of residential mortgages with similar row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p025_i01",
@@ -1669,10 +1669,10 @@
         "indicators_removed": [
           {
             "value": "De 30 à 35 ans",
-            "reason": "This indicator is present in the previous table but absent in the current table, indicating a removal.",
+            "reason": "This indicator was present in the previous table but is missing in the current table, indicating a potential change in the reporting structure or focus.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The removal of the 'De 30 à 35 ans' amortization period could indicate a structural change in the reporting or a shift in the bank's mortgage portfolio strategy, potentially affecting risk assessment and management."
+              "justification": "The removal of the 'De 30 à 35 ans' category suggests a structural change in how mortgage amortization periods are reported, which could impact risk assessment and portfolio analysis."
             }
           }
         ],
@@ -1688,7 +1688,7 @@
             "reason": "The footnote has been materially revised by removing the explanation about amortization periods over 30 years and their impact, which changes the context and focus of the note.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The removal of the explanation regarding amortization periods over 30 years and their impact on variable rate mortgage portfolios could indicate a shift in risk management focus or reporting strategy, affecting how the bank communicates its risk exposure and management practices."
+              "justification": "The removal of the explanation regarding amortization periods over 30 years and their impact on variable rate mortgage portfolios could affect the understanding of risk exposure and policy implications, necessitating a review of risk management strategies."
             }
           }
         ],
@@ -1700,7 +1700,7 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The analysis identified one indicator removed from the previous table, with no new indicators added or renamed. The removal suggests a potential change in reporting structure or business focus. The analysis identified a material semantic change in footnote 2, which impacts the understanding of the bank's mortgage policy and risk management strategy.",
+      "reason": "The comparison reveals a structural change in the reporting of mortgage amortization periods, with one category removed, potentially affecting risk management insights. The analysis identified a material semantic change in footnote 2, which impacts the understanding of amortization policies and risk exposure.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1721,15 +1721,15 @@
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La suppression de cette catégorie pourrait affecter l'évaluation des risques liés aux prêts hypothécaires à long terme.",
+        "impact_description": "La suppression de cette catégorie pourrait affecter l'analyse des risques de crédit à long terme.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p025_i02",
       "current_table_id": "tbl_p031_i02",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on loan-to-value ratios of residential mortgages with similar row count and footnote details.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p025_i02",
@@ -1881,7 +1881,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role, considering the rules provided for ignoring footnote markers and disambiguation labels.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction artifacts.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1909,8 +1909,8 @@
     {
       "previous_table_id": "tbl_p027_i01",
       "current_table_id": "tbl_p033_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on credit loss provisions by sector and loan type with identical row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p027_i01",
@@ -2008,7 +2008,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are present in both tables with identical meanings and roles, considering the rules for ignoring footnote markers and disambiguation labels.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction noise.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2036,8 +2036,8 @@
     {
       "previous_table_id": "tbl_p028_i01",
       "current_table_id": "tbl_p034_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on VAR and trading activities with identical row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p028_i01",
@@ -2186,20 +2186,20 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression des notes concernant le risque lié à l'écart de taux et le risque spécifique de crédit peut indiquer un changement dans la méthodologie de calcul du VAR, ce qui est pertinent pour la gestion des risques.",
+        "explanation": "La suppression des notes concernant le risque lié à l'écart de taux et le risque spécifique de crédit peut indiquer un changement dans la méthodologie de calcul ou de présentation du risque.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La suppression des notes peut affecter la compréhension et l'évaluation des risques de marché liés aux activités de négociation.",
+        "impact_description": "La suppression des notes peut affecter la compréhension et l'évaluation des risques de marché et de crédit.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p029_i01",
       "current_table_id": "tbl_p035_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on interest rate sensitivity with similar row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p029_i01",
@@ -2301,7 +2301,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_marche."
       },
-      "reason": "The changes observed are due to a structural reorganization of how interest rate sensitivity indicators are reported, with a shift from combined to separate line items, reflecting a change in reporting granularity and potentially affecting risk analysis.",
+      "reason": "The changes reflect a structural adjustment in the reporting of interest rate sensitivity, with a split of a previously combined indicator into separate components.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2329,8 +2329,8 @@
     {
       "previous_table_id": "tbl_p030_i01",
       "current_table_id": "tbl_p036_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on balance sheet data and market risk with identical row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p030_i01",
@@ -2485,7 +2485,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role in the table.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction artifacts.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2513,8 +2513,8 @@
     {
       "previous_table_id": "tbl_p031_i01",
       "current_table_id": "tbl_p037_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on market risk exposure of assets and liabilities with identical row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p031_i01",
@@ -2655,30 +2655,21 @@
         ]
       },
       "technical_diff": {
-        "indicators_added": [
-          {
-            "value": "Passifs exposés au risque de marché – Dérivés",
-            "reason": "This indicator is present in the current table but absent in the previous table, indicating a new categorization or reporting of derivatives under market risk liabilities.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "The addition of 'Passifs exposés au risque de marché – Dérivés' suggests a structural change in how derivatives are reported under market risk liabilities. This could impact risk management strategies and regulatory reporting, making it a high relevance change."
-            }
-          }
-        ],
+        "indicators_added": [],
         "indicators_removed": [],
         "indicators_renamed": [],
         "footnotes_added": [],
         "footnotes_removed": [],
         "footnotes_renamed": [],
-        "table_level_change": "modifie"
+        "table_level_change": "inchange"
       },
       "analyst_assessment": {
         "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "change_significance": "faible",
+        "review_priority": "normale",
+        "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "The analysis identified one indicator added in the current table, reflecting a structural change in the reporting of derivatives under market risk liabilities.",
+      "reason": "The tables have been compared for semantic changes in indicator names, focusing on meaningful renames that affect the understanding of financial risk exposure.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2689,25 +2680,25 @@
       "visual_sanity_render_mode": "full",
       "visual_sanity_render_status": "ok",
       "genai_triage": {
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs sur les passifs exposés au risque de marché, notamment les dérivés, est pertinent car il peut influencer l'évaluation des risques de marché.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces indicateurs peut modifier l'analyse et la gestion des risques de marché de la banque.",
-        "source": "llm"
+        "impact_description": "",
+        "source": "skip"
       }
     },
     {
       "previous_table_id": "tbl_p032_i03",
       "current_table_id": "tbl_p038_i03",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on unencumbered liquid assets by entity with identical row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p032_i03",
@@ -2795,7 +2786,7 @@
             "reason": "Same note with materially revised wording.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The change from 'sous la tutelle du curateur' to 'sous le contrôle du curateur' implies a more direct oversight, which could affect the interpretation of regulatory compliance and risk management practices."
+              "justification": "The change from 'sous la tutelle du curateur' to 'sous le contrôle du curateur' implies a more direct oversight, which could affect the interpretation of the regulatory environment and risk management practices."
             }
           }
         ],
@@ -2807,7 +2798,7 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The analysis identified a semantic change in the wording of a footnote, which could impact the understanding of regulatory oversight.",
+      "reason": "The only change detected is a semantic revision in the wording of a footnote, which could impact the understanding of regulatory oversight.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2822,7 +2813,7 @@
         "category": "COSMETIQUE",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
+        "confidence": 0.9,
         "explanation": "La modification des notes ne change pas le contenu ou la méthodologie, il s'agit d'une reformulation sans impact de fond.",
         "impact_type": "cosmetique",
         "project_phase": "rapport_gestion",
@@ -2835,8 +2826,8 @@
     {
       "previous_table_id": "tbl_p033_i01",
       "current_table_id": "tbl_p039_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on encumbered and unencumbered assets with identical row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p033_i01",
@@ -2931,7 +2922,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "The comparison focused on identifying meaningful semantic changes in the indicators between the two tables, ignoring footnote markers and extraction disambiguation labels.",
+      "reason": "All indicators in the current table match those in the previous table based on their normalized forms and positions. Differences in footnote markers and minor punctuation do not constitute meaningful semantic changes.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2959,8 +2950,8 @@
     {
       "previous_table_id": "tbl_p033_i02",
       "current_table_id": "tbl_p039_i02",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on encumbered and unencumbered assets with identical row count and similar footnote details.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p033_i02",
@@ -3092,10 +3083,10 @@
           {
             "id": "6",
             "text": "Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ont été fournis en lien avec des transactions visant des dérivés négociés hors cote et en Bourse.",
-            "reason": "This footnote was present in the previous table but is not in the current table.",
+            "reason": "Footnote removed from the current table.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The removal of this footnote could indicate a change in the reporting or treatment of collateralized assets, which may affect the understanding of the bank's risk exposure related to derivatives. This is a structural change that requires further analysis to ensure compliance with financial reporting standards."
+              "justification": "The removal of this footnote could indicate a change in the reporting or treatment of collateralized assets, which may affect the bank's risk management and compliance with regulatory requirements."
             }
           }
         ],
@@ -3105,10 +3096,10 @@
             "current_id": "5",
             "previous_text": "Avec prise d’effet au premier trimestre de 2025, les titres hypothécaires, les prêts hypothécaires et les autres prêts sont présentés déduction faite de la correction de valeur pour pertes sur prêts. Les montants correspondants ont été révisés par rapport à ceux présentés précédemment afin qu’ils soient conformes à la présentation adoptée pour la période considérée.",
             "current_text": "Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ont été fournis en lien avec des transactions visant des dérivés négociés hors cote et en Bourse.",
-            "reason": "The footnote text has been materially revised to reflect a different aspect of financial reporting, shifting focus from loan presentation to collateralized assets.",
+            "reason": "Footnote text has been materially revised to reflect a different focus on collateralized assets.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "This change reflects a significant shift in the focus of the footnote, which now addresses collateralized assets rather than loan presentation. This could impact the interpretation of the bank's financial position and risk management strategies."
+              "justification": "The change in the footnote's content from a focus on loan presentation to collateralized assets indicates a shift in reporting emphasis, which could impact financial disclosures and risk assessments."
             }
           }
         ],
@@ -3120,7 +3111,7 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
-      "reason": "The changes between the tables are primarily cosmetic, involving reclassification within the 'Autres' category and the removal of a footnote reference, which do not impact the overall financial reporting or regulatory compliance. The analysis identified a removal and a renaming of footnotes that reflect structural changes in financial reporting, particularly concerning collateralized assets and their treatment in the context of derivatives.",
+      "reason": "The analysis identified a removed footnote and a materially revised footnote, both of which have implications for risk management and financial reporting.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -3133,23 +3124,23 @@
       "genai_triage": {
         "is_relevant": true,
         "category": "RISQUE",
-        "relevance_score": "ELEVEE",
+        "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La modification des notes de bas de tableau indique un changement dans la manière dont les actifs donnés en garantie sont décrits, ce qui peut affecter la gestion des risques.",
-        "impact_type": "methodologique",
+        "explanation": "La modification des notes de bas de tableau indique un changement dans la description des actifs donnés en garantie, ce qui peut affecter la gestion des risques.",
+        "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Le changement pourrait influencer la compréhension des garanties et leur traitement dans la gestion des risques.",
+        "impact_description": "Le changement pourrait influencer la manière dont les actifs en garantie sont évalués ou déclarés.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p035_i01",
       "current_table_id": "tbl_p041_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on wholesale funding composition by maturity with identical row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p035_i01",
@@ -3249,7 +3240,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role, with no additions, removals, or renames.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction artifacts.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -3277,8 +3268,8 @@
     {
       "previous_table_id": "tbl_p035_i02",
       "current_table_id": "tbl_p041_i02",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on deposit maturities with identical row count and similar footnote details.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p035_i02",
@@ -3435,26 +3426,16 @@
       "technical_diff": {
         "indicators_added": [],
         "indicators_removed": [],
-        "indicators_renamed": [
-          {
-            "previous": "Obligations structurées non garanties de premier rang (6), (9)",
-            "current": "Obligations structurées non garanties de premier rang (6)",
-            "reason": "The removal of the footnote marker (9) does not change the core meaning of the indicator, thus it is considered a rename rather than an addition or removal.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "The change in footnote marker does not affect the financial reporting or risk assessment of the obligations. It is a cosmetic change that does not impact the understanding of the indicator's role in the table."
-            }
-          }
-        ],
+        "indicators_renamed": [],
         "footnotes_added": [],
         "footnotes_removed": [
           {
             "id": "9",
             "text": "Avec prise d’effet au premier trimestre de 2025, nous avons révisé la portée des billets structurés non garantis de premier rang afin de refléter davantage le réseau de distribution utilisé pour l’émission de ces billets. Les montants correspondants ont été révisés par rapport à ceux présentés précédemment afin de les rendre conformes à l’approche que nous avons adoptée pour le trimestre considéré.",
-            "reason": "This footnote was present in the previous report but is absent in the current report.",
+            "reason": "This footnote was present in the previous report but is missing in the current report.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The removal of this footnote indicates a change in the reporting or structuring of senior unsecured structured notes, which could impact the understanding of the bank's distribution network and financial strategy. This is a structural change that may affect how these instruments are perceived by stakeholders."
+              "justification": "The removal of this footnote indicates a potential change in the reporting or structuring of unsecured senior notes, which could impact the understanding of the bank's distribution network and financial disclosures."
             }
           }
         ],
@@ -3464,10 +3445,10 @@
             "current_id": "8",
             "previous_text": "Inclut les obligations encaissables par anticipation (garanties) de 4 957 millions de dollars (5 157 millions au 31 octobre 2024), d’autres dépôts structurés à long terme (non garantis) de 23 104 millions (19 777 millions au 31 octobre 2024) et des certificats de placement garanti de gros de 196 millions (192 millions au 31 octobre 2024).",
             "current_text": "Inclut les obligations encaissables par anticipation (garanties) de 4 715 millions de dollars (4 957 millions au 31 janvier 2025), d’autres dépôts structurés à long terme (non garantis) de 22 718 millions (23 104 millions au 31 janvier 2025), des avances d’une FHLB (garanties) de 2 068 millions (néant au 31 janvier 2025) et des certificats de placement garanti de gros de 202 millions (196 millions au 31 janvier 2025).",
-            "reason": "The footnote has been materially revised to include new financial instruments and updated amounts, indicating a change in the bank's financial position and strategy.",
+            "reason": "The footnote has been materially revised to include new financial instruments and updated amounts, indicating a change in the bank's financial structure.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The inclusion of new financial instruments such as FHLB advances and the adjustment of amounts reflect significant changes in the bank's financial strategy and risk management, which are crucial for stakeholders to understand the bank's current financial position."
+              "justification": "The inclusion of new financial instruments such as FHLB advances and the adjustment of amounts reflect significant changes in the bank's financial liabilities, which are crucial for understanding the bank's funding strategy and risk exposure."
             }
           }
         ],
@@ -3477,9 +3458,9 @@
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
-      "reason": "The only change detected is a cosmetic alteration in the footnote marker of an indicator, which does not affect its semantic meaning or role in the table. The analysis identified one footnote removal and one material revision, both of which have implications for the bank's financial reporting and strategy.",
+      "reason": "The analysis identified one footnote removal and one material revision, both of which have implications for understanding the bank's financial disclosures and risk management.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -3495,20 +3476,20 @@
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression et la modification des notes indiquent un changement potentiel dans la gestion des obligations structurées, ce qui peut affecter l'évaluation des risques.",
+        "explanation": "La suppression de la note sur la révision de la portée des billets structurés non garantis peut indiquer un changement méthodologique important.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Le changement pourrait influencer la manière dont les obligations structurées sont évaluées et gérées dans le cadre du risque.",
+        "impact_description": "La révision de la portée des billets structurés non garantis pourrait affecter l'évaluation des risques associés.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p036_i01",
       "current_table_id": "tbl_p042_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on credit ratings and outlooks with identical row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p036_i01",
@@ -3639,7 +3620,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their core business names and roles, with no additions, removals, or renames.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators are identical in both name and position, with no additions, removals, or renames.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -3668,7 +3649,7 @@
       "previous_table_id": "tbl_p037_i02",
       "current_table_id": "tbl_p043_i02",
       "match_confidence": 0.95,
-      "match_reason": "Table summary and indicators are identical; both tables have the same footnote count and similar headers, indicating a strong match.",
+      "match_reason": "Identical indicators and headers related to 'Ratio de liquidité à court terme'; footnotes are highly similar.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p037_i02",
@@ -3785,7 +3766,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme liquidite."
       },
-      "reason": "No meaningful semantic indicator changes detected between the two tables. All indicators are identical in both previous and current tables.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators are present in both tables with identical names and positions, indicating no additions, removals, or renames.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -3813,8 +3794,8 @@
     {
       "previous_table_id": "tbl_p039_i02",
       "current_table_id": "tbl_p045_i02",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on long-term liquidity ratios with identical row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p039_i02",
@@ -3928,7 +3909,7 @@
             "reason": "Material change in wording regarding the treatment of variation margin.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The change from 'having deduction' to 'before deduction' of variation margin could significantly impact the calculation of liquidity ratios, affecting the bank's reported liquidity position."
+              "justification": "The change from 'having deduction' to 'before deduction' of variation margin in the footnote could significantly impact the interpretation of liquidity ratios, affecting the perceived liquidity position of the bank."
             }
           },
           {
@@ -3936,10 +3917,10 @@
             "current_id": "4",
             "previous_text": "Les dépôts opérationnels de clients qui ne sont pas des dépôts de détail ou des dépôts de petites ou moyennes entreprises constituent des dépôts que les clients doivent laisser à la banque afin d’y accéder plus aisément et d’être en mesure d’utiliser les systèmes de paiement et de règlement, principalement pour la compensation, la garde et la gestion de trésorerie.",
             "current_text": "Les dépôts opérationnels de clients qui ne sont pas des dépôts de détail ou des dépôts de petites ou moyennes entreprises constituent des dépôts que les clients doivent laisser à la banque afin d’y accéder plus aisément et d’être en mesure d’utiliser les systèmes de paiement et de règlement, principalement pour la compensation, la garde et la",
-            "reason": "Truncation of text indicating incomplete information.",
+            "reason": "Truncation of the footnote text, potentially altering its meaning.",
             "analyst_assessment": {
-              "relevance_level": 1,
-              "justification": "The truncation of this footnote leaves out critical information regarding the use of operational deposits, which could lead to misinterpretation of the bank's liquidity management practices and regulatory compliance."
+              "relevance_level": 2,
+              "justification": "The truncation of the footnote text may lead to ambiguity regarding the full scope of operational deposits, which could affect the bank's liquidity management and reporting."
             }
           }
         ],
@@ -3951,7 +3932,7 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 3 changement(s) de footnote."
       },
-      "reason": "The analysis identified one removed footnote and two materially revised footnotes, indicating potential changes in reporting practices and liquidity management.",
+      "reason": "The analysis identified one footnote removal and two material wording changes that could impact the interpretation of the bank's liquidity and asset management.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -3962,25 +3943,25 @@
       "visual_sanity_render_mode": "full",
       "visual_sanity_render_status": "ok",
       "genai_triage": {
-        "is_relevant": false,
-        "category": "COSMETIQUE",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Les modifications apportées aux notes du tableau sont purement cosmétiques et n'affectent pas le contenu réglementaire ou méthodologique.",
-        "impact_type": "cosmetique",
+        "explanation": "La suppression de notes concernant les actifs et passifs interdépendants peut indiquer un changement dans la gestion des risques liés aux titres hypothécaires garantis.",
+        "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
-        "action_requise": "aucune",
+        "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
+        "impact_description": "La suppression de notes pourrait affecter la compréhension des risques associés aux titres hypothécaires garantis.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p041_i01",
       "current_table_id": "tbl_p047_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on contractual maturities of assets and liabilities with identical row count.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers match exactly; both tables have the same row count and footnote count, indicating they are the same table across quarters.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p041_i01",
@@ -4155,7 +4136,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role, considering the rules provided.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction disambiguation labels.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -4184,7 +4165,7 @@
       "previous_table_id": "tbl_p042_i01",
       "current_table_id": "tbl_p048_i01",
       "match_confidence": 0.95,
-      "match_reason": "Table summary, headers, and indicators are identical; both tables have the same footnote count and structure, indicating a strong match.",
+      "match_reason": "Identical indicators and headers for 'Échéances contractuelles des actifs, passifs et éléments hors bilan'; footnotes match.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p042_i01",
@@ -4359,7 +4340,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role, considering the rules provided for ignoring footnote markers and disambiguation labels.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction artifacts.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -4387,8 +4368,8 @@
     {
       "previous_table_id": "tbl_p043_i01",
       "current_table_id": "tbl_p049_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on regulatory capital targets with identical row count.",
+      "match_confidence": 0.9,
+      "match_reason": "Similar indicators and headers related to 'Ratios de fonds propres, de levier et TLAC'; footnotes are highly similar.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p043_i01",
@@ -4509,7 +4490,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the two tables. All indicators in the previous table are present in the current table with identical meanings and roles, considering the rules for ignoring footnote markers and disambiguation labels.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators have the same names and positions in both tables, indicating no additions, removals, or renames.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -4537,8 +4518,8 @@
     {
       "previous_table_id": "tbl_p044_i01",
       "current_table_id": "tbl_p050_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on regulatory capital and leverage ratios with identical row count.",
+      "match_confidence": 0.9,
+      "match_reason": "Similar indicators and headers related to 'Fonds propres, actif pondéré, ratios de levier et TLAC'; footnotes are highly similar.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p044_i01",
@@ -4657,7 +4638,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the two tables. All indicators in the current table match those in the previous table when ignoring footnote markers and disambiguation labels.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction artifacts.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -4685,8 +4666,8 @@
     {
       "previous_table_id": "tbl_p045_i01",
       "current_table_id": "tbl_p051_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on capital management activities with identical row count.",
+      "match_confidence": 0.9,
+      "match_reason": "Similar indicators and headers related to 'Principales activités de gestion des fonds propres'; footnotes are highly similar.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p045_i01",
@@ -4804,7 +4785,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role, considering the rules provided.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match in both name and normalized form, and their positions align perfectly. Any differences in footnote markers or headers are considered non-semantic and irrelevant to the indicator's business meaning.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -4832,8 +4813,8 @@
     {
       "previous_table_id": "tbl_p046_i01",
       "current_table_id": "tbl_p052_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match; both tables focus on share data and equity instruments with identical row count.",
+      "match_confidence": 0.9,
+      "match_reason": "Similar indicators and headers related to 'Données sur actions ordinaires, privilégiées et instruments de capitaux propres'; footnotes are highly similar.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p046_i01",
@@ -5013,7 +4994,7 @@
             "current_id": "7",
             "previous_text": "Dans le cadre de l’émission des billets LRCN de série 1, le 28 juillet 2020, nous avons émis 1 750 millions de dollars d’actions privilégiées de premier rang de série BQ (série BQ). Dans le cadre de l’émission des billets LRCN de série 2, le 2 novembre 2020, nous avons émis 1 250 millions de dollars d’actions privilégiées de premier rang de série BR (série BR). Dans le cadre de l’émission des billets LRCN de série 3, le 8 juin 2021, nous avons émis 1 000 millions de dollars d’actions privilégiées de premier rang de série BS (série BS). Dans le cadre de l’émission des billets LRCN de série 4, le 24 avril 2024, nous avons émis 1 000 millions de dollars américains d’actions privilégiées de premier rang de série BV (série BV). Dans le cadre de l’émission des billets LRCN de série 5, le 1er novembre 2024, nous avons émis 1 000 millions de dollars américains d’actions privilégiées de premier rang de série BX (série BX). Les actions privilégiées des séries BQ, BR et BS ont été émises au prix de 1 000 $ chacune, et les actions privilégiées des séries BV et BX ont été émises au prix de 1 000 dollars américains chacune. Les actions privilégiées des séries BQ, BR, BS, BV et BX ont été émises en faveur d’une fiducie consolidée afin d’y être détenues en tant qu’actifs en fiducie en lien avec les séries de billets LRCN. Pour plus de détails, se reporter à la note 19 de nos états financiers consolidés annuels de 2024.",
             "current_text": "Dans le cadre de l’émission des billets LRCN de série 1, le 28 juillet 2020, nous avons émis 1 750 millions de dollars d’actions privilégiées de premier rang de série BQ (série BQ). Dans le cadre de l’émission des billets LRCN de série 2, le 2 novembre 2020, nous avons émis 1 250 millions de dollars d’actions privilégiées de premier rang de série BR (série BR). Dans le cadre de l’émission des billets LRCN de série 3, le 8 juin 2021, nous avons émis 1 000 millions de dollars d’actions privilégiées de premier rang de série BS (série BS). Dans le cadre de l’émission des billets LRCN de série 4, le 24 avril 2024, nous avons émis 1 000 millions de dollars américains d’actions privilégiées de premier rang de série BV (série BV). Dans le cadre de l’émission des billets LRCN de série 5, le 1er novembre 2024, nous avons émis 1 000 millions de dollars américains d’actions privilégiées de premier rang de série BX (série BX). Les actions privilégiées des séries BQ, BR et BS ont été émises au prix de 1 000 $ chacune, et les actions privilégiées des séries BV et BX ont été émises au prix de 1 000 dollars américains chacune. Les actions privilégiées des séries BQ, BR, BS, BV et BX ont été émises en faveur d’une fiducie consolidée afin d’y être détenues en tant qu’actifs en fiducie en lien avec les séries de billets LRCN. Pour plus de détails, se reporter à la note 19 de nos états financiers consolidés annuels audités de 2024.",
-            "reason": "The footnote was updated to specify that the financial statements are audited, which is a material clarification.",
+            "reason": "The footnote text was updated to specify that the financial statements are audited, which is a material clarification.",
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The specification that the financial statements are audited provides a higher level of assurance and reliability, which is crucial for stakeholders relying on the accuracy of financial disclosures."
@@ -5028,7 +5009,7 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The only meaningful change detected is the clarification that the financial statements referenced are audited, which impacts the perceived reliability of the information.",
+      "reason": "The only change detected was a clarification in the footnote regarding the audited status of financial statements, which is a material update.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -5044,41 +5025,41 @@
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
         "confidence": 0.9,
-        "explanation": "La modification des notes ne change pas le contenu ou la méthodologie, il s'agit d'une correction cosmétique.",
+        "explanation": "La modification des notes ne semble pas apporter de changement de fond ou méthodologique.",
         "impact_type": "cosmetique",
         "project_phase": "rapport_gestion",
         "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur le contenu ou la réglementation.",
+        "impact_description": "Aucun impact concret sur la gestion du capital ou la conformité réglementaire.",
         "source": "llm"
       }
     }
   ],
   "run_metrics": {
     "runtime_extraction_sec": 0.0,
-    "runtime_comparison_sec": 155.911,
+    "runtime_comparison_sec": 141.901,
     "vision_calls_total": 0,
     "vision_rescue_total": 0,
-    "comparison_calls_total": 71,
+    "comparison_calls_total": 65,
     "matching_passes_total": 2,
-    "inspector_passes_total": 21,
+    "inspector_passes_total": 17,
     "audit_passes_total": 0,
     "matching_output_retries_total": 0,
     "matching_validation_failures_total": 0,
     "stage1_validation_retries_total": 0,
     "stage2_validation_retries_total": 0,
-    "unresolved_after_stage1_total": 4,
-    "matched_in_stage2_total": 2,
-    "unmatched_after_primary_total": 10,
+    "unresolved_after_stage1_total": 8,
+    "matched_in_stage2_total": 6,
+    "unmatched_after_primary_total": 18,
     "unmatched_after_rescue_total": 6,
     "matching_pairs_llm_duplicates_total": 0,
     "matching_pairs_llm_deduped_total": 0,
     "inspector_rejected_total": 0,
-    "inspector_confirmed_total": 21,
-    "prompt_tokens_total": 186969,
-    "completion_tokens_total": 14445,
-    "total_tokens_total": 201414,
-    "estimated_cost_usd": 0.611872,
+    "inspector_confirmed_total": 17,
+    "prompt_tokens_total": 203212,
+    "completion_tokens_total": 12166,
+    "total_tokens_total": 215378,
+    "estimated_cost_usd": 0.62969,
     "extraction": {
       "runtime_extraction_sec": 0.0,
       "vision_calls_total": 0,
@@ -5092,27 +5073,27 @@
       "current": {}
     },
     "comparison": {
-      "prompt_tokens_total": 186969,
-      "completion_tokens_total": 14445,
-      "total_tokens_total": 201414,
-      "comparison_calls_total": 71,
-      "runtime_comparison_sec": 155.911,
+      "prompt_tokens_total": 203212,
+      "completion_tokens_total": 12166,
+      "total_tokens_total": 215378,
+      "comparison_calls_total": 65,
+      "runtime_comparison_sec": 141.901,
       "matching_passes_total": 2,
-      "inspector_passes_total": 21,
+      "inspector_passes_total": 17,
       "audit_passes_total": 0,
       "matching_output_retries_total": 0,
       "matching_validation_failures_total": 0,
       "stage1_validation_retries_total": 0,
       "stage2_validation_retries_total": 0,
-      "unresolved_after_stage1_total": 4,
-      "matched_in_stage2_total": 2,
-      "unmatched_after_primary_total": 10,
+      "unresolved_after_stage1_total": 8,
+      "matched_in_stage2_total": 6,
+      "unmatched_after_primary_total": 18,
       "unmatched_after_rescue_total": 6,
       "matching_pairs_llm_duplicates_total": 0,
       "matching_pairs_llm_deduped_total": 0,
       "inspector_rejected_total": 0,
-      "inspector_confirmed_total": 21,
-      "estimated_cost_usd": 0.611872
+      "inspector_confirmed_total": 17,
+      "estimated_cost_usd": 0.62969
     }
   },
   "summary": {
@@ -5123,36 +5104,36 @@
     "artifacts_confirmed_current_total": 0,
     "extraction_suspects_previous_total": 8,
     "extraction_suspects_current_total": 6,
-    "indicator_changes_total": 3,
+    "indicator_changes_total": 1,
     "footnote_changes_total": 15,
-    "high_priority_items_total": 13
+    "high_priority_items_total": 12
   },
   "global_summary": {
-    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été observés dans la gestion des risques et du capital des banques canadiennes. La suppression de certains indicateurs et tableaux clés, notamment ceux liés aux prêts hypothécaires à long terme et au ratio de liquidité à court terme, pourrait indiquer des ajustements dans les méthodologies de gestion des risques et de capital. Ces modifications nécessitent une attention particulière pour évaluer leur impact potentiel sur la transparence et la conformité réglementaire.",
+    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été observés dans la gestion des risques et du capital des banques canadiennes. La suppression de divers tableaux et notes dans les rapports de gestion indique des ajustements potentiels dans la méthodologie de gestion des risques et de présentation des données. De plus, la suppression de certains indicateurs clés, tels que le ratio de liquidité à court terme, pourrait avoir des implications sur la transparence et le suivi réglementaire. Ces évolutions nécessitent une attention particulière pour évaluer leur impact sur la stabilité financière globale.",
     "key_highlights": [
       "Suppression de l'indicateur 'De 30 à 35 ans' dans les prêts hypothécaires.",
-      "Changements dans la méthodologie de calcul du VAR.",
-      "Ajout d'indicateurs sur les passifs exposés au risque de marché.",
-      "Suppression du tableau du ratio de liquidité à court terme (LCR).",
-      "Suppression du tableau des Banques d’importance systémique mondiale."
+      "Changements dans la méthodologie de calcul du risque VAR.",
+      "Ajout de nouveaux tableaux dans la gestion des risques.",
+      "Suppression du tableau du ratio de liquidité à court terme.",
+      "Suppression du tableau sur les banques d'importance systémique mondiale."
     ],
     "pertinence_globale": "ELEVEE",
     "par_phase": {
       "rapport_gestion": {
         "count": 10,
-        "resume": "La majorité des changements concernent la gestion des risques, avec des ajustements dans les indicateurs et tableaux utilisés."
+        "resume": "Des changements majeurs ont été observés dans la gestion des risques et du capital."
       },
       "pilier_3": {
         "count": 1,
-        "resume": "Un changement notable a été observé dans la suppression du tableau du ratio de liquidité à court terme."
+        "resume": "Un changement critique a été noté dans la transparence des indicateurs de liquidité."
       },
       "ifc": {
         "count": 0,
-        "resume": "Aucun changement pertinent n'a été signalé dans cette phase."
+        "resume": "Aucun changement pertinent n'a été noté."
       },
       "autre": {
         "count": 0,
-        "resume": "Aucun changement pertinent n'a été signalé dans cette catégorie."
+        "resume": "Aucun changement pertinent n'a été noté."
       }
     },
     "par_action": {

@@ -1,23 +1,23 @@
 {
   "schema_version": "review_state_v1",
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/comparison.json",
-  "comparison_run_id": "20260329_181809",
-  "review_items_signature": "86a5fce689fa7625bb01c1b2cc69f96d8761a10ece170126670d7231801f8d37",
-  "saved_at": "2026-04-04T04:46:53+00:00",
+  "comparison_run_id": "20260404_084205",
+  "review_items_signature": "d3063a697651237636aaa96f82425a4be75b4e6e968d203251bbb49d4015b483",
+  "saved_at": "2026-04-04T13:04:57+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "td::risk_management::tbl_p049_i01|tbl_p043_i01",
-    "change_id": "chg_00022"
+    "review_id": "td::risk_management::tbl_p053_i01|tbl_p047_i01",
+    "change_id": "chg_00025"
   },
-  "review_current_idx": 8,
-  "current_change_idx": 1,
+  "review_current_idx": 10,
+  "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
     {
       "change_id": "td::capital_management::tbl_p038_i01|tbl_p033_i01",
       "change_type": "added",
-      "indicator": "1 ajouté(s), 1 renommé(s)",
+      "indicator": "1 ajouté(s)",
       "section": "capital_management",
       "table_name": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
       "table_number": "",
@@ -30,7 +30,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:31:08.803256+00:00",
+      "review_timestamp": "2026-04-04T13:04:18.494265+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -46,16 +46,9 @@
           "name": "Déduction des expositions sur crypto-actifs",
           "type": "added",
           "review_status": "approved"
-        },
-        {
-          "name": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des risques) -> Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des actifs pondérés en fonction des risques)",
-          "type": "renamed",
-          "from": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des risques)",
-          "to": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des actifs pondérés en fonction des risques)",
-          "review_status": "approved"
         }
       ],
-      "match_method": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers are highly similar; row_count 49 vs 48; footnote count identical.",
+      "match_method": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers are highly similar; row_count 49 vs 48.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -79,20 +72,20 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout de la déduction des expositions sur crypto-actifs est pertinent car il s'agit d'une nouvelle exigence réglementaire qui peut affecter les ratios de fonds propres.",
+        "analyst_summary": "L'ajout de déductions pour les expositions sur crypto-actifs dans la structure de fonds propres est pertinent car il impacte directement les ratios prudentiels sous Bâle III.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
         "confidence": 0.9,
-        "explanation": "L'ajout de la déduction des expositions sur crypto-actifs est pertinent car il s'agit d'une nouvelle exigence réglementaire qui peut affecter les ratios de fonds propres.",
+        "explanation": "L'ajout de déductions pour les expositions sur crypto-actifs dans la structure de fonds propres est pertinent car il impacte directement les ratios prudentiels sous Bâle III.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — Déduction des expositions sur crypto-actifs",
-        "impact_description": "L'ajout de cet indicateur peut réduire les fonds propres disponibles et affecter la conformité aux exigences de Bâle III.",
+        "reference_reglementaire": "Bâle III — Déductions pour crypto-actifs",
+        "impact_description": "Ce changement pourrait affecter le calcul des ratios de fonds propres en intégrant les risques liés aux crypto-actifs.",
         "source": "llm",
-        "justification": "L'ajout de la déduction des expositions sur crypto-actifs est pertinent car il s'agit d'une nouvelle exigence réglementaire qui peut affecter les ratios de fonds propres.",
+        "justification": "L'ajout de déductions pour les expositions sur crypto-actifs dans la structure de fonds propres est pertinent car il impacte directement les ratios prudentiels sous Bâle III.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -100,13 +93,13 @@
         "theme": "capital",
         "review_priority": "prioritaire",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
       }
     },
     {
       "change_id": "td::capital_management::tbl_p039_i01|tbl_p034_i01",
       "change_type": "removed",
-      "indicator": "1 ajouté(s), 3 retiré(s)",
+      "indicator": "1 ajouté(s), 1 retiré(s)",
       "section": "capital_management",
       "table_name": "ACTIONS ET AUTRES TITRES¹",
       "table_number": "",
@@ -119,7 +112,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-03T20:31:15.989100+00:00",
+      "review_timestamp": "2026-04-04T13:04:37.269133+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -132,22 +125,12 @@
       "table_status": "partial",
       "indicators": [
         {
-          "name": "Billets avec remboursement de capital à recours limité – Série 6",
+          "name": "Série 6",
           "type": "added",
           "review_status": "approved"
         },
         {
-          "name": "Série 5",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "Série 7",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "Série 9",
+          "name": "Série 7³",
           "type": "removed",
           "review_status": "pending"
         },
@@ -162,17 +145,37 @@
           "review_status": "pending"
         },
         {
+          "name": "[8] Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens ",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
           "name": "[1] Pour plus de renseignements, y compris les caractéristiques  -> Pour plus de renseignements, y compris les caractéristiques ",
           "type": "modified",
           "review_status": "pending"
         },
         {
-          "name": "[5] Pour les billets de fonds propres subordonnés perpétuels (AT -> Pour les billets de fonds propres subordonnés perpétuels con",
+          "name": "[2] Le 31 janvier 2025, la Banque a racheté la totalité de ses 2 -> Pour les autres instruments de capitaux propres, le nombre d",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[3] Le 31 juillet 2025, la Banque a racheté la totalité de ses 1 -> Pour plus de renseignements, se reporter au tableau « Condit",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[4] Pour les autres instruments de capitaux propres, le nombre d -> Pour les BRCRL, série 3, série 4 et série 6, le montant repr",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[5] Pour plus de renseignements, se reporter au tableau « Condit -> Pour les billets de fonds propres subordonnés perpétuels con",
           "type": "modified",
           "review_status": "pending"
         }
       ],
-      "match_method": "Title identical: 'ACTIONS ET AUTRES TITRES¹'; indicators and headers are highly similar; row_count 23 vs 25; footnote count similar.",
+      "match_method": "Title identical: 'ACTIONS ET AUTRES TITRES¹'; indicators and headers are highly similar; row_count 23 vs 25.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -196,20 +199,20 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout et la suppression de séries de billets avec remboursement de capital à recours limité peuvent affecter la structure du capital réglementaire de la banque.",
+        "analyst_summary": "L'ajout et la suppression d'indicateurs dans le tableau 'ACTIONS ET AUTRES TITRES' ainsi que les modifications des notes peuvent affecter la gestion du capital et la conformité réglementaire.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout et la suppression de séries de billets avec remboursement de capital à recours limité peuvent affecter la structure du capital réglementaire de la banque.",
+        "explanation": "L'ajout et la suppression d'indicateurs dans le tableau 'ACTIONS ET AUTRES TITRES' ainsi que les modifications des notes peuvent affecter la gestion du capital et la conformité réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
-        "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "La modification des séries de billets peut influencer le calcul des fonds propres réglementaires.",
+        "reference_reglementaire": "",
+        "impact_description": "Les changements dans les indicateurs et les notes peuvent influencer la manière dont le capital est géré et rapporté, nécessitant une vérification approfondie.",
         "source": "llm",
-        "justification": "L'ajout et la suppression de séries de billets avec remboursement de capital à recours limité peuvent affecter la structure du capital réglementaire de la banque.",
+        "justification": "L'ajout et la suppression d'indicateurs dans le tableau 'ACTIONS ET AUTRES TITRES' ainsi que les modifications des notes peuvent affecter la gestion du capital et la conformité réglementaire.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -217,7 +220,7 @@
         "theme": "capital",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 4 changement(s) d'indicateur et 4 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 8 changement(s) de footnote."
       }
     },
     {
@@ -238,7 +241,7 @@
       "review_user": "",
       "review_timestamp": "",
       "edited_value": "",
-      "confidence": 0.98,
+      "confidence": 0.85,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -269,7 +272,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers are identical; row_count 7 vs 3; title and table_summary match exactly.",
+      "match_method": "Table summary and indicators are highly similar; both tables have the same headers and first indicator; row_count 7 vs 3.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -293,20 +296,20 @@
         "theme": "autre",
         "change_significance": "moyen",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout de nouveaux indicateurs liés à des programmes de titres et obligations peut affecter la gestion des risques et la conformité réglementaire.",
+        "analyst_summary": "L'ajout de nouveaux indicateurs liés à des programmes de financement peut affecter la gestion des risques et la conformité réglementaire.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout de nouveaux indicateurs liés à des programmes de titres et obligations peut affecter la gestion des risques et la conformité réglementaire.",
+        "explanation": "L'ajout de nouveaux indicateurs liés à des programmes de financement peut affecter la gestion des risques et la conformité réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces programmes pourrait influencer la stratégie de gestion des risques et la conformité aux exigences réglementaires internationales.",
+        "impact_description": "L'ajout de ces programmes pourrait influencer la stratégie de financement et le profil de risque de la banque.",
         "source": "llm",
-        "justification": "L'ajout de nouveaux indicateurs liés à des programmes de titres et obligations peut affecter la gestion des risques et la conformité réglementaire.",
+        "justification": "L'ajout de nouveaux indicateurs liés à des programmes de financement peut affecter la gestion des risques et la conformité réglementaire.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -315,98 +318,6 @@
         "review_priority": "prioritaire",
         "change_significance": "moyen",
         "analyst_summary": "Changements semantiques detectes sur le theme autre: 4 changement(s) d'indicateur et 0 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "td::risk_management::tbl_p055_i01|tbl_p049_i01",
-      "change_type": "removed",
-      "indicator": "1 retiré(s)",
-      "section": "risk_management",
-      "table_name": "DURÉE CONTRACTUELLE RESTANTE",
-      "table_number": "",
-      "table_id_t1": "tbl_p055_i01",
-      "table_id_t2": "tbl_p049_i01",
-      "page_t1": 55,
-      "page_t2": 49,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 0.98,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "DURÉE CONTRACTUELLE RESTANTE",
-      "table_status": "pending",
-      "indicators": [
-        {
-          "name": "Participation dans Schwab",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "[5] Comprennent 65 milliards de dollars d’obligations sécurisées -> Comprennent 73 milliards de dollars d’obligations sécurisées",
-          "type": "modified",
-          "review_status": "pending"
-        },
-        {
-          "name": "[6] Comprennent 627 millions de dollars d’engagements de crédit  -> Comprennent 531 millions de dollars d’engagements de crédit ",
-          "type": "modified",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Indicators and headers are identical; row_count 49 vs 50; title and table_summary match exactly.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05558705174065883,
-        0.06009167372578323,
-        0.9418643128638174,
-        0.7360075363005051
-      ],
-      "bbox_t2": [
-        0.05602067436268127,
-        0.05501994701346966,
-        0.9426935731975082,
-        0.7243572196575127
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "footnote",
-      "event_type": "footnote_only",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "liquidite",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "MOYENNE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
-        "reference_reglementaire": "",
-        "impact_description": "La suppression et les modifications peuvent influencer la perception du risque de crédit et de marché.",
-        "source": "llm",
-        "justification": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "liquidite",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
       }
     },
     {
@@ -422,10 +333,10 @@
       "page_t2": 50,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T13:04:48.247555+00:00",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -435,12 +346,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "DURÉE CONTRACTUELLE RESTANTE (suite)",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Participation dans Schwab",
           "type": "removed",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[5] Comprennent 75 milliards de dollars d’obligations sécurisées -> Comprennent 70 milliards de dollars d’obligations sécurisées",
@@ -477,20 +388,20 @@
         "theme": "liquidite",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent indiquer un changement dans l'exposition au risque.",
+        "analyst_summary": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent indiquer un changement dans l'exposition au risque.",
-        "impact_type": "contenu",
+        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
+        "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Ces changements peuvent affecter l'évaluation du risque de crédit et de marché de la banque.",
+        "impact_description": "La suppression et les modifications peuvent influencer la perception du risque et nécessitent une analyse plus approfondie.",
         "source": "llm",
-        "justification": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent indiquer un changement dans l'exposition au risque.",
+        "justification": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -499,93 +410,6 @@
         "review_priority": "prioritaire",
         "change_significance": "eleve",
         "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "td::risk_management::tbl_p043_i01|tbl_p037_i01",
-      "change_type": "removed",
-      "indicator": "1 ajouté(s), 1 retiré(s)",
-      "section": "risk_management",
-      "table_name": "LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN",
-      "table_number": "",
-      "table_id_t1": "tbl_p043_i01",
-      "table_id_t2": "tbl_p037_i01",
-      "page_t1": 43,
-      "page_t2": 37,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 0.97,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN",
-      "table_status": "pending",
-      "indicators": [
-        {
-          "name": "Passifs exposés au risque de marché – Dérivés",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "Participation dans Schwab",
-          "type": "removed",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Indicators and headers are identical; row_count 26 vs 27; title and table_summary match exactly.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05478477478027344,
-        0.17223629806980945,
-        0.9442206488715278,
-        0.8716426810832939
-      ],
-      "bbox_t2": [
-        0.05525306003545624,
-        0.172070532134085,
-        0.9441374735115401,
-        0.8603354560004342
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "risque_marche",
-        "change_significance": "moyen",
-        "review_priority": "critique",
-        "analyst_summary": "L'ajout d'indicateurs liés aux passifs exposés au risque de marché, tels que les dérivés, est pertinent pour la gestion des risques, tandis que la suppression de la participation dans Schwab pourrait indiquer un changement dans l'exposition au risque.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs liés aux passifs exposés au risque de marché, tels que les dérivés, est pertinent pour la gestion des risques, tandis que la suppression de la participation dans Schwab pourrait indiquer un changement dans l'exposition au risque.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
-        "reference_reglementaire": "",
-        "impact_description": "Le changement modifie la manière dont le risque de marché est évalué et présenté, ce qui peut affecter la compréhension des expositions au risque.",
-        "source": "llm",
-        "justification": "L'ajout d'indicateurs liés aux passifs exposés au risque de marché, tels que les dérivés, est pertinent pour la gestion des risques, tandis que la suppression de la participation dans Schwab pourrait indiquer un changement dans l'exposition au risque.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "risque_marche",
-        "review_priority": "prioritaire",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
       }
     },
     {
@@ -601,10 +425,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T13:04:49.481435+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -614,7 +438,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -635,20 +459,20 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "La suppression du tableau sur l'exposition nette par région et contrepartie peut affecter la transparence et la gestion des risques liés à la répartition géographique du capital.",
+        "analyst_summary": "La suppression du tableau 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE' pourrait affecter la transparence et la gestion des risques liés à l'exposition géographique.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression du tableau sur l'exposition nette par région et contrepartie peut affecter la transparence et la gestion des risques liés à la répartition géographique du capital.",
+        "explanation": "La suppression du tableau 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE' pourrait affecter la transparence et la gestion des risques liés à l'exposition géographique.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La suppression de ce tableau pourrait réduire la visibilité sur la répartition géographique des risques de contrepartie.",
+        "impact_description": "La suppression de ce tableau réduit la visibilité sur l'exposition géographique, ce qui peut affecter l'évaluation des risques régionaux.",
         "source": "llm",
-        "justification": "La suppression du tableau sur l'exposition nette par région et contrepartie peut affecter la transparence et la gestion des risques liés à la répartition géographique du capital.",
+        "justification": "La suppression du tableau 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE' pourrait affecter la transparence et la gestion des risques liés à l'exposition géographique.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -670,8 +494,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T13:04:52.031132+00:00",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -681,12 +505,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "NOTATIONS DE CRÉDIT¹",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[5] Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[2] Après la fin du trimestre, le 22 août 2025, Moody’s a entrep -> Représentent la notation des dépôts à long terme et la notat",
@@ -742,8 +566,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T04:46:53.101467+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -753,12 +577,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[1] Les sûretés données en garanties correspondent aux actifs do -> Les sûretés données en garantie correspondent à la portion d",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[3] Représentent les actifs qui sont disponibles facilement pour -> Représentent les actifs qui sont disponibles facilement pour",
@@ -790,16 +614,16 @@
       "match_metadata": {}
     },
     {
-      "change_id": "td::capital_management::tbl_p037_i01|tbl_p031_i01",
+      "change_id": "td::risk_management::tbl_p055_i01|tbl_p049_i01",
       "change_type": "removed",
       "indicator": "",
-      "section": "capital_management",
-      "table_name": "RATIOS CIBLES DE FONDS PROPRES RÉGLEMENTAIRES ET DE TLAC",
+      "section": "risk_management",
+      "table_name": "DURÉE CONTRACTUELLE RESTANTE",
       "table_number": "",
-      "table_id_t1": "tbl_p037_i01",
-      "table_id_t2": "tbl_p031_i01",
-      "page_t1": 37,
-      "page_t2": 31,
+      "table_id_t1": "tbl_p055_i01",
+      "table_id_t2": "tbl_p049_i01",
+      "page_t1": 55,
+      "page_t2": 49,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "review_status": "pending",
@@ -814,13 +638,75 @@
       "unit_context_t2": "",
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
-      "table_title_raw": "RATIOS CIBLES DE FONDS PROPRES RÉGLEMENTAIRES ET DE TLAC",
+      "table_title_raw": "DURÉE CONTRACTUELLE RESTANTE",
       "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[5] Comprennent 65 milliards de dollars d’obligations sécurisées -> Comprennent 73 milliards de dollars d’obligations sécurisées",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[6] Comprennent 627 millions de dollars d’engagements de crédit  -> Comprennent 531 millions de dollars d’engagements de crédit ",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Indicators and headers are identical; row_count 49 vs 50; title and table_summary match exactly.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05558705174065883,
+        0.06009167372578323,
+        0.9418643128638174,
+        0.7360075363005051
+      ],
+      "bbox_t2": [
+        0.05602067436268127,
+        0.05501994701346966,
+        0.9426935731975082,
+        0.7243572196575127
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {},
+      "match_metadata": {}
+    },
+    {
+      "change_id": "td::capital_management::tbl_p037_i01|tbl_p031_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "capital_management",
+      "table_name": "RATIOS CIBLES DE FONDS PROPRES RÉGLEMENTAIRES ET DE TLAC",
+      "table_number": "",
+      "table_id_t1": "tbl_p037_i01",
+      "table_id_t2": "tbl_p031_i01",
+      "page_t1": 37,
+      "page_t2": 31,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T13:04:53.899142+00:00",
+      "edited_value": "",
+      "confidence": 0.98,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "RATIOS CIBLES DE FONDS PROPRES RÉGLEMENTAIRES ET DE TLAC",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "[1] Le plus élevé des suppléments pour les BISI et les banques d -> Le plus élevé des suppléments pour les BISI et les BISM s’ap",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Indicators and headers are identical; row_count 6 vs 6; title and table_summary match exactly.",
@@ -916,10 +802,10 @@
       "page_t2": 47,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T13:04:57.362177+00:00",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -929,12 +815,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "[1] La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancai",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Indicators and headers are identical; row_count 3 vs 3; title and table_summary match exactly.",
@@ -1003,49 +889,31 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:31:08.670588+00:00",
-          "validated_by": "analyst"
-        },
-        {
-          "change_id": "chg_00002",
-          "change_type": "indicator_renamed",
-          "payload": {
-            "indicator_name": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des risques) -> Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des actifs pondérés en fonction des risques)",
-            "indicator_name_clean": "fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des risques) -> fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des actifs pondérés en fonction des risques)",
-            "from": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des risques)",
-            "to": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des actifs pondérés en fonction des risques)",
-            "from_clean": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des risques)",
-            "to_clean": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des actifs pondérés en fonction des risques)"
-          },
-          "validation_status": "approved",
-          "is_required": true,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-03T20:31:08.803256+00:00",
+          "validated_at": "2026-04-04T13:04:18.494265+00:00",
           "validated_by": "analyst"
         }
       ],
       "table_status": "completed",
       "confidence": 0.95,
-      "match_method": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers are highly similar; row_count 49 vs 48; footnote count identical.",
+      "match_method": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers are highly similar; row_count 49 vs 48.",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout de la déduction des expositions sur crypto-actifs est pertinent car il s'agit d'une nouvelle exigence réglementaire qui peut affecter les ratios de fonds propres.",
+        "analyst_summary": "L'ajout de déductions pour les expositions sur crypto-actifs dans la structure de fonds propres est pertinent car il impacte directement les ratios prudentiels sous Bâle III.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
         "confidence": 0.9,
-        "explanation": "L'ajout de la déduction des expositions sur crypto-actifs est pertinent car il s'agit d'une nouvelle exigence réglementaire qui peut affecter les ratios de fonds propres.",
+        "explanation": "L'ajout de déductions pour les expositions sur crypto-actifs dans la structure de fonds propres est pertinent car il impacte directement les ratios prudentiels sous Bâle III.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — Déduction des expositions sur crypto-actifs",
-        "impact_description": "L'ajout de cet indicateur peut réduire les fonds propres disponibles et affecter la conformité aux exigences de Bâle III.",
+        "reference_reglementaire": "Bâle III — Déductions pour crypto-actifs",
+        "impact_description": "Ce changement pourrait affecter le calcul des ratios de fonds propres en intégrant les risques liés aux crypto-actifs.",
         "source": "llm",
-        "justification": "L'ajout de la déduction des expositions sur crypto-actifs est pertinent car il s'agit d'une nouvelle exigence réglementaire qui peut affecter les ratios de fonds propres.",
+        "justification": "L'ajout de déductions pour les expositions sur crypto-actifs dans la structure de fonds propres est pertinent car il impacte directement les ratios prudentiels sous Bâle III.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -1053,17 +921,17 @@
         "theme": "capital",
         "review_priority": "prioritaire",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
       },
       "relevance": "Capital",
       "risk_level": "ELEVE",
       "summary": {
-        "total_changes": 2,
+        "total_changes": 1,
         "indicators_added": 1,
         "indicators_removed": 0,
-        "indicators_renamed": 1,
+        "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 2,
+        "validated": 1,
         "pending": 0
       }
     },
@@ -1098,25 +966,25 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00003",
+          "change_id": "chg_00002",
           "change_type": "indicator_added",
           "payload": {
-            "indicator_name": "Billets avec remboursement de capital à recours limité – Série 6",
-            "indicator_name_clean": "billets avec remboursement de capital à recours limité – série 6"
+            "indicator_name": "Série 6",
+            "indicator_name_clean": "série 6"
           },
           "validation_status": "approved",
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-03T20:31:15.989100+00:00",
+          "validated_at": "2026-04-04T13:04:37.269133+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00004",
+          "change_id": "chg_00003",
           "change_type": "indicator_removed",
           "payload": {
-            "indicator_name": "Série 5",
-            "indicator_name_clean": "série 5"
+            "indicator_name": "Série 7³",
+            "indicator_name_clean": "série 7³"
           },
           "validation_status": "pending",
           "is_required": true,
@@ -1126,35 +994,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00005",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Série 7",
-            "indicator_name_clean": "série 7"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00006",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Série 9",
-            "indicator_name_clean": "série 9"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00016",
+          "change_id": "chg_00010",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[6] Pour les BRCRL, série 3 et série 4, le montant représente l’équivalent en dollars canadiens du montant notionnel en doll",
@@ -1171,7 +1011,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00017",
+          "change_id": "chg_00011",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[7] Le 18 décembre 2024, la Banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital",
@@ -1188,7 +1028,24 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00018",
+          "change_id": "chg_00012",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[8] Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens ",
+            "indicator_name_clean": "[8] pour les billets de fonds propres subordonnés perpétuels (at1), le montant représente l’équivalent en dollars canadiens",
+            "footnote_ref": "8",
+            "old_text": "Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour.",
+            "new_text": ""
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00013",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[1] Pour plus de renseignements, y compris les caractéristiques  -> Pour plus de renseignements, y compris les caractéristiques ",
@@ -1205,13 +1062,64 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00019",
+          "change_id": "chg_00014",
           "change_type": "footnote_modified",
           "payload": {
-            "indicator_name": "[5] Pour les billets de fonds propres subordonnés perpétuels (AT -> Pour les billets de fonds propres subordonnés perpétuels con",
-            "indicator_name_clean": "[5] pour les billets de fonds propres subordonnés perpétuels (at -> pour les billets de fonds propres subordonnés perpétuels con",
+            "indicator_name": "[2] Le 31 janvier 2025, la Banque a racheté la totalité de ses 2 -> Pour les autres instruments de capitaux propres, le nombre d",
+            "indicator_name_clean": "[2] le 31 janvier 2025, la banque a racheté la totalité de ses 2 -> pour les autres instruments de capitaux propres, le nombre d",
+            "footnote_ref": "2",
+            "old_text": "Le 31 janvier 2025, la Banque a racheté la totalité de ses 20 millions d’actions privilégiées de premier rang de catégorie A à taux rajusté tous les cinq ans et à dividende non cumulatif comprenant des dispositions relatives aux fonds propres d’urgence en cas de non-viabilité (FPUNV), série 5 (« actions privilégiées de série 5 ») en circulation, à un prix de rachat de 25,00 $ l’action privilégiée de série 5, pour un coût de rachat total d’environ 500 millions de dollars.",
+            "new_text": "Pour les autres instruments de capitaux propres, le nombre d’actions ou de parts correspond au nombre de billets émis."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00015",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[3] Le 31 juillet 2025, la Banque a racheté la totalité de ses 1 -> Pour plus de renseignements, se reporter au tableau « Condit",
+            "indicator_name_clean": "[3] le 31 juillet 2025, la banque a racheté la totalité de ses 1 -> pour plus de renseignements, se reporter au tableau « condit",
+            "footnote_ref": "3",
+            "old_text": "Le 31 juillet 2025, la Banque a racheté la totalité de ses 14 millions d’actions privilégiées de premier rang de catégorie A à taux rajusté tous les cinq ans et à dividende non cumulatif comprenant des dispositions relatives aux FPUNV, série 7 (« actions privilégiées de série 7 ») en circulation, à un prix de rachat de 25,00 $ l’action privilégiée de série 7, pour un coût de rachat total d’environ 350 millions de dollars.",
+            "new_text": "Pour plus de renseignements, se reporter au tableau « Conditions importantes rattachées aux actions privilégiées et autres instruments de capitaux propres » à la note 19 des états financiers consolidés de 2025 de la Banque."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00016",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[4] Pour les autres instruments de capitaux propres, le nombre d -> Pour les BRCRL, série 3, série 4 et série 6, le montant repr",
+            "indicator_name_clean": "[4] pour les autres instruments de capitaux propres, le nombre d -> pour les brcrl, série 3, série 4 et série 6, le montant repr",
+            "footnote_ref": "4",
+            "old_text": "Pour les autres instruments de capitaux propres, le nombre d’actions ou de parts correspond au nombre de billets émis.",
+            "new_text": "Pour les BRCRL, série 3, série 4 et série 6, le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars américains."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00017",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[5] Pour plus de renseignements, se reporter au tableau « Condit -> Pour les billets de fonds propres subordonnés perpétuels con",
+            "indicator_name_clean": "[5] pour plus de renseignements, se reporter au tableau « condit -> pour les billets de fonds propres subordonnés perpétuels con",
             "footnote_ref": "5",
-            "old_text": "Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour.",
+            "old_text": "Pour plus de renseignements, se reporter au tableau « Conditions importantes rattachées aux actions privilégiées et autres instruments de capitaux propres » à la note 20 des états financiers consolidés de 2024 de la Banque.",
             "new_text": "Pour les billets de fonds propres subordonnés perpétuels constituant des autres éléments de fonds propres de catégorie 1 (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour."
           },
           "validation_status": "pending",
@@ -1224,25 +1132,25 @@
       ],
       "table_status": "partial",
       "confidence": 0.9,
-      "match_method": "Title identical: 'ACTIONS ET AUTRES TITRES¹'; indicators and headers are highly similar; row_count 23 vs 25; footnote count similar.",
+      "match_method": "Title identical: 'ACTIONS ET AUTRES TITRES¹'; indicators and headers are highly similar; row_count 23 vs 25.",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout et la suppression de séries de billets avec remboursement de capital à recours limité peuvent affecter la structure du capital réglementaire de la banque.",
+        "analyst_summary": "L'ajout et la suppression d'indicateurs dans le tableau 'ACTIONS ET AUTRES TITRES' ainsi que les modifications des notes peuvent affecter la gestion du capital et la conformité réglementaire.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout et la suppression de séries de billets avec remboursement de capital à recours limité peuvent affecter la structure du capital réglementaire de la banque.",
+        "explanation": "L'ajout et la suppression d'indicateurs dans le tableau 'ACTIONS ET AUTRES TITRES' ainsi que les modifications des notes peuvent affecter la gestion du capital et la conformité réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
-        "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "La modification des séries de billets peut influencer le calcul des fonds propres réglementaires.",
+        "reference_reglementaire": "",
+        "impact_description": "Les changements dans les indicateurs et les notes peuvent influencer la manière dont le capital est géré et rapporté, nécessitant une vérification approfondie.",
         "source": "llm",
-        "justification": "L'ajout et la suppression de séries de billets avec remboursement de capital à recours limité peuvent affecter la structure du capital réglementaire de la banque.",
+        "justification": "L'ajout et la suppression d'indicateurs dans le tableau 'ACTIONS ET AUTRES TITRES' ainsi que les modifications des notes peuvent affecter la gestion du capital et la conformité réglementaire.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -1250,18 +1158,18 @@
         "theme": "capital",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 4 changement(s) d'indicateur et 4 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 8 changement(s) de footnote."
       },
       "relevance": "Capital",
       "risk_level": "MODERE",
       "summary": {
-        "total_changes": 8,
+        "total_changes": 10,
         "indicators_added": 1,
-        "indicators_removed": 3,
+        "indicators_removed": 1,
         "indicators_renamed": 0,
-        "footnotes_changed": 4,
+        "footnotes_changed": 8,
         "validated": 1,
-        "pending": 7
+        "pending": 9
       }
     },
     {
@@ -1295,7 +1203,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00009",
+          "change_id": "chg_00004",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Programme de titres de fiducie de capital et de créance inscrit à la SEC des États-Unis (F-3) (75 milliards de dollars américains)",
@@ -1309,7 +1217,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00010",
+          "change_id": "chg_00005",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Programme d’obligations sécurisées législatives inscrit à la Financial Conduct Authority (FCA) du Royaume-Uni (100 milliards de dollars)",
@@ -1323,7 +1231,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00011",
+          "change_id": "chg_00006",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Programme de billets à moyen terme – marché mondial inscrit à la FCA (40 milliards de dollars américains)",
@@ -1337,7 +1245,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00012",
+          "change_id": "chg_00007",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Programme de billets structurés à moyen terme liés – marché mondial non inscrit (20 milliards de dollars américains)",
@@ -1352,26 +1260,26 @@
         }
       ],
       "table_status": "pending",
-      "confidence": 0.98,
-      "match_method": "Indicators and headers are identical; row_count 7 vs 3; title and table_summary match exactly.",
+      "confidence": 0.85,
+      "match_method": "Table summary and indicators are highly similar; both tables have the same headers and first indicator; row_count 7 vs 3.",
       "genai_analysis": {
         "theme": "autre",
         "change_significance": "moyen",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout de nouveaux indicateurs liés à des programmes de titres et obligations peut affecter la gestion des risques et la conformité réglementaire.",
+        "analyst_summary": "L'ajout de nouveaux indicateurs liés à des programmes de financement peut affecter la gestion des risques et la conformité réglementaire.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout de nouveaux indicateurs liés à des programmes de titres et obligations peut affecter la gestion des risques et la conformité réglementaire.",
+        "explanation": "L'ajout de nouveaux indicateurs liés à des programmes de financement peut affecter la gestion des risques et la conformité réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces programmes pourrait influencer la stratégie de gestion des risques et la conformité aux exigences réglementaires internationales.",
+        "impact_description": "L'ajout de ces programmes pourrait influencer la stratégie de financement et le profil de risque de la banque.",
         "source": "llm",
-        "justification": "L'ajout de nouveaux indicateurs liés à des programmes de titres et obligations peut affecter la gestion des risques et la conformité réglementaire.",
+        "justification": "L'ajout de nouveaux indicateurs liés à des programmes de financement peut affecter la gestion des risques et la conformité réglementaire.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -1391,127 +1299,6 @@
         "footnotes_changed": 0,
         "validated": 0,
         "pending": 4
-      }
-    },
-    {
-      "review_id": "td::risk_management::tbl_p055_i01|tbl_p049_i01",
-      "table_key": "td::risk_management::tbl_p055_i01|tbl_p049_i01",
-      "table_title": "DURÉE CONTRACTUELLE RESTANTE",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "DURÉE CONTRACTUELLE RESTANTE",
-      "table_number": "",
-      "table_id_t1": "tbl_p055_i01",
-      "table_id_t2": "tbl_p049_i01",
-      "page_t1": 55,
-      "page_t2": 49,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05558705174065883,
-        0.06009167372578323,
-        0.9418643128638174,
-        0.7360075363005051
-      ],
-      "bbox_t2": [
-        0.05602067436268127,
-        0.05501994701346966,
-        0.9426935731975082,
-        0.7243572196575127
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00013",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Participation dans Schwab",
-            "indicator_name_clean": "participation dans schwab"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00028",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[5] Comprennent 65 milliards de dollars d’obligations sécurisées -> Comprennent 73 milliards de dollars d’obligations sécurisées",
-            "indicator_name_clean": "[5] comprennent 65 milliards de dollars d’obligations sécurisées -> comprennent 73 milliards de dollars d’obligations sécurisées",
-            "footnote_ref": "5",
-            "old_text": "Comprennent 65 milliards de dollars d’obligations sécurisées, dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 3 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 25 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 21 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 6 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans ».",
-            "new_text": "Comprennent 73 milliards de dollars d’obligations sécurisées, dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 1 mois à 3 mois », une tranche de 3 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 5 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 5 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 20 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 22 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans »."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00029",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[6] Comprennent 627 millions de dollars d’engagements de crédit  -> Comprennent 531 millions de dollars d’engagements de crédit ",
-            "indicator_name_clean": "[6] comprennent 627 millions de dollars d’engagements de crédit  -> comprennent 531 millions de dollars d’engagements de crédit",
-            "footnote_ref": "6",
-            "old_text": "Comprennent 627 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé.",
-            "new_text": "Comprennent 531 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "pending",
-      "confidence": 0.98,
-      "match_method": "Indicators and headers are identical; row_count 49 vs 50; title and table_summary match exactly.",
-      "genai_analysis": {
-        "theme": "liquidite",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "MOYENNE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
-        "reference_reglementaire": "",
-        "impact_description": "La suppression et les modifications peuvent influencer la perception du risque de crédit et de marché.",
-        "source": "llm",
-        "justification": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "liquidite",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
-      },
-      "relevance": "Risque",
-      "risk_level": "MODERE",
-      "summary": {
-        "total_changes": 3,
-        "indicators_added": 0,
-        "indicators_removed": 1,
-        "indicators_renamed": 0,
-        "footnotes_changed": 2,
-        "validated": 0,
-        "pending": 3
       }
     },
     {
@@ -1545,21 +1332,21 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00014",
+          "change_id": "chg_00008",
           "change_type": "indicator_removed",
           "payload": {
             "indicator_name": "Participation dans Schwab",
             "indicator_name_clean": "participation dans schwab"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T13:04:48.247555+00:00",
+          "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00030",
+          "change_id": "chg_00028",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[5] Comprennent 75 milliards de dollars d’obligations sécurisées -> Comprennent 70 milliards de dollars d’obligations sécurisées",
@@ -1576,7 +1363,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00031",
+          "change_id": "chg_00029",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[6] Comprennent 609 millions de dollars d’engagements de crédit  -> Comprennent 623 millions de dollars d’engagements de crédit ",
@@ -1593,27 +1380,27 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.98,
       "match_method": "Indicators and headers are identical; row_count 49 vs 50; title and table_summary match exactly.",
       "genai_analysis": {
         "theme": "liquidite",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent indiquer un changement dans l'exposition au risque.",
+        "analyst_summary": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent indiquer un changement dans l'exposition au risque.",
-        "impact_type": "contenu",
+        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
+        "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Ces changements peuvent affecter l'évaluation du risque de crédit et de marché de la banque.",
+        "impact_description": "La suppression et les modifications peuvent influencer la perception du risque et nécessitent une analyse plus approfondie.",
         "source": "llm",
-        "justification": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent indiquer un changement dans l'exposition au risque.",
+        "justification": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -1631,108 +1418,7 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 0,
-        "pending": 3
-      }
-    },
-    {
-      "review_id": "td::risk_management::tbl_p043_i01|tbl_p037_i01",
-      "table_key": "td::risk_management::tbl_p043_i01|tbl_p037_i01",
-      "table_title": "LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN",
-      "table_number": "",
-      "table_id_t1": "tbl_p043_i01",
-      "table_id_t2": "tbl_p037_i01",
-      "page_t1": 43,
-      "page_t2": 37,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05478477478027344,
-        0.17223629806980945,
-        0.9442206488715278,
-        0.8716426810832939
-      ],
-      "bbox_t2": [
-        0.05525306003545624,
-        0.172070532134085,
-        0.9441374735115401,
-        0.8603354560004342
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00007",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Passifs exposés au risque de marché – Dérivés",
-            "indicator_name_clean": "passifs exposés au risque de marché – dérivés"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00008",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Participation dans Schwab",
-            "indicator_name_clean": "participation dans schwab"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "pending",
-      "confidence": 0.97,
-      "match_method": "Indicators and headers are identical; row_count 26 vs 27; title and table_summary match exactly.",
-      "genai_analysis": {
-        "theme": "risque_marche",
-        "change_significance": "moyen",
-        "review_priority": "critique",
-        "analyst_summary": "L'ajout d'indicateurs liés aux passifs exposés au risque de marché, tels que les dérivés, est pertinent pour la gestion des risques, tandis que la suppression de la participation dans Schwab pourrait indiquer un changement dans l'exposition au risque.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs liés aux passifs exposés au risque de marché, tels que les dérivés, est pertinent pour la gestion des risques, tandis que la suppression de la participation dans Schwab pourrait indiquer un changement dans l'exposition au risque.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
-        "reference_reglementaire": "",
-        "impact_description": "Le changement modifie la manière dont le risque de marché est évalué et présenté, ce qui peut affecter la compréhension des expositions au risque.",
-        "source": "llm",
-        "justification": "L'ajout d'indicateurs liés aux passifs exposés au risque de marché, tels que les dérivés, est pertinent pour la gestion des risques, tandis que la suppression de la participation dans Schwab pourrait indiquer un changement dans l'exposition au risque.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "risque_marche",
-        "review_priority": "prioritaire",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "Risque",
-      "risk_level": "MODERE",
-      "summary": {
-        "total_changes": 2,
-        "indicators_added": 1,
-        "indicators_removed": 1,
-        "indicators_renamed": 0,
-        "footnotes_changed": 0,
-        "validated": 0,
+        "validated": 1,
         "pending": 2
       }
     },
@@ -1762,41 +1448,41 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00032",
+          "change_id": "chg_00030",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T13:04:49.481435+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "La suppression du tableau sur l'exposition nette par région et contrepartie peut affecter la transparence et la gestion des risques liés à la répartition géographique du capital.",
+        "analyst_summary": "La suppression du tableau 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE' pourrait affecter la transparence et la gestion des risques liés à l'exposition géographique.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression du tableau sur l'exposition nette par région et contrepartie peut affecter la transparence et la gestion des risques liés à la répartition géographique du capital.",
+        "explanation": "La suppression du tableau 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE' pourrait affecter la transparence et la gestion des risques liés à l'exposition géographique.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La suppression de ce tableau pourrait réduire la visibilité sur la répartition géographique des risques de contrepartie.",
+        "impact_description": "La suppression de ce tableau réduit la visibilité sur l'exposition géographique, ce qui peut affecter l'évaluation des risques régionaux.",
         "source": "llm",
-        "justification": "La suppression du tableau sur l'exposition nette par région et contrepartie peut affecter la transparence et la gestion des risques liés à la répartition géographique du capital.",
+        "justification": "La suppression du tableau 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE' pourrait affecter la transparence et la gestion des risques liés à l'exposition géographique.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -1810,8 +1496,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -1845,7 +1531,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00023",
+          "change_id": "chg_00021",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[5] Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
@@ -1854,15 +1540,15 @@
             "old_text": "Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
             "new_text": ""
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T13:04:52.031132+00:00",
+          "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00024",
+          "change_id": "chg_00022",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[2] Après la fin du trimestre, le 22 août 2025, Moody’s a entrep -> Représentent la notation des dépôts à long terme et la notat",
@@ -1879,7 +1565,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00025",
+          "change_id": "chg_00023",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[3] Représentent la notation des dépôts à long terme et la notat -> Comprend a) la dette de premier rang émise avant le 23 septe",
@@ -1896,7 +1582,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00026",
+          "change_id": "chg_00024",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[4] Comprend a) la dette de premier rang émise avant le 23 septe -> Assujettie à une conversion au titre du régime de recapitali",
@@ -1913,7 +1599,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.98,
       "match_method": "Indicators and headers are identical; row_count 11 vs 11; title and table_summary match exactly.",
       "genai_analysis": {},
@@ -1926,8 +1612,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 4,
-        "validated": 0,
-        "pending": 4
+        "validated": 1,
+        "pending": 3
       }
     },
     {
@@ -1961,7 +1647,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00021",
+          "change_id": "chg_00019",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[1] Les sûretés données en garanties correspondent aux actifs do -> Les sûretés données en garantie correspondent à la portion d",
@@ -1970,15 +1656,15 @@
             "old_text": "Les sûretés données en garanties correspondent aux actifs donnés en garanties dans le cadre de diverses opérations, telles que des mises en pension, des prêts de valeurs mobilières, des contrats de dérivés, et des exigences liées à la participation aux chambres de compensation et aux systèmes de paiement.",
             "new_text": "Les sûretés données en garantie correspondent à la portion des actifs donnés en garantie dans le cadre de grèvement, comme les mises en pension, les prêts de valeurs mobilières, les contrats de dérivés, et les exigences liées à la participation aux chambres de compensation et aux systèmes de paiement."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T04:46:53.101467+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
-          "change_id": "chg_00022",
+          "change_id": "chg_00020",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[3] Représentent les actifs qui sont disponibles facilement pour -> Représentent les actifs qui sont disponibles facilement pour",
@@ -1995,7 +1681,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.98,
       "match_method": "Indicators and headers are identical; row_count 8 vs 8; title and table_summary match exactly.",
       "genai_analysis": {},
@@ -2008,8 +1694,90 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p055_i01|tbl_p049_i01",
+      "table_key": "td::risk_management::tbl_p055_i01|tbl_p049_i01",
+      "table_title": "DURÉE CONTRACTUELLE RESTANTE",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "DURÉE CONTRACTUELLE RESTANTE",
+      "table_number": "",
+      "table_id_t1": "tbl_p055_i01",
+      "table_id_t2": "tbl_p049_i01",
+      "page_t1": 55,
+      "page_t2": 49,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05558705174065883,
+        0.06009167372578323,
+        0.9418643128638174,
+        0.7360075363005051
+      ],
+      "bbox_t2": [
+        0.05602067436268127,
+        0.05501994701346966,
+        0.9426935731975082,
+        0.7243572196575127
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00026",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[5] Comprennent 65 milliards de dollars d’obligations sécurisées -> Comprennent 73 milliards de dollars d’obligations sécurisées",
+            "indicator_name_clean": "[5] comprennent 65 milliards de dollars d’obligations sécurisées -> comprennent 73 milliards de dollars d’obligations sécurisées",
+            "footnote_ref": "5",
+            "old_text": "Comprennent 65 milliards de dollars d’obligations sécurisées, dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 3 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 25 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 21 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 6 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans ».",
+            "new_text": "Comprennent 73 milliards de dollars d’obligations sécurisées, dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 1 mois à 3 mois », une tranche de 3 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 5 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 5 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 20 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 22 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans »."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00027",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[6] Comprennent 627 millions de dollars d’engagements de crédit  -> Comprennent 531 millions de dollars d’engagements de crédit ",
+            "indicator_name_clean": "[6] comprennent 627 millions de dollars d’engagements de crédit  -> comprennent 531 millions de dollars d’engagements de crédit",
+            "footnote_ref": "6",
+            "old_text": "Comprennent 627 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé.",
+            "new_text": "Comprennent 531 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers are identical; row_count 49 vs 50; title and table_summary match exactly.",
+      "genai_analysis": {},
+      "match_metadata": {},
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 2,
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -2043,7 +1811,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00015",
+          "change_id": "chg_00009",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[1] Le plus élevé des suppléments pour les BISI et les banques d -> Le plus élevé des suppléments pour les BISI et les BISM s’ap",
@@ -2052,15 +1820,15 @@
             "old_text": "Le plus élevé des suppléments pour les BISI et les banques d’importance systémique mondiale (BISM) s’applique aux fonds propres pondérés en fonction des risques. Le supplément pour les BISI est actuellement équivalent à l’exigence supplémentaire de 1 % relative au ratio de fonds propres sous forme d’actions ordinaires pour les fonds propres pondérés en fonction des risques pour les BISM que doit respecter la Banque. Le supplément pour les BISM pourrait augmenter au-delà de 1 %, si la cote pour les BISM attribuée à la Banque devait augmenter au-delà de certains seuils, pour atteindre un maximum de 4,5 %. La ligne directrice Exigences de levier du BSIF comprend une exigence selon laquelle les BISI doivent maintenir un coussin de ratio de levier fixé à 50 % des exigences pondérées de capacité accrue d’absorption des pertes d’une BISI, soit 0,50 %. Ce coussin s’applique également au ratio de levier TLAC.",
             "new_text": "Le plus élevé des suppléments pour les BISI et les BISM s’applique aux fonds propres pondérés en fonction des risques. Le supplément pour les BISI est actuellement équivalent à l’exigence supplémentaire de 1 % relative au ratio de fonds propres sous forme d’actions ordinaires pour les fonds propres pondérés en fonction des risques pour les BISM que doit respecter la Banque. Le supplément pour les BISM pourrait augmenter au-delà de 1 %, pour atteindre un maximum de 4 %, si la cote pour les BISM attribuée à la Banque devait augmenter au-delà de certains seuils. La ligne directrice Exigences de levier du BSIF comprend une exigence selon laquelle les BISI doivent maintenir un coussin de ratio de levier fixé à 50 % des exigences pondérées de capacité accrue d’absorption des pertes d’une BISI, soit 0,50 %. Ce coussin s’applique également au ratio de levier TLAC."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T13:04:53.899142+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 0.98,
       "match_method": "Indicators and headers are identical; row_count 6 vs 6; title and table_summary match exactly.",
       "genai_analysis": {},
@@ -2073,8 +1841,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -2108,7 +1876,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00020",
+          "change_id": "chg_00018",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[1] Au 31 juillet 2025, les mesures de sensibilité sont présenté -> N’inclut pas les expositions du secteur Services bancaires d",
@@ -2173,7 +1941,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00027",
+          "change_id": "chg_00025",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[1] La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancai",
@@ -2182,15 +1950,15 @@
             "old_text": "La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine.",
             "new_text": ""
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-04T13:04:57.362177+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 0.98,
       "match_method": "Indicators and headers are identical; row_count 3 vs 3; title and table_summary match exactly.",
       "genai_analysis": {},
@@ -2203,8 +1971,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     }
   ]

@@ -447,9 +447,7 @@ class VisionResponseCommonSchema(BaseModel):
             for item in v:
                 if not isinstance(item, dict):
                     continue
-                marker = str(
-                    item.get("id") or item.get("marker") or item.get("ref") or ""
-                ).strip()
+                marker = str(item.get("id") or item.get("marker") or item.get("ref") or "").strip()
                 text = str(item.get("text") or item.get("value") or "").strip()
                 if marker and text:
                     out.append({"id": marker, "text": text})
@@ -495,11 +493,7 @@ def _classify_openai_error(exc: Exception) -> str:
         "missing '" in msg and "response_format" in msg and "required" in msg
     ):
         return "schema_contract_invalid"
-    if (
-        "json_schema" in msg
-        and "response_format" in msg
-        and ("not supported" in msg or "unsupported" in msg)
-    ):
+    if "json_schema" in msg and "response_format" in msg and ("not supported" in msg or "unsupported" in msg):
         return "structured_output_unsupported"
     if "rate" in msg and "limit" in msg:
         return "rate_limit"
@@ -556,6 +550,7 @@ def _build_prompt(
     reference_text: str | None = None,
     *,
     rescue_mode: bool = False,
+    rescue_instruction: str = "",
 ) -> str:
     """Construit le prompt avec les indices de marqueurs de notes specifiques a la banque et le texte de reference OCR (toujours injecte lorsque fourni)."""
     marker_type = str(vision_cfg.get("footnote_marker_type", "")).strip().lower()
@@ -571,16 +566,8 @@ def _build_prompt(
 
     # Multimodal Grounding: always inject OCR reference text when provided (precision for indicators)
     reference_section = ""
-    reference_text_max_chars = int(
-        vision_cfg.get(
-            "vision_reference_text_max_chars", _DEFAULT_REFERENCE_TEXT_MAX_CHARS
-        )
-    )
-    if (
-        reference_text
-        and len(reference_text.strip()) > 20
-        and reference_text_max_chars > 0
-    ):
+    reference_text_max_chars = int(vision_cfg.get("vision_reference_text_max_chars", _DEFAULT_REFERENCE_TEXT_MAX_CHARS))
+    if reference_text and len(reference_text.strip()) > 20 and reference_text_max_chars > 0:
         truncated = reference_text.strip()[:reference_text_max_chars]
         reference_section = (
             "\n\n=== DICTIONNAIRE DE RÉFÉRENCE (Texte OCR du tableau) ===\n"
@@ -597,9 +584,7 @@ def _build_prompt(
             "En cas de conflit entre l'image et le dictionnaire, privilégie l'orthographe du dictionnaire.\n"
         )
     else:
-        logger.debug(
-            "Vision: no reference text provided or too short; extraction without dictionary."
-        )
+        logger.debug("Vision: no reference text provided or too short; extraction without dictionary.")
         reference_section = (
             "\n\nCONSIGNE (pas de dictionnaire OCR disponible) : "
             "Transcris EXACTEMENT ce que tu vois dans l'image. "
@@ -608,14 +593,11 @@ def _build_prompt(
             "Conserve les accents, les tirets et les caracteres speciaux tels quels.\n"
         )
 
-    prompt = (
-        _PROMPT_BASE
-        + (f"\n{suffix}\n" if suffix else "")
-        + reference_section
-        + _PROMPT_JSON_STRICT
-    )
+    prompt = _PROMPT_BASE + (f"\n{suffix}\n" if suffix else "") + reference_section + _PROMPT_JSON_STRICT
     if rescue_mode:
         prompt = prompt + _PROMPT_RESCUE_SUFFIX
+        if rescue_instruction:
+            prompt = prompt + "\n\n### RESCUE INSTRUCTIONS ###\n" + rescue_instruction
     return prompt
 
 
@@ -836,14 +818,10 @@ def _parse_vision_result(
                     )
                     return None
             else:
-                logger.warning(
-                    "Vision response validation failed (Pydantic schema error): %s", e
-                )
+                logger.warning("Vision response validation failed (Pydantic schema error): %s", e)
                 return None
         else:
-            logger.warning(
-                "Vision response validation failed (Pydantic schema error): %s", e
-            )
+            logger.warning("Vision response validation failed (Pydantic schema error): %s", e)
             return None
 
     footnotes_ordered: list[dict[str, str]] = [
@@ -851,9 +829,7 @@ def _parse_vision_result(
         for item in validated.footnotes_content
         if str(item.id).strip() and str(item.text).strip()
     ]
-    indicators_ordered = [
-        str(item).rstrip() for item in validated.indicators if str(item).rstrip()
-    ]
+    indicators_ordered = [str(item).rstrip() for item in validated.indicators if str(item).rstrip()]
 
     return VisionFullResult(
         table_title=validated.table_title or "",
@@ -878,9 +854,7 @@ def _try_parse_truncated_result(raw_content: str) -> VisionFullResult | None:
         return None
     if not isinstance(indicators_raw, list):
         return None
-    indicators_ordered: list[str] = [
-        str(item).strip() for item in indicators_raw if str(item).strip()
-    ]
+    indicators_ordered: list[str] = [str(item).strip() for item in indicators_raw if str(item).strip()]
     footnotes_content: list[dict[str, str]] = []
     try:
         fn_raw = data.get("footnotes_content")
@@ -888,9 +862,7 @@ def _try_parse_truncated_result(raw_content: str) -> VisionFullResult | None:
             for item in fn_raw:
                 if not isinstance(item, dict):
                     continue
-                marker = str(
-                    item.get("id") or item.get("marker") or item.get("ref") or ""
-                ).strip()
+                marker = str(item.get("id") or item.get("marker") or item.get("ref") or "").strip()
                 text = str(item.get("text") or item.get("value") or "").strip()
                 if marker and text:
                     footnotes_content.append({"id": marker, "text": text})
@@ -944,13 +916,13 @@ def _is_trivial_result(
     """Determine si le resultat d'extraction est trivial ou vide."""
     if result is None:
         return True
-    indicators = [
-        str(v).strip() for v in list(result.indicators or []) if str(v).strip()
-    ]
+    indicators = [str(v).strip() for v in list(result.indicators or []) if str(v).strip()]
     headers = [str(v).strip() for v in list(result.headers or []) if str(v).strip()]
     summary = str(result.table_summary or "").strip()
     title = str(result.table_title or "").strip()
     if result.no_table_detected and not indicators and not headers:
+        return True
+    if not indicators and not headers:
         return True
     if indicators:
         return False
@@ -959,6 +931,17 @@ def _is_trivial_result(
     if _is_generic_page_title(title):
         return True
     return _bbox_area(bbox_norm) >= 0.12 or not title
+
+
+def _has_extracted_data(result: VisionFullResult) -> bool:
+    """True si le resultat contient au moins 1 indicateur ou 1 header non-vide.
+
+    Sert de garde-fou pour eviter de classer en ``confirmed_no_table``
+    des tables dont l'extraction a produit des donnees exploitables.
+    """
+    indicators = [s for s in (str(v).strip() for v in (result.indicators or [])) if s]
+    headers = [s for s in (str(v).strip() for v in (result.headers or [])) if s]
+    return bool(indicators or headers)
 
 
 def _normalized_signal_text(value: str) -> str:
@@ -986,9 +969,7 @@ def _is_weak_indicator(text: str) -> bool:
     if normalized in _WEAK_INDICATOR_EXACT:
         return True
     tokens = normalized.split()
-    if 0 < len(tokens) <= 3 and all(
-        token in _WEAK_INDICATOR_TOKENS for token in tokens
-    ):
+    if 0 < len(tokens) <= 3 and all(token in _WEAK_INDICATOR_TOKENS for token in tokens):
         return True
     if _is_period_like_indicator(normalized):
         return True
@@ -1006,8 +987,7 @@ def _looks_narrative_indicator(text: str) -> bool:
         return True
     tokens = normalized.split()
     return len(tokens) >= 6 and any(
-        phrase in normalized
-        for phrase in (" la ", " le ", " les ", " des ", " du ", " au ", " aux ")
+        phrase in normalized for phrase in (" la ", " le ", " les ", " des ", " du ", " au ", " aux ")
     )
 
 
@@ -1068,12 +1048,8 @@ def _right_column_bleed_score(
         return 0
     if not _has_multi_textual_headers(result):
         return 0
-    indicators = [
-        str(v).strip() for v in list(result.indicators or []) if str(v).strip()
-    ]
-    baseline_indicators = [
-        str(v).strip() for v in list(baseline_result.indicators or []) if str(v).strip()
-    ]
+    indicators = [str(v).strip() for v in list(result.indicators or []) if str(v).strip()]
+    baseline_indicators = [str(v).strip() for v in list(baseline_result.indicators or []) if str(v).strip()]
     if len(indicators) <= len(baseline_indicators) or not baseline_indicators:
         return 0
     if indicators[: len(baseline_indicators)] != baseline_indicators:
@@ -1081,14 +1057,10 @@ def _right_column_bleed_score(
     tail = indicators[len(baseline_indicators) :]
     if len(tail) < 2:
         return 0
-    suspicious_tail = [
-        item for item in tail if _looks_like_right_column_bleed_indicator(item)
-    ]
+    suspicious_tail = [item for item in tail if _looks_like_right_column_bleed_indicator(item)]
     if not suspicious_tail:
         return 0
-    baseline_avg_tokens = sum(_token_count(item) for item in baseline_indicators) / len(
-        baseline_indicators
-    )
+    baseline_avg_tokens = sum(_token_count(item) for item in baseline_indicators) / len(baseline_indicators)
     tail_avg_tokens = sum(_token_count(item) for item in tail) / len(tail)
     if tail_avg_tokens < baseline_avg_tokens + 2.5:
         return 0
@@ -1171,8 +1143,7 @@ def _has_generic_title_without_support(result: VisionFullResult | None) -> bool:
     footnotes = [
         item
         for item in list(result.footnotes_content or [])
-        if isinstance(item, dict)
-        and (str(item.get("id") or "").strip() or str(item.get("text") or "").strip())
+        if isinstance(item, dict) and (str(item.get("id") or "").strip() or str(item.get("text") or "").strip())
     ]
     return len(headers) < 2 and not footnotes
 
@@ -1188,15 +1159,12 @@ def _has_strong_non_summary_signals(result: VisionFullResult | None) -> bool:
     footnotes = [
         item
         for item in list(result.footnotes_content or [])
-        if isinstance(item, dict)
-        and (str(item.get("id") or "").strip() or str(item.get("text") or "").strip())
+        if isinstance(item, dict) and (str(item.get("id") or "").strip() or str(item.get("text") or "").strip())
     ]
     title = str(result.table_title or "").strip()
     if viable_indicators >= 3:
         return True
-    if viable_indicators >= 2 and (
-        headers or footnotes or (title and not _is_generic_page_title(title))
-    ):
+    if viable_indicators >= 2 and (headers or footnotes or (title and not _is_generic_page_title(title))):
         return True
     if viable_indicators >= 1 and len(headers) >= 2 and bool(footnotes):
         return True
@@ -1209,9 +1177,7 @@ def _is_viable_result(result: VisionFullResult | None) -> bool:
         return False
     if result.no_table_detected:
         return False
-    return _viable_indicator_count(result) > 0 and not _has_dominant_contamination(
-        result
-    )
+    return _viable_indicator_count(result) > 0 and not _has_dominant_contamination(result)
 
 
 _DATE_RE = re.compile(
@@ -1251,12 +1217,8 @@ def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
     # Only fire when the table is large enough AND contains "Total" lines
     # (which strongly imply a parent-child hierarchy that was flattened).
     if len(indicators) > 15:
-        has_indent = any(
-            str(ind).startswith(" ") for ind in indicators if isinstance(ind, str)
-        )
-        has_total_lines = any(
-            "total" in str(ind).lower() for ind in indicators if isinstance(ind, str)
-        )
+        has_indent = any(str(ind).startswith(" ") for ind in indicators if isinstance(ind, str))
+        has_total_lines = any("total" in str(ind).lower() for ind in indicators if isinstance(ind, str))
         if not has_indent and has_total_lines:
             critiques.append(
                 "Vous avez complètement perdu la hiérarchie et l'indentation. "
@@ -1266,9 +1228,7 @@ def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
 
     # 2. Orphaned Footnote Marker Check
     found_footnote_ids = {
-        str(fn.get("id")).strip()
-        for fn in footnotes
-        if isinstance(fn, dict) and str(fn.get("id", "")).strip()
+        str(fn.get("id")).strip() for fn in footnotes if isinstance(fn, dict) and str(fn.get("id", "")).strip()
     }
 
     referenced_markers = set()
@@ -1411,9 +1371,7 @@ def _finalize_selected_candidate(
         bbox_norm=bbox_norm,
         expected_footnote_ids=expected_footnote_ids,
     )
-    combined_rejection_reasons = list(
-        dict.fromkeys(initial_rejection_reasons + selected_rejection_reasons)
-    )
+    combined_rejection_reasons = list(dict.fromkeys(initial_rejection_reasons + selected_rejection_reasons))
     summary_present = bool(str(selected.table_summary or "").strip())
     contamination_is_low = not _has_dominant_contamination(selected)
     viable_count = _viable_indicator_count(selected)
@@ -1421,15 +1379,11 @@ def _finalize_selected_candidate(
     footnotes = [
         item
         for item in list(selected.footnotes_content or [])
-        if isinstance(item, dict)
-        and (str(item.get("id") or "").strip() or str(item.get("text") or "").strip())
+        if isinstance(item, dict) and (str(item.get("id") or "").strip() or str(item.get("text") or "").strip())
     ]
     if _has_generic_title_without_support(selected):
         combined_rejection_reasons = list(
-            dict.fromkeys(
-                combined_rejection_reasons
-                + ["generic_title_without_support", "dominant_contamination"]
-            )
+            dict.fromkeys(combined_rejection_reasons + ["generic_title_without_support", "dominant_contamination"])
         )
         contamination_is_low = False
 
@@ -1494,9 +1448,7 @@ def _build_result_debug_metadata(
         selected_candidate_name=selected_candidate_name,
         no_table_evidence_count=max(0, int(no_table_evidence_count)),
         summary_present=bool(str(result.table_summary or "").strip()),
-        indicator_count=len(
-            [str(v).strip() for v in list(result.indicators or []) if str(v).strip()]
-        ),
+        indicator_count=len([str(v).strip() for v in list(result.indicators or []) if str(v).strip()]),
         candidate_quality_rank=quality_rank,
     )
 
@@ -1652,18 +1604,9 @@ class VisionFullExtractor:
                 )
             ),
         )
-        configured_max_completion_tokens = min(
-            configured_max_completion_tokens, _MAX_COMPLETION_TOKENS_API_LIMIT
-        )
+        configured_max_completion_tokens = min(configured_max_completion_tokens, _MAX_COMPLETION_TOKENS_API_LIMIT)
 
-        if (
-            self._use_cache
-            and not rescue_mode
-            and pdf_sha
-            and page_number
-            and bbox_norm
-            and len(bbox_norm) == 4
-        ):
+        if self._use_cache and not rescue_mode and pdf_sha and page_number and bbox_norm and len(bbox_norm) == 4:
             bbox_with_ext = list(bbox_norm)
             if len(bbox_with_ext) >= 4:
                 bbox_with_ext[3] = min(1.0, bbox_with_ext[3] + bottom_extension_used)
@@ -1690,9 +1633,7 @@ class VisionFullExtractor:
                             if isinstance(item, str) and item.strip():
                                 migrated_indicators.append(item.strip())
                             elif isinstance(item, dict) and item.get("text"):
-                                migrated_indicators.append(
-                                    str(item.get("text") or "").strip()
-                                )
+                                migrated_indicators.append(str(item.get("text") or "").strip())
                         indicators = migrated_indicators
                     else:
                         indicators = None
@@ -1713,9 +1654,7 @@ class VisionFullExtractor:
                             ]
                             fn_content = [
                                 {
-                                    "id": str(
-                                        item.get("id") or item.get("marker") or ""
-                                    ).strip(),
+                                    "id": str(item.get("id") or item.get("marker") or "").strip(),
                                     "text": str(item.get("text", "")).strip(),
                                 }
                                 for item in fn_content
@@ -1732,28 +1671,21 @@ class VisionFullExtractor:
                             headers=list(cached.get("headers") or []),
                             indicators=indicators,
                             footnotes_content=fn_content,
-                            no_table_detected=bool(
-                                cached.get("no_table_detected", False)
-                            ),
+                            no_table_detected=bool(cached.get("no_table_detected", False)),
                             extraction_method=_EXTRACTION_METHOD,
                             vision_status=str(cached.get("vision_status") or "ok"),
                             warnings=list(cached.get("warnings") or []),
                             retry_reasons=retry_reasons,
                             requested_max_completion_tokens=(
                                 int(cached.get("requested_max_completion_tokens"))
-                                if cached.get("requested_max_completion_tokens")
-                                is not None
+                                if cached.get("requested_max_completion_tokens") is not None
                                 else configured_max_completion_tokens
                             ),
                             finish_reason=(
-                                str(cached.get("finish_reason"))
-                                if cached.get("finish_reason") is not None
-                                else None
+                                str(cached.get("finish_reason")) if cached.get("finish_reason") is not None else None
                             ),
                             prompt_tokens=(
-                                int(cached.get("prompt_tokens"))
-                                if cached.get("prompt_tokens") is not None
-                                else None
+                                int(cached.get("prompt_tokens")) if cached.get("prompt_tokens") is not None else None
                             ),
                             completion_tokens=(
                                 int(cached.get("completion_tokens"))
@@ -1761,15 +1693,10 @@ class VisionFullExtractor:
                                 else None
                             ),
                             total_tokens=(
-                                int(cached.get("total_tokens"))
-                                if cached.get("total_tokens") is not None
-                                else None
+                                int(cached.get("total_tokens")) if cached.get("total_tokens") is not None else None
                             ),
                             rescue_used=bool(cached.get("rescue_used", False)),
-                            extraction_status=str(
-                                cached.get("extraction_status") or "ok"
-                            ).strip()
-                            or "ok",
+                            extraction_status=str(cached.get("extraction_status") or "ok").strip() or "ok",
                             acceptance_reason=(
                                 str(cached.get("acceptance_reason")).strip()
                                 if cached.get("acceptance_reason") is not None
@@ -1777,9 +1704,7 @@ class VisionFullExtractor:
                             ),
                             rejection_reasons=[
                                 str(value).strip()
-                                for value in list(
-                                    cached.get("rejection_reasons", []) or []
-                                )
+                                for value in list(cached.get("rejection_reasons", []) or [])
                                 if str(value).strip()
                             ],
                             selected_candidate_name=(
@@ -1787,16 +1712,12 @@ class VisionFullExtractor:
                                 if cached.get("selected_candidate_name") is not None
                                 else None
                             ),
-                            no_table_evidence_count=int(
-                                cached.get("no_table_evidence_count") or 0
-                            ),
+                            no_table_evidence_count=int(cached.get("no_table_evidence_count") or 0),
                             summary_present=bool(cached.get("summary_present", False)),
                             indicator_count=int(cached.get("indicator_count") or 0),
                             candidate_quality_rank=[
                                 int(value)
-                                for value in list(
-                                    cached.get("candidate_quality_rank", []) or []
-                                )
+                                for value in list(cached.get("candidate_quality_rank", []) or [])
                                 if isinstance(value, (int, float))
                             ],
                         )
@@ -1833,6 +1754,7 @@ class VisionFullExtractor:
             vision_cfg,
             reference_text=reference_text,
             rescue_mode=rescue_mode,
+            rescue_instruction=rescue_instruction,
         )
         max_completion_tokens = configured_max_completion_tokens
         openai_schema_full = _build_openai_json_schema()
@@ -1853,9 +1775,7 @@ class VisionFullExtractor:
             transport_attempt = 0
             while transport_attempt <= api_retry_max:
                 if transport_attempt > 0:
-                    backoff_sec = (api_retry_backoff_ms / 1000.0) * (
-                        2 ** (transport_attempt - 1)
-                    )
+                    backoff_sec = (api_retry_backoff_ms / 1000.0) * (2 ** (transport_attempt - 1))
                     logger.info(
                         "Vision %s: transport retry %s/%s after %.1fs backoff",
                         label,
@@ -1866,9 +1786,7 @@ class VisionFullExtractor:
                     time.sleep(backoff_sec)
                 try:
                     response_format: dict[str, Any] = (
-                        openai_schema_full
-                        if local_use_structured
-                        else {"type": "json_object"}
+                        openai_schema_full if local_use_structured else {"type": "json_object"}
                     )
                     response = client.chat.completions.create(
                         model=self._model,
@@ -1882,9 +1800,7 @@ class VisionFullExtractor:
                         temperature=temperature,
                         max_completion_tokens=effective_max,
                     )
-                    prompt_tokens, completion_tokens, total_tokens = (
-                        _extract_usage_metrics(response)
-                    )
+                    prompt_tokens, completion_tokens, total_tokens = _extract_usage_metrics(response)
                     return (
                         response.choices[0].message.content or "",
                         str(getattr(response.choices[0], "finish_reason", "") or ""),
@@ -1902,10 +1818,7 @@ class VisionFullExtractor:
                             logger.error("%s", self._disabled_reason)
                             self._schema_contract_error_logged = True
                         raise VisionSchemaContractError(self._disabled_reason) from e
-                    if (
-                        err_kind == "max_tokens_too_large"
-                        and effective_max > _MAX_COMPLETION_TOKENS_SAFE_FALLBACK
-                    ):
+                    if err_kind == "max_tokens_too_large" and effective_max > _MAX_COMPLETION_TOKENS_SAFE_FALLBACK:
                         logger.warning(
                             "Vision %s: model limits max_completion_tokens to %s; retrying with %s",
                             label,
@@ -2022,10 +1935,7 @@ class VisionFullExtractor:
                                 result = _parse_vision_result(retry_data)
                                 if result is not None:
                                     critiques = _grade_extraction_quality(result)
-                                    if (
-                                        critiques
-                                        and attempt < max_self_healing_attempts - 1
-                                    ):
+                                    if critiques and attempt < max_self_healing_attempts - 1:
                                         logger.warning(
                                             "Vision full: self-healing triggered after json-retry: %s",
                                             critiques,
@@ -2044,19 +1954,13 @@ class VisionFullExtractor:
                                             dict.fromkeys(
                                                 failure_causes
                                                 + ["vision_structured_output_fallback"]
-                                                + (
-                                                    ["self_healing_failed"]
-                                                    if critiques
-                                                    else []
-                                                )
+                                                + (["self_healing_failed"] if critiques else [])
                                             )
                                         ),
                                     )
                                     result = _with_attempt_metadata(
                                         result,
-                                        requested_max_completion_tokens=(
-                                            retry_effective_max_completion_tokens
-                                        ),
+                                        requested_max_completion_tokens=(retry_effective_max_completion_tokens),
                                         finish_reason=retry_reason,
                                         prompt_tokens=retry_prompt_tokens,
                                         completion_tokens=retry_completion_tokens,
@@ -2072,9 +1976,7 @@ class VisionFullExtractor:
                                     return result
                 logger.warning(
                     "Vision full extraction: invalid content after retry (%s)",
-                    ", ".join(
-                        dict.fromkeys(failure_causes + ["vision_retry_exhausted"])
-                    ),
+                    ", ".join(dict.fromkeys(failure_causes + ["vision_retry_exhausted"])),
                 )
                 return None
 
@@ -2110,10 +2012,7 @@ class VisionFullExtractor:
                                 result = _parse_vision_result(retry_data)
                                 if result is not None:
                                     critiques = _grade_extraction_quality(result)
-                                    if (
-                                        critiques
-                                        and attempt < max_self_healing_attempts - 1
-                                    ):
+                                    if critiques and attempt < max_self_healing_attempts - 1:
                                         logger.warning(
                                             "Vision full: self-healing triggered after json-retry: %s",
                                             critiques,
@@ -2132,19 +2031,13 @@ class VisionFullExtractor:
                                             dict.fromkeys(
                                                 failure_causes
                                                 + ["vision_structured_output_fallback"]
-                                                + (
-                                                    ["self_healing_failed"]
-                                                    if critiques
-                                                    else []
-                                                )
+                                                + (["self_healing_failed"] if critiques else [])
                                             )
                                         ),
                                     )
                                     result = _with_attempt_metadata(
                                         result,
-                                        requested_max_completion_tokens=(
-                                            retry_effective_max_completion_tokens
-                                        ),
+                                        requested_max_completion_tokens=(retry_effective_max_completion_tokens),
                                         finish_reason=retry_reason,
                                         prompt_tokens=retry_prompt_tokens,
                                         completion_tokens=retry_completion_tokens,
@@ -2160,9 +2053,7 @@ class VisionFullExtractor:
                                     return result
                 logger.warning(
                     "Vision full extraction: invalid content after retry (%s)",
-                    ", ".join(
-                        dict.fromkeys(failure_causes + ["vision_retry_exhausted"])
-                    ),
+                    ", ".join(dict.fromkeys(failure_causes + ["vision_retry_exhausted"])),
                 )
                 return None
 
@@ -2170,9 +2061,15 @@ class VisionFullExtractor:
             critiques = _grade_extraction_quality(result)
             if critiques and attempt < max_self_healing_attempts - 1:
                 # --- Quorum: if same indicator count as previous attempt, accept ---
+                # Exception: footnote/header critiques don't change indicator count,
+                # so the quorum check must not block self-healing for those.
+                _footnote_or_header_critique = any(
+                    kw in c for c in critiques for kw in ("footnote", "notes de bas de page", "headers", "en-têtes")
+                )
                 current_real_count = _count_real_indicators(result.indicators or [])
                 if (
-                    prev_real_indicator_count is not None
+                    not _footnote_or_header_critique
+                    and prev_real_indicator_count is not None
                     and abs(current_real_count - prev_real_indicator_count) <= 1
                 ):
                     logger.info(
@@ -2199,10 +2096,7 @@ class VisionFullExtractor:
             if used_structured is False:
                 failure_causes.append("vision_structured_output_fallback")
             retry_reasons = list(result.retry_reasons or [])
-            if (
-                "vision_truncated" in failure_causes
-                and "output_budget_truncated" not in retry_reasons
-            ):
+            if "vision_truncated" in failure_causes and "output_budget_truncated" not in retry_reasons:
                 retry_reasons.append("output_budget_truncated")
             if retry_reasons or failure_causes:
                 result = replace(result, vision_status="partial")
@@ -2357,9 +2251,7 @@ class VisionFullExtractor:
             # Penalty for deviating from the median count
             count_penalty = abs(real_count - median_count)
             # Popularity: sum of votes for this result's labels
-            popularity = sum(
-                label_votes.get(_norm(str(ind)), 0) for ind in (r.indicators or [])
-            )
+            popularity = sum(label_votes.get(_norm(str(ind)), 0) for ind in (r.indicators or []))
             # Quality bonus from existing scoring function (tuple of ints)
             quality_tuple = _candidate_quality_score(
                 r,
@@ -2423,9 +2315,7 @@ class VisionFullExtractor:
                 _MAX_COMPLETION_TOKENS_API_LIMIT,
             ),
         )
-        rescue_enabled = bool(
-            vision_cfg.get("vision_max_completion_tokens_rescue_enabled", False)
-        )
+        rescue_enabled = bool(vision_cfg.get("vision_max_completion_tokens_rescue_enabled", False))
         rescue_max_completion_tokens = max(
             1,
             min(
@@ -2551,9 +2441,7 @@ class VisionFullExtractor:
         )
 
         if first is not None and first.indicators:
-            found_markers = _extract_markers_from_indicators(
-                [str(item).strip() for item in list(first.indicators)]
-            )
+            found_markers = _extract_markers_from_indicators([str(item).strip() for item in list(first.indicators)])
             if found_markers:
                 expected_set.update(found_markers)
 
@@ -2564,14 +2452,20 @@ class VisionFullExtractor:
             expected_footnote_ids=expected_set,
         )
 
+        # Quality critiques (hiérarchie plate, footnotes orphelins, headers manquants)
+        # doivent aussi bloquer l'early return pour forcer le rescue path.
+        initial_quality_critiques = _grade_extraction_quality(first) if first is not None else []
+        if initial_quality_critiques and not initial_rejection_reasons:
+            initial_rejection_reasons.append("quality_critiques")
+            logger.info(
+                "Vision full: quality critiques present on initial result — forcing rescue path: %s",
+                initial_quality_critiques,
+            )
+
         # --- Dual LLM QA Inspector (Priority 1) ---
         qa_missing_str = ""
         passed_qa = False
-        if (
-            first is not None
-            and not initial_is_suspect
-            and not initial_rejection_reasons
-        ):
+        if first is not None and not initial_is_suspect and not initial_rejection_reasons:
             try:
                 import dataclasses
 
@@ -2607,11 +2501,7 @@ class VisionFullExtractor:
 
         candidates: list[tuple[str, VisionFullResult | None]] = [("initial", first)]
         no_table_evidence = 0
-        if (
-            first is not None
-            and first.no_table_detected
-            and _is_trivial_result(first, bbox_norm=bbox_norm)
-        ):
+        if first is not None and first.no_table_detected and _is_trivial_result(first, bbox_norm=bbox_norm):
             no_table_evidence += 1
 
         base_rescue_instruction = ""
@@ -2626,6 +2516,12 @@ class VisionFullExtractor:
                 "WARNING: You failed to extract the full table height in the previous pass. "
                 "Reread the entire image, line-by-line, and extract EVERY first-column row label including heavily indented sub-items. "
                 "Do NOT convert text from columns 2+ into indicators."
+            )
+        elif initial_quality_critiques:
+            base_rescue_instruction = (
+                "ATTENTION: Des problèmes de qualité ont été détectés dans votre extraction précédente. "
+                "Corrigez TOUS ces problèmes dans cette nouvelle tentative:\n- "
+                + "\n- ".join(initial_quality_critiques)
             )
 
         same_crop_rescue = _run_pass(
@@ -2657,9 +2553,7 @@ class VisionFullExtractor:
                 crop_bytes_for_pass=crop_bytes_for_pass,
                 bottom_extension_used=bottom_extension_used,
                 rescue_mode=True,
-                rescue_instruction=custom_rescue_instr
-                if custom_rescue_instr is not None
-                else base_rescue_instruction,
+                rescue_instruction=custom_rescue_instr if custom_rescue_instr is not None else base_rescue_instruction,
             )
             candidates.append((name, result))
             if (
@@ -2721,11 +2615,7 @@ class VisionFullExtractor:
                 bottom_extension_used=recrop_ext,
             )
 
-        usable_candidates = [
-            item
-            for item in candidates
-            if item[1] is not None and _is_viable_result(item[1])
-        ]
+        usable_candidates = [item for item in candidates if item[1] is not None and _is_viable_result(item[1])]
         if usable_candidates:
             best_name, best_result = max(
                 usable_candidates,
@@ -2753,9 +2643,7 @@ class VisionFullExtractor:
 
                 _best_dict = _dataclasses.asdict(best_result)
                 _post_qa_inspector = _VisionTableInspector(model="gpt-4o")
-                _post_qa_result = _post_qa_inspector.inspect_extraction(
-                    crop_bytes, _best_dict
-                )
+                _post_qa_result = _post_qa_inspector.inspect_extraction(crop_bytes, _best_dict)
 
                 if not _post_qa_result.is_perfect and _post_qa_result.missing_elements:
                     _missing_str = ", ".join(_post_qa_result.missing_elements)
@@ -2781,24 +2669,14 @@ class VisionFullExtractor:
                     if _targeted is not None and _is_viable_result(_targeted):
                         best_result = _targeted
                         best_name = "qa_targeted_rescue"
-                        logger.info(
-                            "Post-rescue QA: targeted rescue produced a viable result."
-                        )
+                        logger.info("Post-rescue QA: targeted rescue produced a viable result.")
                 else:
-                    logger.debug(
-                        "Post-rescue QA: candidate '%s' passed inspection.", best_name
-                    )
+                    logger.debug("Post-rescue QA: candidate '%s' passed inspection.", best_name)
             except Exception as _post_qa_exc:
-                logger.error(
-                    "Post-rescue QA inspection failed (non-fatal): %s", _post_qa_exc
-                )
+                logger.error("Post-rescue QA inspection failed (non-fatal): %s", _post_qa_exc)
             # --- End post-rescue QA ---
 
-            final_status = (
-                "ok"
-                if best_name == "initial" and not initial_rejection_reasons
-                else "rescued"
-            )
+            final_status = "ok" if best_name == "initial" and not initial_rejection_reasons else "rescued"
             selected = replace(
                 best_result,
                 rescue_used=best_name != "initial" or best_result.rescue_used,
@@ -2831,26 +2709,30 @@ class VisionFullExtractor:
                     no_table_detected=True,
                 )
             )
+            _override_status = "rescued" if _has_extracted_data(fallback) else "confirmed_no_table"
+            _override_reason = (
+                "data_richness_override_repeated_no_table"
+                if _override_status == "rescued"
+                else "confirmed_no_table_after_repeated_no_table_evidence"
+            )
             return _build_result_debug_metadata(
                 replace(
                     fallback,
-                    no_table_detected=True,
+                    no_table_detected=(_override_status == "confirmed_no_table"),
                     recrop_attempted=len(candidates) > 1,
                     recrop_used=False,
                     recrop_failed_incomplete=False,
-                    extraction_status="confirmed_no_table",
+                    extraction_status=_override_status,
                 ),
-                acceptance_reason="confirmed_no_table_after_repeated_no_table_evidence",
+                acceptance_reason=_override_reason,
                 rejection_reasons=initial_rejection_reasons or ["no_table_evidence"],
-                selected_candidate_name="same_crop_rescue"
-                if same_crop_rescue
-                else "initial",
+                selected_candidate_name="same_crop_rescue" if same_crop_rescue else "initial",
                 no_table_evidence_count=no_table_evidence,
                 bbox_norm=bbox_norm,
                 expected_footnote_ids=expected_set,
             )
 
-        fallback = same_crop_rescue or first
+        fallback: VisionFullResult = same_crop_rescue or first  # type: ignore[assignment]
         if fallback is None:
             fallback = VisionFullResult(
                 table_title="",
@@ -2859,6 +2741,29 @@ class VisionFullExtractor:
                 indicators=[],
                 footnotes_content=[],
             )
+        fallback_candidate_name = "same_crop_rescue" if same_crop_rescue else "initial"
+        # --- Gate the fallback through the same acceptance validation as
+        # viable candidates so that empty/trivial tables are never returned
+        # with extraction_status="suspect_unresolved".
+        fallback_for_gate = replace(
+            fallback,
+            recrop_attempted=len(candidates) > 1,
+            recrop_used=False,
+            recrop_failed_incomplete=True,
+            extraction_status="suspect_unresolved",
+        )
+        finalized_fallback = _finalize_selected_candidate(
+            fallback_for_gate,
+            best_name=fallback_candidate_name,
+            initial_rejection_reasons=initial_rejection_reasons,
+            no_table_evidence_count=no_table_evidence,
+            bbox_norm=bbox_norm,
+            expected_footnote_ids=expected_set,
+        )
+        if finalized_fallback is not None:
+            return finalized_fallback
+
+        # Fallback rejected by acceptance gate → demote to confirmed_no_table.
         fallback_rejection_reasons = list(
             dict.fromkeys(
                 initial_rejection_reasons
@@ -2869,19 +2774,24 @@ class VisionFullExtractor:
                 )
             )
         )
+        _override_status_fb = "rescued" if _has_extracted_data(fallback) else "confirmed_no_table"
+        _override_reason_fb = (
+            "data_richness_override_rescue_exhaustion"
+            if _override_status_fb == "rescued"
+            else "confirmed_no_table_after_rescue_exhaustion"
+        )
         return _build_result_debug_metadata(
             replace(
                 fallback,
+                no_table_detected=(_override_status_fb == "confirmed_no_table"),
                 recrop_attempted=len(candidates) > 1,
                 recrop_used=False,
                 recrop_failed_incomplete=True,
-                extraction_status="suspect_unresolved",
+                extraction_status=_override_status_fb,
             ),
-            acceptance_reason="suspect_unresolved_after_rescue_exhaustion",
+            acceptance_reason=_override_reason_fb,
             rejection_reasons=fallback_rejection_reasons or ["rescue_exhausted"],
-            selected_candidate_name="same_crop_rescue"
-            if same_crop_rescue
-            else "initial",
+            selected_candidate_name=fallback_candidate_name,
             no_table_evidence_count=no_table_evidence,
             bbox_norm=bbox_norm,
             expected_footnote_ids=expected_set,

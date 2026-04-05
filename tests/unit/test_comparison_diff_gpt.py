@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from vigilance.comparison_diff_gpt import diff_table_pair_gpt
+from vigilance.comparison_diff_gpt import _table_context, diff_table_pair_gpt
 
 
 def _table(
@@ -22,9 +22,7 @@ def _table(
     }
 
 
-def test_diff_table_pair_gpt_skips_footnote_call_when_both_tables_have_no_footnotes() -> (
-    None
-):
+def test_diff_table_pair_gpt_skips_footnote_call_when_both_tables_have_no_footnotes() -> None:
     call_kinds: list[str] = []
     responses = [
         {
@@ -55,9 +53,7 @@ def test_diff_table_pair_gpt_skips_footnote_call_when_both_tables_have_no_footno
     assert result["technical_diff"]["table_level_change"] == "inchange"
 
 
-def test_diff_table_pair_gpt_structurally_classifies_one_sided_footnotes_without_gpt_call() -> (
-    None
-):
+def test_diff_table_pair_gpt_structurally_classifies_one_sided_footnotes_without_gpt_call() -> None:
     call_kinds: list[str] = []
     responses = [
         {
@@ -96,9 +92,7 @@ def test_diff_table_pair_gpt_structurally_classifies_one_sided_footnotes_without
     assert result["technical_diff"]["table_level_change"] == "modifie"
 
 
-def test_diff_table_pair_gpt_calls_both_gpt_specialists_when_footnotes_exist_on_both_sides() -> (
-    None
-):
+def test_diff_table_pair_gpt_calls_both_gpt_specialists_when_footnotes_exist_on_both_sides() -> None:
     call_kinds: list[str] = []
     responses = [
         {
@@ -229,3 +223,23 @@ def test_diff_table_pair_gpt_retries_malformed_footnote_response() -> None:
     assert result["technical_diff"]["footnotes_added"] == []
     assert result["technical_diff"]["footnotes_removed"] == []
     assert result["technical_diff"]["footnotes_renamed"] == []
+
+
+def test_table_context_filters_standalone_dates() -> None:
+    """Pure date strings like '31 octobre 2024' should be stripped from indicators."""
+    entry = _table(
+        table_id="t1",
+        indicators=[
+            "Dépôts provenant d'autres banques",
+            "Certificats de dépôt",
+            "31 octobre 2024",
+            "Au 30 avril 2025",
+        ],
+    )
+    ctx = _table_context(entry)
+    names = [ind["name"] for ind in ctx["indicators"]]
+    assert "31 octobre 2024" not in names
+    assert "Au 30 avril 2025" not in names
+    assert "Dépôts provenant d'autres banques" in names
+    assert "Certificats de dépôt" in names
+    assert len(names) == 2

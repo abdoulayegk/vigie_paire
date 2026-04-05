@@ -56,6 +56,7 @@ Desktop.ini
 *.pem
 
 # Local data and outputs
+/output
 outputs/
 docs/_build/
 Documentation/

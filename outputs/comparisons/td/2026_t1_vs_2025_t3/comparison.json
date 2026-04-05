@@ -1,13 +1,13 @@
 {
   "schema_version": 2,
   "artifact_type": "report_comparison",
-  "run_id": "20260329_181809",
+  "run_id": "20260404_084205",
   "bank_code": "td",
   "year_previous": 2025,
   "quarter_previous": "t3",
   "year_current": 2026,
   "quarter_current": "t1",
-  "created_at": "2026-03-29T18:18:09",
+  "created_at": "2026-04-04T08:42:05",
   "source_pdf_previous": "",
   "source_pdf_current": "",
   "archived_pdf_previous": "",
@@ -39,13 +39,13 @@
         "previous_table_id": "tbl_p038_i01",
         "current_table_id": "tbl_p033_i01",
         "match_confidence": 0.95,
-        "reason": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers are highly similar; row_count 49 vs 48; footnote count identical."
+        "reason": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers are highly similar; row_count 49 vs 48."
       },
       {
         "previous_table_id": "tbl_p039_i01",
         "current_table_id": "tbl_p034_i01",
         "match_confidence": 0.9,
-        "reason": "Title identical: 'ACTIONS ET AUTRES TITRES¹'; indicators and headers are highly similar; row_count 23 vs 25; footnote count similar."
+        "reason": "Title identical: 'ACTIONS ET AUTRES TITRES¹'; indicators and headers are highly similar; row_count 23 vs 25."
       },
       {
         "previous_table_id": "tbl_p042_i01",
@@ -140,8 +140,8 @@
       {
         "previous_table_id": "tbl_p053_i02",
         "current_table_id": "tbl_p047_i02",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; row_count 7 vs 3; title and table_summary match exactly."
+        "match_confidence": 0.85,
+        "reason": "Table summary and indicators are highly similar; both tables have the same headers and first indicator; row_count 7 vs 3."
       },
       {
         "previous_table_id": "tbl_p053_i03",
@@ -246,12 +246,12 @@
           "relevance_score": "ELEVEE",
           "risk_level": "MODERE",
           "confidence": 0.9,
-          "explanation": "La suppression du tableau sur l'exposition nette par région et contrepartie peut affecter la transparence et la gestion des risques liés à la répartition géographique du capital.",
+          "explanation": "La suppression du tableau sur l'exposition nette par région et contrepartie peut affecter la transparence et la gestion des risques liés à l'exposition géographique.",
           "impact_type": "structurel",
           "project_phase": "rapport_gestion",
           "action_requise": "investigation",
           "reference_reglementaire": "",
-          "impact_description": "La suppression de ce tableau pourrait réduire la visibilité sur la répartition géographique des risques de contrepartie.",
+          "impact_description": "La suppression de ce tableau réduit la visibilité sur la répartition géographique des expositions, ce qui peut influencer l'évaluation des risques régionaux.",
           "source": "llm"
         }
       }
@@ -1529,7 +1529,7 @@
             "reason": "The maximum potential increase for the BISM supplement has been reduced from 4.5% to 4%, which is a material change in regulatory capital requirements.",
             "analyst_assessment": {
               "relevance_level": 1,
-              "justification": "The reduction in the maximum potential increase for the BISM supplement from 4.5% to 4% directly impacts the bank's capital planning and regulatory compliance, making it a critical change for risk management and regulatory reporting."
+              "justification": "The reduction in the maximum potential increase for the BISM supplement from 4.5% to 4% directly impacts the bank's regulatory capital requirements, which is critical for compliance and risk management."
             }
           }
         ],
@@ -1541,19 +1541,28 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The only meaningful change identified is a reduction in the maximum potential increase for the BISM supplement, which affects regulatory capital requirements.",
+      "reason": "The analysis identified a material change in the regulatory capital requirements for BISM, which is critical for compliance.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La modification de la note indique un changement potentiel dans l'application des suppléments pour les banques d'importance systémique, ce qui peut affecter les exigences en capital.",
+        "explanation": "La modification des notes de bas de tableau indique un changement dans l'application des suppléments pour les banques d'importance systémique, ce qui peut affecter les exigences de fonds propres.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — TLAC",
-        "impact_description": "Le changement pourrait influencer la manière dont les suppléments de capital sont appliqués aux banques d'importance systémique.",
+        "impact_description": "Le changement pourrait influencer la manière dont les suppléments de fonds propres sont calculés pour les banques systémiques.",
         "source": "llm"
       }
     },
@@ -1654,7 +1663,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their core business meaning and role in the table, with no additions, removals, or renames identified.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators are identical in both name and position, indicating no additions, removals, or renames.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -1674,7 +1692,7 @@
       "previous_table_id": "tbl_p038_i01",
       "current_table_id": "tbl_p033_i01",
       "match_confidence": 0.95,
-      "match_reason": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers are highly similar; row_count 49 vs 48; footnote count identical.",
+      "match_reason": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers are highly similar; row_count 49 vs 48.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p038_i01",
@@ -1841,25 +1859,15 @@
         "indicators_added": [
           {
             "value": "Déduction des expositions sur crypto-actifs",
-            "reason": "This indicator is present in the current table but absent in the previous table.",
+            "reason": "This indicator is present in the current table but not in the previous one, indicating a new regulatory or reporting requirement related to crypto-assets.",
             "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "The addition of 'Déduction des expositions sur crypto-actifs' reflects a structural change in the regulatory capital framework, likely due to evolving regulatory requirements or risk management practices concerning crypto-assets. This change is significant as it impacts the bank's capital adequacy calculations and risk exposure management."
+              "relevance_level": 1,
+              "justification": "The addition of a new indicator related to crypto-assets suggests a regulatory change or new risk management practice, which is critical for compliance and risk assessment."
             }
           }
         ],
         "indicators_removed": [],
-        "indicators_renamed": [
-          {
-            "previous": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des risques)",
-            "current": "Fonds propres de catégorie 1 (en pourcentage des actifs pondérés en fonction des actifs pondérés en fonction des risques)",
-            "reason": "The current indicator appears to be a typographical error or duplication in wording, but it represents the same concept as the previous indicator.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "This change is cosmetic and likely a typographical error, as the core concept and calculation method for the capital ratio remain unchanged. It does not affect the bank's financial reporting or regulatory compliance."
-            }
-          }
-        ],
+        "indicators_renamed": [],
         "footnotes_added": [],
         "footnotes_removed": [],
         "footnotes_renamed": [],
@@ -1869,21 +1877,30 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
       },
-      "reason": "The analysis identified one new indicator related to crypto-assets, reflecting regulatory changes, and a typographical error in the naming of a capital ratio indicator.",
+      "reason": "The comparison focused on identifying meaningful changes in the indicators between the two tables, considering the rules and matching strategy provided. Only one new indicator related to crypto-assets was identified, which is significant due to its regulatory implications.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
-        "confidence": 0.9,
-        "explanation": "L'ajout de la déduction des expositions sur crypto-actifs est pertinent car il s'agit d'une nouvelle exigence réglementaire qui peut affecter les ratios de fonds propres.",
-        "impact_type": "contenu",
+        "confidence": 0.95,
+        "explanation": "L'ajout d'indicateurs liés aux déductions des expositions sur crypto-actifs est pertinent car il impacte directement la structure des fonds propres et les ratios prudentiels sous Bâle III.",
+        "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — Déduction des expositions sur crypto-actifs",
-        "impact_description": "L'ajout de cet indicateur peut réduire les fonds propres disponibles et affecter la conformité aux exigences de Bâle III.",
+        "reference_reglementaire": "Bâle III — Déductions des expositions sur crypto-actifs",
+        "impact_description": "Ce changement pourrait affecter les ratios de fonds propres en raison des nouvelles déductions liées aux crypto-actifs.",
         "source": "llm"
       }
     },
@@ -1891,7 +1908,7 @@
       "previous_table_id": "tbl_p039_i01",
       "current_table_id": "tbl_p034_i01",
       "match_confidence": 0.9,
-      "match_reason": "Title identical: 'ACTIONS ET AUTRES TITRES¹'; indicators and headers are highly similar; row_count 23 vs 25; footnote count similar.",
+      "match_reason": "Title identical: 'ACTIONS ET AUTRES TITRES¹'; indicators and headers are highly similar; row_count 23 vs 25.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p039_i01",
@@ -2050,37 +2067,21 @@
       "technical_diff": {
         "indicators_added": [
           {
-            "value": "Billets avec remboursement de capital à recours limité – Série 6",
-            "reason": "This indicator is present in the current table but absent in the previous table.",
+            "value": "Série 6",
+            "reason": "This indicator is present in the current table but not in the previous one, indicating a new series of instruments has been introduced.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The addition of a new series of capital repayment notes indicates a structural change in the capital instruments offered by the bank, which could impact the bank's capital structure and investor relations."
+              "justification": "The addition of a new series of instruments (Série 6) could indicate a structural change in the capital instruments offered by the bank, which may affect the bank's capital structure and investor relations."
             }
           }
         ],
         "indicators_removed": [
           {
-            "value": "Série 5",
-            "reason": "This indicator is present in the previous table but absent in the current table.",
+            "value": "Série 7³",
+            "reason": "This indicator is present in the previous table but not in the current one, indicating it has been removed or replaced.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The removal of a preferred share series suggests a significant change in the bank's capital offerings, potentially affecting investor options and the bank's capital strategy."
-            }
-          },
-          {
-            "value": "Série 7",
-            "reason": "This indicator is present in the previous table but absent in the current table.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "The removal of this preferred share series indicates a change in the bank's capital structure, which may affect investor choices and the bank's financial strategy."
-            }
-          },
-          {
-            "value": "Série 9",
-            "reason": "This indicator is present in the previous table but absent in the current table.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "The absence of this preferred share series in the current report suggests a strategic shift in the bank's capital management, impacting investor relations and capital allocation."
+              "justification": "The removal of Série 7 could signify a change in the bank's capital instruments, potentially affecting the bank's capital structure and investor relations."
             }
           }
         ],
@@ -2090,19 +2091,28 @@
           {
             "id": "6",
             "text": "Pour les BRCRL, série 3 et série 4, le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars américains.",
-            "reason": "This footnote is present in the previous table but absent in the current table.",
+            "reason": "This footnote is present in the previous table but not in the current one, indicating it has been removed.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The removal of this footnote indicates a change in the reporting or existence of specific series of capital repayment notes, which could affect the understanding of currency exposure and financial reporting."
+              "justification": "The removal of this footnote could indicate a change in the reporting or valuation method for these instruments, which may affect financial analysis and reporting accuracy."
             }
           },
           {
             "id": "7",
             "text": "Le 18 décembre 2024, la Banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital de 750 millions de dollars à taux fixe rajusté à 5,909 % comprenant des dispositions relatives aux FPUNV, série 5 (les « BRCRL »). Les BRCRL porteront intérêt au taux de 5,909 % par année, payable trimestriellement, pour la période initiale se terminant le 1er janvier 2030, exclusivement. Par la suite, le taux d’intérêt sur les BRCRL sera rajusté tous les cinq ans à un taux correspondant au rendement des obligations du gouvernement du Canada alors en vigueur, majoré de 3,10 %. Les BRCRL viendront à échéance le 1er janvier 2085. Parallèlement à l’émission des BRCRL, la Banque a émis 750 000 actions privilégiées à taux fixe rajusté à 5,909 % et à dividende non cumulatif comprenant des dispositions relatives aux FPUNV, série 32 (« actions privilégiées de série 32 »). Les actions privilégiées de série 32 sont éliminées des états financiers consolidés de la Banque.",
-            "reason": "This footnote is present in the previous table but absent in the current table.",
+            "reason": "This footnote is present in the previous table but not in the current one, indicating it has been removed.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The removal of this detailed issuance information suggests a significant change in the bank's capital instruments, impacting investor understanding and financial strategy."
+              "justification": "The removal of this detailed issuance information could impact the understanding of the bank's capital structure and the terms of its financial instruments, which is crucial for investors and analysts."
+            }
+          },
+          {
+            "id": "8",
+            "text": "Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour.",
+            "reason": "This footnote is present in the previous table but not in the current one, indicating it has been removed.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "The removal of this footnote could affect the transparency regarding the valuation of these instruments, which is important for accurate financial reporting and investor understanding."
             }
           }
         ],
@@ -2112,21 +2122,54 @@
             "current_id": "1",
             "previous_text": "Pour plus de renseignements, y compris les caractéristiques de conversion et d’échange, et les distributions, se reporter à la note 20 des états financiers consolidés de 2024 de la Banque.",
             "current_text": "Pour plus de renseignements, y compris les caractéristiques de conversion et d’échange, les distributions ainsi que les modalités et conditions importantes, se reporter à la note 19 des états financiers consolidés de 2025 de la Banque.",
-            "reason": "Same note with materially revised wording.",
+            "reason": "The footnote has been materially revised to include additional information about terms and conditions, which changes its semantic meaning.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The addition of 'modalités et conditions importantes' expands the scope of the information, potentially affecting the interpretation of financial instruments and compliance requirements."
+              "justification": "The addition of terms and conditions information is significant as it provides a more comprehensive understanding of the financial instruments, impacting compliance and investor relations."
             }
           },
           {
-            "previous_id": "8",
-            "current_id": "5",
-            "previous_text": "Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour.",
-            "current_text": "Pour les billets de fonds propres subordonnés perpétuels constituant des autres éléments de fonds propres de catégorie 1 (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour.",
-            "reason": "Same note with materially revised wording.",
+            "previous_id": "2",
+            "current_id": "2",
+            "previous_text": "Le 31 janvier 2025, la Banque a racheté la totalité de ses 20 millions d’actions privilégiées de premier rang de catégorie A à taux rajusté tous les cinq ans et à dividende non cumulatif comprenant des dispositions relatives aux fonds propres d’urgence en cas de non-viabilité (FPUNV), série 5 (« actions privilégiées de série 5 ») en circulation, à un prix de rachat de 25,00 $ l’action privilégiée de série 5, pour un coût de rachat total d’environ 500 millions de dollars.",
+            "current_text": "Pour les autres instruments de capitaux propres, le nombre d’actions ou de parts correspond au nombre de billets émis.",
+            "reason": "The footnote content has been completely changed, indicating a shift in focus from redemption details to a general statement about instruments.",
             "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "The clarification that these are 'autres éléments de fonds propres de catégorie 1' provides additional context but does not significantly alter the financial interpretation."
+              "relevance_level": 2,
+              "justification": "This change reflects a significant shift in reporting focus, potentially affecting the understanding of the bank's capital actions and impacting investor perception."
+            }
+          },
+          {
+            "previous_id": "3",
+            "current_id": "3",
+            "previous_text": "Le 31 juillet 2025, la Banque a racheté la totalité de ses 14 millions d’actions privilégiées de premier rang de catégorie A à taux rajusté tous les cinq ans et à dividende non cumulatif comprenant des dispositions relatives aux FPUNV, série 7 (« actions privilégiées de série 7 ») en circulation, à un prix de rachat de 25,00 $ l’action privilégiée de série 7, pour un coût de rachat total d’environ 350 millions de dollars.",
+            "current_text": "Pour plus de renseignements, se reporter au tableau « Conditions importantes rattachées aux actions privilégiées et autres instruments de capitaux propres » à la note 19 des états financiers consolidés de 2025 de la Banque.",
+            "reason": "The footnote content has been completely changed, indicating a shift in focus from redemption details to a reference for further information.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "This change reflects a significant shift in reporting focus, potentially affecting the understanding of the bank's capital actions and impacting investor perception."
+            }
+          },
+          {
+            "previous_id": "4",
+            "current_id": "4",
+            "previous_text": "Pour les autres instruments de capitaux propres, le nombre d’actions ou de parts correspond au nombre de billets émis.",
+            "current_text": "Pour les BRCRL, série 3, série 4 et série 6, le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars américains.",
+            "reason": "The footnote content has been completely changed, indicating a shift in focus from general instruments to specific series valuation.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "This change reflects a significant shift in reporting focus, potentially affecting the understanding of the bank's capital actions and impacting investor perception."
+            }
+          },
+          {
+            "previous_id": "5",
+            "current_id": "5",
+            "previous_text": "Pour plus de renseignements, se reporter au tableau « Conditions importantes rattachées aux actions privilégiées et autres instruments de capitaux propres » à la note 20 des états financiers consolidés de 2024 de la Banque.",
+            "current_text": "Pour les billets de fonds propres subordonnés perpétuels constituant des autres éléments de fonds propres de catégorie 1 (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour.",
+            "reason": "The footnote content has been completely changed, indicating a shift in focus from a reference to specific valuation details.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "This change reflects a significant shift in reporting focus, potentially affecting the understanding of the bank's capital actions and impacting investor perception."
             }
           }
         ],
@@ -2136,21 +2179,30 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 4 changement(s) d'indicateur et 4 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 8 changement(s) de footnote."
       },
-      "reason": "The analysis identified clear additions and removals of indicators related to the bank's capital instruments, reflecting structural changes in the bank's capital management strategy. No indicators were renamed as the changes represent distinct additions or removals rather than semantic renaming. The analysis identifies footnotes that have been removed or semantically altered, impacting the understanding of financial instruments and capital structure.",
+      "reason": "The comparison identified additions and removals of specific series of capital instruments, which are significant for understanding changes in the bank's capital structure. The analysis identified significant semantic changes in footnotes, including removals and renaming, which impact the understanding of the bank's financial instruments and capital structure.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout et la suppression de séries de billets avec remboursement de capital à recours limité peuvent affecter la structure du capital réglementaire de la banque.",
+        "explanation": "La modification du tableau 'ACTIONS ET AUTRES TITRES' avec l'ajout et la suppression d'indicateurs ainsi que la modification des notes peut affecter la gestion du capital et la conformité réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
-        "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "La modification des séries de billets peut influencer le calcul des fonds propres réglementaires.",
+        "reference_reglementaire": "Bâle III — AT1",
+        "impact_description": "Les changements dans les indicateurs et les notes peuvent influencer la manière dont les instruments de capital sont comptabilisés et rapportés.",
         "source": "llm"
       }
     },
@@ -2264,7 +2316,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "The changes observed are due to a structural reorganization of indicators related to 'Expositions aux produits de détail renouvelables admissibles', which have been split into more specific categories in the current table.",
+      "reason": "The primary change involves the splitting of 'Expositions aux produits de détail renouvelables admissibles' into two separate indicators, reflecting a structural adjustment in the reporting of retail exposures.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -2408,52 +2469,43 @@
         ]
       },
       "technical_diff": {
-        "indicators_added": [
-          {
-            "value": "Passifs exposés au risque de marché – Dérivés",
-            "reason": "This indicator is present in the current table but absent in the previous table.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "The addition of 'Passifs exposés au risque de marché – Dérivés' indicates a new categorization or focus on derivatives within market risk liabilities, which could reflect a structural change in risk management reporting or a response to regulatory requirements."
-            }
-          }
-        ],
-        "indicators_removed": [
-          {
-            "value": "Participation dans Schwab",
-            "reason": "This indicator is present in the previous table but absent in the current table.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "The removal of 'Participation dans Schwab' suggests a potential divestment or reclassification of this asset, which could have significant implications for the bank's asset management strategy and financial reporting."
-            }
-          }
-        ],
+        "indicators_added": [],
+        "indicators_removed": [],
         "indicators_renamed": [],
         "footnotes_added": [],
         "footnotes_removed": [],
         "footnotes_renamed": [],
-        "table_level_change": "modifie"
+        "table_level_change": "inchange"
       },
       "analyst_assessment": {
         "theme": "risque_marche",
-        "change_significance": "moyen",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "change_significance": "faible",
+        "review_priority": "normale",
+        "analyst_summary": "Aucun changement semantique detecte sur le theme risque_marche."
       },
-      "reason": "The analysis identified one indicator added and one removed, with no clear renames. The changes reflect potential structural adjustments in the bank's risk management and asset reporting.",
+      "reason": "The analysis identified a removal of the 'Participation dans Schwab' indicator, which suggests a change in the reporting structure or asset categorization. No other meaningful semantic changes were detected.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs liés aux passifs exposés au risque de marché, tels que les dérivés, est pertinent pour la gestion des risques, tandis que la suppression de la participation dans Schwab pourrait indiquer un changement dans l'exposition au risque.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "Le changement modifie la manière dont le risque de marché est évalué et présenté, ce qui peut affecter la compréhension des expositions au risque.",
-        "source": "llm"
+        "impact_description": "",
+        "source": "skip"
       }
     },
     {
@@ -2571,7 +2623,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_marche."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role, with no additions, removals, or renames observed.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction noise.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -2715,10 +2776,10 @@
             "current_id": "1",
             "previous_text": "Au 31 juillet 2025, les mesures de sensibilité sont présentées par devise afin de mettre en évidence la sensibilité des produits d’intérêts nets aux variations des taux sous-jacents.",
             "current_text": "N’inclut pas les expositions du secteur Services bancaires de gros.",
-            "reason": "The footnote has been materially revised to exclude certain exposures, indicating a change in the scope of sensitivity analysis.",
+            "reason": "The footnote text has been materially revised to exclude certain exposures, changing the scope of the sensitivity analysis.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The exclusion of wholesale banking exposures from the sensitivity measures represents a significant structural change in the risk assessment framework, potentially impacting the interpretation of interest rate risk sensitivity."
+              "justification": "The exclusion of wholesale banking exposures from the sensitivity measures represents a significant structural change in the scope of the analysis, impacting the interpretation of interest rate risk exposure."
             }
           }
         ],
@@ -2730,19 +2791,28 @@
         "review_priority": "normale",
         "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The analysis identified a significant semantic change in footnote 1, which alters the scope of the sensitivity analysis by excluding certain exposures.",
+      "reason": "A footnote has been materially revised, altering the scope of the sensitivity analysis by excluding certain exposures.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La modification des notes indique un changement dans la portée des mesures de sensibilité au risque de taux d'intérêt, ce qui peut affecter l'évaluation du risque.",
+        "explanation": "La modification des notes indique un changement dans la portée des expositions incluses dans les mesures de sensibilité au risque de taux d'intérêt, ce qui peut affecter l'évaluation du risque.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Le changement méthodologique pourrait influencer l'interprétation des risques de taux d'intérêt en excluant certaines expositions.",
+        "impact_description": "Le changement méthodologique pourrait affecter la compréhension des risques de taux d'intérêt en excluant certaines expositions.",
         "source": "llm"
       }
     },
@@ -2867,7 +2937,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical when ignoring footnote markers and disambiguation labels.",
+      "reason": "All indicators in the previous and current tables match perfectly when considering normalized names and positions. There are no meaningful semantic changes, additions, or removals between the two tables.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -2956,7 +3035,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in both tables, indicating no additions, removals, or renames occurred. The core business concepts and roles of the indicators remain unchanged.",
+      "reason": "No meaningful semantic changes in indicators between the two tables. All indicators are present in both tables with identical names and positions, indicating no additions, removals, or renames.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -3093,7 +3181,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "The deterministic analysis indicates that the differences in 'Total' indicators are due to disambiguation labels and date prefixes, which should be ignored. The only meaningful addition is the new 'Obligations' indicator in the current table.",
+      "reason": "The tables are structurally aligned with no indicators added or removed. A single indicator was renamed to include a disambiguation label, indicating a potential structural change.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -3182,7 +3279,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business concept, scope, and role in the table.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators are present in both tables with identical names and positions, indicating no additions, removals, or renames.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -3324,10 +3430,10 @@
             "current_id": "1",
             "previous_text": "Les sûretés données en garanties correspondent aux actifs donnés en garanties dans le cadre de diverses opérations, telles que des mises en pension, des prêts de valeurs mobilières, des contrats de dérivés, et des exigences liées à la participation aux chambres de compensation et aux systèmes de paiement.",
             "current_text": "Les sûretés données en garantie correspondent à la portion des actifs donnés en garantie dans le cadre de grèvement, comme les mises en pension, les prêts de valeurs mobilières, les contrats de dérivés, et les exigences liées à la participation aux chambres de compensation et aux systèmes de paiement.",
-            "reason": "The wording change from 'correspondent aux actifs donnés en garanties' to 'correspondent à la portion des actifs donnés en garantie dans le cadre de grèvement' alters the scope of the assets being described, indicating a more specific subset.",
+            "reason": "The wording change from 'actifs donnés en garanties' to 'portion des actifs donnés en garantie dans le cadre de grèvement' indicates a more specific scope of the assets involved.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "This change narrows the scope of the assets considered as collateral, which could impact the bank's risk management and reporting of secured assets."
+              "justification": "The change specifies that only a portion of the assets is involved in the collateralization process, which could impact the bank's risk management and asset allocation strategies."
             }
           },
           {
@@ -3335,10 +3441,10 @@
             "current_id": "3",
             "previous_text": "Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d’obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la FHLB.",
             "current_text": "Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d’obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la Federal Home Loan Bank (FHLB).",
-            "reason": "The change from 'FHLB' to 'Federal Home Loan Bank (FHLB)' is a clarification of the acronym, not a semantic change.",
+            "reason": "The change from 'FHLB' to 'Federal Home Loan Bank (FHLB)' clarifies the acronym, but does not alter the meaning.",
             "analyst_assessment": {
               "relevance_level": 3,
-              "justification": "This change is purely cosmetic, providing clarity on the acronym without altering the underlying meaning or scope of the footnote."
+              "justification": "The clarification of the acronym 'FHLB' to 'Federal Home Loan Bank (FHLB)' is a cosmetic change that improves readability without affecting the underlying financial information."
             }
           }
         ],
@@ -3350,14 +3456,23 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
-      "reason": "The analysis identified two footnotes with text changes. One change was semantic, narrowing the scope of assets described, while the other was a cosmetic clarification of an acronym.",
+      "reason": "The analysis identified two footnotes with semantic changes: one specifying the scope of assets involved in collateralization and another clarifying an acronym.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
         "confidence": 0.9,
-        "explanation": "Les modifications des notes semblent être des corrections mineures de formulation sans impact sur le fond.",
+        "explanation": "Les modifications apportées aux notes sont purement cosmétiques et n'affectent pas le contenu réglementaire ou méthodologique.",
         "impact_type": "cosmetique",
         "project_phase": "rapport_gestion",
         "action_requise": "aucune",
@@ -3489,10 +3604,10 @@
           {
             "id": "5",
             "text": "Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
-            "reason": "This footnote is present in the previous table but not in the current table.",
+            "reason": "Footnote removed from the current table.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The removal of this footnote could indicate a change in the bank's policy or regulatory requirements regarding the conversion of senior debt under the internal recapitalization regime, which is significant for understanding the bank's capital structure and risk management strategy."
+              "justification": "The removal of this footnote could indicate a change in the bank's policy or regulatory compliance regarding the conversion of senior debt under the internal recapitalization regime, which is significant for understanding the bank's capital structure and risk management strategy."
             }
           }
         ],
@@ -3502,10 +3617,10 @@
             "current_id": "2",
             "previous_text": "Après la fin du trimestre, le 22 août 2025, Moody’s a entrepris une révision de la notation des dépôts/de contrepartie et des anciennes dettes de premier rang de la TD en vue d’un rehaussement.",
             "current_text": "Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody’s, la notation de crédit d’émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d’émetteur à long terme attribuée par DBRS.",
-            "reason": "The footnote text has been materially revised to reflect a different focus on the representation of credit ratings rather than a specific review by Moody's.",
+            "reason": "The footnote text has been materially revised to reflect different information about credit ratings.",
             "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "The change in the footnote's content from a specific credit rating review to a general representation of credit ratings alters the context and focus of the information provided, which is important for stakeholders assessing the bank's creditworthiness."
+              "relevance_level": 1,
+              "justification": "This change reflects a shift in the focus of the credit rating information provided, which is critical for regulatory compliance and investor transparency regarding the bank's creditworthiness."
             }
           },
           {
@@ -3513,10 +3628,10 @@
             "current_id": "3",
             "previous_text": "Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody’s, la notation de crédit d’émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d’émetteur à long terme attribuée par DBRS.",
             "current_text": "Comprend a) la dette de premier rang émise avant le 23 septembre 2018; et b) la dette de premier rang émise à partir du 23 septembre 2018, qui est exclue du régime de recapitalisation interne des banques.",
-            "reason": "The footnote text has been materially revised to focus on the inclusion criteria for senior debt rather than credit ratings.",
+            "reason": "The footnote text has been materially revised to reflect different information about senior debt.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "This change shifts the focus from credit ratings to the specifics of senior debt issuance and its exclusion from the internal recapitalization regime, which is crucial for understanding the bank's capital management and regulatory compliance."
+              "justification": "This change provides specific details about the senior debt issuance and its exclusion from the internal recapitalization regime, which is important for understanding the bank's capital management and regulatory positioning."
             }
           },
           {
@@ -3524,10 +3639,10 @@
             "current_id": "4",
             "previous_text": "Comprend a) la dette de premier rang émise avant le 23 septembre 2018; et b) la dette de premier rang émise à partir du 23 septembre 2018, qui est exclue du régime de recapitalisation interne des banques.",
             "current_text": "Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
-            "reason": "The footnote text has been materially revised to indicate a conversion requirement under the internal recapitalization regime.",
+            "reason": "The footnote text has been materially revised to reflect different information about conversion under the recapitalization regime.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The revision from detailing inclusion criteria to specifying conversion requirements under the recapitalization regime is significant for understanding potential impacts on the bank's capital structure and investor obligations."
+              "justification": "This change indicates a shift in the treatment of senior debt under the recapitalization regime, which is crucial for assessing the bank's compliance with regulatory requirements and its financial stability."
             }
           }
         ],
@@ -3539,19 +3654,28 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
       },
-      "reason": "The analysis identifies meaningful semantic changes in footnotes, including removals and renamings, which impact the understanding of the bank's credit ratings and capital management strategies.",
+      "reason": "The analysis identified meaningful semantic changes in the footnotes, including removals and material revisions, which impact the understanding of the bank's credit ratings and capital management.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Les modifications des notes de bas de tableau indiquent un changement dans la méthodologie de notation de crédit, ce qui peut affecter l'évaluation du risque de crédit.",
+        "explanation": "La suppression et la modification des notes dans le tableau des notations de crédit indiquent un changement dans la gestion du risque de crédit et potentiellement dans la conformité réglementaire.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Le changement de méthodologie de notation de crédit pourrait influencer la perception du risque de crédit par les investisseurs et les régulateurs.",
+        "impact_description": "Les modifications des notes peuvent affecter la compréhension des notations de crédit et leur impact sur le risque de crédit de la banque.",
         "source": "llm"
       }
     },
@@ -3637,7 +3761,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. The indicators in both tables are identical in terms of their business concept, scope, and role, with no additions, removals, or renamings observed.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators are present in both tables with identical names and positions, indicating no additions, removals, or renames.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -3764,7 +3897,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme liquidite."
       },
-      "reason": "Upon comparing the indicators from the previous and current tables, there are no meaningful semantic changes. All indicators are present in both tables with identical roles and meanings. There are no additions, removals, or renamings that affect the business interpretation of the data.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers, extraction disambiguation labels, and other non-semantic differences.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -3885,7 +4027,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme liquidite."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business concept, scope, and role in the table.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators are present in both tables with identical names and positions, indicating no additions, removals, or renames.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -4078,7 +4229,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme liquidite."
       },
-      "reason": "The deterministic analysis indicates that the only mechanical absence from the previous table is 'Prêts présentant un risque de crédit pondéré inférieur ou égal à 35 % selon l’approche standard de Bâle II pour mesurer le risque de crédit (bloc 2)'. However, this is a disambiguation label and does not represent a semantic change in the indicator. Therefore, there are no meaningful semantic indicator changes to report.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in terms of their normalized forms and positions, indicating no additions, removals, or renames beyond extraction noise or footnote variations.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -4181,6 +4341,15 @@
         "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "reason": "Previous table contains footnotes while current table has none.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "RISQUE",
@@ -4192,15 +4361,15 @@
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Le changement méthodologique pourrait modifier la perception du risque de liquidité lié aux dépôts.",
+        "impact_description": "Le changement de méthode de calcul pourrait modifier l'évaluation du risque de liquidité lié aux dépôts.",
         "source": "llm"
       }
     },
     {
       "previous_table_id": "tbl_p053_i02",
       "current_table_id": "tbl_p047_i02",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; row_count 7 vs 3; title and table_summary match exactly.",
+      "match_confidence": 0.85,
+      "match_reason": "Table summary and indicators are highly similar; both tables have the same headers and first indicator; row_count 7 vs 3.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p053_i02",
@@ -4262,34 +4431,34 @@
         "indicators_added": [
           {
             "value": "Programme de titres de fiducie de capital et de créance inscrit à la SEC des États-Unis (F-3) (75 milliards de dollars américains)",
-            "reason": "This indicator is present in the current table but absent in the previous table.",
+            "reason": "This indicator is present in the current table but not in the previous one, indicating a new program or a newly reported program.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The addition of this program indicates an expansion of capital trust and debt securities offerings in the U.S. market, which could impact the bank's funding strategy and regulatory compliance in the U.S."
+              "justification": "The addition of a new program related to the SEC registration in the United States could indicate a strategic expansion or regulatory compliance effort, impacting the bank's structural financing strategy."
             }
           },
           {
             "value": "Programme d’obligations sécurisées législatives inscrit à la Financial Conduct Authority (FCA) du Royaume-Uni (100 milliards de dollars)",
-            "reason": "This indicator is present in the current table but absent in the previous table.",
+            "reason": "This indicator is present in the current table but not in the previous one, indicating a new program or a newly reported program.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The introduction of a legislative covered bond program in the UK suggests a strategic move to secure funding through regulated instruments, potentially affecting the bank's risk profile and compliance with UK regulations."
+              "justification": "The introduction of a legislative secured bond program registered with the FCA suggests a significant structural change in the bank's financing approach in the UK, potentially affecting its regulatory and market positioning."
             }
           },
           {
             "value": "Programme de billets à moyen terme – marché mondial inscrit à la FCA (40 milliards de dollars américains)",
-            "reason": "This indicator is present in the current table but absent in the previous table.",
+            "reason": "This indicator is present in the current table but not in the previous one, indicating a new program or a newly reported program.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The addition of a medium-term note program registered with the FCA indicates a strategic initiative to access global markets, which could influence the bank's funding costs and international market presence."
+              "justification": "The addition of a medium-term note program registered with the FCA for the global market indicates a strategic move to enhance global market access, impacting the bank's structural financing strategy."
             }
           },
           {
             "value": "Programme de billets structurés à moyen terme liés – marché mondial non inscrit (20 milliards de dollars américains)",
-            "reason": "This indicator is present in the current table but absent in the previous table.",
+            "reason": "This indicator is present in the current table but not in the previous one, indicating a new program or a newly reported program.",
             "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "The introduction of a non-registered structured medium-term note program suggests a diversification of funding sources, which may have a minor impact on the bank's overall funding strategy and risk management."
+              "relevance_level": 2,
+              "justification": "The introduction of a structured medium-term note program for the global market, not registered, suggests a strategic diversification in financing options, impacting the bank's structural financing strategy."
             }
           }
         ],
@@ -4306,7 +4475,16 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme autre: 4 changement(s) d'indicateur et 0 changement(s) de footnote."
       },
-      "reason": "The current table includes several new indicators related to international funding programs, reflecting strategic expansions and regulatory engagements in the U.S. and UK markets. No indicators were removed or renamed, as all previous indicators remain unchanged in the current table.",
+      "reason": "The current table includes several new indicators that represent new or newly reported financing programs, indicating strategic changes in the bank's financing approach across different regions and regulatory environments.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "RISQUE",
@@ -4318,7 +4496,7 @@
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces programmes pourrait influencer la stratégie de gestion des risques et la conformité aux exigences réglementaires internationales.",
+        "impact_description": "Ces ajouts peuvent influencer la stratégie de gestion des risques et nécessitent une évaluation de leur impact sur les obligations réglementaires.",
         "source": "llm"
       }
     },
@@ -4431,7 +4609,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are consistent in terms of their business concept, scope, and role in the table. Any differences observed are due to non-semantic factors such as footnote markers or extraction disambiguation labels, which are to be ignored as per the rules.",
+      "reason": "No meaningful semantic changes detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction noise.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -4608,7 +4795,16 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "No meaningful semantic indicator changes were detected between the previous and current tables. All indicators are identical in terms of their business meaning and role, considering the rules provided for ignoring footnote markers and disambiguation labels.",
+      "reason": "No meaningful semantic changes were detected between the two tables. All indicators match in both name and position, considering the rules for ignoring footnote markers and extraction noise.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
         "category": "COSMETIQUE",
@@ -4857,16 +5053,7 @@
       },
       "technical_diff": {
         "indicators_added": [],
-        "indicators_removed": [
-          {
-            "value": "Participation dans Schwab",
-            "reason": "This indicator is present in the previous table but absent in the current table.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "The removal of 'Participation dans Schwab' is significant as it may indicate a divestment or a change in the bank's investment strategy, which could impact the bank's financial position and risk profile."
-            }
-          }
-        ],
+        "indicators_removed": [],
         "indicators_renamed": [],
         "footnotes_added": [],
         "footnotes_removed": [],
@@ -4876,10 +5063,10 @@
             "current_id": "5",
             "previous_text": "Comprennent 65 milliards de dollars d’obligations sécurisées, dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 3 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 25 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 21 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 6 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans ».",
             "current_text": "Comprennent 73 milliards de dollars d’obligations sécurisées, dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 1 mois à 3 mois », une tranche de 3 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 5 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 5 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 20 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 22 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans ».",
-            "reason": "The footnote has been materially revised to reflect changes in the amounts and durations of secured obligations.",
+            "reason": "The footnote has been materially revised to reflect changes in the distribution and total amount of secured obligations, indicating a significant shift in financial structuring.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The change in the amounts and durations of secured obligations indicates a significant restructuring of the bank's liabilities, which could affect liquidity management and risk exposure."
+              "justification": "The change in the distribution and total amount of secured obligations reflects a significant restructuring of financial liabilities, which could impact liquidity management and risk assessment."
             }
           },
           {
@@ -4887,10 +5074,10 @@
             "current_id": "6",
             "previous_text": "Comprennent 627 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé.",
             "current_text": "Comprennent 531 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé.",
-            "reason": "The footnote has been updated to reflect a change in the amount of credit commitments.",
+            "reason": "The footnote has been updated to reflect a change in the amount of credit commitments, indicating a potential shift in investment strategy or risk exposure.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The reduction in credit commitments to private equity investments may indicate a strategic shift or reassessment of risk, impacting the bank's investment strategy and risk profile."
+              "justification": "The reduction in credit commitments to private equity investments suggests a strategic shift or reassessment of risk exposure, which could affect the bank's investment portfolio and risk profile."
             }
           }
         ],
@@ -4900,21 +5087,30 @@
         "theme": "liquidite",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
-      "reason": "The analysis identified one indicator removed from the current table, with no new indicators added or renamed. The removed indicator may reflect a strategic change in the bank's asset holdings. The analysis identified two footnotes with significant semantic changes related to the restructuring of obligations and credit commitments, which are relevant for understanding the bank's financial strategy and risk management.",
+      "reason": "The analysis identified two footnotes with material changes in content, reflecting significant shifts in financial structuring and investment strategy.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
-        "is_relevant": true,
+        "is_relevant": false,
         "category": "RISQUE",
-        "relevance_score": "MOYENNE",
-        "risk_level": "MODERE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
         "confidence": 0.9,
-        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
-        "impact_type": "structurel",
+        "explanation": "Les modifications des montants d'obligations sécurisées et d'engagements de crédit ne concernent pas directement les seuils ou ratios réglementaires.",
+        "impact_type": "contenu",
         "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
+        "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "La suppression et les modifications peuvent influencer la perception du risque de crédit et de marché.",
+        "impact_description": "Les montants modifiés n'ont pas d'impact direct sur la conformité réglementaire.",
         "source": "llm"
       }
     },
@@ -5154,10 +5350,10 @@
         "indicators_removed": [
           {
             "value": "Participation dans Schwab",
-            "reason": "This indicator is present in the previous table but absent in the current table.",
+            "reason": "The indicator 'Participation dans Schwab' is present in the previous table but not in the current table.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The removal of 'Participation dans Schwab' could indicate a significant structural change in the bank's asset portfolio, potentially due to divestment or reclassification. This change may impact the bank's financial strategy and risk profile."
+              "justification": "The removal of 'Participation dans Schwab' indicates a potential divestiture or reclassification of this asset, which could have significant implications for the bank's investment strategy and financial position."
             }
           }
         ],
@@ -5170,10 +5366,10 @@
             "current_id": "5",
             "previous_text": "Comprennent 75 milliards de dollars d’obligations sécurisées dont une tranche de 2 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 18 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 37 milliards de dollars comporte une durée contractuelle restante de « plus de 2 ans à 5 ans et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans ».",
             "current_text": "Comprennent 70 milliards de dollars d’obligations sécurisées dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 4 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 5 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 24 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 19 milliards de dollars comporte une durée contractuelle restante de « plus de 2 ans à 5 ans et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans ».",
-            "reason": "The footnote has been materially revised to reflect changes in the distribution and total amount of secured obligations, indicating a significant shift in the bank's financial obligations.",
+            "reason": "The footnote has been materially revised to reflect changes in the distribution and total amount of secured obligations, indicating a significant shift in financial structuring.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "The change in the distribution and total amount of secured obligations reflects a significant structural adjustment in the bank's liability management strategy, which could impact liquidity and risk management practices."
+              "justification": "The change in the distribution and total amount of secured obligations suggests a restructuring of financial liabilities, which could impact liquidity management and risk assessment."
             }
           },
           {
@@ -5181,10 +5377,10 @@
             "current_id": "6",
             "previous_text": "Comprennent 609 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé.",
             "current_text": "Comprennent 623 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé.",
-            "reason": "The footnote has been updated to reflect a change in the amount of credit commitments, indicating a potential increase in exposure to private equity investments.",
+            "reason": "The footnote reflects a change in the amount of credit commitments, indicating a potential increase in exposure to private equity investments.",
             "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "The increase in credit commitments to private equity investments is a minor adjustment that may slightly alter the bank's risk exposure but does not significantly impact overall financial strategy."
+              "relevance_level": 2,
+              "justification": "The increase in credit commitments to private equity investments may affect the bank's risk profile and capital allocation strategy, necessitating a review of investment policies."
             }
           }
         ],
@@ -5196,45 +5392,57 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
-      "reason": "The deterministic analysis identified 'Participation dans Schwab' as removed. The other differences identified are due to footnote marker changes or OCR noise, which are not considered meaningful semantic changes. The analysis identified two footnotes with material changes in content, reflecting adjustments in financial obligations and credit commitments, which are relevant for understanding shifts in the bank's financial strategy and risk exposure.",
+      "reason": "The analysis identified one indicator added and one removed, reflecting changes in asset reporting and potential structural adjustments in the financial statements. The analysis identified material changes in the wording and amounts within footnotes, indicating significant financial and structural adjustments.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent indiquer un changement dans l'exposition au risque.",
+        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Ces changements peuvent affecter l'évaluation du risque de crédit et de marché de la banque.",
+        "impact_description": "Ces changements peuvent influencer l'analyse de la gestion des risques et nécessitent une vérification pour comprendre leur impact sur le profil de risque global.",
         "source": "llm"
       }
     }
   ],
   "run_metrics": {
     "runtime_extraction_sec": 0.0,
-    "runtime_comparison_sec": 137.285,
+    "runtime_comparison_sec": 171.263,
     "vision_calls_total": 0,
     "vision_rescue_total": 0,
-    "comparison_calls_total": 54,
+    "comparison_calls_total": 76,
     "matching_passes_total": 2,
+    "inspector_passes_total": 22,
     "audit_passes_total": 0,
     "matching_output_retries_total": 0,
     "matching_validation_failures_total": 0,
     "stage1_validation_retries_total": 0,
     "stage2_validation_retries_total": 0,
-    "unresolved_after_stage1_total": 2,
-    "matched_in_stage2_total": 2,
-    "unmatched_after_primary_total": 5,
+    "unresolved_after_stage1_total": 3,
+    "matched_in_stage2_total": 3,
+    "unmatched_after_primary_total": 7,
     "unmatched_after_rescue_total": 1,
     "matching_pairs_llm_duplicates_total": 0,
     "matching_pairs_llm_deduped_total": 0,
-    "prompt_tokens_total": 139261,
-    "completion_tokens_total": 12877,
-    "total_tokens_total": 152138,
-    "estimated_cost_usd": 0.476922,
+    "inspector_rejected_total": 1,
+    "inspector_confirmed_total": 21,
+    "prompt_tokens_total": 240552,
+    "completion_tokens_total": 16169,
+    "total_tokens_total": 256721,
+    "estimated_cost_usd": 0.76307,
     "extraction": {
       "runtime_extraction_sec": 0.0,
       "vision_calls_total": 0,
@@ -5248,24 +5456,27 @@
       "current": {}
     },
     "comparison": {
-      "prompt_tokens_total": 139261,
-      "completion_tokens_total": 12877,
-      "total_tokens_total": 152138,
-      "comparison_calls_total": 54,
-      "runtime_comparison_sec": 137.285,
+      "prompt_tokens_total": 240552,
+      "completion_tokens_total": 16169,
+      "total_tokens_total": 256721,
+      "comparison_calls_total": 76,
+      "runtime_comparison_sec": 171.263,
       "matching_passes_total": 2,
+      "inspector_passes_total": 22,
       "audit_passes_total": 0,
       "matching_output_retries_total": 0,
       "matching_validation_failures_total": 0,
       "stage1_validation_retries_total": 0,
       "stage2_validation_retries_total": 0,
-      "unresolved_after_stage1_total": 2,
-      "matched_in_stage2_total": 2,
-      "unmatched_after_primary_total": 5,
+      "unresolved_after_stage1_total": 3,
+      "matched_in_stage2_total": 3,
+      "unmatched_after_primary_total": 7,
       "unmatched_after_rescue_total": 1,
       "matching_pairs_llm_duplicates_total": 0,
       "matching_pairs_llm_deduped_total": 0,
-      "estimated_cost_usd": 0.476922
+      "inspector_rejected_total": 1,
+      "inspector_confirmed_total": 21,
+      "estimated_cost_usd": 0.76307
     }
   },
   "summary": {
@@ -5276,47 +5487,45 @@
     "artifacts_confirmed_current_total": 0,
     "extraction_suspects_previous_total": 8,
     "extraction_suspects_current_total": 8,
-    "indicator_changes_total": 14,
-    "footnote_changes_total": 17,
-    "high_priority_items_total": 11
+    "indicator_changes_total": 8,
+    "footnote_changes_total": 21,
+    "high_priority_items_total": 10
   },
   "global_summary": {
-    "executive_overview": "Au cours de ce trimestre, plusieurs changements significatifs ont été observés dans les domaines de la gestion du capital et de la gestion des risques. Les ajustements apportés aux ratios de fonds propres et à la structure du capital, notamment en lien avec les crypto-actifs, sont particulièrement notables. De plus, des modifications dans la gestion des risques, telles que l'ajout d'indicateurs de risque de marché et des changements dans les notations de crédit, pourraient avoir un impact sur l'évaluation globale des risques bancaires.",
+    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été observés dans les rapports bancaires, principalement dans la gestion du capital et du risque. Les modifications incluent des ajustements aux ratios de fonds propres et des changements dans les méthodes de calcul des risques, ce qui pourrait avoir un impact sur la conformité réglementaire et la gestion des risques. Ces évolutions soulignent l'importance d'une surveillance accrue des pratiques de gestion du capital et du risque.",
     "key_highlights": [
-      "Modification des ratios de fonds propres réglementaires en lien avec les banques d'importance systémique.",
-      "Introduction de déductions pour les expositions sur crypto-actifs dans les ratios de fonds propres.",
-      "Changements dans la méthodologie de notation de crédit affectant l'évaluation du risque de crédit.",
-      "Ajout d'indicateurs liés aux passifs exposés au risque de marché.",
-      "Suppression de l'indicateur 'Participation dans Schwab' affectant l'évaluation des risques."
+      "Modification des ratios de fonds propres réglementaires pour les banques d'importance systémique.",
+      "Ajout d'indicateurs liés aux crypto-actifs sous Bâle III.",
+      "Changements dans les mesures de sensibilité au risque de taux d'intérêt."
     ],
     "pertinence_globale": "ELEVEE",
     "par_phase": {
       "rapport_gestion": {
-        "count": 11,
-        "resume": "Tous les changements pertinents ont été identifiés dans la phase de rapport de gestion."
+        "count": 9,
+        "resume": "Tous les changements pertinents ont été observés dans la phase de rapport de gestion."
       },
       "pilier_3": {
         "count": 0,
-        "resume": "Aucun changement pertinent n'a été identifié dans la phase Pilier 3."
+        "resume": "Aucun changement pertinent n'a été observé dans la phase Pilier 3."
       },
       "ifc": {
         "count": 0,
-        "resume": "Aucun changement pertinent n'a été identifié dans la phase IFC."
+        "resume": "Aucun changement pertinent n'a été observé dans la phase IFC."
       },
       "autre": {
         "count": 0,
-        "resume": "Aucun changement pertinent n'a été identifié dans d'autres phases."
+        "resume": "Aucun changement pertinent n'a été observé dans d'autres phases."
       }
     },
     "par_action": {
       "escalade": 1,
-      "investigation": 9,
+      "investigation": 7,
       "confirmation": 0,
       "information": 0,
       "aucune": 0
     },
     "source": "llm",
     "total_changes_analysed": 25,
-    "total_relevant": 11
+    "total_relevant": 9
   }
 }
