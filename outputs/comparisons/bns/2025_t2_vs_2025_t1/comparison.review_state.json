@@ -1,19 +1,86 @@
 {
   "schema_version": "review_state_v1",
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/comparison.json",
-  "comparison_run_id": "20260403_152825",
-  "review_items_signature": "f853158d89178cd126eb212a7a7f4dc8750c98a62c2f6402f144b1430911974e",
-  "saved_at": "2026-04-04T10:33:05+00:00",
+  "comparison_run_id": "20260404_083108",
+  "review_items_signature": "0e881fbecaa40a4ea300da1fb20be7d97bdba5721dc06e4994bbdc8976f41238",
+  "saved_at": "2026-04-04T18:43:14+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bns::risk_management::tbl_p041_i01|tbl_p048_i01",
-    "change_id": "chg_00006"
+    "review_id": "bns::risk_management::tbl_p036_i01|tbl_p042_i01",
+    "change_id": "chg_00016"
   },
-  "review_current_idx": 0,
+  "review_current_idx": 4,
   "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
+    {
+      "change_id": "bns::capital_management::tbl_p047_i02|",
+      "change_type": "table_removed",
+      "indicator": "Tableau entier retiré",
+      "section": "capital_management",
+      "table_name": "T33 Indicateurs de BISm",
+      "table_number": "",
+      "table_id_t1": "tbl_p047_i02",
+      "table_id_t2": "",
+      "page_t1": 47,
+      "page_t2": null,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T18:43:02.754210+00:00",
+      "edited_value": "",
+      "confidence": 1.0,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "T33 Indicateurs de BISm",
+      "table_status": "completed",
+      "indicators": [],
+      "match_method": "",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.059590695509270056,
+        0.6792322697158366,
+        0.9397050595006737,
+        0.931013825904973
+      ],
+      "bbox_t2": null,
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "table_removed",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "La suppression du tableau T33 sur les indicateurs de BISm est pertinente car elle affecte la gestion du capital et pourrait avoir un impact sur l'évaluation des risques systémiques.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "ELEVE",
+        "confidence": 0.9,
+        "explanation": "La suppression du tableau T33 sur les indicateurs de BISm est pertinente car elle affecte la gestion du capital et pourrait avoir un impact sur l'évaluation des risques systémiques.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "escalade",
+        "reference_reglementaire": "Bâle III — Indicateurs de BISm",
+        "impact_description": "La suppression de ce tableau pourrait affecter la transparence et la conformité aux exigences de Bâle III concernant les indicateurs de risque systémique.",
+        "source": "llm",
+        "justification": "La suppression du tableau T33 sur les indicateurs de BISm est pertinente car elle affecte la gestion du capital et pourrait avoir un impact sur l'évaluation des risques systémiques.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
+      }
+    },
     {
       "change_id": "bns::risk_management::tbl_p041_i01|tbl_p048_i01",
       "change_type": "added",
@@ -29,8 +96,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:33:05.917279+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -40,12 +107,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T29 Ratio structurel de liquidité à long terme de la Banque¹)",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Fonds propres :",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Fonds propres réglementaires",
@@ -93,7 +160,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Table summary and indicators are highly similar to tbl_p041_i01. Both tables focus on the 'Ratio structurel de liquidité à long terme'. Headers and footnotes are also closely aligned, indicating a continuation of the same reporting structure.",
+      "match_method": "Both tables are in the 'risk_management' section and share a highly similar table summary focused on the 'Ratio structurel de liquidité à long terme'. The headers and indicators are nearly identical, and the footnote texts are the same, indicating a strong structural match.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -117,20 +184,20 @@
         "theme": "liquidite",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter la manière dont la banque évalue et gère ses risques de liquidité.",
+        "analyst_summary": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter l'évaluation de la stabilité financière de la banque.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter la manière dont la banque évalue et gère ses risques de liquidité.",
+        "explanation": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter l'évaluation de la stabilité financière de la banque.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — NSFR",
-        "impact_description": "La modification des indicateurs pourrait influencer le calcul du ratio de liquidité à long terme, impactant potentiellement la gestion des risques de liquidité.",
+        "impact_description": "Les changements dans les indicateurs du tableau peuvent modifier la manière dont la banque évalue et gère ses besoins en financement stable.",
         "source": "llm",
-        "justification": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter la manière dont la banque évalue et gère ses risques de liquidité.",
+        "justification": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter l'évaluation de la stabilité financière de la banque.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -144,7 +211,7 @@
     {
       "change_id": "bns::capital_management::tbl_p046_i01|tbl_p053_i01",
       "change_type": "removed",
-      "indicator": "1 ajouté(s), 1 retiré(s), 1 renommé(s)",
+      "indicator": "1 ajouté(s), 1 retiré(s)",
       "section": "capital_management",
       "table_name": "T32 Ratios de fonds propres réglementaires et de capacité totale d’absorption des pertes",
       "table_number": "",
@@ -157,9 +224,9 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:30:56.844792+00:00",
+      "review_timestamp": "2026-04-04T18:43:06.493188+00:00",
       "edited_value": "",
-      "confidence": 0.99,
+      "confidence": 0.95,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -178,16 +245,9 @@
           "name": "Exposition du ratio de levier",
           "type": "removed",
           "review_status": "pending"
-        },
-        {
-          "name": "Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)(2) -> Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)²)",
-          "type": "renamed",
-          "from": "Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)(2)",
-          "to": "Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)²)",
-          "review_status": "pending"
         }
       ],
-      "match_method": "Title identical: 'T32 Ratios de fonds propres réglementaires et de capacité totale d’absorption des pertes'; indicators: same regulatory capital ratios; row_count 14 vs 14; headers identical.",
+      "match_method": "Title and table_summary closely aligned; indicators match with regulatory capital ratios; row_count 14 vs 14; footnote_count identical.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -211,20 +271,20 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres réglementaires peuvent indiquer un changement dans la manière dont le risque de levier est évalué.",
+        "analyst_summary": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres peuvent indiquer un changement méthodologique ou réglementaire important.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres réglementaires peuvent indiquer un changement dans la manière dont le risque de levier est évalué.",
+        "explanation": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres peuvent indiquer un changement méthodologique ou réglementaire important.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — Ratio de levier",
-        "impact_description": "Le changement pourrait affecter la manière dont le risque de levier est mesuré et rapporté, nécessitant une analyse plus approfondie.",
+        "impact_description": "Ce changement pourrait affecter la manière dont le risque de levier est évalué et rapporté, nécessitant une analyse approfondie.",
         "source": "llm",
-        "justification": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres réglementaires peuvent indiquer un changement dans la manière dont le risque de levier est évalué.",
+        "justification": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres peuvent indiquer un changement méthodologique ou réglementaire important.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -232,413 +292,7 @@
         "theme": "capital",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "bns::risk_management::tbl_p034_i02|tbl_p040_i02",
-      "change_type": "added",
-      "indicator": "2 ajouté(s)",
-      "section": "risk_management",
-      "table_name": "T19 Distribution des prêts hypothécaires à l’habitation par périodes d’amortissement et par secteurs géographiques",
-      "table_number": "",
-      "table_id_t1": "tbl_p034_i02",
-      "table_id_t2": "tbl_p040_i02",
-      "page_t1": 34,
-      "page_t2": 40,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:31:02.200326+00:00",
-      "edited_value": "",
-      "confidence": 0.92,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "T19 Distribution des prêts hypothécaires à l’habitation par périodes d’amortissement et par secteurs géographiques",
-      "table_status": "partial",
-      "indicators": [
-        {
-          "name": "Au 30 avril 2025 – Canada",
-          "type": "added",
-          "review_status": "approved"
-        },
-        {
-          "name": "Au 30 avril 2025 – Étranger",
-          "type": "added",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Title identical: 'T19 Distribution des prêts hypothécaires à l’habitation par périodes d’amortissement et par secteurs géographiques'; indicators: same periods and regions; row_count 6 vs 4; headers identical.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.060110835491325926,
-        0.6020997730708214,
-        0.93975830078125,
-        0.7492144939086447
-      ],
-      "bbox_t2": [
-        0.06022626329614946,
-        0.7378497945851293,
-        0.9392164745931799,
-        0.9305733282447318
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "autre",
-        "change_significance": "moyen",
-        "review_priority": "prioritaire",
-        "analyst_summary": "L'ajout d'indicateurs géographiques dans le tableau de distribution des prêts hypothécaires peut signaler un changement dans l'analyse des risques géographiques.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "MOYENNE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs géographiques dans le tableau de distribution des prêts hypothécaires peut signaler un changement dans l'analyse des risques géographiques.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "information",
-        "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces indicateurs permet une meilleure évaluation des risques liés à la répartition géographique des prêts hypothécaires.",
-        "source": "llm",
-        "justification": "L'ajout d'indicateurs géographiques dans le tableau de distribution des prêts hypothécaires peut signaler un changement dans l'analyse des risques géographiques.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "autre",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "bns::capital_management::tbl_p047_i02|",
-      "change_type": "table_removed",
-      "indicator": "Tableau entier retiré",
-      "section": "capital_management",
-      "table_name": "T33 Indicateurs de BISm",
-      "table_number": "",
-      "table_id_t1": "tbl_p047_i02",
-      "table_id_t2": "",
-      "page_t1": 47,
-      "page_t2": null,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 1.0,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "T33 Indicateurs de BISm",
-      "table_status": "pending",
-      "indicators": [],
-      "match_method": "",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.059590695509270056,
-        0.6792322697158366,
-        0.9397050595006737,
-        0.931013825904973
-      ],
-      "bbox_t2": null,
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "table_removed",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "capital",
-        "change_significance": "eleve",
-        "review_priority": "critique",
-        "analyst_summary": "La suppression du tableau T33 sur les Indicateurs de BISm est pertinente car elle affecte la divulgation des indicateurs clés liés à la gestion du capital et à l'évaluation des risques systémiques.",
-        "is_relevant": true,
-        "category": "CAPITAL",
-        "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "La suppression du tableau T33 sur les Indicateurs de BISm est pertinente car elle affecte la divulgation des indicateurs clés liés à la gestion du capital et à l'évaluation des risques systémiques.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
-        "reference_reglementaire": "Bâle III — Indicateurs de BISm",
-        "impact_description": "La suppression de ce tableau pourrait affecter la transparence et la conformité aux exigences de divulgation des indicateurs de risque systémique.",
-        "source": "llm",
-        "justification": "La suppression du tableau T33 sur les Indicateurs de BISm est pertinente car elle affecte la divulgation des indicateurs clés liés à la gestion du capital et à l'évaluation des risques systémiques.",
-        "relevance": "Capital"
-      },
-      "match_metadata": {
-        "semantic_judge": "No current business table was matched to this previous table."
-      }
-    },
-    {
-      "change_id": "bns::risk_management::tbl_p038_i01|tbl_p044_i01",
-      "change_type": "renamed",
-      "indicator": "1 renommé(s)",
-      "section": "risk_management",
-      "table_name": "T25 Groupes d’actifs liquides",
-      "table_number": "",
-      "table_id_t1": "tbl_p038_i01",
-      "table_id_t2": "tbl_p044_i01",
-      "page_t1": 38,
-      "page_t2": 44,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 0.99,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "T25 Groupes d’actifs liquides",
-      "table_status": "pending",
-      "indicators": [
-        {
-          "name": "Titres -> Titres :",
-          "type": "renamed",
-          "from": "Titres",
-          "to": "Titres :",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Title identical: 'T25 Groupes d’actifs liquides'; indicators: same asset groups; row_count 9 vs 9; headers identical.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.06055915414990477,
-        0.5122118641742497,
-        0.9400070974878213,
-        0.7208562195681674
-      ],
-      "bbox_t2": [
-        0.06045010947864843,
-        0.5128889802467473,
-        0.9397819860657649,
-        0.7206574460708014
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "normale",
-        "analyst_summary": "Le changement consiste uniquement en un renommage cosmétique d'un indicateur sans impact de fond.",
-        "is_relevant": false,
-        "category": "COSMETIQUE",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
-        "confidence": 0.9,
-        "explanation": "Le changement consiste uniquement en un renommage cosmétique d'un indicateur sans impact de fond.",
-        "impact_type": "cosmetique",
-        "project_phase": "rapport_gestion",
-        "action_requise": "aucune",
-        "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm",
-        "justification": "Le changement consiste uniquement en un renommage cosmétique d'un indicateur sans impact de fond.",
-        "relevance": "Cosmétique"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "financement",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "bns::risk_management::tbl_p040_i01|tbl_p046_i01",
-      "change_type": "renamed",
-      "indicator": "1 renommé(s)",
-      "section": "risk_management",
-      "table_name": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
-      "table_number": "",
-      "table_id_t1": "tbl_p040_i01",
-      "table_id_t2": "tbl_p046_i01",
-      "page_t1": 40,
-      "page_t2": 46,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:32:37.662955+00:00",
-      "edited_value": "",
-      "confidence": 0.99,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
-      "table_status": "completed",
-      "indicators": [
-        {
-          "name": "Total des sorties de trésorerie -> Sorties de trésorerie – Total des sorties de trésorerie",
-          "type": "renamed",
-          "from": "Total des sorties de trésorerie",
-          "to": "Sorties de trésorerie – Total des sorties de trésorerie",
-          "review_status": "approved"
-        }
-      ],
-      "match_method": "Title identical: 'T28 Ratio de liquidité à court terme moyen de la Banque'; indicators: same liquidity ratios; row_count 29 vs 29; headers identical.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.06012743543431929,
-        0.3327471853672773,
-        0.9399256160603234,
-        0.7961349389866699
-      ],
-      "bbox_t2": [
-        0.05997148200647155,
-        0.38415924890744735,
-        0.9397977762554416,
-        0.8504809383231562
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "liquidite",
-        "change_significance": "eleve",
-        "review_priority": "normale",
-        "analyst_summary": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le calcul ou la méthodologie.",
-        "is_relevant": false,
-        "category": "COSMETIQUE",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
-        "confidence": 0.9,
-        "explanation": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le calcul ou la méthodologie.",
-        "impact_type": "cosmetique",
-        "project_phase": "rapport_gestion",
-        "action_requise": "aucune",
-        "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur les ratios ou la conformité réglementaire.",
-        "source": "llm",
-        "justification": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le calcul ou la méthodologie.",
-        "relevance": "Cosmétique"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "liquidite",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "bns::risk_management::tbl_p044_i01|tbl_p051_i01",
-      "change_type": "renamed",
-      "indicator": "1 renommé(s)",
-      "section": "risk_management",
-      "table_name": "T31 Échéances contractuelles",
-      "table_number": "",
-      "table_id_t1": "tbl_p044_i01",
-      "table_id_t2": "tbl_p051_i01",
-      "page_t1": 44,
-      "page_t2": 51,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 0.99,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "T31 Échéances contractuelles",
-      "table_status": "pending",
-      "indicators": [
-        {
-          "name": "Titres de placement – JVAÉRG -> Titres de placement – JVAÉRG",
-          "type": "renamed",
-          "from": "Titres de placement – JVAÉRG",
-          "to": "Titres de placement – JVAÉRG",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Title identical: 'T31 Échéances contractuelles'; indicators: same contractual maturities; row_count 34 vs 34; headers identical.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05926600340784684,
-        0.20922081802387654,
-        0.9400457632086962,
-        0.8715218535480524
-      ],
-      "bbox_t2": [
-        0.0592766693773159,
-        0.2047205275807192,
-        0.9398671113831882,
-        0.887960187929039
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "normale",
-        "analyst_summary": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le contenu ou la méthodologie.",
-        "is_relevant": false,
-        "category": "COSMETIQUE",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
-        "confidence": 0.95,
-        "explanation": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le contenu ou la méthodologie.",
-        "impact_type": "cosmetique",
-        "project_phase": "rapport_gestion",
-        "action_requise": "aucune",
-        "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm",
-        "justification": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le contenu ou la méthodologie.",
-        "relevance": "Cosmétique"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "financement",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
       }
     },
     {
@@ -657,7 +311,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T10:32:52.261560+00:00",
+      "review_timestamp": "2026-04-04T18:43:11.792797+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -680,7 +334,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title identical: 'T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques'; indicators: same regions; row_count 16 vs 13; headers identical.",
+      "match_method": "Title and table_summary closely aligned; indicators match with regional breakdown; row_count 16 vs 13; footnote_count identical.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -702,9 +356,149 @@
       "footnote_changes": [],
       "genai_analysis": {},
       "match_metadata": {}
+    },
+    {
+      "change_id": "bns::risk_management::tbl_p036_i01|tbl_p042_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "T21 Expositions au risque de crédit de la Banque par régions",
+      "table_number": "",
+      "table_id_t1": "tbl_p036_i01",
+      "table_id_t2": "tbl_p042_i01",
+      "page_t1": 36,
+      "page_t2": 42,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-04T18:43:14.153251+00:00",
+      "edited_value": "",
+      "confidence": 0.95,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "T21 Expositions au risque de crédit de la Banque par régions",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "[1] Les comptes de correction de valeur pour pertes sur créances -> Les comptes de correction de valeur pour pertes sur créances",
+          "type": "modified",
+          "review_status": "approved"
+        },
+        {
+          "name": "[3] Les transactions de financement sur titres comprennent des t -> Les transactions de financement sur titres comprennent des t",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title and table_summary closely aligned; indicators match with regional breakdown; row_count 7 vs 7; footnote_count identical.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.06024658936963943,
+        0.12244202868387313,
+        0.9398200444716521,
+        0.3202799557117058
+      ],
+      "bbox_t2": [
+        0.06027379834632178,
+        0.16062724575076828,
+        0.9391458236162935,
+        0.3594879501167385
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {},
+      "match_metadata": {}
     }
   ],
   "review_queue": [
+    {
+      "review_id": "bns::capital_management::tbl_p047_i02|",
+      "table_key": "bns::capital_management::tbl_p047_i02|",
+      "table_title": "T33 Indicateurs de BISm",
+      "view_mode": "table_only",
+      "section": "capital_management",
+      "table_name": "T33 Indicateurs de BISm",
+      "table_number": "",
+      "table_id_t1": "tbl_p047_i02",
+      "table_id_t2": "",
+      "page_t1": 47,
+      "page_t2": null,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.059590695509270056,
+        0.6792322697158366,
+        0.9397050595006737,
+        0.931013825904973
+      ],
+      "bbox_t2": null,
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00017",
+          "change_type": "table_removed",
+          "payload": {
+            "description": "Tableau entier supprimé",
+            "table_status": "supprime"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-04T18:43:02.754210+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 1,
+      "match_method": "",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "La suppression du tableau T33 sur les indicateurs de BISm est pertinente car elle affecte la gestion du capital et pourrait avoir un impact sur l'évaluation des risques systémiques.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "ELEVE",
+        "confidence": 0.9,
+        "explanation": "La suppression du tableau T33 sur les indicateurs de BISm est pertinente car elle affecte la gestion du capital et pourrait avoir un impact sur l'évaluation des risques systémiques.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "escalade",
+        "reference_reglementaire": "Bâle III — Indicateurs de BISm",
+        "impact_description": "La suppression de ce tableau pourrait affecter la transparence et la conformité aux exigences de Bâle III concernant les indicateurs de risque systémique.",
+        "source": "llm",
+        "justification": "La suppression du tableau T33 sur les indicateurs de BISm est pertinente car elle affecte la gestion du capital et pourrait avoir un impact sur l'évaluation des risques systémiques.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
+      },
+      "relevance": "Capital",
+      "risk_level": "ELEVE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
+      }
+    },
     {
       "review_id": "bns::risk_management::tbl_p041_i01|tbl_p048_i01",
       "table_key": "bns::risk_management::tbl_p041_i01|tbl_p048_i01",
@@ -736,21 +530,21 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00005",
+          "change_id": "chg_00001",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Fonds propres :",
             "indicator_name_clean": "fonds propres :"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:33:05.917279+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
-          "change_id": "chg_00006",
+          "change_id": "chg_00002",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Fonds propres réglementaires",
@@ -764,7 +558,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00007",
+          "change_id": "chg_00003",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Autres instruments de fonds propres",
@@ -778,7 +572,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00008",
+          "change_id": "chg_00004",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Dépôts de particuliers et dépôts de petites entreprises :",
@@ -792,7 +586,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00009",
+          "change_id": "chg_00005",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Dépôts stables",
@@ -806,7 +600,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00010",
+          "change_id": "chg_00006",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Dépôts moins stables",
@@ -820,7 +614,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00011",
+          "change_id": "chg_00007",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Financement de gros :",
@@ -834,7 +628,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00012",
+          "change_id": "chg_00008",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Dépôts opérationnels",
@@ -848,7 +642,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00013",
+          "change_id": "chg_00009",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Autres financements de gros",
@@ -862,7 +656,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00014",
+          "change_id": "chg_00010",
           "change_type": "indicator_removed",
           "payload": {
             "indicator_name": "Éléments entrant dans le calcul du financement stable requis",
@@ -876,27 +670,27 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.95,
-      "match_method": "Table summary and indicators are highly similar to tbl_p041_i01. Both tables focus on the 'Ratio structurel de liquidité à long terme'. Headers and footnotes are also closely aligned, indicating a continuation of the same reporting structure.",
+      "match_method": "Both tables are in the 'risk_management' section and share a highly similar table summary focused on the 'Ratio structurel de liquidité à long terme'. The headers and indicators are nearly identical, and the footnote texts are the same, indicating a strong structural match.",
       "genai_analysis": {
         "theme": "liquidite",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter la manière dont la banque évalue et gère ses risques de liquidité.",
+        "analyst_summary": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter l'évaluation de la stabilité financière de la banque.",
         "is_relevant": true,
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter la manière dont la banque évalue et gère ses risques de liquidité.",
+        "explanation": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter l'évaluation de la stabilité financière de la banque.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — NSFR",
-        "impact_description": "La modification des indicateurs pourrait influencer le calcul du ratio de liquidité à long terme, impactant potentiellement la gestion des risques de liquidité.",
+        "impact_description": "Les changements dans les indicateurs du tableau peuvent modifier la manière dont la banque évalue et gère ses besoins en financement stable.",
         "source": "llm",
-        "justification": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter la manière dont la banque évalue et gère ses risques de liquidité.",
+        "justification": "L'ajout et la suppression d'indicateurs dans le tableau du ratio structurel de liquidité à long terme peuvent affecter l'évaluation de la stabilité financière de la banque.",
         "relevance": "Risque"
       },
       "match_metadata": {
@@ -914,8 +708,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 9
+        "validated": 0,
+        "pending": 10
       }
     },
     {
@@ -949,7 +743,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00016",
+          "change_id": "chg_00011",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Risque de levier",
@@ -959,11 +753,11 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:30:56.844792+00:00",
+          "validated_at": "2026-04-04T18:43:06.493188+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00017",
+          "change_id": "chg_00012",
           "change_type": "indicator_removed",
           "payload": {
             "indicator_name": "Exposition du ratio de levier",
@@ -975,47 +769,29 @@
           "validation_notes": "",
           "validated_at": "",
           "validated_by": ""
-        },
-        {
-          "change_id": "chg_00018",
-          "change_type": "indicator_renamed",
-          "payload": {
-            "indicator_name": "Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)(2) -> Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)²)",
-            "indicator_name_clean": "ratio de levier de capacité totale d’absorption des pertes (en pourcentage)(2) -> ratio de levier de capacité totale d’absorption des pertes (en pourcentage)²)",
-            "from": "Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)(2)",
-            "to": "Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)²)",
-            "from_clean": "Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)(2)",
-            "to_clean": "Ratio de levier de capacité totale d’absorption des pertes (en pourcentage)²)"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
         }
       ],
       "table_status": "partial",
-      "confidence": 0.99,
-      "match_method": "Title identical: 'T32 Ratios de fonds propres réglementaires et de capacité totale d’absorption des pertes'; indicators: same regulatory capital ratios; row_count 14 vs 14; headers identical.",
+      "confidence": 0.95,
+      "match_method": "Title and table_summary closely aligned; indicators match with regulatory capital ratios; row_count 14 vs 14; footnote_count identical.",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres réglementaires peuvent indiquer un changement dans la manière dont le risque de levier est évalué.",
+        "analyst_summary": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres peuvent indiquer un changement méthodologique ou réglementaire important.",
         "is_relevant": true,
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres réglementaires peuvent indiquer un changement dans la manière dont le risque de levier est évalué.",
+        "explanation": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres peuvent indiquer un changement méthodologique ou réglementaire important.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — Ratio de levier",
-        "impact_description": "Le changement pourrait affecter la manière dont le risque de levier est mesuré et rapporté, nécessitant une analyse plus approfondie.",
+        "impact_description": "Ce changement pourrait affecter la manière dont le risque de levier est évalué et rapporté, nécessitant une analyse approfondie.",
         "source": "llm",
-        "justification": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres réglementaires peuvent indiquer un changement dans la manière dont le risque de levier est évalué.",
+        "justification": "L'ajout de l'indicateur 'Risque de levier' et la suppression de 'Exposition du ratio de levier' dans le tableau des ratios de fonds propres peuvent indiquer un changement méthodologique ou réglementaire important.",
         "relevance": "Capital"
       },
       "match_metadata": {
@@ -1023,469 +799,17 @@
         "theme": "capital",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
       },
       "relevance": "Capital",
-      "risk_level": "MODERE",
-      "summary": {
-        "total_changes": 3,
-        "indicators_added": 1,
-        "indicators_removed": 1,
-        "indicators_renamed": 1,
-        "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 2
-      }
-    },
-    {
-      "review_id": "bns::risk_management::tbl_p034_i02|tbl_p040_i02",
-      "table_key": "bns::risk_management::tbl_p034_i02|tbl_p040_i02",
-      "table_title": "T19 Distribution des prêts hypothécaires à l’habitation par périodes d’amortissement et par secteurs géographiques",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "T19 Distribution des prêts hypothécaires à l’habitation par périodes d’amortissement et par secteurs géographiques",
-      "table_number": "",
-      "table_id_t1": "tbl_p034_i02",
-      "table_id_t2": "tbl_p040_i02",
-      "page_t1": 34,
-      "page_t2": 40,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.060110835491325926,
-        0.6020997730708214,
-        0.93975830078125,
-        0.7492144939086447
-      ],
-      "bbox_t2": [
-        0.06022626329614946,
-        0.7378497945851293,
-        0.9392164745931799,
-        0.9305733282447318
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00001",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Au 30 avril 2025 – Canada",
-            "indicator_name_clean": "au 30 avril 2025 – canada"
-          },
-          "validation_status": "approved",
-          "is_required": true,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-04T10:31:02.200326+00:00",
-          "validated_by": "analyst"
-        },
-        {
-          "change_id": "chg_00002",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Au 30 avril 2025 – Étranger",
-            "indicator_name_clean": "au 30 avril 2025 – étranger"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "partial",
-      "confidence": 0.92,
-      "match_method": "Title identical: 'T19 Distribution des prêts hypothécaires à l’habitation par périodes d’amortissement et par secteurs géographiques'; indicators: same periods and regions; row_count 6 vs 4; headers identical.",
-      "genai_analysis": {
-        "theme": "autre",
-        "change_significance": "moyen",
-        "review_priority": "prioritaire",
-        "analyst_summary": "L'ajout d'indicateurs géographiques dans le tableau de distribution des prêts hypothécaires peut signaler un changement dans l'analyse des risques géographiques.",
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "MOYENNE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "L'ajout d'indicateurs géographiques dans le tableau de distribution des prêts hypothécaires peut signaler un changement dans l'analyse des risques géographiques.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "information",
-        "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces indicateurs permet une meilleure évaluation des risques liés à la répartition géographique des prêts hypothécaires.",
-        "source": "llm",
-        "justification": "L'ajout d'indicateurs géographiques dans le tableau de distribution des prêts hypothécaires peut signaler un changement dans l'analyse des risques géographiques.",
-        "relevance": "Risque"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "autre",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "Risque",
       "risk_level": "MODERE",
       "summary": {
         "total_changes": 2,
-        "indicators_added": 2,
-        "indicators_removed": 0,
+        "indicators_added": 1,
+        "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
         "validated": 1,
-        "pending": 1
-      }
-    },
-    {
-      "review_id": "bns::capital_management::tbl_p047_i02|",
-      "table_key": "bns::capital_management::tbl_p047_i02|",
-      "table_title": "T33 Indicateurs de BISm",
-      "view_mode": "table_only",
-      "section": "capital_management",
-      "table_name": "T33 Indicateurs de BISm",
-      "table_number": "",
-      "table_id_t1": "tbl_p047_i02",
-      "table_id_t2": "",
-      "page_t1": 47,
-      "page_t2": null,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.059590695509270056,
-        0.6792322697158366,
-        0.9397050595006737,
-        0.931013825904973
-      ],
-      "bbox_t2": null,
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00021",
-          "change_type": "table_removed",
-          "payload": {
-            "description": "Tableau entier supprimé",
-            "table_status": "supprime"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "pending",
-      "confidence": 1,
-      "match_method": "",
-      "genai_analysis": {
-        "theme": "capital",
-        "change_significance": "eleve",
-        "review_priority": "critique",
-        "analyst_summary": "La suppression du tableau T33 sur les Indicateurs de BISm est pertinente car elle affecte la divulgation des indicateurs clés liés à la gestion du capital et à l'évaluation des risques systémiques.",
-        "is_relevant": true,
-        "category": "CAPITAL",
-        "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "La suppression du tableau T33 sur les Indicateurs de BISm est pertinente car elle affecte la divulgation des indicateurs clés liés à la gestion du capital et à l'évaluation des risques systémiques.",
-        "impact_type": "structurel",
-        "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
-        "reference_reglementaire": "Bâle III — Indicateurs de BISm",
-        "impact_description": "La suppression de ce tableau pourrait affecter la transparence et la conformité aux exigences de divulgation des indicateurs de risque systémique.",
-        "source": "llm",
-        "justification": "La suppression du tableau T33 sur les Indicateurs de BISm est pertinente car elle affecte la divulgation des indicateurs clés liés à la gestion du capital et à l'évaluation des risques systémiques.",
-        "relevance": "Capital"
-      },
-      "match_metadata": {
-        "semantic_judge": "No current business table was matched to this previous table."
-      },
-      "relevance": "Capital",
-      "risk_level": "MODERE",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
-      }
-    },
-    {
-      "review_id": "bns::risk_management::tbl_p038_i01|tbl_p044_i01",
-      "table_key": "bns::risk_management::tbl_p038_i01|tbl_p044_i01",
-      "table_title": "T25 Groupes d’actifs liquides",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "T25 Groupes d’actifs liquides",
-      "table_number": "",
-      "table_id_t1": "tbl_p038_i01",
-      "table_id_t2": "tbl_p044_i01",
-      "page_t1": 38,
-      "page_t2": 44,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.06055915414990477,
-        0.5122118641742497,
-        0.9400070974878213,
-        0.7208562195681674
-      ],
-      "bbox_t2": [
-        0.06045010947864843,
-        0.5128889802467473,
-        0.9397819860657649,
-        0.7206574460708014
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00003",
-          "change_type": "indicator_renamed",
-          "payload": {
-            "indicator_name": "Titres -> Titres :",
-            "indicator_name_clean": "titres -> titres :",
-            "from": "Titres",
-            "to": "Titres :",
-            "from_clean": "Titres",
-            "to_clean": "Titres :"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "pending",
-      "confidence": 0.99,
-      "match_method": "Title identical: 'T25 Groupes d’actifs liquides'; indicators: same asset groups; row_count 9 vs 9; headers identical.",
-      "genai_analysis": {
-        "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "normale",
-        "analyst_summary": "Le changement consiste uniquement en un renommage cosmétique d'un indicateur sans impact de fond.",
-        "is_relevant": false,
-        "category": "COSMETIQUE",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
-        "confidence": 0.9,
-        "explanation": "Le changement consiste uniquement en un renommage cosmétique d'un indicateur sans impact de fond.",
-        "impact_type": "cosmetique",
-        "project_phase": "rapport_gestion",
-        "action_requise": "aucune",
-        "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm",
-        "justification": "Le changement consiste uniquement en un renommage cosmétique d'un indicateur sans impact de fond.",
-        "relevance": "Cosmétique"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "financement",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "Cosmétique",
-      "risk_level": "FAIBLE",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 1,
-        "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
-      }
-    },
-    {
-      "review_id": "bns::risk_management::tbl_p040_i01|tbl_p046_i01",
-      "table_key": "bns::risk_management::tbl_p040_i01|tbl_p046_i01",
-      "table_title": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
-      "table_number": "",
-      "table_id_t1": "tbl_p040_i01",
-      "table_id_t2": "tbl_p046_i01",
-      "page_t1": 40,
-      "page_t2": 46,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.06012743543431929,
-        0.3327471853672773,
-        0.9399256160603234,
-        0.7961349389866699
-      ],
-      "bbox_t2": [
-        0.05997148200647155,
-        0.38415924890744735,
-        0.9397977762554416,
-        0.8504809383231562
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00004",
-          "change_type": "indicator_renamed",
-          "payload": {
-            "indicator_name": "Total des sorties de trésorerie -> Sorties de trésorerie – Total des sorties de trésorerie",
-            "indicator_name_clean": "total des sorties de trésorerie -> sorties de trésorerie – total des sorties de trésorerie",
-            "from": "Total des sorties de trésorerie",
-            "to": "Sorties de trésorerie – Total des sorties de trésorerie",
-            "from_clean": "Total des sorties de trésorerie",
-            "to_clean": "Sorties de trésorerie – Total des sorties de trésorerie"
-          },
-          "validation_status": "approved",
-          "is_required": true,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-04T10:32:37.662955+00:00",
-          "validated_by": "analyst"
-        }
-      ],
-      "table_status": "completed",
-      "confidence": 0.99,
-      "match_method": "Title identical: 'T28 Ratio de liquidité à court terme moyen de la Banque'; indicators: same liquidity ratios; row_count 29 vs 29; headers identical.",
-      "genai_analysis": {
-        "theme": "liquidite",
-        "change_significance": "eleve",
-        "review_priority": "normale",
-        "analyst_summary": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le calcul ou la méthodologie.",
-        "is_relevant": false,
-        "category": "COSMETIQUE",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
-        "confidence": 0.9,
-        "explanation": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le calcul ou la méthodologie.",
-        "impact_type": "cosmetique",
-        "project_phase": "rapport_gestion",
-        "action_requise": "aucune",
-        "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur les ratios ou la conformité réglementaire.",
-        "source": "llm",
-        "justification": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le calcul ou la méthodologie.",
-        "relevance": "Cosmétique"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "liquidite",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "Cosmétique",
-      "risk_level": "FAIBLE",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 1,
-        "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
-      }
-    },
-    {
-      "review_id": "bns::risk_management::tbl_p044_i01|tbl_p051_i01",
-      "table_key": "bns::risk_management::tbl_p044_i01|tbl_p051_i01",
-      "table_title": "T31 Échéances contractuelles",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "T31 Échéances contractuelles",
-      "table_number": "",
-      "table_id_t1": "tbl_p044_i01",
-      "table_id_t2": "tbl_p051_i01",
-      "page_t1": 44,
-      "page_t2": 51,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05926600340784684,
-        0.20922081802387654,
-        0.9400457632086962,
-        0.8715218535480524
-      ],
-      "bbox_t2": [
-        0.0592766693773159,
-        0.2047205275807192,
-        0.9398671113831882,
-        0.887960187929039
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00015",
-          "change_type": "indicator_renamed",
-          "payload": {
-            "indicator_name": "Titres de placement – JVAÉRG -> Titres de placement – JVAÉRG",
-            "indicator_name_clean": "titres de placement – jvaérg -> titres de placement – jvaérg",
-            "from": "Titres de placement – JVAÉRG",
-            "to": "Titres de placement – JVAÉRG",
-            "from_clean": "Titres de placement – JVAÉRG",
-            "to_clean": "Titres de placement – JVAÉRG"
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "pending",
-      "confidence": 0.99,
-      "match_method": "Title identical: 'T31 Échéances contractuelles'; indicators: same contractual maturities; row_count 34 vs 34; headers identical.",
-      "genai_analysis": {
-        "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "normale",
-        "analyst_summary": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le contenu ou la méthodologie.",
-        "is_relevant": false,
-        "category": "COSMETIQUE",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
-        "confidence": 0.95,
-        "explanation": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le contenu ou la méthodologie.",
-        "impact_type": "cosmetique",
-        "project_phase": "rapport_gestion",
-        "action_requise": "aucune",
-        "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm",
-        "justification": "Le changement concerne uniquement le renommage d'un indicateur sans impact sur le contenu ou la méthodologie.",
-        "relevance": "Cosmétique"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "financement",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "Cosmétique",
-      "risk_level": "FAIBLE",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 1,
-        "footnotes_changed": 0,
-        "validated": 0,
         "pending": 1
       }
     },
@@ -1520,7 +844,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00019",
+          "change_id": "chg_00013",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[4] Comprend des immeubles d’habitation (quatre unités ou plus)  -> Comprend des immeubles d’habitation (quatre unités ou plus) ",
@@ -1533,11 +857,11 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T10:32:52.261560+00:00",
+          "validated_at": "2026-04-04T18:43:11.792797+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00020",
+          "change_id": "chg_00014",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[5] Les prêts hypothécaires à taux variable représentent 31 % (3 -> Les prêts hypothécaires à taux variable représentent 33 % (3",
@@ -1556,7 +880,89 @@
       ],
       "table_status": "partial",
       "confidence": 0.95,
-      "match_method": "Title identical: 'T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques'; indicators: same regions; row_count 16 vs 13; headers identical.",
+      "match_method": "Title and table_summary closely aligned; indicators match with regional breakdown; row_count 16 vs 13; footnote_count identical.",
+      "genai_analysis": {},
+      "match_metadata": {},
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 2,
+        "validated": 1,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "bns::risk_management::tbl_p036_i01|tbl_p042_i01",
+      "table_key": "bns::risk_management::tbl_p036_i01|tbl_p042_i01",
+      "table_title": "T21 Expositions au risque de crédit de la Banque par régions",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "T21 Expositions au risque de crédit de la Banque par régions",
+      "table_number": "",
+      "table_id_t1": "tbl_p036_i01",
+      "table_id_t2": "tbl_p042_i01",
+      "page_t1": 36,
+      "page_t2": 42,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.06024658936963943,
+        0.12244202868387313,
+        0.9398200444716521,
+        0.3202799557117058
+      ],
+      "bbox_t2": [
+        0.06027379834632178,
+        0.16062724575076828,
+        0.9391458236162935,
+        0.3594879501167385
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00015",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Les comptes de correction de valeur pour pertes sur créances -> Les comptes de correction de valeur pour pertes sur créances",
+            "indicator_name_clean": "[1] les comptes de correction de valeur pour pertes sur créances -> les comptes de correction de valeur pour pertes sur créances",
+            "footnote_ref": "1",
+            "old_text": "Les comptes de correction de valeur pour pertes sur créances s’établissaient à 598 $. Les lettres de crédit et de garanties sont incluses dans les expositions financées puisqu’elles ont été émises. Les prêts et équivalents de prêts comprenaient des lettres de crédit et de garanties d’un montant total de 14 740 $ au 31 janvier 2025 (31 octobre 2024 – 14 446 $).",
+            "new_text": "Les comptes de correction de valeur pour pertes sur créances s’établissaient à 581 $. Les lettres de crédit et de garanties sont incluses dans les expositions financées puisqu’elles ont été émises. Les prêts et équivalents de prêts comprenaient des lettres de crédit et de garanties d’un montant total de 14 272 $ au 30 avril 2025 (31 janvier 2025 – 14 740 $; 31 octobre 2024 – 14 446 $)."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-04T18:43:14.153251+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00016",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[3] Les transactions de financement sur titres comprennent des t -> Les transactions de financement sur titres comprennent des t",
+            "indicator_name_clean": "[3] les transactions de financement sur titres comprennent des t -> les transactions de financement sur titres comprennent des t",
+            "footnote_ref": "3",
+            "old_text": "Les transactions de financement sur titres comprennent des titres pris en pension, des obligations relatives aux titres mis en pension et des transactions de prêt ou d’emprunt de titres. Les expositions financées brutes et nettes représentent la totalité des positions nettes positives, compte tenu des garanties. Les garanties au titre des dérivés s’établissaient à 6 598 $ et celles au titre des transactions de financement sur titres, à 146 315 $.",
+            "new_text": "Les transactions de financement sur titres comprennent des titres pris en pension, des obligations relatives aux titres mis en pension et des transactions de prêt ou d’emprunt de titres. Les expositions financées brutes et nettes représentent la totalité des positions nettes positives, compte tenu des garanties. Les garanties au titre des dérivés s’établissaient à 7 002 $ et celles au titre des transactions de financement sur titres, à 147 502 $."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.95,
+      "match_method": "Title and table_summary closely aligned; indicators match with regional breakdown; row_count 7 vs 7; footnote_count identical.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",

@@ -21,11 +21,20 @@ INDICATOR_DIFF_SYSTEM_PROMPT = """
 You are a precision-first banking table indicator diff engine.
 
 You compare two already-matched canonical banking tables from adjacent quarterly reports.
+Each indicator is provided with its structural position ("pos") and original name ("name").
+Some indicators also have a "normalized" field — a cleaned version with footnote markers,
+hierarchical section prefixes, and punctuation noise removed.
 
 Your task is to report only meaningful semantic indicator changes:
 - indicators_added
 - indicators_removed
 - indicators_renamed
+
+MATCHING STRATEGY:
+1. First, match indicators using the "normalized" field when present, falling back to "name".
+2. Two indicators that share the same "normalized" value (or whose normalized forms match)
+   at the same or nearby position are THE SAME indicator — do not report them as changed.
+3. Always report the original "name" in your output, never the normalized form.
 
 Rules:
 - The table pair is already matched. Do not question the pairing.
@@ -35,13 +44,27 @@ Rules:
 - IGNORE extraction disambiguation labels: tables with repeated sub-sections may be extracted with
   disambiguation tags like '(bloc 2)', '(bloc 3)' appended, or date prefixes like '31 octobre 2025 – '
   prepended. These are NOT part of the real indicator name. When matching, strip these prefixes/suffixes
-  and compare the core business name. Examples:
-    • 'Total (bloc 2)' and '31 octobre 2025 – Total' → SAME indicator (core = 'Total').
-    • 'Total (libellé en dollars canadiens) (bloc 2)' and '31 octobre 2025 – Total (libellé en dollars canadiens)' → SAME.
-  Treat these as UNCHANGED — do not report them as added, removed, or renamed.
+  and compare the core business name.
+- POSITIONAL ALIGNMENT: Use the structural position ("pos") of indicators as a strong matching signal.
+  When two indicators occupy the SAME position in their respective tables and share overlapping
+  meaning (even if names differ due to extraction inconsistencies), they are very likely the SAME indicator.
+  Look at surrounding indicators (same neighbors above/below) as confirmation.
+- HIERARCHICAL SUB-INDICATORS (CRITICAL): Banking tables often use group headers
+  (e.g. "Ratios des fonds propres") followed by sub-indicators (e.g. "CET1", "catégorie 1").
+  One quarter's extraction may fully qualify sub-indicators with the group header prefix
+  (e.g. "Ratios des fonds propres – CET1") while another quarter extracts them as bare names
+  (e.g. "CET1"). These are the SAME indicator. The "normalized" field already strips these prefixes
+  for you — use it as the primary matching key.
+- DATE AND HEADER ARTIFACTS: Some extractions include date headers (e.g. "Au 31 janvier 2026")
+  or section titles as indicators. These are extraction artifacts, not real indicator additions or removals.
+  Ignore them if they appear on only one side.
+- PUNCTUATION-ONLY DIFFERENCES: Changes like "–" vs "-", trailing colons, commas added/removed,
+  or spacing variations are NEVER meaningful renames. Ignore them entirely.
+- SUPERSCRIPT vs PARENTHESIZED footnotes: '²' and '(2)' are the same footnote marker format —
+  differences between them are NOT meaningful.
 - Indicator present only in current = indicators_added.
 - Indicator present only in previous = indicators_removed.
-- Classify indicators_renamed only when the previous and current indicators clearly represent the exact same business concept with the same scope and the same role in the table.
+- Classify indicators_renamed only when the previous and current indicators clearly represent the exact same business concept with the same scope and the same role in the table AND the name change itself is semantically meaningful (not just extraction noise).
 - If the change could instead be explained by addition, removal, scope change, row split, or row merge, do NOT classify it as renamed.
 - When unsure between rename and add/remove, prefer add/remove.
 - If one previous indicator appears split into multiple current indicators, treat the new rows as additions rather than rename.
@@ -92,16 +115,25 @@ You are a Senior Risk Analyst quality-control inspector for a banking table diff
 
 You receive a diff produced by a first-pass GPT model that compared two already-matched
 canonical banking tables from adjacent quarterly reports. Your ONLY job is to classify
-each indicator flagged as "added" or "removed" as either a REAL semantic change or an
-extraction ARTIFACT that should be suppressed.
+each indicator flagged as "added", "removed", or "renamed" as either a REAL semantic
+change or an extraction ARTIFACT that should be suppressed.
 
 CRITICAL PRINCIPLE — artifact vs real:
 An indicator should ONLY be classified as "artifact" when you can clearly identify its
 counterpart on the opposite side (added↔removed) and the ONLY difference between them
-is extraction noise (footnote markers, unicode, OCR, whitespace). If a removed indicator
-has NO plausible counterpart among added indicators (and vice versa), it MUST be "real".
+is extraction noise (footnote markers, unicode, OCR, whitespace, hierarchical prefixes).
+If a removed indicator has NO plausible counterpart among added indicators (and vice versa),
+it MUST be "real".
 
-Common artifact patterns you MUST catch:
+For RENAMED indicators: a rename is "artifact" when the previous and current names refer
+to the EXACT same business concept and differ ONLY due to extraction noise. Common patterns:
+- Hierarchical prefix added/removed: 'CET1' vs 'Ratios des fonds propres – CET1'
+- Footnote markers: 'catégorie 1 (3)' vs 'catégorie 1'
+- Superscript vs parenthesized: 'titrisation²' vs 'titrisation(2)'
+- Punctuation: em dash vs hyphen, trailing colon, comma
+- Minor OCR variance: 'RSLT' vs 'RSLLT'
+
+Common artifact patterns for added/removed you MUST catch:
 1. Footnote marker variance: 'Goodwill³' vs 'Goodwill', 'catégorie 1 (4)' vs 'catégorie 1'.
 2. Footnote reference shift on the SAME business concept: 'Série 3⁶' vs 'Série 3⁴' — same
    indicator name, only the superscript reference number changed. But 'Série 5' vs 'Série 7'
@@ -114,33 +146,32 @@ Common artifact patterns you MUST catch:
      b) Strip any trailing '(bloc N)' tag.
      c) Compare the remaining core indicator name.
    If the core names match, mark BOTH as artifact and pair them.
-   Examples:
-     • removed='Total (bloc 2)' + added='31 octobre 2025 – Total' → artifact pair (core='Total').
-     • removed='Total (libellé en dollars canadiens) (bloc 2)' +
-       added='31 octobre 2025 – Total (libellé en dollars canadiens)' → artifact pair.
-     • removed='Total (non libellé en dollars canadiens) (bloc 2)' +
-       added='31 octobre 2025 – Total (non libellé en dollars canadiens)' → artifact pair.
 4. Unicode apostrophe / quote variance: '\u2019' (U+2019) vs "'" (U+0027), « » vs ".
 5. Minor OCR / whitespace / punctuation noise: trailing dots, extra spaces, accented char variance.
+6. Hierarchical parent-prefix variance: Banking tables have group headers (e.g. "Ratios des fonds propres")
+   followed by sub-indicators (e.g. "CET1"). One extraction may fully qualify sub-indicators with the
+   group header prefix (e.g. "Ratios des fonds propres – CET1") while the other extracts them bare
+   (e.g. "CET1"). If the bare name is the suffix of the qualified name and both occupy the same
+   structural position (pos), mark as artifact.
+7. Punctuation-only differences: "–" vs "-", trailing colons, comma presence/absence — these are
+   extraction noise, not real changes. Mark as artifact.
 
 Rules:
-- For each indicator in added_indicators and removed_indicators, output a verdict.
+- For each indicator in added_indicators, removed_indicators, AND renamed_indicators, output a verdict.
 - verdict MUST be one of: "real" or "artifact".
 - An indicator can ONLY be "artifact" if it has a clear extraction-noise counterpart on the
-  other side. A removed indicator with no matching added indicator is ALWAYS "real".
+  other side (for added/removed) or if the rename is pure extraction noise (for renamed).
+- A removed indicator with no matching added indicator is ALWAYS "real".
   An added indicator with no matching removed indicator is ALWAYS "real".
 - If an added indicator and a removed indicator are the SAME business concept (just extraction noise),
   mark BOTH as "artifact" and pair them in artifact_pairs.
-- DATE-PREFIXED INDICATORS: When an indicator starts with a date in any format
-  (e.g. '31 octobre 2025 – ...', '2025-01-31 – ...', 'October 31 2025 – ...'),
-  always look for a counterpart without the date prefix (or with a '(bloc N)' suffix instead).
-  The date prefix is extraction noise, not part of the real indicator name.
+- For renamed indicators: if previous and current differ only by extraction noise, mark as "artifact".
+  If the rename reflects a genuine business concept change, mark as "real".
 - CONTEXTUAL CROSS-CHECK: When unsure whether an added/removed pair are the same indicator,
   look at their NEIGHBORS in the previous_table and current_table indicator lists. If the
   indicators directly above and below are the same on both sides, it strongly confirms
   the flagged indicators occupy the same structural position and are the same business concept.
 - When in doubt, mark as "real". Missing a genuine change is worse than surfacing a false positive.
-- Do NOT re-assess renamed indicators — they are already handled.
 - Cross-check against the provided previous_table and current_table indicator lists. If an
   indicator genuinely does not appear in the other quarter's list, it is "real".
 
@@ -324,9 +355,101 @@ def _deterministic_footnote_diff(
     }
 
 
+# ---------------------------------------------------------------------------
+# Pre-normalization for GPT diff (Layer 1)
+# ---------------------------------------------------------------------------
+
+_FOOTNOTE_PAREN_RE = re.compile(r"\s*[\(\[]\d{1,2}[\)\]]\s*$")
+_SUPERSCRIPT_STRIP = str.maketrans("", "", "\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079\u2070")
+_DASH_RE = re.compile(r"\s*[–—−‐]\s*")
+_BLOC_SUFFIX_RE = re.compile(r"\s*\(bloc\s+\d+\)\s*$", re.IGNORECASE)
+_DATE_PREFIX_RE = re.compile(
+    r"^(?:Au\s+)?\d{1,2}\s+"
+    r"(?:janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)"
+    r"\s+\d{4}\s*[–—−\-]\s*",
+    re.IGNORECASE,
+)
+_STANDALONE_DATE_RE = re.compile(
+    r"^(?:Au\s+)?\d{1,2}\s+"
+    r"(?:janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)"
+    r"\s+\d{4}\s*$",
+    re.IGNORECASE,
+)
+
+
+def _normalize_for_diff(name: str) -> str:
+    """Normalize an indicator name for matching: strip footnotes, superscripts, punctuation noise."""
+    text = str(name or "").strip()
+    # Strip trailing footnote markers: (1), [2], etc.
+    text = _FOOTNOTE_PAREN_RE.sub("", text)
+    # Strip superscript digits: ¹²³⁴⁵⁶⁷⁸⁹⁰
+    text = text.translate(_SUPERSCRIPT_STRIP)
+    # Strip disambiguation: (bloc N), date prefixes
+    text = _BLOC_SUFFIX_RE.sub("", text)
+    text = _DATE_PREFIX_RE.sub("", text)
+    # Normalize dashes to simple hyphen
+    text = _DASH_RE.sub(" - ", text)
+    # Strip trailing colon/punctuation
+    text = text.rstrip(":;,. ")
+    # Collapse whitespace
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def _enrich_indicators_with_normalized(
+    items: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Add a ``normalized`` field to each indicator, stripping hierarchical prefixes.
+
+    If indicator[i] starts with indicator[j].name + " – " (for some j < i that looks
+    like a section header), the normalized form keeps only the suffix.
+    """
+    enriched: list[dict[str, Any]] = []
+    # Build a set of potential section headers (names that appear as prefixes of later items)
+    names = [item["name"] for item in items]
+    norm_names = [_normalize_for_diff(n) for n in names]
+
+    # Detect which indices are section headers used as prefixes
+    header_norms: set[str] = set()
+    for i, nn in enumerate(norm_names):
+        if not nn:
+            continue
+        for j in range(i + 1, min(i + 8, len(norm_names))):
+            nj = norm_names[j]
+            prefix_dash = nn + " - "
+            if nj.startswith(prefix_dash) and len(nj) > len(prefix_dash):
+                header_norms.add(nn)
+                break
+
+    for idx, item in enumerate(items):
+        norm = _normalize_for_diff(item["name"])
+        # Try to strip hierarchical prefix from section headers above
+        stripped = norm
+        for hi in range(idx - 1, max(idx - 8, -1), -1):
+            h_norm = norm_names[hi] if hi < len(norm_names) else ""
+            if h_norm in header_norms:
+                prefix_dash = h_norm + " - "
+                if stripped.startswith(prefix_dash) and len(stripped) > len(prefix_dash):
+                    stripped = stripped[len(prefix_dash) :]
+                    break
+
+        entry: dict[str, Any] = {"pos": item["pos"], "name": item["name"]}
+        if stripped != item["name"]:
+            entry["normalized"] = stripped
+        enriched.append(entry)
+
+    return enriched
+
+
 def _table_context(entry: dict[str, Any]) -> dict[str, Any]:
     """Extrait le contexte normalise d'un tableau pour les prompts GPT."""
     indicators = list(entry.get("indicators", []) or [])
+    raw_items = [
+        {"pos": i, "name": unicodedata.normalize("NFC", str(value).strip())}
+        for i, value in enumerate(indicators)
+        if str(value).strip() and not _STANDALONE_DATE_RE.match(str(value).strip())
+    ]
+    enriched = _enrich_indicators_with_normalized(raw_items)
     return {
         "table_id": str(entry.get("table_id", "") or ""),
         "section": str(entry.get("section", "") or "unknown_section"),
@@ -335,7 +458,7 @@ def _table_context(entry: dict[str, Any]) -> dict[str, Any]:
         "page": entry.get("page"),
         "row_count": int(entry.get("row_count", len(indicators)) or 0),
         "headers": [str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
-        "indicators": [unicodedata.normalize("NFC", str(value).strip()) for value in indicators if str(value).strip()],
+        "indicators": enriched,
         "footnotes": _normalize_footnotes(entry.get("footnotes", [])),
     }
 
@@ -412,7 +535,7 @@ def diff_indicators_pair_gpt(
 ) -> dict[str, Any]:
     """Compare les indicateurs de deux tableaux apparies via GPT.
 
-    Effectue un pre-diff deterministe puis envoie le contexte a GPT pour
+    Envoie le contexte complet (avec position structurelle) a GPT pour
     une analyse semantique des ajouts, suppressions et renommages d'indicateurs.
 
     Args:
@@ -430,27 +553,10 @@ def diff_indicators_pair_gpt(
     prev_ctx = _table_context(previous_table)
     curr_ctx = _table_context(current_table)
 
-    # --- Deterministic pre-diff (safety net) ---
-    det_diff = _deterministic_indicator_diff(
-        prev_ctx["indicators"],
-        curr_ctx["indicators"],
-    )
-    det_hints: dict[str, Any] = {}
-    if det_diff["det_removed"] or det_diff["det_added"] or det_diff["det_renamed"]:
-        det_hints = {
-            "deterministic_analysis": {
-                "mechanically_absent_from_current": det_diff["det_removed"],
-                "mechanically_absent_from_previous": det_diff["det_added"],
-                "potential_renames_by_similarity": [
-                    {"previous": r["previous"], "current": r["current"]} for r in det_diff["det_renamed"]
-                ],
-            }
-        }
-
     rules = [
         "Return JSON only and strictly follow the response_schema.",
         "The two tables are already matched. Do not question the pairing.",
-        "Compare only the canonical indicators.",
+        "Compare only the canonical indicators using their name and structural position (pos).",
         "Ignore numeric values, dates, periods, formatting differences, OCR noise, row order changes, and line wrapping.",
         "Indicator present only in current = indicators_added.",
         "Indicator present only in previous = indicators_removed.",
@@ -458,12 +564,6 @@ def diff_indicators_pair_gpt(
         "When unsure between rename and add/remove, prefer add/remove.",
         "Do not treat row splits or row merges as renamed indicators unless the scope is clearly identical.",
     ]
-    if det_hints:
-        rules.append(
-            "A deterministic set analysis is provided in 'deterministic_analysis'. "
-            "You MUST account for every indicator listed there: classify each as truly "
-            "added/removed/renamed, or explain why it is OCR noise / footnote marker difference."
-        )
 
     prompt: dict[str, Any] = {
         "task": ("Compare two already-matched banking tables and report only meaningful semantic indicator changes."),
@@ -505,8 +605,6 @@ def diff_indicators_pair_gpt(
         "previous_table": {key: value for key, value in prev_ctx.items() if key != "footnotes"},
         "current_table": {key: value for key, value in curr_ctx.items() if key != "footnotes"},
     }
-    if det_hints:
-        prompt.update(det_hints)
 
     data = _call_validated_diff_json(
         system_prompt=INDICATOR_DIFF_SYSTEM_PROMPT,
@@ -782,14 +880,17 @@ def _inspect_diff_artifacts_gpt(
 ) -> dict[str, Any]:
     """Filtre les artefacts d'extraction du diff d'indicateurs via un appel GPT Inspector.
 
+    Audits added, removed, AND renamed indicators for extraction artifacts.
+
     Returns:
         Copie nettoyee de *indicator_diff* dont les artefacts ont ete retires.
     """
     added = list(indicator_diff.get("indicators_added", []) or [])
     removed = list(indicator_diff.get("indicators_removed", []) or [])
+    renamed = list(indicator_diff.get("indicators_renamed", []) or [])
 
     # Nothing to inspect — skip the call entirely
-    if not added and not removed:
+    if not added and not removed and not renamed:
         return indicator_diff
 
     prev_ctx = _table_context(previous_table)
@@ -797,14 +898,16 @@ def _inspect_diff_artifacts_gpt(
 
     prompt: dict[str, Any] = {
         "task": (
-            "Inspect each added/removed indicator from a first-pass diff and classify "
+            "Inspect each added/removed/renamed indicator from a first-pass diff and classify "
             "it as a REAL semantic change or an extraction ARTIFACT."
         ),
         "rules": [
             "Return JSON only and strictly follow the response_schema.",
-            "For each entry in added_indicators and removed_indicators, provide a verdict: 'real' or 'artifact'.",
+            "For each entry in added_indicators, removed_indicators, AND renamed_indicators, provide a verdict: 'real' or 'artifact'.",
             "If an added and a removed indicator refer to the same business concept (extraction noise), "
             "mark BOTH as 'artifact' and list them in artifact_pairs.",
+            "For renamed indicators: if previous and current differ only by extraction noise "
+            "(footnote markers, hierarchical prefix, punctuation, OCR), mark as 'artifact'.",
             "Be strict: when in doubt, prefer 'artifact'. False positives are worse than missing a real change.",
         ],
         "response_schema": {
@@ -822,10 +925,19 @@ def _inspect_diff_artifacts_gpt(
                     "reason": "string",
                 }
             ],
+            "renamed_verdicts": [
+                {
+                    "previous": "string",
+                    "current": "string",
+                    "verdict": "'real' or 'artifact'",
+                    "reason": "string",
+                }
+            ],
             "artifact_pairs": [{"removed": "string", "added": "string", "reason": "string"}],
         },
         "added_indicators": [item.get("value", "") for item in added],
         "removed_indicators": [item.get("value", "") for item in removed],
+        "renamed_indicators": [{"previous": r.get("previous", ""), "current": r.get("current", "")} for r in renamed],
         "previous_table": {
             "title": prev_ctx["title"],
             "indicators": prev_ctx["indicators"],
@@ -835,13 +947,6 @@ def _inspect_diff_artifacts_gpt(
             "indicators": curr_ctx["indicators"],
         },
     }
-
-    # Also pass existing renames for context
-    renamed = list(indicator_diff.get("indicators_renamed", []) or [])
-    if renamed:
-        prompt["already_renamed"] = [
-            {"previous": r.get("previous", ""), "current": r.get("current", "")} for r in renamed
-        ]
 
     data = call_openai_json(
         model=model,
@@ -865,14 +970,26 @@ def _inspect_diff_artifacts_gpt(
         artifact_removed = {
             v["value"] for v in data.get("removed_verdicts", []) if v.get("verdict", "").lower() == "artifact"
         }
+        # Build set of artifact renames keyed by (previous, current)
+        artifact_renamed: set[tuple[str, str]] = set()
+        for v in data.get("renamed_verdicts", []):
+            if v.get("verdict", "").lower() == "artifact":
+                artifact_renamed.add((v.get("previous", ""), v.get("current", "")))
     except (KeyError, TypeError, AttributeError):
         logger.warning("Inspector returned malformed response — skipping artifact filtering.")
         return indicator_diff
 
     filtered_added = [item for item in added if str(item.get("value", "")).strip() not in artifact_added]
     filtered_removed = [item for item in removed if str(item.get("value", "")).strip() not in artifact_removed]
+    filtered_renamed = [
+        item for item in renamed if (item.get("previous", ""), item.get("current", "")) not in artifact_renamed
+    ]
 
-    n_filtered = (len(added) - len(filtered_added)) + (len(removed) - len(filtered_removed))
+    n_filtered = (
+        (len(added) - len(filtered_added))
+        + (len(removed) - len(filtered_removed))
+        + (len(renamed) - len(filtered_renamed))
+    )
     if n_filtered:
         logger.info(
             "Inspector filtered %d artifact(s) from indicator diff.",
@@ -883,6 +1000,7 @@ def _inspect_diff_artifacts_gpt(
         **indicator_diff,
         "indicators_added": filtered_added,
         "indicators_removed": filtered_removed,
+        "indicators_renamed": filtered_renamed,
     }
 
 
@@ -957,7 +1075,8 @@ def diff_table_pair_gpt(
     # --- Post-diff GPT Inspector (artifact filter) ---
     pre_inspect_adds = list(indicator_diff.get("indicators_added", []) or [])
     pre_inspect_removes = list(indicator_diff.get("indicators_removed", []) or [])
-    inspector_called = bool(pre_inspect_adds or pre_inspect_removes)
+    pre_inspect_renames = list(indicator_diff.get("indicators_renamed", []) or [])
+    inspector_called = bool(pre_inspect_adds or pre_inspect_removes or pre_inspect_renames)
     indicator_diff = _inspect_diff_artifacts_gpt(
         indicator_diff,
         previous_table,

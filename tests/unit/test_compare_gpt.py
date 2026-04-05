@@ -1368,7 +1368,7 @@ def test_compare_reports_gpt4o_runs_visual_sanity_for_footnote_only_diff(
 
     sanity_calls: list[dict] = []
 
-    def fake_render_visual_sanity_proof(pdf_path, *, page, bbox, scale=1.5):
+    def fake_render_visual_sanity_proof(pdf_path, *, page, bbox, **kwargs):
         return b"proof-bytes", "ok"
 
     def fake_visual_sanity_check(
@@ -1495,7 +1495,7 @@ def test_compare_reports_gpt4o_filters_table_added_removed_with_visual_sanity(
 
     render_calls: list[tuple[str, int]] = []
 
-    def fake_render_visual_sanity_proof(pdf_path, *, page, bbox, scale=1.5):
+    def fake_render_visual_sanity_proof(pdf_path, *, page, bbox, **kwargs):
         render_calls.append((str(pdf_path), int(page)))
         return b"proof-bytes", "ok"
 

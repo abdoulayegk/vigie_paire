@@ -37,13 +37,47 @@ def _table(
 
 
 class TestInspectDiffArtifactsGpt:
-    def test_skips_call_when_no_adds_or_removes(self):
+    def test_skips_call_when_no_adds_removes_or_renames(self):
         """If nothing to inspect, inspector must not be called and diff is returned as-is."""
         calls: list[str] = []
 
         def fake_call_openai_json(**kwargs):
             calls.append(kwargs["call_kind"])
             return {}
+
+        diff = {
+            "indicators_added": [],
+            "indicators_removed": [],
+            "indicators_renamed": [],
+            "reason": "No changes.",
+        }
+        result = _inspect_diff_artifacts_gpt(
+            diff,
+            _table(table_id="prev", indicators=["A"]),
+            _table(table_id="curr", indicators=["A"]),
+            model="gpt-4o-test",
+            call_openai_json=fake_call_openai_json,
+        )
+        assert calls == []  # No GPT call
+        assert result is diff  # Same object returned
+
+    def test_inspects_renames_and_filters_artifacts(self):
+        """Inspector marks a rename as artifact → rename is removed from output."""
+
+        def fake_call_openai_json(**kwargs):
+            return {
+                "added_verdicts": [],
+                "removed_verdicts": [],
+                "renamed_verdicts": [
+                    {
+                        "previous": "A",
+                        "current": "B",
+                        "verdict": "artifact",
+                        "reason": "hierarchical prefix noise",
+                    },
+                ],
+                "artifact_pairs": [],
+            }
 
         diff = {
             "indicators_added": [],
@@ -58,8 +92,7 @@ class TestInspectDiffArtifactsGpt:
             model="gpt-4o-test",
             call_openai_json=fake_call_openai_json,
         )
-        assert calls == []  # No GPT call
-        assert result is diff  # Same object returned
+        assert result["indicators_renamed"] == []
 
     def test_filters_artifact_added_and_removed(self):
         """Inspector marks both an added and a removed indicator as artifacts → both removed."""
@@ -91,9 +124,7 @@ class TestInspectDiffArtifactsGpt:
 
         diff = {
             "indicators_added": [{"value": "Total (bloc 2)", "reason": "New."}],
-            "indicators_removed": [
-                {"value": "31 octobre 2025 – Total", "reason": "Gone."}
-            ],
+            "indicators_removed": [{"value": "31 octobre 2025 – Total", "reason": "Gone."}],
             "indicators_renamed": [],
             "reason": "Changes detected.",
         }
@@ -198,9 +229,7 @@ class TestInspectDiffArtifactsGpt:
         result = _inspect_diff_artifacts_gpt(
             diff,
             _table(table_id="prev", indicators=["Goodwill", "Ratio CET1"]),
-            _table(
-                table_id="curr", indicators=["Goodwill³", "Ratio CET1", "Ratio AT1"]
-            ),
+            _table(table_id="curr", indicators=["Goodwill³", "Ratio CET1", "Ratio AT1"]),
             model="gpt-4o-test",
             call_openai_json=fake_call_openai_json,
         )
@@ -339,12 +368,8 @@ class TestDiffTablePairGptWithInspector:
         call_kinds: list[str] = []
         responses = [
             {
-                "indicators_added": [
-                    {"value": "Cr\u00e9dit d\u2019imp\u00f4t", "reason": "New."}
-                ],
-                "indicators_removed": [
-                    {"value": "Cr\u00e9dit d'imp\u00f4t", "reason": "Gone."}
-                ],
+                "indicators_added": [{"value": "Cr\u00e9dit d\u2019imp\u00f4t", "reason": "New."}],
+                "indicators_removed": [{"value": "Cr\u00e9dit d'imp\u00f4t", "reason": "Gone."}],
                 "indicators_renamed": [],
                 "reason": "Change detected.",
             },

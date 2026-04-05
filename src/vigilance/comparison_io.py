@@ -20,13 +20,9 @@ logger = logging.getLogger(__name__)
 # Extraction-status buckets
 # ---------------------------------------------------------------------------
 
-_BUSINESS_EXTRACTION_STATUSES: frozenset[str] = frozenset(
-    {"ok", "rescued", "suspect_unresolved"}
-)
+_BUSINESS_EXTRACTION_STATUSES: frozenset[str] = frozenset({"ok", "rescued", "suspect_unresolved"})
 _ARTIFACT_EXTRACTION_STATUSES: frozenset[str] = frozenset({"confirmed_no_table"})
-_SUSPECT_EXTRACTION_STATUSES: frozenset[str] = (
-    frozenset()
-)  # No longer excluding any tables from matching
+_SUSPECT_EXTRACTION_STATUSES: frozenset[str] = frozenset()  # No longer excluding any tables from matching
 
 
 # ---------------------------------------------------------------------------
@@ -72,12 +68,24 @@ class TableSnapshot(TypedDict):
 
 
 def _is_ghost_table(entry: dict[str, Any]) -> bool:
-    """Retourne True si le tableau a 0 indicateur reel (pas un vrai tableau)."""
-    from vigilance.extraction.vision_full_extractor import _count_real_indicators
+    """Retourne True si le tableau a 0 indicateur viable (pas un vrai tableau)."""
+    from vigilance.extraction.vision_full_extractor import (
+        VisionFullResult,
+        _viable_indicator_count,
+    )
 
     indicators = list(entry.get("indicators", []) or [])
-    headers = list(entry.get("headers", []) or [])
-    return _count_real_indicators(indicators) == 0 and len(headers) == 0
+    headers = [str(h).strip() for h in list(entry.get("headers", []) or []) if str(h).strip()]
+    # Build a lightweight VisionFullResult to reuse the strict viable-indicator
+    # logic (filters weak, narrative, and generic-title indicators).
+    probe = VisionFullResult(
+        table_title=str(entry.get("title", "") or ""),
+        table_summary="",
+        headers=headers,
+        indicators=indicators,
+        footnotes_content=[],
+    )
+    return _viable_indicator_count(probe) == 0 and len(headers) == 0
 
 
 # ---------------------------------------------------------------------------
@@ -157,9 +165,7 @@ def _load_tables_payload(extraction_dir: Path) -> dict[str, Any]:
     payload = _load_json(tables_path)
     schema_version = _coerce_int(payload.get("schema_version"))
     if schema_version != 7:
-        raise ValueError(
-            f"Unsupported tables.json schema_version={schema_version} in {tables_path}; expected 7"
-        )
+        raise ValueError(f"Unsupported tables.json schema_version={schema_version} in {tables_path}; expected 7")
     tables = payload.get("tables", [])
     if not isinstance(tables, list):
         raise ValueError(f"Invalid tables list in {tables_path}")
@@ -243,12 +249,7 @@ def _normalize_footnotes(raw: Any) -> list[dict[str, str]]:
 def _normalize_extraction_status(value: Any) -> str:
     """Normalise le statut d'extraction, retourne ``"ok"`` si non reconnu."""
     status = str(value or "").strip().lower()
-    if (
-        status
-        in _BUSINESS_EXTRACTION_STATUSES
-        | _ARTIFACT_EXTRACTION_STATUSES
-        | _SUSPECT_EXTRACTION_STATUSES
-    ):
+    if status in _BUSINESS_EXTRACTION_STATUSES | _ARTIFACT_EXTRACTION_STATUSES | _SUSPECT_EXTRACTION_STATUSES:
         return status
     return "ok"
 
@@ -260,11 +261,7 @@ def _normalize_extraction_status(value: Any) -> str:
 
 def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
     """Construit une fiche resumee d'un tableau pour l'etape d'appariement."""
-    indicators = [
-        str(value).strip()
-        for value in list(entry.get("indicators", []) or [])
-        if str(value).strip()
-    ]
+    indicators = [str(value).strip() for value in list(entry.get("indicators", []) or []) if str(value).strip()]
     row_count = int(entry.get("row_count", len(indicators)) or 0)
 
     header_source = entry.get("headers", [])
@@ -277,11 +274,7 @@ def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
     page_raw = entry.get("page")
     page: int | None
     try:
-        page = (
-            int(page_raw)
-            if page_raw is not None and str(page_raw).strip() != ""
-            else None
-        )
+        page = int(page_raw) if page_raw is not None and str(page_raw).strip() != "" else None
     except (TypeError, ValueError):
         page = None
 
@@ -304,11 +297,7 @@ def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
 
 def _table_detail(entry: dict[str, Any]) -> dict[str, Any]:
     """Construit une vue detaillee d'un tableau pour la comparaison paire a paire."""
-    indicators = [
-        str(value).strip()
-        for value in list(entry.get("indicators", []) or [])
-        if str(value).strip()
-    ]
+    indicators = [str(value).strip() for value in list(entry.get("indicators", []) or []) if str(value).strip()]
     return {
         "table_id": str(entry.get("table_id", "") or ""),
         "section": str(entry.get("section", "") or "unknown_section"),
@@ -316,11 +305,7 @@ def _table_detail(entry: dict[str, Any]) -> dict[str, Any]:
         "table_summary": str(entry.get("table_summary", "") or ""),
         "page": entry.get("page"),
         "row_count": int(entry.get("row_count", len(indicators)) or 0),
-        "headers": [
-            str(value).strip()
-            for value in list(entry.get("headers", []) or [])
-            if str(value).strip()
-        ],
+        "headers": [str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
         "indicators": indicators,
         "footnotes": _normalize_footnotes(entry.get("footnotes", [])),
     }
@@ -328,11 +313,7 @@ def _table_detail(entry: dict[str, Any]) -> dict[str, Any]:
 
 def _table_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
     """Construit un instantane complet d'un tableau incluant le statut et la bbox."""
-    indicators = [
-        str(value).strip()
-        for value in list(entry.get("indicators", []) or [])
-        if str(value).strip()
-    ]
+    indicators = [str(value).strip() for value in list(entry.get("indicators", []) or []) if str(value).strip()]
     return {
         "table_id": str(entry.get("table_id", "") or ""),
         "title": str(entry.get("title", "") or ""),
@@ -342,11 +323,7 @@ def _table_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
         "section": str(entry.get("section", "") or "unknown_section"),
         "bbox": entry.get("bbox"),
         "row_count": int(entry.get("row_count", len(indicators)) or 0),
-        "headers": [
-            str(value).strip()
-            for value in list(entry.get("headers", []) or [])
-            if str(value).strip()
-        ],
+        "headers": [str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
         "indicators": indicators,
         "footnotes": _normalize_footnotes(entry.get("footnotes", [])),
     }
@@ -445,8 +422,7 @@ def _merge_extraction_suspect_side(
                 "reason": str(item.get("reason", "") or ""),
             }
     suspect_reason = (
-        "extraction_status=suspect_unresolved; table included in matching and "
-        "flagged for extraction review."
+        "extraction_status=suspect_unresolved; table included in matching and flagged for extraction review."
     )
     for entry in tables:
         if not isinstance(entry, dict):
@@ -454,18 +430,13 @@ def _merge_extraction_suspect_side(
         tid = str(entry.get("table_id", "") or "").strip()
         if not tid:
             continue
-        if (
-            _normalize_extraction_status(entry.get("extraction_status"))
-            != "suspect_unresolved"
-        ):
+        if _normalize_extraction_status(entry.get("extraction_status")) != "suspect_unresolved":
             continue
         by_id.setdefault(
             tid,
             {"table_id": tid, "reason": suspect_reason},
         )
-    return [
-        {**by_id[tid], **(snapshots.get(tid) or {})} for tid in sorted(by_id.keys())
-    ]
+    return [{**by_id[tid], **(snapshots.get(tid) or {})} for tid in sorted(by_id.keys())]
 
 
 # ---------------------------------------------------------------------------

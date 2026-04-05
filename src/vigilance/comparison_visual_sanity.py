@@ -15,7 +15,7 @@ from typing import Any, Callable
 
 from vigilance.comparison_noise_filter import recompute_table_level_change
 from vigilance.models.comparison_models import VisualSanityCheckResponse
-from vigilance.utils.proof_rendering import render_full_proof_bytes
+from vigilance.utils.proof_rendering import PROOF_RENDER_DPI, render_full_proof_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ def render_visual_sanity_proof(
     *,
     page: Any,
     bbox: Any,
-    scale: float = 1.5,
+    dpi: int = PROOF_RENDER_DPI,
 ) -> tuple[bytes | None, str]:
     """Genere une image d'epreuve finale pour le controle visuel de coherence.
 
@@ -91,7 +91,7 @@ def render_visual_sanity_proof(
         pdf_path: Chemin vers le fichier PDF source. ``None`` si indisponible.
         page: Numero ou reference de la page cible.
         bbox: Coordonnees de la zone du tableau (bounding box).
-        scale: Facteur d'echelle pour le rendu.
+        dpi: Resolution de rendu PDF (defaut :data:`PROOF_RENDER_DPI`).
 
     Returns:
         Tuple ``(image_bytes, status)`` ou *status* est l'un de :
@@ -102,7 +102,7 @@ def render_visual_sanity_proof(
         pdf_path,
         page=page,
         bbox=bbox,
-        scale=scale,
+        dpi=dpi,
         allow_full_page_fallback=False,
     )
     if status == "ok":

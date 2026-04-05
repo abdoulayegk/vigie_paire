@@ -179,9 +179,7 @@ class TestPostGPTGuard:
             return responses.pop(0)
 
         result = diff_table_pair_gpt(
-            _table(
-                table_id="prev", indicators=["Série 1", "Série 5", "Série 9", "Total"]
-            ),
+            _table(table_id="prev", indicators=["Série 1", "Série 5", "Série 9", "Total"]),
             _table(table_id="curr", indicators=["Série 1", "Série 5", "Total"]),
             model="gpt-4o-test",
             call_openai_json=fake_call,
@@ -255,16 +253,22 @@ class TestPostGPTGuard:
         assert td["table_level_change"] == "modifie"
 
     def test_inspector_not_called_for_pure_renames(self):
-        """When GPT only returns renames (no adds/removes), inspector is skipped."""
+        """When GPT only returns renames (no adds/removes), inspector still audits renames."""
         call_kinds: list[str] = []
         responses = [
             {
                 "indicators_added": [],
                 "indicators_removed": [],
-                "indicators_renamed": [
-                    {"previous": "Old", "current": "New", "reason": "Renamed."}
-                ],
+                "indicators_renamed": [{"previous": "Old", "current": "New", "reason": "Renamed."}],
                 "reason": "Renamed.",
+            },
+            {
+                "added_verdicts": [],
+                "removed_verdicts": [],
+                "renamed_verdicts": [
+                    {"previous": "Old", "current": "New", "verdict": "real", "reason": "Real rename."}
+                ],
+                "artifact_pairs": [],
             },
         ]
 
@@ -279,8 +283,8 @@ class TestPostGPTGuard:
             call_openai_json=fake_call,
         )
 
-        assert call_kinds == ["diff_indicators"]
-        assert result["diff_calls_total"] == 1
+        assert call_kinds == ["diff_indicators", "inspect_artifacts"]
+        assert result["diff_calls_total"] == 2
 
     def test_all_artifacts_filtered_flips_to_inchange(self):
         """When inspector filters all artifacts, table flips from modifie to inchange."""
@@ -292,12 +296,8 @@ class TestPostGPTGuard:
                 "reason": "Changes.",
             },
             {
-                "added_verdicts": [
-                    {"value": "C²", "verdict": "artifact", "reason": "superscript"}
-                ],
-                "removed_verdicts": [
-                    {"value": "C", "verdict": "artifact", "reason": "superscript"}
-                ],
+                "added_verdicts": [{"value": "C²", "verdict": "artifact", "reason": "superscript"}],
+                "removed_verdicts": [{"value": "C", "verdict": "artifact", "reason": "superscript"}],
                 "artifact_pairs": [{"removed": "C", "added": "C²", "reason": "same"}],
             },
         ]

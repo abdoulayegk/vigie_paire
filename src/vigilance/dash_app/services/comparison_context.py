@@ -96,6 +96,23 @@ def _pdf_paths_from_comparison_meta(
             previous = str(sibling_previous)
         if not current and sibling_current.exists():
             current = str(sibling_current)
+        # Fallback: read manifest.json in the same directory for PDF paths
+        if not previous or not current:
+            manifest_path = run_dir / "manifest.json"
+            if manifest_path.exists():
+                try:
+                    import json
+                    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                    if not previous:
+                        prev_path = str(manifest.get("previous", {}).get("pdf_path") or "").strip()
+                        if prev_path and Path(prev_path).exists():
+                            previous = prev_path
+                    if not current:
+                        cur_path = str(manifest.get("current", {}).get("pdf_path") or "").strip()
+                        if cur_path and Path(cur_path).exists():
+                            current = cur_path
+                except Exception:
+                    pass
 
     return {
         "pdf_t1": previous,
