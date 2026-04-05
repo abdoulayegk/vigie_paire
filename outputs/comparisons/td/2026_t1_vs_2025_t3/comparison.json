@@ -246,12 +246,12 @@
           "relevance_score": "ELEVEE",
           "risk_level": "MODERE",
           "confidence": 0.9,
-          "explanation": "La suppression du tableau 'Total de l’exposition nette par région et contrepartie' peut affecter la transparence et la gestion des risques liés à l'exposition géographique.",
+          "explanation": "La suppression du tableau sur l'exposition nette par région et contrepartie peut affecter la transparence et la gestion des risques liés à l'exposition géographique.",
           "impact_type": "structurel",
           "project_phase": "rapport_gestion",
           "action_requise": "investigation",
           "reference_reglementaire": "",
-          "impact_description": "La suppression de ce tableau réduit la visibilité sur l'exposition régionale, ce qui peut compliquer l'évaluation des risques géographiques.",
+          "impact_description": "La suppression de ce tableau réduit la visibilité sur la répartition géographique des expositions, ce qui peut influencer l'évaluation des risques régionaux.",
           "source": "llm"
         }
       }
@@ -1557,12 +1557,12 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La modification des notes de bas de tableau indique un changement potentiel dans l'application des suppléments pour les banques d'importance systémique, ce qui peut affecter la gestion des fonds propres.",
+        "explanation": "La modification des notes de bas de tableau indique un changement dans l'application des suppléments pour les banques d'importance systémique, ce qui peut affecter les exigences de fonds propres.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — TLAC",
-        "impact_description": "Le changement pourrait influencer la manière dont les suppléments de fonds propres sont appliqués aux banques d'importance systémique.",
+        "impact_description": "Le changement pourrait influencer la manière dont les suppléments de fonds propres sont calculés pour les banques systémiques.",
         "source": "llm"
       }
     },
@@ -1894,13 +1894,13 @@
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
-        "confidence": 0.9,
-        "explanation": "L'ajout de déductions pour les expositions sur crypto-actifs dans la structure de fonds propres est pertinent car il impacte directement les ratios de capital réglementaires.",
-        "impact_type": "contenu",
+        "confidence": 0.95,
+        "explanation": "L'ajout d'indicateurs liés aux déductions des expositions sur crypto-actifs est pertinent car il impacte directement la structure des fonds propres et les ratios prudentiels sous Bâle III.",
+        "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — Déductions de capital",
-        "impact_description": "L'ajout de déductions pour crypto-actifs peut réduire les fonds propres disponibles, affectant les ratios de capital réglementaires.",
+        "reference_reglementaire": "Bâle III — Déductions des expositions sur crypto-actifs",
+        "impact_description": "Ce changement pourrait affecter les ratios de fonds propres en raison des nouvelles déductions liées aux crypto-actifs.",
         "source": "llm"
       }
     },
@@ -2197,7 +2197,7 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout et la suppression d'indicateurs dans le tableau 'ACTIONS ET AUTRES TITRES' ainsi que les modifications des notes peuvent affecter la gestion du capital et la conformité réglementaire.",
+        "explanation": "La modification du tableau 'ACTIONS ET AUTRES TITRES' avec l'ajout et la suppression d'indicateurs ainsi que la modification des notes peut affecter la gestion du capital et la conformité réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
@@ -2807,12 +2807,12 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La modification des notes indique un changement dans la méthodologie de calcul de la sensibilité au risque de taux d'intérêt, ce qui peut affecter l'évaluation du risque.",
+        "explanation": "La modification des notes indique un changement dans la portée des expositions incluses dans les mesures de sensibilité au risque de taux d'intérêt, ce qui peut affecter l'évaluation du risque.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Le changement méthodologique pourrait influencer la perception du risque de taux d'intérêt en excluant certaines expositions.",
+        "impact_description": "Le changement méthodologique pourrait affecter la compréhension des risques de taux d'intérêt en excluant certaines expositions.",
         "source": "llm"
       }
     },
@@ -3670,12 +3670,12 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Les modifications des notes de bas de tableau indiquent un changement dans la manière dont les notations de crédit sont présentées, ce qui peut affecter l'évaluation du risque.",
+        "explanation": "La suppression et la modification des notes dans le tableau des notations de crédit indiquent un changement dans la gestion du risque de crédit et potentiellement dans la conformité réglementaire.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Le changement pourrait influencer la perception du risque de crédit en raison de la modification des critères de notation.",
+        "impact_description": "Les modifications des notes peuvent affecter la compréhension des notations de crédit et leur impact sur le risque de crédit de la banque.",
         "source": "llm"
       }
     },
@@ -4356,12 +4356,12 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression de notes indiquant un changement de méthode de calcul pour le financement provenant des dépôts peut affecter l'évaluation des risques de liquidité.",
+        "explanation": "La suppression de notes indiquant un changement de méthode de calcul pour le financement provenant des dépôts est pertinente car elle peut affecter l'évaluation des risques de liquidité.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "Le changement méthodologique pourrait influencer la manière dont le financement des dépôts est évalué dans le cadre de la gestion des risques.",
+        "impact_description": "Le changement de méthode de calcul pourrait modifier l'évaluation du risque de liquidité lié aux dépôts.",
         "source": "llm"
       }
     },
@@ -4491,12 +4491,12 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "L'ajout de nouveaux indicateurs liés à des programmes de titres et d'obligations peut affecter la gestion des risques et la conformité réglementaire.",
+        "explanation": "L'ajout de nouveaux indicateurs liés à des programmes de titres et obligations peut affecter la gestion des risques et la conformité réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "L'ajout de ces programmes pourrait influencer la stratégie de gestion des risques et nécessiter une surveillance accrue.",
+        "impact_description": "Ces ajouts peuvent influencer la stratégie de gestion des risques et nécessitent une évaluation de leur impact sur les obligations réglementaires.",
         "source": "llm"
       }
     },
@@ -5105,12 +5105,12 @@
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
         "confidence": 0.9,
-        "explanation": "Les modifications concernent des valeurs numériques spécifiques à la banque et ne touchent pas directement les seuils ou ratios réglementaires.",
+        "explanation": "Les modifications des montants d'obligations sécurisées et d'engagements de crédit ne concernent pas directement les seuils ou ratios réglementaires.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "Les changements de montants n'affectent pas les exigences réglementaires ou les méthodologies de gestion des risques.",
+        "impact_description": "Les montants modifiés n'ont pas d'impact direct sur la conformité réglementaire.",
         "source": "llm"
       }
     },
@@ -5408,12 +5408,12 @@
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent indiquer un changement dans l'exposition au risque.",
+        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des notes sur les obligations sécurisées et engagements de crédit peuvent affecter l'évaluation des risques.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La suppression et les modifications peuvent affecter l'évaluation des risques liés aux engagements et obligations sécurisées.",
+        "impact_description": "Ces changements peuvent influencer l'analyse de la gestion des risques et nécessitent une vérification pour comprendre leur impact sur le profil de risque global.",
         "source": "llm"
       }
     }
@@ -5492,30 +5492,29 @@
     "high_priority_items_total": 10
   },
   "global_summary": {
-    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été observés dans la gestion du capital et l'évaluation des risques. Les ajustements apportés aux ratios de fonds propres et aux méthodologies de calcul des risques pourraient avoir un impact notable sur la conformité réglementaire et la gestion des risques. Ces évolutions soulignent l'importance d'une surveillance accrue des expositions et des méthodes de calcul pour maintenir la stabilité financière.",
+    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été observés dans les rapports bancaires, principalement dans la gestion du capital et du risque. Les modifications incluent des ajustements aux ratios de fonds propres et des changements dans les méthodes de calcul des risques, ce qui pourrait avoir un impact sur la conformité réglementaire et la gestion des risques. Ces évolutions soulignent l'importance d'une surveillance accrue des pratiques de gestion du capital et du risque.",
     "key_highlights": [
-      "Modification des notes de bas de tableau pour les banques d'importance systémique.",
-      "Ajout de déductions pour les expositions sur crypto-actifs.",
-      "Changement dans la méthodologie de calcul de la sensibilité au risque de taux d'intérêt.",
-      "Suppression du tableau 'Total de l’exposition nette par région et contrepartie'."
+      "Modification des ratios de fonds propres réglementaires pour les banques d'importance systémique.",
+      "Ajout d'indicateurs liés aux crypto-actifs sous Bâle III.",
+      "Changements dans les mesures de sensibilité au risque de taux d'intérêt."
     ],
     "pertinence_globale": "ELEVEE",
     "par_phase": {
       "rapport_gestion": {
         "count": 9,
-        "resume": "Tous les changements pertinents ont été observés dans la phase de rapport de gestion, affectant principalement la gestion du capital et l'évaluation des risques."
+        "resume": "Tous les changements pertinents ont été observés dans la phase de rapport de gestion."
       },
       "pilier_3": {
         "count": 0,
-        "resume": "Aucun changement pertinent n'a été observé dans cette phase."
+        "resume": "Aucun changement pertinent n'a été observé dans la phase Pilier 3."
       },
       "ifc": {
         "count": 0,
-        "resume": "Aucun changement pertinent n'a été observé dans cette phase."
+        "resume": "Aucun changement pertinent n'a été observé dans la phase IFC."
       },
       "autre": {
         "count": 0,
-        "resume": "Aucun changement pertinent n'a été observé dans cette phase."
+        "resume": "Aucun changement pertinent n'a été observé dans d'autres phases."
       }
     },
     "par_action": {
