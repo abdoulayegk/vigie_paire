@@ -128,46 +128,15 @@
 <section id="module-vigilance.cli.output_builder">
 <span id="vigilance-cli-output-builder-module"></span><h2>vigilance.cli.output_builder module<a class="headerlink" href="#module-vigilance.cli.output_builder" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires de construction de l’arborescence de sortie standardisee.</p>
-<p>Cree l’arbre de repertoires et ecrit les fichiers d’audit fractionnes
-(indicators.json, footnotes.json) depuis un tables.json maitre.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.cli.output_builder.build_run_dir">
-<span class="sig-prename descclassname"><span class="pre">vigilance.cli.output_builder.</span></span><span class="sig-name descname"><span class="pre">build_run_dir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_previous</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.output_builder.build_run_dir" title="Lien vers cette définition"></a></dt>
-<dd><p>Creer et retourner le repertoire d’execution (Run).</p>
-<p>Arborescence:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">out_root</span><span class="p">}</span><span class="o">/</span><span class="p">{</span><span class="n">BANK</span><span class="p">}</span><span class="n">_</span><span class="p">{</span><span class="n">YEAR</span><span class="p">}{</span><span class="n">Q_CUR</span><span class="p">}</span><span class="n">_vs_</span><span class="p">{</span><span class="n">YEAR</span><span class="p">}{</span><span class="n">Q_PREV</span><span class="p">}</span><span class="o">/</span>
-    <span class="p">{</span><span class="n">Q_CUR</span><span class="p">}</span><span class="o">-</span><span class="p">{</span><span class="n">YEAR_CUR</span><span class="p">}</span><span class="o">/</span>
-    <span class="p">{</span><span class="n">Q_PREV</span><span class="p">}</span><span class="o">-</span><span class="p">{</span><span class="n">YEAR_PREV</span><span class="p">}</span><span class="o">/</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.cli.output_builder.split_audit_files">
-<span class="sig-prename descclassname"><span class="pre">vigilance.cli.output_builder.</span></span><span class="sig-name descname"><span class="pre">split_audit_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tables_json_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.output_builder.split_audit_files" title="Lien vers cette définition"></a></dt>
-<dd><p>Lire un <code class="docutils literal notranslate"><span class="pre">tables.json</span></code> et le fractionner en fichiers d’audit separes.</p>
-<p>Produit :
-- <code class="docutils literal notranslate"><span class="pre">indicators.json</span></code> – liste plate des indicateurs par table
-- <code class="docutils literal notranslate"><span class="pre">footnotes.json</span></code> – liste plate des notes de bas de page par table</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>]</span></p>
-</dd>
-<dt class="field-even">Renvoie<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dictionnaire associant le type de fichier au chemin ecrit.</p>
-</dd>
-</dl>
-</dd></dl>
-
+<p>Architecture « Extract Once, Reference Everywhere » :
+- Les extractions vivent dans <code class="docutils literal notranslate"><span class="pre">outputs/extractions/{bank}/{year}/{quarter}/</span></code>.
+- Les comparaisons vivent dans <code class="docutils literal notranslate"><span class="pre">outputs/comparisons/{bank}/{label}/</span></code>.
+- Le manifest contient des references vers les extractions et les PDFs sources.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.cli.output_builder.write_run_manifest">
-<span class="sig-prename descclassname"><span class="pre">vigilance.cli.output_builder.</span></span><span class="sig-name descname"><span class="pre">write_run_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'completed'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.output_builder.write_run_manifest" title="Lien vers cette définition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">vigilance.cli.output_builder.</span></span><span class="sig-name descname"><span class="pre">write_run_manifest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'completed'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extraction_dir_current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extraction_dir_previous</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_path_current</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_path_previous</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.output_builder.write_run_manifest" title="Lien vers cette définition"></a></dt>
 <dd><p>Ecrire un fichier <code class="docutils literal notranslate"><span class="pre">manifest.json</span></code> a la racine du repertoire d’execution.</p>
+<p>Le manifest reference les extractions et PDFs sources au lieu de les copier.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>

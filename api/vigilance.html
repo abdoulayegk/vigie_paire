@@ -128,8 +128,6 @@
 <li class="toctree-l1"><a class="reference internal" href="vigilance.cli.html">vigilance.cli package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="vigilance.cli.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vigilance.cli.html#module-vigilance.cli.output_builder">vigilance.cli.output_builder module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.cli.html#vigilance.cli.output_builder.build_run_dir"><code class="docutils literal notranslate"><span class="pre">build_run_dir()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.cli.html#vigilance.cli.output_builder.split_audit_files"><code class="docutils literal notranslate"><span class="pre">split_audit_files()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vigilance.cli.html#vigilance.cli.output_builder.write_run_manifest"><code class="docutils literal notranslate"><span class="pre">write_run_manifest()</span></code></a></li>
 </ul>
 </li>
@@ -763,11 +761,20 @@
 <li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorArtifactPair.removed"><code class="docutils literal notranslate"><span class="pre">InspectorArtifactPair.removed</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorRenamedVerdict"><code class="docutils literal notranslate"><span class="pre">InspectorRenamedVerdict</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorRenamedVerdict.current"><code class="docutils literal notranslate"><span class="pre">InspectorRenamedVerdict.current</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorRenamedVerdict.model_config"><code class="docutils literal notranslate"><span class="pre">InspectorRenamedVerdict.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorRenamedVerdict.previous"><code class="docutils literal notranslate"><span class="pre">InspectorRenamedVerdict.previous</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorRenamedVerdict.reason"><code class="docutils literal notranslate"><span class="pre">InspectorRenamedVerdict.reason</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorRenamedVerdict.verdict"><code class="docutils literal notranslate"><span class="pre">InspectorRenamedVerdict.verdict</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorResponse"><code class="docutils literal notranslate"><span class="pre">InspectorResponse</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorResponse.added_verdicts"><code class="docutils literal notranslate"><span class="pre">InspectorResponse.added_verdicts</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorResponse.artifact_pairs"><code class="docutils literal notranslate"><span class="pre">InspectorResponse.artifact_pairs</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorResponse.model_config"><code class="docutils literal notranslate"><span class="pre">InspectorResponse.model_config</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorResponse.removed_verdicts"><code class="docutils literal notranslate"><span class="pre">InspectorResponse.removed_verdicts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorResponse.renamed_verdicts"><code class="docutils literal notranslate"><span class="pre">InspectorResponse.renamed_verdicts</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="vigilance.models.html#vigilance.models.comparison_models.InspectorVerdict"><code class="docutils literal notranslate"><span class="pre">InspectorVerdict</span></code></a><ul>
@@ -1591,7 +1598,7 @@ de facon deterministe et delegue les cas complexes a GPT.</p>
 <dt class="sig sig-object py" id="vigilance.comparison_diff_gpt.diff_indicators_pair_gpt">
 <span class="sig-prename descclassname"><span class="pre">vigilance.comparison_diff_gpt.</span></span><span class="sig-name descname"><span class="pre">diff_indicators_pair_gpt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">previous_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_table</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">call_openai_json</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">usage_recorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_validation_attempts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.comparison_diff_gpt.diff_indicators_pair_gpt" title="Lien vers cette définition"></a></dt>
 <dd><p>Compare les indicateurs de deux tableaux apparies via GPT.</p>
-<p>Effectue un pre-diff deterministe puis envoie le contexte a GPT pour
+<p>Envoie le contexte complet (avec position structurelle) a GPT pour
 une analyse semantique des ajouts, suppressions et renommages d’indicateurs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -2009,7 +2016,7 @@ zone du tableau cible mise en evidence. Il agit comme un filtre conservateur de
 derniere passe et ne retire que les faux positifs visuels.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.comparison_visual_sanity.render_visual_sanity_proof">
-<span class="sig-prename descclassname"><span class="pre">vigilance.comparison_visual_sanity.</span></span><span class="sig-name descname"><span class="pre">render_visual_sanity_proof</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.comparison_visual_sanity.render_visual_sanity_proof" title="Lien vers cette définition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">vigilance.comparison_visual_sanity.</span></span><span class="sig-name descname"><span class="pre">render_visual_sanity_proof</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.comparison_visual_sanity.render_visual_sanity_proof" title="Lien vers cette définition"></a></dt>
 <dd><p>Genere une image d’epreuve finale pour le controle visuel de coherence.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -2017,7 +2024,7 @@ derniere passe et ne retire que les faux positifs visuels.</p>
 <li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Chemin vers le fichier PDF source. <code class="docutils literal notranslate"><span class="pre">None</span></code> si indisponible.</p></li>
 <li><p><strong>page</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Numero ou reference de la page cible.</p></li>
 <li><p><strong>bbox</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Coordonnees de la zone du tableau (bounding box).</p></li>
-<li><p><strong>scale</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Facteur d’echelle pour le rendu.</p></li>
+<li><p><strong>dpi</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Resolution de rendu PDF (defaut <code class="xref py py-data docutils literal notranslate"><span class="pre">PROOF_RENDER_DPI</span></code>).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Renvoie<span class="colon">:</span></dt>

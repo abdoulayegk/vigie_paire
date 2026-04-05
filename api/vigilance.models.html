@@ -513,6 +513,39 @@ sorties garanties typees via OpenAI Structured Outputs.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="vigilance.models.comparison_models.InspectorRenamedVerdict">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.models.comparison_models.</span></span><span class="sig-name descname"><span class="pre">InspectorRenamedVerdict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.models.comparison_models.InspectorRenamedVerdict" title="Lien vers cette définition"></a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Verdict pour un indicateur renomme dans la passe d’inspection.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.models.comparison_models.InspectorRenamedVerdict.current">
+<span class="sig-name descname"><span class="pre">current</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.models.comparison_models.InspectorRenamedVerdict.current" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.models.comparison_models.InspectorRenamedVerdict.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'forbid'}</span></span><a class="headerlink" href="#vigilance.models.comparison_models.InspectorRenamedVerdict.model_config" title="Lien vers cette définition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.models.comparison_models.InspectorRenamedVerdict.previous">
+<span class="sig-name descname"><span class="pre">previous</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.models.comparison_models.InspectorRenamedVerdict.previous" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.models.comparison_models.InspectorRenamedVerdict.reason">
+<span class="sig-name descname"><span class="pre">reason</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.models.comparison_models.InspectorRenamedVerdict.reason" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.models.comparison_models.InspectorRenamedVerdict.verdict">
+<span class="sig-name descname"><span class="pre">verdict</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.models.comparison_models.InspectorRenamedVerdict.verdict" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="vigilance.models.comparison_models.InspectorResponse">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.models.comparison_models.</span></span><span class="sig-name descname"><span class="pre">InspectorResponse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.models.comparison_models.InspectorResponse" title="Lien vers cette définition"></a></dt>
 <dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
@@ -536,6 +569,11 @@ sorties garanties typees via OpenAI Structured Outputs.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="vigilance.models.comparison_models.InspectorResponse.removed_verdicts">
 <span class="sig-name descname"><span class="pre">removed_verdicts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#vigilance.models.comparison_models.InspectorVerdict" title="vigilance.models.comparison_models.InspectorVerdict"><span class="pre">InspectorVerdict</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.models.comparison_models.InspectorResponse.removed_verdicts" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.models.comparison_models.InspectorResponse.renamed_verdicts">
+<span class="sig-name descname"><span class="pre">renamed_verdicts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#vigilance.models.comparison_models.InspectorRenamedVerdict" title="vigilance.models.comparison_models.InspectorRenamedVerdict"><span class="pre">InspectorRenamedVerdict</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.models.comparison_models.InspectorResponse.renamed_verdicts" title="Lien vers cette définition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
