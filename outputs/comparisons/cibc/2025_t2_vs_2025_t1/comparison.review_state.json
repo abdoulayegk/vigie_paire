@@ -1,97 +1,19 @@
 {
   "schema_version": "review_state_v1",
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/comparison.json",
-  "comparison_run_id": "20260404_144717",
-  "review_items_signature": "984e09b9648822ceff8eebf463d1ccf96f4655e6f8758b0c54cc728ed4dbdfef",
-  "saved_at": "2026-04-04T18:55:14+00:00",
+  "comparison_run_id": "20260404_215908",
+  "review_items_signature": "e05bfc700be22efd013ab34f181c9b58e47511c3485f233df90422d122c0a6e2",
+  "saved_at": "2026-04-05T02:03:54+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "cibc::risk_management::|tbl_p053_i02",
+    "review_id": "cibc::risk_management::tbl_p046_i01|tbl_p053_i01",
     "change_id": "chg_00014"
   },
-  "review_current_idx": 9,
+  "review_current_idx": 8,
   "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
-    {
-      "change_id": "cibc::risk_management::tbl_p034_i01|tbl_p041_i01",
-      "change_type": "removed",
-      "indicator": "2 retiré(s)",
-      "section": "risk_management",
-      "table_name": "tbl_p041_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p034_i01",
-      "table_id_t2": "tbl_p041_i01",
-      "page_t1": 34,
-      "page_t2": 41,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T18:54:53.332856+00:00",
-      "edited_value": "",
-      "confidence": 0.9,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "tbl_p041_i01",
-      "table_status": "partial",
-      "indicators": [
-        {
-          "name": "En fonction des paiements contractuels",
-          "type": "removed",
-          "review_status": "approved"
-        },
-        {
-          "name": "En fonction des paiements réels des clients",
-          "type": "removed",
-          "review_status": "approved"
-        },
-        {
-          "name": "[1] Comprend des prêts hypothécaires à taux variable de 21,9 G$  -> Comprend des prêts hypothécaires à taux variable de 19,8 G$ ",
-          "type": "modified",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Table summary and indicators align closely with 'tbl_p034_i01'. Both tables discuss amortization periods based on real payments, and share similar headers and indicators.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.0562595105638691,
-        0.15107173149031825,
-        0.9434950086805556,
-        0.42703455144708813
-      ],
-      "bbox_t2": [
-        0.056684581282871224,
-        0.29569826222429374,
-        0.9434222053079044,
-        0.4233562199756353
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "footnote",
-      "event_type": "footnote_only",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "risque_marche",
-        "change_significance": "moyen",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "risque_marche",
-        "review_priority": "prioritaire",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 1 changement(s) de footnote."
-      }
-    },
     {
       "change_id": "cibc::risk_management::tbl_p033_i01|tbl_p040_i01",
       "change_type": "removed",
@@ -103,12 +25,12 @@
       "table_id_t2": "tbl_p040_i01",
       "page_t1": 33,
       "page_t2": 40,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T18:55:07.126669+00:00",
+      "review_timestamp": "2026-04-05T02:00:36.417340+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -128,7 +50,7 @@
         {
           "name": "[4] Comprend un montant de 2,3 G$ (2,4 G$ au 31 octobre 2024) au -> Comprend un montant de 2,3 G$ (2,4 G$ au 31 octobre 2024) au",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[6] Une tranche de 54 % (55 % au 31 octobre 2024) des prêts hypo -> Une tranche de 53 % (55 % au 31 octobre 2024) des prêts hypo",
@@ -136,7 +58,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers are identical; row_count 10 vs 10; both summaries describe geographic distribution of residential mortgages.",
+      "match_method": "Indicators and headers match exactly with tbl_p033_i01; row_count 10 vs 10; footnote_count 6 vs 6.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -160,6 +82,79 @@
       "match_metadata": {}
     },
     {
+      "change_id": "cibc::risk_management::tbl_p034_i01|tbl_p041_i01",
+      "change_type": "removed",
+      "indicator": "1 retiré(s)",
+      "section": "risk_management",
+      "table_name": "tbl_p041_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p034_i01",
+      "table_id_t2": "tbl_p041_i01",
+      "page_t1": 34,
+      "page_t2": 41,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-05T02:02:24.175036+00:00",
+      "edited_value": "",
+      "confidence": 0.9,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "tbl_p041_i01",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "En fonction des paiements réels des clients",
+          "type": "removed",
+          "review_status": "approved"
+        },
+        {
+          "name": "[1] Comprend des prêts hypothécaires à taux variable de 21,9 G$  -> Comprend des prêts hypothécaires à taux variable de 19,8 G$ ",
+          "type": "modified",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Table summary and headers match with tbl_p034_i01; both describe amortization periods of mortgage portfolios with similar headers and indicators.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.0562595105638691,
+        0.15107173149031825,
+        0.9434950086805556,
+        0.42703455144708813
+      ],
+      "bbox_t2": [
+        0.056684581282871224,
+        0.29569826222429374,
+        0.9434222053079044,
+        0.4233562199756353
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_marche",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_marche",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
       "change_id": "cibc::risk_management::tbl_p036_i01|tbl_p043_i01",
       "change_type": "removed",
       "indicator": "",
@@ -170,14 +165,14 @@
       "table_id_t2": "tbl_p043_i01",
       "page_t1": 36,
       "page_t2": 43,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T18:55:08.840739+00:00",
+      "review_timestamp": "2026-04-05T02:00:48.876867+00:00",
       "edited_value": "",
-      "confidence": 0.95,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -198,7 +193,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers are identical; row_count 8 vs 9; both summaries describe regional exposure.",
+      "match_method": "Indicators and headers match exactly with tbl_p036_i01; row_count 8 vs 9; footnote_count 5 vs 5.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -232,12 +227,12 @@
       "table_id_t2": "tbl_p040_i02",
       "page_t1": 33,
       "page_t2": 40,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-05T02:00:50.201769+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -247,12 +242,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p040_i02",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[2] Les RPV moyens pour les prêts hypothécaires à l’habitation n -> Les RPV moyens pour les prêts hypothécaires à l’habitation n",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[3] Les RPV moyens pour les prêts hypothécaires à l’habitation n -> Les RPV moyens pour les prêts hypothécaires à l’habitation n",
@@ -260,7 +255,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers are identical; row_count 9 vs 9; both summaries describe average loan-to-value ratios.",
+      "match_method": "Indicators and headers match exactly with tbl_p033_i02; row_count 9 vs 9; footnote_count 4 vs 4.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -284,6 +279,133 @@
       "match_metadata": {}
     },
     {
+      "change_id": "cibc::capital_management::tbl_p024_i01|tbl_p031_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "capital_management",
+      "table_name": "tbl_p031_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p024_i01",
+      "table_id_t2": "tbl_p031_i01",
+      "page_t1": 24,
+      "page_t2": 31,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-05T02:01:26.537230+00:00",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "tbl_p031_i01",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "[2] Le 17 décembre 2024, le BSIF a annoncé que la RSI serait mai -> La RSI est actuellement établie à 3,5 %, mais elle peut être",
+          "type": "modified",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Indicators and headers match exactly with tbl_p024_i01; row_count 6 vs 6; footnote_count 2 vs 2.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05644324558233124,
+        0.14019238828408598,
+        0.9426554760901756,
+        0.26445361821338387
+      ],
+      "bbox_t2": [
+        0.05631595811033561,
+        0.10133963883525195,
+        0.9421129413679534,
+        0.2252984865747317
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {},
+      "match_metadata": {}
+    },
+    {
+      "change_id": "cibc::risk_management::tbl_p035_i01|tbl_p042_i01",
+      "change_type": "renamed",
+      "indicator": "1 renommé(s)",
+      "section": "risk_management",
+      "table_name": "tbl_p042_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p035_i01",
+      "table_id_t2": "tbl_p042_i01",
+      "page_t1": 35,
+      "page_t2": 42,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-05T02:02:15.837121+00:00",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "tbl_p042_i01",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "Change et autres -> ai Change et autres",
+          "type": "renamed",
+          "from": "Change et autres",
+          "to": "ai Change et autres",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Indicators and headers match exactly with tbl_p035_i01; row_count 15 vs 15; footnote_count 2 vs 2.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05728972191904105,
+        0.10503734241832387,
+        0.9436672435087317,
+        0.3280510565247199
+      ],
+      "bbox_t2": [
+        0.056840865440617984,
+        0.09711989007814967,
+        0.9432447844860601,
+        0.3128543429904514
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "matched_pair",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      }
+    },
+    {
       "change_id": "cibc::risk_management::tbl_p038_i01|tbl_p045_i01",
       "change_type": "removed",
       "indicator": "",
@@ -294,12 +416,12 @@
       "table_id_t2": "tbl_p045_i01",
       "page_t1": 38,
       "page_t2": 45,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T18:55:10.125826+00:00",
+      "review_timestamp": "2026-04-05T02:02:03.410062+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -317,7 +439,7 @@
           "review_status": "approved"
         }
       ],
-      "match_method": "Indicators and headers are identical; row_count 7 vs 7; both summaries describe value at risk by risk category.",
+      "match_method": "Indicators and headers match exactly with tbl_p038_i01; row_count 7 vs 7; footnote_count 1 vs 1.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -351,12 +473,12 @@
       "table_id_t2": "tbl_p049_i01",
       "page_t1": 42,
       "page_t2": 49,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-05T02:03:54.188417+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -366,15 +488,15 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p049_i01",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "[s. o.] Sans objet, conformément au modèle de divulgation commun du LCR.",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
-      "match_method": "Indicators and headers are identical; row_count 28 vs 28; both summaries describe liquidity coverage ratio.",
+      "match_method": "Indicators and headers match exactly with tbl_p042_i01; row_count 28 vs 28; footnote_count 2 vs 2.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -408,12 +530,12 @@
       "table_id_t2": "tbl_p053_i01",
       "page_t1": 46,
       "page_t2": 53,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T18:55:11.503393+00:00",
+      "review_timestamp": "2026-04-05T02:03:53.230087+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -431,7 +553,7 @@
           "review_status": "approved"
         }
       ],
-      "match_method": "Indicators and headers are identical; row_count 23 vs 23; both summaries describe contractual maturities of assets, liabilities, and equity.",
+      "match_method": "Indicators and headers match exactly with tbl_p046_i01; row_count 23 vs 23; footnote_count 3 vs 3.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -465,12 +587,12 @@
       "table_id_t2": "",
       "page_t1": 26,
       "page_t2": null,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-05T02:03:43.587616+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -480,7 +602,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p026_i01",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -518,12 +640,12 @@
       "table_id_t2": "",
       "page_t1": 27,
       "page_t2": null,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T18:55:14.290677+00:00",
+      "review_timestamp": "2026-04-05T02:03:42.750425+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -571,12 +693,12 @@
       "table_id_t2": "tbl_p053_i02",
       "page_t1": null,
       "page_t2": 53,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-05T02:03:26.781189+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -586,7 +708,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Engagements au titre du crédit",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -610,115 +732,11 @@
         "analyst_summary": "Nouveau tableau sur le theme liquidite a revoir par l'analyste."
       },
       "match_metadata": {
-        "semantic_judge": "Indicators are unique; no remaining previous table has a sufficiently similar indicator structure, title, or business purpose."
+        "semantic_judge": "Indicators and table summary are unique; no remaining previous table has a sufficiently similar indicator structure or business purpose."
       }
     }
   ],
   "review_queue": [
-    {
-      "review_id": "cibc::risk_management::tbl_p034_i01|tbl_p041_i01",
-      "table_key": "cibc::risk_management::tbl_p034_i01|tbl_p041_i01",
-      "table_title": "tbl_p041_i01",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "tbl_p041_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p034_i01",
-      "table_id_t2": "tbl_p041_i01",
-      "page_t1": 34,
-      "page_t2": 41,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.0562595105638691,
-        0.15107173149031825,
-        0.9434950086805556,
-        0.42703455144708813
-      ],
-      "bbox_t2": [
-        0.056684581282871224,
-        0.29569826222429374,
-        0.9434222053079044,
-        0.4233562199756353
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00001",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "En fonction des paiements contractuels",
-            "indicator_name_clean": "en fonction des paiements contractuels"
-          },
-          "validation_status": "approved",
-          "is_required": true,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-04T18:54:53.205606+00:00",
-          "validated_by": "analyst"
-        },
-        {
-          "change_id": "chg_00002",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "En fonction des paiements réels des clients",
-            "indicator_name_clean": "en fonction des paiements réels des clients"
-          },
-          "validation_status": "approved",
-          "is_required": true,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-04T18:54:53.332856+00:00",
-          "validated_by": "analyst"
-        },
-        {
-          "change_id": "chg_00008",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[1] Comprend des prêts hypothécaires à taux variable de 21,9 G$  -> Comprend des prêts hypothécaires à taux variable de 19,8 G$ ",
-            "indicator_name_clean": "[1] comprend des prêts hypothécaires à taux variable de 21,9 g$  -> comprend des prêts hypothécaires à taux variable de 19,8 g$",
-            "footnote_ref": "1",
-            "old_text": "Comprend des prêts hypothécaires à taux variable de 21,9 G$ (28,9 G$ au 31 octobre 2024), dont une tranche de 6,3 G$ (17,6 G$ au 31 octobre 2024) est liée aux prêts hypothécaires pour lesquels tous les paiements contractuels fixes ont été imputés au remboursement de l’intérêt selon les taux d’intérêt en vigueur respectivement au 31 janvier 2025 et au 31 octobre 2024, et les modalités des prêts hypothécaires, la tranche des intérêts, qui devaient être versés en vertu de l’obligation contractuelle et qui ne l’ont pas été, étant ajoutée au montant du principal. Puisque le profil des périodes d’amortissement présentées dans le tableau ci-dessus se fonde sur les paiements contractuels réels, il ne tient pas compte du fait que les paiements contractuels devront être augmentés au moment du renouvellement des prêts hypothécaires, selon le montant nécessaire pour ramener la période d’amortissement à la période en vigueur lorsque le prêt hypothécaire a été initialement octroyé.",
-            "new_text": "Comprend des prêts hypothécaires à taux variable de 19,8 G$ (28,9 G$ au 31 octobre 2024), dont une tranche de 0,2 G$ (17,6 G$ au 31 octobre 2024) est liée aux prêts hypothécaires pour lesquels tous les paiements contractuels fixes ont été imputés au remboursement de l’intérêt selon les taux d’intérêt en vigueur respectivement au 30 avril 2025 et au 31 octobre 2024, et les modalités des prêts hypothécaires, la tranche des intérêts, qui devaient être versés en vertu de l’obligation contractuelle et qui ne l’ont pas été, étant ajoutée au montant du principal. Puisque le profil des périodes d’amortissement présentées dans le tableau ci-dessus se fonde sur les paiements contractuels réels, il ne tient pas compte du fait que les paiements contractuels devront être augmentés au moment du renouvellement des prêts hypothécaires, selon le montant nécessaire pour ramener la période d’amortissement à la période en vigueur lorsque le prêt hypothécaire a été initialement octroyé."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "partial",
-      "confidence": 0.9,
-      "match_method": "Table summary and indicators align closely with 'tbl_p034_i01'. Both tables discuss amortization periods based on real payments, and share similar headers and indicators.",
-      "genai_analysis": {
-        "theme": "risque_marche",
-        "change_significance": "moyen",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "risque_marche",
-        "review_priority": "prioritaire",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "relevance": "",
-      "risk_level": "",
-      "summary": {
-        "total_changes": 3,
-        "indicators_added": 0,
-        "indicators_removed": 2,
-        "indicators_renamed": 0,
-        "footnotes_changed": 1,
-        "validated": 2,
-        "pending": 1
-      }
-    },
     {
       "review_id": "cibc::risk_management::tbl_p033_i01|tbl_p040_i01",
       "table_key": "cibc::risk_management::tbl_p033_i01|tbl_p040_i01",
@@ -746,11 +764,11 @@
         0.9432243397033293,
         0.3693349048344776
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "changes": [
         {
-          "change_id": "chg_00003",
+          "change_id": "chg_00004",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[3] Comprend un montant de 7,4 G$ (7,6 G$ au 31 octobre 2024) au -> Comprend un montant de 7,2 G$ (7,6 G$ au 31 octobre 2024) au",
@@ -763,11 +781,11 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T18:55:07.126669+00:00",
+          "validated_at": "2026-04-05T02:00:36.240999+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00004",
+          "change_id": "chg_00005",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[4] Comprend un montant de 2,3 G$ (2,4 G$ au 31 octobre 2024) au -> Comprend un montant de 2,3 G$ (2,4 G$ au 31 octobre 2024) au",
@@ -776,15 +794,15 @@
             "old_text": "Comprend un montant de 2,3 G$ (2,4 G$ au 31 octobre 2024) au titre des prêts hypothécaires à l’habitation assurés, un montant de 31,0 G$ (30,9 G$ au 31 octobre 2024) au titre des prêts hypothécaires à l’habitation non assurés et un montant de 2,6 G$ (2,5 G$ au 31 octobre 2024) au titre des marges de crédit hypothécaires de la région du Grand Vancouver.",
             "new_text": "Comprend un montant de 2,3 G$ (2,4 G$ au 31 octobre 2024) au titre des prêts hypothécaires à l’habitation assurés, un montant de 31,1 G$ (30,9 G$ au 31 octobre 2024) au titre des prêts hypothécaires à l’habitation non assurés et un montant de 2,6 G$ (2,5 G$ au 31 octobre 2024) au titre des marges de crédit hypothécaires de la région du Grand Vancouver."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-05T02:00:36.417340+00:00",
+          "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00005",
+          "change_id": "chg_00006",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[6] Une tranche de 54 % (55 % au 31 octobre 2024) des prêts hypo -> Une tranche de 53 % (55 % au 31 octobre 2024) des prêts hypo",
@@ -803,7 +821,7 @@
       ],
       "table_status": "partial",
       "confidence": 0.99,
-      "match_method": "Indicators and headers are identical; row_count 10 vs 10; both summaries describe geographic distribution of residential mortgages.",
+      "match_method": "Indicators and headers match exactly with tbl_p033_i01; row_count 10 vs 10; footnote_count 6 vs 6.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -814,8 +832,98 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 3,
-        "validated": 1,
-        "pending": 2
+        "validated": 2,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "cibc::risk_management::tbl_p034_i01|tbl_p041_i01",
+      "table_key": "cibc::risk_management::tbl_p034_i01|tbl_p041_i01",
+      "table_title": "tbl_p041_i01",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "tbl_p041_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p034_i01",
+      "table_id_t2": "tbl_p041_i01",
+      "page_t1": 34,
+      "page_t2": 41,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.0562595105638691,
+        0.15107173149031825,
+        0.9434950086805556,
+        0.42703455144708813
+      ],
+      "bbox_t2": [
+        0.056684581282871224,
+        0.29569826222429374,
+        0.9434222053079044,
+        0.4233562199756353
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00001",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "En fonction des paiements réels des clients",
+            "indicator_name_clean": "en fonction des paiements réels des clients"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-05T02:00:46.422818+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00009",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Comprend des prêts hypothécaires à taux variable de 21,9 G$  -> Comprend des prêts hypothécaires à taux variable de 19,8 G$ ",
+            "indicator_name_clean": "[1] comprend des prêts hypothécaires à taux variable de 21,9 g$  -> comprend des prêts hypothécaires à taux variable de 19,8 g$",
+            "footnote_ref": "1",
+            "old_text": "Comprend des prêts hypothécaires à taux variable de 21,9 G$ (28,9 G$ au 31 octobre 2024), dont une tranche de 6,3 G$ (17,6 G$ au 31 octobre 2024) est liée aux prêts hypothécaires pour lesquels tous les paiements contractuels fixes ont été imputés au remboursement de l’intérêt selon les taux d’intérêt en vigueur respectivement au 31 janvier 2025 et au 31 octobre 2024, et les modalités des prêts hypothécaires, la tranche des intérêts, qui devaient être versés en vertu de l’obligation contractuelle et qui ne l’ont pas été, étant ajoutée au montant du principal. Puisque le profil des périodes d’amortissement présentées dans le tableau ci-dessus se fonde sur les paiements contractuels réels, il ne tient pas compte du fait que les paiements contractuels devront être augmentés au moment du renouvellement des prêts hypothécaires, selon le montant nécessaire pour ramener la période d’amortissement à la période en vigueur lorsque le prêt hypothécaire a été initialement octroyé.",
+            "new_text": "Comprend des prêts hypothécaires à taux variable de 19,8 G$ (28,9 G$ au 31 octobre 2024), dont une tranche de 0,2 G$ (17,6 G$ au 31 octobre 2024) est liée aux prêts hypothécaires pour lesquels tous les paiements contractuels fixes ont été imputés au remboursement de l’intérêt selon les taux d’intérêt en vigueur respectivement au 30 avril 2025 et au 31 octobre 2024, et les modalités des prêts hypothécaires, la tranche des intérêts, qui devaient être versés en vertu de l’obligation contractuelle et qui ne l’ont pas été, étant ajoutée au montant du principal. Puisque le profil des périodes d’amortissement présentées dans le tableau ci-dessus se fonde sur les paiements contractuels réels, il ne tient pas compte du fait que les paiements contractuels devront être augmentés au moment du renouvellement des prêts hypothécaires, selon le montant nécessaire pour ramener la période d’amortissement à la période en vigueur lorsque le prêt hypothécaire a été initialement octroyé."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-05T02:02:24.175036+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.9,
+      "match_method": "Table summary and headers match with tbl_p034_i01; both describe amortization periods of mortgage portfolios with similar headers and indicators.",
+      "genai_analysis": {
+        "theme": "risque_marche",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_marche",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 0,
+        "indicators_removed": 1,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 2,
+        "pending": 0
       }
     },
     {
@@ -845,11 +953,11 @@
         0.9432408949908089,
         0.4068917939157197
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "changes": [
         {
-          "change_id": "chg_00009",
+          "change_id": "chg_00010",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[1] Les montants sont présentés nets des REC et des garanties. L -> Les montants sont présentés nets des REC et des garanties. L",
@@ -862,11 +970,11 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T18:55:08.840739+00:00",
+          "validated_at": "2026-04-05T02:00:48.876867+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00010",
+          "change_id": "chg_00011",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[5] Compte non tenu d’expositions de 6 724 M$ (6 419 M$ au 31 oc -> Compte non tenu d’expositions de 6 070 M$ (6 419 M$ au 31 oc",
@@ -884,8 +992,8 @@
         }
       ],
       "table_status": "partial",
-      "confidence": 0.95,
-      "match_method": "Indicators and headers are identical; row_count 8 vs 9; both summaries describe regional exposure.",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly with tbl_p036_i01; row_count 8 vs 9; footnote_count 5 vs 5.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -927,11 +1035,11 @@
         0.9444706736047284,
         0.6572529956547901
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "changes": [
         {
-          "change_id": "chg_00006",
+          "change_id": "chg_00007",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[2] Les RPV moyens pour les prêts hypothécaires à l’habitation n -> Les RPV moyens pour les prêts hypothécaires à l’habitation n",
@@ -940,15 +1048,15 @@
             "old_text": "Les RPV moyens pour les prêts hypothécaires à l’habitation non assurés de la région du Grand Toronto qui ont été montés au cours du trimestre se sont établis à 66 % (66 % au 31 octobre 2024 et 66 % au 31 janvier 2024).",
             "new_text": "Les RPV moyens pour les prêts hypothécaires à l’habitation non assurés de la région du Grand Toronto qui ont été montés au cours du trimestre se sont établis à 66 % (66 % au 31 janvier 2025 et 67 % au 30 avril 2024) et à 66 % (67 % au 30 avril 2024) au cours du semestre clos le 30 avril 2025."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-05T02:00:50.201769+00:00",
+          "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00007",
+          "change_id": "chg_00008",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[3] Les RPV moyens pour les prêts hypothécaires à l’habitation n -> Les RPV moyens pour les prêts hypothécaires à l’habitation n",
@@ -965,9 +1073,9 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.99,
-      "match_method": "Indicators and headers are identical; row_count 9 vs 9; both summaries describe average loan-to-value ratios.",
+      "match_method": "Indicators and headers match exactly with tbl_p033_i02; row_count 9 vs 9; footnote_count 4 vs 4.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -978,8 +1086,150 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 0,
-        "pending": 2
+        "validated": 1,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "cibc::capital_management::tbl_p024_i01|tbl_p031_i01",
+      "table_key": "cibc::capital_management::tbl_p024_i01|tbl_p031_i01",
+      "table_title": "tbl_p031_i01",
+      "view_mode": "change_list",
+      "section": "capital_management",
+      "table_name": "tbl_p031_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p024_i01",
+      "table_id_t2": "tbl_p031_i01",
+      "page_t1": 24,
+      "page_t2": 31,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05644324558233124,
+        0.14019238828408598,
+        0.9426554760901756,
+        0.26445361821338387
+      ],
+      "bbox_t2": [
+        0.05631595811033561,
+        0.10133963883525195,
+        0.9421129413679534,
+        0.2252984865747317
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00003",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[2] Le 17 décembre 2024, le BSIF a annoncé que la RSI serait mai -> La RSI est actuellement établie à 3,5 %, mais elle peut être",
+            "indicator_name_clean": "[2] le 17 décembre 2024, le bsif a annoncé que la rsi serait mai -> la rsi est actuellement établie à 3,5 %, mais elle peut être",
+            "footnote_ref": "2",
+            "old_text": "Le 17 décembre 2024, le BSIF a annoncé que la RSI serait maintenue à un taux correspondant à 3,5 % du total de l’APR. Ce niveau demeure inchangé depuis le 31 octobre 2024.",
+            "new_text": "La RSI est actuellement établie à 3,5 %, mais elle peut être de l’ordre de 0,0 % à 4,0 % de l’APR."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-05T02:01:26.537230+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.99,
+      "match_method": "Indicators and headers match exactly with tbl_p024_i01; row_count 6 vs 6; footnote_count 2 vs 2.",
+      "genai_analysis": {},
+      "match_metadata": {},
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "cibc::risk_management::tbl_p035_i01|tbl_p042_i01",
+      "table_key": "cibc::risk_management::tbl_p035_i01|tbl_p042_i01",
+      "table_title": "tbl_p042_i01",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "tbl_p042_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p035_i01",
+      "table_id_t2": "tbl_p042_i01",
+      "page_t1": 35,
+      "page_t2": 42,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05728972191904105,
+        0.10503734241832387,
+        0.9436672435087317,
+        0.3280510565247199
+      ],
+      "bbox_t2": [
+        0.056840865440617984,
+        0.09711989007814967,
+        0.9432447844860601,
+        0.3128543429904514
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00002",
+          "change_type": "indicator_renamed",
+          "payload": {
+            "indicator_name": "Change et autres -> ai Change et autres",
+            "indicator_name_clean": "change et autres -> ai change et autres",
+            "from": "Change et autres",
+            "to": "ai Change et autres",
+            "from_clean": "Change et autres",
+            "to_clean": "ai Change et autres"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-05T02:02:15.837121+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.99,
+      "match_method": "Indicators and headers match exactly with tbl_p035_i01; row_count 15 vs 15; footnote_count 2 vs 2.",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 1,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -1009,11 +1259,11 @@
         0.9446103962418301,
         0.3492911367705374
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "changes": [
         {
-          "change_id": "chg_00011",
+          "change_id": "chg_00012",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[1] Le total de la VAR est inférieur à la somme des VAR des diff -> Le total de la VAR est inférieur à la somme des VAR des diff",
@@ -1026,13 +1276,13 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T18:55:10.125826+00:00",
+          "validated_at": "2026-04-05T02:02:03.410062+00:00",
           "validated_by": "analyst"
         }
       ],
       "table_status": "completed",
       "confidence": 0.99,
-      "match_method": "Indicators and headers are identical; row_count 7 vs 7; both summaries describe value at risk by risk category.",
+      "match_method": "Indicators and headers match exactly with tbl_p038_i01; row_count 7 vs 7; footnote_count 1 vs 1.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -1074,11 +1324,11 @@
         0.943432577295241,
         0.46531079995511765
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "changes": [
         {
-          "change_id": "chg_00012",
+          "change_id": "chg_00013",
           "change_type": "footnote_added",
           "payload": {
             "indicator_name": "[s. o.] Sans objet, conformément au modèle de divulgation commun du LCR.",
@@ -1087,17 +1337,17 @@
             "old_text": "",
             "new_text": "Sans objet, conformément au modèle de divulgation commun du LCR."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-05T02:03:54.188417+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 0.99,
-      "match_method": "Indicators and headers are identical; row_count 28 vs 28; both summaries describe liquidity coverage ratio.",
+      "match_method": "Indicators and headers match exactly with tbl_p042_i01; row_count 28 vs 28; footnote_count 2 vs 2.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -1108,8 +1358,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -1139,11 +1389,11 @@
         0.9422864726945466,
         0.5743240587639087
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "changes": [
         {
-          "change_id": "chg_00013",
+          "change_id": "chg_00014",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[3] Comprennent des dépôts des particuliers totalisant 258,7 G$  -> Comprend des dépôts des particuliers totalisant 255,5 G$ (25",
@@ -1156,13 +1406,13 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T18:55:11.503393+00:00",
+          "validated_at": "2026-04-05T02:03:53.230087+00:00",
           "validated_by": "analyst"
         }
       ],
       "table_status": "completed",
       "confidence": 0.99,
-      "match_method": "Indicators and headers are identical; row_count 23 vs 23; both summaries describe contractual maturities of assets, liabilities, and equity.",
+      "match_method": "Indicators and headers match exactly with tbl_p046_i01; row_count 23 vs 23; footnote_count 3 vs 3.",
       "genai_analysis": {},
       "match_metadata": {},
       "relevance": "",
@@ -1199,25 +1449,25 @@
         0.5019441084428268
       ],
       "bbox_t2": null,
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "changes": [
         {
-          "change_id": "chg_00015",
+          "change_id": "chg_00016",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-05T02:03:43.587616+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1237,8 +1487,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -1263,11 +1513,11 @@
         0.3893565553607363
       ],
       "bbox_t2": null,
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "changes": [
         {
-          "change_id": "chg_00016",
+          "change_id": "chg_00017",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
@@ -1277,7 +1527,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T18:55:14.290677+00:00",
+          "validated_at": "2026-04-05T02:03:42.750425+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1327,25 +1577,25 @@
         0.9427701663347631,
         0.8263909696328521
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "changes": [
         {
-          "change_id": "chg_00014",
+          "change_id": "chg_00015",
           "change_type": "table_added",
           "payload": {
             "description": "Tableau entier ajouté",
             "table_status": "ajoute"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-05T02:03:26.781189+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1355,7 +1605,7 @@
         "analyst_summary": "Nouveau tableau sur le theme liquidite a revoir par l'analyste."
       },
       "match_metadata": {
-        "semantic_judge": "Indicators are unique; no remaining previous table has a sufficiently similar indicator structure, title, or business purpose."
+        "semantic_judge": "Indicators and table summary are unique; no remaining previous table has a sufficiently similar indicator structure or business purpose."
       },
       "relevance": "",
       "risk_level": "",
@@ -1365,8 +1615,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     }
   ]
