@@ -216,7 +216,21 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "genai_triage": {
+          "is_relevant": true,
+          "category": "RISQUE",
+          "relevance_score": "ELEVEE",
+          "risk_level": "MODERE",
+          "confidence": 0.9,
+          "explanation": "L'ajout d'un nouveau tableau sur les engagements au titre du crédit est pertinent car il fournit des informations supplémentaires sur les risques de crédit potentiels.",
+          "impact_type": "structurel",
+          "project_phase": "rapport_gestion",
+          "action_requise": "investigation",
+          "reference_reglementaire": "",
+          "impact_description": "Ce changement permet une meilleure évaluation des engagements de crédit et des risques associés.",
+          "source": "llm"
+        }
       }
     ],
     "tables_removed": [
@@ -284,7 +298,21 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "genai_triage": {
+          "is_relevant": true,
+          "category": "CAPITAL",
+          "relevance_score": "ELEVEE",
+          "risk_level": "ELEVE",
+          "confidence": 0.9,
+          "explanation": "La suppression d'un tableau contenant des indicateurs de capital, y compris des actions et des billets de capital à recours limité, est pertinente car elle affecte la gestion du capital réglementaire.",
+          "impact_type": "structurel",
+          "project_phase": "rapport_gestion",
+          "action_requise": "escalade",
+          "reference_reglementaire": "Bâle III — CET1",
+          "impact_description": "La suppression de ce tableau pourrait affecter la transparence et la conformité aux exigences de divulgation de capital réglementaire.",
+          "source": "llm"
+        }
       },
       {
         "table_id": "tbl_p027_i01",
@@ -334,7 +362,21 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "genai_triage": {
+          "is_relevant": true,
+          "category": "CAPITAL",
+          "relevance_score": "ELEVEE",
+          "risk_level": "MODERE",
+          "confidence": 0.9,
+          "explanation": "La suppression d'un tableau lié à la gestion du capital, notamment avec des indicateurs de risque systémique, est pertinente pour la veille réglementaire.",
+          "impact_type": "structurel",
+          "project_phase": "rapport_gestion",
+          "action_requise": "investigation",
+          "reference_reglementaire": "Bâle III — Indicateurs de risque systémique",
+          "impact_description": "La suppression de ce tableau pourrait affecter la transparence sur les indicateurs de risque systémique de la banque.",
+          "source": "llm"
+        }
       }
     ],
     "artifacts_confirmed_previous": [],
@@ -467,7 +509,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "ELEVE",
+        "confidence": 0.9,
+        "explanation": "La modification des notes indique un changement potentiel dans le taux de RSI, ce qui peut affecter les exigences de capital réglementaire.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "escalade",
+        "reference_reglementaire": "Bâle III — RSI",
+        "impact_description": "Le changement de taux de RSI pourrait avoir un impact significatif sur les exigences de capital de la banque.",
+        "source": "llm"
+      }
     },
     {
       "previous_table_id": "tbl_p024_i02",
@@ -575,7 +631,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p032_i01",
@@ -718,7 +788,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p033_i01",
@@ -907,7 +991,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "RISQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Les modifications concernent des variations mineures de montants et de pourcentages qui ne semblent pas affecter directement les seuils ou ratios réglementaires.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Les changements n'ont pas d'impact concret sur les exigences réglementaires ou la gestion des risques.",
+        "source": "llm"
+      }
     },
     {
       "previous_table_id": "tbl_p033_i02",
@@ -1076,7 +1174,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Les modifications des notes semblent être des répétitions sans changement de fond.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret du changement détecté.",
+        "source": "llm"
+      }
     },
     {
       "previous_table_id": "tbl_p034_i01",
@@ -1232,7 +1344,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression de l'indicateur 'En fonction des paiements réels des clients' et la modification des notes sur les prêts hypothécaires à taux variable peuvent indiquer un changement dans la gestion du risque de crédit.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression d'un indicateur de risque et la modification des montants des prêts hypothécaires peuvent affecter l'évaluation du risque de crédit.",
+        "source": "llm"
+      }
     },
     {
       "previous_table_id": "tbl_p035_i01",
@@ -1376,7 +1502,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
+        "source": "llm"
+      }
     },
     {
       "previous_table_id": "tbl_p035_i02",
@@ -1464,7 +1604,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p036_i01",
@@ -1642,7 +1796,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La modification des notes de bas de tableau indique un changement dans les expositions nettes, ce qui peut affecter l'évaluation des risques.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "Le changement des expositions nettes pourrait influencer l'analyse des risques et la gestion des garanties.",
+        "source": "llm"
+      }
     },
     {
       "previous_table_id": "tbl_p037_i01",
@@ -1792,7 +1960,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p038_i01",
@@ -1918,7 +2100,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "La modification des notes ne change pas le contenu ou la méthodologie, il s'agit d'une répétition sans impact.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
+        "source": "llm"
+      }
     },
     {
       "previous_table_id": "tbl_p039_i01",
@@ -2033,7 +2229,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p040_i01",
@@ -2151,7 +2361,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p040_i02",
@@ -2233,7 +2457,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p041_i01",
@@ -2375,7 +2613,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p042_i01",
@@ -2539,7 +2791,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "L'ajout de notes indiquant une conformité au modèle de divulgation commun du LCR est pertinent car il peut signaler un changement dans la manière dont les informations sur la liquidité sont présentées.",
+        "impact_type": "methodologique",
+        "project_phase": "pilier_3",
+        "action_requise": "confirmation",
+        "reference_reglementaire": "Bâle III — LCR",
+        "impact_description": "Le changement pourrait affecter la transparence et la comparabilité des informations sur la liquidité.",
+        "source": "llm"
+      }
     },
     {
       "previous_table_id": "tbl_p043_i01",
@@ -2709,7 +2975,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p044_i01",
@@ -2859,7 +3139,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p044_i02",
@@ -2942,7 +3236,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p045_i01",
@@ -3082,7 +3390,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p045_i02",
@@ -3164,7 +3486,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1.0,
+        "explanation": "Aucun changement sémantique détecté.",
+        "impact_type": "cosmetique",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
     },
     {
       "previous_table_id": "tbl_p046_i01",
@@ -3340,7 +3676,21 @@
         "tables"
       ],
       "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "category": "INCONNU",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "La modification concerne une variation de valeur numérique propre à la banque sans impact réglementaire direct.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "La modification n'affecte pas les seuils ou ratios réglementaires.",
+        "source": "llm"
+      }
     }
   ],
   "run_metrics": {
@@ -3415,5 +3765,43 @@
     "indicator_changes_total": 2,
     "footnote_changes_total": 12,
     "high_priority_items_total": 8
+  },
+  "global_summary": {
+    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été observés dans la gestion du capital et du risque, avec un impact potentiel sur les exigences réglementaires. Les modifications incluent des ajustements dans les notes de capital et de risque, ainsi que l'ajout de nouveaux tableaux pour une meilleure transparence. Ces évolutions nécessitent une attention particulière pour assurer la conformité continue aux normes réglementaires.",
+    "key_highlights": [
+      "Changement potentiel dans le taux de RSI affectant les exigences de capital.",
+      "Suppression et modification d'indicateurs de risque de crédit.",
+      "Ajout de notes de conformité au modèle de divulgation du LCR.",
+      "Nouveau tableau sur les engagements au titre du crédit."
+    ],
+    "pertinence_globale": "ELEVEE",
+    "par_phase": {
+      "rapport_gestion": {
+        "count": 5,
+        "resume": "Des modifications importantes ont été apportées à la gestion du capital et du risque, nécessitant des investigations et des escalades."
+      },
+      "pilier_3": {
+        "count": 1,
+        "resume": "Un changement a été noté dans la conformité au modèle de divulgation du LCR."
+      },
+      "ifc": {
+        "count": 0,
+        "resume": "Aucun changement pertinent n'a été noté."
+      },
+      "autre": {
+        "count": 0,
+        "resume": "Aucun changement pertinent n'a été noté."
+      }
+    },
+    "par_action": {
+      "escalade": 2,
+      "investigation": 4,
+      "confirmation": 1,
+      "information": 0,
+      "aucune": 0
+    },
+    "source": "llm",
+    "total_changes_analysed": 25,
+    "total_relevant": 7
   }
 }

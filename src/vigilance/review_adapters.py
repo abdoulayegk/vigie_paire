@@ -425,6 +425,8 @@ def build_review_items_from_indicator_result(
                 item_type="footnote",
                 event_type=EVENT_TYPE_FOOTNOTE_ONLY,
                 footnote_changes=all_fn_changes,
+                genai_analysis=comp.get("genai_analysis") or {},
+                match_metadata=comp.get("match_metadata") or {},
             )
         )
         seq += 1
