@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260404_083108",
   "review_items_signature": "0e881fbecaa40a4ea300da1fb20be7d97bdba5721dc06e4994bbdc8976f41238",
-  "saved_at": "2026-04-04T18:43:14+00:00",
+  "saved_at": "2026-04-06T06:29:16+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bns::risk_management::tbl_p036_i01|tbl_p042_i01",
-    "change_id": "chg_00016"
+    "review_id": "bns::risk_management::tbl_p041_i01|tbl_p048_i01",
+    "change_id": "chg_00001"
   },
-  "review_current_idx": 4,
-  "current_change_idx": 1,
+  "review_current_idx": 1,
+  "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-04T18:43:02.754210+00:00",
+      "review_timestamp": "2026-04-06T06:29:16.352536+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -223,8 +223,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T18:43:06.493188+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -234,12 +234,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T32 Ratios de fonds propres réglementaires et de capacité totale d’absorption des pertes",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Risque de levier",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Exposition du ratio de levier",
@@ -310,8 +310,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T18:43:11.792797+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -321,12 +321,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[4] Comprend des immeubles d’habitation (quatre unités ou plus)  -> Comprend des immeubles d’habitation (quatre unités ou plus) ",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[5] Les prêts hypothécaires à taux variable représentent 31 % (3 -> Les prêts hypothécaires à taux variable représentent 33 % (3",
@@ -354,8 +354,33 @@
       "item_type": "footnote",
       "event_type": "footnote_only",
       "footnote_changes": [],
-      "genai_analysis": {},
-      "match_metadata": {}
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Les modifications concernent des valeurs numériques spécifiques à la banque et ne touchent pas aux seuils ou ratios réglementaires.",
+        "is_relevant": false,
+        "category": "RISQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Les modifications concernent des valeurs numériques spécifiques à la banque et ne touchent pas aux seuils ou ratios réglementaires.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Les changements de valeurs n'ont pas d'impact direct sur la conformité réglementaire.",
+        "source": "llm",
+        "justification": "Les modifications concernent des valeurs numériques spécifiques à la banque et ne touchent pas aux seuils ou ratios réglementaires.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
     },
     {
       "change_id": "bns::risk_management::tbl_p036_i01|tbl_p042_i01",
@@ -372,8 +397,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-04T18:43:14.153251+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -383,12 +408,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T21 Expositions au risque de crédit de la Banque par régions",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[1] Les comptes de correction de valeur pour pertes sur créances -> Les comptes de correction de valeur pour pertes sur créances",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[3] Les transactions de financement sur titres comprennent des t -> Les transactions de financement sur titres comprennent des t",
@@ -416,8 +441,33 @@
       "item_type": "footnote",
       "event_type": "footnote_only",
       "footnote_changes": [],
-      "genai_analysis": {},
-      "match_metadata": {}
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Les modifications apportées aux notes du tableau ne changent pas le contenu ou la méthodologie, elles sont purement cosmétiques.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1,
+        "explanation": "Les modifications apportées aux notes du tableau ne changent pas le contenu ou la méthodologie, elles sont purement cosmétiques.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur le contenu ou la méthodologie du tableau.",
+        "source": "llm",
+        "justification": "Les modifications apportées aux notes du tableau ne changent pas le contenu ou la méthodologie, elles sont purement cosmétiques.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
     }
   ],
   "review_queue": [
@@ -457,7 +507,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-04T18:43:02.754210+00:00",
+          "validated_at": "2026-04-06T06:29:16.352536+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -749,12 +799,12 @@
             "indicator_name": "Risque de levier",
             "indicator_name_clean": "risque de levier"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T18:43:06.493188+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00012",
@@ -771,7 +821,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title and table_summary closely aligned; indicators match with regulatory capital ratios; row_count 14 vs 14; footnote_count identical.",
       "genai_analysis": {
@@ -809,8 +859,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -853,12 +903,12 @@
             "old_text": "Comprend des immeubles d’habitation (quatre unités ou plus) de 3 505 $ (31 octobre 2024 – 3 796 $), dont une tranche de 2 764 $ est assurée (31 octobre 2024 – 3 024 $).",
             "new_text": "Comprend des immeubles d’habitation (quatre unités ou plus) de 3 228 $ (31 janvier 2025 – 3 505 $; 31 octobre 2024 – 3 796 $), dont une tranche de 2 548 $ est assurée (31 janvier 2025 – 2 764 $; 31 octobre 2024 – 3 024 $)."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T18:43:11.792797+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00014",
@@ -878,21 +928,46 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title and table_summary closely aligned; indicators match with regional breakdown; row_count 16 vs 13; footnote_count identical.",
-      "genai_analysis": {},
-      "match_metadata": {},
-      "relevance": "",
-      "risk_level": "",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Les modifications concernent des valeurs numériques spécifiques à la banque et ne touchent pas aux seuils ou ratios réglementaires.",
+        "is_relevant": false,
+        "category": "RISQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Les modifications concernent des valeurs numériques spécifiques à la banque et ne touchent pas aux seuils ou ratios réglementaires.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Les changements de valeurs n'ont pas d'impact direct sur la conformité réglementaire.",
+        "source": "llm",
+        "justification": "Les modifications concernent des valeurs numériques spécifiques à la banque et ne touchent pas aux seuils ou ratios réglementaires.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "FAIBLE",
       "summary": {
         "total_changes": 2,
         "indicators_added": 0,
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -935,12 +1010,12 @@
             "old_text": "Les comptes de correction de valeur pour pertes sur créances s’établissaient à 598 $. Les lettres de crédit et de garanties sont incluses dans les expositions financées puisqu’elles ont été émises. Les prêts et équivalents de prêts comprenaient des lettres de crédit et de garanties d’un montant total de 14 740 $ au 31 janvier 2025 (31 octobre 2024 – 14 446 $).",
             "new_text": "Les comptes de correction de valeur pour pertes sur créances s’établissaient à 581 $. Les lettres de crédit et de garanties sont incluses dans les expositions financées puisqu’elles ont été émises. Les prêts et équivalents de prêts comprenaient des lettres de crédit et de garanties d’un montant total de 14 272 $ au 30 avril 2025 (31 janvier 2025 – 14 740 $; 31 octobre 2024 – 14 446 $)."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-04T18:43:14.153251+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00016",
@@ -960,21 +1035,46 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title and table_summary closely aligned; indicators match with regional breakdown; row_count 7 vs 7; footnote_count identical.",
-      "genai_analysis": {},
-      "match_metadata": {},
-      "relevance": "",
-      "risk_level": "",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Les modifications apportées aux notes du tableau ne changent pas le contenu ou la méthodologie, elles sont purement cosmétiques.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 1,
+        "explanation": "Les modifications apportées aux notes du tableau ne changent pas le contenu ou la méthodologie, elles sont purement cosmétiques.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur le contenu ou la méthodologie du tableau.",
+        "source": "llm",
+        "justification": "Les modifications apportées aux notes du tableau ne changent pas le contenu ou la méthodologie, elles sont purement cosmétiques.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "Cosmétique",
+      "risk_level": "FAIBLE",
       "summary": {
         "total_changes": 2,
         "indicators_added": 0,
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     }
   ]

@@ -29,12 +29,12 @@ from vigilance.dash_app.layouts import (
     build_page_upload,
     build_page_validation,
 )
-from vigilance.dash_app.services.comparison_store import (
-    build_file_comparison_store,
-)
 from vigilance.dash_app.services.comparison_context import (
     _normalize_pdf_paths_store,
     _quarter_context_from_store,
+)
+from vigilance.dash_app.services.comparison_store import (
+    build_file_comparison_store,
 )
 from vigilance.quarter_utils import build_quarter_context
 from vigilance.ui_detection import (
@@ -159,6 +159,7 @@ def populate_saved_runs(source_type, bank_code, year, current_quarter):
     Output("store-show-results-page", "data", allow_duplicate=True),
     Output("main-content", "children", allow_duplicate=True),
     Output("notification", "children", allow_duplicate=True),
+    Output("store-text-comparison", "data", allow_duplicate=True),
     Input("btn-load-db", "n_clicks"),
     State("db-run-selector", "value"),
     prevent_initial_call=True,
@@ -194,6 +195,7 @@ def load_saved_comparison(n_clicks, run_file):
             no_update,
             no_update,
             dbc.Alert("Fichier introuvable.", color="danger"),
+            no_update,
         )
 
     try:
@@ -219,8 +221,7 @@ def load_saved_comparison(n_clicks, run_file):
             pdf_path_t2=str(paths.get("pdf_current") or paths.get("pdf_t2") or ""),
         )
         fresh_review_items_serialized = [
-            item.to_dict() if hasattr(item, "to_dict") else item
-            for item in fresh_review_items
+            item.to_dict() if hasattr(item, "to_dict") else item for item in fresh_review_items
         ]
 
         state = store.load_review_state(target_path)
@@ -238,19 +239,14 @@ def load_saved_comparison(n_clicks, run_file):
             review_items=fresh_review_items_serialized,
             stored_review_items=stored_review_items,
         ):
-            logger.info(
-                "Review state is incompatible with current comparison payload — discarding."
-            )
+            logger.info("Review state is incompatible with current comparison payload — discarding.")
             state = None
 
         review_items = stored_review_items if state else None
         if not review_items:
             review_items = fresh_review_items
 
-        raw_items_for_queue = [
-            item.to_dict() if hasattr(item, "to_dict") else item
-            for item in review_items
-        ]
+        raw_items_for_queue = [item.to_dict() if hasattr(item, "to_dict") else item for item in review_items]
         review_queue = build_normalized_review_queue(
             indicator_result=data,
             raw_items=raw_items_for_queue,
@@ -266,14 +262,8 @@ def load_saved_comparison(n_clicks, run_file):
         if missing_msg:
             alert = dbc.Alert(missing_msg, color="warning")
 
-        review_items_serialized = [
-            item.to_dict() if hasattr(item, "to_dict") else item
-            for item in review_items
-        ]
-        review_queue_serialized = [
-            item.to_dict() if hasattr(item, "to_dict") else item
-            for item in review_queue
-        ]
+        review_items_serialized = [item.to_dict() if hasattr(item, "to_dict") else item for item in review_items]
+        review_queue_serialized = [item.to_dict() if hasattr(item, "to_dict") else item for item in review_queue]
 
         _persist_review_state(
             indicator_meta=meta,
@@ -282,6 +272,13 @@ def load_saved_comparison(n_clicks, run_file):
             review_queue=review_queue_serialized,
             source="load_from_saved",
         )
+
+        from vigilance.dash_app.services.text_comparison_store import (
+            resolve_text_comparison_from_payload,
+        )
+
+        canonical_for_text = to_canonical_payload(data) if data else {}
+        text_comparison_data = resolve_text_comparison_from_payload(canonical_for_text)
 
         return (
             data,
@@ -293,6 +290,7 @@ def load_saved_comparison(n_clicks, run_file):
             True,
             build_page_results(),
             alert,
+            text_comparison_data,
         )
 
     except Exception as e:
@@ -310,6 +308,7 @@ def load_saved_comparison(n_clicks, run_file):
                 f"Erreur technique lors du chargement de l'analyse enregistrée : {e}",
                 color="danger",
             ),
+            no_update,
         )
 
 
@@ -446,11 +445,7 @@ def render_validation_sections(detection, paths, adjusted_sections):
     path_t1 = paths.get("pdf_t1") if paths else None
     path_t2 = paths.get("pdf_t2") if paths else None
 
-    if (
-        adjusted_sections
-        and adjusted_sections.get("sections_t1")
-        and adjusted_sections.get("sections_t2")
-    ):
+    if adjusted_sections and adjusted_sections.get("sections_t1") and adjusted_sections.get("sections_t2"):
         use_t1 = adjusted_sections["sections_t1"]
         use_t2 = adjusted_sections["sections_t2"]
     else:
@@ -469,9 +464,7 @@ def render_validation_sections(detection, paths, adjusted_sections):
             orig_end = orig_section.get("end_page", 1)
             is_adjusted = start != orig_start or end != orig_end
             range_text = (
-                f"Ajuste: {start}-{end} (original: {orig_start}-{orig_end})"
-                if is_adjusted
-                else f"Plage: {start}-{end}"
+                f"Ajuste: {start}-{end} (original: {orig_start}-{orig_end})" if is_adjusted else f"Plage: {start}-{end}"
             )
             captions = [f"Page {p}" for p in range(start, min(end + 1, start + 6))]
             preview_imgs = []
@@ -480,9 +473,7 @@ def render_validation_sections(detection, paths, adjusted_sections):
                     imgs = get_section_preview_images(path, section, max_pages=5)
                     preview_imgs = pdf_images_from_base64(imgs, captions[: len(imgs)])
                 except Exception:
-                    preview_imgs = html.Div(
-                        "Aperçu indisponible", className="text-muted"
-                    )
+                    preview_imgs = html.Div("Aperçu indisponible", className="text-muted")
             else:
                 preview_imgs = html.Div("Chemin PDF manquant", className="text-muted")
 
@@ -648,6 +639,7 @@ def compile_adjusted_sections(starts, ends, ids_start, ids_end, detection):
     Output("notification", "children", allow_duplicate=True),
     Output("store-validation-duration-sec", "data"),
     Output("store-show-results-page", "data", allow_duplicate=True),
+    Output("store-text-comparison", "data", allow_duplicate=True),
     Input("btn-analyze", "n_clicks"),
     State("store-detection", "data"),
     State("store-adjusted-sections", "data"),
@@ -677,18 +669,15 @@ def on_analyze(
 ):
     """Valider et lancer l'analyse."""
     import os
+
     from vigilance.ui_config import INDICATOR_COMPARISON_DIR
 
     if not n_clicks or not detection or not paths or not bank_code:
-        return None, None, None, False, build_page_validation(), None, None, False
+        return None, None, None, False, build_page_validation(), None, None, False, None
 
     quarter_context = _quarter_context_from_store(quarter_context)
 
-    if (
-        adjusted_sections
-        and adjusted_sections.get("sections_t1")
-        and adjusted_sections.get("sections_t2")
-    ):
+    if adjusted_sections and adjusted_sections.get("sections_t1") and adjusted_sections.get("sections_t2"):
         sections_t1 = adjusted_sections["sections_t1"]
         sections_t2 = adjusted_sections["sections_t2"]
     else:
@@ -715,12 +704,8 @@ def on_analyze(
     except Exception:
         use_vision_extraction = False
     include_footnotes = bool(footnotes_opt and "footnotes" in footnotes_opt)
-    include_genai_classification = bool(
-        genai_classification_opt and "classify" in genai_classification_opt and api_key
-    )
-    use_stored_extraction = not bool(
-        force_reextract_opt and "reextract" in (force_reextract_opt or [])
-    )
+    include_genai_classification = bool(genai_classification_opt and "classify" in genai_classification_opt and api_key)
+    use_stored_extraction = not bool(force_reextract_opt and "reextract" in (force_reextract_opt or []))
 
     try:
         result = run_comparison_with_sections(
@@ -754,10 +739,7 @@ def on_analyze(
                 "Consulter le terminal Dash: la stack trace complète est maintenant journalisée."
             )
         if "Vision schema contract invalid" in err_text:
-            err_text = (
-                "Run interrompu: contrat de schema Vision invalide. "
-                "Corriger l'extracteur avant relance."
-            )
+            err_text = "Run interrompu: contrat de schema Vision invalide. Corriger l'extracteur avant relance."
         return (
             None,
             None,
@@ -767,6 +749,7 @@ def on_analyze(
             dbc.Alert(err_text, color="danger"),
             None,
             False,
+            None,
         )
 
     store = build_file_comparison_store(root_dir=INDICATOR_COMPARISON_DIR)
@@ -787,12 +770,8 @@ def on_analyze(
         )
         result = indicator_result
     else:
-        indicator_result = (
-            result if is_canonical_comparison(result) else to_canonical_payload(result)
-        )
-        indicator_meta = (
-            indicator_result.get("meta", {}) if isinstance(indicator_result, dict) else {}
-        )
+        indicator_result = result if is_canonical_comparison(result) else to_canonical_payload(result)
+        indicator_meta = indicator_result.get("meta", {}) if isinstance(indicator_result, dict) else {}
         if isinstance(indicator_meta, dict):
             indicator_meta["source"] = "execution_courante"
             indicator_meta["source_label"] = "Exécution courante"
@@ -807,9 +786,14 @@ def on_analyze(
     validation_duration_sec = None
     if validation_start_ms:
         validation_end_ms = int(time.time() * 1000)
-        validation_duration_sec = max(
-            0, (validation_end_ms - validation_start_ms) // 1000
-        )
+        validation_duration_sec = max(0, (validation_end_ms - validation_start_ms) // 1000)
+
+    from vigilance.dash_app.services.text_comparison_store import (
+        resolve_text_comparison_from_payload,
+    )
+
+    canonical_for_text = to_canonical_payload(indicator_result) if indicator_result else {}
+    text_comparison_data = resolve_text_comparison_from_payload(canonical_for_text)
 
     return (
         result,
@@ -820,4 +804,5 @@ def on_analyze(
         analyze_notification,
         validation_duration_sec,
         True,
+        text_comparison_data,
     )

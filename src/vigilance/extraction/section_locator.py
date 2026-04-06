@@ -15,7 +15,7 @@ import json
 import logging
 import re
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from .section_taxonomy import canonicalize_section
@@ -58,6 +58,8 @@ class VisualTextElement:
     is_bold: bool = False
     is_uppercase: bool = False
     line_number: int = 0  # Position relative sur la page
+    page_width: float = 0.0
+    page_height: float = 0.0
 
     @property
     def height(self) -> float:
@@ -78,6 +80,18 @@ class VisualTextElement:
             or self.is_bold
             or (self.is_uppercase and len(self.text) > 10)
         )
+
+    @property
+    def bbox_norm(self) -> list[float] | None:
+        """Retourner la bbox normalisee [x0, y0, x1, y1] si la taille de page est connue."""
+        if self.page_width <= 0 or self.page_height <= 0:
+            return None
+        return [
+            max(0.0, min(1.0, self.x0 / self.page_width)),
+            max(0.0, min(1.0, self.y0 / self.page_height)),
+            max(0.0, min(1.0, self.x1 / self.page_width)),
+            max(0.0, min(1.0, self.y1 / self.page_height)),
+        ]
 
 
 @dataclass
@@ -109,6 +123,10 @@ class LocatedSection:
     final_span: int | None = None
     constraint_applied: bool = False
     constraint_reason: str = ""
+    anchor_page: int | None = None
+    anchor_text: str | None = None
+    anchor_bbox_norm: list[float] | None = None
+    anchor_found: bool = False
 
 
 @dataclass
@@ -150,6 +168,10 @@ class SectionMapping:
                 "final_span": section.final_span,
                 "constraint_applied": section.constraint_applied,
                 "constraint_reason": section.constraint_reason,
+                "anchor_page": section.anchor_page,
+                "anchor_text": section.anchor_text,
+                "anchor_bbox_norm": section.anchor_bbox_norm,
+                "anchor_found": section.anchor_found,
             }
 
         return {
@@ -321,6 +343,23 @@ FOLLOWING_SECTION_PATTERNS = {
         r"gestion\s+des?\s+risques?",
         r"gestion\s+du\s+risque",
         r"[eé]tats?\s+financiers?",
+    ],
+}
+
+SECTION_TITLE_ALIASES: dict[str, list[str]] = {
+    "gestion_capital": [
+        "Gestion du capital",
+        "Gestion des fonds propres",
+        "Situation des fonds propres",
+    ],
+    "gestion_risques": [
+        "Gestion des risques",
+        "Gestion du risque",
+        "Risk management",
+    ],
+    "gestion_reglementation": [
+        "Réglementation",
+        "Reglementation",
     ],
 }
 
@@ -1273,6 +1312,7 @@ class SectionLocator:
         # ETAPE 2: Chercher les sections cibles
         sections = []
         found_types = set()
+        visual_elements: dict[int, list[VisualTextElement]] | None = None
 
         # ETAPE 2: TDM en priorite si fiable
         if toc_reliable:
@@ -1470,6 +1510,15 @@ class SectionLocator:
         for section in sections:
             section.section_type = canonicalize_section(section.section_type)
 
+        # ETAPE 4.9: Resoudre une ancre intra-page sur le vrai bloc titre.
+        if sections:
+            if visual_elements is None:
+                visual_elements = self._extract_visual_elements(pdf_path)
+            if visual_elements:
+                sections = self._resolve_section_anchors(sections, visual_elements)
+            else:
+                sections = [replace(section, anchor_found=False) for section in sections]
+
         # Creer le mapping
         mapping = SectionMapping(
             bank_code=self.bank_code or "",
@@ -1491,7 +1540,7 @@ class SectionLocator:
             logger.info(
                 f"  - {section.section_type}: pages {section.start_page}-{section.end_page} "
                 f"(debut: {section.detection_method}, fin: {section.end_detection_method}, "
-                f"confiance {section.confidence:.2f})"
+                f"confiance {section.confidence:.2f}, ancre={'ok' if section.anchor_found else 'missing'})"
             )
 
         return mapping
@@ -1607,6 +1656,8 @@ class SectionLocator:
                             is_bold=is_bold,
                             is_uppercase=line_text.strip().isupper(),
                             line_number=line_idx,
+                            page_width=float(getattr(page, "width", 0) or 0),
+                            page_height=float(getattr(page, "height", 0) or 0),
                         )
                         page_elements.append(elem)
 
@@ -1818,6 +1869,105 @@ class SectionLocator:
                 )
 
         return sections
+
+    def _get_section_anchor_candidates(self, section: LocatedSection) -> list[str]:
+        """Retourner les libelles exacts a tester pour l'ancre de debut de section."""
+        candidates: list[str] = []
+        title_found = str(section.title_found or "").strip()
+        if title_found:
+            candidates.append(title_found)
+
+        for alias in SECTION_TITLE_ALIASES.get(section.section_type, []):
+            alias = str(alias or "").strip()
+            if alias and normalize_text(alias) not in {
+                normalize_text(existing) for existing in candidates
+            }:
+                candidates.append(alias)
+
+        for alias in self._get_config_section_names(section.section_type):
+            alias = str(alias or "").strip()
+            if alias and normalize_text(alias) not in {
+                normalize_text(existing) for existing in candidates
+            }:
+                candidates.append(alias)
+
+        return candidates
+
+    def _resolve_section_anchor(
+        self,
+        section: LocatedSection,
+        visual_elements: dict[int, list[VisualTextElement]],
+    ) -> LocatedSection:
+        """Resoudre une ancre intra-page a partir du bloc titre reel de la section."""
+        if not section.start_page:
+            return replace(section, anchor_found=False)
+
+        page_elements = visual_elements.get(section.start_page, [])
+        if not page_elements:
+            return replace(section, anchor_found=False)
+
+        candidates = self._get_section_anchor_candidates(section)
+        if not candidates:
+            return replace(section, anchor_found=False)
+
+        def _candidate_sort_key(elem: VisualTextElement) -> tuple[int, float, float, int]:
+            return (
+                0 if elem.is_likely_header else 1,
+                float(elem.y0),
+                -float(elem.font_size),
+                int(elem.line_number),
+            )
+
+        for candidate_text in candidates:
+            normalized_candidate = normalize_text(candidate_text)
+            matches = [
+                elem
+                for elem in page_elements
+                if normalize_text(elem.text) == normalized_candidate
+            ]
+            if not matches:
+                continue
+
+            best = sorted(matches, key=_candidate_sort_key)[0]
+            bbox_norm = best.bbox_norm
+            if not bbox_norm:
+                continue
+
+            return replace(
+                section,
+                anchor_page=section.start_page,
+                anchor_text=best.text,
+                anchor_bbox_norm=bbox_norm,
+                anchor_found=True,
+            )
+
+        return replace(section, anchor_found=False)
+
+    def _resolve_section_anchors(
+        self,
+        sections: list[LocatedSection],
+        visual_elements: dict[int, list[VisualTextElement]],
+    ) -> list[LocatedSection]:
+        """Resoudre les ancres de toutes les sections localisees."""
+        resolved: list[LocatedSection] = []
+        for section in sections:
+            anchored = self._resolve_section_anchor(section, visual_elements)
+            if anchored.anchor_found:
+                logger.info(
+                    "Ancre section resolue: %s page %s -> '%s'",
+                    anchored.section_type,
+                    anchored.anchor_page,
+                    anchored.anchor_text,
+                )
+            else:
+                logger.warning(
+                    "Ancre section introuvable: %s page %s title_found='%s'",
+                    section.section_type,
+                    section.start_page,
+                    section.title_found,
+                )
+            resolved.append(anchored)
+        return resolved
 
     def _calculate_visual_confidence(
         self,

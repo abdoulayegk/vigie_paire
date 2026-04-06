@@ -66,6 +66,7 @@ stores = [
     dcc.Store(id="store-validation-start-ms", data=None),
     dcc.Store(id="store-validation-duration-sec", data=None),
     dcc.Store(id="store-show-results-page", data=False),
+    dcc.Store(id="store-text-comparison", data=None),
     dcc.Store(id="store-review-filters", data={"section": "all", "status": "all"}),
     dcc.Store(id="store-proof-display-mode", data="crop"),
     dcc.Store(id="store-sidebar-collapsed", data=False),

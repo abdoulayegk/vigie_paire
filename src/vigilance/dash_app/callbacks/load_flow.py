@@ -36,6 +36,7 @@ def populate_load_options(_detection):
     Output("main-content", "children", allow_duplicate=True),
     Output("notification", "children", allow_duplicate=True),
     Output("store-show-results-page", "data", allow_duplicate=True),
+    Output("store-text-comparison", "data", allow_duplicate=True),
     Input("btn-load-comparison", "n_clicks"),
     State("load-comparison-dropdown", "value"),
     prevent_initial_call=True,
@@ -53,17 +54,13 @@ def on_load_comparison(n_clicks, filename):
     )
     if not loaded:
         return (
-            no_update,
-            no_update,
-            no_update,
-            no_update,
-            no_update,
+            no_update, no_update, no_update, no_update, no_update,
             no_update,
             dbc.Alert(
                 f"Impossible de charger l'analyse enregistrée {filename}",
                 color="danger",
             ),
-            no_update,
+            no_update, no_update,
         )
 
     data = loaded["raw_data"]
@@ -72,19 +69,23 @@ def on_load_comparison(n_clicks, filename):
     pdf_paths = dict(loaded["pdf_paths"])
     warning = str(loaded["warning"] or "")
 
+    # Charger le text_comparison.json correspondant (silencieux si absent)
+    from vigilance.dash_app.services.text_comparison_store import (
+        resolve_text_comparison_from_payload,
+    )
+    canonical_for_text = to_canonical_payload(data) if data else {}
+    text_comparison_data = resolve_text_comparison_from_payload(canonical_for_text)
+
     if data.get("result_type") == "metier_tableaux":
         return (
-            None,
-            data,
-            indicator_meta,
-            pdf_paths,
-            True,
+            None, data, indicator_meta, pdf_paths, True,
             build_page_results(),
             dbc.Alert(
                 warning or f"Analyse enregistrée chargée: {filename}",
                 color="warning" if warning else "success",
             ),
             True,
+            text_comparison_data,
         )
 
     canonical = to_canonical_payload(data)
@@ -92,15 +93,12 @@ def on_load_comparison(n_clicks, filename):
         canonical = indicator_result
 
     return (
-        canonical,
-        indicator_result,
-        indicator_meta,
-        pdf_paths,
-        True,
+        canonical, indicator_result, indicator_meta, pdf_paths, True,
         build_page_results(),
         dbc.Alert(
             warning or f"Analyse enregistrée chargée: {filename}",
             color="warning" if warning else "success",
         ),
         True,
+        text_comparison_data,
     )
