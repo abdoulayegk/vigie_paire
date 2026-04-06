@@ -18,14 +18,16 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-VALID_CATEGORIES = frozenset({
-    "REGLEMENTAIRE",
-    "RISQUE",
-    "CAPITAL",
-    "STRUCTURE",
-    "COSMETIQUE",
-    "INCONNU",
-})
+VALID_CATEGORIES = frozenset(
+    {
+        "REGLEMENTAIRE",
+        "RISQUE",
+        "CAPITAL",
+        "STRUCTURE",
+        "COSMETIQUE",
+        "INCONNU",
+    }
+)
 
 VALID_IMPACT_LEVELS = frozenset({"MAJEUR", "MODERE", "MINEUR"})
 
@@ -33,13 +35,9 @@ VALID_RELEVANCE = frozenset({"ELEVEE", "MOYENNE", "FAIBLE"})
 
 VALID_RISK_LEVELS = frozenset({"ELEVE", "MODERE", "FAIBLE"})
 
-VALID_RISK_TYPES = frozenset({
-    "credit", "marche", "operationnel", "liquidite", "capital", "autre"
-})
+VALID_RISK_TYPES = frozenset({"credit", "marche", "operationnel", "liquidite", "capital", "autre"})
 
-VALID_ACTIONS = frozenset({
-    "escalade", "investigation", "confirmation", "information", "aucune"
-})
+VALID_ACTIONS = frozenset({"escalade", "investigation", "confirmation", "information", "aucune"})
 
 # ---------------------------------------------------------------------------
 # System prompts
@@ -198,7 +196,7 @@ def _build_summary_prompt(relevant_changes: list[dict[str, Any]]) -> str:
         impact = c.get("impact_description", "")
         parts.append(
             f"[{i}] Section={section}, Type={change_type}, "
-            f"Impact={c.get('impact_level','')}\n"
+            f"Impact={c.get('impact_level', '')}\n"
             f"  Explication : {explanation}\n"
             f"  Impact : {impact}"
         )
@@ -208,6 +206,7 @@ def _build_summary_prompt(relevant_changes: list[dict[str, Any]]) -> str:
 # ---------------------------------------------------------------------------
 # Helpers — async LLM
 # ---------------------------------------------------------------------------
+
 
 async def _call_openai_json_async(
     client: Any,
@@ -240,6 +239,7 @@ async def _call_openai_json_async(
 # ---------------------------------------------------------------------------
 # Helpers — validation
 # ---------------------------------------------------------------------------
+
 
 def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
     """Valide et normalise une réponse LLM de triage individuelle."""
@@ -359,6 +359,7 @@ def _validate_summary_response(data: dict[str, Any] | None) -> dict[str, Any]:
 # Async core
 # ---------------------------------------------------------------------------
 
+
 async def _triage_section_changes(
     client: Any,
     semaphore: asyncio.Semaphore,
@@ -366,7 +367,25 @@ async def _triage_section_changes(
     changes: list[dict[str, Any]],
     model: str,
 ) -> list[dict[str, Any]]:
-    """Triage LLM pour tous les changements d'une section. Retourne changes enrichis."""
+    """Triage LLM de tous les changements d'une section.
+
+    Les paragraphes ``unchanged`` sont marqués directement (source=skip).
+    Pour les autres, un appel GPT est créé par changement, limité par
+    le *semaphore* partagé. Chaque réponse est validée par
+    ``_validate_triage_response``.
+
+    Args:
+        client: Instance AsyncOpenAI.
+        semaphore: Sémaphore de contrôle de concurrence.
+        section_key: Clé de section (ex. ``gestion_capital``).
+        changes: Liste mutable de dicts changement ; enrichis *in place*
+            avec la clé ``genai_triage``.
+        model: Modèle OpenAI.
+
+    Returns:
+        La même liste *changes*, enrichie du champ ``genai_triage`` sur
+        chaque élément.
+    """
     tasks: list[tuple[int, asyncio.Task]] = []
 
     for idx, change in enumerate(changes):
@@ -398,9 +417,7 @@ async def _triage_section_changes(
 
         async def _run(p: str = prompt) -> dict[str, Any] | None:
             async with semaphore:
-                return await _call_openai_json_async(
-                    client, system=_TRIAGE_SYSTEM_PROMPT, user=p, model=model
-                )
+                return await _call_openai_json_async(client, system=_TRIAGE_SYSTEM_PROMPT, user=p, model=model)
 
         task = asyncio.create_task(_run())
         tasks.append((idx, task))
@@ -423,12 +440,24 @@ async def _run_triage_async(
     model: str = "gpt-4o",
     max_concurrency: int = 20,
 ) -> dict[str, Any]:
-    """Lance le triage sur tous les changements de toutes les sections.
+    """Orchestre le triage réglementaire sur toutes les sections en parallèle.
+
+    Crée un client AsyncOpenAI, lance le triage par section via
+    ``_triage_section_changes``, puis génère un résumé exécutif global
+    pour les changements jugés pertinents. Retombe sur
+    ``_fallback_triage`` si la clé API est absente.
+
+    Args:
+        section_diffs: ``{section_key: [change_dicts]}`` depuis
+            ``run_section_diff()``.
+        model: Modèle OpenAI (défaut gpt-4o).
+        max_concurrency: Nombre maximal d'appels LLM simultanés.
 
     Returns:
-        Dict avec section_comparisons enrichis et global_summary.
+        ``{"section_diffs_enriched": {...}, "global_summary": {...}}``.
     """
     from openai import AsyncOpenAI
+
     from vigilance.utils.genai import get_openai_api_key
 
     api_key = get_openai_api_key()
@@ -444,9 +473,7 @@ async def _run_triage_async(
     for section_key, changes in section_diffs.items():
         if not changes:
             continue
-        task = asyncio.create_task(
-            _triage_section_changes(client, semaphore, section_key, changes, model)
-        )
+        task = asyncio.create_task(_triage_section_changes(client, semaphore, section_key, changes, model))
         section_tasks.append((section_key, task))
 
     if section_tasks:
@@ -528,34 +555,68 @@ async def _run_triage_async(
 def _fallback_triage(
     section_diffs: dict[str, list[dict[str, Any]]],
 ) -> dict[str, Any]:
-    """Triage heuristique de repli sans appel LLM."""
+    """Triage heuristique de repli utilisé quand la clé API est absente.
+
+    Marque les paragraphes ``unchanged`` comme non pertinents et tous les
+    autres comme pertinents avec un impact modéré et une confiance nulle.
+
+    Args:
+        section_diffs: ``{section_key: [change_dicts]}`` — enrichis *in place*.
+
+    Returns:
+        Même structure que ``_run_triage_async`` avec ``source=heuristic``.
+    """
     for changes in section_diffs.values():
         for change in changes:
             if change.get("change_type") == "unchanged":
                 change["genai_triage"] = {
-                    "is_relevant": False, "source": "skip",
-                    "category": "COSMETIQUE", "impact_level": "MINEUR",
-                    "risk_type": "autre", "relevance_score": "FAIBLE",
-                    "risk_level": "FAIBLE", "confidence": 1.0,
-                    "explanation": "Paragraphe inchangé.", "impact_description": "",
-                    "action_requise": "aucune", "reference_reglementaire": "",
-                    "signals": {k: False for k in (
-                        "regulatory_reference_added", "methodology_change",
-                        "tone_change", "forward_looking", "quantitative_change",
-                    )},
+                    "is_relevant": False,
+                    "source": "skip",
+                    "category": "COSMETIQUE",
+                    "impact_level": "MINEUR",
+                    "risk_type": "autre",
+                    "relevance_score": "FAIBLE",
+                    "risk_level": "FAIBLE",
+                    "confidence": 1.0,
+                    "explanation": "Paragraphe inchangé.",
+                    "impact_description": "",
+                    "action_requise": "aucune",
+                    "reference_reglementaire": "",
+                    "signals": {
+                        k: False
+                        for k in (
+                            "regulatory_reference_added",
+                            "methodology_change",
+                            "tone_change",
+                            "forward_looking",
+                            "quantitative_change",
+                        )
+                    },
                 }
             else:
                 change["genai_triage"] = {
-                    "is_relevant": True, "source": "heuristic",
-                    "category": "INCONNU", "impact_level": "MODERE",
-                    "risk_type": "autre", "relevance_score": "MOYENNE",
-                    "risk_level": "MODERE", "confidence": 0.0,
-                    "explanation": "", "impact_description": "",
-                    "action_requise": "information", "reference_reglementaire": "",
-                    "signals": {k: False for k in (
-                        "regulatory_reference_added", "methodology_change",
-                        "tone_change", "forward_looking", "quantitative_change",
-                    )},
+                    "is_relevant": True,
+                    "source": "heuristic",
+                    "category": "INCONNU",
+                    "impact_level": "MODERE",
+                    "risk_type": "autre",
+                    "relevance_score": "MOYENNE",
+                    "risk_level": "MODERE",
+                    "confidence": 0.0,
+                    "explanation": "",
+                    "impact_description": "",
+                    "action_requise": "information",
+                    "reference_reglementaire": "",
+                    "signals": {
+                        k: False
+                        for k in (
+                            "regulatory_reference_added",
+                            "methodology_change",
+                            "tone_change",
+                            "forward_looking",
+                            "quantitative_change",
+                        )
+                    },
                 }
     return {
         "section_diffs_enriched": section_diffs,
@@ -572,6 +633,7 @@ def _fallback_triage(
 # ---------------------------------------------------------------------------
 # Public entry point
 # ---------------------------------------------------------------------------
+
 
 def run_text_triage(
     section_diffs: dict[str, list[dict[str, Any]]],

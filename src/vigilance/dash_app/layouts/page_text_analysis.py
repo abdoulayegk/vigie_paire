@@ -55,39 +55,55 @@ _SIGNAL_LABELS: dict[str, str] = {
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _badge(label: str, color: str, **kwargs) -> dbc.Badge:
+    """Crée un badge Bootstrap avec espacement standard."""
     return dbc.Badge(label, color=color, className="me-1", **kwargs)
 
 
 def _impact_badge(impact_level: str) -> dbc.Badge:
+    """Badge coloré selon le niveau d'impact (MAJEUR/MODERE/MINEUR)."""
     label, color = _IMPACT_BADGE.get(impact_level, (impact_level, "secondary"))
     return _badge(label, color)
 
 
 def _diff_badge(diff_type: str) -> dbc.Badge:
+    """Badge coloré selon le type de diff (added/removed/modified/unchanged)."""
     label, color = _DIFF_BADGE.get(diff_type, (diff_type, "secondary"))
     return _badge(label, color)
 
 
 def _category_badge(category: str) -> dbc.Badge:
+    """Badge coloré selon la catégorie réglementaire."""
     label, color = _CATEGORY_BADGE.get(category, (category, "secondary"))
     return _badge(label, color)
 
 
 def _signal_badges(signals: dict[str, bool]) -> list[dbc.Badge]:
-    return [
-        _badge(_SIGNAL_LABELS.get(k, k), "info", pill=True)
-        for k, v in (signals or {}).items()
-        if v
-    ]
+    """Retourne un badge pill pour chaque signal actif (True)."""
+    return [_badge(_SIGNAL_LABELS.get(k, k), "info", pill=True) for k, v in (signals or {}).items() if v]
 
 
 # ---------------------------------------------------------------------------
 # Block comparison card
 # ---------------------------------------------------------------------------
 
+
 def _build_block_card(change: dict[str, Any]) -> dbc.Card:
-    """Construit une carte pour un changement de paragraphe."""
+    """Construit la carte d'un changement de paragraphe.
+
+    Affiche les badges de type/impact/catégorie, le diff textuel T1/T2,
+    l'explication GenAI, l'impact, la référence réglementaire et l'action
+    requise. Les paragraphes ``unchanged`` sont ignorés (retourne None).
+
+    Args:
+        change: Dict issu de ``text_comparison.json`` contenant les clés
+            ``diff_type``, ``block_t1``, ``block_t2``, ``genai_triage``,
+            ``change_summary`` et ``signals``.
+
+    Returns:
+        ``dbc.Card`` ou ``None`` si le changement est inchangé/skip.
+    """
     triage = change.get("genai_triage") or {}
     diff_type = change.get("diff_type", "")
     source = triage.get("source", "")
@@ -130,35 +146,47 @@ def _build_block_card(change: dict[str, Any]) -> dbc.Card:
     card_children = [
         # Top badges row
         html.Div(header_badges + signal_list, className="mb-2"),
-
         # Change summary
         html.P(change_summary, className="text-muted small mb-2") if change_summary else None,
-
         # Text blocks
         _build_text_diff(diff_type, block_t1, block_t2),
-
         html.Hr(className="my-2"),
-
         # GenAI analysis
-        html.Div([
-            html.Span("Explication : ", className="fw-semibold small"),
-            html.Span(explanation or "—", className="small text-muted"),
-        ], className="mb-1") if explanation else None,
-
-        html.Div([
-            html.Span("Impact : ", className="fw-semibold small"),
-            html.Span(impact_desc or "—", className="small text-muted"),
-        ], className="mb-1") if impact_desc else None,
-
-        html.Div([
-            html.Span("Référence : ", className="fw-semibold small"),
-            html.Span(ref_reg, className="small font-monospace text-primary"),
-        ], className="mb-1") if ref_reg else None,
-
-        html.Div([
-            html.Span("Action : ", className="fw-semibold small"),
-            _badge(action.capitalize(), "dark" if action == "escalade" else "secondary"),
-        ]) if action and action != "aucune" else None,
+        html.Div(
+            [
+                html.Span("Explication : ", className="fw-semibold small"),
+                html.Span(explanation or "—", className="small text-muted"),
+            ],
+            className="mb-1",
+        )
+        if explanation
+        else None,
+        html.Div(
+            [
+                html.Span("Impact : ", className="fw-semibold small"),
+                html.Span(impact_desc or "—", className="small text-muted"),
+            ],
+            className="mb-1",
+        )
+        if impact_desc
+        else None,
+        html.Div(
+            [
+                html.Span("Référence : ", className="fw-semibold small"),
+                html.Span(ref_reg, className="small font-monospace text-primary"),
+            ],
+            className="mb-1",
+        )
+        if ref_reg
+        else None,
+        html.Div(
+            [
+                html.Span("Action : ", className="fw-semibold small"),
+                _badge(action.capitalize(), "dark" if action == "escalade" else "secondary"),
+            ]
+        )
+        if action and action != "aucune"
+        else None,
     ]
 
     # Filter None entries
@@ -175,55 +203,88 @@ def _build_text_diff(
     block_t1: dict[str, Any],
     block_t2: dict[str, Any],
 ) -> html.Div:
-    """Affiche le texte T1/T2 selon le type de changement."""
+    """Rend le diff visuel T1/T2 : ajout (vert), suppression (rouge) ou modifié (côte à côte)."""
     text_t1 = str(block_t1.get("text", "") or "")
     text_t2 = str(block_t2.get("text", "") or "")
     page_t1 = block_t1.get("page", "")
     page_t2 = block_t2.get("page", "")
 
     if diff_type == "added":
-        return html.Div([
-            html.Small(f"Page {page_t2}" if page_t2 else "", className="text-muted d-block mb-1"),
-            html.Div(
-                text_t2[:600] + ("…" if len(text_t2) > 600 else ""),
-                className="bg-success bg-opacity-10 p-2 rounded small border-start border-success border-2",
-            ),
-        ])
+        return html.Div(
+            [
+                html.Small(f"Page {page_t2}" if page_t2 else "", className="text-muted d-block mb-1"),
+                html.Div(
+                    text_t2[:600] + ("…" if len(text_t2) > 600 else ""),
+                    className="bg-success bg-opacity-10 p-2 rounded small border-start border-success border-2",
+                ),
+            ]
+        )
     elif diff_type == "removed":
-        return html.Div([
-            html.Small(f"Page {page_t1}" if page_t1 else "", className="text-muted d-block mb-1"),
-            html.Div(
-                text_t1[:600] + ("…" if len(text_t1) > 600 else ""),
-                className="bg-danger bg-opacity-10 p-2 rounded small border-start border-danger border-2",
-            ),
-        ])
+        return html.Div(
+            [
+                html.Small(f"Page {page_t1}" if page_t1 else "", className="text-muted d-block mb-1"),
+                html.Div(
+                    text_t1[:600] + ("…" if len(text_t1) > 600 else ""),
+                    className="bg-danger bg-opacity-10 p-2 rounded small border-start border-danger border-2",
+                ),
+            ]
+        )
     else:  # modified
-        return html.Div([
-            dbc.Row([
-                dbc.Col([
-                    html.Small(f"Précédent (p.{page_t1})" if page_t1 else "Précédent", className="text-muted d-block mb-1"),
-                    html.Div(
-                        text_t1[:500] + ("…" if len(text_t1) > 500 else ""),
-                        className="bg-danger bg-opacity-10 p-2 rounded small border-start border-danger border-2 h-100",
-                    ),
-                ], md=6),
-                dbc.Col([
-                    html.Small(f"Courant (p.{page_t2})" if page_t2 else "Courant", className="text-muted d-block mb-1"),
-                    html.Div(
-                        text_t2[:500] + ("…" if len(text_t2) > 500 else ""),
-                        className="bg-success bg-opacity-10 p-2 rounded small border-start border-success border-2 h-100",
-                    ),
-                ], md=6),
-            ], className="g-2"),
-        ])
+        return html.Div(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                html.Small(
+                                    f"Précédent (p.{page_t1})" if page_t1 else "Précédent",
+                                    className="text-muted d-block mb-1",
+                                ),
+                                html.Div(
+                                    text_t1[:500] + ("…" if len(text_t1) > 500 else ""),
+                                    className="bg-danger bg-opacity-10 p-2 rounded small border-start border-danger border-2 h-100",
+                                ),
+                            ],
+                            md=6,
+                        ),
+                        dbc.Col(
+                            [
+                                html.Small(
+                                    f"Courant (p.{page_t2})" if page_t2 else "Courant",
+                                    className="text-muted d-block mb-1",
+                                ),
+                                html.Div(
+                                    text_t2[:500] + ("…" if len(text_t2) > 500 else ""),
+                                    className="bg-success bg-opacity-10 p-2 rounded small border-start border-success border-2 h-100",
+                                ),
+                            ],
+                            md=6,
+                        ),
+                    ],
+                    className="g-2",
+                ),
+            ]
+        )
 
 
 # ---------------------------------------------------------------------------
 # Section accordion item
 # ---------------------------------------------------------------------------
 
+
 def _build_section_accordion(section: dict[str, Any]) -> dbc.AccordionItem:
-    """Construit un AccordionItem pour une section."""
+    """Construit un AccordionItem pour une section du rapport.
+
+    Affiche les badges de comptage (ajoutés, supprimés, modifiés,
+    pertinents) dans le titre et les cartes de changement dans le corps.
+
+    Args:
+        section: Dict avec ``section_key``, ``section_title``, ``summary``
+            et ``block_comparisons``.
+
+    Returns:
+        ``dbc.AccordionItem`` dépliable.
+    """
     section_key = section.get("section_key", "")
     section_title = section.get("section_title") or _SECTION_LABELS.get(section_key, section_key)
     summary = section.get("summary") or {}
@@ -233,8 +294,7 @@ def _build_section_accordion(section: dict[str, Any]) -> dbc.AccordionItem:
     removed = summary.get("removed", 0)
     modified = summary.get("modified", 0)
     relevant = sum(
-        1 for c in changes
-        if (c.get("genai_triage") or {}).get("is_relevant") and c.get("diff_type") != "unchanged"
+        1 for c in changes if (c.get("genai_triage") or {}).get("is_relevant") and c.get("diff_type") != "unchanged"
     )
 
     # Section summary badges
@@ -255,15 +315,21 @@ def _build_section_accordion(section: dict[str, Any]) -> dbc.AccordionItem:
         if card is not None:
             cards.append(card)
 
-    body = html.Div(cards) if cards else html.P(
-        "Aucun changement significatif détecté dans cette section.",
-        className="text-muted p-3",
+    body = (
+        html.Div(cards)
+        if cards
+        else html.P(
+            "Aucun changement significatif détecté dans cette section.",
+            className="text-muted p-3",
+        )
     )
 
-    title = html.Span([
-        html.Strong(section_title),
-        html.Span(badges, className="ms-2"),
-    ])
+    title = html.Span(
+        [
+            html.Strong(section_title),
+            html.Span(badges, className="ms-2"),
+        ]
+    )
 
     return dbc.AccordionItem(body, title=title, item_id=f"text-sec-{section_key}")
 
@@ -272,7 +338,19 @@ def _build_section_accordion(section: dict[str, Any]) -> dbc.AccordionItem:
 # Global summary banner
 # ---------------------------------------------------------------------------
 
+
 def _build_global_summary(global_summary: dict[str, Any]) -> html.Div:
+    """Construit la bannière de résumé exécutif de l'analyse textuelle.
+
+    Affiche l'overview, les points clés, les compteurs d'impact et la
+    pertinence globale sous forme d'alerte Bootstrap colorée.
+
+    Args:
+        global_summary: Dict ``global_summary`` issu de ``text_comparison.json``.
+
+    Returns:
+        ``dbc.Alert`` coloré selon la pertinence globale.
+    """
     overview = global_summary.get("executive_overview", "")
     highlights = global_summary.get("key_highlights") or []
     pertinence = global_summary.get("pertinence_globale", "FAIBLE")
@@ -293,17 +371,22 @@ def _build_global_summary(global_summary: dict[str, Any]) -> html.Div:
     if by_impact.get("MODERE"):
         count_badges.append(_badge(f"{by_impact['MODERE']} Modéré(s)", "warning"))
     if counts.get("total_relevant"):
-        count_badges.append(_badge(f"{counts['total_relevant']} pertinent(s) / {counts.get('total', 0)} total", "primary"))
+        count_badges.append(
+            _badge(f"{counts['total_relevant']} pertinent(s) / {counts.get('total', 0)} total", "primary")
+        )
 
     if count_badges:
         items.append(html.Div(count_badges, className="mt-1"))
 
     return dbc.Alert(
         [
-            html.Div([
-                html.Strong("Résumé exécutif — Analyse textuelle "),
-                _badge(pertinence.capitalize(), pertinence_color),
-            ], className="mb-2"),
+            html.Div(
+                [
+                    html.Strong("Résumé exécutif — Analyse textuelle "),
+                    _badge(pertinence.capitalize(), pertinence_color),
+                ],
+                className="mb-2",
+            ),
             *items,
         ],
         color=pertinence_color,
@@ -314,6 +397,7 @@ def _build_global_summary(global_summary: dict[str, Any]) -> html.Div:
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
+
 
 def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
     """Construit l'onglet complet d'analyse textuelle.
@@ -331,7 +415,7 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
                     html.Strong("Analyse textuelle non disponible. "),
                     html.Span(
                         "Lancez le pipeline texte pour cette banque : "
-                        "python run_text_pipeline.py --bank <BANK> --year <YEAR> --quarter <Q>"
+                        "python run_text_pipeline.py --bank <BANK> --year <YEAR> --T2"
                     ),
                 ],
                 color="secondary",
@@ -346,13 +430,15 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
     q_prev = text_data.get("quarter_previous", "")
     bank = str(text_data.get("bank_code", "")).upper()
 
-    header = html.Div([
-        html.H5(f"Analyse textuelle — {bank} : {q_cur} vs {q_prev}", className="mb-1"),
-        html.P(
-            "Changements sémantiques détectés dans les paragraphes des sections réglementaires.",
-            className="text-muted small mb-3",
-        ),
-    ])
+    header = html.Div(
+        [
+            html.H5(f"Analyse textuelle — {bank} : {q_cur} vs {q_prev}", className="mb-1"),
+            html.P(
+                "Changements sémantiques détectés dans les paragraphes des sections réglementaires.",
+                className="text-muted small mb-3",
+            ),
+        ]
+    )
 
     summary_banner = _build_global_summary(global_summary)
 

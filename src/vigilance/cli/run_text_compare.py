@@ -4,7 +4,7 @@ Charge les text_extraction.json T1 et T2, lance le diff sémantique GPT-4o
 (Pass 2), puis le triage réglementaire (Pass 3), et écrit text_comparison.json.
 
 Usage:
-    python -m vigilance.cli.run_text_compare --bank BNS --year 2025 --quarter T2
+    python -m vigilance.cli.run_text_compare --bank BNS --year 2025 --T2
 """
 
 from __future__ import annotations
@@ -26,7 +26,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--bank", required=True, help="Bank code (e.g. bns, bnc, rbc)")
     parser.add_argument("--year", required=True, type=int, help="Current report year")
-    parser.add_argument("--quarter", required=True, help="Current report quarter (e.g. t2)")
+    quarter_group = parser.add_mutually_exclusive_group(required=True)
+    quarter_group.add_argument("--T1", dest="quarter_flag", action="store_const", const="T1", help="Current report quarter T1")
+    quarter_group.add_argument("--T2", dest="quarter_flag", action="store_const", const="T2", help="Current report quarter T2")
+    quarter_group.add_argument("--T3", dest="quarter_flag", action="store_const", const="T3", help="Current report quarter T3")
+    quarter_group.add_argument("--T4", dest="quarter_flag", action="store_const", const="T4", help="Current report quarter T4")
     parser.add_argument(
         "--extraction-root",
         default=DEFAULT_OUT_ROOT_EXTRACTIONS,
@@ -74,7 +78,7 @@ def main(argv: list[str] | None = None) -> int:
 
     bank_code = args.bank.lower()
     year_t2 = args.year
-    quarter_t2 = normalize_quarter(args.quarter)
+    quarter_t2 = normalize_quarter(args.quarter_flag)
     extraction_root = Path(args.extraction_root)
     out_root = Path(args.out_root)
     model = args.model
@@ -97,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
         logger.error(
             "text_extraction.json T1 introuvable : %s\n"
             "Lancez d'abord : python -m vigilance.cli.run_text_extract "
-            "--bank %s --year %d --quarter %s --pdf <path>",
+            "--bank %s --year %d --%s --pdf <path>",
             path_t1, bank_code.upper(), year_t1, quarter_t1.upper(),
         )
         return 1
@@ -108,7 +112,7 @@ def main(argv: list[str] | None = None) -> int:
         logger.error(
             "text_extraction.json T2 introuvable : %s\n"
             "Lancez d'abord : python -m vigilance.cli.run_text_extract "
-            "--bank %s --year %d --quarter %s --pdf <path>",
+            "--bank %s --year %d --%s --pdf <path>",
             path_t2, bank_code.upper(), year_t2, quarter_t2.upper(),
         )
         return 1

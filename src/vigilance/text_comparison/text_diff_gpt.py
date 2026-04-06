@@ -85,6 +85,7 @@ RÈGLES DE FORMAT :
 
 
 def _group_blocks_by_section(blocks: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    """Regroupe les blocs d'extraction par clé de section."""
     grouped: dict[str, list[dict[str, Any]]] = {}
     for block in blocks:
         section = str(block.get("section", ""))
@@ -94,10 +95,12 @@ def _group_blocks_by_section(blocks: list[dict[str, Any]]) -> dict[str, list[dic
 
 
 def _chunk_list(lst: list, size: int) -> list[list]:
+    """Découpe une liste en sous-listes de taille maximale *size*."""
     return [lst[i : i + size] for i in range(0, len(lst), size)]
 
 
 def _format_blocks_for_prompt(blocks: list[dict[str, Any]], start_index: int = 1) -> str:
+    """Met en forme les blocs en paragraphes numérotés [§n] pour le prompt GPT."""
     parts = []
     for i, block in enumerate(blocks, start_index):
         text = str(block.get("text", "")).strip()
@@ -117,6 +120,7 @@ def _build_diff_user_prompt(
     start_t1: int = 1,
     start_t2: int = 1,
 ) -> str:
+    """Assemble le prompt utilisateur complet pour un batch de diff sémantique."""
     section_title = _SECTION_DISPLAY.get(section_key, section_key)
     t1_text = _format_blocks_for_prompt(blocks_t1, start_t1)
     t2_text = _format_blocks_for_prompt(blocks_t2, start_t2)
@@ -184,6 +188,30 @@ async def _diff_one_batch_async(
     model: str = "gpt-4o",
     semaphore: asyncio.Semaphore | None = None,
 ) -> list[dict[str, Any]]:
+    """Envoie un batch de blocs T1/T2 à GPT-4o et retourne les changements détectés.
+
+    Acquiert le *semaphore* avant l'appel réseau afin de limiter la
+    concurrence globale. La réponse JSON est validée par
+    ``_validate_diff_response``.
+
+    Args:
+        client: Instance AsyncOpenAI.
+        section_key: Clé de section (ex. ``gestion_capital``).
+        blocks_t1: Blocs du trimestre précédent pour ce batch.
+        blocks_t2: Blocs du trimestre courant pour ce batch.
+        quarter_t1: Identifiant du trimestre précédent (ex. ``2025T3``).
+        quarter_t2: Identifiant du trimestre courant.
+        batch_index: Numéro du batch (1-indexé).
+        total_batches: Nombre total de batches dans cette section.
+        start_t1: Index de numérotation de départ côté T1.
+        start_t2: Index de numérotation de départ côté T2.
+        model: Modèle OpenAI à utiliser.
+        semaphore: Sémaphore partagé pour le contrôle de concurrence.
+
+    Returns:
+        Liste de dicts ``{change_type, text_t1, text_t2, change_summary}``.
+        Liste vide en cas d'erreur ou de batch vide.
+    """
     if not blocks_t1 and not blocks_t2:
         return []
 
@@ -252,6 +280,25 @@ async def _run_all_section_diffs(
     max_concurrency: int = 6,
     batch_size: int = _BATCH_SIZE,
 ) -> dict[str, list[dict[str, Any]]]:
+    """Orchestre le diff sémantique GPT pour toutes les sections demandées.
+
+    Pour chaque section, les blocs T1 et T2 sont découpés en batches de
+    *batch_size*. Tous les batches sont envoyés en parallèle (limités par
+    *max_concurrency* via un sémaphore). Les résultats sont fusionnés par
+    section.
+
+    Args:
+        extraction_t1: Extraction JSON du trimestre précédent (clé ``blocks``).
+        extraction_t2: Extraction JSON du trimestre courant.
+        sections_to_compare: Liste des clés de section à analyser.
+        model: Modèle OpenAI.
+        max_concurrency: Nombre maximal d'appels GPT simultanés.
+        batch_size: Nombre de blocs par batch.
+
+    Returns:
+        ``{section_key: [change_dicts]}`` — changements détectés par section.
+        Dict vide si la clé API est absente.
+    """
     from openai import AsyncOpenAI
 
     from vigilance.utils.genai import get_openai_api_key
@@ -358,6 +405,19 @@ def run_section_diff(
     model: str = "gpt-4o",
     max_concurrency: int = 6,
 ) -> dict[str, list[dict[str, Any]]]:
+    """Lance le diff sémantique GPT pour les sections demandées (synchrone).
+
+    Args:
+        extraction_t1: Extraction JSON du trimestre précédent.
+        extraction_t2: Extraction JSON du trimestre courant.
+        sections_to_compare: Clés de section à analyser. Si None, toutes
+            les sections présentes dans au moins un trimestre sont utilisées.
+        model: Modèle OpenAI (défaut gpt-4o).
+        max_concurrency: Nombre maximal d'appels GPT simultanés.
+
+    Returns:
+        ``{section_key: [change_dicts]}`` — changements détectés par section.
+    """
     if sections_to_compare is None:
         all_blocks_t1 = {b.get("section") for b in extraction_t1.get("blocks", [])}
         all_blocks_t2 = {b.get("section") for b in extraction_t2.get("blocks", [])}

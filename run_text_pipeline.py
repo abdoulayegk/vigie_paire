@@ -3,7 +3,7 @@
 
 Usage::
 
-    python run_text_pipeline.py --bank BNS --year 2025 --quarter T2
+    python run_text_pipeline.py --bank BNS --year 2025 --T2
 
 Ce pipeline:
 1. Déduit automatiquement le trimestre précédent (T2→T1, T1→T3 N-1, …).
@@ -55,13 +55,17 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Exemples:\n"
-            "  python run_text_pipeline.py --bank BNS --year 2025 --quarter T2\n"
-            "  python run_text_pipeline.py --bank RBC --year 2025 --quarter T2 --skip-extraction\n"
+            "  python run_text_pipeline.py --bank BNS --year 2025 --T2\n"
+            "  python run_text_pipeline.py --bank RBC --year 2025 --T2 --skip-extraction\n"
         ),
     )
     p.add_argument("--bank", required=True, help="Code de la banque (ex: BNS, BNC, RBC)")
     p.add_argument("--year", required=True, type=int, help="Année du rapport courant (ex: 2025)")
-    p.add_argument("--quarter", required=True, help="Trimestre courant (ex: T1, T2, T3)")
+    quarter_group = p.add_mutually_exclusive_group(required=True)
+    quarter_group.add_argument("--T1", dest="quarter_flag", action="store_const", const="T1", help="Trimestre courant T1")
+    quarter_group.add_argument("--T2", dest="quarter_flag", action="store_const", const="T2", help="Trimestre courant T2")
+    quarter_group.add_argument("--T3", dest="quarter_flag", action="store_const", const="T3", help="Trimestre courant T3")
+    quarter_group.add_argument("--T4", dest="quarter_flag", action="store_const", const="T4", help="Trimestre courant T4")
     p.add_argument("--inputs-root", default=DEFAULT_INPUTS_ROOT, help="Répertoire racine des PDFs")
     p.add_argument(
         "--extraction-root",
@@ -108,7 +112,7 @@ def _step_extract_text(
     extract_main([
         "--bank", bank,
         "--year", str(year),
-        "--quarter", quarter,
+        f"--{quarter.upper()}",
         "--pdf", str(pdf_path),
         "--out-root", str(extraction_root),
     ])
@@ -136,7 +140,7 @@ def _step_compare_text(
     compare_main([
         "--bank", bank,
         "--year", str(year_current),
-        "--quarter", quarter_current,
+        f"--{quarter_current.upper()}",
         "--extraction-root", str(extraction_root),
         "--out-root", str(out_root),
         "--model", model,
@@ -165,7 +169,8 @@ def main(argv: list[str] | None = None) -> int:
     bank = args.bank.upper()
     bank_lower = bank.lower()
     year_current = args.year
-    q_current = normalize_quarter(args.quarter)
+    quarter_value = str(args.quarter_flag or "").strip()
+    q_current = normalize_quarter(quarter_value)
     year_previous, q_previous = resolve_previous_quarter(year_current, q_current)
 
     project_root = Path(__file__).resolve().parent

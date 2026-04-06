@@ -5,7 +5,7 @@ Utilise Docling pour extraire les paragraphes de texte des sections ciblées
 tous les tableaux et leurs zones de proximité.
 
 Usage:
-    python -m vigilance.cli.run_text_extract --bank BNS --year 2025 --quarter T2 --pdf path/to/report.pdf
+    python -m vigilance.cli.run_text_extract --bank BNS --year 2025 --T2 --pdf path/to/report.pdf
 """
 
 from __future__ import annotations
@@ -27,7 +27,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--bank", required=True, help="Bank code (e.g. bns, bnc, rbc)")
     parser.add_argument("--year", required=True, type=int, help="Report year (e.g. 2025)")
-    parser.add_argument("--quarter", required=True, help="Report quarter (e.g. t2, T2)")
+    quarter_group = parser.add_mutually_exclusive_group(required=True)
+    quarter_group.add_argument("--T1", dest="quarter_flag", action="store_const", const="T1", help="Current report quarter T1")
+    quarter_group.add_argument("--T2", dest="quarter_flag", action="store_const", const="T2", help="Current report quarter T2")
+    quarter_group.add_argument("--T3", dest="quarter_flag", action="store_const", const="T3", help="Current report quarter T3")
+    quarter_group.add_argument("--T4", dest="quarter_flag", action="store_const", const="T4", help="Current report quarter T4")
     parser.add_argument("--pdf", required=True, help="Path to the input PDF")
     parser.add_argument("--config", default=DEFAULT_CONFIG, help="YAML bank profiles config")
     parser.add_argument(
@@ -146,7 +150,7 @@ def main(argv: list[str] | None = None) -> int:
 
     bank_code = args.bank.lower()
     year = args.year
-    quarter = normalize_quarter(args.quarter)
+    quarter = normalize_quarter(args.quarter_flag)
     pdf_path = Path(args.pdf)
     out_root = Path(args.out_root)
 

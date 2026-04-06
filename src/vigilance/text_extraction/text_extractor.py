@@ -74,6 +74,7 @@ class TextBlock:
     text: str
 
     def to_dict(self) -> dict[str, Any]:
+        """Sérialise le bloc en dict pour JSON."""
         return {
             "block_id": self.block_id,
             "section": self.section,
@@ -459,6 +460,7 @@ class TextExtractor:
     """
 
     def __init__(self) -> None:
+        """Initialise l'extracteur avec un convertisseur Docling lazy."""
         self._converter: Any = None
         self._initialized: bool = False
 
