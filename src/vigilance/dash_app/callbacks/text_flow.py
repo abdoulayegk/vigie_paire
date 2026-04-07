@@ -40,7 +40,7 @@ def filter_text_cards(text_data, filter_section, filter_impact, filter_action):
     if not text_data:
         raise PreventUpdate
 
-    # 1. Collecter tous les changements pertinents
+    # 1. Collecter tous les changements détectés (hors unchanged)
     items: list[tuple[int, dict, str]] = []  # (sort_key, change, section_title)
     for sec in text_data.get("section_comparisons") or []:
         key = sec.get("section_key", "")
@@ -50,27 +50,14 @@ def filter_text_cards(text_data, filter_section, filter_impact, filter_action):
         if filter_section and key != filter_section:
             continue
 
-        for change in sec.get("block_comparisons") or []:
+        for change in sec.get("all_block_comparisons") or []:
             diff_type = change.get("diff_type", "")
             if diff_type == "unchanged":
                 continue
             triage = change.get("genai_triage") or {}
-            if not triage.get("is_relevant", False):
-                continue
 
             impact = (triage.get("impact_level") or "MINEUR").upper()
             action = (triage.get("action_requise") or "aucune").lower()
-            signals = triage.get("signals") or {}
-            keep_change = impact == "MAJEUR" or (
-                impact == "MODERE"
-                and (
-                    triage.get("nouvelle_idee", False)
-                    or signals.get("regulatory_reference_added", False)
-                    or signals.get("methodology_change", False)
-                )
-            )
-            if not keep_change:
-                continue
 
             # Filtre impact
             if filter_impact and impact != filter_impact.upper():
@@ -118,10 +105,21 @@ def download_text_excel(n_clicks, text_data):
     if not n_clicks or not text_data:
         raise PreventUpdate
 
+    from vigilance.dash_app.services.text_comparison_store import load_text_comparison_for_dash
     from vigilance.text_comparison import generate_text_comparison_excel
 
-    excel_bytes = generate_text_comparison_excel(text_data, output_path=None)
-    bank = str(text_data.get("bank_code", "banque")).upper()
-    q_cur = text_data.get("quarter_current", "").replace("_", "")
+    bank_code = str(text_data.get("bank_code", "banque")).lower()
+    quarter_current = str(text_data.get("quarter_current", "")).lower()
+    quarter_previous = str(text_data.get("quarter_previous", "")).lower()
+    latest_text_data = load_text_comparison_for_dash(
+        bank_code=bank_code,
+        quarter_current=quarter_current,
+        quarter_previous=quarter_previous,
+    )
+    payload = latest_text_data or text_data
+
+    excel_bytes = generate_text_comparison_excel(payload, output_path=None)
+    bank = str(payload.get("bank_code", "banque")).upper()
+    q_cur = str(payload.get("quarter_current", "")).replace("_", "")
     filename = f"veille_textuelle_{bank}_{q_cur}.xlsx"
     return dcc.send_bytes(excel_bytes, filename)

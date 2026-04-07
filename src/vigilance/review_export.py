@@ -47,9 +47,8 @@ EXPERT_EXCEL_COLUMNS = [
     "Type de changement",
     "Page précédente",
     "Page courante",
-    "Valeur / libellé précédent",
-    "Valeur / libellé courant",
-    "Résumé métier",
+    "Libellé",
+    "Justifications",
     "Nouvelle idée ?",
     "Validation expert",
     "Commentaire expert",
@@ -69,7 +68,7 @@ _TYPE_CHANGEMENT_MAP = {
     "uncertain": "incertain",
     "needs_review": "incertain",
     "structure_change": "fusion",
-    "footnote": "note modifiee",
+    "footnote": "note modifiée",
 }
 
 # Match methods consideres suspects
@@ -304,9 +303,25 @@ def _to_validation_finale(review_status: str) -> str:
 
 
 def _to_nouvelle_idee(genai_analysis: dict[str, Any] | None) -> str:
-    """Retourne un indicateur conservateur de nouveaute metier (Oui/Non)."""
-    relevance = str((genai_analysis or {}).get("relevance", "") or "").strip().upper()
-    return "Oui" if relevance == "NOUVELLE_DIVULGATION" else "Non"
+    """Retourne 'Oui' si le changement est pertinent et de categorie reglementaire/risque/capital."""
+    ga = genai_analysis or {}
+    is_relevant = bool(ga.get("is_relevant", False))
+    category = str(ga.get("category", "") or "").upper()
+    high_relevance = str(ga.get("relevance_score", "") or "").upper() == "ELEVEE"
+    if is_relevant and (category in ("REGLEMENTAIRE", "RISQUE", "CAPITAL") or high_relevance):
+        return "Oui"
+    return "Non"
+
+
+def _build_libelle(precedent: str, courant: str, ind_type: str) -> str:
+    """Fusionne precedent/courant en un seul libelle lisible selon le type de changement."""
+    if ind_type in ("added", "table_added"):
+        return courant
+    if ind_type in ("removed", "table_removed"):
+        return precedent
+    if precedent and courant and precedent != courant:
+        return f"{precedent} → {courant}"
+    return courant or precedent
 
 
 def _build_trimestre_label(indicator_result: dict[str, Any] | None) -> str:
@@ -362,7 +377,7 @@ def _iter_expert_excel_rows(
                 courant = display_indicator
 
             # Utilise le résumé LLM si disponible, sinon fallback local
-            resume = base.get("genai_analysis", {}).get("resume_metier")
+            resume = base.get("genai_analysis", {}).get("justification")
             if not resume:
                 resume = _build_resume_court(
                     ind_type,
@@ -386,9 +401,8 @@ def _iter_expert_excel_rows(
                 "Type de changement": type_chg,
                 "Page précédente": _format_cell(base.get("page_t1")),
                 "Page courante": _format_cell(base.get("page_t2")),
-                "Valeur / libellé précédent": precedent,
-                "Valeur / libellé courant": courant,
-                "Résumé métier": resume,
+                "Libellé": _build_libelle(precedent, courant, ind_type),
+                "Justifications": resume,
                 "Nouvelle idée ?": nouvelle_idee,
                 "Validation expert": validation,
                 "Commentaire expert": notes_analyste,
@@ -423,7 +437,7 @@ def _iter_expert_excel_rows(
 
             resume_type = item_change_type if item_change_type in ("table_added", "table_removed") else ind_type
             # Utilise le résumé LLM si disponible, sinon fallback local
-            resume = base.get("genai_analysis", {}).get("resume_metier")
+            resume = base.get("genai_analysis", {}).get("justification")
             if not resume:
                 resume = _build_resume_court(
                     resume_type,
@@ -448,9 +462,8 @@ def _iter_expert_excel_rows(
                 "Type de changement": type_chg,
                 "Page précédente": _format_cell(base.get("page_t1")),
                 "Page courante": _format_cell(base.get("page_t2")),
-                "Valeur / libellé précédent": precedent,
-                "Valeur / libellé courant": courant,
-                "Résumé métier": resume,
+                "Libellé": _build_libelle(precedent, courant, ind_type),
+                "Justifications": resume,
                 "Nouvelle idée ?": nouvelle_idee,
                 "Validation expert": ind_validation,
                 "Commentaire expert": notes_analyste,
@@ -625,9 +638,8 @@ def generate_validation_txt(
                 lines.append(
                     f"      Pages : préc. {row.get('Page précédente', '') or '-'} / cour. {row.get('Page courante', '') or '-'}"
                 )
-                lines.append(f"      Avant : {row.get('Valeur / libellé précédent', '') or '-'}")
-                lines.append(f"      Après : {row.get('Valeur / libellé courant', '') or '-'}")
-                lines.append(f"      Résumé métier : {row.get('Résumé métier', '') or '-'}")
+                lines.append(f"      Libellé : {row.get('Libellé', '') or '-'}")
+                lines.append(f"      Justifications : {row.get('Justifications', '') or '-'}")
                 lines.append(f"      Nouvelle idée : {row.get('Nouvelle idée ?', '') or 'Non'}")
                 lines.append(f"      Validation expert : {row.get('Validation expert', '') or 'En attente'}")
                 if row.get("Commentaire expert"):
@@ -687,9 +699,12 @@ def _iter_validation_rows(
         action_genai = _sanitize_cell(ga.get("action_requise", ""))
         ref_regl_genai = _sanitize_cell(ga.get("reference_reglementaire", ""))
 
-        if not pertinence_genai:
+        is_relevant = bool(ga.get("is_relevant", False))
+        category_genai = str(ga.get("category", "") or "").upper()
+        high_relevance = str(ga.get("relevance_score", "") or "").upper() == "ELEVEE"
+        if not ga:
             nouvelle_divulgation = "Non analysé"
-        elif pertinence_genai.upper() == "NOUVELLE_DIVULGATION":
+        elif is_relevant and (category_genai in ("REGLEMENTAIRE", "RISQUE", "CAPITAL") or high_relevance):
             nouvelle_divulgation = "Oui"
         else:
             nouvelle_divulgation = "Non"

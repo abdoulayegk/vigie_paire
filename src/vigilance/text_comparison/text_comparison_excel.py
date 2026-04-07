@@ -1,18 +1,4 @@
-"""Export des résultats de comparaison texte vers un classeur Excel analyste.
-
-Filtre : uniquement les changements retenus par le pipeline canonique.
-Cela correspond à:
-- MAJEUR pertinent
-- MODERE pertinent avec nouveauté métier explicite
-
-Colonnes :
-  A — Titre           : section ou sous-section du rapport
-  B — Page            : numéro de page dans le rapport T2
-  C — Phrase          : texte sémantique retenu
-  D — Justification   : explication IA
-  E — Nouvelle idée ? : Oui / Non
-  F — Commentaires    : vide, réservé à l'analyste
-"""
+"""Export des résultats de comparaison texte vers un classeur Excel analyste."""
 
 from __future__ import annotations
 
@@ -31,19 +17,16 @@ _SECTION_DISPLAY: dict[str, str] = {
 
 EXCEL_COLUMNS = [
     "Titre",
-    "Page",
-    "Impact",
-    "Action",
-    "Phrase",
-    "Justification",
+    "Page T1",
+    "Page T2",
+    "Texte exact T1",
+    "Texte exact T2",
+    "Type de changement",
     "Nouvelle idée ?",
-    "Commentaires",
+    "Justification IA",
+    "Commentaire analyste",
+    "Décision analyste",
 ]
-
-_IMPACT_COLORS = {
-    "MAJEUR": "FFCCCC",
-    "MODERE": "FFE5CC",
-}
 
 
 def generate_text_comparison_excel(
@@ -51,8 +34,6 @@ def generate_text_comparison_excel(
     output_path: str | Path | None = None,
 ) -> Path | bytes:
     """Génère le classeur Excel analyste à partir de text_comparison.json.
-
-    Seuls les changements retenus par la politique métier finale sont inclus.
 
     Args:
         text_comparison: Dictionnaire text_comparison.json complet.
@@ -69,7 +50,7 @@ def generate_text_comparison_excel(
     wb = Workbook()
     ws = wb.active
     ws.title = "Synthese"
-    ws_expert = wb.create_sheet("Expert")
+    ws_all = wb.create_sheet("Tous_les_changements")
 
     # ---------- styles ----------
     header_font = Font(name="Calibri", bold=True, color="FFFFFF", size=11)
@@ -93,7 +74,7 @@ def generate_text_comparison_excel(
 
     def _collect_rows(mode: str) -> list[dict[str, Any]]:
         rows: list[dict[str, Any]] = []
-        field_name = "expert_block_comparisons" if mode == "expert" else "block_comparisons"
+        field_name = "all_block_comparisons" if mode == "all" else "block_comparisons"
         for section_comp in text_comparison.get("section_comparisons", []):
             section_key = section_comp.get("section_key", "")
             section_title = section_comp.get("section_title") or _SECTION_DISPLAY.get(section_key, section_key)
@@ -103,35 +84,35 @@ def generate_text_comparison_excel(
                     continue
 
                 triage = block_comp.get("genai_triage") or {}
-                if not triage.get("is_relevant", False):
+                if mode != "all" and not triage.get("is_relevant", False):
                     continue
 
-                phrase = (block_comp.get("semantic_text_t2") or "").strip()
-                if not phrase and diff_type == "removed":
-                    phrase = f"[SUPPRIMÉ] {(block_comp.get('semantic_text_t1') or '').strip()}"
-
                 evidence_t2 = block_comp.get("evidence_t2") or {}
-                page = ", ".join(str(p) for p in (evidence_t2.get("pages") or []) if p)
-                if not page and diff_type == "removed":
-                    evidence_t1 = block_comp.get("evidence_t1") or {}
-                    page = ", ".join(str(p) for p in (evidence_t1.get("pages") or []) if p)
+                evidence_t1 = block_comp.get("evidence_t1") or {}
+                page_t1 = ", ".join(str(p) for p in (evidence_t1.get("pages") or []) if p)
+                page_t2 = ", ".join(str(p) for p in (evidence_t2.get("pages") or []) if p)
 
                 explanation = (triage.get("explanation") or "").strip()
                 impact_desc = (triage.get("impact_description") or "").strip()
+                header = (
+                    f"Priorité: {(triage.get('impact_level') or 'MINEUR').upper()} | "
+                    f"Action suggérée: {(triage.get('action_requise') or 'aucune').lower()}"
+                )
                 if impact_desc and impact_desc not in explanation:
-                    justification = f"{explanation}\n\n{impact_desc}"
+                    justification = f"{header}\n{explanation}\n\n{impact_desc}".strip()
                 else:
-                    justification = explanation
+                    justification = f"{header}\n{explanation}".strip()
 
                 rows.append(
                     {
                         "section_title": section_title,
-                        "page": page if page else "",
-                        "impact": (triage.get("impact_level") or "MINEUR").upper(),
-                        "action": (triage.get("action_requise") or "aucune").lower(),
-                        "phrase": phrase,
-                        "justification": justification,
+                        "page_t1": page_t1,
+                        "page_t2": page_t2,
+                        "source_text_t1": (block_comp.get("source_text_t1") or "").strip(),
+                        "source_text_t2": (block_comp.get("source_text_t2") or "").strip(),
+                        "diff_type": diff_type,
                         "nouvelle_idee": "Oui" if triage.get("nouvelle_idee", False) else "Non",
+                        "justification": justification,
                     }
                 )
         return rows
@@ -141,12 +122,14 @@ def generate_text_comparison_excel(
         for row in rows:
             row_data = [
                 row["section_title"],
-                row["page"],
-                row["impact"],
-                row["action"],
-                row["phrase"],
-                row["justification"],
+                row["page_t1"],
+                row["page_t2"],
+                row["source_text_t1"],
+                row["source_text_t2"],
+                row["diff_type"],
                 row["nouvelle_idee"],
+                row["justification"],
+                "",
                 "",
             ]
             for col_idx, value in enumerate(row_data, 1):
@@ -159,33 +142,35 @@ def generate_text_comparison_excel(
             1: 30,
             2: 10,
             3: 10,
-            4: 16,
-            5: 80,
-            6: 60,
+            4: 70,
+            5: 70,
+            6: 18,
             7: 14,
-            8: 30,
+            8: 65,
+            9: 22,
+            10: 22,
         }
         for col_idx, width in col_widths.items():
             sheet.column_dimensions[get_column_letter(col_idx)].width = width
         sheet.freeze_panes = "A2"
-        sheet.auto_filter.ref = f"A1:H{max(row_num - 1, 1)}"
+        sheet.auto_filter.ref = f"A1:J{max(row_num - 1, 1)}"
         return row_num - 2
 
     _setup_sheet(ws)
-    _setup_sheet(ws_expert)
+    _setup_sheet(ws_all)
     strict_rows = _collect_rows("strict")
-    expert_rows = _collect_rows("expert")
+    all_rows = _collect_rows("all")
     strict_count = _write_rows(ws, strict_rows)
-    expert_count = _write_rows(ws_expert, expert_rows)
+    all_count = _write_rows(ws_all, all_rows)
 
     # ---------- save ----------
     if output_path is None:
         buf = io.BytesIO()
         wb.save(buf)
         logger.info(
-            "text_comparison_excel: %d changements synthese, %d changements expert → BytesIO",
+            "text_comparison_excel: %d changements synthese, %d changements complets → BytesIO",
             strict_count,
-            expert_count,
+            all_count,
         )
         return buf.getvalue()
 
@@ -193,9 +178,9 @@ def generate_text_comparison_excel(
     out.parent.mkdir(parents=True, exist_ok=True)
     wb.save(str(out))
     logger.info(
-        "text_comparison_excel: %d changements synthese, %d changements expert → %s",
+        "text_comparison_excel: %d changements synthese, %d changements complets → %s",
         strict_count,
-        expert_count,
+        all_count,
         out,
     )
     return out

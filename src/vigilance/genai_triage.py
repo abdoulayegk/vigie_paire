@@ -81,7 +81,7 @@ RÉPONDRE UNIQUEMENT en JSON valide, sans markdown, selon ce schéma exact :
   "relevance_score": "ELEVEE" | "MOYENNE" | "FAIBLE",
   "risk_level": "ELEVE" | "MODERE" | "FAIBLE",
   "confidence": 0.0 à 1.0,
-  "explanation": "<1-2 phrases en français expliquant la pertinence ou l'absence de pertinence>",
+  "explanation": "<3-5 phrases en français structurées ainsi : (1) indiquer clairement si le changement est pertinent ou non et pourquoi ; (2) décrire l'impact réglementaire ou métier concret ; (3) préciser s'il s'agit d'une nouvelle divulgation, d'un changement méthodologique, ou d'une mise à jour ordinaire>",
   "impact_type": "structurel" | "contenu" | "methodologique" | "cosmetique",
   "project_phase": "rapport_gestion" | "pilier_3" | "ifc" | "autre",
   "action_requise": "escalade" | "investigation" | "confirmation" | "information" | "aucune",
@@ -280,7 +280,7 @@ async def _call_openai_json_async(
     user: str,
     model: str = "gpt-4o",
     temperature: float = 0.1,
-    max_tokens: int = 500,
+    max_tokens: int = 800,
 ) -> dict[str, Any] | None:
     """Appel asynchrone unique a OpenAI retournant du JSON parse.
 
@@ -357,7 +357,7 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
     except (TypeError, ValueError):
         confidence = 0.5
 
-    explanation = str(data.get("explanation") or "")[:500]
+    explanation = str(data.get("explanation") or "")[:1200]
 
     impact_type = str(data.get("impact_type") or "cosmetique").lower()
     if impact_type not in VALID_IMPACT_TYPES:

@@ -1,8 +1,7 @@
 """Layout de l'onglet Analyse Textuelle — vue analyste.
 
-Affiche uniquement les changements textuels retenus par le pipeline canonique:
-MAJEUR, ou MODERE réellement nouveau. Les filtres restants sont gérés dans
-``text_flow.py``.
+Affiche tous les changements textuels détectés hors ``unchanged``. Les filtres
+restants sont gérés dans ``text_flow.py``.
 """
 
 from __future__ import annotations
@@ -339,7 +338,7 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
             )
         )
 
-    global_summary = text_data.get("global_summary") or {}
+    global_summary = text_data.get("all_changes_summary") or text_data.get("global_summary") or {}
     section_comparisons = text_data.get("section_comparisons") or []
     q_cur = text_data.get("quarter_current", "")
     q_prev = text_data.get("quarter_previous", "")

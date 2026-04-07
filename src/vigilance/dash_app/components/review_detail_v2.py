@@ -238,36 +238,50 @@ def _build_genai_section(table: dict) -> html.Div:
             className="mb-4",
         )
 
-    chips = []
-    if relevance:
-        chips.append(dbc.Badge(relevance, color="primary", className="me-2"))
-    if risk:
-        chips.append(dbc.Badge(f"Risque {risk}", color="warning", className="me-2"))
-    if confidence is not None:
-        try:
-            conf_pct = max(0.0, min(1.0, float(confidence))) * 100
-            chips.append(
-                dbc.Badge(
-                    f"Confiance {conf_pct:.0f}%",
-                    color="light",
-                    text_color="dark",
-                    className="me-2",
-                )
-            )
-        except (TypeError, ValueError):
-            pass
-
-    # New analyst fields
-    impact_type = str(ga.get("impact_type", "") or "")
-    project_phase = str(ga.get("project_phase", "") or "")
-    action_requise = str(ga.get("action_requise", "") or "")
-    impact_desc = str(ga.get("impact_description", "") or "").strip()
-
+    _CATEGORY_DISPLAY = {
+        "REGLEMENTAIRE": "Réglementaire",
+        "RISQUE": "Risque",
+        "CAPITAL": "Capital",
+        "STRUCTURE": "Structure",
+        "COSMETIQUE": "Cosmétique",
+        "INCONNU": "Inconnu",
+    }
+    _CATEGORY_COLORS = {
+        "REGLEMENTAIRE": "danger",
+        "RISQUE": "warning",
+        "CAPITAL": "primary",
+        "STRUCTURE": "info",
+        "COSMETIQUE": "secondary",
+        "INCONNU": "light",
+    }
+    _RISK_LABELS = {
+        "ELEVE": "Risque élevé",
+        "MODERE": "Risque modéré",
+        "FAIBLE": "Risque faible",
+    }
+    _RISK_COLORS = {
+        "ELEVE": "danger",
+        "MODERE": "warning",
+        "FAIBLE": "success",
+    }
+    _IMPACT_LABELS = {
+        "structurel": "Impact structurel",
+        "contenu": "Impact contenu",
+        "methodologique": "Impact méthodologique",
+        "cosmetique": "Impact cosmétique",
+    }
     _IMPACT_COLORS = {
         "structurel": "danger",
         "contenu": "primary",
         "methodologique": "warning",
         "cosmetique": "secondary",
+    }
+    _ACTION_LABELS = {
+        "escalade": "Escalade",
+        "investigation": "Investigation",
+        "confirmation": "À confirmer",
+        "information": "Pour information",
+        "aucune": "Aucune action",
     }
     _ACTION_COLORS = {
         "escalade": "danger",
@@ -283,11 +297,45 @@ def _build_genai_section(table: dict) -> html.Div:
         "autre": "Autre",
     }
 
+    chips = []
+    if relevance:
+        relevance_key = relevance.upper()
+        chips.append(dbc.Badge(
+            _CATEGORY_DISPLAY.get(relevance_key, relevance),
+            color=_CATEGORY_COLORS.get(relevance_key, "primary"),
+            className="me-2",
+        ))
+    if risk:
+        risk_key = risk.upper()
+        chips.append(dbc.Badge(
+            _RISK_LABELS.get(risk_key, f"Risque {risk}"),
+            color=_RISK_COLORS.get(risk_key, "warning"),
+            className="me-2",
+        ))
+    if confidence is not None:
+        try:
+            conf_pct = max(0.0, min(1.0, float(confidence))) * 100
+            chips.append(
+                dbc.Badge(
+                    f"Confiance {conf_pct:.0f}%",
+                    color="light",
+                    text_color="dark",
+                    className="me-2",
+                )
+            )
+        except (TypeError, ValueError):
+            pass
+
+    impact_type = str(ga.get("impact_type", "") or "")
+    project_phase = str(ga.get("project_phase", "") or "")
+    action_requise = str(ga.get("action_requise", "") or "")
+    impact_desc = str(ga.get("impact_description", "") or "").strip()
+
     secondary_chips = []
     if impact_type:
         secondary_chips.append(
             dbc.Badge(
-                f"Impact : {impact_type}",
+                _IMPACT_LABELS.get(impact_type, impact_type.capitalize()),
                 color=_IMPACT_COLORS.get(impact_type, "secondary"),
                 className="me-2",
             )
@@ -303,7 +351,7 @@ def _build_genai_section(table: dict) -> html.Div:
     if action_requise and action_requise != "aucune":
         secondary_chips.append(
             dbc.Badge(
-                f"Action : {action_requise}",
+                _ACTION_LABELS.get(action_requise, action_requise.capitalize()),
                 color=_ACTION_COLORS.get(action_requise, "secondary"),
                 className="me-2",
             )
@@ -313,7 +361,7 @@ def _build_genai_section(table: dict) -> html.Div:
     if impact_desc:
         detail_parts.append(
             html.Small(
-                [html.Strong("Impact : "), impact_desc],
+                [html.Strong("Description de l'impact : "), impact_desc],
                 className="d-block text-muted mb-1",
             )
         )
