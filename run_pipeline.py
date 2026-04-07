@@ -269,12 +269,19 @@ def main(argv: list[str] | None = None) -> int:
         print("🧠 ÉTAPE 2.5 — Analyse GenAI (Triage de pertinence)")
         print("─" * 70)
 
-        from vigilance.genai_triage import enrich_comparison_with_genai_triage
+        from vigilance.genai_triage import enrich_comparison_with_genai_triage, inject_llm_resume_metier
 
         t0 = time.time()
         enrich_comparison_with_genai_triage(comparison_path)
+        # Injection du résumé LLM dans genai_analysis["resume_metier"]
+        # Charger, modifier, puis réécrire comparison.json
+        import json
+
+        comparison = json.loads(comparison_path.read_text(encoding="utf-8"))
+        comparison = inject_llm_resume_metier(comparison)
+        comparison_path.write_text(json.dumps(comparison, ensure_ascii=False, indent=2), encoding="utf-8")
         elapsed = time.time() - t0
-        print("   ✓ comparison.json enrichi avec l'analyse GenAI")
+        print("   ✓ comparison.json enrichi avec l'analyse GenAI et résumé métier LLM injecté")
         print(f"   ⏱  Triage GenAI terminé en {elapsed:.1f}s")
 
     # ── Step 3: Manifest ─────────────────────────────────────────────────

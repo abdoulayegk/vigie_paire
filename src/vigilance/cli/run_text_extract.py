@@ -1,11 +1,8 @@
-"""CLI pour l'extraction de blocs de texte par section depuis un PDF.
+"""CLI legacy d'extraction texte.
 
-Utilise Docling pour extraire les paragraphes de texte des sections ciblées
-(gestion_capital, gestion_risques, gestion_reglementation) en excluant
-tous les tableaux et leurs zones de proximité.
-
-Usage:
-    python -m vigilance.cli.run_text_extract --bank BNS --year 2025 --T2 --pdf path/to/report.pdf
+Le pipeline texte canonique n'expose plus d'artefact d'extraction public.
+Cette commande est conservée pour compatibilité d'interface mais redirige
+l'utilisateur vers les entrées canoniques de comparaison.
 """
 
 from __future__ import annotations
@@ -41,6 +38,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose logging"
+    )
+    parser.add_argument(
+        "--strict-sections",
+        action="store_true",
+        help="Limiter l'extraction aux sections gestion_capital et gestion_risques "
+        "(ignore gestion_reglementation même si présente au profil banque).",
     )
     return parser
 
@@ -136,89 +139,25 @@ def _get_target_sections_for_bank(bank_code: str, config_path: str) -> set[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Extraire les blocs de texte d'un rapport bancaire."""
+    """Entrée legacy désormais désactivée."""
     args = build_parser().parse_args(argv)
-
-    log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(
-        level=log_level,
+        level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s — %(message)s",
         datefmt="%H:%M:%S",
     )
-
-    from vigilance.cli.quarter_logic import normalize_quarter
-
-    bank_code = args.bank.lower()
-    year = args.year
-    quarter = normalize_quarter(args.quarter_flag)
-    pdf_path = Path(args.pdf)
-    out_root = Path(args.out_root)
-
-    if not pdf_path.exists():
-        logger.error("PDF introuvable : %s", pdf_path)
-        return 1
-
-    # Locate sections
-    logger.info("Localisation des sections dans %s ...", pdf_path.name)
-    section_ranges = _get_section_ranges_from_locator(pdf_path, bank_code, year, quarter)
-
-    if not section_ranges:
-        logger.warning(
-            "Aucune section détectée dans %s. "
-            "Vérifier que bank_profiles.yaml contient les sections cibles pour %s.",
-            pdf_path.name, bank_code.upper(),
-        )
-        return 1
-
-    # Lire les sections autorisées pour cette banque depuis bank_profiles.yaml
-    target_sections = _get_target_sections_for_bank(bank_code, args.config)
-    section_ranges = [r for r in section_ranges if r.get("section") in target_sections]
-
-    if not section_ranges:
-        logger.warning(
-            "Aucune section cible trouvée pour %s %s %s. Sections autorisées : %s",
-            bank_code.upper(), year, quarter.upper(), sorted(target_sections),
-        )
-        return 1
-
-    logger.info(
-        "Sections détectées : %s",
-        [f"{r['section']} (p{r['start']}-{r['end']})" for r in section_ranges],
+    logger.error(
+        "run_text_extract est désactivé. Utilisez "
+        "`uv run python -m vigilance.cli.run_text_compare --bank %s --year %d --%s` "
+        "ou `uv run run_text_pipeline.py --bank %s --year %d --%s`.",
+        args.bank.upper(),
+        args.year,
+        args.quarter_flag,
+        args.bank.upper(),
+        args.year,
+        args.quarter_flag,
     )
-
-    # Extract text blocks
-    from vigilance.text_extraction import extract_text_blocks_by_sections
-    from vigilance.text_extraction.text_extraction_writer import (
-        get_text_extraction_path,
-        write_text_extraction,
-    )
-
-    logger.info("Extraction des blocs de texte depuis %s ...", pdf_path.name)
-    blocks = extract_text_blocks_by_sections(
-        pdf_path=pdf_path,
-        bank_code=bank_code,
-        quarter=quarter,
-        year=year,
-        section_ranges=section_ranges,
-    )
-
-    if not blocks:
-        logger.warning("Aucun bloc de texte extrait depuis %s.", pdf_path.name)
-        return 1
-
-    # Write output
-    out_dir = get_text_extraction_path(out_root, bank_code, year, quarter).parent
-    out_path = write_text_extraction(
-        blocks=blocks,
-        out_dir=out_dir,
-        bank_code=bank_code,
-        year=year,
-        quarter=quarter,
-        source_pdf=str(pdf_path),
-    )
-
-    logger.info("Extraction terminée : %d blocs → %s", len(blocks), out_path)
-    return 0
+    return 1
 
 
 if __name__ == "__main__":

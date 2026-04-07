@@ -1,6 +1,8 @@
-"""Layout de l'onglet Analyse Textuelle — affiche les changements de paragraphes.
+"""Layout de l'onglet Analyse Textuelle — vue analyste.
 
-Lecture seule. Toute la classification a été faite en amont par le pipeline texte.
+Affiche uniquement les changements textuels retenus par le pipeline canonique:
+MAJEUR, ou MODERE réellement nouveau. Les filtres restants sont gérés dans
+``text_flow.py``.
 """
 
 from __future__ import annotations
@@ -8,7 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 import dash_bootstrap_components as dbc
-from dash import html
+from dash import dcc, html
 
 # ---------------------------------------------------------------------------
 # Constantes d'affichage
@@ -20,17 +22,18 @@ _SECTION_LABELS: dict[str, str] = {
     "gestion_reglementation": "Faits nouveaux en matière de réglementation",
 }
 
+_IMPACT_ORDER: dict[str, int] = {"MAJEUR": 0, "MODERE": 1}
+
 _IMPACT_BADGE: dict[str, tuple[str, str]] = {
     "MAJEUR": ("Majeur", "danger"),
     "MODERE": ("Modéré", "warning"),
     "MINEUR": ("Mineur", "secondary"),
 }
 
-_DIFF_BADGE: dict[str, tuple[str, str]] = {
-    "added": ("Ajouté", "success"),
-    "removed": ("Supprimé", "danger"),
-    "modified": ("Modifié", "warning"),
-    "unchanged": ("Inchangé", "light"),
+_DIFF_LABELS: dict[str, str] = {
+    "added": "Ajouté",
+    "removed": "Supprimé",
+    "modified": "Modifié",
 }
 
 _CATEGORY_BADGE: dict[str, tuple[str, str]] = {
@@ -42,12 +45,12 @@ _CATEGORY_BADGE: dict[str, tuple[str, str]] = {
     "INCONNU": ("Inconnu", "light"),
 }
 
-_SIGNAL_LABELS: dict[str, str] = {
-    "regulatory_reference_added": "Référence réglementaire",
-    "methodology_change": "Changement méthodologique",
-    "tone_change": "Changement de ton",
-    "forward_looking": "Prospectif",
-    "quantitative_change": "Valeur quantitative",
+_ACTION_BADGE: dict[str, tuple[str, str]] = {
+    "escalade": ("Escalade", "danger"),
+    "investigation": ("Investigation", "warning"),
+    "confirmation": ("Confirmation", "success"),
+    "information": ("Information", "info"),
+    "aucune": ("Aucune", "secondary"),
 }
 
 
@@ -57,140 +60,120 @@ _SIGNAL_LABELS: dict[str, str] = {
 
 
 def _badge(label: str, color: str, **kwargs) -> dbc.Badge:
-    """Crée un badge Bootstrap avec espacement standard."""
     return dbc.Badge(label, color=color, className="me-1", **kwargs)
 
 
-def _impact_badge(impact_level: str) -> dbc.Badge:
-    """Badge coloré selon le niveau d'impact (MAJEUR/MODERE/MINEUR)."""
-    label, color = _IMPACT_BADGE.get(impact_level, (impact_level, "secondary"))
-    return _badge(label, color)
-
-
-def _diff_badge(diff_type: str) -> dbc.Badge:
-    """Badge coloré selon le type de diff (added/removed/modified/unchanged)."""
-    label, color = _DIFF_BADGE.get(diff_type, (diff_type, "secondary"))
-    return _badge(label, color)
-
-
-def _category_badge(category: str) -> dbc.Badge:
-    """Badge coloré selon la catégorie réglementaire."""
-    label, color = _CATEGORY_BADGE.get(category, (category, "secondary"))
-    return _badge(label, color)
-
-
-def _signal_badges(signals: dict[str, bool]) -> list[dbc.Badge]:
-    """Retourne un badge pill pour chaque signal actif (True)."""
-    return [_badge(_SIGNAL_LABELS.get(k, k), "info", pill=True) for k, v in (signals or {}).items() if v]
-
-
 # ---------------------------------------------------------------------------
-# Block comparison card
+# Change card (vue analyste)
 # ---------------------------------------------------------------------------
 
 
-def _build_block_card(change: dict[str, Any]) -> dbc.Card:
-    """Construit la carte d'un changement de paragraphe.
-
-    Affiche les badges de type/impact/catégorie, le diff textuel T1/T2,
-    l'explication GenAI, l'impact, la référence réglementaire et l'action
-    requise. Les paragraphes ``unchanged`` sont ignorés (retourne None).
+def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
+    """Carte analytique pour un changement pertinent.
 
     Args:
-        change: Dict issu de ``text_comparison.json`` contenant les clés
-            ``diff_type``, ``block_t1``, ``block_t2``, ``genai_triage``,
-            ``change_summary`` et ``signals``.
+        change: Dict bloc issu de text_comparison.json.
+        section_title: Nom affiché de la section/sous-section.
 
     Returns:
-        ``dbc.Card`` ou ``None`` si le changement est inchangé/skip.
+        dbc.Card stylisée ou None si unchanged/skip.
     """
     triage = change.get("genai_triage") or {}
     diff_type = change.get("diff_type", "")
-    source = triage.get("source", "")
 
-    # Skip unchanged
-    if diff_type == "unchanged" or source == "skip":
+    if diff_type == "unchanged" or triage.get("source") == "skip":
         return None  # type: ignore[return-value]
 
-    impact_level = triage.get("impact_level", "MINEUR")
-    category = triage.get("category", "INCONNU")
-    is_relevant = triage.get("is_relevant", False)
-    explanation = triage.get("explanation", "")
-    impact_desc = triage.get("impact_description", "")
-    action = triage.get("action_requise", "aucune")
-    ref_reg = triage.get("reference_reglementaire", "")
-    signals = change.get("signals") or triage.get("signals") or {}
-    change_summary = change.get("change_summary", "")
+    impact_level = (triage.get("impact_level") or "MINEUR").upper()
+    category = (triage.get("category") or "INCONNU").upper()
+    action = (triage.get("action_requise") or "aucune").lower()
+    explanation = (triage.get("explanation") or "").strip()
+    nouvelle_idee = triage.get("nouvelle_idee", False)
 
-    block_t1 = change.get("block_t1") or {}
-    block_t2 = change.get("block_t2") or {}
+    evidence_t1 = change.get("evidence_t1") or {}
+    evidence_t2 = change.get("evidence_t2") or {}
 
-    # Header badges
-    header_badges = [
-        _diff_badge(diff_type),
-        _impact_badge(impact_level),
-        _category_badge(category),
-    ]
-    if not is_relevant:
-        header_badges.append(_badge("Non pertinent", "light"))
+    if diff_type == "removed":
+        phrase = f"[SUPPRIMÉ] {(change.get('semantic_text_t1') or '').strip()}"
+        pages = evidence_t1.get("pages") or []
+    else:
+        phrase = (change.get("semantic_text_t2") or "").strip()
+        pages = evidence_t2.get("pages") or []
+    page_label = ", ".join(str(p) for p in pages if p) if pages else ""
 
-    signal_list = _signal_badges(signals)
+    # Couleur border-left
+    border_color = {"MAJEUR": "danger", "MODERE": "warning"}.get(impact_level, "secondary")
 
-    # Border color by impact
-    border_color = {
-        "MAJEUR": "danger",
-        "MODERE": "warning",
-        "MINEUR": "secondary",
-    }.get(impact_level, "secondary")
+    # Ligne 1 — badges
+    impact_lbl, impact_color = _IMPACT_BADGE.get(impact_level, (impact_level, "secondary"))
+    action_lbl, action_color = _ACTION_BADGE.get(action, (action.capitalize(), "secondary"))
+    cat_lbl, cat_color = _CATEGORY_BADGE.get(category, (category, "secondary"))
 
-    card_children = [
-        # Top badges row
-        html.Div(header_badges + signal_list, className="mb-2"),
-        # Change summary
-        html.P(change_summary, className="text-muted small mb-2") if change_summary else None,
-        # Text blocks
-        _build_text_diff(diff_type, block_t1, block_t2),
-        html.Hr(className="my-2"),
-        # GenAI analysis
+    badge_row = html.Div(
+        [
+            _badge(impact_lbl, impact_color),
+            _badge(action_lbl, action_color),
+            _badge(cat_lbl, cat_color),
+            dbc.Badge(
+                "★ Nouvelle idée",
+                color="primary",
+                pill=True,
+                className="me-1",
+            )
+            if nouvelle_idee
+            else None,
+        ],
+        className="mb-1 d-flex flex-wrap align-items-center",
+    )
+
+    # Ligne 2 — meta
+    diff_label = _DIFF_LABELS.get(diff_type, diff_type.capitalize())
+    meta_text = f"{section_title} · pages {page_label} · {diff_label}" if page_label else f"{section_title} · {diff_label}"
+    meta = html.Small(meta_text, className="text-muted d-block mb-2")
+
+    text_block = html.Div(
+        phrase,
+        className="bg-light p-2 rounded small mb-3 border-start border-2 "
+        + ("border-danger" if diff_type == "removed" else "border-primary"),
+        style={"whiteSpace": "pre-wrap"},
+    )
+
+    evidence_snippet = (
+        (evidence_t1.get("snippet") or "").strip()
+        if diff_type == "removed"
+        else (evidence_t2.get("snippet") or "").strip()
+    )
+    evidence_block = (
         html.Div(
             [
-                html.Span("Explication : ", className="fw-semibold small"),
-                html.Span(explanation or "—", className="small text-muted"),
+                html.Div("Preuve source", className="small fw-semibold text-muted mb-1"),
+                html.Div(evidence_snippet, className="small text-muted", style={"whiteSpace": "pre-wrap"}),
             ],
-            className="mb-1",
+            className="mb-3",
+        )
+        if evidence_snippet
+        else None
+    )
+
+    # Analyse IA
+    ia_children = [
+        html.Div(
+            [
+                html.Div(
+                    className="border-start border-primary border-3 ps-2 mb-2",
+                    children=[
+                        html.Span("Analyse IA", className="fw-semibold small text-primary"),
+                    ],
+                ),
+                html.P(explanation, className="small mb-1", style={"whiteSpace": "pre-wrap"}),
+            ]
         )
         if explanation
         else None,
-        html.Div(
-            [
-                html.Span("Impact : ", className="fw-semibold small"),
-                html.Span(impact_desc or "—", className="small text-muted"),
-            ],
-            className="mb-1",
-        )
-        if impact_desc
-        else None,
-        html.Div(
-            [
-                html.Span("Référence : ", className="fw-semibold small"),
-                html.Span(ref_reg, className="small font-monospace text-primary"),
-            ],
-            className="mb-1",
-        )
-        if ref_reg
-        else None,
-        html.Div(
-            [
-                html.Span("Action : ", className="fw-semibold small"),
-                _badge(action.capitalize(), "dark" if action == "escalade" else "secondary"),
-            ]
-        )
-        if action and action != "aucune"
-        else None,
     ]
+    ia_block = html.Div([c for c in ia_children if c is not None])
 
-    # Filter None entries
-    card_children = [c for c in card_children if c is not None]
+    card_children = [c for c in [badge_row, meta, text_block, evidence_block, ia_block] if c is not None]
 
     return dbc.Card(
         dbc.CardBody(card_children, className="p-3"),
@@ -198,199 +181,130 @@ def _build_block_card(change: dict[str, Any]) -> dbc.Card:
     )
 
 
-def _build_text_diff(
-    diff_type: str,
-    block_t1: dict[str, Any],
-    block_t2: dict[str, Any],
-) -> html.Div:
-    """Rend le diff visuel T1/T2 : ajout (vert), suppression (rouge) ou modifié (côte à côte)."""
-    text_t1 = str(block_t1.get("text", "") or "")
-    text_t2 = str(block_t2.get("text", "") or "")
-    page_t1 = block_t1.get("page", "")
-    page_t2 = block_t2.get("page", "")
-
-    if diff_type == "added":
-        return html.Div(
-            [
-                html.Small(f"Page {page_t2}" if page_t2 else "", className="text-muted d-block mb-1"),
-                html.Div(
-                    text_t2[:600] + ("…" if len(text_t2) > 600 else ""),
-                    className="bg-success bg-opacity-10 p-2 rounded small border-start border-success border-2",
-                ),
-            ]
-        )
-    elif diff_type == "removed":
-        return html.Div(
-            [
-                html.Small(f"Page {page_t1}" if page_t1 else "", className="text-muted d-block mb-1"),
-                html.Div(
-                    text_t1[:600] + ("…" if len(text_t1) > 600 else ""),
-                    className="bg-danger bg-opacity-10 p-2 rounded small border-start border-danger border-2",
-                ),
-            ]
-        )
-    else:  # modified
-        return html.Div(
-            [
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            [
-                                html.Small(
-                                    f"Précédent (p.{page_t1})" if page_t1 else "Précédent",
-                                    className="text-muted d-block mb-1",
-                                ),
-                                html.Div(
-                                    text_t1[:500] + ("…" if len(text_t1) > 500 else ""),
-                                    className="bg-danger bg-opacity-10 p-2 rounded small border-start border-danger border-2 h-100",
-                                ),
-                            ],
-                            md=6,
-                        ),
-                        dbc.Col(
-                            [
-                                html.Small(
-                                    f"Courant (p.{page_t2})" if page_t2 else "Courant",
-                                    className="text-muted d-block mb-1",
-                                ),
-                                html.Div(
-                                    text_t2[:500] + ("…" if len(text_t2) > 500 else ""),
-                                    className="bg-success bg-opacity-10 p-2 rounded small border-start border-success border-2 h-100",
-                                ),
-                            ],
-                            md=6,
-                        ),
-                    ],
-                    className="g-2",
-                ),
-            ]
-        )
-
-
 # ---------------------------------------------------------------------------
-# Section accordion item
+# Executive banner
 # ---------------------------------------------------------------------------
 
 
-def _build_section_accordion(section: dict[str, Any]) -> dbc.AccordionItem:
-    """Construit un AccordionItem pour une section du rapport.
-
-    Affiche les badges de comptage (ajoutés, supprimés, modifiés,
-    pertinents) dans le titre et les cartes de changement dans le corps.
-
-    Args:
-        section: Dict avec ``section_key``, ``section_title``, ``summary``
-            et ``block_comparisons``.
-
-    Returns:
-        ``dbc.AccordionItem`` dépliable.
-    """
-    section_key = section.get("section_key", "")
-    section_title = section.get("section_title") or _SECTION_LABELS.get(section_key, section_key)
-    summary = section.get("summary") or {}
-    changes = section.get("block_comparisons") or []
-
-    added = summary.get("added", 0)
-    removed = summary.get("removed", 0)
-    modified = summary.get("modified", 0)
-    relevant = sum(
-        1 for c in changes if (c.get("genai_triage") or {}).get("is_relevant") and c.get("diff_type") != "unchanged"
-    )
-
-    # Section summary badges
-    badges = []
-    if added:
-        badges.append(_badge(f"+{added} ajouté(s)", "success"))
-    if removed:
-        badges.append(_badge(f"-{removed} supprimé(s)", "danger"))
-    if modified:
-        badges.append(_badge(f"~{modified} modifié(s)", "warning"))
-    if relevant:
-        badges.append(_badge(f"{relevant} pertinent(s)", "primary"))
-
-    # Build cards, skip unchanged
-    cards = []
-    for change in changes:
-        card = _build_block_card(change)
-        if card is not None:
-            cards.append(card)
-
-    body = (
-        html.Div(cards)
-        if cards
-        else html.P(
-            "Aucun changement significatif détecté dans cette section.",
-            className="text-muted p-3",
-        )
-    )
-
-    title = html.Span(
-        [
-            html.Strong(section_title),
-            html.Span(badges, className="ms-2"),
-        ]
-    )
-
-    return dbc.AccordionItem(body, title=title, item_id=f"text-sec-{section_key}")
-
-
-# ---------------------------------------------------------------------------
-# Global summary banner
-# ---------------------------------------------------------------------------
-
-
-def _build_global_summary(global_summary: dict[str, Any]) -> html.Div:
-    """Construit la bannière de résumé exécutif de l'analyse textuelle.
-
-    Affiche l'overview, les points clés, les compteurs d'impact et la
-    pertinence globale sous forme d'alerte Bootstrap colorée.
-
-    Args:
-        global_summary: Dict ``global_summary`` issu de ``text_comparison.json``.
-
-    Returns:
-        ``dbc.Alert`` coloré selon la pertinence globale.
-    """
+def _build_executive_banner(
+    global_summary: dict[str, Any],
+    bank: str,
+    q_cur: str,
+    q_prev: str,
+) -> dbc.Alert:
+    """Bannière exécutive avec résumé, compteurs et bouton export."""
     overview = global_summary.get("executive_overview", "")
     highlights = global_summary.get("key_highlights") or []
-    pertinence = global_summary.get("pertinence_globale", "FAIBLE")
+    pertinence = (global_summary.get("pertinence_globale") or "FAIBLE").upper()
     counts = global_summary.get("counts") or {}
+    by_impact = counts.get("by_impact") or {}
 
     pertinence_color = {"ELEVEE": "danger", "MOYENNE": "warning", "FAIBLE": "success"}.get(pertinence, "secondary")
+    pertinence_label = {"ELEVEE": "Élevée", "MOYENNE": "Moyenne", "FAIBLE": "Faible"}.get(pertinence, pertinence)
 
-    items = []
-    if overview:
-        items.append(html.P(overview, className="mb-2"))
-    if highlights:
-        items.append(html.Ul([html.Li(h, className="small") for h in highlights], className="mb-2"))
-
-    count_badges = []
-    by_impact = counts.get("by_impact") or {}
-    if by_impact.get("MAJEUR"):
-        count_badges.append(_badge(f"{by_impact['MAJEUR']} Majeur(s)", "danger"))
-    if by_impact.get("MODERE"):
-        count_badges.append(_badge(f"{by_impact['MODERE']} Modéré(s)", "warning"))
-    if counts.get("total_relevant"):
-        count_badges.append(
-            _badge(f"{counts['total_relevant']} pertinent(s) / {counts.get('total', 0)} total", "primary")
-        )
-
-    if count_badges:
-        items.append(html.Div(count_badges, className="mt-1"))
+    # Compteurs
+    n_maj = by_impact.get("MAJEUR", 0)
+    n_mod = by_impact.get("MODERE", 0)
+    n_rel = counts.get("total_relevant", 0)
+    n_tot = counts.get("total", 0)
 
     return dbc.Alert(
         [
+            # Ligne 1 : banque + trimestres + badge pertinence
             html.Div(
                 [
-                    html.Strong("Résumé exécutif — Analyse textuelle "),
-                    _badge(pertinence.capitalize(), pertinence_color),
+                    html.Strong(f"{bank} · {q_cur} vs {q_prev}  "),
+                    _badge(f"Pertinence : {pertinence_label}", pertinence_color),
                 ],
-                className="mb-2",
+                className="mb-2 d-flex align-items-center flex-wrap",
             ),
-            *items,
+            # Ligne 2 : résumé exécutif
+            html.P(overview, className="mb-2 small") if overview else None,
+            # Ligne 3 : points clés
+            html.Ul(
+                [html.Li(h, className="small") for h in highlights],
+                className="mb-2 ps-3",
+            )
+            if highlights
+            else None,
+            # Ligne 4 : compteurs + bouton Excel
+            html.Div(
+                [
+                    _badge(f"{n_maj} Majeur(s)", "danger") if n_maj else None,
+                    _badge(f"{n_mod} Modéré(s)", "warning") if n_mod else None,
+                    _badge(f"{n_rel} pertinents / {n_tot} analysés", "primary") if n_rel else None,
+                    dbc.Button(
+                        "↓ Télécharger Excel",
+                        id="btn-download-text-excel",
+                        color="light",
+                        size="sm",
+                        className="ms-auto border",
+                    ),
+                ],
+                className="d-flex align-items-center flex-wrap gap-1 mt-1",
+            ),
         ],
         color=pertinence_color,
-        className="mb-4",
+        className="mb-3",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Filter bar
+# ---------------------------------------------------------------------------
+
+
+def _build_filter_bar(section_options: list[dict]) -> html.Div:
+    """Barre de filtres : section / impact / action + compteur."""
+    return html.Div(
+        dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Dropdown(
+                        id="text-filter-section",
+                        options=section_options,
+                        placeholder="Toutes les sections",
+                        clearable=True,
+                    ),
+                    md=4,
+                ),
+                dbc.Col(
+                    dcc.Dropdown(
+                        id="text-filter-impact",
+                        options=[
+                            {"label": "Majeur", "value": "MAJEUR"},
+                            {"label": "Modéré", "value": "MODERE"},
+                            {"label": "Mineur", "value": "MINEUR"},
+                        ],
+                        placeholder="Tous les impacts",
+                        clearable=True,
+                    ),
+                    md=3,
+                ),
+                dbc.Col(
+                    dcc.Dropdown(
+                        id="text-filter-action",
+                        options=[
+                            {"label": "Escalade", "value": "escalade"},
+                            {"label": "Investigation", "value": "investigation"},
+                            {"label": "Confirmation", "value": "confirmation"},
+                            {"label": "Information", "value": "information"},
+                            {"label": "Aucune", "value": "aucune"},
+                        ],
+                        placeholder="Toutes les actions",
+                        clearable=True,
+                    ),
+                    md=3,
+                ),
+                dbc.Col(
+                    html.Span(id="text-filter-count", className="small text-muted align-self-center"),
+                    md=2,
+                    className="d-flex",
+                ),
+            ],
+            className="g-2 align-items-center",
+        ),
+        className="mb-3 p-3 bg-white rounded border",
     )
 
 
@@ -400,13 +314,14 @@ def _build_global_summary(global_summary: dict[str, Any]) -> html.Div:
 
 
 def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
-    """Construit l'onglet complet d'analyse textuelle.
+    """Construit l'onglet analyse textuelle — vue analyste.
 
     Args:
         text_data: Contenu de text_comparison.json, ou None si non disponible.
 
     Returns:
-        html.Div contenant l'onglet complet.
+        html.Div contenant banner + filtres + container de cartes (vide,
+        rempli par callback text_flow.py).
     """
     if not text_data:
         return html.Div(
@@ -415,7 +330,8 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
                     html.Strong("Analyse textuelle non disponible. "),
                     html.Span(
                         "Lancez le pipeline texte pour cette banque : "
-                        "python run_text_pipeline.py --bank <BANK> --year <YEAR> --T2"
+                        "uv run python -m vigilance.cli.run_text_compare "
+                        "--bank <BANK> --year <YEAR> --T2"
                     ),
                 ],
                 color="secondary",
@@ -425,28 +341,25 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
 
     global_summary = text_data.get("global_summary") or {}
     section_comparisons = text_data.get("section_comparisons") or []
-
     q_cur = text_data.get("quarter_current", "")
     q_prev = text_data.get("quarter_previous", "")
     bank = str(text_data.get("bank_code", "")).upper()
 
-    header = html.Div(
+    # Options de filtre section dynamiques
+    section_options = []
+    seen: set[str] = set()
+    for sec in section_comparisons:
+        key = sec.get("section_key", "")
+        title = sec.get("section_title") or _SECTION_LABELS.get(key, key)
+        if key and key not in seen:
+            section_options.append({"label": title, "value": key})
+            seen.add(key)
+
+    return html.Div(
         [
-            html.H5(f"Analyse textuelle — {bank} : {q_cur} vs {q_prev}", className="mb-1"),
-            html.P(
-                "Changements sémantiques détectés dans les paragraphes des sections réglementaires.",
-                className="text-muted small mb-3",
-            ),
-        ]
+            _build_executive_banner(global_summary, bank, q_cur, q_prev),
+            _build_filter_bar(section_options),
+            html.Div(id="text-cards-container"),
+        ],
+        className="pt-3",
     )
-
-    summary_banner = _build_global_summary(global_summary)
-
-    accordion = dbc.Accordion(
-        [_build_section_accordion(sec) for sec in section_comparisons],
-        start_collapsed=False,
-        always_open=True,
-        className="mb-4",
-    )
-
-    return html.Div([header, summary_banner, accordion], className="pt-3")

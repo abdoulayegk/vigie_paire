@@ -261,7 +261,6 @@ def _build_genai_section(table: dict) -> html.Div:
     impact_type = str(ga.get("impact_type", "") or "")
     project_phase = str(ga.get("project_phase", "") or "")
     action_requise = str(ga.get("action_requise", "") or "")
-    ref_regl = str(ga.get("reference_reglementaire", "") or "").strip()
     impact_desc = str(ga.get("impact_description", "") or "").strip()
 
     _IMPACT_COLORS = {
@@ -311,13 +310,6 @@ def _build_genai_section(table: dict) -> html.Div:
         )
 
     detail_parts = []
-    if ref_regl:
-        detail_parts.append(
-            html.Small(
-                [html.Strong("Réf. : "), ref_regl],
-                className="d-block text-muted mb-1",
-            )
-        )
     if impact_desc:
         detail_parts.append(
             html.Small(

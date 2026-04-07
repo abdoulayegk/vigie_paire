@@ -1,11 +1,8 @@
-"""Package d'extraction de blocs de texte par section."""
+"""Package legacy laissé vide.
+
+Le pipeline texte canonique n'expose plus d'extraction publique intermédiaire.
+"""
 
 from __future__ import annotations
 
-from .text_extractor import TextBlock, TextExtractor, extract_text_blocks_by_sections
-
-__all__ = [
-    "TextBlock",
-    "TextExtractor",
-    "extract_text_blocks_by_sections",
-]
+__all__: list[str] = []

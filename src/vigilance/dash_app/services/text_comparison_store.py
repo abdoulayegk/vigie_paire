@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from vigilance.quarter_utils import get_payload_quarter_context
+from vigilance.text_comparison.text_comparison_writer import _ACCEPTED_TEXT_COMPARISON_SCHEMAS
 from vigilance.ui_config import TEXT_COMPARISON_DIR
 
 logger = logging.getLogger(__name__)
@@ -44,7 +45,7 @@ def load_text_comparison_for_dash(
 
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        if data.get("schema_version") != 1:
+        if data.get("schema_version") not in _ACCEPTED_TEXT_COMPARISON_SCHEMAS:
             logger.warning("schema_version inattendu dans %s", path)
             return None
         logger.info("text_comparison.json chargé : %s", path)

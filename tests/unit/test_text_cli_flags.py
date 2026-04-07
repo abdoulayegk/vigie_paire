@@ -30,3 +30,17 @@ def test_text_clis_reject_legacy_quarter_option(module) -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(legacy_args)
+
+
+def test_run_text_extract_accepts_strict_sections() -> None:
+    parser = run_text_extract.build_parser()
+    args = parser.parse_args(
+        ["--bank", "BNS", "--year", "2025", "--T2", "--pdf", "dummy.pdf", "--strict-sections"]
+    )
+    assert args.strict_sections is True
+
+
+def test_run_text_compare_accepts_strict_sections() -> None:
+    parser = run_text_compare.build_parser()
+    args = parser.parse_args(["--bank", "BNS", "--year", "2025", "--T2", "--strict-sections"])
+    assert args.strict_sections is True

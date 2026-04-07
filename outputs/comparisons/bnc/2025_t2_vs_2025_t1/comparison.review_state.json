@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260404_082845",
   "review_items_signature": "cb64e43309400a48e1801359f45b429822ff8b8623b2608fc92ee80be6e49845",
-  "saved_at": "2026-04-06T06:37:02+00:00",
+  "saved_at": "2026-04-07T05:50:01+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::capital_management::tbl_p024_i01|tbl_p028_i01",
-    "change_id": "chg_00005"
+    "review_id": "bnc::capital_management::tbl_p023_i01|tbl_p027_i01",
+    "change_id": "chg_00001"
   },
-  "review_current_idx": 2,
-  "current_change_idx": 1,
+  "review_current_idx": 1,
+  "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-06T06:36:01.117509+00:00",
+      "review_timestamp": "2026-04-07T05:50:01.451505+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -96,8 +96,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-06T06:37:00.674428+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -107,17 +107,17 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Série 47",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Série 49",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Série 32",
@@ -188,8 +188,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-06T06:37:02.404299+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.92,
       "proof_image_path": "",
@@ -199,12 +199,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Variation des fonds propres réglementaires (1)",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Émission d’actions ordinaires relatives à l'acquisition de CWB",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Options de remplacement relatives à l'acquisition de CWB",
@@ -718,7 +718,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-06T06:36:01.117509+00:00",
+          "validated_at": "2026-04-07T05:50:01.451505+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -797,12 +797,12 @@
             "indicator_name": "Série 47",
             "indicator_name_clean": "série 47"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-06T06:36:05.808369+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00002",
@@ -811,12 +811,12 @@
             "indicator_name": "Série 49",
             "indicator_name_clean": "série 49"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-06T06:37:00.674428+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00003",
@@ -833,7 +833,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.9,
       "match_method": "Title and indicators are highly similar; both tables are about 'Actions, autres instruments de capitaux propres et options d'achat d'actions'. Row count is similar (12 vs 13).",
       "genai_analysis": {
@@ -871,8 +871,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 2,
-        "pending": 1
+        "validated": 0,
+        "pending": 3
       }
     },
     {
@@ -912,12 +912,12 @@
             "indicator_name": "Émission d’actions ordinaires relatives à l'acquisition de CWB",
             "indicator_name_clean": "émission d’actions ordinaires relatives à l'acquisition de cwb"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-06T06:37:02.404299+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00005",
@@ -951,7 +951,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.92,
       "match_method": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: same core structure with minor additions in CQ; row_count 42 vs 40.",
       "genai_analysis": {
@@ -989,8 +989,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 2
+        "validated": 0,
+        "pending": 3
       }
     },
     {

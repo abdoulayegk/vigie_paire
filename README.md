@@ -98,8 +98,10 @@ Le trimestre de référence est déduit automatiquement :
 
 ## Exécuter le pipeline
 
+### 📊 Pipeline Tableaux (Chiffres)
+
 ```bash
-# Extraction + Comparaison complètes
+# Extraction + Comparaison complètes des tableaux
 uv run run_pipeline.py --bank TD --year 2026 --quarter T1
 
 # Réutiliser l'extraction existante (tables.json déjà présent)
@@ -107,6 +109,18 @@ uv run run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
 
 # Sauter la comparaison (re-triage uniquement)
 uv run run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-comparison
+```
+
+### 📝 Pipeline Texte (Risques, Capital, etc.)
+
+Le module de comparaison de texte utilise l'alignement intelligent par sous-sections de Docling pour éviter les faux-positifs lors du rapprochement sémantique.
+
+```bash
+# Extraction + Comparaison sémantique par sous-sections (T2 vs T1)
+uv run run_text_pipeline.py --bank BNS --year 2025 --T2
+
+# Utilise les mêmes drapeaux locaux (--skip-extraction, etc.)
+uv run run_text_pipeline.py --bank BNS --year 2025 --T2 --skip-extraction
 ```
 
 **Options :**

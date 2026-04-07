@@ -7,9 +7,10 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from .text_comparison_builder import TEXT_COMPARISON_SCHEMA_VERSION
-
 logger = logging.getLogger(__name__)
+
+TEXT_COMPARISON_SCHEMA_VERSION = 3
+_ACCEPTED_TEXT_COMPARISON_SCHEMAS = {TEXT_COMPARISON_SCHEMA_VERSION}
 
 
 def get_text_comparison_path(
@@ -36,7 +37,7 @@ def write_text_comparison(
     """Sérialise et écrit text_comparison.json.
 
     Args:
-        payload: Dictionnaire construit par build_text_comparison().
+        payload: Dictionnaire texte canonique.
         out_path: Chemin complet du fichier de sortie.
 
     Returns:
@@ -77,9 +78,9 @@ def load_text_comparison(comparison_path: Path) -> dict[str, Any]:
     data = json.loads(comparison_path.read_text(encoding="utf-8"))
 
     version = data.get("schema_version")
-    if version != TEXT_COMPARISON_SCHEMA_VERSION:
+    if version not in _ACCEPTED_TEXT_COMPARISON_SCHEMAS:
         raise ValueError(
-            f"schema_version incompatible : attendu {TEXT_COMPARISON_SCHEMA_VERSION}, "
+            f"schema_version incompatible : accepté {_ACCEPTED_TEXT_COMPARISON_SCHEMAS}, "
             f"trouvé {version} dans {comparison_path}"
         )
     return data

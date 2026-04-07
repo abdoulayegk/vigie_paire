@@ -39,15 +39,11 @@ VALID_RELEVANCE = frozenset({"ELEVEE", "MOYENNE", "FAIBLE"})
 
 VALID_RISK_LEVELS = frozenset({"ELEVE", "MODERE", "FAIBLE"})
 
-VALID_IMPACT_TYPES = frozenset(
-    {"structurel", "contenu", "methodologique", "cosmetique"}
-)
+VALID_IMPACT_TYPES = frozenset({"structurel", "contenu", "methodologique", "cosmetique"})
 
 VALID_PROJECT_PHASES = frozenset({"rapport_gestion", "pilier_3", "ifc", "autre"})
 
-VALID_ACTIONS = frozenset(
-    {"escalade", "investigation", "confirmation", "information", "aucune"}
-)
+VALID_ACTIONS = frozenset({"escalade", "investigation", "confirmation", "information", "aucune"})
 
 # ---------------------------------------------------------------------------
 # System Prompts
@@ -200,10 +196,7 @@ def _build_change_prompt(change: dict[str, Any], change_type: str) -> str:
             names = [_indicator_label(i) for i in removed[:15]]
             parts.append(f"Indicateurs supprimés : {', '.join(names)}")
         if renamed:
-            renames = [
-                f"{r.get('previous', '')} → {r.get('current', '')}"
-                for r in renamed[:10]
-            ]
+            renames = [f"{r.get('previous', '')} → {r.get('current', '')}" for r in renamed[:10]]
             parts.append(f"Indicateurs renommés : {', '.join(renames)}")
         if fn_added:
             texts = [_footnote_text(f) for f in fn_added[:5]]
@@ -213,8 +206,7 @@ def _build_change_prompt(change: dict[str, Any], change_type: str) -> str:
             parts.append(f"Notes supprimées : {'; '.join(texts)}")
         if fn_renamed:
             renames = [
-                f"'{r.get('previous_text', '')[:80]}' → '{r.get('current_text', '')[:80]}'"
-                for r in fn_renamed[:5]
+                f"'{r.get('previous_text', '')[:80]}' → '{r.get('current_text', '')[:80]}'" for r in fn_renamed[:5]
             ]
             parts.append(f"Notes modifiées : {'; '.join(renames)}")
 
@@ -271,9 +263,7 @@ def _build_summary_prompt(relevant_changes: list[dict[str, Any]]) -> str:
         section = item.get("_section", "")
         phase = item.get("project_phase", "autre")
         action = item.get("action_requise", "aucune")
-        parts.append(
-            f"{i}. [{cat}] {title} (section: {section}, phase: {phase}, action: {action}) \u2014 {expl}"
-        )
+        parts.append(f"{i}. [{cat}] {title} (section: {section}, phase: {phase}, action: {action}) \u2014 {expl}")
 
     return "\n".join(parts)
 
@@ -512,9 +502,7 @@ async def _triage_all_changes(
 
     api_key = get_openai_api_key()
     if not api_key:
-        logger.warning(
-            "GenAI triage: OPENAI_API_KEY non définie, passage au mode heuristique."
-        )
+        logger.warning("GenAI triage: OPENAI_API_KEY non définie, passage au mode heuristique.")
         return _fallback_enrich(comparison)
 
     client = AsyncOpenAI(api_key=api_key)
@@ -654,9 +642,7 @@ async def _triage_all_changes(
             "source": "heuristic",
         }
 
-    global_summary["total_changes_analysed"] = (
-        len(pair_comparisons) + len(tables_added) + len(tables_removed)
-    )
+    global_summary["total_changes_analysed"] = len(pair_comparisons) + len(tables_added) + len(tables_removed)
     global_summary["total_relevant"] = len(relevant)
 
     comparison["global_summary"] = global_summary
@@ -762,9 +748,7 @@ def enrich_comparison_with_genai_triage(
     comparison = json.loads(path.read_text(encoding="utf-8"))
 
     t0 = time.monotonic()
-    comparison = asyncio.run(
-        _triage_all_changes(comparison, model=model, max_concurrency=max_concurrency)
-    )
+    comparison = asyncio.run(_triage_all_changes(comparison, model=model, max_concurrency=max_concurrency))
     elapsed = time.monotonic() - t0
 
     summary = comparison.get("global_summary") or {}
@@ -780,3 +764,29 @@ def enrich_comparison_with_genai_triage(
         encoding="utf-8",
     )
     return path
+
+
+def inject_llm_resume_metier(comparison: dict) -> dict:
+    """Injecte la justification LLM dans genai_analysis['resume_metier'] pour chaque changement/tableau."""
+    # Pour chaque changement pair_comparisons
+    for pair in comparison.get("pair_comparisons", []):
+        triage = pair.get("genai_triage", {})
+        if triage.get("explanation"):
+            ga = pair.setdefault("genai_analysis", {})
+            ga["resume_metier"] = triage["explanation"]
+
+    # Pour chaque tableau ajouté
+    for tbl in comparison.get("matching", {}).get("tables_added", []):
+        triage = tbl.get("genai_triage", {})
+        if triage.get("explanation"):
+            ga = tbl.setdefault("genai_analysis", {})
+            ga["resume_metier"] = triage["explanation"]
+
+    # Pour chaque tableau supprimé
+    for tbl in comparison.get("matching", {}).get("tables_removed", []):
+        triage = tbl.get("genai_triage", {})
+        if triage.get("explanation"):
+            ga = tbl.setdefault("genai_analysis", {})
+            ga["resume_metier"] = triage["explanation"]
+
+    return comparison

@@ -15,7 +15,8 @@ def _write_text_comparison(root_dir: Path) -> None:
     path.write_text(
         json.dumps(
             {
-                "schema_version": 1,
+                "schema_version": 3,
+                "artifact_type": "text_comparison",
                 "bank_code": "bnc",
                 "quarter_current": "2025_t2",
                 "quarter_previous": "2025_t1",
@@ -77,3 +78,19 @@ def test_resolve_text_comparison_from_canonical_payload(tmp_path: Path) -> None:
 
     assert resolved is not None
     assert resolved["quarter_current"] == "2025_t2"
+
+
+def test_old_schema_is_rejected(tmp_path: Path) -> None:
+    path = tmp_path / "bnc" / "2025_t2_vs_2025_t1" / "text_comparison.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps({"schema_version": 2, "bank_code": "bnc"}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    resolved = resolve_text_comparison_from_payload(
+        _raw_report_comparison_payload(),
+        root_dir=tmp_path,
+    )
+
+    assert resolved is None
