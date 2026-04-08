@@ -19,6 +19,7 @@ from vigilance.text_analysis_pipeline import (
     _compute_conservative_new_idea,
     _extract_audits_for_pdf,
     _extract_section_text_from_markdown,
+    _gpt_match_orphan_headings,
     _is_new_major_or_allowed_moderate,
     _looks_like_footnote,
     _max_output_tokens_for_model,
@@ -938,3 +939,136 @@ def test_compare_section_texts_synthetic_change_for_added_subsection(monkeypatch
     assert len(added) == 1
     assert "Incidence des tarifs" in added[0]["change_summary"]
     assert "Nouveau en T2" in added[0]["source_text_t2"]
+
+
+def test_gpt_match_orphan_headings_returns_empty_when_no_orphans() -> None:
+    """Pas d'orphelins d'un côté → pas d'appel GPT, retourne []."""
+    result = _gpt_match_orphan_headings(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=[],
+        orphans_t2=["Incidence des tarifs douaniers"],
+    )
+    assert result == []
+
+
+def test_gpt_match_orphan_headings_filters_low_confidence(monkeypatch) -> None:
+    """Matches de confidence 'low' sont exclus du résultat."""
+    def fake_call(client, *, model, messages, max_tokens=None):
+        return {
+            "matches": [
+                {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "low", "reason": "x"},
+            ]
+        }
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+
+    result = _gpt_match_orphan_headings(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=["Incidence des tarifs"],
+        orphans_t2=["Incidence des tarifs douaniers"],
+    )
+    assert result == []
+
+
+def test_gpt_match_orphan_headings_rejects_hallucinated_headings(monkeypatch) -> None:
+    """GPT invente un heading absent des listes orphelines → rejeté."""
+    def fake_call(client, *, model, messages, max_tokens=None):
+        return {
+            "matches": [
+                {"heading_t1": "Heading inventé", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "x"},
+            ]
+        }
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+
+    result = _gpt_match_orphan_headings(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=["Incidence des tarifs"],
+        orphans_t2=["Incidence des tarifs douaniers"],
+    )
+    assert result == []
+
+
+def test_gpt_match_orphan_headings_accepts_high_confidence(monkeypatch) -> None:
+    """Un match high-confidence avec headings valides est retourné."""
+    def fake_call(client, *, model, messages, max_tokens=None):
+        return {
+            "matches": [
+                {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "précision ajoutée"},
+            ]
+        }
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+
+    result = _gpt_match_orphan_headings(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=["Incidence des tarifs"],
+        orphans_t2=["Incidence des tarifs douaniers"],
+    )
+    assert len(result) == 1
+    assert result[0]["heading_t1"] == "Incidence des tarifs"
+    assert result[0]["heading_t2"] == "Incidence des tarifs douaniers"
+
+
+def test_gpt_match_orphan_headings_enforces_1_to_1(monkeypatch) -> None:
+    """GPT tente d'associer le même T1 heading à deux T2 headings → seule la première paire est acceptée."""
+    def fake_call(client, *, model, messages, max_tokens=None):
+        return {
+            "matches": [
+                {"heading_t1": "Risque de marché", "heading_t2": "Risque de marché amplifié", "confidence": "high", "reason": "a"},
+                {"heading_t1": "Risque de marché", "heading_t2": "Risque de marché étendu", "confidence": "medium", "reason": "b"},
+            ]
+        }
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+
+    result = _gpt_match_orphan_headings(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=["Risque de marché"],
+        orphans_t2=["Risque de marché amplifié", "Risque de marché étendu"],
+    )
+    assert len(result) == 1
+    assert result[0]["heading_t2"] == "Risque de marché amplifié"
+
+
+def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
+    """Une sous-section renommée T1→T2 est comparée (appel GPT) avec heading_label 'T1 → T2'."""
+    single_call_slugs: list[str] = []
+    single_call_labels: list[str] = []
+
+    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+        single_call_slugs.append(heading_slug)
+        single_call_labels.append(heading_label)
+        return []
+
+    def fake_gpt_match(*, client, model, section_key, orphans_t1, orphans_t2):
+        return [
+            {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "précision"},
+        ]
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._gpt_match_orphan_headings", fake_gpt_match)
+
+    md_t1 = "### Risque de marché\n\nCorps T1.\n\n### Incidence des tarifs\n\nTexte T1.\n"
+    md_t2 = "### Risque de marché\n\nCorps T2.\n\n### Incidence des tarifs douaniers\n\nTexte T2.\n"
+
+    _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=md_t1,
+        text_t2=md_t2,
+    )
+
+    # Two GPT comparison calls: one for exact match, one for renamed pair
+    assert len(single_call_slugs) == 2
+    # The renamed pair label uses "→" arrow notation
+    renamed_labels = [lbl for lbl in single_call_labels if "→" in lbl]
+    assert len(renamed_labels) == 1
+    assert renamed_labels[0] == "Incidence des tarifs → Incidence des tarifs douaniers"

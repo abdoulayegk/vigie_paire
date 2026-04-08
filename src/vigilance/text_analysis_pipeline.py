@@ -1082,6 +1082,79 @@ def _pair_subsections(
     return pairs
 
 
+def _gpt_match_orphan_headings(
+    *,
+    client: Any,
+    model: str,
+    section_key: str,
+    orphans_t1: list[str],
+    orphans_t2: list[str],
+) -> list[dict[str, Any]]:
+    """Identifie via GPT les sous-sections renommées entre T1 et T2 (1→1 uniquement).
+
+    Retourne une liste de dicts ``{"heading_t1": ..., "heading_t2": ...,
+    "confidence": "high|medium", "reason": ...}`` dont les deux côtés
+    appartiennent bien aux listes orphelines (anti-hallucination).
+    En cas d'erreur, retourne [] pour ne pas bloquer le pipeline.
+    """
+    if not orphans_t1 or not orphans_t2:
+        return []
+    try:
+        raw = _call_json_completion(
+            client,
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Tu es expert en rapports bancaires réglementaires canadiens. "
+                        "Tu identifies les correspondances entre sous-sections renommées "
+                        "d'un trimestre à l'autre."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        'Format de réponse: {"matches": [{"heading_t1": "...", "heading_t2": "...", '
+                        '"confidence": "high|medium|low", "reason": "..."}]}\n'
+                        "Règles strictes:\n"
+                        "- Correspondances 1→1 uniquement (un heading T1 ↔ un heading T2)\n"
+                        "- N'inclure que confidence high ou medium\n"
+                        "- Si tu n'es pas sûr, ne pas inclure la paire\n"
+                        "- Retourner les headings EXACTEMENT comme fournis\n\n"
+                        f"Section: {section_key}\n\n"
+                        "Sous-sections T1 sans correspondance exacte:\n"
+                        + "\n".join(f"- {h}" for h in orphans_t1)
+                        + "\n\nSous-sections T2 sans correspondance exacte:\n"
+                        + "\n".join(f"- {h}" for h in orphans_t2)
+                    ),
+                },
+            ],
+        )
+        orphans_t1_set = set(orphans_t1)
+        orphans_t2_set = set(orphans_t2)
+        used_t1: set[str] = set()
+        used_t2: set[str] = set()
+        matches = []
+        for m in raw.get("matches") or []:
+            conf = str(m.get("confidence") or "").lower()
+            h1 = m.get("heading_t1") or ""
+            h2 = m.get("heading_t2") or ""
+            if conf not in {"high", "medium"}:
+                continue
+            if h1 not in orphans_t1_set or h2 not in orphans_t2_set:
+                continue
+            if h1 in used_t1 or h2 in used_t2:
+                continue
+            matches.append(m)
+            used_t1.add(h1)
+            used_t2.add(h2)
+        return matches
+    except Exception:
+        logger.warning("Orphan heading GPT match failed for %s — skipping", section_key)
+        return []
+
+
 def _synthetic_subsection_change(
     *,
     section_key: str,
@@ -1246,12 +1319,48 @@ def _compare_section_texts(
         )
 
     pairs = _pair_subsections(subs_t1, subs_t2)
+
+    # Phase 2 — Fuzzy rename resolution via GPT
+    orphans_t1 = [h1 for h1, _b1, h2, _b2 in pairs if h2 is None and h1 is not None]
+    orphans_t2 = [h2 for _h1, _b1, h2, _b2 in pairs if _h1 is None and h2 is not None]
+    rename_matches = _gpt_match_orphan_headings(
+        client=client,
+        model=model,
+        section_key=section_key,
+        orphans_t1=orphans_t1,
+        orphans_t2=orphans_t2,
+    )
+    # Build lookup: orphan_t1_heading → matched orphan_t2_heading (and vice versa)
+    rename_t1_to_t2: dict[str, str] = {m["heading_t1"]: m["heading_t2"] for m in rename_matches}
+    renamed_as_t2: set[str] = set(rename_t1_to_t2.values())
+
+    # Augment pairs: replace (h1, body1, None, "") with (h1, body1, h2_matched, body2_matched)
+    body_by_t2_heading: dict[str, str] = {h2: b2 for _, _, h2, b2 in pairs if h2 is not None}
+    resolved_pairs: list[tuple[str | None, str, str | None, str]] = []
+    for h1, body1, h2, body2 in pairs:
+        if h2 is None and h1 is not None and h1 in rename_t1_to_t2:
+            matched_h2 = rename_t1_to_t2[h1]
+            matched_body2 = body_by_t2_heading.get(matched_h2, "")
+            resolved_pairs.append((h1, body1, matched_h2, matched_body2))
+        elif h1 is None and h2 is not None and h2 in renamed_as_t2:
+            # Skip — already consumed by the T1 side above
+            continue
+        else:
+            resolved_pairs.append((h1, body1, h2, body2))
+    pairs = resolved_pairs
+
     all_changes: list[dict[str, Any]] = []
     global_idx = 1
+    renamed_pairs: set[tuple[str, str]] = {(m["heading_t1"], m["heading_t2"]) for m in rename_matches}
 
     for h1, body1, h2, body2 in pairs:
         heading_label = h1 or h2 or "unknown"
         heading_slug = re.sub(r"[^\w]+", "_", _normalize_heading(heading_label))[:40].strip("_")
+
+        # For renamed pairs, display as "T1 heading → T2 heading"
+        if h1 is not None and h2 is not None and (h1, h2) in renamed_pairs:
+            heading_label = f"{h1} → {h2}"
+            heading_slug = re.sub(r"[^\w]+", "_", _normalize_heading(h1))[:40].strip("_")
 
         if h2 is None:
             assert h1 is not None
