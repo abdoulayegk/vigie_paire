@@ -111,7 +111,6 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
     badge_row = html.Div(
         [
             _badge(impact_lbl, impact_color),
-            _badge(action_lbl, action_color),
             _badge(cat_lbl, cat_color),
             dbc.Badge(
                 "★ Nouvelle idée",

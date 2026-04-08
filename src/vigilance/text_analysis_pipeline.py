@@ -71,6 +71,12 @@ _TARGET_SECTIONS_BY_BANK: dict[str, set[str]] = {
     "bmo": {"gestion_capital", "gestion_risques", "gestion_reglementation"},
 }
 
+_MODEL_MAX_OUTPUT_TOKENS: list[tuple[re.Pattern[str], int]] = [
+    (re.compile(r"^gpt-4o(?:$|-)", flags=re.IGNORECASE), 16_384),
+    (re.compile(r"^gpt-4\.1(?:$|-)", flags=re.IGNORECASE), 32_768),
+    (re.compile(r"^gpt-4(?:$|-)", flags=re.IGNORECASE), 8_192),
+]
+
 _REGULATORY_REF_RE = re.compile(
     r"\b(?:OSFI|BSIF|Bâle|Basel|TLAC|LCR|NSFR|CET1|Tier\s*1|Tier\s*2|Pilier\s*[123]|IFRS|IAS|NIIF|BISM|VaR)\b",
     flags=re.IGNORECASE,
@@ -92,6 +98,7 @@ _FOOTNOTE_MARKER_RE = re.compile(
     flags=re.IGNORECASE,
 )
 _TABLE_HEADING_RE = re.compile(r"^\s*(?:tableau|table)\b", flags=re.IGNORECASE)
+_SUBSECTION_SPLIT_RE = re.compile(r"^### (.+)$", re.MULTILINE)
 _SEMANTIC_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(r"\bcadre de capacité totale d[’']absorption des pertes\b", flags=re.IGNORECASE),
@@ -769,8 +776,81 @@ def _build_openai_client():
     return OpenAI(api_key=api_key)
 
 
+def _strip_markdown_fences(text: str) -> str:
+    """Retire les clotures Markdown et isole l'objet JSON si present."""
+    stripped = str(text or "").strip()
+    if stripped.startswith("```"):
+        first_nl = stripped.find("\n")
+        if first_nl != -1:
+            stripped = stripped[first_nl + 1 :]
+        if stripped.endswith("```"):
+            stripped = stripped[:-3].rstrip()
+
+    first_brace = stripped.find("{")
+    last_brace = stripped.rfind("}")
+    if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+        return stripped[first_brace : last_brace + 1]
+    return stripped
+
+
+def _parse_json_object_response(raw: str) -> dict[str, Any]:
+    """Parse un objet JSON reponse OpenAI et valide son type racine."""
+    cleaned = _strip_markdown_fences(raw)
+    data = json.loads(cleaned)
+    if not isinstance(data, dict):
+        raise ValueError("OpenAI response is not a JSON object")
+    return data
+
+
+def _preview_response_text(raw: str, limit: int = 500) -> str:
+    """Retourne un apercu compact de la reponse brute pour les logs."""
+    text = (raw or "").strip()
+    if len(text) <= limit:
+        return text
+    head = text[: limit // 2]
+    tail = text[-(limit // 2) :]
+    return f"{head} ... {tail}"
+
+
+def _build_json_repair_messages(raw_response: str) -> list[dict[str, str]]:
+    """Construit un mini-prompt de reparation pour un JSON mal forme."""
+    return [
+        {
+            "role": "system",
+            "content": (
+                "Tu reçois une tentative de réponse JSON invalide. "
+                "Réécris-la en un objet JSON valide uniquement, sans markdown, "
+                "sans commentaire, sans texte avant ou après."
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                "Répare cet objet JSON sans changer sa structure ni son sens. "
+                "Si une chaîne est tronquée, ferme-la et ferme correctement les objets/listes.\n\n"
+                f"{raw_response[:12000]}"
+            ),
+        },
+    ]
+
+
 def _allowed_target_sections(bank_code: str) -> set[str]:
     return set(_TARGET_SECTIONS_BY_BANK.get(str(bank_code or "").strip().lower(), set(_SECTION_LABELS)))
+
+
+def _max_output_tokens_for_model(model: str, fallback: int = 16_384) -> int:
+    """Retourne le plafond de sortie connu du modele quand il est connu.
+
+    Ce plafond n'est pas utilise comme limite par defaut dans le flux texte:
+    les appels normaux laissent le modele s'arreter naturellement. Il sert
+    seulement de borne de retry quand un appel explicitement cappe finit en
+    ``finish_reason="length"``.
+    """
+    normalized = str(model or "").strip()
+    for pattern, limit in _MODEL_MAX_OUTPUT_TOKENS:
+        if pattern.match(normalized):
+            return limit
+    return fallback
 
 
 def _call_json_completion(
@@ -778,20 +858,95 @@ def _call_json_completion(
     *,
     model: str,
     messages: list[dict[str, Any]],
-    max_tokens: int,
+    max_tokens: int | None = None,
 ) -> dict[str, Any]:
-    response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=0.0,
-        response_format={"type": "json_object"},
-        max_tokens=max_tokens,
-    )
-    payload = response.choices[0].message.content or "{}"
-    return json.loads(payload)
+    """Execute un appel JSON OpenAI robuste pour le flux texte.
+
+    Politique du pipeline texte:
+    - pas de limite de completion explicite par defaut, afin de privilegier un
+      arret naturel et de reduire les JSON tronques;
+    - retry au plafond connu du modele seulement si un plafond explicite plus
+      bas a ete fourni et que la reponse finit en ``length``;
+    - tentative de reparation du JSON avant de lever une erreur finale.
+
+    Returns:
+        Objet JSON racine valide sous forme de dictionnaire.
+    """
+    model_max_tokens = _max_output_tokens_for_model(model)
+    initial_max_tokens = None if max_tokens is None else min(int(max_tokens), model_max_tokens)
+
+    def _request(request_messages: list[dict[str, Any]], token_budget: int | None) -> tuple[str, str | None]:
+        request_kwargs: dict[str, Any] = {
+            "model": model,
+            "messages": request_messages,
+            "temperature": 0.0,
+            "response_format": {"type": "json_object"},
+        }
+        if token_budget is not None:
+            request_kwargs["max_completion_tokens"] = token_budget
+
+        response = client.chat.completions.create(
+            **request_kwargs,
+        )
+        choice = response.choices[0]
+        payload = choice.message.content or "{}"
+        finish_reason = getattr(choice, "finish_reason", None)
+        return payload, finish_reason
+
+    raw_payload, finish_reason = _request(messages, initial_max_tokens)
+    try:
+        return _parse_json_object_response(raw_payload)
+    except (json.JSONDecodeError, TypeError, ValueError) as exc:
+        logger.warning(
+            "OpenAI returned invalid JSON (finish_reason=%s): %s | preview=%s",
+            finish_reason,
+            exc,
+            _preview_response_text(raw_payload),
+        )
+
+    if finish_reason == "length" and initial_max_tokens is not None and initial_max_tokens < model_max_tokens:
+        retry_max_tokens = model_max_tokens
+        raw_retry, retry_finish_reason = _request(messages, retry_max_tokens)
+        try:
+            logger.warning(
+                "Retrying OpenAI JSON call after truncation with max_completion_tokens=%s (model_max=%s)",
+                retry_max_tokens,
+                model_max_tokens,
+            )
+            return _parse_json_object_response(raw_retry)
+        except (json.JSONDecodeError, TypeError, ValueError) as exc:
+            logger.warning(
+                "Retry after truncation still returned invalid JSON (finish_reason=%s): %s | preview=%s",
+                retry_finish_reason,
+                exc,
+                _preview_response_text(raw_retry),
+            )
+            raw_payload = raw_retry
+            finish_reason = retry_finish_reason
+    elif finish_reason == "length":
+        logger.warning(
+            "OpenAI response hit the effective output ceiling (%s) and remained truncated",
+            model_max_tokens,
+        )
+
+    repair_messages = _build_json_repair_messages(raw_payload)
+    raw_repair, repair_finish_reason = _request(repair_messages, None)
+    try:
+        return _parse_json_object_response(raw_repair)
+    except (json.JSONDecodeError, TypeError, ValueError) as exc:
+        raise RuntimeError(
+            "OpenAI JSON parse failed after repair attempt "
+            f"(finish_reason={repair_finish_reason or finish_reason or 'unknown'}): {exc}. "
+            f"Preview: {_preview_response_text(raw_repair)}"
+        ) from exc
 
 
 def _resolve_sections(pdf_path: Path, bank_code: str) -> dict[str, ResolvedSection]:
+    """Localise et normalise les sections textuelles cibles d'un PDF.
+
+    Le resultat est deja filtre selon les sections autorisees pour la banque,
+    ce qui stabilise le flux de comparaison inter-trimestrielle.
+    """
     mapping = locate_sections_in_pdf(str(pdf_path), bank_code.lower())
     allowed_sections = _allowed_target_sections(bank_code)
     sections: dict[str, ResolvedSection] = {}
@@ -823,7 +978,12 @@ def _extract_audits_for_pdf(
     pdf_path: Path,
     sections: dict[str, ResolvedSection],
 ) -> list[SectionAudit]:
-    """Extrait les blocs narratifs de chaque section via Docling + classification heuristique."""
+    """Extrait les blocs narratifs de chaque section via Docling + heuristiques.
+
+    Cette etape construit les audits qui seront convertis en markdown
+    ``source of truth``. Les appels GPT de comparaison/triage relisent ensuite
+    exclusivement ce markdown, pas les PDFs directement.
+    """
     if not sections:
         return []
     section_order = _next_section_by_key(sections)
@@ -845,7 +1005,11 @@ def _extract_audits_for_pdf(
 
 
 def _extract_section_text_from_markdown(md_content: str, section_key: str) -> str:
-    """Extrait le texte d'une section depuis le contenu markdown (délimité par ## titre)."""
+    """Extrait le texte d'une section depuis le markdown auditable.
+
+    Le markdown ecrit sur disque est la source de verite fonctionnelle du flux
+    texte; ce helper redecoupe exactement ce meme contenu avant comparaison.
+    """
     title = _SECTION_LABELS.get(section_key, section_key)
     lines = md_content.splitlines()
     in_section = False
@@ -862,51 +1026,150 @@ def _extract_section_text_from_markdown(md_content: str, section_key: str) -> st
     return "\n".join(section_lines).strip()
 
 
-def _compare_section_texts(
+def _normalize_heading(heading: str) -> str:
+    """Normalise un heading ### pour le pairing T1/T2 (insensible à la casse et aux préfixes de tableaux)."""
+    h = heading.lower()
+    h = re.sub(r"\b[tT]\d{2,3}\b\s*", "", h)  # strip T22, T25, T125, etc.
+    h = re.sub(r"[^\w\s]", " ", h)
+    h = re.sub(r"\s+", " ", h).strip()
+    return h
+
+
+def _parse_subsections(md_text: str) -> list[tuple[str, str]]:
+    """Découpe un texte markdown en paires (heading, body).
+
+    Le texte avant le premier ### devient (``__intro__``, body).
+    Les headings ## de section ne sont pas inclus.
+    """
+    parts = _SUBSECTION_SPLIT_RE.split(md_text)
+    result: list[tuple[str, str]] = []
+    intro = parts[0].strip()
+    if intro:
+        result.append(("__intro__", intro))
+    for i in range(1, len(parts), 2):
+        heading = parts[i].strip()
+        body = parts[i + 1].strip() if i + 1 < len(parts) else ""
+        if heading:
+            result.append((heading, body))
+    return result
+
+
+def _pair_subsections(
+    subs_t1: list[tuple[str, str]],
+    subs_t2: list[tuple[str, str]],
+) -> list[tuple[str | None, str, str | None, str]]:
+    """Paire les sous-sections T1 et T2 par heading normalisé.
+
+    Retourne une liste de ``(heading_t1, body_t1, heading_t2, body_t2)``.
+    ``None`` pour un heading signifie qu'il n'a pas de contrepartie dans l'autre trimestre.
+    """
+    norm_to_t2: dict[str, tuple[str, str]] = {
+        _normalize_heading(h): (h, body) for h, body in subs_t2
+    }
+    matched_t2_norms: set[str] = set()
+    pairs: list[tuple[str | None, str, str | None, str]] = []
+    for h1, body1 in subs_t1:
+        norm = _normalize_heading(h1)
+        if norm in norm_to_t2:
+            h2, body2 = norm_to_t2[norm]
+            pairs.append((h1, body1, h2, body2))
+            matched_t2_norms.add(norm)
+        else:
+            pairs.append((h1, body1, None, ""))
+    for h2, body2 in subs_t2:
+        if _normalize_heading(h2) not in matched_t2_norms:
+            pairs.append((None, "", h2, body2))
+    return pairs
+
+
+def _synthetic_subsection_change(
+    *,
+    section_key: str,
+    diff_type: str,
+    heading: str,
+    body_t1: str,
+    body_t2: str,
+    idx: int,
+) -> dict[str, Any]:
+    """Crée un enregistrement de changement pour une sous-section entièrement ajoutée ou supprimée."""
+    slug = re.sub(r"[^\w]+", "_", _normalize_heading(heading))[:40].strip("_")
+    label = "ajoutée" if diff_type == "added" else "supprimée"
+    return {
+        "change_id": f"{section_key}_{slug}_change_{idx:03d}",
+        "section_key": section_key,
+        "subsection_heading": heading,
+        "diff_type": diff_type,
+        "semantic_text_t1": _sanitize_semantic_text(body_t1),
+        "semantic_text_t2": _sanitize_semantic_text(body_t2),
+        "source_text_t1": body_t1,
+        "source_text_t2": body_t2,
+        "source_block_ids_t1": [],
+        "source_block_ids_t2": [],
+        "source_refs_t1": [],
+        "source_refs_t2": [],
+        "pages_t1": [],
+        "pages_t2": [],
+        "source_resolution_t1": "markdown",
+        "source_resolution_t2": "markdown",
+        "evidence_t1": {"pages": [], "snippet": body_t1[:400]},
+        "evidence_t2": {"pages": [], "snippet": body_t2[:400]},
+        "change_summary": f"Sous-section {label}: {heading}",
+    }
+
+
+def _compare_texts_single_call(
     *,
     client: Any,
     model: str,
     section_key: str,
+    heading_label: str,
+    heading_slug: str,
     text_t1: str,
     text_t2: str,
+    idx_offset: int,
 ) -> list[dict[str, Any]]:
-    """Compare deux sections texte extraites du .md et retourne les changements détectés."""
-    if not text_t1.strip() and not text_t2.strip():
-        return []
-    raw = _call_json_completion(
-        client,
-        model=model,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "Tu compares deux versions d'une section de rapport bancaire. "
-                    "Identifie les changements réels paragraphe par paragraphe. "
-                    "Ignore les reformulations purement cosmétiques ou rédactionnelles."
-                ),
-            },
-            {
-                "role": "user",
-                "content": (
-                    "Compare ces deux versions et retourne uniquement du JSON.\n"
-                    'Format: {"changes":[{"diff_type":"unchanged|modified|added|removed",'
-                    '"text_t1":"texte du paragraphe en T1, vide si added",'
-                    '"text_t2":"texte du paragraphe en T2, vide si removed",'
-                    '"change_summary":"explication concise du changement"}]}.\n'
-                    "unchanged = même idée, légère reformulation sans évolution réelle.\n"
-                    "modified = même idée mais vraie évolution du contenu ou de la nuance.\n"
-                    "added = idée nouvelle présente uniquement en T2.\n"
-                    "removed = idée présente en T1, absente en T2.\n"
-                    f"Section: {section_key}\n\n"
-                    f"=== T1 ===\n{text_t1}\n\n"
-                    f"=== T2 ===\n{text_t2}\n"
-                ),
-            },
-        ],
-        max_tokens=6000,
-    )
+    """Appel GPT unique pour comparer deux corps de texte.
+
+    Extrait la logique de comparaison GPT de ``_compare_section_texts`` pour
+    permettre son appel répété par sous-section.
+    """
+    try:
+        raw = _call_json_completion(
+            client,
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Tu compares deux versions d'une section de rapport bancaire. "
+                        "Identifie les changements réels paragraphe par paragraphe. "
+                        "Ignore les reformulations purement cosmétiques ou rédactionnelles."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        "Compare ces deux versions et retourne uniquement du JSON.\n"
+                        'Format: {"changes":[{"diff_type":"unchanged|modified|added|removed",'
+                        '"text_t1":"texte du paragraphe en T1, vide si added",'
+                        '"text_t2":"texte du paragraphe en T2, vide si removed",'
+                        '"change_summary":"explication concise du changement"}]}.\n'
+                        "unchanged = même idée, légère reformulation sans évolution réelle.\n"
+                        "modified = même idée mais vraie évolution du contenu ou de la nuance.\n"
+                        "added = idée nouvelle présente uniquement en T2.\n"
+                        "removed = idée présente en T1, absente en T2.\n"
+                        f"Section: {section_key}\n\n"
+                        f"=== T1 ===\n{text_t1}\n\n"
+                        f"=== T2 ===\n{text_t2}\n"
+                    ),
+                },
+            ],
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Section comparison failed for {section_key}/{heading_slug}: {exc}") from exc
+
     validated: list[dict[str, Any]] = []
-    for idx, item in enumerate(raw.get("changes") or [], start=1):
+    for local_idx, item in enumerate(raw.get("changes") or [], start=1):
         diff_type = str(item.get("diff_type") or "").strip().lower()
         if diff_type not in {"unchanged", "modified", "added", "removed"}:
             continue
@@ -918,10 +1181,12 @@ def _compare_section_texts(
             continue
         if diff_type == "removed" and not text_t1_item:
             continue
+        global_idx = idx_offset + local_idx
         validated.append(
             {
-                "change_id": f"{section_key}_change_{idx:03d}",
+                "change_id": f"{section_key}_{heading_slug}_change_{global_idx:03d}",
                 "section_key": section_key,
+                "subsection_heading": heading_label,
                 "diff_type": diff_type,
                 "semantic_text_t1": _sanitize_semantic_text(text_t1_item),
                 "semantic_text_t2": _sanitize_semantic_text(text_t2_item),
@@ -941,6 +1206,100 @@ def _compare_section_texts(
             }
         )
     return validated
+
+
+def _compare_section_texts(
+    *,
+    client: Any,
+    model: str,
+    section_key: str,
+    text_t1: str,
+    text_t2: str,
+) -> list[dict[str, Any]]:
+    """Compare deux sections markdown T1/T2 sous-section par sous-section.
+
+    Le texte est découpé selon les headings ### existants. Chaque paire de
+    sous-sections fait l'objet d'un appel GPT séparé, évitant les dépassements
+    de contexte sur les grandes sections comme ``Gestion des risques``.
+
+    Les sous-sections sans contrepartie sont marquées ajoutées ou supprimées
+    sans appel GPT. Si le texte ne contient aucune sous-section, un seul appel
+    GPT est lancé sur le texte entier (comportement précédent).
+    """
+    if not text_t1.strip() and not text_t2.strip():
+        return []
+
+    subs_t1 = _parse_subsections(text_t1)
+    subs_t2 = _parse_subsections(text_t2)
+
+    # No subsections on either side — fall back to single call (legacy behaviour)
+    if len(subs_t1) <= 1 and len(subs_t2) <= 1:
+        return _compare_texts_single_call(
+            client=client,
+            model=model,
+            section_key=section_key,
+            heading_label="",
+            heading_slug="full",
+            text_t1=text_t1,
+            text_t2=text_t2,
+            idx_offset=0,
+        )
+
+    pairs = _pair_subsections(subs_t1, subs_t2)
+    all_changes: list[dict[str, Any]] = []
+    global_idx = 1
+
+    for h1, body1, h2, body2 in pairs:
+        heading_label = h1 or h2 or "unknown"
+        heading_slug = re.sub(r"[^\w]+", "_", _normalize_heading(heading_label))[:40].strip("_")
+
+        if h2 is None:
+            assert h1 is not None
+            all_changes.append(
+                _synthetic_subsection_change(
+                    section_key=section_key,
+                    diff_type="removed",
+                    heading=h1,
+                    body_t1=body1,
+                    body_t2="",
+                    idx=global_idx,
+                )
+            )
+            global_idx += 1
+            continue
+
+        if h1 is None:
+            assert h2 is not None
+            all_changes.append(
+                _synthetic_subsection_change(
+                    section_key=section_key,
+                    diff_type="added",
+                    heading=h2,
+                    body_t1="",
+                    body_t2=body2,
+                    idx=global_idx,
+                )
+            )
+            global_idx += 1
+            continue
+
+        if not body1.strip() and not body2.strip():
+            continue
+
+        subsection_changes = _compare_texts_single_call(
+            client=client,
+            model=model,
+            section_key=section_key,
+            heading_label=heading_label,
+            heading_slug=heading_slug,
+            text_t1=body1,
+            text_t2=body2,
+            idx_offset=global_idx - 1,
+        )
+        all_changes.extend(subsection_changes)
+        global_idx += len(subsection_changes)
+
+    return all_changes
 
 
 def _default_triage() -> dict[str, Any]:
@@ -975,6 +1334,12 @@ def _triage_section_changes(
     section_key: str,
     changes: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
+    """Qualifie metier les changements detectes et fusionne le triage.
+
+    Le triage ne recalcule pas la diff textuelle: il prend les changements deja
+    identifies, demande une qualification selective au modele, puis rattache le
+    resultat a chaque changement pour la retention finale et le resume global.
+    """
     if not changes:
         return []
     triage_inputs = []
@@ -985,44 +1350,59 @@ def _triage_section_changes(
                 "diff_type": change["diff_type"],
                 "semantic_text_t1": change.get("semantic_text_t1", ""),
                 "semantic_text_t2": change.get("semantic_text_t2", ""),
+                "source_snippet_t1": (change.get("source_text_t1") or "")[:300],
+                "source_snippet_t2": (change.get("source_text_t2") or "")[:300],
                 "change_summary": change.get("change_summary", ""),
             }
         )
-    raw = _call_json_completion(
-        client,
-        model=model,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "Tu fais un triage métier ultra-sélectif des changements de rapports bancaires. "
-                    "Tu ne gardes que les changements vraiment majeurs, ou les modérés "
-                    "qui introduisent une idée réellement nouvelle."
-                ),
-            },
-            {
-                "role": "user",
-                "content": (
-                    "Retourne uniquement du JSON.\n"
-                    'Format: {"triages":[{"change_index":1,"is_relevant":true,'
-                    ' "category":"REGLEMENTAIRE|RISQUE|CAPITAL|STRUCTURE|COSMETIQUE",'
-                    ' "impact_level":"MAJEUR|MODERE|MINEUR",'
-                    ' "action_requise":"escalade|investigation|confirmation|information|aucune",'
-                    ' "nouvelle_idee":true, "explanation":"...", "impact_description":"...",'
-                    ' "risk_type":"credit|marche|liquidite|capital|conformite|autre",'
-                    ' "signals":{"regulatory_reference_added":false,"methodology_change":false,'
-                    ' "tone_changed":false,"forward_looking":false,"quantitative_changed":false}}]}.\n'
-                    "Considère rédactionnel/cosmétique par défaut. "
-                    "Un changement modéré ne doit être pertinent que s'il introduit "
-                    "une nouvelle règle, contrainte, nuance de risque ou idée métier.\n"
-                    "N'utilise pas d'acronymes prudentiels ni de références réglementaires explicites "
-                    "dans l'explication; reformule en langage métier générique.\n"
-                    f"Section: {section_key}\n{_json_dumps(triage_inputs)}"
-                ),
-            },
-        ],
-        max_tokens=5000,
-    )
+    try:
+        raw = _call_json_completion(
+            client,
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Tu es un analyste senior spécialisé dans la surveillance des rapports bancaires réglementaires. "
+                        "Tu classifies et qualifies les changements détectés entre deux trimestres. "
+                        "Tu as accès au texte source complet (avec les chiffres réels) pour chaque changement."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        "Retourne uniquement du JSON.\n"
+                        'Format: {"triages":[{"change_index":1,"is_relevant":true,'
+                        ' "category":"REGLEMENTAIRE|RISQUE|CAPITAL|STRUCTURE|COSMETIQUE",'
+                        ' "impact_level":"MAJEUR|MODERE|MINEUR",'
+                        ' "action_requise":"escalade|investigation|confirmation|information|aucune",'
+                        ' "nouvelle_idee":true, "explanation":"...", "impact_description":"...",'
+                        ' "risk_type":"credit|marche|liquidite|capital|conformite|autre",'
+                        ' "signals":{"regulatory_reference_added":false,"methodology_change":false,'
+                        ' "tone_changed":false,"forward_looking":false,"quantitative_changed":false}}]}.\n\n'
+                        "Règles de classification:\n"
+                        "- COSMETIQUE uniquement pour: mises à jour de dates pures (janvier → avril), "
+                        "reformulations strictement identiques sans nouvel élément, références de pages.\n"
+                        "- REGLEMENTAIRE ou CAPITAL pour tout changement de montant ou ratio lié à la "
+                        "réglementation prudentielle (fonds propres, ratios, expositions, provisions, "
+                        "seuils réglementaires) — même si le changement est purement quantitatif.\n"
+                        "- RISQUE pour toute évolution de tendance, d'exposition ou de posture face à un risque.\n"
+                        "- Une inversion de tendance ('diminué au lieu d'augmenté', 'baisse → hausse') "
+                        "est au minimum MODERE.\n"
+                        "- N'utilise pas d'acronymes prudentiels dans l'explication; reformule en langage "
+                        "métier générique.\n\n"
+                        "Exigence pour `explanation` (obligatoire si is_relevant=true):\n"
+                        "Rédige exactement 3 phrases complètes en français:\n"
+                        "1. Ce qui a changé concrètement entre T1 et T2 (faits précis, chiffres si pertinents).\n"
+                        "2. Pourquoi ce changement est substantiel et non cosmétique.\n"
+                        "3. Ce que cela implique pour la surveillance de cette banque.\n\n"
+                        f"Section: {section_key}\n{_json_dumps(triage_inputs)}"
+                    ),
+                },
+            ],
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Section triage failed for {section_key}: {exc}") from exc
 
     triage_map: dict[int, dict[str, Any]] = {}
     for item in raw.get("triages") or []:
@@ -1124,13 +1504,19 @@ def run_text_analysis_pipeline(
     model: str = "gpt-4o",
     allowed_section_keys: set[str] | None = None,
 ) -> tuple[dict[str, Any], Path]:
-    """Run the text pipeline using .md as source of truth for GPT comparison.
+    """Execute le pipeline texte complet avec le markdown comme source de verite.
 
     Flow:
     1. Locate sections in both PDFs.
     2. Extract narrative blocks via Docling + heuristics → build .md (source of truth).
     3. Feed .md sections directly to GPT-4o for comparison (added/modified/removed).
     4. Triage and retain non-cosmetic changes sorted by business impact.
+
+    Notes:
+    - les fichiers ``text_extraction_*.md`` ecrits en sortie sont exactement les
+      artefacts relus par le flux GPT de comparaison;
+    - les appels GPT du flux texte n'envoient pas de limite de completion
+      explicite par defaut, afin de privilegier l'arret naturel du modele.
     """
     quarter_current = normalize_quarter(quarter_current)
     year_previous, quarter_previous = resolve_previous_quarter(year_current, quarter_current)

@@ -3,11 +3,14 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from vigilance.text_analysis_pipeline import (
     PDFBlock,
     ResolvedSection,
     SectionAudit,
     SemanticUnit,
+    _call_json_completion,
     _allowed_target_sections,
     _build_text_extraction_markdown,
     _build_section_audit,
@@ -18,11 +21,48 @@ from vigilance.text_analysis_pipeline import (
     _extract_section_text_from_markdown,
     _is_new_major_or_allowed_moderate,
     _looks_like_footnote,
+    _max_output_tokens_for_model,
+    _normalize_heading,
+    _pair_subsections,
+    _parse_subsections,
     _resolve_sections,
     _sanitize_semantic_text,
     _section_window_for_page,
     run_text_analysis_pipeline,
 )
+
+
+class _FakeChoice:
+    def __init__(self, content: str, *, finish_reason: str = "stop") -> None:
+        self.message = type("FakeMessage", (), {"content": content})()
+        self.finish_reason = finish_reason
+
+
+class _FakeResponse:
+    def __init__(self, content: str, *, finish_reason: str = "stop") -> None:
+        self.choices = [_FakeChoice(content, finish_reason=finish_reason)]
+
+
+class _FakeCompletions:
+    def __init__(self, responses: list[_FakeResponse]) -> None:
+        self._responses = list(responses)
+        self.max_completion_tokens_seen: list[int | None] = []
+
+    def create(self, **kwargs):
+        self.max_completion_tokens_seen.append(kwargs.get("max_completion_tokens"))
+        if not self._responses:
+            raise AssertionError("No fake responses left")
+        return self._responses.pop(0)
+
+
+class _FakeChat:
+    def __init__(self, responses: list[_FakeResponse]) -> None:
+        self.completions = _FakeCompletions(responses)
+
+
+class _FakeClient:
+    def __init__(self, responses: list[_FakeResponse]) -> None:
+        self.chat = _FakeChat(responses)
 
 
 def test_sanitize_semantic_text_removes_numbers_and_regulatory_refs() -> None:
@@ -171,6 +211,58 @@ def test_conservative_new_idea_is_false_for_modified_major_change() -> None:
     }
 
     assert _compute_conservative_new_idea(change, triage) is False
+
+
+def test_call_json_completion_retries_with_larger_token_budget_after_truncation() -> None:
+    client = _FakeClient(
+        responses=[
+            _FakeResponse('{"changes":[{"diff_type":"added","text_t1":"","text_t2":"texte tronqué', finish_reason="length"),
+            _FakeResponse('{"changes":[{"diff_type":"added","text_t1":"","text_t2":"texte complet","change_summary":"Ajout."}]}'),
+        ]
+    )
+
+    payload = _call_json_completion(
+        client,
+        model="gpt-4o",
+        messages=[{"role": "user", "content": "Compare"}],
+        max_tokens=100,
+    )
+
+    assert payload["changes"][0]["text_t2"] == "texte complet"
+    assert client.chat.completions.max_completion_tokens_seen == [100, _max_output_tokens_for_model("gpt-4o")]
+
+
+def test_call_json_completion_uses_model_max_by_default() -> None:
+    client = _FakeClient(
+        responses=[
+            _FakeResponse('{"changes":[]}')
+        ]
+    )
+
+    payload = _call_json_completion(
+        client,
+        model="gpt-4o",
+        messages=[{"role": "user", "content": "Compare"}],
+    )
+
+    assert payload == {"changes": []}
+    assert client.chat.completions.max_completion_tokens_seen == [None]
+
+
+def test_compare_section_texts_surfaces_section_key_on_json_failure(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._call_json_completion",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("invalid json from model")),
+    )
+
+    with pytest.raises(RuntimeError, match="gestion_risques"):
+        _compare_section_texts(
+            client=object(),
+            model="gpt-4o",
+            section_key="gestion_risques",
+            text_t1="Texte T1",
+            text_t2="Texte T2",
+        )
 
 
 def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch, tmp_path: Path) -> None:
@@ -508,7 +600,7 @@ def test_build_section_audit_keeps_narrative_between_two_tables() -> None:
 
 
 def test_compare_section_texts_skips_invalid_diff_types(monkeypatch) -> None:
-    def _fake_call_json_completion(client, *, model, messages, max_tokens):
+    def _fake_call_json_completion(client, *, model, messages, max_tokens=None):
         return {
             "changes": [
                 {"diff_type": "added", "text_t1": "", "text_t2": "Nouvelle idée.", "change_summary": "Ajout."},
@@ -670,3 +762,179 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
     assert "Texte exact T1" in compare_texts_kwargs.get("text_t1", "")
     assert "Texte exact T2" in compare_texts_kwargs.get("text_t2", "")
     assert payload["pipeline"] == "gpt4o_markdown_source_of_truth"
+
+
+# ---------------------------------------------------------------------------
+# Phase 1: subsection splitting and pairing
+# ---------------------------------------------------------------------------
+
+
+def test_parse_subsections_splits_on_triple_hash() -> None:
+    md = (
+        "Intro avant le premier heading.\n\n"
+        "### Risque de marché\n\n"
+        "Corps du risque de marché.\n\n"
+        "### Risque de liquidité\n\n"
+        "Corps du risque de liquidité.\n"
+    )
+
+    subs = _parse_subsections(md)
+
+    assert len(subs) == 3
+    assert subs[0] == ("__intro__", "Intro avant le premier heading.")
+    assert subs[1][0] == "Risque de marché"
+    assert "Corps du risque de marché" in subs[1][1]
+    assert subs[2][0] == "Risque de liquidité"
+    assert "Corps du risque de liquidité" in subs[2][1]
+
+
+def test_parse_subsections_returns_single_intro_when_no_headings() -> None:
+    md = "Texte sans sous-sections.\n\nDeuxième paragraphe.\n"
+
+    subs = _parse_subsections(md)
+
+    assert len(subs) == 1
+    assert subs[0][0] == "__intro__"
+    assert "Texte sans sous-sections" in subs[0][1]
+
+
+def test_parse_subsections_returns_empty_for_blank_text() -> None:
+    assert _parse_subsections("") == []
+    assert _parse_subsections("   \n  ") == []
+
+
+def test_normalize_heading_strips_table_prefix_and_lowercases() -> None:
+    assert _normalize_heading("T22 Mesures du risque de marché") == "mesures du risque de marché"
+    assert _normalize_heading("Risque de liquidité") == "risque de liquidité"
+
+
+def test_normalize_heading_treats_renamed_tariff_headings_as_distinct() -> None:
+    # Exact-match normalisation: these two are NOT the same after stripping
+    n1 = _normalize_heading("Incidence des tarifs")
+    n2 = _normalize_heading("Incidence des tarifs douaniers")
+    assert n1 != n2
+
+
+def test_pair_subsections_matches_identical_headings() -> None:
+    subs_t1 = [("Risque de marché", "Corps T1"), ("Risque de liquidité", "Liquide T1")]
+    subs_t2 = [("Risque de marché", "Corps T2"), ("Risque de liquidité", "Liquide T2")]
+
+    pairs = _pair_subsections(subs_t1, subs_t2)
+
+    assert len(pairs) == 2
+    assert all(h1 is not None and h2 is not None for h1, _, h2, _ in pairs)
+
+
+def test_pair_subsections_marks_t1_only_heading_as_removed() -> None:
+    subs_t1 = [("Risque de marché", "Corps T1"), ("Risque opérationnel", "Opérationnel T1")]
+    subs_t2 = [("Risque de marché", "Corps T2")]
+
+    pairs = _pair_subsections(subs_t1, subs_t2)
+
+    removed = [(h1, h2) for h1, _, h2, _ in pairs if h2 is None]
+    assert len(removed) == 1
+    assert removed[0][0] == "Risque opérationnel"
+
+
+def test_pair_subsections_marks_t2_only_heading_as_added() -> None:
+    subs_t1 = [("Risque de marché", "Corps T1")]
+    subs_t2 = [("Risque de marché", "Corps T2"), ("Incidence des tarifs", "Nouveau T2")]
+
+    pairs = _pair_subsections(subs_t1, subs_t2)
+
+    added = [(h1, h2) for h1, _, h2, _ in pairs if h1 is None]
+    assert len(added) == 1
+    assert added[0][1] == "Incidence des tarifs"
+
+
+def test_compare_section_texts_falls_back_to_single_call_when_no_subsections(monkeypatch) -> None:
+    """Sections sans ### doivent toujours produire un seul appel GPT."""
+    calls: list[str] = []
+
+    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+        calls.append(heading_slug)
+        return []
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+
+    _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1="Texte T1 sans sous-sections.",
+        text_t2="Texte T2 sans sous-sections.",
+    )
+
+    assert calls == ["full"]
+
+
+def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -> None:
+    """Deux sous-sections appariées → deux appels GPT distincts."""
+    calls: list[str] = []
+
+    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+        calls.append(heading_slug)
+        return []
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+
+    md_t1 = "### Risque de marché\n\nCorps T1 A.\n\n### Risque de liquidité\n\nCorps T1 B.\n"
+    md_t2 = "### Risque de marché\n\nCorps T2 A.\n\n### Risque de liquidité\n\nCorps T2 B.\n"
+
+    _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=md_t1,
+        text_t2=md_t2,
+    )
+
+    assert len(calls) == 2
+
+
+def test_compare_section_texts_synthetic_change_for_removed_subsection(monkeypatch) -> None:
+    """Une sous-section T1 sans contrepartie T2 produit un changement synthétique removed."""
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        lambda **kw: [],
+    )
+
+    md_t1 = "### Risque de marché\n\nCorps T1.\n\n### Risque opérationnel\n\nSupprimé en T2.\n"
+    md_t2 = "### Risque de marché\n\nCorps T2.\n"
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=md_t1,
+        text_t2=md_t2,
+    )
+
+    removed = [c for c in changes if c["diff_type"] == "removed"]
+    assert len(removed) == 1
+    assert "Risque opérationnel" in removed[0]["change_summary"]
+    assert "Supprimé en T2" in removed[0]["source_text_t1"]
+
+
+def test_compare_section_texts_synthetic_change_for_added_subsection(monkeypatch) -> None:
+    """Une sous-section T2 sans contrepartie T1 produit un changement synthétique added."""
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        lambda **kw: [],
+    )
+
+    md_t1 = "### Risque de marché\n\nCorps T1.\n"
+    md_t2 = "### Risque de marché\n\nCorps T2.\n\n### Incidence des tarifs\n\nNouveau en T2.\n"
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=md_t1,
+        text_t2=md_t2,
+    )
+
+    added = [c for c in changes if c["diff_type"] == "added"]
+    assert len(added) == 1
+    assert "Incidence des tarifs" in added[0]["change_summary"]
+    assert "Nouveau en T2" in added[0]["source_text_t2"]

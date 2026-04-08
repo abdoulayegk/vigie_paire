@@ -11,6 +11,7 @@ from vigilance.dash_app.layouts.page_text_analysis import (
     _build_change_card,
     build_text_analysis_tab,
 )
+from vigilance.text_comparison.text_comparison_excel import _should_exclude
 
 
 @callback(
@@ -54,10 +55,9 @@ def filter_text_cards(text_data, filter_section, filter_impact, filter_action):
             diff_type = change.get("diff_type", "")
             if diff_type == "unchanged":
                 continue
-            triage = change.get("genai_triage") or {}
-            category = (triage.get("category") or "INCONNU").upper()
-            if category == "COSMETIQUE":
+            if _should_exclude(change):
                 continue
+            triage = change.get("genai_triage") or {}
 
             impact = (triage.get("impact_level") or "MINEUR").upper()
             action = (triage.get("action_requise") or "aucune").lower()
