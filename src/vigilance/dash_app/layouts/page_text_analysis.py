@@ -21,7 +21,7 @@ _SECTION_LABELS: dict[str, str] = {
     "gestion_reglementation": "Faits nouveaux en matière de réglementation",
 }
 
-_IMPACT_ORDER: dict[str, int] = {"MAJEUR": 0, "MODERE": 1}
+_IMPACT_ORDER: dict[str, int] = {"MAJEUR": 0, "MODERE": 1, "MINEUR": 2}
 
 _IMPACT_BADGE: dict[str, tuple[str, str]] = {
     "MAJEUR": ("Majeur", "danger"),
@@ -338,7 +338,7 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
             )
         )
 
-    global_summary = text_data.get("all_changes_summary") or text_data.get("global_summary") or {}
+    global_summary = text_data.get("global_summary") or text_data.get("all_changes_summary") or {}
     section_comparisons = text_data.get("section_comparisons") or []
     q_cur = text_data.get("quarter_current", "")
     q_prev = text_data.get("quarter_previous", "")

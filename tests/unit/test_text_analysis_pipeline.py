@@ -9,16 +9,16 @@ from vigilance.text_analysis_pipeline import (
     SectionAudit,
     SemanticUnit,
     _allowed_target_sections,
-    _build_extraction_prompt_text,
     _build_text_extraction_markdown,
     _build_section_audit,
     _classify_block_type,
+    _compare_section_texts,
     _compute_conservative_new_idea,
+    _extract_audits_for_pdf,
+    _extract_section_text_from_markdown,
     _is_new_major_or_allowed_moderate,
     _looks_like_footnote,
-    _reject_semantic_unit_if_table_like,
     _resolve_sections,
-    _resolve_source_block_ids,
     _sanitize_semantic_text,
     _section_window_for_page,
     run_text_analysis_pipeline,
@@ -173,6 +173,111 @@ def test_conservative_new_idea_is_false_for_modified_major_change() -> None:
     assert _compute_conservative_new_idea(change, triage) is False
 
 
+def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch, tmp_path: Path) -> None:
+    pdf_previous = tmp_path / "prev.pdf"
+    pdf_current = tmp_path / "curr.pdf"
+    pdf_previous.write_bytes(b"%PDF-1.4 prev")
+    pdf_current.write_bytes(b"%PDF-1.4 curr")
+
+    section = ResolvedSection(
+        section_key="gestion_risques",
+        title="Gestion des risques",
+        start_page=1,
+        end_page=2,
+        anchor_page=1,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.2, 0.9, 0.25],
+    )
+    audit_prev = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=1,
+        end_page=1,
+        anchor_page=1,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.2, 0.9, 0.25],
+        included_blocks=[PDFBlock("p001_b001", 1, [0.1, 0.3, 0.9, 0.4], "Texte exact T1", 1, "narrative", True, "")],
+        excluded_blocks=[],
+    )
+    audit_curr = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=2,
+        end_page=2,
+        anchor_page=2,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.2, 0.9, 0.25],
+        included_blocks=[PDFBlock("p002_b001", 2, [0.1, 0.3, 0.9, 0.4], "Texte exact T2", 1, "narrative", True, "")],
+        excluded_blocks=[],
+    )
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._build_openai_client", lambda: object())
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._resolve_sections",
+        lambda pdf_path, bank_code: {"gestion_risques": section},
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
+        lambda **kwargs: [audit_prev] if "prev" in str(kwargs["pdf_path"]) else [audit_curr],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_section_texts",
+        lambda **kwargs: [
+            {"change_id": "c1", "section_key": "gestion_risques", "diff_type": "added",
+             "semantic_text_t1": "", "semantic_text_t2": "Nouvelle idee", "source_text_t1": "",
+             "source_text_t2": "Nouvelle idee", "source_block_ids_t1": [], "source_block_ids_t2": [],
+             "source_refs_t1": [], "source_refs_t2": [], "pages_t1": [], "pages_t2": [],
+             "source_resolution_t1": "markdown", "source_resolution_t2": "markdown",
+             "evidence_t1": {"pages": [], "snippet": ""}, "evidence_t2": {"pages": [], "snippet": ""},
+             "change_summary": "Ajout."},
+            {"change_id": "c2", "section_key": "gestion_risques", "diff_type": "modified",
+             "semantic_text_t1": "Avant", "semantic_text_t2": "Après", "source_text_t1": "Avant",
+             "source_text_t2": "Après", "source_block_ids_t1": [], "source_block_ids_t2": [],
+             "source_refs_t1": [], "source_refs_t2": [], "pages_t1": [], "pages_t2": [],
+             "source_resolution_t1": "markdown", "source_resolution_t2": "markdown",
+             "evidence_t1": {"pages": [], "snippet": ""}, "evidence_t2": {"pages": [], "snippet": ""},
+             "change_summary": "Modification."},
+            {"change_id": "c3", "section_key": "gestion_risques", "diff_type": "modified",
+             "semantic_text_t1": "Cosmetique avant", "semantic_text_t2": "Cosmetique apres",
+             "source_text_t1": "Cosmetique avant", "source_text_t2": "Cosmetique apres",
+             "source_block_ids_t1": [], "source_block_ids_t2": [], "source_refs_t1": [],
+             "source_refs_t2": [], "pages_t1": [], "pages_t2": [],
+             "source_resolution_t1": "markdown", "source_resolution_t2": "markdown",
+             "evidence_t1": {"pages": [], "snippet": ""}, "evidence_t2": {"pages": [], "snippet": ""},
+             "change_summary": "Cosmétique."},
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._triage_section_changes",
+        lambda **kwargs: [
+            {**kwargs["changes"][0], "genai_triage": {"is_relevant": True, "impact_level": "MODERE", "category": "STRUCTURE", "action_requise": "information", "nouvelle_idee": True, "explanation": "", "impact_description": "", "signals": {"regulatory_reference_added": False, "methodology_change": False}}},
+            {**kwargs["changes"][1], "genai_triage": {"is_relevant": True, "impact_level": "MAJEUR", "category": "RISQUE", "action_requise": "escalade", "nouvelle_idee": False, "explanation": "", "impact_description": "", "signals": {"regulatory_reference_added": False, "methodology_change": False}}},
+            {**kwargs["changes"][2], "genai_triage": {"is_relevant": False, "impact_level": "MINEUR", "category": "COSMETIQUE", "action_requise": "aucune", "nouvelle_idee": False, "explanation": "", "impact_description": "", "signals": {"regulatory_reference_added": False, "methodology_change": False}}},
+        ],
+    )
+
+    payload, _out_path = run_text_analysis_pipeline(
+        bank_code="td",
+        year_current=2025,
+        quarter_current="t2",
+        pdf_previous=pdf_previous,
+        pdf_current=pdf_current,
+        out_root=tmp_path / "outputs",
+        model="gpt-4o",
+    )
+
+    section_payload = payload["section_comparisons"][0]
+    retained_ids = [c["change_id"] for c in section_payload["block_comparisons"]]
+    all_ids = [c["change_id"] for c in section_payload["all_block_comparisons"]]
+    assert "c1" in retained_ids
+    assert "c2" in retained_ids
+    assert "c3" not in retained_ids
+    assert set(all_ids) == {"c1", "c2", "c3"}
+    assert section_payload["summary"]["retained_changes"] == 2
+    assert payload["global_summary"]["counts"]["total_relevant"] == 2
+    assert payload["pipeline"] == "gpt4o_markdown_source_of_truth"
+
+
 def test_section_window_starts_after_anchor_and_stops_before_next_anchor_same_page() -> None:
     section = ResolvedSection(
         section_key="gestion_capital",
@@ -230,29 +335,31 @@ def test_build_section_audit_excludes_blocks_outside_target_section_and_tables()
     assert audit.excluded_blocks[1].exclusion_reason == "table_like_block"
 
 
-def test_resolve_source_block_ids_prefers_explicit_ids_and_falls_back_to_similarity() -> None:
-    blocks = [
-        PDFBlock("p001_b001", 1, [0.1, 0.2, 0.9, 0.3], "La banque renforce sa gestion des risques géopolitiques.", 1),
-        PDFBlock("p001_b002", 1, [0.1, 0.4, 0.9, 0.5], "Texte secondaire sans rapport.", 2),
-    ]
-
-    ids, resolution = _resolve_source_block_ids(
-        candidate_blocks=blocks,
-        provided_ids=["p001_b001"],
-        reference_text="",
-        semantic_text="",
+def test_extract_section_text_from_markdown_returns_matching_section() -> None:
+    md = (
+        "## Gestion du capital\n\n"
+        "La banque maintient un niveau prudent de fonds propres.\n\n"
+        "Elle vise un ratio CET1 supérieur aux exigences réglementaires.\n\n"
+        "## Gestion des risques\n\n"
+        "La banque surveille les risques géopolitiques.\n"
     )
-    assert ids == ["p001_b001"]
-    assert resolution == "matched"
 
-    ids, resolution = _resolve_source_block_ids(
-        candidate_blocks=blocks,
-        provided_ids=[],
-        reference_text="gestion des risques géopolitiques",
-        semantic_text="La banque renforce sa gestion des risques géopolitiques.",
-    )
-    assert ids == ["p001_b001"]
-    assert resolution == "fallback"
+    capital = _extract_section_text_from_markdown(md, "gestion_capital")
+    risques = _extract_section_text_from_markdown(md, "gestion_risques")
+
+    assert "fonds propres" in capital
+    assert "CET1" in capital
+    assert "Gestion des risques" not in capital
+    assert "géopolitiques" in risques
+    assert "fonds propres" not in risques
+
+
+def test_extract_section_text_from_markdown_returns_empty_for_missing_section() -> None:
+    md = "## Gestion du capital\n\nQuelques paragraphes.\n"
+
+    result = _extract_section_text_from_markdown(md, "gestion_reglementation")
+
+    assert result == ""
 
 
 def test_classify_block_type_rejects_rating_table_like_block() -> None:
@@ -400,61 +507,31 @@ def test_build_section_audit_keeps_narrative_between_two_tables() -> None:
     assert [block.block_id for block in audit.included_blocks] == ["p006_b002"]
 
 
-def test_reject_semantic_unit_if_table_like_rejects_dense_numeric_source() -> None:
-    source_block = PDFBlock(
-        "p010_d001",
-        10,
-        [0.1, 0.3, 0.9, 0.4],
-        "Billets Série 1 1 750 1 750 1 750 1 750 Total 56 890 11 614 $",
-        1,
-        "narrative",
-        True,
-        "",
+def test_compare_section_texts_skips_invalid_diff_types(monkeypatch) -> None:
+    def _fake_call_json_completion(client, *, model, messages, max_tokens):
+        return {
+            "changes": [
+                {"diff_type": "added", "text_t1": "", "text_t2": "Nouvelle idée.", "change_summary": "Ajout."},
+                {"diff_type": "invalid_type", "text_t1": "x", "text_t2": "y", "change_summary": ""},
+                {"diff_type": "removed", "text_t1": "Ancienne idée.", "text_t2": "", "change_summary": "Suppression."},
+            ]
+        }
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", _fake_call_json_completion)
+
+    results = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1="Ancienne idée.",
+        text_t2="Nouvelle idée.",
     )
 
-    reject, reason = _reject_semantic_unit_if_table_like(
-        semantic_text="La banque décrit son capital.",
-        source_text=source_block.text,
-        evidence_snippet=source_block.text,
-        source_blocks=[source_block],
-        page_table_bboxes={10: []},
-    )
-
-    assert reject is True
-    assert reason in {"table_like_source_text", "dense_numeric_source"}
-
-
-def test_build_extraction_prompt_text_contains_red_box_and_hard_rules() -> None:
-    audit = SectionAudit(
-        section_key="gestion_capital",
-        section_title="Gestion du capital",
-        start_page=10,
-        end_page=10,
-        anchor_page=10,
-        anchor_text="Gestion du capital",
-        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
-        included_blocks=[PDFBlock("p010_d001", 10, [0.1, 0.3, 0.9, 0.4], "La banque maintient son capital à un niveau prudent.", 1, "narrative", True, "")],
-        excluded_blocks=[],
-        semantic_units=[],
-        table_regions=[{"table_id": "gestion_capital_p010_tbl_01", "page": 10, "bbox": [0.1, 0.5, 0.9, 0.8]}],
-    )
-
-    prompt = _build_extraction_prompt_text(audit, [10], audit.included_blocks)
-
-    assert "RED boxes" in prompt
-    assert "There may be multiple RED boxes on the same page" in prompt
-    assert "table-footnote zones" in prompt
-    assert "If a unit includes any table or footnote content -> REJECT the entire unit" in prompt
-    assert "The target section may start or end in the middle of a page" in prompt
-    assert "Ignore any visible text above or below the target section window" in prompt
-    assert "Ignore only true table footnotes" in prompt
-    assert "¹, ², ³, ⁴, ⁵" in prompt
-    assert "s.o., n.s." in prompt
-    assert "normal narrative paragraph that appears after table footnotes must still be kept" in prompt
-    assert "Keep narrative prose before a table, between two tables, and after table footnotes" in prompt
-    assert "footnotes: in some bank reports they are frequent, long, and may look like normal prose" in prompt
-    assert "Footnotes may span multiple lines and may still be footnotes even when they are written as full sentences" in prompt
-    assert "Do not reject a paragraph only because it contains several percentages, dates, ratios, or amounts" in prompt
+    assert len(results) == 2
+    assert results[0]["diff_type"] == "added"
+    assert results[1]["diff_type"] == "removed"
+    assert results[0]["source_resolution_t1"] == "markdown"
+    assert results[0]["source_resolution_t2"] == "markdown"
 
 
 def test_build_text_extraction_markdown_keeps_headings_and_narrative_only() -> None:
@@ -505,7 +582,7 @@ def test_build_text_extraction_markdown_drops_orphan_heading_without_body() -> N
     assert "### Accord de Bâle" not in markdown
 
 
-def test_run_text_analysis_pipeline_writes_extraction_audits(monkeypatch, tmp_path: Path) -> None:
+def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tmp_path: Path) -> None:
     pdf_previous = tmp_path / "prev.pdf"
     pdf_current = tmp_path / "curr.pdf"
     pdf_previous.write_bytes(b"prev-pdf")
@@ -520,28 +597,6 @@ def test_run_text_analysis_pipeline_writes_extraction_audits(monkeypatch, tmp_pa
         anchor_text="Gestion des risques",
         anchor_bbox_norm=[0.1, 0.2, 0.9, 0.25],
     )
-    unit_prev = SemanticUnit(
-        unit_id="gestion_risques_unit_001",
-        section_key="gestion_risques",
-        theme="risque",
-        semantic_text="La banque surveille les risques géopolitiques.",
-        source_text="Texte exact T1",
-        source_block_ids=["p003_b001"],
-        source_resolution="matched",
-        evidence_pages=[3],
-        evidence_snippet="Risques géopolitiques",
-    )
-    unit_curr = SemanticUnit(
-        unit_id="gestion_risques_unit_002",
-        section_key="gestion_risques",
-        theme="risque",
-        semantic_text="La banque décrit une évolution des risques géopolitiques.",
-        source_text="Texte exact T2",
-        source_block_ids=["p004_b001"],
-        source_resolution="matched",
-        evidence_pages=[4],
-        evidence_snippet="Risques géopolitiques",
-    )
     audit_prev = SectionAudit(
         section_key="gestion_risques",
         section_title="Gestion des risques",
@@ -552,7 +607,6 @@ def test_run_text_analysis_pipeline_writes_extraction_audits(monkeypatch, tmp_pa
         anchor_bbox_norm=[0.1, 0.2, 0.9, 0.25],
         included_blocks=[PDFBlock("p003_b001", 3, [0.1, 0.3, 0.9, 0.4], "Texte exact T1", 1, "narrative", True, "")],
         excluded_blocks=[],
-        semantic_units=[unit_prev],
     )
     audit_curr = SectionAudit(
         section_key="gestion_risques",
@@ -564,89 +618,26 @@ def test_run_text_analysis_pipeline_writes_extraction_audits(monkeypatch, tmp_pa
         anchor_bbox_norm=[0.1, 0.2, 0.9, 0.25],
         included_blocks=[PDFBlock("p004_b001", 4, [0.1, 0.3, 0.9, 0.4], "Texte exact T2", 1, "narrative", True, "")],
         excluded_blocks=[],
-        semantic_units=[unit_curr],
     )
 
-    monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._build_openai_client",
-        lambda: object(),
-    )
+    compare_texts_kwargs: dict = {}
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._resolve_sections",
         lambda pdf_path, bank_code: {"gestion_risques": section},
     )
-    extraction_calls = {"count": 0}
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
+        lambda **kwargs: [audit_prev] if "prev" in str(kwargs["pdf_path"]) else [audit_curr],
+    )
 
-    def _fake_extract_semantic_units_for_pdf(**kwargs):
-        extraction_calls["count"] += 1
-        if extraction_calls["count"] == 1:
-            return {"gestion_risques": [unit_prev]}, [audit_prev]
-        return {"gestion_risques": [unit_curr]}, [audit_curr]
+    def _fake_compare_section_texts(**kwargs):
+        compare_texts_kwargs.update(kwargs)
+        return []
 
-    monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._extract_semantic_units_for_pdf",
-        _fake_extract_semantic_units_for_pdf,
-    )
-    monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_section_units",
-        lambda **kwargs: [
-            {
-                "change_id": "gestion_risques_change_001",
-                "section_key": "gestion_risques",
-                "diff_type": "modified",
-                "semantic_text_t1": unit_prev.semantic_text,
-                "semantic_text_t2": unit_curr.semantic_text,
-                "source_text_t1": unit_prev.source_text,
-                "source_text_t2": unit_curr.source_text,
-                "source_block_ids_t1": list(unit_prev.source_block_ids),
-                "source_block_ids_t2": list(unit_curr.source_block_ids),
-                "source_refs_t1": list(unit_prev.source_block_ids),
-                "source_refs_t2": list(unit_curr.source_block_ids),
-                "pages_t1": list(unit_prev.evidence_pages),
-                "pages_t2": list(unit_curr.evidence_pages),
-                "source_resolution_t1": unit_prev.source_resolution,
-                "source_resolution_t2": unit_curr.source_resolution,
-                "evidence_t1": {"pages": [3], "snippet": "Risques géopolitiques"},
-                "evidence_t2": {"pages": [4], "snippet": "Risques géopolitiques"},
-                "change_summary": "Evolution du risque géopolitique.",
-            }
-        ],
-    )
-    monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._triage_section_changes",
-        lambda **kwargs: [
-            {
-                "change_id": "gestion_risques_change_001",
-                "section_key": "gestion_risques",
-                "diff_type": "modified",
-                "semantic_text_t1": unit_prev.semantic_text,
-                "semantic_text_t2": unit_curr.semantic_text,
-                "source_text_t1": unit_prev.source_text,
-                "source_text_t2": unit_curr.source_text,
-                "source_block_ids_t1": list(unit_prev.source_block_ids),
-                "source_block_ids_t2": list(unit_curr.source_block_ids),
-                "source_refs_t1": list(unit_prev.source_block_ids),
-                "source_refs_t2": list(unit_curr.source_block_ids),
-                "pages_t1": list(unit_prev.evidence_pages),
-                "pages_t2": list(unit_curr.evidence_pages),
-                "source_resolution_t1": unit_prev.source_resolution,
-                "source_resolution_t2": unit_curr.source_resolution,
-                "evidence_t1": {"pages": [3], "snippet": "Risques géopolitiques"},
-                "evidence_t2": {"pages": [4], "snippet": "Risques géopolitiques"},
-                "change_summary": "Evolution du risque géopolitique.",
-                "genai_triage": {
-                    "is_relevant": True,
-                    "impact_level": "MAJEUR",
-                    "category": "RISQUE",
-                    "action_requise": "escalade",
-                    "nouvelle_idee": False,
-                    "explanation": "Changement majeur.",
-                    "impact_description": "",
-                    "signals": {"regulatory_reference_added": False, "methodology_change": False},
-                },
-            }
-        ],
-    )
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_section_texts", _fake_compare_section_texts)
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._triage_section_changes", lambda **kwargs: [])
 
     payload, out_path = run_text_analysis_pipeline(
         bank_code="td",
@@ -658,6 +649,7 @@ def test_run_text_analysis_pipeline_writes_extraction_audits(monkeypatch, tmp_pa
         model="gpt-4o",
     )
 
+    # .md files are written and contain the right content
     assert payload["extraction_artifact_t1"] == "text_extraction_2025_t1.md"
     assert payload["extraction_artifact_t2"] == "text_extraction_2025_t2.md"
     assert out_path.exists()
@@ -673,3 +665,8 @@ def test_run_text_analysis_pipeline_writes_extraction_audits(monkeypatch, tmp_pa
     assert "Texte exact T1" in prev_md
     assert "## Gestion des risques" in curr_md
     assert "Texte exact T2" in curr_md
+
+    # GPT comparison received the .md section text directly (not SemanticUnits)
+    assert "Texte exact T1" in compare_texts_kwargs.get("text_t1", "")
+    assert "Texte exact T2" in compare_texts_kwargs.get("text_t2", "")
+    assert payload["pipeline"] == "gpt4o_markdown_source_of_truth"

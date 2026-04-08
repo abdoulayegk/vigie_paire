@@ -1,33 +1,27 @@
-"""Pipeline texte canonique GPT-first.
+"""Pipeline texte — .md comme source de vérité.
 
-Ce module remplace la chaîne extraction + alignement heuristique + diff/triage
-par un seul orchestrateur qui:
+Ce module orchestre la comparaison textuelle inter-trimestrielle en trois étapes:
 
 1. localise les sections texte dans les deux PDFs,
-2. extrait des unités sémantiques propres via GPT-4o Vision,
-3. compare explicitement T1 vs T2 via GPT-4o,
-4. trie les changements métiers,
-5. ne conserve que les changements vraiment majeurs.
+2. extrait les blocs narratifs via Docling + classification heuristique,
+   puis écrit les fichiers ``text_extraction_*.md`` (source de vérité auditée),
+3. compare les sections T1 vs T2 via GPT-4o directement sur le contenu .md,
+4. trie les changements métiers et ne conserve que les changements vraiment majeurs.
 
-Le pipeline écrit ``text_comparison.json`` et deux artefacts markdown
-``text_extraction_*.md``.
+Le .md est à la fois l'artefact d'audit lisible par l'humain
+et l'entrée directe du GPT de comparaison — garantissant leur cohérence.
 """
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
 import logging
 import re
-from difflib import SequenceMatcher
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
-
-import fitz
 
 from vigilance.cli.quarter_logic import normalize_quarter, resolve_previous_quarter
 from vigilance.extraction.section_locator import locate_sections_in_pdf
@@ -41,7 +35,6 @@ from vigilance.text_extraction.text_extraction_markdown_writer import (
     write_text_extraction_markdown,
 )
 from vigilance.utils.genai import get_openai_api_key
-from vigilance.utils.pymupdf_utils import configure_mupdf_runtime
 
 logger = logging.getLogger(__name__)
 
@@ -195,48 +188,12 @@ class SectionAudit:
     anchor_bbox_norm: list[float] | None
     included_blocks: list[PDFBlock]
     excluded_blocks: list[PDFBlock]
-    semantic_units: list[SemanticUnit]
+    semantic_units: list[SemanticUnit] = field(default_factory=list)
     table_regions: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _json_dumps(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, indent=2)
-
-
-def _sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def _block_to_payload(block: PDFBlock, *, include_text: bool = True) -> dict[str, Any]:
-    payload = {
-        "block_id": block.block_id,
-        "page": block.page,
-        "bbox": [round(v, 6) for v in block.bbox_norm],
-        "block_type": block.block_type,
-        "included": block.included,
-        "exclusion_reason": block.exclusion_reason,
-        "line_number": block.line_number,
-    }
-    if include_text:
-        payload["text"] = block.text
-    return payload
-
-
-def _semantic_unit_to_payload(unit: SemanticUnit) -> dict[str, Any]:
-    return {
-        "unit_id": unit.unit_id,
-        "theme": unit.theme,
-        "semantic_text": unit.semantic_text,
-        "source_text": unit.source_text,
-        "source_block_ids": list(unit.source_block_ids),
-        "source_resolution": unit.source_resolution,
-        "pages": list(unit.evidence_pages),
-        "evidence_snippet": unit.evidence_snippet,
-    }
 
 
 def _sanitize_semantic_text(text: str) -> str:
@@ -422,30 +379,37 @@ def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
     return bool(signals.get("regulatory_reference_added") or signals.get("methodology_change"))
 
 
-def _tokenize_semantic_text(text: str) -> set[str]:
-    return {
-        token
-        for token in re.findall(r"[a-zàâçéèêëîïôûùüÿñæœ]{4,}", (text or "").lower())
-        if token not in {"banque", "risque", "risques", "cadre", "mesure", "mesures"}
-    }
-
-
-def _lexical_shift_is_large(text_t1: str, text_t2: str) -> bool:
-    tokens_t1 = _tokenize_semantic_text(text_t1)
-    tokens_t2 = _tokenize_semantic_text(text_t2)
-    if not tokens_t1 or not tokens_t2:
-        return True
-    overlap = len(tokens_t1 & tokens_t2)
-    base = max(1, min(len(tokens_t1), len(tokens_t2)))
-    return (overlap / base) < 0.45
-
-
 def _compute_conservative_new_idea(change: dict[str, Any], triage: dict[str, Any]) -> bool:
     if not triage.get("is_relevant", False):
         return False
 
     diff_type = str(change.get("diff_type") or "").lower()
     return diff_type == "added" and bool(change.get("semantic_text_t2"))
+
+
+def _is_non_cosmetic_change(triage: dict[str, Any]) -> bool:
+    return str(triage.get("category") or "").upper() != "COSMETIQUE"
+
+
+def _retained_change_sort_key(change: dict[str, Any]) -> tuple[int, int, str, str, str]:
+    triage = change.get("genai_triage") or {}
+    impact = str(triage.get("impact_level") or "MINEUR").upper()
+    diff_type = str(change.get("diff_type") or "").lower()
+    pages = change.get("pages_t2") or change.get("pages_t1") or []
+    first_page = ""
+    if pages:
+        try:
+            first_page = f"{int(pages[0]):06d}"
+        except (TypeError, ValueError):
+            first_page = str(pages[0])
+    impact_order = {"MAJEUR": 0, "MODERE": 1, "MINEUR": 2}.get(impact, 99)
+    return (
+        0 if triage.get("nouvelle_idee", False) else 1,
+        impact_order,
+        str(change.get("section_key") or ""),
+        first_page,
+        diff_type,
+    )
 
 
 def _sorted_sections(sections: dict[str, ResolvedSection]) -> list[ResolvedSection]:
@@ -679,217 +643,6 @@ def _table_regions_for_pages(
     return regions
 
 
-def _concat_source_blocks(blocks: list[PDFBlock], block_ids: list[str]) -> str:
-    lookup = {block.block_id: block for block in blocks}
-    ordered = sorted(
-        (lookup[block_id] for block_id in block_ids if block_id in lookup),
-        key=lambda block: (block.page, block.line_number, block.y0),
-    )
-    return "\n".join(block.text for block in ordered).strip()
-
-
-def _resolve_source_block_ids(
-    candidate_blocks: list[PDFBlock],
-    provided_ids: list[str],
-    reference_text: str,
-    semantic_text: str,
-) -> tuple[list[str], str]:
-    valid_ids = [block_id for block_id in provided_ids if any(block.block_id == block_id for block in candidate_blocks)]
-    if valid_ids:
-        return valid_ids, "matched"
-
-    if not candidate_blocks:
-        return [], "fallback"
-
-    reference = _normalized_match_text(reference_text or semantic_text)
-    semantic = _normalized_match_text(semantic_text)
-    scored: list[tuple[float, str]] = []
-    for block in candidate_blocks:
-        norm_candidate = _normalized_match_text(block.text)
-        score = 0.0
-        if reference:
-            score = max(score, SequenceMatcher(None, reference[:800], norm_candidate[:800]).ratio())
-        if semantic:
-            score = max(score, SequenceMatcher(None, semantic[:800], norm_candidate[:800]).ratio())
-        scored.append((score, block.block_id))
-    scored.sort(reverse=True)
-    best_score = scored[0][0]
-    fallback_ids = [
-        block_id
-        for score, block_id in scored
-        if score >= 0.28 and score >= max(0.28, best_score - 0.08)
-    ][:3]
-    if not fallback_ids:
-        fallback_ids = [scored[0][1]]
-    return fallback_ids, "fallback"
-
-
-def _validate_pages(raw_pages: Any, allowed_pages: set[int]) -> list[int]:
-    pages: list[int] = []
-    for value in raw_pages or []:
-        try:
-            page = int(value)
-        except (TypeError, ValueError):
-            continue
-        if page in allowed_pages and page not in pages:
-            pages.append(page)
-    return pages
-
-
-def _build_extraction_prompt_text(section_audit: SectionAudit, page_numbers: list[int], candidate_blocks: list[PDFBlock]) -> str:
-    return (
-        "Analyse ces pages de rapport bancaire et retourne uniquement du JSON.\n"
-        "Mission: extraire uniquement des unités narratives complètes et lisibles dans les sections ciblées.\n"
-        "HARD RULES:\n"
-        "- Some RED boxes highlight tables, and some RED boxes highlight table-footnote zones.\n"
-        "- There may be multiple RED boxes on the same page.\n"
-        "- You MUST ignore any content inside RED boxes.\n"
-        "- You MUST NOT read, interpret, or extract any text inside RED boxes.\n"
-        "- You MUST ignore any table content, even partially visible.\n"
-        "- You MUST ignore footnotes related to tables.\n"
-        "- Be extremely careful with footnotes: in some bank reports they are frequent, long, and may look like normal prose.\n"
-        "- DO NOT extract any content with repeated numbers in columns.\n"
-        "- DO NOT extract any financial series, table header, total row, instrument list, or rating line.\n"
-        "- If a unit includes any table or footnote content -> REJECT the entire unit.\n"
-        "FOOTNOTE RULES:\n"
-        "- Ignore only true table footnotes and note lines directly tied to the table.\n"
-        "- Ignore patterns like (1), (2), 1), 2), ¹, ², ³, ⁴, ⁵, *, **, a), b), s.o., n.s..\n"
-        "- Ignore simple numbered note lines like '1 ...', '2 ...', '3 ...' when they are explanatory notes tied to the table.\n"
-        "- Ignore any explanatory notes tied to numeric markers.\n"
-        "- Footnotes may span multiple lines and may still be footnotes even when they are written as full sentences.\n"
-        "- Footnotes may appear on pages with several tables and may be repeated across nearby pages.\n"
-        "- A normal narrative paragraph that appears after table footnotes must still be kept if it is prose.\n"
-        "- Keep narrative prose before a table, between two tables, and after table footnotes.\n"
-        "- Do not reject a paragraph only because it contains several percentages, dates, ratios, or amounts.\n"
-        "- If a paragraph contains such markers as actual note markers, treat it as footnote and reject it.\n"
-        "SOURCE GATE:\n"
-        "- Use only the candidate narrative blocks listed below.\n"
-        "- Never infer text from the image outside these candidate blocks.\n"
-        "- Return only source_block_ids that belong to these candidate blocks.\n"
-        "- The page image is provided for visual context only.\n"
-        "- The target section may start or end in the middle of a page.\n"
-        "- Ignore any visible text above or below the target section window, even if readable in the image.\n"
-        "- Any visible text outside the candidate narrative blocks is out of scope and must be ignored.\n"
-        f"Section: {section_audit.section_key}\n"
-        f"Pages: {page_numbers}\n"
-        'Return JSON only: {"units":[{"semantic_text":"...", "pages":[...], "evidence_snippet":"...", "theme":"risque|capital|strategie|changement", "source_block_ids":["p001_d001"]}]}\n'
-        f"Candidate narrative blocks:\n{_json_dumps([_block_to_payload(block) for block in candidate_blocks])}\n"
-        "If no clean narrative content is available, return {\"units\":[]}."
-    )
-
-
-def _reject_semantic_unit_if_table_like(
-    *,
-    semantic_text: str,
-    source_text: str,
-    evidence_snippet: str,
-    source_blocks: list[PDFBlock],
-    page_table_bboxes: dict[int, list[list[float]]],
-) -> tuple[bool, str]:
-    if not source_blocks:
-        return True, "no_source_blocks"
-    if any(block.block_type != "narrative" for block in source_blocks):
-        return True, "non_narrative_source_block"
-    if any(_block_overlaps_table(block, page_table_bboxes.get(block.page, [])) for block in source_blocks):
-        return True, "ignored_region_overlap"
-    if any(_looks_like_footnote(block.text) for block in source_blocks):
-        return True, "footnote_source"
-    if (
-        not _looks_like_narrative_paragraph(source_text)
-        and (_looks_like_table_or_financial_grid(source_text) or _looks_like_table_or_financial_grid(evidence_snippet))
-    ):
-        return True, "table_like_source_text"
-    if _looks_like_footnote(source_text) or _looks_like_footnote(evidence_snippet):
-        return True, "footnote_text"
-    if _contains_dense_numeric_line(source_text) and not _looks_like_narrative_paragraph(source_text):
-        return True, "dense_numeric_source"
-    if _looks_like_table_or_financial_grid(semantic_text):
-        return True, "table_like_semantic_text"
-    return False, ""
-
-
-def _make_data_url(
-    pdf_path: Path,
-    page_number: int,
-    dpi: int = 200,
-    red_box_bboxes: list[list[float]] | None = None,
-) -> str:
-    configure_mupdf_runtime(fitz)
-    doc = fitz.open(pdf_path)
-    try:
-        page = doc.load_page(page_number - 1)
-        rect = page.rect
-        for bbox in red_box_bboxes or []:
-            if len(bbox) != 4:
-                continue
-            x0 = rect.x0 + float(bbox[0]) * rect.width
-            y0 = rect.y0 + float(bbox[1]) * rect.height
-            x1 = rect.x0 + float(bbox[2]) * rect.width
-            y1 = rect.y0 + float(bbox[3]) * rect.height
-            page.draw_rect(fitz.Rect(x0, y0, x1, y1), color=(1, 0, 0), width=4)
-        zoom = dpi / 72.0
-        matrix = fitz.Matrix(zoom, zoom)
-        pix = page.get_pixmap(matrix=matrix, alpha=False)
-        payload = base64.b64encode(pix.tobytes("png")).decode("ascii")
-        return f"data:image/png;base64,{payload}"
-    finally:
-        doc.close()
-
-
-def _chunked(values: list[int], chunk_size: int) -> list[list[int]]:
-    return [values[idx : idx + chunk_size] for idx in range(0, len(values), chunk_size)]
-
-
-@lru_cache(maxsize=512)
-def _page_blocks(pdf_path_str: str, page_number: int) -> tuple[str, ...]:
-    configure_mupdf_runtime(fitz)
-    doc = fitz.open(pdf_path_str)
-    try:
-        page = doc.load_page(page_number - 1)
-        blocks = page.get_text("blocks") or []
-        values: list[str] = []
-        for block in blocks:
-            text = str(block[4] or "").strip()
-            text = _MULTISPACE_RE.sub(" ", text).strip()
-            if len(text) >= 35:
-                values.append(text)
-        return tuple(values)
-    finally:
-        doc.close()
-
-
-def _normalized_match_text(text: str) -> str:
-    value = (text or "").lower()
-    value = re.sub(r"\s+", " ", value)
-    value = re.sub(r"[^a-zàâçéèêëîïôûùüÿñæœ0-9 ]+", "", value)
-    return value.strip()
-
-
-def _resolve_exact_source_text(pdf_path: Path, pages: list[int], reference_text: str, semantic_text: str) -> str:
-    candidates: list[str] = []
-    for page in pages:
-        candidates.extend(_page_blocks(str(pdf_path), page))
-
-    if not candidates:
-        return (reference_text or semantic_text or "").strip()
-
-    reference = _normalized_match_text(reference_text or semantic_text)
-    semantic = _normalized_match_text(semantic_text)
-    best_text = candidates[0]
-    best_score = 0.0
-    for candidate in candidates:
-        norm_candidate = _normalized_match_text(candidate)
-        score = 0.0
-        if reference:
-            score = max(score, SequenceMatcher(None, reference[:800], norm_candidate[:800]).ratio())
-        if semantic:
-            score = max(score, SequenceMatcher(None, semantic[:800], norm_candidate[:800]).ratio())
-        if score > best_score:
-            best_score = score
-            best_text = candidate
-    return best_text if best_score >= 0.28 else (reference_text or best_text or semantic_text).strip()
-
-
 def _repeated_text_counts(page_blocks: dict[int, list[PDFBlock]]) -> dict[str, int]:
     counts: dict[str, int] = {}
     for blocks in page_blocks.values():
@@ -949,7 +702,6 @@ def _build_section_audit(
         anchor_bbox_norm=section.anchor_bbox_norm,
         included_blocks=included_blocks,
         excluded_blocks=excluded_blocks,
-        semantic_units=[],
         table_regions=_table_regions_for_pages(
             section.section_key,
             table_bboxes_by_page,
@@ -1064,140 +816,23 @@ def _resolve_sections(pdf_path: Path, bank_code: str) -> dict[str, ResolvedSecti
     return sections
 
 
-def _extract_semantic_units_from_chunk(
+
+
+def _extract_audits_for_pdf(
     *,
-    client: Any,
-    model: str,
-    pdf_path: Path,
-    section_audit: SectionAudit,
-    page_numbers: list[int],
-) -> list[SemanticUnit]:
-    candidate_blocks = [
-        block
-        for block in section_audit.included_blocks
-        if block.page in set(page_numbers)
-    ]
-    if not candidate_blocks:
-        return []
-
-    content: list[dict[str, Any]] = [
-        {
-            "type": "text",
-            "text": _build_extraction_prompt_text(section_audit, page_numbers, candidate_blocks),
-        }
-    ]
-    allowed_pages = set(page_numbers)
-    for page in page_numbers:
-        content.append(
-            {
-                "type": "image_url",
-                "image_url": {
-                    "url": _make_data_url(
-                        pdf_path,
-                        page,
-                        red_box_bboxes=[region["bbox"] for region in section_audit.table_regions if int(region["page"]) == page],
-                    ),
-                    "detail": "high",
-                },
-            }
-        )
-
-    raw = _call_json_completion(
-        client,
-        model=model,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "Tu es un filtre narratif bancaire strict. "
-                    "Ta priorité absolue est d'exclure tout contenu tabulaire, pseudo-tabulaire,"
-                    " et toute footnote. En cas de doute entre paragraphe et tableau, rejette."
-                ),
-            },
-            {"role": "user", "content": content},
-        ],
-        max_tokens=6000,
-    )
-
-    units: list[SemanticUnit] = []
-    for idx, item in enumerate(raw.get("units") or [], start=1):
-        semantic_text = _sanitize_semantic_text(str(item.get("semantic_text") or ""))
-        if not semantic_text:
-            continue
-        pages = _validate_pages(item.get("pages"), allowed_pages)
-        evidence_snippet = str(item.get("evidence_snippet") or "").strip()[:800]
-        theme = str(item.get("theme") or _THEME_BY_SECTION.get(section_audit.section_key, "changement")).strip().lower()
-        provided_ids = [
-            str(value).strip()
-            for value in (item.get("source_block_ids") or [])
-            if str(value).strip()
-        ]
-        source_block_ids, source_resolution = _resolve_source_block_ids(
-            candidate_blocks=candidate_blocks,
-            provided_ids=provided_ids,
-            reference_text=evidence_snippet,
-            semantic_text=semantic_text,
-        )
-        source_blocks = [block for block in candidate_blocks if block.block_id in source_block_ids]
-        source_text = _concat_source_blocks(candidate_blocks, source_block_ids)
-        source_pages = sorted({block.page for block in source_blocks})
-        reject, _reason = _reject_semantic_unit_if_table_like(
-            semantic_text=semantic_text,
-            source_text=source_text,
-            evidence_snippet=evidence_snippet,
-            source_blocks=source_blocks,
-            page_table_bboxes={
-                page: [region["bbox"] for region in section_audit.table_regions if int(region["page"]) == page]
-                for page in page_numbers
-            },
-        )
-        if reject:
-            continue
-        units.append(
-            SemanticUnit(
-                unit_id=f"{section_audit.section_key}_chunk_{page_numbers[0]}_{idx:03d}",
-                section_key=section_audit.section_key,
-                theme=theme or _THEME_BY_SECTION.get(section_audit.section_key, "changement"),
-                semantic_text=semantic_text,
-                source_text=source_text,
-                source_block_ids=source_block_ids,
-                source_resolution=source_resolution,
-                evidence_pages=source_pages or pages or [page_numbers[0]],
-                evidence_snippet=evidence_snippet or semantic_text,
-            )
-        )
-    return units
-
-
-def _dedupe_units(units: list[SemanticUnit]) -> list[SemanticUnit]:
-    unique: list[SemanticUnit] = []
-    seen: set[tuple[str, str]] = set()
-    for unit in units:
-        key = (unit.section_key, unit.semantic_text.lower())
-        if key in seen:
-            continue
-        seen.add(key)
-        unique.append(unit)
-    for idx, unit in enumerate(unique, start=1):
-        unit.unit_id = f"{unit.section_key}_unit_{idx:03d}"
-    return unique
-
-
-def _extract_semantic_units_for_pdf(
-    *,
-    client: Any,
-    model: str,
     pdf_path: Path,
     sections: dict[str, ResolvedSection],
-) -> tuple[dict[str, list[SemanticUnit]], list[SectionAudit]]:
+) -> list[SectionAudit]:
+    """Extrait les blocs narratifs de chaque section via Docling + classification heuristique."""
+    if not sections:
+        return []
     section_order = _next_section_by_key(sections)
     unique_pages = sorted({page for section in sections.values() for page in section.pages})
     page_blocks, table_bboxes_by_page, footnote_bboxes_by_page = _extract_docling_page_blocks(pdf_path, unique_pages)
     repeated_counts = _repeated_text_counts(page_blocks)
-    extracted: dict[str, list[SemanticUnit]] = {}
     audits: list[SectionAudit] = []
     for section_key, section in sections.items():
-        section_audit = _build_section_audit(
+        audit = _build_section_audit(
             section=section,
             next_section=section_order.get(section_key),
             page_blocks=page_blocks,
@@ -1205,59 +840,39 @@ def _extract_semantic_units_for_pdf(
             table_bboxes_by_page=table_bboxes_by_page,
             footnote_bboxes_by_page=footnote_bboxes_by_page,
         )
-        units: list[SemanticUnit] = []
-        for chunk in _chunked(section.pages, chunk_size=4):
-            units.extend(
-                _extract_semantic_units_from_chunk(
-                    client=client,
-                    model=model,
-                    pdf_path=pdf_path,
-                    section_audit=section_audit,
-                    page_numbers=chunk,
-                )
-            )
-        units = _dedupe_units(units)
-        if not units:
-            raise TextAnalysisQualityError(
-                f"Section ciblée vide après nettoyage sémantique: {section.section_key} ({pdf_path})"
-            )
-        extracted[section_key] = units
-        section_audit.semantic_units = units
-        audits.append(section_audit)
-    return extracted, audits
+        audits.append(audit)
+    return audits
 
 
-def _serialize_units(units: list[SemanticUnit]) -> list[dict[str, Any]]:
-    return [
-        {
-            "unit_id": unit.unit_id,
-            "semantic_text": unit.semantic_text,
-            "source_text": unit.source_text,
-            "source_block_ids": list(unit.source_block_ids),
-            "source_resolution": unit.source_resolution,
-            "theme": unit.theme,
-            "pages": unit.evidence_pages,
-            "evidence_snippet": unit.evidence_snippet,
-        }
-        for unit in units
-    ]
+def _extract_section_text_from_markdown(md_content: str, section_key: str) -> str:
+    """Extrait le texte d'une section depuis le contenu markdown (délimité par ## titre)."""
+    title = _SECTION_LABELS.get(section_key, section_key)
+    lines = md_content.splitlines()
+    in_section = False
+    section_lines: list[str] = []
+    for line in lines:
+        if line.startswith("## "):
+            if in_section:
+                break
+            if line.strip() == f"## {title}":
+                in_section = True
+                continue
+        if in_section:
+            section_lines.append(line)
+    return "\n".join(section_lines).strip()
 
 
-def _compare_section_units(
+def _compare_section_texts(
     *,
     client: Any,
     model: str,
     section_key: str,
-    units_t1: list[SemanticUnit],
-    units_t2: list[SemanticUnit],
+    text_t1: str,
+    text_t2: str,
 ) -> list[dict[str, Any]]:
-    lookup_t1 = {unit.unit_id: unit for unit in units_t1}
-    lookup_t2 = {unit.unit_id: unit for unit in units_t2}
-    payload = {
-        "section_key": section_key,
-        "t1_units": _serialize_units(units_t1),
-        "t2_units": _serialize_units(units_t2),
-    }
+    """Compare deux sections texte extraites du .md et retourne les changements détectés."""
+    if not text_t1.strip() and not text_t2.strip():
+        return []
     raw = _call_json_completion(
         client,
         model=model,
@@ -1265,64 +880,63 @@ def _compare_section_units(
             {
                 "role": "system",
                 "content": (
-                    "Tu alignes des idées entre deux trimestres de rapport bancaire. "
-                    "Décide explicitement si T1 et T2 parlent de la même idée ou non."
+                    "Tu compares deux versions d'une section de rapport bancaire. "
+                    "Identifie les changements réels paragraphe par paragraphe. "
+                    "Ignore les reformulations purement cosmétiques ou rédactionnelles."
                 ),
             },
             {
                 "role": "user",
                 "content": (
-                    "Compare ces unités sémantiques et retourne uniquement du JSON.\n"
+                    "Compare ces deux versions et retourne uniquement du JSON.\n"
                     'Format: {"changes":[{"diff_type":"unchanged|modified|added|removed",'
-                    ' "unit_id_t1":"...", "unit_id_t2":"...", "change_summary":"..."}]}.\n'
-                    "Unchanged signifie même idée malgré reformulation. "
-                    "Modified signifie même idée mais vraie évolution métier. "
-                    "Added et removed signifient nouvelle idée ou disparition d'idée.\n"
-                    f"{_json_dumps(payload)}"
+                    '"text_t1":"texte du paragraphe en T1, vide si added",'
+                    '"text_t2":"texte du paragraphe en T2, vide si removed",'
+                    '"change_summary":"explication concise du changement"}]}.\n'
+                    "unchanged = même idée, légère reformulation sans évolution réelle.\n"
+                    "modified = même idée mais vraie évolution du contenu ou de la nuance.\n"
+                    "added = idée nouvelle présente uniquement en T2.\n"
+                    "removed = idée présente en T1, absente en T2.\n"
+                    f"Section: {section_key}\n\n"
+                    f"=== T1 ===\n{text_t1}\n\n"
+                    f"=== T2 ===\n{text_t2}\n"
                 ),
             },
         ],
         max_tokens=6000,
     )
-
     validated: list[dict[str, Any]] = []
     for idx, item in enumerate(raw.get("changes") or [], start=1):
         diff_type = str(item.get("diff_type") or "").strip().lower()
         if diff_type not in {"unchanged", "modified", "added", "removed"}:
             continue
-        unit_t1 = lookup_t1.get(str(item.get("unit_id_t1") or "").strip())
-        unit_t2 = lookup_t2.get(str(item.get("unit_id_t2") or "").strip())
-        if diff_type in {"unchanged", "modified"} and (unit_t1 is None or unit_t2 is None):
+        text_t1_item = str(item.get("text_t1") or "").strip()
+        text_t2_item = str(item.get("text_t2") or "").strip()
+        if diff_type in {"unchanged", "modified"} and not (text_t1_item and text_t2_item):
             continue
-        if diff_type == "added" and unit_t2 is None:
+        if diff_type == "added" and not text_t2_item:
             continue
-        if diff_type == "removed" and unit_t1 is None:
+        if diff_type == "removed" and not text_t1_item:
             continue
         validated.append(
             {
                 "change_id": f"{section_key}_change_{idx:03d}",
                 "section_key": section_key,
                 "diff_type": diff_type,
-                "semantic_text_t1": unit_t1.semantic_text if unit_t1 else "",
-                "semantic_text_t2": unit_t2.semantic_text if unit_t2 else "",
-                "source_text_t1": unit_t1.source_text if unit_t1 else "",
-                "source_text_t2": unit_t2.source_text if unit_t2 else "",
-                "source_block_ids_t1": list(unit_t1.source_block_ids) if unit_t1 else [],
-                "source_block_ids_t2": list(unit_t2.source_block_ids) if unit_t2 else [],
-                "source_refs_t1": list(unit_t1.source_block_ids) if unit_t1 else [],
-                "source_refs_t2": list(unit_t2.source_block_ids) if unit_t2 else [],
-                "pages_t1": list(unit_t1.evidence_pages) if unit_t1 else [],
-                "pages_t2": list(unit_t2.evidence_pages) if unit_t2 else [],
-                "source_resolution_t1": unit_t1.source_resolution if unit_t1 else "",
-                "source_resolution_t2": unit_t2.source_resolution if unit_t2 else "",
-                "evidence_t1": {
-                    "pages": unit_t1.evidence_pages if unit_t1 else [],
-                    "snippet": unit_t1.evidence_snippet if unit_t1 else "",
-                },
-                "evidence_t2": {
-                    "pages": unit_t2.evidence_pages if unit_t2 else [],
-                    "snippet": unit_t2.evidence_snippet if unit_t2 else "",
-                },
+                "semantic_text_t1": _sanitize_semantic_text(text_t1_item),
+                "semantic_text_t2": _sanitize_semantic_text(text_t2_item),
+                "source_text_t1": text_t1_item,
+                "source_text_t2": text_t2_item,
+                "source_block_ids_t1": [],
+                "source_block_ids_t2": [],
+                "source_refs_t1": [],
+                "source_refs_t2": [],
+                "pages_t1": [],
+                "pages_t2": [],
+                "source_resolution_t1": "markdown",
+                "source_resolution_t2": "markdown",
+                "evidence_t1": {"pages": [], "snippet": text_t1_item[:400]},
+                "evidence_t2": {"pages": [], "snippet": text_t2_item[:400]},
                 "change_summary": _sanitize_explanation(str(item.get("change_summary") or "")),
             }
         )
@@ -1475,9 +1089,9 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
             highlights.append(summary)
 
     overview = (
-        "Aucun changement textuel majeur retenu."
+        "Aucun changement textuel non cosmétique retenu."
         if not all_changes
-        else f"{len(all_changes)} changement(s) textuel(s) majeur(s) ou modéré(s) réellement nouveaux retenus."
+        else f"{len(all_changes)} changement(s) textuel(s) non cosmétique(s) retenu(s) pour revue experte."
     )
     pertinence = "FAIBLE"
     if by_impact.get("MAJEUR", 0) >= 3:
@@ -1510,12 +1124,18 @@ def run_text_analysis_pipeline(
     model: str = "gpt-4o",
     allowed_section_keys: set[str] | None = None,
 ) -> tuple[dict[str, Any], Path]:
-    """Run the unified GPT-first text pipeline and persist ``text_comparison.json``."""
+    """Run the text pipeline using .md as source of truth for GPT comparison.
+
+    Flow:
+    1. Locate sections in both PDFs.
+    2. Extract narrative blocks via Docling + heuristics → build .md (source of truth).
+    3. Feed .md sections directly to GPT-4o for comparison (added/modified/removed).
+    4. Triage and retain non-cosmetic changes sorted by business impact.
+    """
     quarter_current = normalize_quarter(quarter_current)
     year_previous, quarter_previous = resolve_previous_quarter(year_current, quarter_current)
     bank_code = bank_code.lower()
 
-    client = _build_openai_client()
     sections_previous = _resolve_sections(pdf_previous, bank_code)
     sections_current = _resolve_sections(pdf_current, bank_code)
     section_keys = sorted(set(sections_previous) | set(sections_current))
@@ -1524,27 +1144,41 @@ def run_text_analysis_pipeline(
     if not section_keys:
         raise TextAnalysisQualityError("Aucune section texte ciblée localisée dans les rapports.")
 
-    semantic_previous, audits_previous = _extract_semantic_units_for_pdf(
-        client=client,
-        model=model,
+    # Step 1: Docling extraction + heuristic classification → audits
+    audits_previous = _extract_audits_for_pdf(
         pdf_path=pdf_previous,
         sections={key: sections_previous[key] for key in section_keys if key in sections_previous},
     )
-    semantic_current, audits_current = _extract_semantic_units_for_pdf(
-        client=client,
-        model=model,
+    audits_current = _extract_audits_for_pdf(
         pdf_path=pdf_current,
         sections={key: sections_current[key] for key in section_keys if key in sections_current},
     )
 
+    # Step 2: Build .md — source of truth (human-auditable + GPT input)
+    md_previous = _build_text_extraction_markdown(audits_previous)
+    md_current = _build_text_extraction_markdown(audits_current)
+
+    # Validate: at least one period must have content per section
+    for section_key in section_keys:
+        text_t1 = _extract_section_text_from_markdown(md_previous, section_key)
+        text_t2 = _extract_section_text_from_markdown(md_current, section_key)
+        if not text_t1.strip() and not text_t2.strip():
+            raise TextAnalysisQualityError(
+                f"Section vide dans les deux rapports: {section_key}"
+            )
+
+    # Step 3: GPT comparison on .md sections
+    client = _build_openai_client()
     section_comparisons: list[dict[str, Any]] = []
     for section_key in section_keys:
-        changes = _compare_section_units(
+        text_t1 = _extract_section_text_from_markdown(md_previous, section_key)
+        text_t2 = _extract_section_text_from_markdown(md_current, section_key)
+        changes = _compare_section_texts(
             client=client,
             model=model,
             section_key=section_key,
-            units_t1=semantic_previous.get(section_key, []),
-            units_t2=semantic_current.get(section_key, []),
+            text_t1=text_t1,
+            text_t2=text_t2,
         )
         non_unchanged = [change for change in changes if change.get("diff_type") != "unchanged"]
         enriched = _triage_section_changes(
@@ -1554,7 +1188,9 @@ def run_text_analysis_pipeline(
             changes=non_unchanged,
         )
         all_changes = [dict(change) for change in enriched]
-        retained = [change for change in enriched if _is_new_major_or_allowed_moderate(change["genai_triage"])]
+        all_changes.sort(key=_retained_change_sort_key)
+        retained = [change for change in enriched if _is_non_cosmetic_change(change["genai_triage"])]
+        retained.sort(key=_retained_change_sort_key)
         section_comparisons.append(
             {
                 "section_key": section_key,
@@ -1575,7 +1211,7 @@ def run_text_analysis_pipeline(
     payload: dict[str, Any] = {
         "schema_version": UNIFIED_TEXT_SCHEMA_VERSION,
         "artifact_type": "text_comparison",
-        "pipeline": "gpt4o_vision_unified",
+        "pipeline": "gpt4o_markdown_source_of_truth",
         "bank_code": bank_code,
         "year_previous": year_previous,
         "quarter_previous": f"{year_previous}_{quarter_previous}",
@@ -1606,21 +1242,13 @@ def run_text_analysis_pipeline(
         quarter_t1=quarter_previous,
     )
     out_dir = out_path.parent
-    previous_extraction_path = get_text_extraction_markdown_path(
-        out_dir,
-        f"{year_previous}_{quarter_previous}",
-    )
-    current_extraction_path = get_text_extraction_markdown_path(
-        out_dir,
-        f"{year_current}_{quarter_current}",
+    write_text_extraction_markdown(
+        md_previous,
+        get_text_extraction_markdown_path(out_dir, f"{year_previous}_{quarter_previous}"),
     )
     write_text_extraction_markdown(
-        _build_text_extraction_markdown(audits_previous),
-        previous_extraction_path,
-    )
-    write_text_extraction_markdown(
-        _build_text_extraction_markdown(audits_current),
-        current_extraction_path,
+        md_current,
+        get_text_extraction_markdown_path(out_dir, f"{year_current}_{quarter_current}"),
     )
     write_text_comparison(payload, out_path)
     return payload, out_path

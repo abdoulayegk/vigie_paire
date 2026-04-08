@@ -41,7 +41,7 @@ def filter_text_cards(text_data, filter_section, filter_impact, filter_action):
         raise PreventUpdate
 
     # 1. Collecter tous les changements détectés (hors unchanged)
-    items: list[tuple[int, dict, str]] = []  # (sort_key, change, section_title)
+    items: list[tuple[tuple[int, int, str, str, str], dict, str]] = []  # (sort_key, change, section_title)
     for sec in text_data.get("section_comparisons") or []:
         key = sec.get("section_key", "")
         title = sec.get("section_title") or _SECTION_LABELS.get(key, key)
@@ -55,9 +55,20 @@ def filter_text_cards(text_data, filter_section, filter_impact, filter_action):
             if diff_type == "unchanged":
                 continue
             triage = change.get("genai_triage") or {}
+            category = (triage.get("category") or "INCONNU").upper()
+            if category == "COSMETIQUE":
+                continue
 
             impact = (triage.get("impact_level") or "MINEUR").upper()
             action = (triage.get("action_requise") or "aucune").lower()
+            nouvelle_idee = bool(triage.get("nouvelle_idee", False))
+            pages = change.get("pages_t2") or change.get("pages_t1") or []
+            page_sort = ""
+            if pages:
+                try:
+                    page_sort = f"{int(pages[0]):06d}"
+                except (TypeError, ValueError):
+                    page_sort = str(pages[0])
 
             # Filtre impact
             if filter_impact and impact != filter_impact.upper():
@@ -66,10 +77,16 @@ def filter_text_cards(text_data, filter_section, filter_impact, filter_action):
             if filter_action and action != filter_action.lower():
                 continue
 
-            sort_key = _IMPACT_ORDER.get(impact, 99)
+            sort_key = (
+                0 if nouvelle_idee else 1,
+                _IMPACT_ORDER.get(impact, 99),
+                title,
+                page_sort,
+                diff_type,
+            )
             items.append((sort_key, change, title))
 
-    # 2. Trier MAJEUR → MODERE → MINEUR
+    # 2. Trier nouvelle idée → impact → section/page/type
     items.sort(key=lambda x: x[0])
 
     # 3. Construire les cartes

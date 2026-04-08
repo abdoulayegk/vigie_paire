@@ -3,7 +3,7 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bns/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260404_083108",
   "review_items_signature": "0e881fbecaa40a4ea300da1fb20be7d97bdba5721dc06e4994bbdc8976f41238",
-  "saved_at": "2026-04-07T04:57:23+00:00",
+  "saved_at": "2026-04-08T03:16:50+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
@@ -30,7 +30,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-07T04:57:23.949962+00:00",
+      "review_timestamp": "2026-04-08T03:16:50.335860+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -507,7 +507,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-07T04:57:23.949962+00:00",
+          "validated_at": "2026-04-08T03:16:50.335860+00:00",
           "validated_by": "analyst"
         }
       ],

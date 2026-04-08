@@ -15,6 +15,8 @@ _SECTION_DISPLAY: dict[str, str] = {
     "gestion_reglementation": "Faits nouveaux en matière de réglementation",
 }
 
+_IMPACT_SORT_ORDER: dict[str, int] = {"MAJEUR": 0, "MODERE": 1, "MINEUR": 2}
+
 EXCEL_COLUMNS = [
     "Titre",
     "Page T1",
@@ -27,6 +29,21 @@ EXCEL_COLUMNS = [
     "Commentaire analyste",
     "Décision analyste",
 ]
+
+
+def _is_explicitly_cosmetic(block_comp: dict[str, Any]) -> bool:
+    triage = block_comp.get("genai_triage") or {}
+    return str(triage.get("category") or "").upper() == "COSMETIQUE"
+
+
+def _row_sort_key(row: dict[str, Any]) -> tuple[int, int, str, str, str]:
+    return (
+        0 if row.get("nouvelle_idee_bool", False) else 1,
+        _IMPACT_SORT_ORDER.get(str(row.get("impact_level") or "").upper(), 99),
+        str(row.get("section_title") or ""),
+        str(row.get("page_t2") or row.get("page_t1") or ""),
+        str(row.get("diff_type") or ""),
+    )
 
 
 def generate_text_comparison_excel(
@@ -74,7 +91,7 @@ def generate_text_comparison_excel(
 
     def _collect_rows(mode: str) -> list[dict[str, Any]]:
         rows: list[dict[str, Any]] = []
-        field_name = "all_block_comparisons" if mode == "all" else "block_comparisons"
+        field_name = "all_block_comparisons"
         for section_comp in text_comparison.get("section_comparisons", []):
             section_key = section_comp.get("section_key", "")
             section_title = section_comp.get("section_title") or _SECTION_DISPLAY.get(section_key, section_key)
@@ -84,7 +101,7 @@ def generate_text_comparison_excel(
                     continue
 
                 triage = block_comp.get("genai_triage") or {}
-                if mode != "all" and not triage.get("is_relevant", False):
+                if mode != "all" and _is_explicitly_cosmetic(block_comp):
                     continue
 
                 evidence_t2 = block_comp.get("evidence_t2") or {}
@@ -111,10 +128,13 @@ def generate_text_comparison_excel(
                         "source_text_t1": (block_comp.get("source_text_t1") or "").strip(),
                         "source_text_t2": (block_comp.get("source_text_t2") or "").strip(),
                         "diff_type": diff_type,
+                        "impact_level": (triage.get("impact_level") or "MINEUR").upper(),
+                        "nouvelle_idee_bool": bool(triage.get("nouvelle_idee", False)),
                         "nouvelle_idee": "Oui" if triage.get("nouvelle_idee", False) else "Non",
                         "justification": justification,
                     }
                 )
+        rows.sort(key=_row_sort_key)
         return rows
 
     def _write_rows(sheet, rows: list[dict[str, Any]]) -> int:
