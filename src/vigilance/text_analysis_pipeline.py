@@ -9,8 +9,8 @@ par un seul orchestrateur qui:
 4. trie les changements métiers,
 5. ne conserve que les changements vraiment majeurs.
 
-Le pipeline écrit ``text_comparison.json`` et deux artefacts d'audit
-``text_extraction_*.json``.
+Le pipeline écrit ``text_comparison.json`` et deux artefacts markdown
+``text_extraction_*.md``.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ import json
 import logging
 import re
 from difflib import SequenceMatcher
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
@@ -36,10 +36,9 @@ from vigilance.text_comparison.text_comparison_writer import (
     get_text_comparison_path,
     write_text_comparison,
 )
-from vigilance.text_extraction.text_extraction_audit_writer import (
-    TEXT_EXTRACTION_AUDIT_SCHEMA_VERSION,
-    get_text_extraction_audit_path,
-    write_text_extraction_audit,
+from vigilance.text_extraction.text_extraction_markdown_writer import (
+    get_text_extraction_markdown_path,
+    write_text_extraction_markdown,
 )
 from vigilance.utils.genai import get_openai_api_key
 from vigilance.utils.pymupdf_utils import configure_mupdf_runtime
@@ -69,6 +68,16 @@ _THEME_BY_SECTION: dict[str, str] = {
     "gestion_reglementation": "changement",
 }
 
+_TARGET_SECTIONS_BY_BANK: dict[str, set[str]] = {
+    "bnc": {"gestion_capital", "gestion_risques"},
+    "rbc": {"gestion_capital", "gestion_risques", "gestion_reglementation"},
+    "bns": {"gestion_capital", "gestion_risques", "gestion_reglementation"},
+    "scotia": {"gestion_capital", "gestion_risques", "gestion_reglementation"},
+    "cibc": {"gestion_capital", "gestion_risques"},
+    "td": {"gestion_capital", "gestion_risques"},
+    "bmo": {"gestion_capital", "gestion_risques", "gestion_reglementation"},
+}
+
 _REGULATORY_REF_RE = re.compile(
     r"\b(?:OSFI|BSIF|Bâle|Basel|TLAC|LCR|NSFR|CET1|Tier\s*1|Tier\s*2|Pilier\s*[123]|IFRS|IAS|NIIF|BISM|VaR)\b",
     flags=re.IGNORECASE,
@@ -79,6 +88,17 @@ _PERCENT_RE = re.compile(r"[%‰]+")
 _BPS_RE = re.compile(r"\b(?:pb|pbs|bp|bps|point(?:s)?\s+de\s+base)\b", flags=re.IGNORECASE)
 _PUNCT_SPACING_RE = re.compile(r"\s+([,;:.])")
 _MULTISPACE_RE = re.compile(r"\s+")
+_TABLE_VALUE_RE = re.compile(r"\b\d+(?:[\s.,]\d+)*(?:\s*[%$])?\b")
+_TABLE_ROW_MARKER_RE = re.compile(
+    r"\b(?:tableau|table|total|totaux|s[ée]rie|series|moody's|s&p|fitch|dbrs|en millions de dollars|"
+    r"en milliers de dollars|valeur pond[ée]r[ée]e|valeur non pond[ée]r[ée]e|aux 31|au 31)\b",
+    flags=re.IGNORECASE,
+)
+_FOOTNOTE_MARKER_RE = re.compile(
+    r"(?:(?:^|\n)\s*(?:\(?\d+\)|\d+\)|[¹²³⁴⁵⁶⁷⁸⁹]+|\*{1,3}|[a-z]\))|(?:^|\n)\s*(?:note|source)\b)",
+    flags=re.IGNORECASE,
+)
+_TABLE_HEADING_RE = re.compile(r"^\s*(?:tableau|table)\b", flags=re.IGNORECASE)
 _SEMANTIC_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(r"\bcadre de capacité totale d[’']absorption des pertes\b", flags=re.IGNORECASE),
@@ -153,6 +173,7 @@ class PDFBlock:
     block_type: str = "other"
     included: bool = False
     exclusion_reason: str = ""
+    source_label: str = ""
 
     @property
     def y0(self) -> float:
@@ -175,6 +196,7 @@ class SectionAudit:
     included_blocks: list[PDFBlock]
     excluded_blocks: list[PDFBlock]
     semantic_units: list[SemanticUnit]
+    table_regions: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _json_dumps(data: Any) -> str:
@@ -189,17 +211,19 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _block_to_payload(block: PDFBlock) -> dict[str, Any]:
-    return {
+def _block_to_payload(block: PDFBlock, *, include_text: bool = True) -> dict[str, Any]:
+    payload = {
         "block_id": block.block_id,
         "page": block.page,
         "bbox": [round(v, 6) for v in block.bbox_norm],
-        "text": block.text,
         "block_type": block.block_type,
         "included": block.included,
         "exclusion_reason": block.exclusion_reason,
         "line_number": block.line_number,
     }
+    if include_text:
+        payload["text"] = block.text
+    return payload
 
 
 def _semantic_unit_to_payload(unit: SemanticUnit) -> dict[str, Any]:
@@ -248,6 +272,140 @@ def _normalized_block_text(text: str) -> str:
 def _sanitize_explanation(text: str) -> str:
     value = _sanitize_semantic_text(text)
     return value[:1200]
+
+
+def _count_numeric_values(text: str) -> int:
+    return len(_TABLE_VALUE_RE.findall(text or ""))
+
+
+def _contains_dense_numeric_line(text: str) -> bool:
+    for raw_line in str(text or "").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if _count_numeric_values(line) > 3:
+            return True
+    return False
+
+
+def _looks_like_table_or_financial_grid(text: str) -> bool:
+    value = str(text or "").strip()
+    if not value:
+        return False
+    if _TABLE_HEADING_RE.search(value):
+        return True
+    if _TABLE_ROW_MARKER_RE.search(value) and _count_numeric_values(value) >= 2:
+        return True
+    if _contains_dense_numeric_line(value) and len(re.findall(r"[A-Za-zÀ-ÿ]{2,}", value)) <= 20:
+        return True
+    if re.search(r"\b(?:AAA|AA[+-]?|A[+-]?|BBB[+-]?|BB[+-]?|B[+-]?|Aa[123]|A[123]|Baa[123]|FPUNV)\b", value):
+        return True
+    if "\t" in value or "|" in value:
+        return True
+    if re.search(r"(?:\b\S+\s+\d+(?:[.,]\d+)?\s*){4,}", value):
+        return True
+    return False
+
+
+def _looks_like_footnote(text: str) -> bool:
+    value = str(text or "").strip()
+    if not value:
+        return False
+    if _FOOTNOTE_MARKER_RE.search(value):
+        return True
+    for raw_line in value.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if re.match(r"^[¹²³⁴⁵⁶⁷⁸⁹]+\s*", line):
+            return True
+        if re.match(r"^\d{1,2}\s+", line):
+            words = re.findall(r"[A-Za-zÀ-ÿ]{2,}", line)
+            if len(words) <= 30:
+                return True
+    return False
+
+
+def _looks_like_table_footnote_text(text: str) -> bool:
+    value = str(text or "").strip()
+    if not value:
+        return False
+    if _looks_like_footnote(value):
+        return True
+    lower_value = value.lower()
+    if lower_value.startswith(("s.o.", "n.s.", "sans objet", "note", "source")):
+        return True
+    words = re.findall(r"[A-Za-zÀ-ÿ]{2,}", value)
+    return len(words) <= 30 and _count_numeric_values(value) >= 1 and "(" in value
+
+
+def _looks_like_narrative_paragraph(text: str) -> bool:
+    value = str(text or "").strip()
+    if not value:
+        return False
+    words = re.findall(r"[A-Za-zÀ-ÿ]{2,}", value)
+    if len(words) < 18 or len(value) < 120:
+        return False
+    if "\t" in value or "|" in value:
+        return False
+    if _TABLE_HEADING_RE.search(value):
+        return False
+    connectors = re.findall(
+        r"\b(?:la|le|les|une|un|des|afin|ainsi|mais|et|ou|que|qui|dont|pour|avec|alors|toutefois|cependant|de plus|enfin)\b",
+        value,
+        flags=re.IGNORECASE,
+    )
+    sentence_marks = len(re.findall(r"[.;:?!]", value))
+    alpha_chars = sum(1 for ch in value if ch.isalpha())
+    digit_chars = sum(1 for ch in value if ch.isdigit())
+    alpha_ratio = alpha_chars / max(1, len(value))
+    digit_ratio = digit_chars / max(1, len(value))
+    short_word_ratio = sum(1 for word in words if len(word) <= 3) / max(1, len(words))
+    return (
+        alpha_ratio >= 0.45
+        and digit_ratio <= 0.2
+        and short_word_ratio <= 0.5
+        and (sentence_marks >= 1 or len(connectors) >= 4)
+    )
+
+
+def _bbox_overlap_ratio(a: list[float], b: list[float]) -> float:
+    if len(a) < 4 or len(b) < 4:
+        return 0.0
+    left = max(float(a[0]), float(b[0]))
+    top = max(float(a[1]), float(b[1]))
+    right = min(float(a[2]), float(b[2]))
+    bottom = min(float(a[3]), float(b[3]))
+    if right <= left or bottom <= top:
+        return 0.0
+    inter = (right - left) * (bottom - top)
+    area = max(1e-9, (float(a[2]) - float(a[0])) * (float(a[3]) - float(a[1])))
+    return inter / area
+
+
+def _block_overlaps_table(block: PDFBlock, table_bboxes: list[list[float]]) -> bool:
+    return any(_bbox_overlap_ratio(block.bbox_norm, bbox) >= 0.05 for bbox in table_bboxes)
+
+
+def _infer_table_footnote_bboxes(
+    table_bboxes_by_page: dict[int, list[list[float]]],
+    *,
+    max_height: float = 0.05,
+) -> dict[int, list[list[float]]]:
+    footnote_bboxes_by_page: dict[int, list[list[float]]] = {}
+    for page, boxes in table_bboxes_by_page.items():
+        ordered = sorted((list(box) for box in boxes if len(box) == 4), key=lambda bbox: (float(bbox[1]), float(bbox[0])))
+        page_regions: list[list[float]] = []
+        for idx, bbox in enumerate(ordered):
+            top = max(0.0, min(1.0, float(bbox[3])))
+            next_top = float(ordered[idx + 1][1]) if idx + 1 < len(ordered) else 1.0
+            bottom = min(1.0, next_top, top + max_height)
+            if bottom - top < 0.01:
+                continue
+            page_regions.append([0.0, top, 1.0, bottom])
+        if page_regions:
+            footnote_bboxes_by_page[page] = page_regions
+    return footnote_bboxes_by_page
 
 
 def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
@@ -334,60 +492,141 @@ def _section_window_for_page(
     return top, bottom
 
 
-def _page_block_candidates(pdf_path: Path, page_number: int) -> list[PDFBlock]:
-    configure_mupdf_runtime(fitz)
-    doc = fitz.open(pdf_path)
+def _docling_bbox_to_norm(docling_doc: Any, prov: Any) -> list[float] | None:
     try:
-        page = doc.load_page(page_number - 1)
-        page_rect = page.rect
-        raw_blocks = page.get_text("blocks") or []
-        ordered = sorted(
-            raw_blocks,
-            key=lambda block: (round(float(block[1]), 2), round(float(block[0]), 2)),
-        )
-        results: list[PDFBlock] = []
-        for idx, block in enumerate(ordered, start=1):
-            text = _MULTISPACE_RE.sub(" ", str(block[4] or "").replace("\n", " ").strip()).strip()
+        page_obj = docling_doc.pages[prov.page_no]
+        page_height = page_obj.size.height
+        norm = prov.bbox.to_top_left_origin(page_height=page_height).normalized(page_obj.size)
+        return [
+            max(0.0, min(1.0, float(norm.l))),
+            max(0.0, min(1.0, float(norm.t))),
+            max(0.0, min(1.0, float(norm.r))),
+            max(0.0, min(1.0, float(norm.b))),
+        ]
+    except Exception:
+        return None
+
+
+def _extract_docling_page_blocks(
+    pdf_path: Path,
+    page_numbers: list[int],
+) -> tuple[dict[int, list[PDFBlock]], dict[int, list[list[float]]], dict[int, list[list[float]]]]:
+    from docling.datamodel.base_models import InputFormat
+    from docling.datamodel.pipeline_options import PdfPipelineOptions
+    from docling.document_converter import DocumentConverter, PdfFormatOption
+
+    if not page_numbers:
+        return {}, {}, {}
+
+    opts = PdfPipelineOptions()
+    opts.do_ocr = False
+    converter = DocumentConverter(
+        format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=opts)}
+    )
+    start_page = min(page_numbers)
+    end_page = max(page_numbers)
+    result = converter.convert(str(pdf_path), page_range=(start_page, end_page))
+    docling_doc = result.document
+
+    table_bboxes_by_page: dict[int, list[list[float]]] = {}
+    for table in getattr(docling_doc, "tables", []) or []:
+        try:
+            if not getattr(table, "prov", None):
+                continue
+            page = int(getattr(table.prov[0], "page_no", 0) or 0)
+            if page not in page_numbers:
+                continue
+            bbox = _docling_bbox_to_norm(docling_doc, table.prov[0])
+            if not bbox:
+                continue
+            table_bboxes_by_page.setdefault(page, []).append(bbox)
+        except Exception:
+            continue
+    footnote_bboxes_by_page = _infer_table_footnote_bboxes(table_bboxes_by_page)
+
+    page_blocks: dict[int, list[PDFBlock]] = {page: [] for page in page_numbers}
+    line_numbers: dict[int, int] = {page: 0 for page in page_numbers}
+    for page in page_numbers:
+        for item, _level in docling_doc.iterate_items(page_no=page, with_groups=False):
+            text = _MULTISPACE_RE.sub(" ", str(getattr(item, "text", "") or "").replace("\n", " ").strip()).strip()
             if not text:
                 continue
-            x0, y0, x1, y1 = (float(block[0]), float(block[1]), float(block[2]), float(block[3]))
-            bbox_norm = [
-                max(0.0, min(1.0, x0 / page_rect.width)),
-                max(0.0, min(1.0, y0 / page_rect.height)),
-                max(0.0, min(1.0, x1 / page_rect.width)),
-                max(0.0, min(1.0, y1 / page_rect.height)),
-            ]
-            results.append(
+            label = str(getattr(item, "label", "") or "").lower()
+            item_provs = [prov for prov in list(getattr(item, "prov", []) or []) if int(getattr(prov, "page_no", 0) or 0) == page]
+            if not item_provs:
+                continue
+            bbox_norm = _docling_bbox_to_norm(docling_doc, item_provs[0])
+            if not bbox_norm:
+                continue
+            line_numbers[page] += 1
+            initial_block_type = {
+                "footnote": "footnote",
+                "page_header": "header_footer",
+                "page_footer": "header_footer",
+                "caption": "table",
+            }.get(label, "other")
+            page_blocks[page].append(
                 PDFBlock(
-                    block_id=f"p{page_number:03d}_b{idx:03d}",
-                    page=page_number,
+                    block_id=f"p{page:03d}_d{line_numbers[page]:03d}",
+                    page=page,
                     bbox_norm=bbox_norm,
                     text=text,
-                    line_number=idx,
+                    line_number=line_numbers[page],
+                    block_type=initial_block_type,
+                    source_label=label,
                 )
             )
-        return results
-    finally:
-        doc.close()
+        page_blocks[page].sort(key=lambda block: (round(block.y0, 4), round(block.bbox_norm[0], 4)))
+    return page_blocks, table_bboxes_by_page, footnote_bboxes_by_page
 
 
-def _classify_block_type(block: PDFBlock, repeated_text_counts: dict[str, int]) -> str:
+def _classify_block_type(
+    block: PDFBlock,
+    repeated_text_counts: dict[str, int],
+    table_bboxes: list[list[float]] | None = None,
+    footnote_bboxes: list[list[float]] | None = None,
+) -> str:
+    if block.block_type in {"table", "footnote", "header_footer"}:
+        return block.block_type
     norm = _normalized_block_text(block.text)
     if not norm:
         return "other"
     text = block.text.strip()
     words = re.findall(r"[A-Za-zÀ-ÿ]{2,}", text)
     digits = re.findall(r"\d", text)
+    numeric_tokens = re.findall(r"\b\S*\d\S*\b", text)
+    rating_tokens = re.findall(r"\b(?:[A-Z]{1,4}[+-]?|[A-Z][a-z]\d|[A-Z]{1,3}\s*\(hyb\)|FPUNV)\b", text)
+    short_word_ratio = (
+        sum(1 for word in words if len(word) <= 4) / max(1, len(words))
+        if words
+        else 0.0
+    )
     digit_ratio = len(digits) / max(1, len(text))
     upper_ratio = sum(1 for ch in text if ch.isupper()) / max(1, sum(1 for ch in text if ch.isalpha()))
     repeated = repeated_text_counts.get(norm, 0)
+    table_bboxes = table_bboxes or []
+    footnote_bboxes = footnote_bboxes or []
 
     if repeated >= 2 and (block.y1 <= 0.12 or block.y0 >= 0.88):
         return "header_footer"
     if block.y0 >= 0.75 and re.match(r"^\s*(?:\(?\d+\)?|[*†‡]|note\b|source\b)", text, flags=re.IGNORECASE):
         return "footnote"
+    if _block_overlaps_table(block, table_bboxes):
+        return "table"
+    if _block_overlaps_table(block, footnote_bboxes) and _looks_like_table_footnote_text(text):
+        return "footnote"
+    if _looks_like_footnote(text):
+        return "footnote"
+    if _looks_like_narrative_paragraph(text):
+        return "narrative"
     if (
-        digit_ratio >= 0.12
+        _looks_like_table_or_financial_grid(text)
+        or
+        (digit_ratio >= 0.12 and len(words) <= 16)
+        or (len(numeric_tokens) >= 10 and len(words) <= 20)
+        or len(rating_tokens) >= 6
+        or (len(numeric_tokens) >= 4 and short_word_ratio >= 0.45)
+        or (short_word_ratio >= 0.62 and upper_ratio >= 0.18 and len(words) >= 18)
         or "\t" in text
         or "  " in text
         or ("|" in text)
@@ -409,6 +648,35 @@ def _exclusion_reason_for_block(block_type: str, in_window: bool) -> str:
         "header_footer": "header_footer",
         "other": "non_narrative_block",
     }.get(block_type, "")
+
+
+def _table_regions_for_pages(
+    section_key: str,
+    table_bboxes_by_page: dict[int, list[list[float]]],
+    footnote_bboxes_by_page: dict[int, list[list[float]]],
+    pages: list[int],
+) -> list[dict[str, Any]]:
+    regions: list[dict[str, Any]] = []
+    for page in pages:
+        for idx, bbox in enumerate(table_bboxes_by_page.get(page, []), start=1):
+            regions.append(
+                {
+                    "table_id": f"{section_key}_p{page:03d}_tbl_{idx:02d}",
+                    "page": page,
+                    "region_type": "table",
+                    "bbox": [round(v, 6) for v in bbox],
+                }
+            )
+        for idx, bbox in enumerate(footnote_bboxes_by_page.get(page, []), start=1):
+            regions.append(
+                {
+                    "table_id": f"{section_key}_p{page:03d}_ftn_{idx:02d}",
+                    "page": page,
+                    "region_type": "footnote",
+                    "bbox": [round(v, 6) for v in bbox],
+                }
+            )
+    return regions
 
 
 def _concat_source_blocks(blocks: list[PDFBlock], block_ids: list[str]) -> str:
@@ -468,11 +736,97 @@ def _validate_pages(raw_pages: Any, allowed_pages: set[int]) -> list[int]:
     return pages
 
 
-def _make_data_url(pdf_path: Path, page_number: int, dpi: int = 200) -> str:
+def _build_extraction_prompt_text(section_audit: SectionAudit, page_numbers: list[int], candidate_blocks: list[PDFBlock]) -> str:
+    return (
+        "Analyse ces pages de rapport bancaire et retourne uniquement du JSON.\n"
+        "Mission: extraire uniquement des unités narratives complètes et lisibles dans les sections ciblées.\n"
+        "HARD RULES:\n"
+        "- Some RED boxes highlight tables, and some RED boxes highlight table-footnote zones.\n"
+        "- There may be multiple RED boxes on the same page.\n"
+        "- You MUST ignore any content inside RED boxes.\n"
+        "- You MUST NOT read, interpret, or extract any text inside RED boxes.\n"
+        "- You MUST ignore any table content, even partially visible.\n"
+        "- You MUST ignore footnotes related to tables.\n"
+        "- Be extremely careful with footnotes: in some bank reports they are frequent, long, and may look like normal prose.\n"
+        "- DO NOT extract any content with repeated numbers in columns.\n"
+        "- DO NOT extract any financial series, table header, total row, instrument list, or rating line.\n"
+        "- If a unit includes any table or footnote content -> REJECT the entire unit.\n"
+        "FOOTNOTE RULES:\n"
+        "- Ignore only true table footnotes and note lines directly tied to the table.\n"
+        "- Ignore patterns like (1), (2), 1), 2), ¹, ², ³, ⁴, ⁵, *, **, a), b), s.o., n.s..\n"
+        "- Ignore simple numbered note lines like '1 ...', '2 ...', '3 ...' when they are explanatory notes tied to the table.\n"
+        "- Ignore any explanatory notes tied to numeric markers.\n"
+        "- Footnotes may span multiple lines and may still be footnotes even when they are written as full sentences.\n"
+        "- Footnotes may appear on pages with several tables and may be repeated across nearby pages.\n"
+        "- A normal narrative paragraph that appears after table footnotes must still be kept if it is prose.\n"
+        "- Keep narrative prose before a table, between two tables, and after table footnotes.\n"
+        "- Do not reject a paragraph only because it contains several percentages, dates, ratios, or amounts.\n"
+        "- If a paragraph contains such markers as actual note markers, treat it as footnote and reject it.\n"
+        "SOURCE GATE:\n"
+        "- Use only the candidate narrative blocks listed below.\n"
+        "- Never infer text from the image outside these candidate blocks.\n"
+        "- Return only source_block_ids that belong to these candidate blocks.\n"
+        "- The page image is provided for visual context only.\n"
+        "- The target section may start or end in the middle of a page.\n"
+        "- Ignore any visible text above or below the target section window, even if readable in the image.\n"
+        "- Any visible text outside the candidate narrative blocks is out of scope and must be ignored.\n"
+        f"Section: {section_audit.section_key}\n"
+        f"Pages: {page_numbers}\n"
+        'Return JSON only: {"units":[{"semantic_text":"...", "pages":[...], "evidence_snippet":"...", "theme":"risque|capital|strategie|changement", "source_block_ids":["p001_d001"]}]}\n'
+        f"Candidate narrative blocks:\n{_json_dumps([_block_to_payload(block) for block in candidate_blocks])}\n"
+        "If no clean narrative content is available, return {\"units\":[]}."
+    )
+
+
+def _reject_semantic_unit_if_table_like(
+    *,
+    semantic_text: str,
+    source_text: str,
+    evidence_snippet: str,
+    source_blocks: list[PDFBlock],
+    page_table_bboxes: dict[int, list[list[float]]],
+) -> tuple[bool, str]:
+    if not source_blocks:
+        return True, "no_source_blocks"
+    if any(block.block_type != "narrative" for block in source_blocks):
+        return True, "non_narrative_source_block"
+    if any(_block_overlaps_table(block, page_table_bboxes.get(block.page, [])) for block in source_blocks):
+        return True, "ignored_region_overlap"
+    if any(_looks_like_footnote(block.text) for block in source_blocks):
+        return True, "footnote_source"
+    if (
+        not _looks_like_narrative_paragraph(source_text)
+        and (_looks_like_table_or_financial_grid(source_text) or _looks_like_table_or_financial_grid(evidence_snippet))
+    ):
+        return True, "table_like_source_text"
+    if _looks_like_footnote(source_text) or _looks_like_footnote(evidence_snippet):
+        return True, "footnote_text"
+    if _contains_dense_numeric_line(source_text) and not _looks_like_narrative_paragraph(source_text):
+        return True, "dense_numeric_source"
+    if _looks_like_table_or_financial_grid(semantic_text):
+        return True, "table_like_semantic_text"
+    return False, ""
+
+
+def _make_data_url(
+    pdf_path: Path,
+    page_number: int,
+    dpi: int = 200,
+    red_box_bboxes: list[list[float]] | None = None,
+) -> str:
     configure_mupdf_runtime(fitz)
     doc = fitz.open(pdf_path)
     try:
         page = doc.load_page(page_number - 1)
+        rect = page.rect
+        for bbox in red_box_bboxes or []:
+            if len(bbox) != 4:
+                continue
+            x0 = rect.x0 + float(bbox[0]) * rect.width
+            y0 = rect.y0 + float(bbox[1]) * rect.height
+            x1 = rect.x0 + float(bbox[2]) * rect.width
+            y1 = rect.y0 + float(bbox[3]) * rect.height
+            page.draw_rect(fitz.Rect(x0, y0, x1, y1), color=(1, 0, 0), width=4)
         zoom = dpi / 72.0
         matrix = fitz.Matrix(zoom, zoom)
         pix = page.get_pixmap(matrix=matrix, alpha=False)
@@ -555,11 +909,15 @@ def _build_section_audit(
     next_section: ResolvedSection | None,
     page_blocks: dict[int, list[PDFBlock]],
     repeated_text_counts: dict[str, int],
+    table_bboxes_by_page: dict[int, list[list[float]]],
+    footnote_bboxes_by_page: dict[int, list[list[float]]],
 ) -> SectionAudit:
     included_blocks: list[PDFBlock] = []
     excluded_blocks: list[PDFBlock] = []
     for page in section.pages:
         blocks = page_blocks.get(page, [])
+        page_tables = table_bboxes_by_page.get(page, [])
+        page_footnotes = footnote_bboxes_by_page.get(page, [])
         top_cutoff, bottom_cutoff = _section_window_for_page(section, page, next_section)
         for block in blocks:
             section_block = PDFBlock(
@@ -568,10 +926,12 @@ def _build_section_audit(
                 bbox_norm=list(block.bbox_norm),
                 text=block.text,
                 line_number=block.line_number,
+                block_type=block.block_type,
+                source_label=block.source_label,
             )
             midpoint = (block.y0 + block.y1) / 2.0
             in_window = top_cutoff <= midpoint < bottom_cutoff
-            block_type = _classify_block_type(section_block, repeated_text_counts)
+            block_type = _classify_block_type(section_block, repeated_text_counts, page_tables, page_footnotes)
             section_block.block_type = block_type
             section_block.included = in_window and block_type == "narrative"
             section_block.exclusion_reason = "" if section_block.included else _exclusion_reason_for_block(block_type, in_window)
@@ -590,53 +950,62 @@ def _build_section_audit(
         included_blocks=included_blocks,
         excluded_blocks=excluded_blocks,
         semantic_units=[],
+        table_regions=_table_regions_for_pages(
+            section.section_key,
+            table_bboxes_by_page,
+            footnote_bboxes_by_page,
+            section.pages,
+        ),
     )
 
 
-def _build_text_extraction_audit_payload(
-    *,
-    bank_code: str,
-    year: int,
-    quarter_label: str,
-    pdf_path: Path,
-    model: str,
-    section_audits: list[SectionAudit],
-) -> dict[str, Any]:
-    return {
-        "schema_version": TEXT_EXTRACTION_AUDIT_SCHEMA_VERSION,
-        "artifact_type": "text_extraction_audit",
-        "pipeline": "gpt4o_vision_unified",
-        "bank_code": bank_code,
-        "year": year,
-        "quarter": quarter_label,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "model": model,
-        "source_pdf": {
-            "path": str(pdf_path),
-            "sha256": _sha256_file(pdf_path),
-        },
-        "sections": [
-            {
-                "section_key": section.section_key,
-                "section_title": section.section_title,
-                "start_page": section.start_page,
-                "end_page": section.end_page,
-                "anchor_page": section.anchor_page,
-                "anchor_text": section.anchor_text,
-                "anchor_bbox_norm": section.anchor_bbox_norm,
-                "included_blocks": [_block_to_payload(block) for block in section.included_blocks],
-                "excluded_blocks": [_block_to_payload(block) for block in section.excluded_blocks],
-                "semantic_units": [_semantic_unit_to_payload(unit) for unit in section.semantic_units],
-            }
-            for section in section_audits
-        ],
-        "summary": {
-            "sections_count": len(section_audits),
-            "included_blocks_count": sum(len(section.included_blocks) for section in section_audits),
-            "excluded_blocks_count": sum(len(section.excluded_blocks) for section in section_audits),
-            "semantic_units_count": sum(len(section.semantic_units) for section in section_audits),
-        },
-    }
+def _markdown_blocks_for_section(section: SectionAudit) -> list[PDFBlock]:
+    selected: list[PDFBlock] = []
+    seen_ids: set[str] = set()
+    for block in section.included_blocks:
+        if block.block_id not in seen_ids:
+            selected.append(block)
+            seen_ids.add(block.block_id)
+    for block in section.excluded_blocks:
+        if block.block_id in seen_ids:
+            continue
+        if block.exclusion_reason != "non_narrative_block":
+            continue
+        if block.source_label not in {"title", "section_header"}:
+            continue
+        if _looks_like_table_or_financial_grid(block.text) or _looks_like_footnote(block.text):
+            continue
+        selected.append(block)
+        seen_ids.add(block.block_id)
+    return sorted(selected, key=lambda block: (block.page, block.line_number, block.y0))
+
+
+def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
+    lines: list[str] = []
+    for section in section_audits:
+        lines.append(f"## {section.section_title}")
+        lines.append("")
+        seen_heading_norms: set[str] = set()
+        section_title_norm = _normalized_block_text(section.section_title)
+        pending_heading: str | None = None
+        for block in _markdown_blocks_for_section(section):
+            text = str(block.text or "").strip()
+            if not text:
+                continue
+            norm = _normalized_block_text(text)
+            if block.source_label in {"title", "section_header"}:
+                if not norm or norm == section_title_norm or norm in seen_heading_norms:
+                    continue
+                pending_heading = text
+                seen_heading_norms.add(norm)
+                continue
+            if pending_heading is not None:
+                lines.append(f"### {pending_heading}")
+                lines.append("")
+                pending_heading = None
+            lines.append(text)
+            lines.append("")
+    return "\n".join(lines).strip() + "\n"
 
 
 def _build_openai_client():
@@ -646,6 +1015,10 @@ def _build_openai_client():
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY absent: le pipeline texte GPT-first ne peut pas s'exécuter.")
     return OpenAI(api_key=api_key)
+
+
+def _allowed_target_sections(bank_code: str) -> set[str]:
+    return set(_TARGET_SECTIONS_BY_BANK.get(str(bank_code or "").strip().lower(), set(_SECTION_LABELS)))
 
 
 def _call_json_completion(
@@ -668,11 +1041,12 @@ def _call_json_completion(
 
 def _resolve_sections(pdf_path: Path, bank_code: str) -> dict[str, ResolvedSection]:
     mapping = locate_sections_in_pdf(str(pdf_path), bank_code.lower())
+    allowed_sections = _allowed_target_sections(bank_code)
     sections: dict[str, ResolvedSection] = {}
     for item in getattr(mapping, "sections", []) or []:
         canonical = canonicalize_section(getattr(item, "section_type", ""))
         section_key = _CANONICAL_TO_TEXT_KEY.get(canonical)
-        if not section_key or section_key in sections:
+        if not section_key or section_key not in allowed_sections or section_key in sections:
             continue
         start_page = int(getattr(item, "start_page", 0) or 0)
         end_page = int(getattr(item, "end_page", 0) or 0)
@@ -709,26 +1083,7 @@ def _extract_semantic_units_from_chunk(
     content: list[dict[str, Any]] = [
         {
             "type": "text",
-            "text": (
-                "Analyse ces pages de rapport bancaire et retourne uniquement du JSON.\n"
-                "Objectif: extraire uniquement des unités sémantiques narratives qui parlent"
-                " des risques, du capital, des stratégies ou des changements significatifs.\n"
-                "Exclus strictement: tableaux, footnotes, headers/footers, valeurs numériques,"
-                " références réglementaires explicites, titres hors périmètre.\n"
-                "Tu dois t'appuyer sur la liste des blocs narratifs déjà filtrés ci-dessous."
-                " N'utilise que leurs block_ids comme preuve source.\n"
-                "Quand un passage cite un cadre, un acronyme prudentiel ou une ligne directrice,"
-                " reformule-le en langage métier générique au lieu de le nommer explicitement.\n"
-                "Nettoie le texte final pour qu'il soit fluide, uniquement sémantique et sans chiffres.\n"
-                "Les pages sont fournies dans cet ordre: "
-                f"{page_numbers}.\n"
-                'Réponds sous la forme {"units":[{"semantic_text": "...", "pages":[...],'
-                ' "evidence_snippet":"...", "theme":"risque|capital|strategie|changement",'
-                ' "source_block_ids":["p001_b001"]}]}.\n'
-                f"Section: {section_audit.section_key}\n"
-                f"Blocs narratifs filtrés:\n{_json_dumps([_block_to_payload(block) for block in candidate_blocks])}\n"
-                "Omet tout élément vide ou purement rédactionnel."
-            ),
+            "text": _build_extraction_prompt_text(section_audit, page_numbers, candidate_blocks),
         }
     ]
     allowed_pages = set(page_numbers)
@@ -736,7 +1091,14 @@ def _extract_semantic_units_from_chunk(
         content.append(
             {
                 "type": "image_url",
-                "image_url": {"url": _make_data_url(pdf_path, page), "detail": "high"},
+                "image_url": {
+                    "url": _make_data_url(
+                        pdf_path,
+                        page,
+                        red_box_bboxes=[region["bbox"] for region in section_audit.table_regions if int(region["page"]) == page],
+                    ),
+                    "detail": "high",
+                },
             }
         )
 
@@ -747,8 +1109,9 @@ def _extract_semantic_units_from_chunk(
             {
                 "role": "system",
                 "content": (
-                    "Tu es un analyste senior des rapports bancaires. "
-                    "Tu extrais uniquement le sens utile, sans bruit éditorial."
+                    "Tu es un filtre narratif bancaire strict. "
+                    "Ta priorité absolue est d'exclure tout contenu tabulaire, pseudo-tabulaire,"
+                    " et toute footnote. En cas de doute entre paragraphe et tableau, rejette."
                 ),
             },
             {"role": "user", "content": content},
@@ -775,8 +1138,21 @@ def _extract_semantic_units_from_chunk(
             reference_text=evidence_snippet,
             semantic_text=semantic_text,
         )
+        source_blocks = [block for block in candidate_blocks if block.block_id in source_block_ids]
         source_text = _concat_source_blocks(candidate_blocks, source_block_ids)
-        source_pages = sorted({block.page for block in candidate_blocks if block.block_id in source_block_ids})
+        source_pages = sorted({block.page for block in source_blocks})
+        reject, _reason = _reject_semantic_unit_if_table_like(
+            semantic_text=semantic_text,
+            source_text=source_text,
+            evidence_snippet=evidence_snippet,
+            source_blocks=source_blocks,
+            page_table_bboxes={
+                page: [region["bbox"] for region in section_audit.table_regions if int(region["page"]) == page]
+                for page in page_numbers
+            },
+        )
+        if reject:
+            continue
         units.append(
             SemanticUnit(
                 unit_id=f"{section_audit.section_key}_chunk_{page_numbers[0]}_{idx:03d}",
@@ -816,7 +1192,7 @@ def _extract_semantic_units_for_pdf(
 ) -> tuple[dict[str, list[SemanticUnit]], list[SectionAudit]]:
     section_order = _next_section_by_key(sections)
     unique_pages = sorted({page for section in sections.values() for page in section.pages})
-    page_blocks = {page: _page_block_candidates(pdf_path, page) for page in unique_pages}
+    page_blocks, table_bboxes_by_page, footnote_bboxes_by_page = _extract_docling_page_blocks(pdf_path, unique_pages)
     repeated_counts = _repeated_text_counts(page_blocks)
     extracted: dict[str, list[SemanticUnit]] = {}
     audits: list[SectionAudit] = []
@@ -826,6 +1202,8 @@ def _extract_semantic_units_for_pdf(
             next_section=section_order.get(section_key),
             page_blocks=page_blocks,
             repeated_text_counts=repeated_counts,
+            table_bboxes_by_page=table_bboxes_by_page,
+            footnote_bboxes_by_page=footnote_bboxes_by_page,
         )
         units: list[SemanticUnit] = []
         for chunk in _chunked(section.pages, chunk_size=4):
@@ -1204,8 +1582,8 @@ def run_text_analysis_pipeline(
         "year_current": year_current,
         "quarter_current": f"{year_current}_{quarter_current}",
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "extraction_artifact_t1": f"text_extraction_{year_previous}_{quarter_previous}.json",
-        "extraction_artifact_t2": f"text_extraction_{year_current}_{quarter_current}.json",
+        "extraction_artifact_t1": f"text_extraction_{year_previous}_{quarter_previous}.md",
+        "extraction_artifact_t2": f"text_extraction_{year_current}_{quarter_current}.md",
         "section_comparisons": section_comparisons,
     }
     payload["global_summary"] = _build_global_summary(section_comparisons)
@@ -1228,34 +1606,20 @@ def run_text_analysis_pipeline(
         quarter_t1=quarter_previous,
     )
     out_dir = out_path.parent
-    previous_extraction_path = get_text_extraction_audit_path(
+    previous_extraction_path = get_text_extraction_markdown_path(
         out_dir,
         f"{year_previous}_{quarter_previous}",
     )
-    current_extraction_path = get_text_extraction_audit_path(
+    current_extraction_path = get_text_extraction_markdown_path(
         out_dir,
         f"{year_current}_{quarter_current}",
     )
-    write_text_extraction_audit(
-        _build_text_extraction_audit_payload(
-            bank_code=bank_code,
-            year=year_previous,
-            quarter_label=f"{year_previous}_{quarter_previous}",
-            pdf_path=pdf_previous,
-            model=model,
-            section_audits=audits_previous,
-        ),
+    write_text_extraction_markdown(
+        _build_text_extraction_markdown(audits_previous),
         previous_extraction_path,
     )
-    write_text_extraction_audit(
-        _build_text_extraction_audit_payload(
-            bank_code=bank_code,
-            year=year_current,
-            quarter_label=f"{year_current}_{quarter_current}",
-            pdf_path=pdf_current,
-            model=model,
-            section_audits=audits_current,
-        ),
+    write_text_extraction_markdown(
+        _build_text_extraction_markdown(audits_current),
         current_extraction_path,
     )
     write_text_comparison(payload, out_path)
