@@ -280,7 +280,7 @@ async def _call_openai_json_async(
     user: str,
     model: str = "gpt-4o",
     temperature: float = 0.1,
-    max_tokens: int = 800,
+    max_tokens: int | None = None,
 ) -> dict[str, Any] | None:
     """Appel asynchrone unique a OpenAI retournant du JSON parse.
 
@@ -290,22 +290,25 @@ async def _call_openai_json_async(
         user: Contenu du message utilisateur.
         model: Identifiant du modele OpenAI.
         temperature: Temperature d'echantillonnage.
-        max_tokens: Nombre maximal de tokens de completion.
+        max_tokens: Nombre maximal de tokens de completion. ``None`` laisse le
+            modele s'arreter naturellement — preferer la qualite complete.
 
     Returns:
         Dictionnaire JSON parse ou ``None`` en cas d'echec.
     """
     try:
-        response = await client.chat.completions.create(
-            model=model,
-            messages=[
+        kwargs: dict[str, Any] = {
+            "model": model,
+            "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-            temperature=temperature,
-            max_tokens=max_tokens,
-            response_format={"type": "json_object"},
-        )
+            "temperature": temperature,
+            "response_format": {"type": "json_object"},
+        }
+        if max_tokens is not None:
+            kwargs["max_tokens"] = max_tokens
+        response = await client.chat.completions.create(**kwargs)
         raw = response.choices[0].message.content or ""
         return json.loads(raw)
     except Exception as exc:

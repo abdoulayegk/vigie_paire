@@ -104,7 +104,7 @@ def _call_openai_json(
     *,
     model: str,
     messages: list[dict[str, str]],
-    max_completion_tokens: int = 4000,
+    max_completion_tokens: int | None = None,
     temperature: float = 0.0,
     api_retry_max: int = 2,
     usage_recorder: list[dict[str, Any]] | None = None,
@@ -117,6 +117,9 @@ def _call_openai_json(
     utilise les **Structured Outputs** OpenAI pour garantir la conformite au schema.
     Le modele valide est reconverti en dict pour que les appelants gardent une
     interface identique.
+
+    ``max_completion_tokens=None`` (defaut) laisse le modele s'arreter naturellement
+    sans plafond artificiel — privilegier la qualite complete plutot que la vitesse.
     """
     api_key = get_openai_api_key()
     if not api_key:
@@ -132,25 +135,29 @@ def _call_openai_json(
             time.sleep(1.5 * (2 ** (attempt - 1)))
         try:
             if use_structured:
-                response = client.beta.chat.completions.parse(
-                    model=model,
-                    messages=messages,
-                    response_format=response_model,
-                    temperature=temperature,
-                    max_completion_tokens=max_completion_tokens,
-                )
+                kwargs: dict[str, Any] = {
+                    "model": model,
+                    "messages": messages,
+                    "response_format": response_model,
+                    "temperature": temperature,
+                }
+                if max_completion_tokens is not None:
+                    kwargs["max_completion_tokens"] = max_completion_tokens
+                response = client.beta.chat.completions.parse(**kwargs)
                 parsed = response.choices[0].message.parsed
                 if parsed is None:
                     raise ValueError("Structured Output parsing returned None")
                 data = parsed.model_dump()
             else:
-                response = client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    response_format={"type": "json_object"},
-                    temperature=temperature,
-                    max_completion_tokens=max_completion_tokens,
-                )
+                kwargs = {
+                    "model": model,
+                    "messages": messages,
+                    "response_format": {"type": "json_object"},
+                    "temperature": temperature,
+                }
+                if max_completion_tokens is not None:
+                    kwargs["max_completion_tokens"] = max_completion_tokens
+                response = client.chat.completions.create(**kwargs)
                 raw = response.choices[0].message.content or ""
                 data = json.loads(raw)
                 if not isinstance(data, dict):

@@ -20,6 +20,7 @@ DEFAULT_INPUTS_ROOT = "Inputs"
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Construit le parser CLI pour la commande run_text_compare."""
     parser = argparse.ArgumentParser(
         description="Compare text paragraphs between two quarters using GPT-4o semantic diff + triage."
     )

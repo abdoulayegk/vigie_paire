@@ -19,6 +19,7 @@ DEFAULT_OUT_ROOT = "outputs/text_extractions"
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Construit le parser CLI pour la commande run_text_extract."""
     parser = argparse.ArgumentParser(
         description="Extract text blocks (paragraphs) from targeted sections of a bank report PDF."
     )
