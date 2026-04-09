@@ -47,9 +47,8 @@ EXPERT_EXCEL_COLUMNS = [
     "Type de changement",
     "Page précédente",
     "Page courante",
-    "Valeur / libellé précédent",
-    "Valeur / libellé courant",
-    "Résumé métier",
+    "Libellé",
+    "Justifications",
     "Nouvelle idée ?",
     "Validation expert",
     "Commentaire expert",
@@ -69,7 +68,7 @@ _TYPE_CHANGEMENT_MAP = {
     "uncertain": "incertain",
     "needs_review": "incertain",
     "structure_change": "fusion",
-    "footnote": "note modifiee",
+    "footnote": "note modifiée",
 }
 
 # Match methods consideres suspects
@@ -173,9 +172,7 @@ def _build_resume_court(
     elif indicator_type == "table_added":
         base = "Nouveau tableau dans le trimestre courant."
     elif indicator_type == "table_removed":
-        base = (
-            "Tableau présent au trimestre précédent mais absent au trimestre courant."
-        )
+        base = "Tableau présent au trimestre précédent mais absent au trimestre courant."
     elif indicator_type == "modified":
         base = "Modification de tableau détectée."
     elif indicator_type == "uncertain":
@@ -218,12 +215,8 @@ def _build_export_context(indicator_result: dict[str, Any] | None) -> dict[str, 
     current = (meta.get("extraction_sources") or {}).get("current") or {}
     return {
         "bank_code": _sanitize_cell(ir.get("bank_code", "")),
-        "quarter_from": _sanitize_cell(
-            ir.get("quarter_from") or ir.get("previous_quarter") or ""
-        ),
-        "quarter_to": _sanitize_cell(
-            ir.get("quarter_to") or ir.get("current_quarter") or ""
-        ),
+        "quarter_from": _sanitize_cell(ir.get("quarter_from") or ir.get("previous_quarter") or ""),
+        "quarter_to": _sanitize_cell(ir.get("quarter_to") or ir.get("current_quarter") or ""),
         "year": _format_cell(ir.get("year", "")),
         "compare_path": _sanitize_cell(meta.get("compare_path", "")),
         "generated_at": _sanitize_cell(meta.get("generated_at", "")),
@@ -310,9 +303,25 @@ def _to_validation_finale(review_status: str) -> str:
 
 
 def _to_nouvelle_idee(genai_analysis: dict[str, Any] | None) -> str:
-    """Retourne un indicateur conservateur de nouveaute metier (Oui/Non)."""
-    relevance = str((genai_analysis or {}).get("relevance", "") or "").strip().upper()
-    return "Oui" if relevance == "NOUVELLE_DIVULGATION" else "Non"
+    """Retourne 'Oui' si le changement est pertinent et de categorie reglementaire/risque/capital."""
+    ga = genai_analysis or {}
+    is_relevant = bool(ga.get("is_relevant", False))
+    category = str(ga.get("category", "") or "").upper()
+    high_relevance = str(ga.get("relevance_score", "") or "").upper() == "ELEVEE"
+    if is_relevant and (category in ("REGLEMENTAIRE", "RISQUE", "CAPITAL") or high_relevance):
+        return "Oui"
+    return "Non"
+
+
+def _build_libelle(precedent: str, courant: str, ind_type: str) -> str:
+    """Fusionne precedent/courant en un seul libelle lisible selon le type de changement."""
+    if ind_type in ("added", "table_added"):
+        return courant
+    if ind_type in ("removed", "table_removed"):
+        return precedent
+    if precedent and courant and precedent != courant:
+        return f"{precedent} → {courant}"
+    return courant or precedent
 
 
 def _build_trimestre_label(indicator_result: dict[str, Any] | None) -> str:
@@ -367,14 +376,17 @@ def _iter_expert_excel_rows(
                 precedent = display_indicator
                 courant = display_indicator
 
-            resume = _build_resume_court(
-                ind_type,
-                display_indicator,
-                precedent,
-                courant,
-                table_status,
-                suspect=False,
-            )
+            # Utilise le résumé LLM si disponible, sinon fallback local
+            resume = base.get("genai_analysis", {}).get("justification")
+            if not resume:
+                resume = _build_resume_court(
+                    ind_type,
+                    display_indicator,
+                    precedent,
+                    courant,
+                    table_status,
+                    suspect=False,
+                )
             resume = _augment_resume_with_review_context(
                 resume,
                 comment=notes_analyste,
@@ -389,9 +401,8 @@ def _iter_expert_excel_rows(
                 "Type de changement": type_chg,
                 "Page précédente": _format_cell(base.get("page_t1")),
                 "Page courante": _format_cell(base.get("page_t2")),
-                "Valeur / libellé précédent": precedent,
-                "Valeur / libellé courant": courant,
-                "Résumé métier": resume,
+                "Libellé": _build_libelle(precedent, courant, ind_type),
+                "Justifications": resume,
                 "Nouvelle idée ?": nouvelle_idee,
                 "Validation expert": validation,
                 "Commentaire expert": notes_analyste,
@@ -424,27 +435,24 @@ def _iter_expert_excel_rows(
                 precedent = from_val or ind_name
                 courant = to_val or ind_name
 
-            resume_type = (
-                item_change_type
-                if item_change_type in ("table_added", "table_removed")
-                else ind_type
-            )
-            resume = _build_resume_court(
-                resume_type,
-                ind_name,
-                precedent,
-                courant,
-                table_status,
-                suspect=False,
-            )
+            resume_type = item_change_type if item_change_type in ("table_added", "table_removed") else ind_type
+            # Utilise le résumé LLM si disponible, sinon fallback local
+            resume = base.get("genai_analysis", {}).get("justification")
+            if not resume:
+                resume = _build_resume_court(
+                    resume_type,
+                    ind_name,
+                    precedent,
+                    courant,
+                    table_status,
+                    suspect=False,
+                )
             resume = _augment_resume_with_review_context(
                 resume,
                 comment=notes_analyste,
                 edited_value=str(base.get("edited_value", "") or ""),
             )
-            ind_validation = _to_validation_finale(
-                ind.get("review_status", base.get("review_status", ""))
-            )
+            ind_validation = _to_validation_finale(ind.get("review_status", base.get("review_status", "")))
             yield {
                 "Banque": banque,
                 "Trimestre comparé": trimestre,
@@ -454,9 +462,8 @@ def _iter_expert_excel_rows(
                 "Type de changement": type_chg,
                 "Page précédente": _format_cell(base.get("page_t1")),
                 "Page courante": _format_cell(base.get("page_t2")),
-                "Valeur / libellé précédent": precedent,
-                "Valeur / libellé courant": courant,
-                "Résumé métier": resume,
+                "Libellé": _build_libelle(precedent, courant, ind_type),
+                "Justifications": resume,
                 "Nouvelle idée ?": nouvelle_idee,
                 "Validation expert": ind_validation,
                 "Commentaire expert": notes_analyste,
@@ -618,48 +625,27 @@ def generate_validation_txt(
         "",
     ]
 
-    grouped: dict[str, dict[str, list[dict[str, str]]]] = defaultdict(
-        lambda: defaultdict(list)
-    )
+    grouped: dict[str, dict[str, list[dict[str, str]]]] = defaultdict(lambda: defaultdict(list))
     for row in rows:
-        grouped[str(row.get("Section", "") or "Sans section")][
-            str(row.get("Tableau", "") or "Sans titre")
-        ].append(row)
+        grouped[str(row.get("Section", "") or "Sans section")][str(row.get("Tableau", "") or "Sans titre")].append(row)
 
     for section, tables in grouped.items():
         lines.append(f"SECTION : {section}")
         for table_name, table_rows in tables.items():
             lines.append(f"  Tableau : {table_name}")
             for row in table_rows:
-                lines.append(
-                    f"    - {row.get('Type d’élément', '')} | {row.get('Type de changement', '')}"
-                )
+                lines.append(f"    - {row.get('Type d’élément', '')} | {row.get('Type de changement', '')}")
                 lines.append(
                     f"      Pages : préc. {row.get('Page précédente', '') or '-'} / cour. {row.get('Page courante', '') or '-'}"
                 )
-                lines.append(
-                    f"      Avant : {row.get('Valeur / libellé précédent', '') or '-'}"
-                )
-                lines.append(
-                    f"      Après : {row.get('Valeur / libellé courant', '') or '-'}"
-                )
-                lines.append(
-                    f"      Résumé métier : {row.get('Résumé métier', '') or '-'}"
-                )
-                lines.append(
-                    f"      Nouvelle idée : {row.get('Nouvelle idée ?', '') or 'Non'}"
-                )
-                lines.append(
-                    f"      Validation expert : {row.get('Validation expert', '') or 'En attente'}"
-                )
+                lines.append(f"      Libellé : {row.get('Libellé', '') or '-'}")
+                lines.append(f"      Justifications : {row.get('Justifications', '') or '-'}")
+                lines.append(f"      Nouvelle idée : {row.get('Nouvelle idée ?', '') or 'Non'}")
+                lines.append(f"      Validation expert : {row.get('Validation expert', '') or 'En attente'}")
                 if row.get("Commentaire expert"):
-                    lines.append(
-                        f"      Commentaire expert : {row.get('Commentaire expert', '')}"
-                    )
+                    lines.append(f"      Commentaire expert : {row.get('Commentaire expert', '')}")
                 if row.get("Date de validation"):
-                    lines.append(
-                        f"      Date de validation : {row.get('Date de validation', '')}"
-                    )
+                    lines.append(f"      Date de validation : {row.get('Date de validation', '')}")
             lines.append("")
         if lines and lines[-1] != "":
             lines.append("")
@@ -702,9 +688,7 @@ def _iter_validation_rows(
         tableau = _sanitize_cell(base.get("table_name", ""))
         notes_analyste = _sanitize_cell(comment)
         ts = str(base.get("review_timestamp", "") or "")
-        date_validation = (
-            f"{ts[8:10]}/{ts[5:7]}/{ts[:4]}" if len(ts) >= 10 and ts[4] == "-" else ""
-        )
+        date_validation = f"{ts[8:10]}/{ts[5:7]}/{ts[:4]}" if len(ts) >= 10 and ts[4] == "-" else ""
 
         item_type = str(base.get("item_type", "indicator"))
         ga = base.get("genai_analysis") or {}
@@ -715,9 +699,12 @@ def _iter_validation_rows(
         action_genai = _sanitize_cell(ga.get("action_requise", ""))
         ref_regl_genai = _sanitize_cell(ga.get("reference_reglementaire", ""))
 
-        if not pertinence_genai:
+        is_relevant = bool(ga.get("is_relevant", False))
+        category_genai = str(ga.get("category", "") or "").upper()
+        high_relevance = str(ga.get("relevance_score", "") or "").upper() == "ELEVEE"
+        if not ga:
             nouvelle_divulgation = "Non analysé"
-        elif pertinence_genai.upper() == "NOUVELLE_DIVULGATION":
+        elif is_relevant and (category_genai in ("REGLEMENTAIRE", "RISQUE", "CAPITAL") or high_relevance):
             nouvelle_divulgation = "Oui"
         else:
             nouvelle_divulgation = "Non"
@@ -727,9 +714,7 @@ def _iter_validation_rows(
             ind_name = _sanitize_cell(base.get("indicator", ""))
             type_elem = _to_type_element(ind_type, item_type)
             type_chg = _to_type_changement(ind_type, table_status)
-            resume = _build_resume_court(
-                ind_type, ind_name, "", "", table_status, suspect=(suspect == "Oui")
-            )
+            resume = _build_resume_court(ind_type, ind_name, "", "", table_status, suspect=(suspect == "Oui"))
             resume = _augment_resume_with_review_context(
                 resume,
                 comment=comment,
@@ -773,11 +758,7 @@ def _iter_validation_rows(
 
                 type_elem = _to_type_element(item_change_type or ind_type, item_type)
                 type_chg = _to_type_changement(ind_type, table_status)
-                resume_type = (
-                    item_change_type
-                    if item_change_type in ("table_added", "table_removed")
-                    else ind_type
-                )
+                resume_type = item_change_type if item_change_type in ("table_added", "table_removed") else ind_type
                 resume = _build_resume_court(
                     resume_type,
                     ind_name,
@@ -797,20 +778,12 @@ def _iter_validation_rows(
                 elif ind_type == "removed":
                     ind_t1, ind_t2 = _sanitize_cell(ind_name), ""
                 elif ind_type == "renamed":
-                    ind_t1 = (
-                        _sanitize_cell(from_val)
-                        if from_val
-                        else _sanitize_cell(ind_name)
-                    )
-                    ind_t2 = (
-                        _sanitize_cell(to_val) if to_val else _sanitize_cell(ind_name)
-                    )
+                    ind_t1 = _sanitize_cell(from_val) if from_val else _sanitize_cell(ind_name)
+                    ind_t2 = _sanitize_cell(to_val) if to_val else _sanitize_cell(ind_name)
                 else:
                     ind_t1, ind_t2 = _sanitize_cell(ind_name), _sanitize_cell(ind_name)
 
-                ind_validation = _to_validation_finale(
-                    ind.get("review_status", base.get("review_status", ""))
-                )
+                ind_validation = _to_validation_finale(ind.get("review_status", base.get("review_status", "")))
                 row = {
                     "banque": banque,
                     "trimestre": trimestre,
@@ -1006,9 +979,7 @@ def export_review_items_csv(
                     ),
                     "confidence": _format_cell(base.get("confidence", "")),
                     "match_method": _sanitize_cell(base.get("match_method", "")),
-                    "review_status": _sanitize_cell(
-                        ind.get("review_status", base.get("review_status", ""))
-                    ),
+                    "review_status": _sanitize_cell(ind.get("review_status", base.get("review_status", ""))),
                     "idee": "",
                     "sujet": "",
                     "validation_finale": "",

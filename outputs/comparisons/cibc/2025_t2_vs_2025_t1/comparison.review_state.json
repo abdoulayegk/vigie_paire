@@ -3,17 +3,99 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/cibc/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260404_215908",
   "review_items_signature": "e05bfc700be22efd013ab34f181c9b58e47511c3485f233df90422d122c0a6e2",
-  "saved_at": "2026-04-05T22:19:22+00:00",
+  "saved_at": "2026-04-06T13:31:42+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "cibc::risk_management::tbl_p046_i01|tbl_p053_i01",
-    "change_id": "chg_00014"
+    "review_id": "cibc::risk_management::tbl_p034_i01|tbl_p041_i01",
+    "change_id": "chg_00001"
   },
-  "review_current_idx": 11,
+  "review_current_idx": 2,
   "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
+    {
+      "change_id": "cibc::capital_management::tbl_p024_i01|tbl_p031_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "capital_management",
+      "table_name": "tbl_p031_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p024_i01",
+      "table_id_t2": "tbl_p031_i01",
+      "page_t1": 24,
+      "page_t2": 31,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-06T13:31:41.850194+00:00",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "tbl_p031_i01",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "[2] Le 17 décembre 2024, le BSIF a annoncé que la RSI serait mai -> La RSI est actuellement établie à 3,5 %, mais elle peut être",
+          "type": "modified",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Indicators and headers match exactly with tbl_p024_i01; row_count 6 vs 6; footnote_count 2 vs 2.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05644324558233124,
+        0.14019238828408598,
+        0.9426554760901756,
+        0.26445361821338387
+      ],
+      "bbox_t2": [
+        0.05631595811033561,
+        0.10133963883525195,
+        0.9421129413679534,
+        0.2252984865747317
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "La modification des notes indique un changement potentiel dans le taux de RSI, ce qui peut affecter les exigences de capital réglementaire.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "ELEVE",
+        "confidence": 0.9,
+        "explanation": "La modification des notes indique un changement potentiel dans le taux de RSI, ce qui peut affecter les exigences de capital réglementaire.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "escalade",
+        "reference_reglementaire": "Bâle III — RSI",
+        "impact_description": "Le changement de taux de RSI pourrait avoir un impact significatif sur les exigences de capital de la banque.",
+        "source": "llm",
+        "justification": "La modification des notes indique un changement potentiel dans le taux de RSI, ce qui peut affecter les exigences de capital réglementaire.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
     {
       "change_id": "cibc::capital_management::tbl_p026_i01|",
       "change_type": "table_removed",
@@ -30,7 +112,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-05T22:19:07.618276+00:00",
+      "review_timestamp": "2026-04-06T13:31:42.808424+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -94,10 +176,10 @@
       "page_t2": 41,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-05T22:19:06.104167+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -107,12 +189,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p041_i01",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "En fonction des paiements réels des clients",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[1] Comprend des prêts hypothécaires à taux variable de 21,9 G$  -> Comprend des prêts hypothécaires à taux variable de 19,8 G$ ",
@@ -169,6 +251,175 @@
       }
     },
     {
+      "change_id": "cibc::risk_management::tbl_p036_i01|tbl_p043_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "tbl_p043_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p036_i01",
+      "table_id_t2": "tbl_p043_i01",
+      "page_t1": 36,
+      "page_t2": 43,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.98,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "tbl_p043_i01",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[1] Les montants sont présentés nets des REC et des garanties. L -> Les montants sont présentés nets des REC et des garanties. L",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[5] Compte non tenu d’expositions de 6 724 M$ (6 419 M$ au 31 oc -> Compte non tenu d’expositions de 6 070 M$ (6 419 M$ au 31 oc",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Indicators and headers match exactly with tbl_p036_i01; row_count 8 vs 9; footnote_count 5 vs 5.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05739941939808964,
+        0.21740647518273556,
+        0.9438651091133068,
+        0.40806995738636365
+      ],
+      "bbox_t2": [
+        0.05747884239246643,
+        0.2160892871895222,
+        0.9432408949908089,
+        0.4068917939157197
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "La modification des notes de bas de tableau indique un changement dans les expositions nettes, ce qui peut affecter l'évaluation des risques.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La modification des notes de bas de tableau indique un changement dans les expositions nettes, ce qui peut affecter l'évaluation des risques.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "Le changement des expositions nettes pourrait influencer l'analyse des risques et la gestion des garanties.",
+        "source": "llm",
+        "justification": "La modification des notes de bas de tableau indique un changement dans les expositions nettes, ce qui peut affecter l'évaluation des risques.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "cibc::risk_management::tbl_p042_i01|tbl_p049_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "tbl_p049_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p042_i01",
+      "table_id_t2": "tbl_p049_i01",
+      "page_t1": 42,
+      "page_t2": 49,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "tbl_p049_i01",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[s. o.] Sans objet, conformément au modèle de divulgation commun du LCR.",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Indicators and headers match exactly with tbl_p042_i01; row_count 28 vs 28; footnote_count 2 vs 2.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05569273506114686,
+        0.0865260326501095,
+        0.9433906904233048,
+        0.4543034331967133
+      ],
+      "bbox_t2": [
+        0.056128950680003446,
+        0.08591632650356101,
+        0.943432577295241,
+        0.46531079995511765
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "L'ajout de notes indiquant une conformité au modèle de divulgation commun du LCR est pertinent car il peut signaler un changement dans la manière dont les informations sur la liquidité sont présentées.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "L'ajout de notes indiquant une conformité au modèle de divulgation commun du LCR est pertinent car il peut signaler un changement dans la manière dont les informations sur la liquidité sont présentées.",
+        "impact_type": "methodologique",
+        "project_phase": "pilier_3",
+        "action_requise": "confirmation",
+        "reference_reglementaire": "Bâle III — LCR",
+        "impact_description": "Le changement pourrait affecter la transparence et la comparabilité des informations sur la liquidité.",
+        "source": "llm",
+        "justification": "L'ajout de notes indiquant une conformité au modèle de divulgation commun du LCR est pertinent car il peut signaler un changement dans la manière dont les informations sur la liquidité sont présentées.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
       "change_id": "cibc::capital_management::tbl_p027_i01|",
       "change_type": "table_removed",
       "indicator": "Tableau entier retiré",
@@ -181,10 +432,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-05T22:19:10.621328+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -194,7 +445,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p027_i01",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -303,90 +554,6 @@
       }
     },
     {
-      "change_id": "cibc::risk_management::tbl_p035_i01|tbl_p042_i01",
-      "change_type": "renamed",
-      "indicator": "1 renommé(s)",
-      "section": "risk_management",
-      "table_name": "tbl_p042_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p035_i01",
-      "table_id_t2": "tbl_p042_i01",
-      "page_t1": 35,
-      "page_t2": 42,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
-      "review_status": "approved",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-05T22:19:14.777943+00:00",
-      "edited_value": "",
-      "confidence": 0.99,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "tbl_p042_i01",
-      "table_status": "completed",
-      "indicators": [
-        {
-          "name": "Change et autres -> ai Change et autres",
-          "type": "renamed",
-          "from": "Change et autres",
-          "to": "ai Change et autres",
-          "review_status": "approved"
-        }
-      ],
-      "match_method": "Indicators and headers match exactly with tbl_p035_i01; row_count 15 vs 15; footnote_count 2 vs 2.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05728972191904105,
-        0.10503734241832387,
-        0.9436672435087317,
-        0.3280510565247199
-      ],
-      "bbox_t2": [
-        0.056840865440617984,
-        0.09711989007814967,
-        0.9432447844860601,
-        0.3128543429904514
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "risque_credit",
-        "change_significance": "moyen",
-        "review_priority": "normale",
-        "analyst_summary": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
-        "is_relevant": false,
-        "category": "COSMETIQUE",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
-        "confidence": 0.9,
-        "explanation": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
-        "impact_type": "cosmetique",
-        "project_phase": "rapport_gestion",
-        "action_requise": "aucune",
-        "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm",
-        "justification": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
-        "relevance": "Cosmétique"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "risque_credit",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      }
-    },
-    {
       "change_id": "cibc::risk_management::tbl_p033_i01|tbl_p040_i01",
       "change_type": "removed",
       "indicator": "",
@@ -450,70 +617,33 @@
       "item_type": "footnote",
       "event_type": "footnote_only",
       "footnote_changes": [],
-      "genai_analysis": {},
-      "match_metadata": {}
-    },
-    {
-      "change_id": "cibc::risk_management::tbl_p036_i01|tbl_p043_i01",
-      "change_type": "removed",
-      "indicator": "",
-      "section": "risk_management",
-      "table_name": "tbl_p043_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p036_i01",
-      "table_id_t2": "tbl_p043_i01",
-      "page_t1": 36,
-      "page_t2": 43,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-05T22:19:16.794888+00:00",
-      "edited_value": "",
-      "confidence": 0.98,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "tbl_p043_i01",
-      "table_status": "partial",
-      "indicators": [
-        {
-          "name": "[1] Les montants sont présentés nets des REC et des garanties. L -> Les montants sont présentés nets des REC et des garanties. L",
-          "type": "modified",
-          "review_status": "approved"
-        },
-        {
-          "name": "[5] Compte non tenu d’expositions de 6 724 M$ (6 419 M$ au 31 oc -> Compte non tenu d’expositions de 6 070 M$ (6 419 M$ au 31 oc",
-          "type": "modified",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Indicators and headers match exactly with tbl_p036_i01; row_count 8 vs 9; footnote_count 5 vs 5.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05739941939808964,
-        0.21740647518273556,
-        0.9438651091133068,
-        0.40806995738636365
-      ],
-      "bbox_t2": [
-        0.05747884239246643,
-        0.2160892871895222,
-        0.9432408949908089,
-        0.4068917939157197
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "footnote",
-      "event_type": "footnote_only",
-      "footnote_changes": [],
-      "genai_analysis": {},
-      "match_metadata": {}
+      "genai_analysis": {
+        "theme": "autre",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Les modifications concernent des variations mineures de montants et de pourcentages qui ne semblent pas affecter directement les seuils ou ratios réglementaires.",
+        "is_relevant": false,
+        "category": "RISQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Les modifications concernent des variations mineures de montants et de pourcentages qui ne semblent pas affecter directement les seuils ou ratios réglementaires.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Les changements n'ont pas d'impact concret sur les exigences réglementaires ou la gestion des risques.",
+        "source": "llm",
+        "justification": "Les modifications concernent des variations mineures de montants et de pourcentages qui ne semblent pas affecter directement les seuils ou ratios réglementaires.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "autre",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 0 changement(s) d'indicateur et 3 changement(s) de footnote."
+      }
     },
     {
       "change_id": "cibc::risk_management::tbl_p033_i02|tbl_p040_i02",
@@ -574,26 +704,51 @@
       "item_type": "footnote",
       "event_type": "footnote_only",
       "footnote_changes": [],
-      "genai_analysis": {},
-      "match_metadata": {}
+      "genai_analysis": {
+        "theme": "autre",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Les modifications des notes semblent être des répétitions sans changement de fond.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Les modifications des notes semblent être des répétitions sans changement de fond.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret du changement détecté.",
+        "source": "llm",
+        "justification": "Les modifications des notes semblent être des répétitions sans changement de fond.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "autre",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
     },
     {
-      "change_id": "cibc::capital_management::tbl_p024_i01|tbl_p031_i01",
-      "change_type": "removed",
-      "indicator": "",
-      "section": "capital_management",
-      "table_name": "tbl_p031_i01",
+      "change_id": "cibc::risk_management::tbl_p035_i01|tbl_p042_i01",
+      "change_type": "renamed",
+      "indicator": "1 renommé(s)",
+      "section": "risk_management",
+      "table_name": "tbl_p042_i01",
       "table_number": "",
-      "table_id_t1": "tbl_p024_i01",
-      "table_id_t2": "tbl_p031_i01",
-      "page_t1": 24,
-      "page_t2": 31,
+      "table_id_t1": "tbl_p035_i01",
+      "table_id_t2": "tbl_p042_i01",
+      "page_t1": 35,
+      "page_t2": 42,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-05T22:19:19.804092+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -602,37 +757,64 @@
       "unit_context_t2": "",
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
-      "table_title_raw": "tbl_p031_i01",
-      "table_status": "completed",
+      "table_title_raw": "tbl_p042_i01",
+      "table_status": "pending",
       "indicators": [
         {
-          "name": "[2] Le 17 décembre 2024, le BSIF a annoncé que la RSI serait mai -> La RSI est actuellement établie à 3,5 %, mais elle peut être",
-          "type": "modified",
-          "review_status": "approved"
+          "name": "Change et autres -> ai Change et autres",
+          "type": "renamed",
+          "from": "Change et autres",
+          "to": "ai Change et autres",
+          "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly with tbl_p024_i01; row_count 6 vs 6; footnote_count 2 vs 2.",
+      "match_method": "Indicators and headers match exactly with tbl_p035_i01; row_count 15 vs 15; footnote_count 2 vs 2.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
-        0.05644324558233124,
-        0.14019238828408598,
-        0.9426554760901756,
-        0.26445361821338387
+        0.05728972191904105,
+        0.10503734241832387,
+        0.9436672435087317,
+        0.3280510565247199
       ],
       "bbox_t2": [
-        0.05631595811033561,
-        0.10133963883525195,
-        0.9421129413679534,
-        0.2252984865747317
+        0.056840865440617984,
+        0.09711989007814967,
+        0.9432447844860601,
+        0.3128543429904514
       ],
       "added_indicators": [],
       "removed_indicators": [],
-      "item_type": "footnote",
-      "event_type": "footnote_only",
+      "item_type": "indicator",
+      "event_type": "matched_pair",
       "footnote_changes": [],
-      "genai_analysis": {},
-      "match_metadata": {}
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
+        "source": "llm",
+        "justification": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      }
     },
     {
       "change_id": "cibc::risk_management::tbl_p038_i01|tbl_p045_i01",
@@ -688,65 +870,33 @@
       "item_type": "footnote",
       "event_type": "footnote_only",
       "footnote_changes": [],
-      "genai_analysis": {},
-      "match_metadata": {}
-    },
-    {
-      "change_id": "cibc::risk_management::tbl_p042_i01|tbl_p049_i01",
-      "change_type": "removed",
-      "indicator": "",
-      "section": "risk_management",
-      "table_name": "tbl_p049_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p042_i01",
-      "table_id_t2": "tbl_p049_i01",
-      "page_t1": 42,
-      "page_t2": 49,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
-      "review_status": "approved",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-05T22:19:22.501348+00:00",
-      "edited_value": "",
-      "confidence": 0.99,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "tbl_p049_i01",
-      "table_status": "completed",
-      "indicators": [
-        {
-          "name": "[s. o.] Sans objet, conformément au modèle de divulgation commun du LCR.",
-          "type": "modified",
-          "review_status": "approved"
-        }
-      ],
-      "match_method": "Indicators and headers match exactly with tbl_p042_i01; row_count 28 vs 28; footnote_count 2 vs 2.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05569273506114686,
-        0.0865260326501095,
-        0.9433906904233048,
-        0.4543034331967133
-      ],
-      "bbox_t2": [
-        0.056128950680003446,
-        0.08591632650356101,
-        0.943432577295241,
-        0.46531079995511765
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "footnote",
-      "event_type": "footnote_only",
-      "footnote_changes": [],
-      "genai_analysis": {},
-      "match_metadata": {}
+      "genai_analysis": {
+        "theme": "risque_marche",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "La modification des notes ne change pas le contenu ou la méthodologie, il s'agit d'une répétition sans impact.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "La modification des notes ne change pas le contenu ou la méthodologie, il s'agit d'une répétition sans impact.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
+        "source": "llm",
+        "justification": "La modification des notes ne change pas le contenu ou la méthodologie, il s'agit d'une répétition sans impact.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_marche",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
     },
     {
       "change_id": "cibc::risk_management::tbl_p046_i01|tbl_p053_i01",
@@ -802,11 +952,126 @@
       "item_type": "footnote",
       "event_type": "footnote_only",
       "footnote_changes": [],
-      "genai_analysis": {},
-      "match_metadata": {}
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "La modification concerne une variation de valeur numérique propre à la banque sans impact réglementaire direct.",
+        "is_relevant": false,
+        "category": "INCONNU",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "La modification concerne une variation de valeur numérique propre à la banque sans impact réglementaire direct.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "La modification n'affecte pas les seuils ou ratios réglementaires.",
+        "source": "llm",
+        "justification": "La modification concerne une variation de valeur numérique propre à la banque sans impact réglementaire direct.",
+        "relevance": "Inconnu"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
     }
   ],
   "review_queue": [
+    {
+      "review_id": "cibc::capital_management::tbl_p024_i01|tbl_p031_i01",
+      "table_key": "cibc::capital_management::tbl_p024_i01|tbl_p031_i01",
+      "table_title": "tbl_p031_i01",
+      "view_mode": "change_list",
+      "section": "capital_management",
+      "table_name": "tbl_p031_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p024_i01",
+      "table_id_t2": "tbl_p031_i01",
+      "page_t1": 24,
+      "page_t2": 31,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05644324558233124,
+        0.14019238828408598,
+        0.9426554760901756,
+        0.26445361821338387
+      ],
+      "bbox_t2": [
+        0.05631595811033561,
+        0.10133963883525195,
+        0.9421129413679534,
+        0.2252984865747317
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00003",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[2] Le 17 décembre 2024, le BSIF a annoncé que la RSI serait mai -> La RSI est actuellement établie à 3,5 %, mais elle peut être",
+            "indicator_name_clean": "[2] le 17 décembre 2024, le bsif a annoncé que la rsi serait mai -> la rsi est actuellement établie à 3,5 %, mais elle peut être",
+            "footnote_ref": "2",
+            "old_text": "Le 17 décembre 2024, le BSIF a annoncé que la RSI serait maintenue à un taux correspondant à 3,5 % du total de l’APR. Ce niveau demeure inchangé depuis le 31 octobre 2024.",
+            "new_text": "La RSI est actuellement établie à 3,5 %, mais elle peut être de l’ordre de 0,0 % à 4,0 % de l’APR."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-06T13:31:41.850194+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.99,
+      "match_method": "Indicators and headers match exactly with tbl_p024_i01; row_count 6 vs 6; footnote_count 2 vs 2.",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "La modification des notes indique un changement potentiel dans le taux de RSI, ce qui peut affecter les exigences de capital réglementaire.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "ELEVE",
+        "confidence": 0.9,
+        "explanation": "La modification des notes indique un changement potentiel dans le taux de RSI, ce qui peut affecter les exigences de capital réglementaire.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "escalade",
+        "reference_reglementaire": "Bâle III — RSI",
+        "impact_description": "Le changement de taux de RSI pourrait avoir un impact significatif sur les exigences de capital de la banque.",
+        "source": "llm",
+        "justification": "La modification des notes indique un changement potentiel dans le taux de RSI, ce qui peut affecter les exigences de capital réglementaire.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "Capital",
+      "risk_level": "ELEVE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 1,
+        "pending": 0
+      }
+    },
     {
       "review_id": "cibc::capital_management::tbl_p026_i01|",
       "table_key": "cibc::capital_management::tbl_p026_i01|",
@@ -843,7 +1108,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-05T22:19:07.618276+00:00",
+          "validated_at": "2026-04-06T13:31:42.808424+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -922,12 +1187,12 @@
             "indicator_name": "En fonction des paiements réels des clients",
             "indicator_name_clean": "en fonction des paiements réels des clients"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-05T22:19:06.104167+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00009",
@@ -947,7 +1212,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.9,
       "match_method": "Table summary and headers match with tbl_p034_i01; both describe amortization periods of mortgage portfolios with similar headers and indicators.",
       "genai_analysis": {
@@ -985,7 +1250,204 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
+        "validated": 0,
+        "pending": 2
+      }
+    },
+    {
+      "review_id": "cibc::risk_management::tbl_p036_i01|tbl_p043_i01",
+      "table_key": "cibc::risk_management::tbl_p036_i01|tbl_p043_i01",
+      "table_title": "tbl_p043_i01",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "tbl_p043_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p036_i01",
+      "table_id_t2": "tbl_p043_i01",
+      "page_t1": 36,
+      "page_t2": 43,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05739941939808964,
+        0.21740647518273556,
+        0.9438651091133068,
+        0.40806995738636365
+      ],
+      "bbox_t2": [
+        0.05747884239246643,
+        0.2160892871895222,
+        0.9432408949908089,
+        0.4068917939157197
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00010",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Les montants sont présentés nets des REC et des garanties. L -> Les montants sont présentés nets des REC et des garanties. L",
+            "indicator_name_clean": "[1] les montants sont présentés nets des rec et des garanties. l -> les montants sont présentés nets des rec et des garanties. l",
+            "footnote_ref": "1",
+            "old_text": "Les montants sont présentés nets des REC et des garanties. La garantie offerte à l’égard des créances réévaluées à la valeur de marché liées à des dérivés s’établissait à 5,8 G$ (5,8 G$ au 31 octobre 2024), et la garantie offerte à l’égard des transactions assimilées à des mises en pension de titres s’élevait à 83,9 G$ (86,1 G$ au 31 octobre 2024), les deux garanties comprenant des liquidités et des titres de créance de qualité supérieure.",
+            "new_text": "Les montants sont présentés nets des REC et des garanties. La garantie offerte à l’égard des créances réévaluées à la valeur de marché liées à des dérivés s’établissait à 7,1 G$ (5,8 G$ au 31 octobre 2024), et la garantie offerte à l’égard des transactions assimilées à des mises en pension de titres s’élevait à 81,9 G$ (86,1 G$ au 31 octobre 2024), les deux garanties comprenant des liquidités et des titres de créance de qualité supérieure."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00011",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[5] Compte non tenu d’expositions de 6 724 M$ (6 419 M$ au 31 oc -> Compte non tenu d’expositions de 6 070 M$ (6 419 M$ au 31 oc",
+            "indicator_name_clean": "[5] compte non tenu d’expositions de 6 724 m$ (6 419 m$ au 31 oc -> compte non tenu d’expositions de 6 070 m$ (6 419 m$ au 31 oc",
+            "footnote_ref": "5",
+            "old_text": "Compte non tenu d’expositions de 6 724 M$ (6 419 M$ au 31 octobre 2024) à des entités supranationales (organisation multinationale ou union politique dont les membres sont des États-nations).",
+            "new_text": "Compte non tenu d’expositions de 6 070 M$ (6 419 M$ au 31 octobre 2024) à des entités supranationales (organisation multinationale ou union politique dont les membres sont des États-nations)."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly with tbl_p036_i01; row_count 8 vs 9; footnote_count 5 vs 5.",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "La modification des notes de bas de tableau indique un changement dans les expositions nettes, ce qui peut affecter l'évaluation des risques.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La modification des notes de bas de tableau indique un changement dans les expositions nettes, ce qui peut affecter l'évaluation des risques.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "Le changement des expositions nettes pourrait influencer l'analyse des risques et la gestion des garanties.",
+        "source": "llm",
+        "justification": "La modification des notes de bas de tableau indique un changement dans les expositions nettes, ce qui peut affecter l'évaluation des risques.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 2,
+        "validated": 0,
+        "pending": 2
+      }
+    },
+    {
+      "review_id": "cibc::risk_management::tbl_p042_i01|tbl_p049_i01",
+      "table_key": "cibc::risk_management::tbl_p042_i01|tbl_p049_i01",
+      "table_title": "tbl_p049_i01",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "tbl_p049_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p042_i01",
+      "table_id_t2": "tbl_p049_i01",
+      "page_t1": 42,
+      "page_t2": 49,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05569273506114686,
+        0.0865260326501095,
+        0.9433906904233048,
+        0.4543034331967133
+      ],
+      "bbox_t2": [
+        0.056128950680003446,
+        0.08591632650356101,
+        0.943432577295241,
+        0.46531079995511765
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00013",
+          "change_type": "footnote_added",
+          "payload": {
+            "indicator_name": "[s. o.] Sans objet, conformément au modèle de divulgation commun du LCR.",
+            "indicator_name_clean": "[s. o.] sans objet, conformément au modèle de divulgation commun du lcr.",
+            "footnote_ref": "s. o.",
+            "old_text": "",
+            "new_text": "Sans objet, conformément au modèle de divulgation commun du LCR."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.99,
+      "match_method": "Indicators and headers match exactly with tbl_p042_i01; row_count 28 vs 28; footnote_count 2 vs 2.",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "L'ajout de notes indiquant une conformité au modèle de divulgation commun du LCR est pertinent car il peut signaler un changement dans la manière dont les informations sur la liquidité sont présentées.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "L'ajout de notes indiquant une conformité au modèle de divulgation commun du LCR est pertinent car il peut signaler un changement dans la manière dont les informations sur la liquidité sont présentées.",
+        "impact_type": "methodologique",
+        "project_phase": "pilier_3",
+        "action_requise": "confirmation",
+        "reference_reglementaire": "Bâle III — LCR",
+        "impact_description": "Le changement pourrait affecter la transparence et la comparabilité des informations sur la liquidité.",
+        "source": "llm",
+        "justification": "L'ajout de notes indiquant une conformité au modèle de divulgation commun du LCR est pertinent car il peut signaler un changement dans la manière dont les informations sur la liquidité sont présentées.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
         "pending": 1
       }
     },
@@ -1021,15 +1483,15 @@
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-05T22:19:10.621328+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1063,8 +1525,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1143,97 +1605,6 @@
         "footnotes_changed": 0,
         "validated": 0,
         "pending": 1
-      }
-    },
-    {
-      "review_id": "cibc::risk_management::tbl_p035_i01|tbl_p042_i01",
-      "table_key": "cibc::risk_management::tbl_p035_i01|tbl_p042_i01",
-      "table_title": "tbl_p042_i01",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "tbl_p042_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p035_i01",
-      "table_id_t2": "tbl_p042_i01",
-      "page_t1": 35,
-      "page_t2": 42,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05728972191904105,
-        0.10503734241832387,
-        0.9436672435087317,
-        0.3280510565247199
-      ],
-      "bbox_t2": [
-        0.056840865440617984,
-        0.09711989007814967,
-        0.9432447844860601,
-        0.3128543429904514
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00002",
-          "change_type": "indicator_renamed",
-          "payload": {
-            "indicator_name": "Change et autres -> ai Change et autres",
-            "indicator_name_clean": "change et autres -> ai change et autres",
-            "from": "Change et autres",
-            "to": "ai Change et autres",
-            "from_clean": "Change et autres",
-            "to_clean": "ai Change et autres"
-          },
-          "validation_status": "approved",
-          "is_required": true,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-05T22:19:14.777943+00:00",
-          "validated_by": "analyst"
-        }
-      ],
-      "table_status": "completed",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly with tbl_p035_i01; row_count 15 vs 15; footnote_count 2 vs 2.",
-      "genai_analysis": {
-        "theme": "risque_credit",
-        "change_significance": "moyen",
-        "review_priority": "normale",
-        "analyst_summary": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
-        "is_relevant": false,
-        "category": "COSMETIQUE",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
-        "confidence": 0.9,
-        "explanation": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
-        "impact_type": "cosmetique",
-        "project_phase": "rapport_gestion",
-        "action_requise": "aucune",
-        "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm",
-        "justification": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
-        "relevance": "Cosmétique"
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "risque_credit",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "Cosmétique",
-      "risk_level": "FAIBLE",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 1,
-        "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
       }
     },
     {
@@ -1321,10 +1692,35 @@
       "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Indicators and headers match exactly with tbl_p033_i01; row_count 10 vs 10; footnote_count 6 vs 6.",
-      "genai_analysis": {},
-      "match_metadata": {},
-      "relevance": "",
-      "risk_level": "",
+      "genai_analysis": {
+        "theme": "autre",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Les modifications concernent des variations mineures de montants et de pourcentages qui ne semblent pas affecter directement les seuils ou ratios réglementaires.",
+        "is_relevant": false,
+        "category": "RISQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Les modifications concernent des variations mineures de montants et de pourcentages qui ne semblent pas affecter directement les seuils ou ratios réglementaires.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Les changements n'ont pas d'impact concret sur les exigences réglementaires ou la gestion des risques.",
+        "source": "llm",
+        "justification": "Les modifications concernent des variations mineures de montants et de pourcentages qui ne semblent pas affecter directement les seuils ou ratios réglementaires.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "autre",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 0 changement(s) d'indicateur et 3 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "FAIBLE",
       "summary": {
         "total_changes": 3,
         "indicators_added": 0,
@@ -1333,88 +1729,6 @@
         "footnotes_changed": 3,
         "validated": 0,
         "pending": 3
-      }
-    },
-    {
-      "review_id": "cibc::risk_management::tbl_p036_i01|tbl_p043_i01",
-      "table_key": "cibc::risk_management::tbl_p036_i01|tbl_p043_i01",
-      "table_title": "tbl_p043_i01",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "tbl_p043_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p036_i01",
-      "table_id_t2": "tbl_p043_i01",
-      "page_t1": 36,
-      "page_t2": 43,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05739941939808964,
-        0.21740647518273556,
-        0.9438651091133068,
-        0.40806995738636365
-      ],
-      "bbox_t2": [
-        0.05747884239246643,
-        0.2160892871895222,
-        0.9432408949908089,
-        0.4068917939157197
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00010",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[1] Les montants sont présentés nets des REC et des garanties. L -> Les montants sont présentés nets des REC et des garanties. L",
-            "indicator_name_clean": "[1] les montants sont présentés nets des rec et des garanties. l -> les montants sont présentés nets des rec et des garanties. l",
-            "footnote_ref": "1",
-            "old_text": "Les montants sont présentés nets des REC et des garanties. La garantie offerte à l’égard des créances réévaluées à la valeur de marché liées à des dérivés s’établissait à 5,8 G$ (5,8 G$ au 31 octobre 2024), et la garantie offerte à l’égard des transactions assimilées à des mises en pension de titres s’élevait à 83,9 G$ (86,1 G$ au 31 octobre 2024), les deux garanties comprenant des liquidités et des titres de créance de qualité supérieure.",
-            "new_text": "Les montants sont présentés nets des REC et des garanties. La garantie offerte à l’égard des créances réévaluées à la valeur de marché liées à des dérivés s’établissait à 7,1 G$ (5,8 G$ au 31 octobre 2024), et la garantie offerte à l’égard des transactions assimilées à des mises en pension de titres s’élevait à 81,9 G$ (86,1 G$ au 31 octobre 2024), les deux garanties comprenant des liquidités et des titres de créance de qualité supérieure."
-          },
-          "validation_status": "approved",
-          "is_required": false,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-05T22:19:16.794888+00:00",
-          "validated_by": "analyst"
-        },
-        {
-          "change_id": "chg_00011",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[5] Compte non tenu d’expositions de 6 724 M$ (6 419 M$ au 31 oc -> Compte non tenu d’expositions de 6 070 M$ (6 419 M$ au 31 oc",
-            "indicator_name_clean": "[5] compte non tenu d’expositions de 6 724 m$ (6 419 m$ au 31 oc -> compte non tenu d’expositions de 6 070 m$ (6 419 m$ au 31 oc",
-            "footnote_ref": "5",
-            "old_text": "Compte non tenu d’expositions de 6 724 M$ (6 419 M$ au 31 octobre 2024) à des entités supranationales (organisation multinationale ou union politique dont les membres sont des États-nations).",
-            "new_text": "Compte non tenu d’expositions de 6 070 M$ (6 419 M$ au 31 octobre 2024) à des entités supranationales (organisation multinationale ou union politique dont les membres sont des États-nations)."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "partial",
-      "confidence": 0.98,
-      "match_method": "Indicators and headers match exactly with tbl_p036_i01; row_count 8 vs 9; footnote_count 5 vs 5.",
-      "genai_analysis": {},
-      "match_metadata": {},
-      "relevance": "",
-      "risk_level": "",
-      "summary": {
-        "total_changes": 2,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
       }
     },
     {
@@ -1485,10 +1799,35 @@
       "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Indicators and headers match exactly with tbl_p033_i02; row_count 9 vs 9; footnote_count 4 vs 4.",
-      "genai_analysis": {},
-      "match_metadata": {},
-      "relevance": "",
-      "risk_level": "",
+      "genai_analysis": {
+        "theme": "autre",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Les modifications des notes semblent être des répétitions sans changement de fond.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Les modifications des notes semblent être des répétitions sans changement de fond.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret du changement détecté.",
+        "source": "llm",
+        "justification": "Les modifications des notes semblent être des répétitions sans changement de fond.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "autre",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "Cosmétique",
+      "risk_level": "FAIBLE",
       "summary": {
         "total_changes": 2,
         "indicators_added": 0,
@@ -1500,68 +1839,94 @@
       }
     },
     {
-      "review_id": "cibc::capital_management::tbl_p024_i01|tbl_p031_i01",
-      "table_key": "cibc::capital_management::tbl_p024_i01|tbl_p031_i01",
-      "table_title": "tbl_p031_i01",
+      "review_id": "cibc::risk_management::tbl_p035_i01|tbl_p042_i01",
+      "table_key": "cibc::risk_management::tbl_p035_i01|tbl_p042_i01",
+      "table_title": "tbl_p042_i01",
       "view_mode": "change_list",
-      "section": "capital_management",
-      "table_name": "tbl_p031_i01",
+      "section": "risk_management",
+      "table_name": "tbl_p042_i01",
       "table_number": "",
-      "table_id_t1": "tbl_p024_i01",
-      "table_id_t2": "tbl_p031_i01",
-      "page_t1": 24,
-      "page_t2": 31,
+      "table_id_t1": "tbl_p035_i01",
+      "table_id_t2": "tbl_p042_i01",
+      "page_t1": 35,
+      "page_t2": 42,
       "proof_image_t1": "",
       "proof_image_t2": "",
       "proof_image_combined": "",
       "bbox_t1": [
-        0.05644324558233124,
-        0.14019238828408598,
-        0.9426554760901756,
-        0.26445361821338387
+        0.05728972191904105,
+        0.10503734241832387,
+        0.9436672435087317,
+        0.3280510565247199
       ],
       "bbox_t2": [
-        0.05631595811033561,
-        0.10133963883525195,
-        0.9421129413679534,
-        0.2252984865747317
+        0.056840865440617984,
+        0.09711989007814967,
+        0.9432447844860601,
+        0.3128543429904514
       ],
       "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
       "changes": [
         {
-          "change_id": "chg_00003",
-          "change_type": "footnote_modified",
+          "change_id": "chg_00002",
+          "change_type": "indicator_renamed",
           "payload": {
-            "indicator_name": "[2] Le 17 décembre 2024, le BSIF a annoncé que la RSI serait mai -> La RSI est actuellement établie à 3,5 %, mais elle peut être",
-            "indicator_name_clean": "[2] le 17 décembre 2024, le bsif a annoncé que la rsi serait mai -> la rsi est actuellement établie à 3,5 %, mais elle peut être",
-            "footnote_ref": "2",
-            "old_text": "Le 17 décembre 2024, le BSIF a annoncé que la RSI serait maintenue à un taux correspondant à 3,5 % du total de l’APR. Ce niveau demeure inchangé depuis le 31 octobre 2024.",
-            "new_text": "La RSI est actuellement établie à 3,5 %, mais elle peut être de l’ordre de 0,0 % à 4,0 % de l’APR."
+            "indicator_name": "Change et autres -> ai Change et autres",
+            "indicator_name_clean": "change et autres -> ai change et autres",
+            "from": "Change et autres",
+            "to": "ai Change et autres",
+            "from_clean": "Change et autres",
+            "to_clean": "ai Change et autres"
           },
-          "validation_status": "approved",
-          "is_required": false,
-          "validation_decision": "approved",
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-05T22:19:19.804092+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly with tbl_p024_i01; row_count 6 vs 6; footnote_count 2 vs 2.",
-      "genai_analysis": {},
-      "match_metadata": {},
-      "relevance": "",
-      "risk_level": "",
+      "match_method": "Indicators and headers match exactly with tbl_p035_i01; row_count 15 vs 15; footnote_count 2 vs 2.",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
+        "source": "llm",
+        "justification": "Le changement concerne uniquement le renommage d'indicateurs sans impact sur le contenu ou la méthodologie.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "relevance": "Cosmétique",
+      "risk_level": "FAIBLE",
       "summary": {
         "total_changes": 1,
         "indicators_added": 0,
         "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "indicators_renamed": 1,
+        "footnotes_changed": 0,
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1615,10 +1980,35 @@
       "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Indicators and headers match exactly with tbl_p038_i01; row_count 7 vs 7; footnote_count 1 vs 1.",
-      "genai_analysis": {},
-      "match_metadata": {},
-      "relevance": "",
-      "risk_level": "",
+      "genai_analysis": {
+        "theme": "risque_marche",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "La modification des notes ne change pas le contenu ou la méthodologie, il s'agit d'une répétition sans impact.",
+        "is_relevant": false,
+        "category": "COSMETIQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "La modification des notes ne change pas le contenu ou la méthodologie, il s'agit d'une répétition sans impact.",
+        "impact_type": "cosmetique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
+        "source": "llm",
+        "justification": "La modification des notes ne change pas le contenu ou la méthodologie, il s'agit d'une répétition sans impact.",
+        "relevance": "Cosmétique"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_marche",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "Cosmétique",
+      "risk_level": "FAIBLE",
       "summary": {
         "total_changes": 1,
         "indicators_added": 0,
@@ -1627,71 +2017,6 @@
         "footnotes_changed": 1,
         "validated": 0,
         "pending": 1
-      }
-    },
-    {
-      "review_id": "cibc::risk_management::tbl_p042_i01|tbl_p049_i01",
-      "table_key": "cibc::risk_management::tbl_p042_i01|tbl_p049_i01",
-      "table_title": "tbl_p049_i01",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "tbl_p049_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p042_i01",
-      "table_id_t2": "tbl_p049_i01",
-      "page_t1": 42,
-      "page_t2": 49,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05569273506114686,
-        0.0865260326501095,
-        0.9433906904233048,
-        0.4543034331967133
-      ],
-      "bbox_t2": [
-        0.056128950680003446,
-        0.08591632650356101,
-        0.943432577295241,
-        0.46531079995511765
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00013",
-          "change_type": "footnote_added",
-          "payload": {
-            "indicator_name": "[s. o.] Sans objet, conformément au modèle de divulgation commun du LCR.",
-            "indicator_name_clean": "[s. o.] sans objet, conformément au modèle de divulgation commun du lcr.",
-            "footnote_ref": "s. o.",
-            "old_text": "",
-            "new_text": "Sans objet, conformément au modèle de divulgation commun du LCR."
-          },
-          "validation_status": "approved",
-          "is_required": false,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-05T22:19:22.501348+00:00",
-          "validated_by": "analyst"
-        }
-      ],
-      "table_status": "completed",
-      "confidence": 0.99,
-      "match_method": "Indicators and headers match exactly with tbl_p042_i01; row_count 28 vs 28; footnote_count 2 vs 2.",
-      "genai_analysis": {},
-      "match_metadata": {},
-      "relevance": "",
-      "risk_level": "",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
       }
     },
     {
@@ -1745,10 +2070,35 @@
       "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Indicators and headers match exactly with tbl_p046_i01; row_count 23 vs 23; footnote_count 3 vs 3.",
-      "genai_analysis": {},
-      "match_metadata": {},
-      "relevance": "",
-      "risk_level": "",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "La modification concerne une variation de valeur numérique propre à la banque sans impact réglementaire direct.",
+        "is_relevant": false,
+        "category": "INCONNU",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "La modification concerne une variation de valeur numérique propre à la banque sans impact réglementaire direct.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "La modification n'affecte pas les seuils ou ratios réglementaires.",
+        "source": "llm",
+        "justification": "La modification concerne une variation de valeur numérique propre à la banque sans impact réglementaire direct.",
+        "relevance": "Inconnu"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "Inconnu",
+      "risk_level": "FAIBLE",
       "summary": {
         "total_changes": 1,
         "indicators_added": 0,

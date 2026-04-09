@@ -116,7 +116,6 @@ def _devil_advocate_review(
                     "content": json.dumps(user_payload, ensure_ascii=False),
                 },
             ],
-            max_completion_tokens=4000,
             temperature=0.0,
             usage_recorder=usage_recorder,
             call_kind="devil_advocate",

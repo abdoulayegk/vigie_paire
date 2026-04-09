@@ -11,6 +11,7 @@ def register_all_callbacks() -> None:  # noqa: D401
         load_flow,
         proof_flow,
         review_flow,
+        text_flow,
         upload_flow,
         utility_flow,
     )

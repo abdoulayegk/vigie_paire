@@ -213,7 +213,6 @@ def _inspect_matched_pairs(
                         "content": json.dumps(user_payload, ensure_ascii=False),
                     },
                 ],
-                max_completion_tokens=800,
                 temperature=0.0,
                 usage_recorder=usage_recorder,
                 call_kind="match_inspector",

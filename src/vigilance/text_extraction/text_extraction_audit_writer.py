@@ -1,0 +1,27 @@
+"""Lecture et écriture des artefacts d'audit d'extraction texte."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any
+
+TEXT_EXTRACTION_AUDIT_SCHEMA_VERSION = 1
+
+
+def get_text_extraction_audit_path(
+    out_dir: Path,
+    quarter_label: str,
+) -> Path:
+    """Retourne le chemin canonique d'un artefact d'extraction texte auditée."""
+    return out_dir / f"text_extraction_{quarter_label.lower()}.json"
+
+
+def write_text_extraction_audit(
+    payload: dict[str, Any],
+    out_path: Path,
+) -> Path:
+    """Écrit l'artefact d'audit d'extraction texte."""
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return out_path

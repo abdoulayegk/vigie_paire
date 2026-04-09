@@ -58,20 +58,17 @@ stores = [
     dcc.Store(id="store-review-queue", data=None),  # V2: deduplicated grouped queue
     dcc.Store(id="store-review-selection", data={"review_id": None, "change_id": None}),
     dcc.Store(id="store-review-last-positions", data={}),
-    dcc.Store(
-        id="store-current-change-idx", data=0
-    ),  # V2: index within table's changes
+    dcc.Store(id="store-current-change-idx", data=0),  # V2: index within table's changes
     dcc.Store(id="store-analysis-running", data=False),
     dcc.Store(id="store-analysis-start-ms", data=None),
     dcc.Store(id="store-validation-start-ms", data=None),
     dcc.Store(id="store-validation-duration-sec", data=None),
     dcc.Store(id="store-show-results-page", data=False),
+    dcc.Store(id="store-text-comparison", data=None),
     dcc.Store(id="store-review-filters", data={"section": "all", "status": "all"}),
     dcc.Store(id="store-proof-display-mode", data="crop"),
     dcc.Store(id="store-sidebar-collapsed", data=False),
-    dcc.Interval(
-        id="analysis-timer-interval", interval=1000, n_intervals=0, disabled=True
-    ),
+    dcc.Interval(id="analysis-timer-interval", interval=1000, n_intervals=0, disabled=True),
 ]
 
 
@@ -81,9 +78,7 @@ app.layout = html.Div(
         dbc.Navbar(
             dbc.Container(
                 [
-                    dbc.NavbarBrand(
-                        "Comparateur Bancaire", href="/", className="fw-bold"
-                    ),
+                    dbc.NavbarBrand("Comparateur Bancaire", href="/", className="fw-bold"),
                     dbc.Nav(
                         [
                             dbc.NavItem(dbc.NavLink("Accueil", href="#")),
@@ -107,9 +102,7 @@ app.layout = html.Div(
                         build_sidebar(),
                         dbc.Col(
                             [
-                                html.Div(
-                                    id="main-content", children=build_page_upload()
-                                ),
+                                html.Div(id="main-content", children=build_page_upload()),
                                 html.Div(
                                     id="analysis-progress-container",
                                     children=[
@@ -151,6 +144,7 @@ app.layout = html.Div(
     + [
         dcc.Download(id="download-review-excel"),
         dcc.Download(id="download-review-txt"),
+        dcc.Download(id="download-text-excel"),
     ],
 )
 

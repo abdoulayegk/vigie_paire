@@ -11,7 +11,10 @@ vision_extraction:
   fallback_to_docling_on_error: true
   schema_failure_policy: fail_fast
   save_indicators_footnotes_json: true
-  vision_pair_validation: false
+  vision_pair_validation: true
+  vision_consensus_enabled: true
+  vision_t1_anchor_enabled: true
+  vision_t1_anchor_diff_threshold: 0.20
   # Bbox sanity gate: reject crops before Vision (too small, near-full-page, etc.)
   bbox_min_width: 0.02
   bbox_min_height: 0.02
@@ -30,8 +33,8 @@ vision_extraction:
   api_retry_backoff_ms: 1000
   api_timeout_sec: 120
   # Single pipeline: one max_completion_tokens budget for all Vision table extraction (no full/lean).
-  # Default to 64k for large tables, with an optional 128k rescue pass when truncation is detected.
-  vision_max_completion_tokens: 65536
+  # Default to 120k for large tables, with an optional 128k rescue pass when truncation is detected.
+  vision_max_completion_tokens: 120000
   vision_max_completion_tokens_rescue_enabled: true
   vision_max_completion_tokens_rescue: 128000
   vision_reference_text_max_chars: 6000

@@ -461,21 +461,38 @@ def build_page_results() -> html.Div:
                     ),
                 ],
             ),
-            # Main Split Pane (Review Dashboard)
+            # Tabs: Indicateurs / Analyse Textuelle
             html.Div(
-                [
-                    html.Div(
-                        [
-                            html.H5("Vue rapide par section", className="mb-1"),
-                            html.P(
-                                "Repérez rapidement les tableaux touchés avant d'ouvrir le détail analyste.",
-                                className="text-muted mb-0",
+                dbc.Tabs(
+                    [
+                        dbc.Tab(
+                            html.Div(
+                                [
+                                    html.Div(
+                                        [
+                                            html.H5("Vue rapide par section", className="mb-1 mt-3"),
+                                            html.P(
+                                                "Repérez rapidement les tableaux touchés avant d'ouvrir le détail analyste.",
+                                                className="text-muted mb-0",
+                                            ),
+                                        ],
+                                        className="mb-3",
+                                    ),
+                                    html.Div(id="results-sections-tab"),
+                                ]
                             ),
-                        ],
-                        className="mb-3",
-                    ),
-                    html.Div(id="results-sections-tab"),
-                ],
+                            label="Indicateurs",
+                            tab_id="tab-indicateurs",
+                        ),
+                        dbc.Tab(
+                            html.Div(id="text-analysis-tab-content"),
+                            label="Analyse Textuelle",
+                            tab_id="tab-texte",
+                        ),
+                    ],
+                    id="results-main-tabs",
+                    active_tab="tab-indicateurs",
+                ),
                 className="mb-5",
             ),
             html.Div(

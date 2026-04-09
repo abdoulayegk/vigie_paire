@@ -1449,6 +1449,9 @@ class DoclingProcessor:
                 debug_metrics["candidate_quality_rank"] = list(
                     vision_result.candidate_quality_rank or []
                 )
+            debug_metrics["vision_consensus_confidence"] = float(
+                getattr(vision_result, "confidence_score", 0.0)
+            )
             if (
                 getattr(vision_result, "requested_max_completion_tokens", None)
                 is not None

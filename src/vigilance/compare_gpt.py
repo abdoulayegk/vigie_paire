@@ -104,7 +104,7 @@ def _call_openai_json(
     *,
     model: str,
     messages: list[dict[str, str]],
-    max_completion_tokens: int = 4000,
+    max_completion_tokens: int | None = None,
     temperature: float = 0.0,
     api_retry_max: int = 2,
     usage_recorder: list[dict[str, Any]] | None = None,
@@ -117,6 +117,9 @@ def _call_openai_json(
     utilise les **Structured Outputs** OpenAI pour garantir la conformite au schema.
     Le modele valide est reconverti en dict pour que les appelants gardent une
     interface identique.
+
+    ``max_completion_tokens=None`` (defaut) laisse le modele s'arreter naturellement
+    sans plafond artificiel — privilegier la qualite complete plutot que la vitesse.
     """
     api_key = get_openai_api_key()
     if not api_key:
@@ -132,25 +135,29 @@ def _call_openai_json(
             time.sleep(1.5 * (2 ** (attempt - 1)))
         try:
             if use_structured:
-                response = client.beta.chat.completions.parse(
-                    model=model,
-                    messages=messages,
-                    response_format=response_model,
-                    temperature=temperature,
-                    max_completion_tokens=max_completion_tokens,
-                )
+                kwargs: dict[str, Any] = {
+                    "model": model,
+                    "messages": messages,
+                    "response_format": response_model,
+                    "temperature": temperature,
+                }
+                if max_completion_tokens is not None:
+                    kwargs["max_completion_tokens"] = max_completion_tokens
+                response = client.beta.chat.completions.parse(**kwargs)
                 parsed = response.choices[0].message.parsed
                 if parsed is None:
                     raise ValueError("Structured Output parsing returned None")
                 data = parsed.model_dump()
             else:
-                response = client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    response_format={"type": "json_object"},
-                    temperature=temperature,
-                    max_completion_tokens=max_completion_tokens,
-                )
+                kwargs = {
+                    "model": model,
+                    "messages": messages,
+                    "response_format": {"type": "json_object"},
+                    "temperature": temperature,
+                }
+                if max_completion_tokens is not None:
+                    kwargs["max_completion_tokens"] = max_completion_tokens
+                response = client.chat.completions.create(**kwargs)
                 raw = response.choices[0].message.content or ""
                 data = json.loads(raw)
                 if not isinstance(data, dict):
@@ -666,6 +673,62 @@ def compare_reports_gpt4o(
             if verdict.get("confirmed", True):
                 filtered_tables_removed.append(item)
         tables_removed = filtered_tables_removed
+
+    # --- T-1 Anchoring: flag likely extraction errors based on row count drift ---
+    try:
+        from vigilance.config.loader import load_config
+
+        _anchor_cfg = load_config("configs/bank_profiles.yaml")
+        _vision_cfg = _anchor_cfg.get("vision_extraction", {})
+        _t1_anchor_enabled = bool(_vision_cfg.get("vision_t1_anchor_enabled", False))
+        _t1_anchor_threshold = float(_vision_cfg.get("vision_t1_anchor_diff_threshold", 0.20))
+    except Exception:
+        _t1_anchor_enabled = False
+        _t1_anchor_threshold = 0.20
+
+    if _t1_anchor_enabled:
+        try:
+            from vigilance.extraction.vision_t1_anchor import anchor_against_previous as _anchor_check
+
+            for pair_comp in pair_comparisons:
+                prev_table = pair_comp.get("previous_table", {})
+                curr_table = pair_comp.get("current_table", {})
+                prev_indicators = [
+                    str(i) if isinstance(i, str) else str(i.get("label", i.get("name", "")))
+                    for i in (prev_table.get("indicators") or [])
+                ]
+                curr_indicators = [
+                    str(i) if isinstance(i, str) else str(i.get("label", i.get("name", "")))
+                    for i in (curr_table.get("indicators") or [])
+                ]
+
+                anchor_result = _anchor_check(
+                    table_id=str(curr_table.get("table_id", "")),
+                    table_title=str(curr_table.get("title", "")),
+                    current_indicators=curr_indicators,
+                    previous_indicators=prev_indicators,
+                    diff_threshold=_t1_anchor_threshold,
+                )
+
+                if not anchor_result.skipped:
+                    pair_comp["t1_anchor"] = {
+                        "likely_extraction_error": anchor_result.likely_extraction_error,
+                        "explanation": anchor_result.explanation,
+                        "current_count": anchor_result.current_count,
+                        "previous_count": anchor_result.previous_count,
+                        "diff_ratio": anchor_result.diff_ratio,
+                    }
+                    if anchor_result.likely_extraction_error:
+                        logger.warning(
+                            "T-1 anchor: table %s flagged as likely extraction error (prev=%d, curr=%d, diff=%.0f%%)",
+                            anchor_result.table_id,
+                            anchor_result.previous_count,
+                            anchor_result.current_count,
+                            anchor_result.diff_ratio * 100,
+                        )
+        except Exception as _t1_exc:
+            logger.warning("T-1 anchoring failed (non-fatal): %s", _t1_exc)
+    # --- End T-1 Anchoring ---
 
     indicator_changes_total, footnote_changes_total = _count_pair_changes(pair_comparisons)
     high_priority_items_total = _count_high_priority_items(

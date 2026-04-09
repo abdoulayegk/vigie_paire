@@ -1,17 +1,19 @@
-# Python
+# Python bytecode and build artifacts
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 build/
-develop-eggs/
 dist/
+site/
+develop-eggs/
 downloads/
 eggs/
+*.egg
 *.egg-info/
 .installed.cfg
-*.egg
+pip-wheel-metadata/
 
 # Virtual environments
 .venv/
@@ -19,29 +21,43 @@ venv/
 env/
 ENV/
 
-# Testing
+# Test, coverage, and type-checker artifacts
 .pytest_cache/
 .coverage
+.coverage.*
 coverage.xml
 htmlcov/
 .tox/
 .nox/
-
-# Type checkers
 .mypy_cache/
 .dmypy.json
 dmypy.json
 .pyre/
-pyrightconfig.json
+.pytype/
+.hypothesis/
 
-# Ruff
+# Linters and local Python tooling
 .ruff_cache/
+.uv_cache/
+.uv-cache/
 
-# Jupyter
+# Notebooks
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# OS
+# Editor and IDE state
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Cursor / Claude local workspace state
+.cursor/
+.cursorrules
+.claude/
+
+# OS-generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -49,38 +65,29 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Environment and secrets
+# Environment files and secrets
 .env
 .env.local
 .env.*.local
 *.pem
 
-# Local data and outputs
-/output
-outputs/
-docs/_build/
-Documentation/
-data/raw/
-data/interim/
-data/processed/
+# Logs and runtime artifacts
 *.log
-logs/
+session.log
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
+# Local generated data and caches
+/outputs/
+/logs/
+/Documentation/
+/docs/_build/
+/data/raw/
+/data/interim/
+/data/processed/
+/_lib/
 
-# Cursor
-.cursor/
-.cursorrules
-
-# Input PDFs
-Inputs/
-
-# PDF files
+# Input/source documents that should stay local
+/Inputs/
 *.pdf
 
-# Project-specific (add paths for large/sensitive files if needed)
+# Project-specific local configs
+pyrightconfig.json

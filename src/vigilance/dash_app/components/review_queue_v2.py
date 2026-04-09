@@ -88,11 +88,11 @@ _CATEGORY_DISPLAY = {
 }
 
 _RELEVANCE_DISPLAY = {
-    "REGLEMENTAIRE": "Reglementaire",
+    "REGLEMENTAIRE": "Réglementaire",
     "NOUVELLE_DIVULGATION": "Nouvelle divulgation",
     "STRUCTUREL": "Structurel",
     "NON_SIGNIFICATIF": "Non significatif",
-    "NON_CLASSIFIE": "Non classifie",
+    "NON_CLASSIFIE": "Non classifié",
 }
 
 _RELEVANCE_COLORS = {
@@ -104,8 +104,8 @@ _RELEVANCE_COLORS = {
 }
 
 _RISK_DISPLAY = {
-    "ELEVE": "Eleve",
-    "MODERE": "Modere",
+    "ELEVE": "Élevé",
+    "MODERE": "Modéré",
     "FAIBLE": "Faible",
 }
 

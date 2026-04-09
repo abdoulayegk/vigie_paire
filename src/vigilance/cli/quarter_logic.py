@@ -32,7 +32,7 @@ def resolve_previous_quarter(year: int, quarter: str) -> Tuple[int, str]:
     """Deduire le trimestre precedent a partir du trimestre courant.
 
     Regles de resolution : T2 -> T1 meme annee, T3 -> T2 meme annee,
-    T1 -> T3 annee N-1, T4 -> T3 meme annee.
+    T1 -> T3 annee N-1, T4 -> T4 annee N-1 (comparaison annuelle).
     """
     q = normalize_quarter(quarter)
     mapping = {
