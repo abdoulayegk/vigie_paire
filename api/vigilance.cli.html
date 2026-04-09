@@ -188,7 +188,7 @@ arborescence <code class="docutils literal notranslate"><span class="pre">data/{
 <span class="sig-prename descclassname"><span class="pre">vigilance.cli.quarter_logic.</span></span><span class="sig-name descname"><span class="pre">resolve_previous_quarter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.cli.quarter_logic.resolve_previous_quarter" title="Lien vers cette définition"></a></dt>
 <dd><p>Deduire le trimestre precedent a partir du trimestre courant.</p>
 <p>Regles de resolution : T2 -&gt; T1 meme annee, T3 -&gt; T2 meme annee,
-T1 -&gt; T3 annee N-1, T4 -&gt; T3 meme annee.</p>
+T1 -&gt; T3 annee N-1, T4 -&gt; T4 annee N-1 (comparaison annuelle).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
