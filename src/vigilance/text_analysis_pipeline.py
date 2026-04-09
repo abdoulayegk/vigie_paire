@@ -211,10 +211,18 @@ class SectionAudit:
 
 
 def _json_dumps(data: Any) -> str:
+    """Sérialise ``data`` en JSON indenté avec support complet des caractères UTF-8."""
     return json.dumps(data, ensure_ascii=False, indent=2)
 
 
 def _sanitize_semantic_text(text: str) -> str:
+    """Normalise un texte pour la comparaison sémantique inter-trimestrielle.
+
+    Supprime les éléments non sémantiques — chiffres, pourcentages, points de base,
+    références réglementaires, numéros romains — afin que deux paragraphes exprimant
+    la même idée avec des valeurs différentes soient reconnus comme identiques.
+    Utilisée pour peupler ``semantic_text_t1`` / ``semantic_text_t2`` dans les changements.
+    """
     value = (text or "").strip()
     if not value:
         return ""
@@ -238,6 +246,13 @@ def _sanitize_semantic_text(text: str) -> str:
 
 
 def _normalized_block_text(text: str) -> str:
+    """Normalise un texte pour les comparaisons de correspondance (matching).
+
+    Passe en minuscules, réduit les espaces multiples, retire la ponctuation et
+    les caractères spéciaux. Conserve lettres accentuées et chiffres.
+    Utilisée pour détecter les doublons, les en-têtes déjà vus et pour
+    retrouver la page exacte d'un fragment GPT dans les blocs PDF.
+    """
     value = (text or "").lower()
     value = re.sub(r"\s+", " ", value)
     value = re.sub(r"[^a-zàâçéèêëîïôûùüÿñæœ0-9 ]+", "", value)
@@ -245,15 +260,21 @@ def _normalized_block_text(text: str) -> str:
 
 
 def _sanitize_explanation(text: str) -> str:
+    """Nettoie et tronque une explication GPT à 1 200 caractères maximum."""
     value = _sanitize_semantic_text(text)
     return value[:1200]
 
 
 def _count_numeric_values(text: str) -> int:
+    """Compte le nombre de valeurs numériques dans ``text`` (entiers, décimaux, négatifs)."""
     return len(_TABLE_VALUE_RE.findall(text or ""))
 
 
 def _contains_dense_numeric_line(text: str) -> bool:
+    """Retourne True si au moins une ligne contient plus de 3 valeurs numériques.
+
+    Signe caractéristique d'une ligne de tableau financier (colonnes de chiffres).
+    """
     for raw_line in str(text or "").splitlines():
         line = raw_line.strip()
         if not line:
@@ -264,6 +285,13 @@ def _contains_dense_numeric_line(text: str) -> bool:
 
 
 def _looks_like_table_or_financial_grid(text: str) -> bool:
+    """Détecte si un bloc ressemble à un tableau ou une grille financière.
+
+    Utilisée pour exclure les blocs non narratifs (tableaux, grilles de notation,
+    listes de chiffres) lors de la classification des blocs PDF.
+    Critères : en-têtes de tableau, marqueurs de ligne + chiffres, densité numérique
+    élevée, ratings, tabulations, colonnes séparées par des espaces multiples.
+    """
     value = str(text or "").strip()
     if not value:
         return False
@@ -283,6 +311,12 @@ def _looks_like_table_or_financial_grid(text: str) -> bool:
 
 
 def _looks_like_footnote(text: str) -> bool:
+    """Détecte si un bloc ressemble à une note de bas de page.
+
+    Reconnaît les marqueurs courants : ``(1)``, ``1)``, ``*``, exposants Unicode,
+    numéros suivis d'un texte court. Ces blocs sont exclus du contenu narratif
+    pour ne pas polluer la comparaison de sections textuelles.
+    """
     value = str(text or "").strip()
     if not value:
         return False
@@ -302,6 +336,13 @@ def _looks_like_footnote(text: str) -> bool:
 
 
 def _looks_like_table_footnote_text(text: str) -> bool:
+    """Détecte si un bloc est une légende ou note annexée à un tableau.
+
+    Variante de ``_looks_like_footnote`` pour les blocs situés juste sous un
+    tableau (zone inférée par ``_infer_table_footnote_bboxes``). Reconnaît en
+    plus les préfixes « s.o. », « note », « source » et les courtes phrases
+    mêlant quelques chiffres et parenthèses.
+    """
     value = str(text or "").strip()
     if not value:
         return False
@@ -315,6 +356,13 @@ def _looks_like_table_footnote_text(text: str) -> bool:
 
 
 def _looks_like_narrative_paragraph(text: str) -> bool:
+    """Détecte si un bloc est un paragraphe narratif (texte continu à analyser).
+
+    Un paragraphe narratif valide doit contenir ≥ 18 mots, ≥ 120 caractères,
+    une forte proportion de lettres, peu de chiffres, et au moins un connecteur
+    grammatical ou une ponctuation de fin de phrase. Les tableaux et grilles
+    financières sont explicitement rejetés.
+    """
     value = str(text or "").strip()
     if not value:
         return False
@@ -345,6 +393,12 @@ def _looks_like_narrative_paragraph(text: str) -> bool:
 
 
 def _bbox_overlap_ratio(a: list[float], b: list[float]) -> float:
+    """Calcule le ratio de chevauchement de la bounding box ``a`` avec ``b``.
+
+    Retourne l'aire de l'intersection divisée par l'aire de ``a`` (valeur entre 0 et 1).
+    Un résultat de 1.0 signifie que ``a`` est entièrement contenu dans ``b``.
+    Les coordonnées sont normalisées [x0, y0, x1, y1] dans l'espace [0, 1].
+    """
     if len(a) < 4 or len(b) < 4:
         return 0.0
     left = max(float(a[0]), float(b[0]))
@@ -359,6 +413,7 @@ def _bbox_overlap_ratio(a: list[float], b: list[float]) -> float:
 
 
 def _block_overlaps_table(block: PDFBlock, table_bboxes: list[list[float]]) -> bool:
+    """Retourne True si le bloc chevauche d'au moins 5 % une des bounding boxes de tableau."""
     return any(_bbox_overlap_ratio(block.bbox_norm, bbox) >= 0.05 for bbox in table_bboxes)
 
 
@@ -367,6 +422,20 @@ def _infer_table_footnote_bboxes(
     *,
     max_height: float = 0.05,
 ) -> dict[int, list[list[float]]]:
+    """Infère les zones de notes de bas de tableau à partir des bounding boxes des tableaux.
+
+    Pour chaque tableau, génère une zone candidate juste en-dessous (hauteur ≤ ``max_height``
+    en coordonnées normalisées). Ces zones sont ensuite utilisées par
+    ``_classify_block_type`` pour identifier les blocs de légende ou de notes
+    annexés aux tableaux et les exclure du contenu narratif.
+
+    Args:
+        table_bboxes_by_page: Bounding boxes des tableaux détectés par Docling, par page.
+        max_height: Hauteur maximale (normalisée) de la zone note inférée.
+
+    Returns:
+        Dictionnaire page → liste de bounding boxes de zones notes potentielles.
+    """
     footnote_bboxes_by_page: dict[int, list[list[float]]] = {}
     for page, boxes in table_bboxes_by_page.items():
         ordered = sorted((list(box) for box in boxes if len(box) == 4), key=lambda bbox: (float(bbox[1]), float(bbox[0])))
@@ -384,6 +453,12 @@ def _infer_table_footnote_bboxes(
 
 
 def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
+    """Retourne True si le triage indique un changement majeur ou un changement modéré significatif.
+
+    Un changement modéré est retenu uniquement s'il introduit une nouvelle idée
+    ou s'il contient un signal réglementaire ou méthodologique fort.
+    Utilisée pour filtrer les changements à escalader en priorité.
+    """
     if not triage.get("is_relevant", False):
         return False
     impact = str(triage.get("impact_level") or "MINEUR").upper()
@@ -398,6 +473,12 @@ def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
 
 
 def _compute_conservative_new_idea(change: dict[str, Any], triage: dict[str, Any]) -> bool:
+    """Détermine de façon conservatrice si un changement constitue une nouvelle idée.
+
+    Une nouvelle idée est retenue uniquement si le triage la juge pertinente ET
+    que le diff_type est ``added`` avec un texte T2 non vide. Cela évite de
+    qualifier comme nouvelles idées les simples reformulations ou suppressions.
+    """
     if not triage.get("is_relevant", False):
         return False
 
@@ -406,10 +487,16 @@ def _compute_conservative_new_idea(change: dict[str, Any], triage: dict[str, Any
 
 
 def _is_non_cosmetic_change(triage: dict[str, Any]) -> bool:
+    """Retourne True si le changement n'est pas classé COSMETIQUE par le triage GPT."""
     return str(triage.get("category") or "").upper() != "COSMETIQUE"
 
 
 def _retained_change_sort_key(change: dict[str, Any]) -> tuple[int, int, str, str, str]:
+    """Clé de tri pour ordonner les changements retenus dans le rapport final.
+
+    Ordre de priorité : nouvelles idées en premier, puis impact décroissant
+    (MAJEUR → MODERE → MINEUR), puis section, puis page, puis type de diff.
+    """
     triage = change.get("genai_triage") or {}
     impact = str(triage.get("impact_level") or "MINEUR").upper()
     diff_type = str(change.get("diff_type") or "").lower()
@@ -431,6 +518,11 @@ def _retained_change_sort_key(change: dict[str, Any]) -> tuple[int, int, str, st
 
 
 def _sorted_sections(sections: dict[str, ResolvedSection]) -> list[ResolvedSection]:
+    """Retourne les sections triées par ordre d'apparition dans le PDF.
+
+    Tri par page de début, puis par position verticale de l'ancre, puis par clé
+    de section pour garantir un ordre stable lors des itérations.
+    """
     return sorted(
         sections.values(),
         key=lambda sec: (
@@ -442,6 +534,11 @@ def _sorted_sections(sections: dict[str, ResolvedSection]) -> list[ResolvedSecti
 
 
 def _next_section_by_key(sections: dict[str, ResolvedSection]) -> dict[str, ResolvedSection | None]:
+    """Construit un mapping section_key → section suivante dans le PDF.
+
+    Utilisé pour délimiter la fenêtre basse d'une section quand deux sections
+    partagent la même page de fin/début.
+    """
     ordered = _sorted_sections(sections)
     next_map: dict[str, ResolvedSection | None] = {section.section_key: None for section in ordered}
     for current, nxt in zip(ordered, ordered[1:]):
@@ -454,6 +551,16 @@ def _section_window_for_page(
     page_number: int,
     next_section: ResolvedSection | None = None,
 ) -> tuple[float, float]:
+    """Calcule la fenêtre verticale (top, bottom) d'une section sur une page donnée.
+
+    Sur la première page de la section, la fenêtre commence sous l'ancre pour
+    éviter d'inclure le titre de section lui-même. Sur la dernière page partagée
+    avec la section suivante, la fenêtre se ferme au-dessus de l'ancre suivante.
+    Les coordonnées sont normalisées dans [0, 1].
+
+    Returns:
+        Tuple ``(top, bottom)`` délimitant la zone de la section sur cette page.
+    """
     top = 0.0
     bottom = 1.0
     if (
@@ -475,6 +582,12 @@ def _section_window_for_page(
 
 
 def _docling_bbox_to_norm(docling_doc: Any, prov: Any) -> list[float] | None:
+    """Convertit une bounding box Docling en coordonnées normalisées [0, 1].
+
+    Applique ``to_top_left_origin`` (système Docling en bas-gauche) puis
+    ``normalized`` pour obtenir [x0, y0, x1, y1] dans l'espace page normalisé.
+    Retourne None si la conversion échoue (page manquante, bbox invalide).
+    """
     try:
         page_obj = docling_doc.pages[prov.page_no]
         page_height = page_obj.size.height
@@ -493,6 +606,22 @@ def _extract_docling_page_blocks(
     pdf_path: Path,
     page_numbers: list[int],
 ) -> tuple[dict[int, list[PDFBlock]], dict[int, list[list[float]]], dict[int, list[list[float]]]]:
+    """Extrait tous les blocs de texte d'un PDF via Docling pour les pages demandées.
+
+    Lance Docling sans OCR sur la plage ``[min(pages), max(pages)]``, puis filtre
+    les blocs par page. Retourne trois structures indexées par numéro de page :
+
+    - ``page_blocks`` : liste de PDFBlock triés par position (y, x)
+    - ``table_bboxes_by_page`` : bounding boxes des tableaux détectés
+    - ``footnote_bboxes_by_page`` : zones de notes inférées sous les tableaux
+
+    Args:
+        pdf_path: Chemin vers le fichier PDF source.
+        page_numbers: Pages à extraire (numérotation 1-based Docling).
+
+    Returns:
+        Tuple ``(page_blocks, table_bboxes_by_page, footnote_bboxes_by_page)``.
+    """
     from docling.datamodel.base_models import InputFormat
     from docling.datamodel.pipeline_options import PdfPipelineOptions
     from docling.document_converter import DocumentConverter, PdfFormatOption
@@ -568,6 +697,25 @@ def _classify_block_type(
     table_bboxes: list[list[float]] | None = None,
     footnote_bboxes: list[list[float]] | None = None,
 ) -> str:
+    """Classifie un bloc PDF en l'une des catégories : narrative, table, footnote, header_footer, other.
+
+    Priorités d'application :
+    1. Type déjà assigné par Docling (table, footnote, header_footer) → conservé tel quel.
+    2. Texte répété en haut/bas de page → header_footer.
+    3. Bas de page avec marqueur de note → footnote.
+    4. Chevauchement géométrique avec un tableau → table.
+    5. Chevauchement avec zone de note + texte de légende → footnote.
+    6. Heuristiques textuelles : narrative, table ou other.
+
+    Args:
+        block: Bloc PDF à classifier.
+        repeated_text_counts: Nombre d'occurrences normalisées de chaque texte (toutes pages).
+        table_bboxes: Bounding boxes des tableaux sur la même page.
+        footnote_bboxes: Zones de notes inférées sur la même page.
+
+    Returns:
+        Chaîne parmi ``"narrative"``, ``"table"``, ``"footnote"``, ``"header_footer"``, ``"other"``.
+    """
     if block.block_type in {"table", "footnote", "header_footer"}:
         return block.block_type
     norm = _normalized_block_text(block.text)
@@ -622,6 +770,12 @@ def _classify_block_type(
 
 
 def _exclusion_reason_for_block(block_type: str, in_window: bool) -> str:
+    """Retourne la raison d'exclusion d'un bloc non narratif.
+
+    Un bloc hors fenêtre de section reçoit ``outside_target_section``.
+    Un bloc dans la fenêtre mais non narratif reçoit une raison selon son type.
+    Un bloc narratif inclus reçoit une chaîne vide (pas d'exclusion).
+    """
     if not in_window:
         return "outside_target_section"
     return {
@@ -638,6 +792,12 @@ def _table_regions_for_pages(
     footnote_bboxes_by_page: dict[int, list[list[float]]],
     pages: list[int],
 ) -> list[dict[str, Any]]:
+    """Construit la liste des régions de tableaux et de notes pour un ensemble de pages.
+
+    Chaque région est un dictionnaire avec ``table_id``, ``page``, ``region_type``
+    (``"table"`` ou ``"footnote"``) et ``bbox``. Stockée dans ``SectionAudit.table_regions``
+    pour la traçabilité et l'audit de l'extraction.
+    """
     regions: list[dict[str, Any]] = []
     for page in pages:
         for idx, bbox in enumerate(table_bboxes_by_page.get(page, []), start=1):
@@ -662,6 +822,11 @@ def _table_regions_for_pages(
 
 
 def _repeated_text_counts(page_blocks: dict[int, list[PDFBlock]]) -> dict[str, int]:
+    """Compte le nombre de pages distinctes où chaque texte normalisé apparaît.
+
+    Un texte qui apparaît sur ≥ 2 pages est un candidat en-tête/pied de page.
+    Utilisé par ``_classify_block_type`` pour détecter et exclure ces répétitions.
+    """
     counts: dict[str, int] = {}
     for blocks in page_blocks.values():
         seen_on_page: set[str] = set()
@@ -683,6 +848,24 @@ def _build_section_audit(
     table_bboxes_by_page: dict[int, list[list[float]]],
     footnote_bboxes_by_page: dict[int, list[list[float]]],
 ) -> SectionAudit:
+    """Construit l'audit complet d'une section : blocs inclus, exclus et régions de tableaux.
+
+    Pour chaque bloc de la section, applique la fenêtre verticale de la section,
+    classifie le type de bloc et décide de son inclusion. Seuls les blocs
+    ``narrative`` dans la fenêtre sont inclus ; les autres sont gardés dans
+    ``excluded_blocks`` pour la traçabilité.
+
+    Args:
+        section: Section résolue avec ses pages et son ancre.
+        next_section: Section suivante dans le PDF (pour délimiter la fenêtre basse).
+        page_blocks: Blocs extraits par Docling, indexés par page.
+        repeated_text_counts: Comptages de textes répétés pour détection en-têtes/pieds.
+        table_bboxes_by_page: Bounding boxes des tableaux, par page.
+        footnote_bboxes_by_page: Zones de notes inférées, par page.
+
+    Returns:
+        ``SectionAudit`` avec ``included_blocks``, ``excluded_blocks`` et ``table_regions``.
+    """
     included_blocks: list[PDFBlock] = []
     excluded_blocks: list[PDFBlock] = []
     for page in section.pages:
@@ -730,6 +913,13 @@ def _build_section_audit(
 
 
 def _markdown_blocks_for_section(section: SectionAudit) -> list[PDFBlock]:
+    """Retourne les blocs à inclure dans le markdown source de vérité d'une section.
+
+    Sélectionne les blocs narratifs inclus, plus les titres/en-têtes exclus pour
+    raison ``non_narrative_block`` (afin de préserver la structure ``###`` dans le
+    markdown). Les doublons sont dédupliqués par ``block_id``. Le résultat est
+    trié par (page, line_number, y0) pour respecter l'ordre de lecture.
+    """
     selected: list[PDFBlock] = []
     seen_ids: set[str] = set()
     for block in section.included_blocks:
@@ -751,6 +941,14 @@ def _markdown_blocks_for_section(section: SectionAudit) -> list[PDFBlock]:
 
 
 def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
+    """Convertit une liste d'audits de sections en markdown source de vérité.
+
+    Chaque section devient un bloc ``## Titre``. Les sous-titres détectés deviennent
+    des blocs ``### Sous-titre`` positionnés juste avant le premier paragraphe qui
+    les suit. Les doublons de titres et les titres identiques à la section parente
+    sont supprimés. Le markdown produit est la seule entrée des appels GPT de
+    comparaison ; il est aussi sauvegardé comme artefact d'audit lisible.
+    """
     lines: list[str] = []
     for section in section_audits:
         lines.append(f"## {section.section_title}")
@@ -831,6 +1029,11 @@ def _find_page_for_fragment(fragment: str, block_index: list[tuple[int, str]]) -
 
 
 def _build_openai_client():
+    """Instancie le client OpenAI avec la clé API du projet.
+
+    Lève ``RuntimeError`` si la clé est absente — le pipeline texte ne peut pas
+    fonctionner sans accès à l'API OpenAI.
+    """
     from openai import OpenAI
 
     api_key = get_openai_api_key()
@@ -898,6 +1101,11 @@ def _build_json_repair_messages(raw_response: str) -> list[dict[str, str]]:
 
 
 def _allowed_target_sections(bank_code: str) -> set[str]:
+    """Retourne l'ensemble des clés de sections autorisées pour une banque donnée.
+
+    Si la banque n'a pas de configuration spécifique dans ``_TARGET_SECTIONS_BY_BANK``,
+    toutes les sections du catalogue ``_SECTION_LABELS`` sont autorisées.
+    """
     return set(_TARGET_SECTIONS_BY_BANK.get(str(bank_code or "").strip().lower(), set(_SECTION_LABELS)))
 
 
@@ -939,6 +1147,7 @@ def _call_json_completion(
     initial_max_tokens = None if max_tokens is None else min(int(max_tokens), model_max_tokens)
 
     def _request(request_messages: list[dict[str, Any]], token_budget: int | None) -> tuple[str, str | None]:
+        """Exécute un appel brut à l'API OpenAI et retourne ``(contenu, finish_reason)``."""
         request_kwargs: dict[str, Any] = {
             "model": model,
             "messages": request_messages,
@@ -1475,6 +1684,11 @@ def _compare_section_texts(
 
 
 def _default_triage() -> dict[str, Any]:
+    """Retourne un triage par défaut conservateur (non pertinent, cosmétique, mineur).
+
+    Utilisé comme valeur de repli quand le modèle ne retourne pas de triage pour
+    un changement donné, ou quand l'appel GPT de triage échoue partiellement.
+    """
     return {
         "is_relevant": False,
         "category": "COSMETIQUE",
@@ -1618,6 +1832,14 @@ def _triage_section_changes(
 
 
 def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str, Any]:
+    """Agrège les statistiques de toutes les sections en un résumé global.
+
+    Calcule les comptages par impact, catégorie et action requise, extrait
+    les cinq premiers résumés de changements comme points saillants, et détermine
+    la pertinence globale (FAIBLE / MOYENNE / ELEVEE) selon le nombre de changements
+    majeurs. Utilisé pour les deux champs ``global_summary`` et ``all_changes_summary``
+    du payload final.
+    """
     all_changes = [
         block
         for section in section_comparisons
