@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Bump this when prompt, schema, parsing logic, or extraction-budget routing changes
 # so stale cache entries are automatically bypassed without manual cleanup.
-_VISION_CACHE_VERSION = "v4"
+_VISION_CACHE_VERSION = "v5"
 
 DEFAULT_CACHE_DIR = "outputs/vision_cache"
 DEFAULT_CROP_DIR = "outputs/debug_crops/vision_fallback"

@@ -28,20 +28,24 @@ _CATEGORY_SORT_ORDER: dict[str, int] = {
 }
 
 EXCEL_COLUMNS = [
-    "Statut",
-    "Nouvelle idée ?",
-    "Priorité",
-    "Catégorie",
-    "Sous-section",
     "Titre",
+    "Sous-section",
     "Page T1",
     "Page T2",
     "Type de changement",
     "Texte exact T1",
     "Texte exact T2",
+    "Nouvelle idée ?",
     "Justification IA",
     "Commentaire analyste",
 ]
+
+_DIFF_TYPE_FR: dict[str, str] = {
+    "added": "Ajout",
+    "removed": "Suppression",
+    "modified": "Modification",
+    "unchanged": "Inchangé",
+}
 
 # ---------------------------------------------------------------------------
 # Heuristiques d'exclusion (dates pures et reformulations strictes)
@@ -228,7 +232,6 @@ def generate_text_comparison_excel(
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     from openpyxl.utils import get_column_letter
-    from openpyxl.worksheet.datavalidation import DataValidation
 
     wb = Workbook()
     ws = wb.active
@@ -258,17 +261,14 @@ def generate_text_comparison_excel(
         fill = PatternFill(start_color=fill_hex, end_color=fill_hex, fill_type="solid") if fill_hex else None
 
         row_data = [
-            "À traiter",
-            row["nouvelle_idee"],
-            row["impact_level"],
-            row["category"],
-            row["subsection"],
             row["section_title"],
+            row["subsection"],
             row["page_t1"],
             row["page_t2"],
-            row["diff_type"],
+            _DIFF_TYPE_FR.get(str(row["diff_type"]).lower(), row["diff_type"]),
             row["source_text_t1"],
             row["source_text_t2"],
+            row["nouvelle_idee"],
             row["justification"],
             "",  # Commentaire analyste
         ]
@@ -279,33 +279,20 @@ def generate_text_comparison_excel(
             if fill:
                 cell.fill = fill
 
-    # ---------- validation Statut (colonne A) ----------
-    dv = DataValidation(
-        type="list",
-        formula1='"À traiter,Validé,Écarté"',
-        allow_blank=False,
-        showDropDown=False,
-    )
-    ws.add_data_validation(dv)
     last_row = len(rows) + 1
-    if last_row >= 2:
-        dv.sqref = f"A2:A{last_row}"
 
     # ---------- largeurs de colonnes ----------
     col_widths = {
-        1: 14,   # Statut
-        2: 14,   # Nouvelle idée
-        3: 12,   # Priorité
-        4: 16,   # Catégorie
-        5: 35,   # Sous-section
-        6: 30,   # Titre
-        7: 10,   # Page T1
-        8: 10,   # Page T2
-        9: 18,   # Type
-        10: 70,  # Texte T1
-        11: 70,  # Texte T2
-        12: 70,  # Justification
-        13: 25,  # Commentaire
+        1: 30,   # Titre
+        2: 35,   # Sous-section
+        3: 10,   # Page T1
+        4: 10,   # Page T2
+        5: 18,   # Type de changement
+        6: 70,   # Texte exact T1
+        7: 70,   # Texte exact T2
+        8: 14,   # Nouvelle idée ?
+        9: 70,   # Justification IA
+        10: 25,  # Commentaire analyste
     }
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width

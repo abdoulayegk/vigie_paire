@@ -1686,6 +1686,23 @@ def run_text_analysis_pipeline(
             text_t1=text_t1,
             text_t2=text_t2,
         )
+        # Inject section-level page ranges — GPT output has no per-paragraph page info.
+        # Added changes belong to T2 only; removed changes belong to T1 only.
+        _sec_prev = sections_previous.get(section_key)
+        _sec_curr = sections_current.get(section_key)
+        _pages_t1_full = _sec_prev.pages if _sec_prev else []
+        _pages_t2_full = _sec_curr.pages if _sec_curr else []
+        for _ch in changes:
+            _dt = _ch.get("diff_type", "")
+            _p_t1 = _pages_t1_full if _dt in {"modified", "removed", "unchanged"} else []
+            _p_t2 = _pages_t2_full if _dt in {"modified", "added", "unchanged"} else []
+            _ch["pages_t1"] = _p_t1
+            _ch["pages_t2"] = _p_t2
+            if isinstance(_ch.get("evidence_t1"), dict):
+                _ch["evidence_t1"]["pages"] = _p_t1
+            if isinstance(_ch.get("evidence_t2"), dict):
+                _ch["evidence_t2"]["pages"] = _p_t2
+
         non_unchanged = [change for change in changes if change.get("diff_type") != "unchanged"]
         enriched = _triage_section_changes(
             client=client,

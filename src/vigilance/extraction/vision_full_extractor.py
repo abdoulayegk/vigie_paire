@@ -1534,18 +1534,10 @@ def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
     indicators: list[Any] = result.indicators or []
     footnotes: list[Any] = result.footnotes_content or []
 
-    # 1. Flat Indentation Check
-    # Only fire when the table is large enough AND contains "Total" lines
-    # (which strongly imply a parent-child hierarchy that was flattened).
-    if len(indicators) > 15:
-        has_indent = any(str(ind).startswith(" ") for ind in indicators if isinstance(ind, str))
-        has_total_lines = any("total" in str(ind).lower() for ind in indicators if isinstance(ind, str))
-        if not has_indent and has_total_lines:
-            critiques.append(
-                "Vous avez complètement perdu la hiérarchie et l'indentation. "
-                "Chaque sous-catégorie DOIT obligatoirement commencer par des espaces de tête (ex: '  Hypothèques résidentielles'). "
-                "Ne mettez jamais tous les indicateurs à niveau."
-            )
+    # 1. Flat Indentation Check — DISABLED
+    # Indentation is cosmetic only. Comparison normalizer strips leading spaces before
+    # matching so indentation never affects comparison accuracy. Enforcing it caused
+    # infinite self-healing loops (17+ retries per table) with zero data benefit.
 
     # 2. Orphaned Footnote Marker Check
     found_footnote_ids = {
@@ -1568,14 +1560,9 @@ def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
             "Lisez le bas du tableau et ajoutez obligatoirement ces notes manquantes."
         )
 
-    # 3. Missing Headers Check
-    if len(result.headers or []) == 0 and len(indicators) > 3:
-        title = str(result.table_title or "").lower()
-        if "au 31" in title or "trimestre" in title or "202" in title:
-            critiques.append(
-                "Ce tableau semble contenir des colonnes de dates ou de périodes, mais le champ 'headers' est vide. "
-                "Vous devez absolument renseigner les en-têtes de colonnes."
-            )
+    # 3. Missing Headers Check — DISABLED
+    # Headers are SECONDARY priority. Retrying for empty headers wastes API calls
+    # with no impact on indicator or footnote completeness.
 
     # 4. Truncated Extraction Check (many headers, few real indicators)
     headers = result.headers or []
