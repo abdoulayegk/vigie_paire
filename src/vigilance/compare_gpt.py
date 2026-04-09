@@ -674,6 +674,62 @@ def compare_reports_gpt4o(
                 filtered_tables_removed.append(item)
         tables_removed = filtered_tables_removed
 
+    # --- T-1 Anchoring: flag likely extraction errors based on row count drift ---
+    try:
+        from vigilance.config.loader import load_config
+
+        _anchor_cfg = load_config("configs/bank_profiles.yaml")
+        _vision_cfg = _anchor_cfg.get("vision_extraction", {})
+        _t1_anchor_enabled = bool(_vision_cfg.get("vision_t1_anchor_enabled", False))
+        _t1_anchor_threshold = float(_vision_cfg.get("vision_t1_anchor_diff_threshold", 0.20))
+    except Exception:
+        _t1_anchor_enabled = False
+        _t1_anchor_threshold = 0.20
+
+    if _t1_anchor_enabled:
+        try:
+            from vigilance.extraction.vision_t1_anchor import anchor_against_previous as _anchor_check
+
+            for pair_comp in pair_comparisons:
+                prev_table = pair_comp.get("previous_table", {})
+                curr_table = pair_comp.get("current_table", {})
+                prev_indicators = [
+                    str(i) if isinstance(i, str) else str(i.get("label", i.get("name", "")))
+                    for i in (prev_table.get("indicators") or [])
+                ]
+                curr_indicators = [
+                    str(i) if isinstance(i, str) else str(i.get("label", i.get("name", "")))
+                    for i in (curr_table.get("indicators") or [])
+                ]
+
+                anchor_result = _anchor_check(
+                    table_id=str(curr_table.get("table_id", "")),
+                    table_title=str(curr_table.get("title", "")),
+                    current_indicators=curr_indicators,
+                    previous_indicators=prev_indicators,
+                    diff_threshold=_t1_anchor_threshold,
+                )
+
+                if not anchor_result.skipped:
+                    pair_comp["t1_anchor"] = {
+                        "likely_extraction_error": anchor_result.likely_extraction_error,
+                        "explanation": anchor_result.explanation,
+                        "current_count": anchor_result.current_count,
+                        "previous_count": anchor_result.previous_count,
+                        "diff_ratio": anchor_result.diff_ratio,
+                    }
+                    if anchor_result.likely_extraction_error:
+                        logger.warning(
+                            "T-1 anchor: table %s flagged as likely extraction error (prev=%d, curr=%d, diff=%.0f%%)",
+                            anchor_result.table_id,
+                            anchor_result.previous_count,
+                            anchor_result.current_count,
+                            anchor_result.diff_ratio * 100,
+                        )
+        except Exception as _t1_exc:
+            logger.warning("T-1 anchoring failed (non-fatal): %s", _t1_exc)
+    # --- End T-1 Anchoring ---
+
     indicator_changes_total, footnote_changes_total = _count_pair_changes(pair_comparisons)
     high_priority_items_total = _count_high_priority_items(
         pair_comparisons,

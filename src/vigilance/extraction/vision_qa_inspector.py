@@ -142,7 +142,6 @@ Respond STRICTLY using the required JSON schema format."""
                     model=self.model,
                     messages=messages,
                     response_format=QAResult,
-                    max_completion_tokens=1500,
                     temperature=0.0,
                 )
                 parsed = response.choices[0].message.parsed

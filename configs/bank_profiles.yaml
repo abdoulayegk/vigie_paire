@@ -11,7 +11,10 @@ vision_extraction:
   fallback_to_docling_on_error: true
   schema_failure_policy: fail_fast
   save_indicators_footnotes_json: true
-  vision_pair_validation: false
+  vision_pair_validation: true
+  vision_consensus_enabled: true
+  vision_t1_anchor_enabled: true
+  vision_t1_anchor_diff_threshold: 0.20
   # Bbox sanity gate: reject crops before Vision (too small, near-full-page, etc.)
   bbox_min_width: 0.02
   bbox_min_height: 0.02

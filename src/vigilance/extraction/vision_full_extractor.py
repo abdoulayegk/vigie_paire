@@ -93,7 +93,7 @@ _NARRATIVE_INDICATOR_PHRASES = (
 
 _PROMPT_BASE = """
 
-You are a precision-first financial table extraction engine for Canadian bank quarterly reports (French language).
+You are a financial table extraction engine for Canadian bank quarterly reports (French language).
 
 INPUT
 You receive one CROPPED image that may contain:
@@ -103,10 +103,14 @@ You receive one CROPPED image that may contain:
 
 TASK
 Analyse the image and extract ONLY these fields from the visible image:
-- indicators (first-column row labels)
-- footnotes_content (footnotes below the table)
+
+PRIMARY — your main objective, must be complete and exhaustive:
+- indicators (first-column row labels — every single row)
+- footnotes_content (all footnotes below the table)
+
+SECONDARY — best-effort, never sacrifice indicators or footnotes for these:
+- table_title (title of the table, if visible)
 - headers (column headers)
-- table_title (title of the table)
 - table_summary (short business subject)
 - no_table_detected (boolean)
 
@@ -171,10 +175,16 @@ If the table has multiple textual columns (for example headers like "Canada", "�
 - if a logical row has no visible first-column / leftmost cell, it must NOT produce an indicator
 - exhaustiveness means "all first-column row labels", NOT "all text visible anywhere in the image"
 
-CRITICAL: FORCED EXHAUSTIVENESS (ANTI-SUMMARIZATION)
-You MUST extract EVERY SINGLE ROW containing financial data. Do NOT summarize or group rows.
-- Highly indented sub-items and child rows are VALID indicators. Extract them all.
-- Never drop a row just because it looks like a subordinate breakdown. Read the table line-by-line and extract everything.
+CRITICAL: FORCED EXHAUSTIVENESS — ZERO TOLERANCE FOR OMISSIONS
+You MUST extract EVERY SINGLE ROW visible in the first column of the table. No row is ever skipped, ignored, or forgotten.
+- Every section heading is an indicator. Extract it.
+- Every sub-row, child row, and indented item is an indicator. Extract it.
+- Every subtotal and total row is an indicator. Extract it.
+- DO NOT group, summarize, or collapse rows under any circumstances. Each row = one indicator.
+- DO NOT skip a row because it looks like a heading, a total, a duplicate, or a continuation.
+- DO NOT skip a row because it has no visible numbers on the right side.
+- DO NOT skip a row because you are uncertain. Uncertainty is never a reason to omit.
+- Read the first column line-by-line from top to bottom. Miss nothing.
 
 CRITICAL: MULTI-LINE MERGE RULE
 If one indicator wraps onto multiple visual lines in the first column, merge them into ONE indicator string.
@@ -194,6 +204,273 @@ When the EXACT SAME label text appears in multiple rows of the same table (becau
 - Format: "Group Heading – repeated_label"
 - Example: a table has section "Fonds propres CET1" containing "Solde au début" AND section "Fonds propres catégorie 1" also containing "Solde au début".
   Output: ["Fonds propres CET1 – Solde au début", ..., "Fonds propres catégorie 1 – Solde au début"]
+- If no group heading exists above the repeated label, keep the original label unchanged.
+- Apply this ONLY to labels that would otherwise appear as exact duplicates in the output list.
+- Every indicator in the final output list MUST be unique.
+  If disambiguation via group heading is not possible, append a position marker: " (bloc 2)" to the second occurrence.
+
+CRITICAL: EXCLUDE DATE/PERIOD IDENTIFIERS
+Do NOT extract as indicators:
+- date identifiers that function as row-group delimiters or column sub-headers:
+  "Au 30 avril 2025", "Au 31 janvier 2025", "Au 31 octobre 2024"
+- period identifiers:
+  "Trimestre clos le ...", "Pour l'exercice clos le ...", "Exercice terminé le ...",
+  "Semestre terminé le ..."
+- unit descriptors spanning the table width:
+  "En millions de dollars", "En milliers de dollars", "(en millions de dollars)"
+- quarter labels used as sub-headers: "T1 2025", "Q1 2025", "2024", "2025"
+These are temporal/unit metadata, NOT business indicators.
+
+HIERARCHY PRESERVATION
+Use leading spaces to indicate the nesting depth as visible in the table:
+- Top-level labels: no leading spaces
+- First-level sub-items (visually indented once): prefix with "  " (2 spaces)
+- Second-level sub-items (indented twice): prefix with "    " (4 spaces)
+Reflect the visual hierarchy faithfully. This is essential for downstream accuracy.
+
+═══════════════════════════════════════════
+FIELD 2: footnotes_content (SECOND PRIORITY)
+═══════════════════════════════════════════
+
+Extract ALL footnotes located BELOW the table body, inside the cropped image.
+A footnote is any line below the table that BEGINS with one of the known marker styles listed below,
+regardless of whether that marker also appears in the first column or anywhere else in the table.
+
+KNOWN MARKER STYLES — recognize and normalize all of these:
+- parenthetical full:  (1) (2) (3) ... (10)  → normalize id to "1", "2", "3" ... "10"
+- parenthetical half:  1) 2) 3) ... 10)       → normalize id to "1", "2", "3" ... "10"
+- bare digit at line start: 1  2  3 ... 10    → normalize id to "1", "2" ... "10"
+- superscript digit:   ¹ ² ³ ...              → normalize id to "1", "2", "3"
+- asterisk:            *                       → keep id as "*"
+- s. o.               (sans objet)             → keep id as "s. o."
+
+For each footnote return:
+- id: normalized marker as described above (strip parentheses, convert superscripts to digits)
+- text: exact full footnote text, preserving French accents and punctuation
+
+NOISE GUARD — do NOT extract as a footnote:
+- a lone number with no following text (e.g. a bare "3" or "10" alone on a line)
+- narrative paragraph text that does NOT start with a recognized marker
+- table body data rows that happen to appear at the bottom of the visible crop
+- page running headers or section titles
+- blank lines or lines shorter than 4 characters
+
+Rules:
+- preserve exact wording of each footnote
+- preserve visual top-to-bottom order (do NOT sort by id)
+- do not merge two separate footnotes into one
+- do not invent missing text
+- if no footnotes are visible below the table, return []
+
+═══════════════════════════════════════════
+FIELD 3: headers (THIRD PRIORITY)
+═══════════════════════════════════════════
+
+Return the visible column headers in left-to-right order.
+- If a header spans multiple visual lines, merge into one string.
+- Do NOT include row labels from the first column unless the first column has its own explicit header text.
+- Do NOT include empty strings in the list.
+- If no column headers are visible, return [].
+
+═══════════════════════════════════════════
+FIELD 4: table_title
+═══════════════════════════════════════════
+
+Return the full visible title of the table, including the table number if present (e.g., "Tableau 12 – Titre du tableau").
+
+TITLE RULES:
+- A table title is a heading DIRECTLY ABOVE the table's header row or first data row.
+- It typically starts with "Tableau XX", "Table XX", or "TABLEAU XX", or is bold/larger text.
+- Do NOT use page running headers, section headings, or chapter titles as table_title.
+  Examples of page furniture to IGNORE: "Rapport de gestion", "Management's Discussion and Analysis", "Rapport aux actionnaires", "Rapport annuel"
+- If the title is partially cut off at the crop boundary, extract the visible portion.
+- If no real table title is visible directly above the table, return "".
+- NEVER invent or guess a title.
+
+═══════════════════════════════════════════
+FIELD 5: table_summary
+═══════════════════════════════════════════
+
+Return a short noun phrase (max 15 words) describing the business subject of the table.
+- Base it ONLY on the visible title and content.
+- Do NOT add analysis, numbers, trends, or conclusions.
+- If the image is a continuation of a table from a previous page (no title, indicators continue mid-sequence), prefix with "Suite: " then the subject.
+- If unclear, return "".
+
+═══════════════════════════════════════════
+FIELD 6: no_table_detected
+═══════════════════════════════════════════
+
+Set to true ONLY if NO real tabular structure (rows + columns with data) is visible in the crop.
+If even a partial table is visible, set to false.
+
+═══════════════════════════════════════════
+GENERAL PRIORITY RULES
+═══════════════════════════════════════════
+
+1. indicators and footnotes_content are your ONLY mission. You MUST complete them fully. Zero omissions allowed.
+2. Extract ONLY what is visible in the cropped image. Never invent text.
+3. Keep row order and footnote order exactly as visually seen.
+4. NEVER skip a first-column label for any reason. Every text in the first column is an indicator — include it unconditionally.
+5. NEVER skip a footnote below the table. Every line starting with a known marker is a footnote — include it unconditionally.
+6. If uncertain whether there is a real table → set no_table_detected to true.
+
+MANDATORY SELF-CHECK BEFORE RETURNING
+Before writing your final JSON, scan the image one more time:
+- Count the visible rows in the table. Does your indicators list match that count? If not, find the missing rows and add them now.
+- Count the footnote markers visible below the table. Does your footnotes_content match that count? If not, find the missing ones and add them now.
+Only return your JSON after this check passes.
+
+FINAL REQUIREMENT
+Return one JSON object only, with exactly these 6 keys:
+indicators, footnotes_content, table_title, headers, table_summary, no_table_detected
+"""
+
+_PROMPT_JSON_STRICT = """
+STRICT JSON RESPONSE.
+Return valid JSON only. No text before or after.
+
+The JSON object must strictly follow this structure:
+
+{
+"indicators": ["Group A – Label 1", "  Sub-label", "Group A – Total", "Group B – Label 1"],
+"footnotes_content": [
+  {"id": "1", "text": "footnote text 1"},
+  {"id": "2", "text": "footnote text 2"}
+],
+"headers": ["Column 1", "Column 2", "Column 3"],
+"table_summary": "Business subject of the table in 15 words maximum",
+"table_title": "Tableau 1 – Full title as visible above the table",
+"no_table_detected": false
+}
+
+VALIDATION CHECKLIST (apply before returning):
+1. indicators: every element is UNIQUE — if duplicates exist, disambiguate with group heading prefix ("Group – label")
+2. indicators: no date/period identifiers ("Au 30 avril 2025", "Trimestre clos le...", "En millions de dollars")
+3. indicators: no pure numeric values, no column headers, no narrative paragraphs, no text from columns 2+
+4. indicators: multi-line labels merged into single strings
+5. indicators: hierarchy preserved via leading spaces (2-space increments per nesting level)
+6. footnotes_content: visual order preserved (top → bottom), NOT sorted by id
+7. footnotes_content: marker ids normalized (strip parentheses, convert superscripts to digits)
+8. headers: no empty strings, left-to-right order
+9. table_title: not a page running header or section heading — must be directly above the table
+10. table_summary: ≤ 15 words, noun phrase only, prefix "Suite: " for continuation tables
+11. no_table_detected: true ONLY if zero tabular structure is visible
+"""
+_PROMPT_RESCUE_SUFFIX = """
+
+RESCUE MODE — The previous extraction was empty, partial, or contaminated.
+Apply these overrides:
+- IGNORE page titles, running headers, section headings, and any non-tabular page furniture.
+- Focus ONLY on the real table visible in the crop.
+- If both a page title and a real table are visible, the page title must NOT be used as table_title.
+- If a real table is visible, extract it as completely and precisely as possible.
+- Apply the disambiguation rule for repeated labels (prepend group heading).
+- Apply the date/period exclusion rule.
+- Apply hierarchy preservation via leading spaces.
+- In multi-column textual tables, re-check that ONLY the leftmost column populates "indicators".
+- Use no_table_detected = true only if absolutely no tabular structure is visible.
+"""
+
+_PROMPT_BASE_PRECISION = """
+
+You are a precision-first financial table extraction engine for Canadian bank quarterly reports (French language).
+
+INPUT
+You receive one CROPPED image that may contain:
+- the table title above,
+- the table itself (headers + data rows),
+- footnotes below the table.
+
+TASK
+Analyse the image and extract ONLY these fields from the visible image:
+- indicators (first-column row labels)
+- footnotes_content (footnotes below the table)
+- headers (column headers)
+- table_title (title of the table)
+- table_summary (short business subject)
+- no_table_detected (boolean)
+
+Return VALID JSON ONLY. No markdown, no comments, no extra keys.
+
+OUTPUT SCHEMA
+{
+  "indicators": ["string"],
+  "table_title": "string",
+  "headers": ["string"],
+  "footnotes_content": [
+    {"id": "string", "text": "string"}
+  ],
+  "table_summary": "string",
+  "no_table_detected": false
+}
+
+DECISION RULE
+- If no real tabular structure is visible (only narrative text, charts, or blank space), return:
+  {
+    "indicators": [],
+    "table_title": "",
+    "table_summary": "",
+    "headers": [],
+    "footnotes_content": [],
+    "no_table_detected": true
+  }
+- Otherwise extract all visible fields and set "no_table_detected": false.
+
+═══════════════════════════════════════════
+FIELD 1: indicators (HIGHEST PRIORITY — PRECISION MODE)
+═══════════════════════════════════════════
+
+Extract ONLY first-column row labels that you are 100% certain belong to the table's left column.
+An indicator comes ONLY from the LEFTMOST visible cell of each logical row in the table body.
+
+An indicator is any text that functions as a row label:
+- normal row label
+- indented sub-row
+- group heading / section heading within the table
+- subtotal or total row
+- maturity bucket or period bucket used as a row label
+- a label with an attached footnote marker such as (1), *, †, ¹
+
+PRESERVE:
+- exact wording (French accents, hyphens, special characters)
+- attached footnote markers that are part of the label
+- visual top-to-bottom order
+
+DO NOT:
+- translate, normalize, summarize, correct spelling, or reorder
+- include column headers (these go in the "headers" field)
+- include pure numeric values, units-only cells, or isolated footnote markers
+- include narrative paragraphs or explanatory text blocks
+- include free text below the table (these may be footnotes)
+- include text from columns 2+ even when those cells contain meaningful business phrases
+
+WHEN IN DOUBT, OMIT — A missed indicator is less harmful than a hallucinated one.
+If you are not certain that a text element belongs to the first column, do not include it.
+
+CRITICAL: MULTI-COLUMN TEXT TABLES
+If the table has multiple textual columns (for example headers like "Canada", "États-Unis", "Europe"):
+- ONLY the text in the LEFTMOST / FIRST COLUMN is eligible for "indicators"
+- text visible under "États-Unis", "Europe", or any other non-leftmost header must NEVER appear in "indicators"
+- if a logical row has no visible first-column / leftmost cell, it must NOT produce an indicator
+- exhaustiveness means "all first-column row labels", NOT "all text visible anywhere in the image"
+
+CRITICAL: MULTI-LINE MERGE RULE
+If one indicator wraps onto multiple visual lines in the first column, merge them into ONE indicator string.
+Merge ONLY when:
+- same left alignment and indentation level
+- the next line clearly continues the same business label
+- the next line does NOT begin a new row with its own data values
+- the merged text forms one natural row label
+
+Do NOT merge when:
+- the second line is a new row with its own values in other columns
+- the second line is a subtotal, total, or new category
+- the first line is a group heading and the next line is a distinct sub-row
+
+CRITICAL: DISAMBIGUATION RULE FOR REPEATED LABELS
+When the EXACT SAME label text appears in multiple rows of the same table (because the table has repeating sub-sections), you MUST disambiguate by prepending the nearest visible GROUP HEADING or SECTION HEADING:
+- Format: "Group Heading – repeated_label"
 - If no group heading exists above the repeated label, keep the original label unchanged.
 - Apply this ONLY to labels that would otherwise appear as exact duplicates in the output list.
 - Every indicator in the final output list MUST be unique.
@@ -299,51 +576,10 @@ Return one JSON object only, with exactly these 6 keys:
 indicators, footnotes_content, table_title, headers, table_summary, no_table_detected
 """
 
-_PROMPT_JSON_STRICT = """
-STRICT JSON RESPONSE.
-Return valid JSON only. No text before or after.
-
-The JSON object must strictly follow this structure:
-
-{
-"indicators": ["Group A – Label 1", "  Sub-label", "Group A – Total", "Group B – Label 1"],
-"footnotes_content": [
-  {"id": "1", "text": "footnote text 1"},
-  {"id": "2", "text": "footnote text 2"}
-],
-"headers": ["Column 1", "Column 2", "Column 3"],
-"table_summary": "Business subject of the table in 15 words maximum",
-"table_title": "Tableau 1 – Full title as visible above the table",
-"no_table_detected": false
-}
-
-VALIDATION CHECKLIST (apply before returning):
-1. indicators: every element is UNIQUE — if duplicates exist, disambiguate with group heading prefix ("Group – label")
-2. indicators: no date/period identifiers ("Au 30 avril 2025", "Trimestre clos le...", "En millions de dollars")
-3. indicators: no pure numeric values, no column headers, no narrative paragraphs, no text from columns 2+
-4. indicators: multi-line labels merged into single strings
-5. indicators: hierarchy preserved via leading spaces (2-space increments per nesting level)
-6. footnotes_content: visual order preserved (top → bottom), NOT sorted by id
-7. footnotes_content: marker ids normalized (strip parentheses, convert superscripts to digits)
-8. headers: no empty strings, left-to-right order
-9. table_title: not a page running header or section heading — must be directly above the table
-10. table_summary: ≤ 15 words, noun phrase only, prefix "Suite: " for continuation tables
-11. no_table_detected: true ONLY if zero tabular structure is visible
-"""
-_PROMPT_RESCUE_SUFFIX = """
-
-RESCUE MODE — The previous extraction was empty, partial, or contaminated.
-Apply these overrides:
-- IGNORE page titles, running headers, section headings, and any non-tabular page furniture.
-- Focus ONLY on the real table visible in the crop.
-- If both a page title and a real table are visible, the page title must NOT be used as table_title.
-- If a real table is visible, extract it as completely and precisely as possible.
-- Apply the disambiguation rule for repeated labels (prepend group heading).
-- Apply the date/period exclusion rule.
-- Apply hierarchy preservation via leading spaces.
-- In multi-column textual tables, re-check that ONLY the leftmost column populates "indicators".
-- Use no_table_detected = true only if absolutely no tabular structure is visible.
-"""
+# Prompt variant identifiers for dual-prompt consensus
+_PROMPT_VARIANT_EXHAUSTIVE = "exhaustive"
+_PROMPT_VARIANT_PRECISION = "precision"
+_CONSENSUS_PROMPT_VARIANTS: tuple[str, str] = (_PROMPT_VARIANT_EXHAUSTIVE, _PROMPT_VARIANT_PRECISION)
 
 
 class VisionFootnoteItem(BaseModel):
@@ -538,6 +774,7 @@ class VisionFullResult:
     indicator_count: int = 0
     candidate_quality_rank: list[int] = field(default_factory=list)
     qa_inspected: bool = False
+    confidence_score: float = 0.0
 
     def to_footnotes_list(self) -> list[dict[str, str]]:
         """Retourne une copie de la liste des notes de bas de page."""
@@ -599,6 +836,90 @@ def _build_prompt(
         if rescue_instruction:
             prompt = prompt + "\n\n### RESCUE INSTRUCTIONS ###\n" + rescue_instruction
     return prompt
+
+
+def _build_precision_prompt(
+    bank_code: str,
+    vision_cfg: dict[str, Any],
+    reference_text: str | None = None,
+) -> str:
+    """Construit le prompt variante 'precision' (omission en cas de doute).
+
+    Identique a ``_build_prompt`` mais utilise ``_PROMPT_BASE_PRECISION``
+    comme base. N'ajoute jamais le suffixe de sauvetage — la variante precision
+    est uniquement utilisee pour le premier tir du consensus.
+    """
+    marker_type = str(vision_cfg.get("footnote_marker_type", "")).strip().lower()
+    expected = vision_cfg.get("expected_markers")
+    hints = []
+    if marker_type == "parenthetical":
+        hints.append("Format attendu: parenthesique (1), (2), (3)")
+    elif marker_type == "superscript":
+        hints.append("Format attendu: superscript ou chiffres 1, 2, 3 (ou 1 2 3 4 5)")
+    if expected and isinstance(expected, list):
+        hints.append(f"Marqueurs possibles: {expected[:5]}")
+    suffix = "\n".join(hints) if hints else ""
+
+    reference_section = ""
+    reference_text_max_chars = int(vision_cfg.get("vision_reference_text_max_chars", _DEFAULT_REFERENCE_TEXT_MAX_CHARS))
+    if reference_text and len(reference_text.strip()) > 20 and reference_text_max_chars > 0:
+        truncated = reference_text.strip()[:reference_text_max_chars]
+        reference_section = (
+            "\n\n=== DICTIONNAIRE DE RÉFÉRENCE (Texte OCR du tableau) ===\n"
+            f"{truncated}\n"
+            "=== FIN DICTIONNAIRE ===\n\n"
+            "CONSIGNE : Utilise l'image pour l'ordre visuel et la structure du tableau. "
+            "Utilise le Dictionnaire de Référence ci-dessus UNIQUEMENT pour VÉRIFIER L'ORTHOGRAPHE EXACTE "
+            "des libellés que tu as DÉJÀ identifiés avec certitude dans l'image. "
+            "Ne recopie pas le dictionnaire. Si tu n'es pas certain qu'un libellé vient de la colonne gauche, OMETS-LE.\n"
+        )
+    else:
+        reference_section = (
+            "\n\nCONSIGNE (pas de dictionnaire OCR disponible) : "
+            "Transcris EXACTEMENT ce que tu vois dans la première colonne. "
+            "Si tu n'es pas certain qu'un texte appartient à la première colonne, OMETS-LE.\n"
+        )
+
+    return _PROMPT_BASE_PRECISION + (f"\n{suffix}\n" if suffix else "") + reference_section + _PROMPT_JSON_STRICT
+
+
+def _extract_native_text_indicators(reference_text: str) -> list[str]:
+    """Extrait les candidats indicateurs du texte natif (Docling).
+
+    Ces candidats servent de troisieme source de vote dans ``_select_consensus``.
+    Ils ne peuvent PAS introduire de nouveaux libelles — ils ne font que renforcer
+    les libelles deja identifies par Vision.
+
+    Args:
+        reference_text: Texte brut extrait par Docling pour ce tableau.
+
+    Returns:
+        Liste de candidats indicateurs (au plus 200), dans l'ordre visuel.
+    """
+    candidates: list[str] = []
+    for line in reference_text.splitlines():
+        line = line.strip()
+        if not line or len(line) < 3:
+            continue
+        # Reject purely numeric lines
+        if re.match(r"^[\d\s\.,\-\(\)%]+$", line):
+            continue
+        # Reject date/period-like patterns
+        if _is_period_like_indicator(line):
+            continue
+        # Reject short all-caps tokens (likely headers or metadata)
+        if line.isupper() and len(line) <= 8:
+            continue
+        # Reject weak/generic standalone tokens
+        if _is_weak_indicator(line):
+            continue
+        # Reject narrative sentence fragments
+        if _looks_narrative_indicator(line):
+            continue
+        candidates.append(line)
+        if len(candidates) >= 200:
+            break
+    return candidates
 
 
 def _build_content(prompt: str, image_b64: str) -> list[Any]:
@@ -1479,6 +1800,7 @@ def _cache_payload_from_result(result: VisionFullResult) -> dict[str, Any]:
         "summary_present": result.summary_present,
         "indicator_count": result.indicator_count,
         "candidate_quality_rank": result.candidate_quality_rank,
+        "confidence_score": result.confidence_score,
     }
 
 
@@ -1565,6 +1887,7 @@ class VisionFullExtractor:
         rescue_mode: bool = False,
         rescue_instruction: str = "",
         temperature: float = 0.0,
+        prompt_override: str | None = None,
     ) -> VisionFullResult | None:
         """Extrait les indicateurs et notes de bas de page d'un recadrage de tableau.
 
@@ -1581,6 +1904,7 @@ class VisionFullExtractor:
             rescue_mode: Activer le mode de sauvetage pour les extractions echouees.
             rescue_instruction: Instruction specifique pour le mode de sauvetage.
             temperature: Temperature de generation du modele.
+            prompt_override: Prompt complet a utiliser a la place du prompt par defaut (optionnel).
 
         Returns:
             VisionFullResult ou None en cas d'echec.
@@ -1720,6 +2044,7 @@ class VisionFullExtractor:
                                 for value in list(cached.get("candidate_quality_rank", []) or [])
                                 if isinstance(value, (int, float))
                             ],
+                            confidence_score=float(cached.get("confidence_score", 0.0)),
                         )
 
         try:
@@ -1749,13 +2074,16 @@ class VisionFullExtractor:
             logger.debug("Vision preprocessing failed, using raw: %s", e)
             image_b64 = base64.standard_b64encode(crop_bytes).decode("ascii")
 
-        prompt = _build_prompt(
-            bank_code,
-            vision_cfg,
-            reference_text=reference_text,
-            rescue_mode=rescue_mode,
-            rescue_instruction=rescue_instruction,
-        )
+        if prompt_override is not None:
+            prompt = prompt_override
+        else:
+            prompt = _build_prompt(
+                bank_code,
+                vision_cfg,
+                reference_text=reference_text,
+                rescue_mode=rescue_mode,
+                rescue_instruction=rescue_instruction,
+            )
         max_completion_tokens = configured_max_completion_tokens
         openai_schema_full = _build_openai_json_schema()
         self._ensure_schema_validated(openai_schema_full)
@@ -2148,11 +2476,12 @@ class VisionFullExtractor:
     ) -> VisionFullResult | None:
         """Extraction multi-tir avec vote par consensus.
 
-        Lance ``len(temperatures)`` extractions paralleles a differentes
-        temperatures, puis selectionne le resultat avec le meilleur consensus
-        sur le nombre d'indicateurs et le recouvrement des libelles.
+        Lance 2 extractions paralleles avec variantes de prompt
+        (exhaustive et precision) a temperature 0.0, puis selectionne
+        le resultat avec le meilleur consensus sur le nombre
+        d'indicateurs et le recouvrement des libelles.
 
-        Se rabat sur une extraction unique a temperature 0 lorsque le consensus
+        Se rabat sur une extraction unique lorsque le consensus
         est unanime ou qu'un seul tir reussit.
         """
         temps = temperatures or self._CONSENSUS_TEMPERATURES
@@ -2174,7 +2503,15 @@ class VisionFullExtractor:
 
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
-        def _shot(temp: float) -> VisionFullResult | None:
+        def _shot(variant: str) -> VisionFullResult | None:
+            if variant == _PROMPT_VARIANT_PRECISION:
+                prompt_override = _build_precision_prompt(
+                    bank_code,
+                    vision_cfg or {},
+                    reference_text=reference_text,
+                )
+            else:
+                prompt_override = None  # exhaustive uses default prompt
             return self.extract(
                 crop_bytes=crop_bytes,
                 bank_code=bank_code,
@@ -2187,12 +2524,13 @@ class VisionFullExtractor:
                 max_completion_tokens_override=max_completion_tokens_override,
                 rescue_mode=rescue_mode,
                 rescue_instruction=rescue_instruction,
-                temperature=temp,
+                temperature=0.0,
+                prompt_override=prompt_override,
             )
 
         results: list[VisionFullResult] = []
-        with ThreadPoolExecutor(max_workers=len(temps)) as pool:
-            futures = {pool.submit(_shot, t): t for t in temps}
+        with ThreadPoolExecutor(max_workers=len(_CONSENSUS_PROMPT_VARIANTS)) as pool:
+            futures = {pool.submit(_shot, v): v for v in _CONSENSUS_PROMPT_VARIANTS}
             for future in as_completed(futures):
                 try:
                     r = future.result()
@@ -2200,7 +2538,7 @@ class VisionFullExtractor:
                         results.append(r)
                 except Exception as exc:
                     logger.debug(
-                        "Consensus shot at temp=%.1f failed: %s",
+                        "Consensus shot variant=%s failed: %s",
                         futures[future],
                         exc,
                     )
@@ -2211,13 +2549,15 @@ class VisionFullExtractor:
             return results[0]
 
         # --- Consensus voting ---
-        return self._select_consensus(results, bbox_norm=bbox_norm)
+        text_vote = _extract_native_text_indicators(reference_text) if reference_text else None
+        return self._select_consensus(results, bbox_norm=bbox_norm, text_vote_indicators=text_vote)
 
     @staticmethod
     def _select_consensus(
         results: list[VisionFullResult],
         *,
         bbox_norm: list[float] | None = None,
+        text_vote_indicators: list[str] | None = None,
     ) -> VisionFullResult:
         """Selectionne le resultat avec le meilleur consensus sur les libelles d'indicateurs.
 
@@ -2246,6 +2586,25 @@ class VisionFullExtractor:
                 if key:
                     label_votes[key] = label_votes.get(key, 0) + 1
 
+        # Text vote: reinforce labels confirmed by native PDF text
+        text_negative_signal: list[str] = []
+        if text_vote_indicators:
+            norm_vision_labels = set(label_votes.keys())
+            for candidate in text_vote_indicators:
+                key = _norm(candidate)
+                if key in norm_vision_labels:
+                    label_votes[key] = label_votes.get(key, 0) + 1
+            # Negative signal: text candidates not seen in any Vision shot
+            for candidate in text_vote_indicators:
+                key = _norm(candidate)
+                if key and key not in norm_vision_labels:
+                    text_negative_signal.append(candidate)
+            if text_negative_signal:
+                logger.info(
+                    "Consensus text vote: %d native text candidates not found in any Vision shot",
+                    len(text_negative_signal),
+                )
+
         def _score(r: VisionFullResult) -> float:
             real_count = _count_real_indicators(r.indicators or [])
             # Penalty for deviating from the median count
@@ -2262,6 +2621,20 @@ class VisionFullExtractor:
             return popularity - count_penalty * 3 + sum(quality_tuple) * 0.5
 
         best = max(results, key=_score)
+
+        # Compute confidence as mean Jaccard agreement between best and each shot
+        best_labels = {_norm(str(ind)) for ind in (best.indicators or []) if _norm(str(ind))}
+        if best_labels and len(results) > 1:
+            jaccards = []
+            for r in results:
+                shot_labels = {_norm(str(ind)) for ind in (r.indicators or []) if _norm(str(ind))}
+                union = best_labels | shot_labels
+                intersection = best_labels & shot_labels
+                jaccards.append(len(intersection) / len(union) if union else 1.0)
+            confidence = sum(jaccards) / len(jaccards)
+        else:
+            confidence = 1.0
+        best = replace(best, confidence_score=round(confidence, 3))
 
         logger.info(
             "Consensus: selected result with %d indicators (median=%s, from %d shots)",
@@ -2465,7 +2838,7 @@ class VisionFullExtractor:
         # --- Dual LLM QA Inspector (Priority 1) ---
         qa_missing_str = ""
         passed_qa = False
-        if first is not None and not initial_is_suspect and not initial_rejection_reasons:
+        if first is not None and not initial_is_suspect:
             try:
                 import dataclasses
 
