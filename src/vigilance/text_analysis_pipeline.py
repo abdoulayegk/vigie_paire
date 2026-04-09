@@ -778,6 +778,58 @@ def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
     return "\n".join(lines).strip() + "\n"
 
 
+def _build_block_page_index(section: SectionAudit) -> list[tuple[int, str]]:
+    """Retourne la liste ordonnée (page, texte) des blocs narratifs d'une section.
+
+    Utilisée pour retrouver la page exacte d'un fragment de texte retourné par GPT.
+    Les blocs titres/en-têtes sont exclus car GPT ne les retourne pas comme corps de texte.
+    """
+    index: list[tuple[int, str]] = []
+    for block in _markdown_blocks_for_section(section):
+        if block.source_label in {"title", "section_header"}:
+            continue
+        text = str(block.text or "").strip()
+        if text:
+            index.append((block.page, text))
+    return index
+
+
+def _find_page_for_fragment(fragment: str, block_index: list[tuple[int, str]]) -> int | None:
+    """Retrouve la page du bloc qui correspond le mieux au fragment de texte GPT.
+
+    Stratégie en deux passes :
+    1. Correspondance substring normalisée (exact ou inclusion)
+    2. Score de recouvrement de mots (retenu si ≥ 30 %)
+    """
+    if not fragment or not block_index:
+        return None
+    frag_norm = _normalized_block_text(fragment)
+    if not frag_norm:
+        return None
+
+    # Pass 1 — substring
+    for page, text in block_index:
+        text_norm = _normalized_block_text(text)
+        if frag_norm in text_norm or text_norm in frag_norm:
+            return page
+
+    # Pass 2 — word overlap
+    frag_words = set(frag_norm.split())
+    best_score = 0.0
+    best_page: int | None = None
+    for page, text in block_index:
+        text_words = set(_normalized_block_text(text).split())
+        if not text_words:
+            continue
+        overlap = len(frag_words & text_words)
+        score = overlap / max(len(frag_words), len(text_words))
+        if score > best_score:
+            best_score = score
+            best_page = page
+
+    return best_page if best_score >= 0.30 else None
+
+
 def _build_openai_client():
     from openai import OpenAI
 
@@ -1675,6 +1727,8 @@ def run_text_analysis_pipeline(
 
     # Step 3: GPT comparison on .md sections
     client = _build_openai_client()
+    audit_by_key_prev: dict[str, SectionAudit] = {a.section_key: a for a in audits_previous}
+    audit_by_key_curr: dict[str, SectionAudit] = {a.section_key: a for a in audits_current}
     section_comparisons: list[dict[str, Any]] = []
     for section_key in section_keys:
         text_t1 = _extract_section_text_from_markdown(md_previous, section_key)
@@ -1686,16 +1740,28 @@ def run_text_analysis_pipeline(
             text_t1=text_t1,
             text_t2=text_t2,
         )
-        # Inject section-level page ranges — GPT output has no per-paragraph page info.
-        # Added changes belong to T2 only; removed changes belong to T1 only.
-        _sec_prev = sections_previous.get(section_key)
-        _sec_curr = sections_current.get(section_key)
-        _pages_t1_full = _sec_prev.pages if _sec_prev else []
-        _pages_t2_full = _sec_curr.pages if _sec_curr else []
+        # Inject exact page numbers by matching GPT text fragments back to PDFBlocks.
+        # Falls back to section start_page if no block match is found.
+        _audit_prev = audit_by_key_prev.get(section_key)
+        _audit_curr = audit_by_key_curr.get(section_key)
+        _block_idx_t1 = _build_block_page_index(_audit_prev) if _audit_prev else []
+        _block_idx_t2 = _build_block_page_index(_audit_curr) if _audit_curr else []
+        _fallback_t1 = _audit_prev.start_page if _audit_prev else None
+        _fallback_t2 = _audit_curr.start_page if _audit_curr else None
         for _ch in changes:
             _dt = _ch.get("diff_type", "")
-            _p_t1 = _pages_t1_full if _dt in {"modified", "removed", "unchanged"} else []
-            _p_t2 = _pages_t2_full if _dt in {"modified", "added", "unchanged"} else []
+            _txt_t1 = _ch.get("source_text_t1") or ""
+            _txt_t2 = _ch.get("source_text_t2") or ""
+            if _dt in {"modified", "removed", "unchanged"} and _txt_t1:
+                _pg = _find_page_for_fragment(_txt_t1, _block_idx_t1)
+                _p_t1: list[int] = [_pg] if _pg else ([_fallback_t1] if _fallback_t1 else [])
+            else:
+                _p_t1 = []
+            if _dt in {"modified", "added", "unchanged"} and _txt_t2:
+                _pg = _find_page_for_fragment(_txt_t2, _block_idx_t2)
+                _p_t2: list[int] = [_pg] if _pg else ([_fallback_t2] if _fallback_t2 else [])
+            else:
+                _p_t2 = []
             _ch["pages_t1"] = _p_t1
             _ch["pages_t2"] = _p_t2
             if isinstance(_ch.get("evidence_t1"), dict):

@@ -1,8 +1,28 @@
-# Vigie de Paire — Analyse de Rapports Bancaires
+# Vigie Paires - Analyse des Rapports Bancaires
 
-Système d'extraction, de comparaison et de revue des tableaux réglementaires issus de rapports trimestriels PDF.
+<div align="center">
 
-> Projet interne — usage restreint.
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
+[![Docling](https://img.shields.io/badge/Docling-Structure%20Extraction-orange.svg)](https://github.com/ibm/docling)
+[![PyMuPDF](https://img.shields.io/badge/PyMuPDF-PDF%20Processing-red.svg)](https://pymupdf.readthedocs.io/)
+[![Pillow](https://img.shields.io/badge/Pillow-Image%20Processing-yellow.svg)](https://python-pillow.org/)
+[![Tests](https://img.shields.io/badge/Tests-33%20passing-brightgreen.svg)](./tests/)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-blue.svg)](./.github/workflows/ci.yml)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o%20Vision-black.svg)](https://openai.com/)
+
+</div>
+
+Système d'analyse automatisée des rapports trimestriels des 6 grandes banques canadiennes pour le Mouvement Desjardins
+
+## Objectif
+
+Remplacer l'outil Kofax Power par un système intelligent capable de :
+
+- Identifier les modifications pertinentes entre trimestres
+- Détecter les tendances adoptées par ≥3 banques
+- Générer des rapports Excel exploitables
+- Comparer structurellement les tableaux entre rapports trimestriels
+- Analyser qualitativement les changements avec GenAI
 
 ---
 
@@ -58,17 +78,28 @@ Ouvrir `.env` et remplacer `sk-...` par votre clé OpenAI.
 
 Variables disponibles :
 
-| Variable                 | Requis | Défaut | Description                        |
-| ------------------------ | ------ | ------ | ---------------------------------- |
-| `OPENAI_API_KEY`         | Oui    | —      | Clé API OpenAI                     |
-| `DASH_PORT`              | Non    | `8050` | Port de l'interface Dash           |
-| `DASH_DEBUG`             | Non    | `0`    | Mode debug Dash (1 = activé)       |
-| `DOCLING_NUM_THREADS`    | Non    | `4`    | Parallélisme extraction PDF        |
-| `ENABLE_TABLE_CROP_DUMP` | Non    | `0`    | Dump images de crop (débogage)     |
+| Variable                 | Requis | Défaut | Description                    |
+| ------------------------ | ------ | ------ | ------------------------------ |
+| `OPENAI_API_KEY`         | Oui    | —      | Clé API OpenAI                 |
+| `DASH_PORT`              | Non    | `8050` | Port de l'interface Dash       |
+| `DASH_DEBUG`             | Non    | `0`    | Mode debug Dash (1 = activé)   |
+| `DOCLING_NUM_THREADS`    | Non    | `4`    | Parallélisme extraction PDF    |
+| `ENABLE_TABLE_CROP_DUMP` | Non    | `0`    | Dump images de crop (débogage) |
 
 > Le fichier `.env` est dans `.gitignore` — ne jamais le commiter.
 
 ---
+
+## Banques supportées
+
+| Code | Banque                     |
+| ---- | -------------------------- |
+| bnc  | Banque Nationale du Canada |
+| rbc  | Banque Royale du Canada    |
+| td   | Banque Toronto-Dominion    |
+| bmo  | Banque de Montréal         |
+| bns  | Banque de Nouvelle-Écosse  |
+| cibc | CIBC                       |
 
 ## Structure des entrées
 
@@ -98,7 +129,7 @@ Le trimestre de référence est déduit automatiquement :
 
 ## Exécuter le pipeline
 
-### 📊 Pipeline Tableaux (Chiffres)
+### Pipeline Tableaux (Chiffres)
 
 ```bash
 # Extraction + Comparaison complètes des tableaux
@@ -109,9 +140,12 @@ uv run run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
 
 # Sauter la comparaison (re-triage uniquement)
 uv run run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-comparison
+
+ uv run run_text_pipeline.py --bank BNC --year 2025 --T2
+
 ```
 
-### 📝 Pipeline Texte (Risques, Capital, etc.)
+### Pipeline Texte (Risques, Capital, etc.)
 
 Le module de comparaison de texte utilise l'alignement intelligent par sous-sections de Docling pour éviter les faux-positifs lors du rapprochement sémantique.
 
@@ -125,15 +159,15 @@ uv run run_text_pipeline.py --bank BNS --year 2025 --T2 --skip-extraction
 
 **Options :**
 
-| Option              | Description                                                  |
-| ------------------- | ------------------------------------------------------------ |
-| `--bank`            | Code banque : `BNC`, `RBC`, `TD`, `BMO`, `BNS`, `CIBC`       |
-| `--year`            | Année du rapport courant                                     |
-| `--quarter`         | Trimestre courant : `T1`, `T2`, `T3`, `T4`                   |
-| `--skip-extraction` | Réutilise les `tables.json` existants                        |
-| `--skip-comparison` | Saute la comparaison GPT-4o                                  |
-| `--inputs-root`     | Répertoire des PDFs (défaut : `Inputs/`)                     |
-| `--outputs-root`    | Répertoire de sortie (défaut : `Outputs/`)                   |
+| Option              | Description                                            |
+| ------------------- | ------------------------------------------------------ |
+| `--bank`            | Code banque : `BNC`, `RBC`, `TD`, `BMO`, `BNS`, `CIBC` |
+| `--year`            | Année du rapport courant                               |
+| `--quarter`         | Trimestre courant : `T1`, `T2`, `T3`, `T4`             |
+| `--skip-extraction` | Réutilise les `tables.json` existants                  |
+| `--skip-comparison` | Saute la comparaison GPT-4o                            |
+| `--inputs-root`     | Répertoire des PDFs (défaut : `Inputs/`)               |
+| `--outputs-root`    | Répertoire de sortie (défaut : `Outputs/`)             |
 
 **Artefact produit :**
 
