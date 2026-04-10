@@ -1,0 +1,163 @@
+{
+  "bank_code": "bns",
+  "year": 2025,
+  "quarter": "t2",
+  "created_at": "2026-04-08T21:47:27",
+  "schema_version": 7,
+  "tables": [
+    {
+      "table_id": "tbl_p037_i01",
+      "page": 37,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p040_i01",
+      "page": 40,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p040_i02",
+      "page": 40,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p041_i01",
+      "page": 41,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p042_i01",
+      "page": 42,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p042_i02",
+      "page": 42,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p043_i01",
+      "page": 43,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p043_i02",
+      "page": 43,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p043_i03",
+      "page": 43,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p044_i01",
+      "page": 44,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p044_i02",
+      "page": 44,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p045_i01",
+      "page": 45,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p045_i02",
+      "page": 45,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p045_i03",
+      "page": 45,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p046_i01",
+      "page": 46,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p048_i01",
+      "page": 48,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p050_i01",
+      "page": 50,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p050_i02",
+      "page": 50,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p051_i01",
+      "page": 51,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p052_i01",
+      "page": 52,
+      "section": "risk_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p053_i01",
+      "page": 53,
+      "section": "capital_management",
+      "title": "",
+      "indicators": []
+    },
+    {
+      "table_id": "tbl_p054_i01",
+      "page": 54,
+      "section": "capital_management",
+      "title": "",
+      "indicators": []
+    }
+  ]
+}

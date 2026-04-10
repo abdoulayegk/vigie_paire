@@ -1,0 +1,1299 @@
+{
+  "bank_code": "bmo",
+  "year": 2026,
+  "quarter": "t1",
+  "created_at": "2026-04-08T20:11:31",
+  "schema_version": 7,
+  "tables": [
+    {
+      "table_id": "tbl_p021_i01",
+      "page": 21,
+      "section": "capital_management",
+      "title": "TABLEAU 11",
+      "bbox": [
+        0.05645521416248562,
+        0.07003438351579207,
+        0.9415018924169113,
+        0.2104270280366285
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Exigences minimales",
+        "Réserve de fonds propres totale au titre du premier pilier¹",
+        "Réserve de fonds propres de catégorie 1²",
+        "Exigences minimales avant la réserve pour stabilité intérieure",
+        "Réserve pour stabilité intérieure³",
+        "Exigences minimales de fonds propres, de levier et de la TLAC, y compris les réserves de fonds propres",
+        "Ratios des fonds propres, de levier et de la TLAC de BMO au 31 janvier 2026"
+      ],
+      "table_summary": "Exigences minimales de fonds propres, levier et TLAC",
+      "row_count": 6,
+      "indicators": [
+        "Ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires",
+        "Ratio des fonds propres de catégorie 1",
+        "Ratio du total des fonds propres",
+        "Ratio TLAC",
+        "Ratio de levier",
+        "Ratio de levier TLAC"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le ratio minimal des fonds propres de catégorie 1 sous forme d’actions ordinaires, qui est de 4,5 %, s’accroît des réserves de fonds propres au titre du premier pilier, qui sont de 3,5 % et qui peuvent absorber les pertes en situation de crise. Les réserves de fonds propres au titre du premier pilier, qui seront satisfaites tout comme les fonds propres de catégorie 1 sous forme d’actions ordinaires, comprennent une réserve de conservation des fonds propres de 2,5 %, un supplément de fonds propres de catégorie 1 sous forme d’actions ordinaires applicable aux banques d’importance systémique intérieures (BISi) de 1,0 % et une réserve contracyclique telle qu’elle est stipulée par le BSIF (dont l’importance a été négligeable pour le trimestre). Si les ratios des fonds propres d’une banque tombent dans les limites de cette réserve combinée, des restrictions lui seront imposées à l’égard de ses distributions discrétionnaires à même le résultat (aux fins notamment des dividendes, des rachats d’actions et de la rémunération discrétionnaire), l’ampleur de ces restrictions variant alors selon la position des ratios de la Banque à l’intérieur des limites de la réserve."
+        },
+        {
+          "id": "2",
+          "text": "Les BISi sont tenues de satisfaire à une exigence de réserve de fonds propres au titre du premier pilier de 0,5 % pour ce qui est du ratio de levier et du ratio de levier TLAC."
+        },
+        {
+          "id": "3",
+          "text": "Le BSIF exige des BISi qu’elles constituent une réserve pour stabilité intérieure au titre des risques associés aux vulnérabilités systémiques dont il est question dans le deuxième pilier. Une banque qui manque à ses obligations relatives à la réserve pour stabilité intérieure ne se voit pas automatiquement assujettie à des limites de distribution de fonds propres. Advenant une dérogation, le BSIF exigerait un plan de mesures correctrices et s’attendrait à ce qu’il soit mis en place en temps opportun. Les banques pourraient être tenues de détenir des réserves supplémentaires pouvant s’appliquer aux ratios des fonds propres, de levier et de la TLAC."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p021_i02",
+      "page": 21,
+      "section": "capital_management",
+      "title": "TABLEAU 12",
+      "bbox": [
+        0.056463945115422576,
+        0.4043146089094439,
+        0.9423512315417311,
+        0.7042362306822558
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "T1-2026",
+        "T4-2025",
+        "T1-2025"
+      ],
+      "table_summary": "Fonds propres réglementaires et TLAC",
+      "row_count": 24,
+      "indicators": [
+        "Montant brut des fonds propres sous forme d’actions ordinaires¹",
+        "Ajustements réglementaires appliqués aux fonds propres sous forme d’actions ordinaires",
+        "Fonds propres de catégorie 1 sous forme d’actions ordinaires",
+        "Fonds propres de catégorie 1 supplémentaires admissibles²",
+        "Ajustements réglementaires appliqués aux fonds propres de catégorie 1",
+        "Fonds propres de catégorie 1 supplémentaires",
+        "Fonds propres de catégorie 1 (fonds propres de catégorie 1 sous forme d’actions ordinaires et fonds propres de catégorie 1 supplémentaires)",
+        "Fonds propres de catégorie 2 admissibles³",
+        "Ajustements réglementaires appliqués aux fonds propres de catégorie 2",
+        "Fonds propres de catégorie 2",
+        "Total des fonds propres (fonds propres de catégorie 1 et 2)",
+        "Autres instruments TLAC⁴",
+        "Ajustements appliqués aux autres instruments TLAC",
+        "Autres instruments TLAC disponibles après ajustements",
+        "TLAC",
+        "Actifs pondérés en fonction des risques⁵",
+        "Exposition aux fins du ratio de levier",
+        "Ratios des fonds propres, de levier et de la TLAC (%)",
+        "Ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires",
+        "Ratio des fonds propres de catégorie 1",
+        "Ratio du total des fonds propres",
+        "Ratio TLAC",
+        "Ratio de levier",
+        "Ratio de levier TLAC"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le montant brut des fonds propres sous forme d’actions ordinaires comprend les actions ordinaires admissibles qui ont été émises, les résultats non distribués, le cumul des autres éléments du résultat global et les actions ordinaires admissibles émises par les filiales."
+        },
+        {
+          "id": "2",
+          "text": "Les fonds propres de catégorie 1 supplémentaires admissibles comprennent les instruments de catégorie 1 supplémentaires admissibles émis directement ou indirectement."
+        },
+        {
+          "id": "3",
+          "text": "Les fonds propres de catégorie 2 admissibles comprennent les débentures subordonnées et peuvent comprendre une partie des dotations à la provision pour pertes sur créances attendues."
+        },
+        {
+          "id": "4",
+          "text": "Les autres instruments TLAC englobent la dette de premier rang non garantie admissible aux fins du régime de recapitalisation interne des banques au Canada."
+        },
+        {
+          "id": "5",
+          "text": "Les institutions qui utilisent l’une des approches internes modélisées pour le risque de crédit, le risque de contrepartie ou le risque de marché sont assujetties aux exigences en matière de plancher de fonds propres s’appliquant aux actifs pondérés en fonction des risques, tel que le prescrit la ligne directrice NFP du BSIF."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p022_i01",
+      "page": 22,
+      "section": "capital_management",
+      "title": "TABLEAU 13",
+      "bbox": [
+        0.05639663389295854,
+        0.0715226509763298,
+        0.6808762790690255,
+        0.3883366078254634
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Nombre d’actions",
+        "Montant (en millions)"
+      ],
+      "table_summary": "Actions en circulation et titres convertibles en actions ordinaires",
+      "row_count": 23,
+      "indicators": [
+        "Actions ordinaires",
+        "Actions privilégiées de catégorie B²",
+        "Série 44",
+        "Série 50",
+        "Série 52",
+        "Autres instruments de capitaux propres²",
+        "Billets subordonnés à 4,800 % aux termes des fonds propres de catégorie 1 supplémentaires³",
+        "Billets avec remboursement de capital à recours limité, série 2 à 5,625 %",
+        "Billets avec remboursement de capital à recours limité, série 3 à 7,325 %",
+        "Billets avec remboursement de capital à recours limité, série 4 à 7,700 %",
+        "Billets avec remboursement de capital à recours limité, série 5 à 7,300 %",
+        "Billets avec remboursement de capital à recours limité, série 6 à 6,875 %",
+        "Billets à moyen terme",
+        "Billets subordonnés à 3,803 % échéant en 2032",
+        "Série K – première tranche",
+        "Billets subordonnés à 3,088 % échéant en 2037",
+        "Série L – première tranche",
+        "Série M – première tranche",
+        "Série M – deuxième tranche",
+        "Série N – première tranche",
+        "Options sur actions",
+        "Droits acquis",
+        "Droits non acquis"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Des détails sur les billets à moyen terme sont présentés à la note 16 des états financiers consolidés audités du Rapport annuel de BMO pour 2025. La note 16 des états financiers consolidés annuels audités du Rapport annuel de BMO pour 2025, traitent en détail du capital social et des autres instruments convertibles en actions ordinaires."
+        },
+        {
+          "id": "2",
+          "text": "Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actions ordinaires en vertu du recours aux actions privilégiées, série 51, aux actions privilégiées, série 53, aux actions privilégiées, série 54 et aux actions privilégiées, série 55 au titre des billets avec remboursement de capital à recours limité, série 4, série 5 et série 6, respectivement émises en même temps que les billets avec remboursement de capital à recours limité, qui comprennent actions privilégiées, série 51, aux actions privilégiées, série 53, aux actions privilégiées, série 54 et aux actions privilégiées, série 55 au titre des billets avec remboursement de capital à recours limité, série 4, série 5 et série 6, respectivement émises en même temps que les billets avec remboursement de capital à recours limité."
+        },
+        {
+          "id": "3",
+          "text": "Les billets avaient un taux d’intérêt initial de 4,800 %, qui a été ajusté à 6,709 % le 25 août 2024."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p038_i01",
+      "page": 38,
+      "section": "regulatory_updates",
+      "title": "TABLEAU 21",
+      "bbox": [
+        0.05652699368848698,
+        0.7980167195583573,
+        0.9388477824351724,
+        0.8518913486063516
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Prêts hypothécaires à l’habitation",
+        "Marges de crédit sur la valeur domiciliaire amortissables",
+        "Total des prêts garantis par un bien immobilier amortissables",
+        "Prêts garantis par un bien immobilier non amortissables",
+        "Total des prêts garantis par un bien immobilier au Canada"
+      ],
+      "table_summary": "Prêts garantis par un bien immobilier au Canada",
+      "row_count": 2,
+      "indicators": [
+        "Au 31 janvier 2026",
+        "Au 31 octobre 2025"
+      ],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p039_i01",
+      "page": 39,
+      "section": "regulatory_updates",
+      "title": "TABLEAU 22",
+      "bbox": [
+        0.056846916743427595,
+        0.07160135571525372,
+        0.9412869152916341,
+        0.22706286839962786
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Au 31 janvier 2026",
+        "Assurés³",
+        "Non assurés",
+        "Total",
+        "En % du total",
+        "Pour le trimestre clos le RPV moyen non assuré⁴",
+        "Au 31 octobre 2025",
+        "Assurés³",
+        "Non assurés",
+        "Total",
+        "En % du total",
+        "Pour le trimestre clos le RPV moyen non assuré⁴"
+      ],
+      "table_summary": "Prêts hypothécaires à l’habitation par région",
+      "row_count": 9,
+      "indicators": [
+        "Atlantique",
+        "Québec",
+        "Ontario",
+        "Alberta",
+        "Colombie-Britannique",
+        "Ailleurs au Canada",
+        "Total au Canada",
+        "États-Unis",
+        "Total"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les méthodes de présentation de l’information utilisées sont conformes à ce qui est énoncé en vertu de la ligne directrice B-20 du BSIF intitulée « Pratiques et procédures de souscription de prêts hypothécaires résidentiels »."
+        },
+        {
+          "id": "2",
+          "text": "La région est déterminée selon l’adresse où se trouve la propriété grevée d’un prêt hypothécaire."
+        },
+        {
+          "id": "3",
+          "text": "Les prêts hypothécaires assurés s’entendent des prêts hypothécaires assurés individuellement ou par portefeuille par l’intermédiaire d’un assureur admissible (c.-à-d. la SCHL et Sagen MI CanadaMC)."
+        },
+        {
+          "id": "4",
+          "text": "Le ratio prêt/valeur (RPV) est fonction de l’encours initial des prêts hypothécaires et des montants autorisés pouvant être prélevés sur les marges de crédit sur valeur domiciliaire, divisés par la valeur de la garantie au moment du montage."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p039_i02",
+      "page": 39,
+      "section": "regulatory_updates",
+      "title": "Marges de crédit sur valeur domiciliaire¹ TABLEAU 23",
+      "bbox": [
+        0.056738518317028246,
+        0.346099935784099,
+        0.9407572499440123,
+        0.499669905303506
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Région²",
+        "Encours",
+        "En %",
+        "Montants autorisés",
+        "En %",
+        "RPV moyen⁴",
+        "Encours",
+        "En %",
+        "Montants autorisés",
+        "En %",
+        "RPV moyen⁴"
+      ],
+      "table_summary": "Marges de crédit sur valeur domiciliaire par région",
+      "row_count": 9,
+      "indicators": [
+        "Atlantique",
+        "Québec",
+        "Ontario",
+        "Alberta",
+        "Colombie-Britannique",
+        "Ailleurs au Canada",
+        "Total au Canada",
+        "États-Unis",
+        "Total"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Il y a lieu de se reporter aux notes du tableau Prêts hypothécaires à l’habitation ci-dessus."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p039_i03",
+      "page": 39,
+      "section": "regulatory_updates",
+      "title": "TABLEAU 24",
+      "bbox": [
+        0.0566789222406998,
+        0.5615919410045882,
+        0.9419912744813179,
+        0.6383226227210251
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Moins de 5 ans (en %)",
+        "De 6 à 10 ans (en %)",
+        "De 11 à 15 ans (en %)",
+        "De 16 à 20 ans (en %)",
+        "De 21 à 25 ans (en %)",
+        "De 26 à 30 ans (en %)",
+        "De 31 à 35 ans (en %)",
+        "Plus de 35 ans (en %)"
+      ],
+      "table_summary": "Répartition des prêts hypothécaires à l’habitation par période d’amortissement restante",
+      "row_count": 3,
+      "indicators": [
+        "Canada³",
+        "États-Unis⁴",
+        "Total"
+      ],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p039_i04",
+      "page": 39,
+      "section": "regulatory_updates",
+      "title": "",
+      "bbox": [
+        0.05671384605244764,
+        0.6538133411578002,
+        0.9415653086746462,
+        0.7310433257764969
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Moins de 5 ans (en %)",
+        "De 6 à 10 ans (en %)",
+        "De 11 à 15 ans (en %)",
+        "De 16 à 20 ans (en %)",
+        "De 21 à 25 ans (en %)",
+        "De 26 à 30 ans (en %)",
+        "De 31 à 35 ans (en %)",
+        "Plus de 35 ans (en %)"
+      ],
+      "table_summary": "Suite: période d’amortissement des prêts hypothécaires",
+      "row_count": 3,
+      "indicators": [
+        "Canada³",
+        "États-Unis⁴",
+        "Total"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Au Canada, la période d’amortissement restante tient compte de l’encours actuel, du taux d’intérêt, des montants des paiements effectués par les clients et de la fréquence des paiements. Les échéances contractuelles sont utilisées aux États-Unis."
+        },
+        {
+          "id": "2",
+          "text": "Les méthodes de présentation de l’information utilisées sont conformes à ce qui est énoncé en vertu de la ligne directrice B-20 du BSIF."
+        },
+        {
+          "id": "3",
+          "text": "À la suite des hausses des taux d’intérêt, le portefeuille comprenait des prêts hypothécaires à taux variables à amortissement négatif inférieur à 0,1 milliard de dollars (relativement stable par rapport au 31 octobre 2025) les paiements contractuels de la période considérée étant appliqués aux intérêts et la portion des intérêts exigibles non visée par des versements étant appliquée au capital."
+        },
+        {
+          "id": "4",
+          "text": "Une vaste proportion des prêts hypothécaires contractés aux États-Unis dont les périodes d’amortissement sont les plus longues sont principalement associés aux programmes de modifications de prêts destinés aux emprunteurs en difficulté et de programmes de refinancement de prêts hypothécaires instaurés par un organisme de réglementation."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p040_i01",
+      "page": 40,
+      "section": "risk_management",
+      "title": "TABLEAU 25",
+      "bbox": [
+        0.056713366192793005,
+        0.23949362286942905,
+        0.9397230464452296,
+        0.39319155802076944
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Région",
+        "Banque",
+        "Sociétés souverains",
+        "États",
+        "Total",
+        "Banque",
+        "Sociétés souverains",
+        "États",
+        "Total",
+        "Banque",
+        "Sociétés souverains",
+        "États",
+        "Total",
+        "Total montant net",
+        "Total montant net"
+      ],
+      "table_summary": "Expositions par région",
+      "row_count": 7,
+      "indicators": [
+        "Europe (excl. Royaume-Uni)",
+        "Royaume-Uni",
+        "Amérique latine",
+        "Asie-Pacifique",
+        "Afrique et Moyen-Orient",
+        "Autres¹",
+        "Total"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Reflète l’exposition à des institutions supranationales."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p041_i01",
+      "page": 41,
+      "section": "risk_management",
+      "title": "TABLEAU 26",
+      "bbox": [
+        0.057126319701297466,
+        0.1973117932417503,
+        0.9371094191689001,
+        0.5112227573632924
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Bilan consolidé",
+        "Exposés au risque de marché Éléments négociés¹",
+        "Éléments non négociés²",
+        "Non exposés au risque de marché",
+        "Bilan consolidé",
+        "Exposés au risque de marché Éléments négociés¹",
+        "Éléments non négociés²",
+        "Non exposés au risque de marché",
+        "Principaux facteurs de risque des soldes d’éléments non négociés"
+      ],
+      "table_summary": "Éléments du bilan exposés au risque de marché",
+      "row_count": 19,
+      "indicators": [
+        "Actifs exposés au risque de marché",
+        "Trésorerie et équivalents de trésorerie",
+        "Dépôts productifs d’intérêts à d’autres banques",
+        "Valeurs mobilières",
+        "Titres pris en pension ou empruntés",
+        "Prêts et acceptations (déduction faite de la provision pour pertes sur créances)",
+        "Instruments dérivés",
+        "Engagements des clients aux termes d’acceptations",
+        "Actifs divers",
+        "Total des actifs",
+        "Passifs exposés au risque de marché",
+        "Dépôts",
+        "Instruments dérivés",
+        "Acceptations",
+        "Titres vendus à découvert",
+        "Titres mis en pension ou prêtés",
+        "Passifs divers",
+        "Dette subordonnée",
+        "Total des passifs"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Comprend essentiellement des éléments du bilan qui sont assujettis au cadre de gestion du risque lié aux activités de négociation et à la prise ferme, et qui sont comptabilisés à la juste valeur par le biais du résultat net."
+        },
+        {
+          "id": "2",
+          "text": "Comprend essentiellement des éléments du bilan qui sont assujettis au cadre de gestion du risque structurel de marché et du risque d’assurance ainsi qu’à des transactions de financement garanties."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p041_i02",
+      "page": 41,
+      "section": "risk_management",
+      "title": "TABLEAU 27",
+      "bbox": [
+        0.056794979725742635,
+        0.6821443888447718,
+        0.9411130191383487,
+        0.7816484454496939
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "À la clôture du trimestre",
+        "Moyenne",
+        "Haut",
+        "Bas",
+        "Moyenne",
+        "Moyenne"
+      ],
+      "table_summary": "Sommaire du total de la valeur à risque liée aux activités de négociation",
+      "row_count": 6,
+      "indicators": [
+        "VaR liée aux produits de base",
+        "VaR liée aux actions",
+        "VaR liée au change",
+        "VaR liée aux taux d’intérêt²",
+        "Diversification",
+        "Total de la VaR – Négociation"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Mesure quotidienne selon un niveau de confiance de 99 %. Les profits sont indiqués par des montants entre parenthèses et les pertes, par des montants positifs."
+        },
+        {
+          "id": "2",
+          "text": "La VaR liée aux taux d’intérêt comprend le risque d’écart de crédit général."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p042_i01",
+      "page": 42,
+      "section": "risk_management",
+      "title": "TABLEAU 28",
+      "bbox": [
+        0.056894921404721965,
+        0.1324380529221009,
+        0.9428683332911224,
+        0.19758469541058957
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Canada³",
+        "États-Unis",
+        "Total",
+        "Total",
+        "Total",
+        "Canada³",
+        "États-Unis",
+        "Total",
+        "Total",
+        "Total"
+      ],
+      "table_summary": "Sensibilité au risque structurel de taux d’intérêt",
+      "row_count": 2,
+      "indicators": [
+        "Hausse de 100 points de base",
+        "Baisse de 100 points de base"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les pertes sont indiquées par des montants entre parenthèses et les profits, par des montants positifs."
+        },
+        {
+          "id": "2",
+          "text": "Les sensibilités aux taux d’intérêt supposent une évolution parallèle immédiate et durable des taux d’intérêt présumés sur l’ensemble de la courbe de rendement à la fin de la période, sur la base d’un bilan constant."
+        },
+        {
+          "id": "3",
+          "text": "Comprend le dollar canadien et autres monnaies."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p043_i01",
+      "page": 43,
+      "section": "risk_management",
+      "title": "TABLEAU 29",
+      "bbox": [
+        0.05636329299487665,
+        0.07143373191009404,
+        0.9456861688942458,
+        0.2896076265127992
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Actifs appartenant à la Banque",
+        "Autres éléments de trésorerie et valeurs mobilières reçus",
+        "Total des actifs bruts¹",
+        "Actifs grevés",
+        "Actifs nets non grevés²",
+        "Actifs nets non grevés²"
+      ],
+      "table_summary": "Actifs liquides",
+      "row_count": 10,
+      "indicators": [
+        "Trésorerie et équivalents de trésorerie",
+        "Dépôts à d’autres banques",
+        "Valeurs mobilières et titres pris en pension ou empruntés",
+        "États souverains, banques centrales ou banques multilatérales de développement",
+        "Titres adossés à des créances hypothécaires en vertu de la LNH et titres adossés à des créances hypothécaires émis par des agences américaines et titres garantis par des créances hypothécaires",
+        "Titres de créance d’entreprises et autres",
+        "Titres de participation d’entreprises",
+        "Total des valeurs mobilières et des titres pris en pension ou empruntés",
+        "Titres adossés à des créances hypothécaires en vertu de la LNH (présentés comme des prêts au coût amorti)³",
+        "Total des actifs liquides"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les actifs bruts comprennent les actifs appartenant à la Banque ainsi que les éléments de trésorerie et les valeurs mobilières reçus de tiers."
+        },
+        {
+          "id": "2",
+          "text": "Les actifs nets non grevés désignent le total des actifs bruts, moins les actifs grevés."
+        },
+        {
+          "id": "3",
+          "text": "Aux termes des IFRS, les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation (LNH) qui comprennent les prêts hypothécaires détenus par BMO à titre de sûretés sous-jacentes sont classés dans les prêts. Les titres adossés à des créances hypothécaires en vertu de la LNH non grevés sont liquides et inclus à titre d’actifs liquides conformément au cadre de gestion du risque de liquidité et de financement de BMO. Ce montant est présenté comme un poste distinct appelé Titres adossés à des créances hypothécaires en vertu de la LNH."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p043_i02",
+      "page": 43,
+      "section": "risk_management",
+      "title": "TABLEAU 30",
+      "bbox": [
+        0.056550712465701876,
+        0.3932810549838828,
+        0.943714581371933,
+        0.5927584975112679
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Total des actifs bruts1",
+        "Actifs grevés2 Donnés en garantie",
+        "Actifs grevés2 Autres actifs grevés",
+        "Actifs nets non grevés Autres actifs non grevés3",
+        "Actifs nets non grevés Actifs pouvant être donnés en garantie4"
+      ],
+      "table_summary": "Actifs grevés",
+      "row_count": 15,
+      "indicators": [
+        "Trésorerie et dépôts à d’autres banques",
+        "Valeurs mobilières5",
+        "Prêts",
+        "Autres actifs",
+        "Instruments dérivés",
+        "Engagements de clients aux termes d’acceptations",
+        "Bureaux et matériel",
+        "Écart d’acquisition",
+        "Immobilisations incorporelles",
+        "Actifs d’impôt exigible",
+        "Actifs d’impôt différé",
+        "Montants à recevoir des courtiers, des contrepartistes et des clients",
+        "Actifs divers",
+        "Total des autres actifs",
+        "Total des actifs"
+      ],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p043_i03",
+      "page": 43,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.05641361593917783,
+        0.6039834894091536,
+        0.9446037052244827,
+        0.8037822040740342
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Total des actifs bruts1",
+        "Actifs grevés2 Donnés en garantie",
+        "Autres actifs grevés",
+        "Actifs nets non grevés Autres actifs non grevés3",
+        "Actifs pouvant être donnés en garantie4"
+      ],
+      "table_summary": "Actifs bruts, grevés et nets non grevés",
+      "row_count": 15,
+      "indicators": [
+        "Trésorerie et dépôts à d’autres banques",
+        "Valeurs mobilières5",
+        "Prêts",
+        "Autres actifs",
+        "Instruments dérivés",
+        "Engagements de clients aux termes d’acceptations",
+        "Bureaux et matériel",
+        "Écart d’acquisition",
+        "Immobilisations incorporelles",
+        "Actifs d’impôt exigible",
+        "Actifs d’impôt différé",
+        "Montants à recevoir des courtiers, des contrepartistes et des clients",
+        "Actifs divers",
+        "Total des autres actifs",
+        "Total des actifs"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les actifs bruts comprennent des actifs inscrits au bilan et des actifs hors bilan."
+        },
+        {
+          "id": "2",
+          "text": "Les actifs donnés en garantie renvoient à la partie des actifs de BMO figurant à son bilan ainsi qu’à la trésorerie et aux valeurs mobilières qui est donnée en garantie par voie de mises en pension de titres, de prêts de titres, de contrats dérivés, ainsi qu’aux termes des exigences associées à la participation à des chambres de compensation et des systèmes de paiement. Les autres actifs grevés comprennent les actifs qui font l’objet de restrictions de nature juridique ou autre, tels que les dépôts minimaux requis auprès de banques centrales, les actifs liés à des ventes à découvert et certains titres émis par des agences américaines qui ont été vendus à des tiers, mais qui sont consolidés selon les IFRS."
+        },
+        {
+          "id": "3",
+          "text": "Les autres actifs non grevés comprennent certains actifs liquides qui, de l’avis de la direction, ne sont pas rapidement disponibles pour répondre aux besoins de BMO en matière de liquidité. Ces actifs se composent de valeurs mobilières d’un montant de 25,9 milliards de dollars au 31 janvier 2026 et comprennent les titres détenus par la filiale d’assurance de BMO, les titres liés au financement par le vendeur et certains investissements détenus par notre unité de banque d’affaires. Les autres actifs non grevés comprennent des prêts hypothécaires et d’autres prêts pouvant être titrisés afin d’obtenir du financement garanti."
+        },
+        {
+          "id": "4",
+          "text": "Les prêts compris dans les actifs pouvant être donnés en garantie représentent des prêts qui sont actuellement détenus dans des banques centrales et qui peuvent servir à obtenir du financement auprès de celles-ci. Les prêts pouvant être donnés en garantie ne tiennent pas compte d’autres sources de liquidité supplémentaires pouvant être utilisées et associées au portefeuille de prêts de BMO, notamment d’autres titrisations, des émissions d’obligations couvertes et des avances de la Federal Home Loan Bank (FHLB) des États-Unis."
+        },
+        {
+          "id": "5",
+          "text": "Comprennent des valeurs mobilières, des titres pris en pension ou empruntés et des titres adossés à des créances hypothécaires en vertu de la LNH (présentés comme des prêts au coût amorti)."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p044_i01",
+      "page": 44,
+      "section": "risk_management",
+      "title": "TABLEAU 31",
+      "bbox": [
+        0.05656230388073596,
+        0.059040824869969345,
+        0.9407929465167624,
+        0.12472868704757416
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Au 31 Janvier 2026",
+        "Au 31 octobre 2025"
+      ],
+      "table_summary": "Actifs nets liquides non grevés par entité juridique",
+      "row_count": 4,
+      "indicators": [
+        "BMO (société mère)",
+        "BMO Bank N.A.",
+        "Courtiers",
+        "Total des actifs nets liquides non grevés par entité juridique"
+      ],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p044_i02",
+      "page": 44,
+      "section": "risk_management",
+      "title": "TABLEAU 32",
+      "bbox": [
+        0.056424970540356376,
+        0.46831133292762406,
+        0.9369074044862417,
+        0.746248871367398
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Moins de 1 mois",
+        "De 1 à 3 mois",
+        "De 3 à 6 mois",
+        "De 6 à 12 mois",
+        "Total partiel – Moins de 1 an",
+        "De 1 an à 2 ans",
+        "Plus de 2 ans",
+        "Total",
+        "Total"
+      ],
+      "table_summary": "Échéances du financement de gros",
+      "row_count": 18,
+      "indicators": [
+        "Dépôts d’autres banques",
+        "Certificats de dépôt et papier commercial",
+        "Billets de dépôt au porteur",
+        "Papier commercial adossé à des actifs",
+        "Billets à moyen terme non garantis",
+        "de premier rang",
+        "Billets structurés non garantis de premier rang²",
+        "Financement garanti",
+        "Titrisations de créances hypothécaires et de marges de crédit sur valeur domiciliaire",
+        "Obligations couvertes",
+        "Autres titrisations adossées à des actifs³",
+        "Avances de la Federal Home Loan Bank",
+        "Dette subordonnée",
+        "Total",
+        "Composé de ce qui suit :",
+        "Financement garanti",
+        "Financement non garanti",
+        "Total⁴"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le financement de gros non garanti englobe essentiellement celui obtenu par l’émission de titres négociables. Le financement de gros ne tient pas compte des opérations de mise en pension de titres, lesquelles sont présentées dans la section Échéances contractuelles des actifs et des passifs et engagements hors bilan, et exclut également le papier commercial adossé à des actifs qu’émettent certains fonds multicédants et qui n’est pas consolidé aux fins de la présentation de l’information financière."
+        },
+        {
+          "id": "2",
+          "text": "Comprennent les billets structurés émis à des investisseurs institutionnels et les billets négociés en bourse."
+        },
+        {
+          "id": "3",
+          "text": "Comprennent les titrisations de créances de cartes de crédit."
+        },
+        {
+          "id": "4",
+          "text": "Le total du financement de gros était constitué de 53,8 milliards de dollars de fonds libellés en dollars canadiens (54,3 milliards au 31 octobre 2025) et de 199,8 milliards de fonds libellés en dollars américains et en d’autres monnaies au 31 janvier 2026 (204,3 milliards au 31 octobre 2025)."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p045_i01",
+      "page": 45,
+      "section": "risk_management",
+      "title": "TABLEAU 33",
+      "bbox": [
+        0.05711168709780283,
+        0.47950442491786543,
+        0.9403507278012687,
+        0.5691566111325747
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Agence de notation¹",
+        "Dette à court terme",
+        "Dette de premier rang²",
+        "Dépôts à long terme/ ancienne dette de premier rang³",
+        "Dette subordonnée – (FPUNV)",
+        "Perspective"
+      ],
+      "table_summary": "Cotes de crédit des titres d’emprunt de BMO",
+      "row_count": 4,
+      "indicators": [
+        "Moody’s",
+        "S&P",
+        "Fitch",
+        "DBRS"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les cotes de crédit ne sont pas des recommandations d’acheter, de conserver ou de vendre une obligation financière et elles ne portent pas sur le cours de marché ni sur la pertinence pour un investisseur donné. Les cotes peuvent être révisées ou retirées en tout temps par l’agence de notation concernée."
+        },
+        {
+          "id": "2",
+          "text": "Sous réserve de la conversion aux termes du régime de recapitalisation interne des banques (recapitalisation interne)."
+        },
+        {
+          "id": "3",
+          "text": "Les dépôts à long terme/l’ancienne dette de premier rang comprennent la dette de premier rang émise avant le 23 septembre 2018 et la dette de premier rang émise depuis le 23 septembre 2018 inclusivement, laquelle est exclue du régime de recapitalisation interne des banques (recapitalisation interne)."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p046_i01",
+      "page": 46,
+      "section": "risk_management",
+      "title": "TABLEAU 34",
+      "bbox": [
+        0.056714201273230944,
+        0.37245600162859044,
+        0.9441987784592921,
+        0.8083696265414628
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Total de la valeur non pondérée (moyenne)1, 2",
+        "Total de la valeur pondérée (moyenne)2, 3",
+        "Total de la valeur ajustée4",
+        "Total de la valeur ajustée4"
+      ],
+      "table_summary": "Actifs liquides de haute qualité et ratio de liquidité à court terme",
+      "row_count": 29,
+      "indicators": [
+        "Actifs liquides de haute qualité",
+        "Total des actifs liquides de haute qualité",
+        "Sorties de trésorerie",
+        "Dépôts de détail et dépôts de petites entreprises, dont :",
+        "Dépôts stables",
+        "Dépôts moins stables",
+        "Financement de gros non garanti, dont :",
+        "Dépôts opérationnels (toutes les contreparties) et dépôts dans les réseaux de banques coopératives",
+        "Dépôts non opérationnels (toutes les contreparties)",
+        "Dettes non garanties",
+        "Financement de gros garanti",
+        "Exigences supplémentaires, dont :",
+        "Sorties associées aux expositions sur dérivés et autres sûretés exigées",
+        "Sorties associées à une perte de financement sur produits de dette",
+        "Facilités de crédit et de liquidité",
+        "Autres obligations de financement contractuelles",
+        "Autres obligations de financement conditionnelles",
+        "Total des sorties de trésorerie",
+        "Entrées de trésorerie",
+        "Prêts garantis (p. ex., prises en pension)",
+        "Entrées liées aux expositions parfaitement productives",
+        "Autres entrées de trésorerie",
+        "Total des entrées de trésorerie",
+        "Total des actifs liquides de haute qualité (bloc 2)",
+        "Total des sorties nettes de trésorerie",
+        "Ratio de liquidité à court terme (%)²",
+        "Total des actifs liquides de haute qualité (bloc 3)",
+        "Total des sorties nettes de trésorerie (bloc 2)",
+        "Ratio de liquidité à court terme (%)"
+      ],
+      "footnotes": [
+        {
+          "id": "*",
+          "text": "Valeur non exigée par la norme régissant les informations à fournir sur le RLCT."
+        },
+        {
+          "id": "1",
+          "text": "Les valeurs non pondérées sont calculées à la valeur de marché (dans le cas des actifs liquides de haute qualité) ou selon les soldes en cours échéant ou exigibles dans les 30 jours suivants (dans le cas des entrées et sorties de trésorerie)."
+        },
+        {
+          "id": "2",
+          "text": "Les valeurs sont calculées en fonction de la moyenne simple du RLCT quotidien sur 61 jours ouvrables au premier trimestre de l’exercice 2026."
+        },
+        {
+          "id": "3",
+          "text": "Les valeurs pondérées sont calculées après l’application des pondérations prescrites par la ligne directrice Normes de liquidité du BSIF eu égard aux actifs liquides de haute qualité et aux entrées et sorties de trésorerie."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p047_i01",
+      "page": 47,
+      "section": "risk_management",
+      "title": "TABLEAU 35",
+      "bbox": [
+        0.056534378541613535,
+        0.2618420123941158,
+        0.9406296197397661,
+        0.8680525815269946
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "Pour le trimestre clos le 31 janvier 2026",
+        "Sans échéance¹",
+        "Moins de 6 mois",
+        "De 6 à 12 mois",
+        "Plus de 1 an",
+        "Valeur pondérée²"
+      ],
+      "table_summary": "Ratio structurel de liquidité à long terme",
+      "row_count": 40,
+      "indicators": [
+        "Élément de financement stable disponible (FSD)",
+        "Fonds propres :",
+        "Fonds propres réglementaires",
+        "Autres instruments de fonds propres",
+        "Dépôts des particuliers et dépôts des petites entreprises :",
+        "Dépôts stables",
+        "Dépôts moins stables",
+        "Financement de gros :",
+        "Dépôts opérationnels",
+        "Autres financements de gros",
+        "Passifs et leurs actifs interdépendants correspondants",
+        "Autres passifs :",
+        "Passifs d’instruments dérivés du RSLLT",
+        "Tous les autres passifs ou fonds propres non couverts par les catégories ci-dessus",
+        "FSD total",
+        "Élément de financement stable requis (FSR)",
+        "Total des actifs liquides de haute qualité du RSLLT",
+        "Dépôts détenus auprès d’autres institutions financières à des fins opérationnelles",
+        "Prêts et titres productifs :",
+        "Prêts productifs à des institutions financières garantis par des actifs liquides de haute qualité de niveau 1",
+        "Prêts productifs à des institutions financières garantis par des actifs liquides de haute qualité autres que de niveau 1 et prêts productifs à des institutions non garantis",
+        "Prêts productifs à des entreprises non financières, prêts aux particuliers et aux petites entreprises, et prêts à des entités souveraines, des banques centrales et des organismes publics, dont :",
+        "Prêts présentant un risque pondéré inférieur ou égal à 35 % dans l’approche standard de Bâle II pour le risque de crédit",
+        "Crédits hypothécaires au logement productifs, dont :",
+        "Prêts présentant un risque pondéré inférieur ou égal à 35 % dans l’approche standard de Bâle II pour le risque de crédit",
+        "Titres qui ne sont pas en défaut et qui ne remplissent pas les critères définissant les HQLA, y compris les actions négociées sur les marchés organisés",
+        "Actifs et leurs passifs interdépendants correspondants",
+        "Autres actifs :",
+        "Produits de base physiques, y compris l’or",
+        "Actifs versés en tant que marge initiale dans le cadre de contrats dérivés et contributions à des fonds de garantie de contreparties centrales",
+        "Actifs d’instruments dérivés du RSLLT",
+        "Passifs d’instruments dérivés du RSLLT avant déduction de la marge de variation versée",
+        "Tous les autres actifs non couverts par les catégories ci-dessus",
+        "Éléments hors bilan",
+        "FSR total",
+        "Ratio structurel de liquidité à long terme (%)",
+        "Trimestre clos le 31 octobre 2025",
+        "FSD total (bloc 2)",
+        "FSR total (bloc 2)",
+        "Ratio structurel de liquidité à long terme (%) (bloc 2)"
+      ],
+      "footnotes": [
+        {
+          "id": "*",
+          "text": "Valeur non exigée par la norme régissant les informations à fournir sur le RSLLT."
+        },
+        {
+          "id": "1",
+          "text": "Les éléments classés dans la colonne « Sans échéance » ne sont assortis d’aucune échéance stipulée. Ces éléments peuvent inclure notamment des fonds propres à durée indéterminée, des dépôts sans échéance, des positions vendeurs, des positions à échéance ouverte, des titres autres que des actifs liquides de haute qualité, des produits de base physiques et des prêts à vue."
+        },
+        {
+          "id": "2",
+          "text": "Les valeurs pondérées sont calculées après l’application des pondérations prescrites par la ligne directrice Normes de liquidité du BSIF eu égard au FSD et au FSR."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p048_i01",
+      "page": 48,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.056730354470955854,
+        0.22649171365225124,
+        0.943307560673704,
+        0.5288247257262892
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p048_i02",
+      "page": 48,
+      "section": "risk_management",
+      "title": "TABLEAU 37",
+      "bbox": [
+        0.05617661512533585,
+        0.5534737612472217,
+        0.943385933595999,
+        0.7862170670053708
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "De 0 à 1 mois",
+        "De 1 à 3 mois",
+        "De 3 à 6 mois",
+        "De 6 à 9 mois",
+        "De 9 à 12 mois",
+        "De 1 an à 2 ans",
+        "De 2 à 5 ans",
+        "Plus de 5 ans",
+        "Sans échéance spécifique",
+        "Total"
+      ],
+      "table_summary": "Échéances des passifs et capitaux propres",
+      "row_count": 15,
+      "indicators": [
+        "Passifs et capitaux propres",
+        "Dépôts²,³",
+        "Autres passifs",
+        "Instruments dérivés",
+        "Acceptations",
+        "Titres vendus à découvert⁴",
+        "Titres mis en pension ou prêtés⁴",
+        "Passifs liés à la titrisation et aux entités structurées",
+        "Passifs liés à l’assurance",
+        "Montants à payer aux courtiers, aux contrepartistes et aux clients",
+        "Divers",
+        "Total des autres passifs",
+        "Dette subordonnée",
+        "Total des capitaux propres",
+        "Total des passifs et des capitaux propres"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les prêts à vue sont inclus dans la colonne Sans échéance spécifique."
+        },
+        {
+          "id": "2",
+          "text": "Les dépôts à vue et à préavis sont inclus dans la colonne Sans échéance spécifique."
+        },
+        {
+          "id": "3",
+          "text": "Des dépôts de 27 258 millions de dollars au 31 janvier 2026 ont une date d’échéance fixe, mais ils peuvent toutefois faire l’objet d’une demande de remboursement anticipé (en totalité ou en partie) par le client sans pénalité. Ils sont classés comme étant exigibles à une date fixe en raison de leur date d’échéance contractuelle déclarée."
+        },
+        {
+          "id": "4",
+          "text": "Ces titres sont présentés selon leur date d’échéance la plus rapprochée."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p049_i01",
+      "page": 49,
+      "section": "risk_management",
+      "title": "TABLEAU 38",
+      "bbox": [
+        0.05624395750751772,
+        0.05135187801845171,
+        0.9438065150034292,
+        0.1475129263973585
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "De 0 à 1 mois",
+        "De 1 à 3 mois",
+        "De 3 à 6 mois",
+        "De 6 à 9 mois",
+        "De 9 à 12 mois",
+        "De 1 an à 2 ans",
+        "De 2 à 5 ans",
+        "Plus de 5 ans",
+        "Sans échéance spécifique",
+        "Total"
+      ],
+      "table_summary": "Échéances des engagements hors bilan",
+      "row_count": 5,
+      "indicators": [
+        "Engagements hors bilan",
+        "Crédits fermes¹",
+        "Lettres de crédit²",
+        "Concours de trésorerie",
+        "Autres engagements³"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les crédits fermes ne tiennent pas compte des marges de crédit personnelles et des cartes de crédit que BMO peut annuler sans condition à son entière discrétion. La grande majorité de ces engagements arrivent à échéance avant d’avoir été utilisés. Par conséquent, le montant contractuel total peut ne pas être représentatif du financement qui sera vraisemblablement requis dans le cadre de ces engagements."
+        },
+        {
+          "id": "2",
+          "text": "Les lettres de crédit peuvent faire l’objet de prélèvements en tout temps. Elles sont classées en fonction de leur échéance contractuelle déclarée."
+        },
+        {
+          "id": "3",
+          "text": "Les autres engagements comprennent les obligations d’achat et les engagements sur bail pour les baux signés, mais non encore en vigueur."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p049_i02",
+      "page": 49,
+      "section": "risk_management",
+      "title": "TABLEAU 39",
+      "bbox": [
+        0.056789053147410694,
+        0.23104902769235605,
+        0.9429758218537609,
+        0.5332132360884425
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "De 0 à 1 mois",
+        "De 1 à 3 mois",
+        "De 3 à 6 mois",
+        "De 6 à 9 mois",
+        "De 9 à 12 mois",
+        "De 1 an à 2 ans",
+        "De 2 à 5 ans",
+        "Plus de 5 ans",
+        "Sans échéance spécifique",
+        "Total"
+      ],
+      "table_summary": "Échéances contractuelles des actifs",
+      "row_count": 19,
+      "indicators": [
+        "Actifs",
+        "Trésorerie et équivalents de trésorerie",
+        "Dépôts productifs d’intérêts à d’autres banques",
+        "Valeurs mobilières",
+        "Titres pris en pension ou empruntés",
+        "Prêts¹",
+        "Prêts hypothécaires à l’habitation",
+        "Prêts à tempérament et autres prêts aux particuliers",
+        "Prêts sur cartes de crédit",
+        "Prêts aux entreprises et aux administrations publiques",
+        "Provision pour pertes sur créances",
+        "Total des prêts, déduction faite de la provision",
+        "Autres actifs",
+        "Instruments dérivés",
+        "Engagements de clients aux termes d’acceptations",
+        "Montants à recevoir des courtiers, des contrepartistes et des clients",
+        "Divers",
+        "Total des autres actifs",
+        "Total des actifs"
+      ],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p049_i03",
+      "page": 49,
+      "section": "risk_management",
+      "title": "TABLEAU 40",
+      "bbox": [
+        0.056473062448860675,
+        0.560930364659094,
+        0.943036545911875,
+        0.7937296493614547
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "De 0 à 1 mois",
+        "De 1 à 3 mois",
+        "De 3 à 6 mois",
+        "De 6 à 9 mois",
+        "De 9 à 12 mois",
+        "De 1 an à 2 ans",
+        "De 2 à 5 ans",
+        "Plus de 5 ans",
+        "Sans échéance spécifique",
+        "Total"
+      ],
+      "table_summary": "Échéances des passifs et capitaux propres",
+      "row_count": 15,
+      "indicators": [
+        "Passifs et capitaux propres",
+        "Dépôts², ³",
+        "Autres passifs",
+        "Instruments dérivés",
+        "Acceptations",
+        "Titres vendus à découvert⁴",
+        "Titres mis en pension ou prêtés⁴",
+        "Passifs liés à la titrisation et aux entités structurées",
+        "Passifs liés à l’assurance",
+        "Montants à payer aux courtiers, aux contrepartistes et aux clients",
+        "Divers",
+        "Total des autres passifs",
+        "Dette subordonnée",
+        "Total des capitaux propres",
+        "Total des passifs et des capitaux propres"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les prêts à vue sont inclus dans la colonne Sans échéance spécifique."
+        },
+        {
+          "id": "2",
+          "text": "Les dépôts à vue et à préavis sont inclus dans la colonne Sans échéance spécifique."
+        },
+        {
+          "id": "3",
+          "text": "Des dépôts de 27 819 millions de dollars au 31 octobre 2025 ont une date d’échéance fixe, mais ils peuvent toutefois faire l’objet d’une demande de remboursement anticipé (en totalité ou en partie) par le client sans pénalité. Ils sont classés comme étant exigibles à une date fixe en raison de leur date d’échéance contractuelle déclarée."
+        },
+        {
+          "id": "4",
+          "text": "Ces titres sont présentés selon leur date d’échéance la plus rapprochée."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p050_i01",
+      "page": 50,
+      "section": "risk_management",
+      "title": "TABLEAU 41",
+      "bbox": [
+        0.05646263017533,
+        0.04593712393360689,
+        0.942940324703205,
+        0.14261604978358147
+      ],
+      "extraction_status": "rescued",
+      "headers": [
+        "De 0 à 1 mois",
+        "De 1 à 3 mois",
+        "De 3 à 6 mois",
+        "De 6 à 9 mois",
+        "De 9 à 12 mois",
+        "De 1 an à 2 ans",
+        "De 2 à 5 ans",
+        "Plus de 5 ans",
+        "Sans échéance spécifique",
+        "Total"
+      ],
+      "table_summary": "Échéances des engagements hors bilan",
+      "row_count": 5,
+      "indicators": [
+        "Engagements hors bilan",
+        "Crédits fermes¹",
+        "Lettres de crédit²",
+        "Concours de trésorerie",
+        "Autres engagements³"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les crédits fermes ne tiennent pas compte des marges de crédit personnelles et des cartes de crédit que BMO peut annuler sans condition à son entière discrétion. La grande majorité de ces engagements arrivent à échéance avant d’avoir été utilisées. Par conséquent, le montant contractuel total peut ne pas être représentatif du financement qui sera vraisemblablement requis dans le cadre de ces engagements."
+        },
+        {
+          "id": "2",
+          "text": "Les lettres de crédit peuvent faire l’objet de prélèvements en tout temps. Elles sont classées en fonction de leur échéance contractuelle déclarée."
+        },
+        {
+          "id": "3",
+          "text": "Les autres engagements comprennent les obligations d’achat et les engagements sur bail pour les baux signés, mais non encore en vigueur."
+        }
+      ]
+    }
+  ]
+}
