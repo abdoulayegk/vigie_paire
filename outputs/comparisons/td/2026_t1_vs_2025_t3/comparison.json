@@ -260,16 +260,16 @@
           "relevance_score": "ELEVEE",
           "risk_level": "MODERE",
           "confidence": 0.9,
-          "explanation": "(1) Le changement est pertinent car il implique la suppression d'un tableau entier lié à la gestion du capital ; (2) Cela pourrait affecter la transparence et la capacité à évaluer l'exposition nette par région et contrepartie, ce qui est crucial pour la gestion des risques et la conformité réglementaire ; (3) Il s'agit d'une suppression structurelle qui nécessite une attention particulière pour comprendre l'impact sur les rapports futurs.",
+          "explanation": "Le changement est pertinent car il implique la suppression d'un tableau entier lié à la gestion du capital. Cela peut affecter la transparence et la compréhension des expositions nettes par région et contrepartie, ce qui est crucial pour l'évaluation des risques géographiques. Il s'agit d'une suppression structurelle qui pourrait nécessiter une révision de la manière dont les expositions sont rapportées.",
           "impact_type": "structurel",
           "project_phase": "rapport_gestion",
           "action_requise": "investigation",
           "reference_reglementaire": "",
-          "impact_description": "La suppression du tableau réduit la visibilité sur l'exposition régionale, ce qui peut affecter l'évaluation des risques géographiques.",
+          "impact_description": "La suppression du tableau peut réduire la visibilité sur la répartition géographique des expositions, impactant potentiellement l'évaluation des risques régionaux.",
           "source": "llm"
         },
         "genai_analysis": {
-          "resume_metier": "(1) Le changement est pertinent car il implique la suppression d'un tableau entier lié à la gestion du capital ; (2) Cela pourrait affecter la transparence et la capacité à évaluer l'exposition nette par région et contrepartie, ce qui est crucial pour la gestion des risques et la conformité réglementaire ; (3) Il s'agit d'une suppression structurelle qui nécessite une attention particulière pour comprendre l'impact sur les rapports futurs."
+          "resume_metier": "Le changement est pertinent car il implique la suppression d'un tableau entier lié à la gestion du capital. Cela peut affecter la transparence et la compréhension des expositions nettes par région et contrepartie, ce qui est crucial pour l'évaluation des risques géographiques. Il s'agit d'une suppression structurelle qui pourrait nécessiter une révision de la manière dont les expositions sont rapportées."
         }
       }
     ],
@@ -418,16 +418,16 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "(1) Le changement est pertinent car il modifie une note liée aux suppléments de fonds propres pour les banques d'importance systémique. (2) Cela peut avoir un impact sur la manière dont les banques calculent leurs exigences de fonds propres, influençant potentiellement leur conformité réglementaire. (3) Il s'agit d'une mise à jour méthodologique concernant l'application des suppléments de fonds propres.",
+        "explanation": "(1) Le changement est pertinent car il modifie la note concernant les suppléments pour les banques d'importance systémique, ce qui peut affecter la gestion des fonds propres. (2) L'impact réglementaire concret est que cela pourrait influencer la manière dont les banques calculent et gèrent leurs exigences de fonds propres. (3) Il s'agit d'une mise à jour méthodologique qui pourrait refléter un changement dans la réglementation ou l'interprétation des exigences pour les BISM.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "La modification de la note peut affecter le calcul des exigences de fonds propres pour les banques d'importance systémique.",
+        "impact_description": "La modification de la note pourrait affecter la gestion des exigences de fonds propres pour les banques d'importance systémique.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "(1) Le changement est pertinent car il modifie une note liée aux suppléments de fonds propres pour les banques d'importance systémique. (2) Cela peut avoir un impact sur la manière dont les banques calculent leurs exigences de fonds propres, influençant potentiellement leur conformité réglementaire. (3) Il s'agit d'une mise à jour méthodologique concernant l'application des suppléments de fonds propres."
+        "resume_metier": "(1) Le changement est pertinent car il modifie la note concernant les suppléments pour les banques d'importance systémique, ce qui peut affecter la gestion des fonds propres. (2) L'impact réglementaire concret est que cela pourrait influencer la manière dont les banques calculent et gèrent leurs exigences de fonds propres. (3) Il s'agit d'une mise à jour méthodologique qui pourrait refléter un changement dans la réglementation ou l'interprétation des exigences pour les BISM."
       }
     },
     {
@@ -762,17 +762,17 @@
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
-        "confidence": 0.9,
-        "explanation": "(1) Le changement est pertinent car il introduit un nouvel indicateur lié à la déduction des expositions sur crypto-actifs dans le cadre de Bâle III ; (2) Cela a un impact direct sur le calcul des fonds propres réglementaires et pourrait affecter les ratios prudentiels de la banque ; (3) Il s'agit d'une nouvelle divulgation en réponse à des exigences réglementaires émergentes concernant les crypto-actifs.",
+        "confidence": 0.95,
+        "explanation": "(1) Le changement est pertinent car il introduit un nouvel indicateur lié à la déduction des expositions sur crypto-actifs, ce qui peut affecter les ratios de fonds propres. (2) L'impact réglementaire est direct, car cela pourrait influencer le calcul des ratios prudentiels sous Bâle III. (3) Il s'agit d'une nouvelle divulgation qui reflète une adaptation aux risques émergents liés aux crypto-actifs.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — Déduction des expositions sur crypto-actifs",
-        "impact_description": "L'ajout de cet indicateur pourrait réduire les fonds propres disponibles en raison des déductions liées aux crypto-actifs, affectant ainsi les ratios de capital réglementaires.",
+        "reference_reglementaire": "Bâle III — CET1",
+        "impact_description": "L'ajout de la déduction des expositions sur crypto-actifs peut réduire le montant des fonds propres de base de catégorie 1 (CET1), affectant ainsi les ratios de capital réglementaires.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "(1) Le changement est pertinent car il introduit un nouvel indicateur lié à la déduction des expositions sur crypto-actifs dans le cadre de Bâle III ; (2) Cela a un impact direct sur le calcul des fonds propres réglementaires et pourrait affecter les ratios prudentiels de la banque ; (3) Il s'agit d'une nouvelle divulgation en réponse à des exigences réglementaires émergentes concernant les crypto-actifs."
+        "resume_metier": "(1) Le changement est pertinent car il introduit un nouvel indicateur lié à la déduction des expositions sur crypto-actifs, ce qui peut affecter les ratios de fonds propres. (2) L'impact réglementaire est direct, car cela pourrait influencer le calcul des ratios prudentiels sous Bâle III. (3) Il s'agit d'une nouvelle divulgation qui reflète une adaptation aux risques émergents liés aux crypto-actifs."
       }
     },
     {
@@ -1059,16 +1059,16 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "(1) Le changement est pertinent car il implique l'ajout et la suppression d'indicateurs liés aux instruments de capital, ce qui peut affecter la gestion du capital de la banque. (2) L'ajout de la Série 6 et la suppression de la Série 5 peuvent indiquer un changement dans la stratégie de financement ou de gestion des fonds propres. (3) Il s'agit d'une mise à jour structurelle avec des implications potentielles sur la composition du capital réglementaire.",
+        "explanation": "(1) Le changement est pertinent car il implique l'ajout et la suppression d'indicateurs liés aux instruments de capital, ce qui peut affecter la gestion du capital de la banque. (2) L'ajout de la Série 6 et la suppression de la Série 5 peuvent indiquer un changement dans la stratégie de financement de la banque. (3) Il s'agit d'une mise à jour structurelle avec des implications potentielles sur la composition du capital réglementaire.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "Le changement pourrait affecter la composition des fonds propres de la banque et sa conformité aux exigences de Bâle III.",
+        "impact_description": "Le changement pourrait affecter la composition et la qualité des fonds propres de la banque, influençant ainsi ses ratios de capital réglementaires.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "(1) Le changement est pertinent car il implique l'ajout et la suppression d'indicateurs liés aux instruments de capital, ce qui peut affecter la gestion du capital de la banque. (2) L'ajout de la Série 6 et la suppression de la Série 5 peuvent indiquer un changement dans la stratégie de financement ou de gestion des fonds propres. (3) Il s'agit d'une mise à jour structurelle avec des implications potentielles sur la composition du capital réglementaire."
+        "resume_metier": "(1) Le changement est pertinent car il implique l'ajout et la suppression d'indicateurs liés aux instruments de capital, ce qui peut affecter la gestion du capital de la banque. (2) L'ajout de la Série 6 et la suppression de la Série 5 peuvent indiquer un changement dans la stratégie de financement de la banque. (3) Il s'agit d'une mise à jour structurelle avec des implications potentielles sur la composition du capital réglementaire."
       }
     },
     {
@@ -1665,16 +1665,16 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "(1) Le changement est pertinent car il modifie la note explicative d'un tableau de gestion des risques, ce qui peut affecter l'interprétation des données présentées. (2) L'impact réglementaire concret est que certaines expositions ne sont plus incluses dans les mesures de sensibilité, ce qui peut influencer l'évaluation du risque de taux d'intérêt. (3) Il s'agit d'un changement méthodologique dans la présentation des données de risque.",
+        "explanation": "(1) Le changement est pertinent car il modifie la note méthodologique du tableau de sensibilité au risque de taux d'intérêt. (2) L'impact réglementaire concret est que certaines expositions ne sont plus incluses dans les mesures présentées, ce qui peut affecter l'évaluation du risque de taux d'intérêt. (3) Il s'agit d'un changement méthodologique qui nécessite une attention particulière pour comprendre l'impact sur la gestion du risque de taux d'intérêt.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La modification des notes de bas de tableau peut affecter l'évaluation du risque de taux d'intérêt en excluant certaines expositions.",
+        "impact_description": "La modification de la note méthodologique peut affecter la compréhension et l'évaluation des risques de taux d'intérêt en excluant certaines expositions.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "(1) Le changement est pertinent car il modifie la note explicative d'un tableau de gestion des risques, ce qui peut affecter l'interprétation des données présentées. (2) L'impact réglementaire concret est que certaines expositions ne sont plus incluses dans les mesures de sensibilité, ce qui peut influencer l'évaluation du risque de taux d'intérêt. (3) Il s'agit d'un changement méthodologique dans la présentation des données de risque."
+        "resume_metier": "(1) Le changement est pertinent car il modifie la note méthodologique du tableau de sensibilité au risque de taux d'intérêt. (2) L'impact réglementaire concret est que certaines expositions ne sont plus incluses dans les mesures présentées, ce qui peut affecter l'évaluation du risque de taux d'intérêt. (3) Il s'agit d'un changement méthodologique qui nécessite une attention particulière pour comprendre l'impact sur la gestion du risque de taux d'intérêt."
       }
     },
     {
@@ -1932,16 +1932,16 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "(1) Le changement est pertinent car il inclut une nouvelle note sur les actifs liquides non grevés, spécifiquement les titres adossés à des créances hypothécaires. (2) Cela peut affecter la gestion des risques de liquidité et la conformité aux exigences réglementaires sur les actifs liquides. (3) Il s'agit d'une nouvelle divulgation qui pourrait influencer l'évaluation des actifs liquides de la banque.",
+        "explanation": "(1) Le changement est pertinent car il implique une modification dans la composition des actifs liquides non grevés, ce qui peut affecter l'évaluation de la liquidité de la banque. (2) L'ajout de titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation peut influencer la qualité et la liquidité des actifs détenus. (3) Il s'agit d'une mise à jour du contenu du tableau, indiquant une nouvelle divulgation des actifs liquides.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "information",
-        "reference_reglementaire": "Bâle III — LCR",
-        "impact_description": "L'ajout de cette note pourrait modifier la perception de la qualité et de la liquidité des actifs détenus par la banque.",
+        "reference_reglementaire": "",
+        "impact_description": "L'ajout de titres adossés à des créances hypothécaires peut modifier l'évaluation de la liquidité et la gestion des risques de la banque.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "(1) Le changement est pertinent car il inclut une nouvelle note sur les actifs liquides non grevés, spécifiquement les titres adossés à des créances hypothécaires. (2) Cela peut affecter la gestion des risques de liquidité et la conformité aux exigences réglementaires sur les actifs liquides. (3) Il s'agit d'une nouvelle divulgation qui pourrait influencer l'évaluation des actifs liquides de la banque."
+        "resume_metier": "(1) Le changement est pertinent car il implique une modification dans la composition des actifs liquides non grevés, ce qui peut affecter l'évaluation de la liquidité de la banque. (2) L'ajout de titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation peut influencer la qualité et la liquidité des actifs détenus. (3) Il s'agit d'une mise à jour du contenu du tableau, indiquant une nouvelle divulgation des actifs liquides."
       }
     },
     {
@@ -2197,16 +2197,16 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "(1) Le changement est pertinent car il implique la suppression d'une note qui pourrait affecter la compréhension des actifs liquides moyens non grevés ; (2) Cela peut avoir un impact sur l'évaluation des actifs liquides en lien avec la réglementation sur les titres adossés à des créances hypothécaires ; (3) Il s'agit d'une mise à jour potentiellement méthodologique qui nécessite une clarification sur l'inclusion ou l'exclusion de certains actifs.",
-        "impact_type": "methodologique",
+        "explanation": "(1) Le changement est pertinent car il implique la suppression de notes concernant les actifs liquides, ce qui peut affecter la compréhension des actifs liquides moyens non grevés ; (2) Cela pourrait avoir un impact sur l'évaluation des risques de liquidité et la conformité aux exigences de liquidité ; (3) Il s'agit d'une mise à jour ordinaire qui pourrait refléter un changement dans la composition des actifs ou une clarification réglementaire.",
+        "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
-        "reference_reglementaire": "Loi nationale sur l’habitation",
-        "impact_description": "La suppression de la note pourrait modifier l'interprétation des actifs liquides moyens non grevés, affectant potentiellement les ratios de liquidité.",
+        "reference_reglementaire": "Bâle III — LCR",
+        "impact_description": "La suppression des notes pourrait modifier la perception des actifs liquides disponibles pour répondre aux exigences de liquidité.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "(1) Le changement est pertinent car il implique la suppression d'une note qui pourrait affecter la compréhension des actifs liquides moyens non grevés ; (2) Cela peut avoir un impact sur l'évaluation des actifs liquides en lien avec la réglementation sur les titres adossés à des créances hypothécaires ; (3) Il s'agit d'une mise à jour potentiellement méthodologique qui nécessite une clarification sur l'inclusion ou l'exclusion de certains actifs."
+        "resume_metier": "(1) Le changement est pertinent car il implique la suppression de notes concernant les actifs liquides, ce qui peut affecter la compréhension des actifs liquides moyens non grevés ; (2) Cela pourrait avoir un impact sur l'évaluation des risques de liquidité et la conformité aux exigences de liquidité ; (3) Il s'agit d'une mise à jour ordinaire qui pourrait refléter un changement dans la composition des actifs ou une clarification réglementaire."
       }
     },
     {
@@ -2372,16 +2372,16 @@
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Le changement est pertinent car il modifie la description des sûretés données en garantie, ce qui peut affecter la compréhension des actifs grevés. Cela a un impact sur la gestion des risques en clarifiant la portion des actifs concernés. Il s'agit d'une mise à jour de contenu qui pourrait refléter un changement méthodologique.",
-        "impact_type": "contenu",
+        "explanation": "(1) Le changement est pertinent car il modifie la description des sûretés données en garantie, ce qui peut affecter la compréhension des actifs grevés ; (2) Cela peut avoir un impact sur l'évaluation des risques associés aux actifs grevés ; (3) Il s'agit d'une mise à jour méthodologique qui clarifie la définition des actifs en garantie.",
+        "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
-        "action_requise": "information",
+        "action_requise": "confirmation",
         "reference_reglementaire": "",
         "impact_description": "La modification clarifie la définition des actifs grevés, ce qui peut influencer l'évaluation des risques associés.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement est pertinent car il modifie la description des sûretés données en garantie, ce qui peut affecter la compréhension des actifs grevés. Cela a un impact sur la gestion des risques en clarifiant la portion des actifs concernés. Il s'agit d'une mise à jour de contenu qui pourrait refléter un changement méthodologique."
+        "resume_metier": "(1) Le changement est pertinent car il modifie la description des sûretés données en garantie, ce qui peut affecter la compréhension des actifs grevés ; (2) Cela peut avoir un impact sur l'évaluation des risques associés aux actifs grevés ; (3) Il s'agit d'une mise à jour méthodologique qui clarifie la définition des actifs en garantie."
       }
     },
     {
@@ -2573,16 +2573,16 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "(1) Le changement est pertinent car il implique une modification des notes explicatives concernant les notations de crédit, ce qui peut affecter la compréhension des risques associés. (2) L'impact réglementaire concret est que la suppression et la modification des notes peuvent influencer l'évaluation du risque de crédit par les parties prenantes. (3) Il s'agit d'une mise à jour ordinaire des notes explicatives, mais qui nécessite une attention pour s'assurer de la clarté et de la conformité des informations fournies.",
-        "impact_type": "contenu",
+        "explanation": "(1) Le changement est pertinent car il implique une modification des notes de bas de tableau concernant les notations de crédit, ce qui peut affecter la perception du risque de crédit. (2) L'impact réglementaire concret est que les modifications des notations peuvent influencer les exigences de fonds propres et la gestion du risque de crédit. (3) Il s'agit d'une mise à jour méthodologique concernant la classification des dettes et leur traitement en cas de recapitalisation interne.",
+        "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
-        "action_requise": "information",
-        "reference_reglementaire": "",
-        "impact_description": "La modification des notes explicatives peut affecter la compréhension des risques de crédit par les parties prenantes.",
+        "action_requise": "investigation",
+        "reference_reglementaire": "Bâle III — gestion du risque de crédit",
+        "impact_description": "Les modifications des notes de bas de tableau peuvent influencer la gestion du risque de crédit et les exigences de fonds propres.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "(1) Le changement est pertinent car il implique une modification des notes explicatives concernant les notations de crédit, ce qui peut affecter la compréhension des risques associés. (2) L'impact réglementaire concret est que la suppression et la modification des notes peuvent influencer l'évaluation du risque de crédit par les parties prenantes. (3) Il s'agit d'une mise à jour ordinaire des notes explicatives, mais qui nécessite une attention pour s'assurer de la clarté et de la conformité des informations fournies."
+        "resume_metier": "(1) Le changement est pertinent car il implique une modification des notes de bas de tableau concernant les notations de crédit, ce qui peut affecter la perception du risque de crédit. (2) L'impact réglementaire concret est que les modifications des notations peuvent influencer les exigences de fonds propres et la gestion du risque de crédit. (3) Il s'agit d'une mise à jour méthodologique concernant la classification des dettes et leur traitement en cas de recapitalisation interne."
       }
     },
     {
@@ -3278,16 +3278,16 @@
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "(1) Le changement est pertinent car il implique une modification méthodologique dans le calcul du financement provenant des dépôts ; (2) Cela peut affecter la manière dont la banque évalue ses sources de financement et sa gestion des risques de liquidité ; (3) Il s'agit d'un changement méthodologique qui pourrait avoir des implications sur la gestion des risques et la conformité réglementaire.",
+        "explanation": "(1) Le changement est pertinent car il implique la suppression d'une note indiquant une modification méthodologique ; (2) Cela peut affecter la manière dont le financement provenant des dépôts est calculé et présenté, impactant potentiellement l'évaluation des risques de liquidité ; (3) Il s'agit d'un changement méthodologique qui nécessite une attention pour comprendre l'impact sur les ratios de risque.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
         "reference_reglementaire": "",
-        "impact_description": "La modification méthodologique peut influencer l'évaluation des risques de liquidité liés aux dépôts.",
+        "impact_description": "La suppression de la note peut indiquer un retour à une méthode de calcul antérieure ou une autre modification non documentée, nécessitant une clarification.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "(1) Le changement est pertinent car il implique une modification méthodologique dans le calcul du financement provenant des dépôts ; (2) Cela peut affecter la manière dont la banque évalue ses sources de financement et sa gestion des risques de liquidité ; (3) Il s'agit d'un changement méthodologique qui pourrait avoir des implications sur la gestion des risques et la conformité réglementaire."
+        "resume_metier": "(1) Le changement est pertinent car il implique la suppression d'une note indiquant une modification méthodologique ; (2) Cela peut affecter la manière dont le financement provenant des dépôts est calculé et présenté, impactant potentiellement l'évaluation des risques de liquidité ; (3) Il s'agit d'un changement méthodologique qui nécessite une attention pour comprendre l'impact sur les ratios de risque."
       }
     },
     {
@@ -4036,16 +4036,16 @@
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
         "confidence": 0.9,
-        "explanation": "(1) Le changement n'est pas pertinent car il s'agit de variations de valeurs numériques propres à la banque sans impact sur les seuils réglementaires ; (2) Les montants modifiés concernent des obligations sécurisées et des engagements de crédit, mais ne touchent pas directement les ratios prudentiels ou les exigences réglementaires ; (3) Il s'agit d'une mise à jour ordinaire des valeurs dans le tableau de gestion des risques.",
+        "explanation": "Le changement n'est pas pertinent car il s'agit de variations de valeurs numériques propres à la banque, sans impact direct sur les seuils ou ratios réglementaires. L'impact réglementaire ou métier est limité car ces modifications ne concernent pas des seuils ou ratios prudentiels. Il s'agit d'une mise à jour ordinaire des montants d'obligations sécurisées et d'engagements de crédit.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "Les montants ajustés n'affectent pas les exigences réglementaires ou les ratios prudentiels.",
+        "impact_description": "Aucun impact concret sur la conformité réglementaire ou les ratios prudentiels.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "(1) Le changement n'est pas pertinent car il s'agit de variations de valeurs numériques propres à la banque sans impact sur les seuils réglementaires ; (2) Les montants modifiés concernent des obligations sécurisées et des engagements de crédit, mais ne touchent pas directement les ratios prudentiels ou les exigences réglementaires ; (3) Il s'agit d'une mise à jour ordinaire des valeurs dans le tableau de gestion des risques."
+        "resume_metier": "Le changement n'est pas pertinent car il s'agit de variations de valeurs numériques propres à la banque, sans impact direct sur les seuils ou ratios réglementaires. L'impact réglementaire ou métier est limité car ces modifications ne concernent pas des seuils ou ratios prudentiels. Il s'agit d'une mise à jour ordinaire des montants d'obligations sécurisées et d'engagements de crédit."
       }
     },
     {
@@ -4342,16 +4342,16 @@
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "(1) Le changement est pertinent car il implique la suppression d'un indicateur lié à la gestion des risques et des modifications dans les notes de bas de tableau ; (2) L'impact réglementaire ou métier concret est une potentielle réévaluation des engagements et des obligations sécurisées, ce qui peut affecter la perception du risque ; (3) Il s'agit d'une mise à jour ordinaire des engagements et obligations, mais la suppression de l'indicateur nécessite une attention particulière.",
+        "explanation": "(1) Le changement est pertinent car il implique la suppression d'un indicateur lié à la gestion des risques et des modifications dans les notes de bas de tableau ; (2) L'impact réglementaire ou métier concret concerne la transparence et la précision des engagements financiers de la banque ; (3) Il s'agit d'une mise à jour ordinaire des engagements financiers et des obligations sécurisées.",
         "impact_type": "contenu",
         "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
+        "action_requise": "information",
         "reference_reglementaire": "",
-        "impact_description": "La suppression de l'indicateur 'Participation dans Schwab' et les modifications des montants des obligations et engagements peuvent influencer l'évaluation des risques financiers.",
+        "impact_description": "La suppression de l'indicateur et les modifications des notes affectent la clarté des engagements financiers de la banque.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "(1) Le changement est pertinent car il implique la suppression d'un indicateur lié à la gestion des risques et des modifications dans les notes de bas de tableau ; (2) L'impact réglementaire ou métier concret est une potentielle réévaluation des engagements et des obligations sécurisées, ce qui peut affecter la perception du risque ; (3) Il s'agit d'une mise à jour ordinaire des engagements et obligations, mais la suppression de l'indicateur nécessite une attention particulière."
+        "resume_metier": "(1) Le changement est pertinent car il implique la suppression d'un indicateur lié à la gestion des risques et des modifications dans les notes de bas de tableau ; (2) L'impact réglementaire ou métier concret concerne la transparence et la précision des engagements financiers de la banque ; (3) Il s'agit d'une mise à jour ordinaire des engagements financiers et des obligations sécurisées."
       }
     }
   ],
@@ -4429,11 +4429,12 @@
     "high_priority_items_total": 9
   },
   "global_summary": {
-    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été apportés aux rapports bancaires, principalement dans les domaines de la gestion du capital et du risque. Ces modifications incluent des mises à jour méthodologiques et structurelles qui pourraient influencer la conformité réglementaire et la gestion des risques. Les ajustements liés aux fonds propres et aux actifs liquides non grevés sont particulièrement notables, car ils pourraient affecter les ratios prudentiels et la gestion des risques de liquidité des banques.",
+    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été observés dans les rapports bancaires, principalement dans la gestion du capital et la gestion des risques. Ces modifications incluent des mises à jour méthodologiques et structurelles qui pourraient influencer la gestion des fonds propres, l'évaluation des risques de liquidité et la transparence des expositions. Les ajustements liés aux crypto-actifs et aux actifs liquides non grevés sont particulièrement notables, reflétant une adaptation aux risques émergents et aux exigences réglementaires. Ces évolutions nécessitent une attention particulière pour comprendre leur impact potentiel sur la stratégie bancaire globale.",
     "key_highlights": [
-      "Introduction d'un nouvel indicateur lié aux crypto-actifs dans le cadre de Bâle III.",
-      "Modification méthodologique dans le calcul du financement provenant des dépôts.",
-      "Suppression d'un tableau entier lié à la gestion du capital par région et contrepartie."
+      "Introduction d'un nouvel indicateur lié aux crypto-actifs sous Bâle III.",
+      "Modification des notes méthodologiques sur le risque de taux d'intérêt.",
+      "Suppression d'un tableau entier lié à la gestion du capital par région et contrepartie.",
+      "Changements dans la composition des actifs liquides non grevés."
     ],
     "pertinence_globale": "ELEVEE",
     "par_phase": {
@@ -4457,8 +4458,8 @@
     "par_action": {
       "escalade": 1,
       "investigation": 8,
-      "confirmation": 0,
-      "information": 3,
+      "confirmation": 1,
+      "information": 2,
       "aucune": 0
     },
     "source": "llm",

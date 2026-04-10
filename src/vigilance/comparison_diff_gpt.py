@@ -73,7 +73,9 @@ Rules:
 - For each change (added, removed, renamed), you MUST act as a Senior Risk Analyst and provide an 'analyst_assessment'.
 - The 'analyst_assessment' MUST include:
   1. A 'relevance_level' (integer: 1 for Critical/Regulatory, 2 for High/Structural, 3 for Low/Cosmetic).
-  2. A 'justification' (A clear, articulate, and complete descriptive sentence explaining the business impact and exactly WHY this change matters to guide the analyst).
+  2. A 'justification' : une ou deux phrases claires et complètes EN FRANÇAIS expliquant l'impact métier et POURQUOI ce changement est important pour guider l'analyste. Par exemple : « Cet indicateur a été ajouté pour répondre aux exigences de divulgation Bâle III sur les ratios de fonds propres CET1. » ou « La suppression de cette note modifie le périmètre méthodologique utilisé pour le calcul du ratio de levier. »
+
+IMPORTANT : Toutes les justifications doivent être rédigées exclusivement en français.
 
 Output must be valid JSON following the response_schema.
 """
@@ -104,7 +106,9 @@ Rules:
 - For each change (added, removed, renamed), you MUST act as a Senior Risk Analyst and provide an 'analyst_assessment'.
 - The 'analyst_assessment' MUST include:
   1. A 'relevance_level' (integer: 1 for Critical/Regulatory, 2 for High/Structural, 3 for Low/Cosmetic).
-  2. A 'justification' (A clear, articulate, and complete descriptive sentence explaining the business impact and exactly WHY this change matters to guide the analyst).
+  2. A 'justification' : une ou deux phrases claires et complètes EN FRANÇAIS expliquant l'impact métier et POURQUOI ce changement est important pour guider l'analyste. Par exemple : « Cette note a été ajoutée pour préciser un changement méthodologique dans le calcul des provisions. » ou « La suppression de cette note supprime une divulgation réglementaire requise par le BSIF. »
+
+IMPORTANT : Toutes les justifications doivent être rédigées exclusivement en français.
 
 Output must be valid JSON following the response_schema.
 """

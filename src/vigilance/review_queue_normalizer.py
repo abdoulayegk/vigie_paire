@@ -225,6 +225,11 @@ def _build_change_payload(
         payload["old_text"] = ind.get("old_text", "")
         payload["new_text"] = ind.get("new_text", "")
 
+    # Propager la justification GPT par indicateur/note
+    assessment = ind.get("analyst_assessment")
+    if isinstance(assessment, dict) and assessment:
+        payload["analyst_assessment"] = assessment
+
     return payload
 
 

@@ -9,6 +9,8 @@ Ce composant genere le panneau droit de l'interface de revue et affiche :
 
 from __future__ import annotations
 
+from typing import Any
+
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
@@ -155,27 +157,57 @@ def _build_detail_block(label: str, text: str, muted: bool = False) -> html.Div:
 
 
 def _build_change_full_detail(change: dict) -> html.Div | None:
-    """Construit le detail complet d'un changement de note de bas de page."""
+    """Construit le détail complet d'un changement (note de bas de page et/ou justification GPT)."""
     change_type = str(change.get("change_type", "") or "")
-    if not _is_footnote_change(change_type):
-        return None
+    blocks: list[Any] = []
 
+    # --- Détail texte des notes de bas de page ---
+    if _is_footnote_change(change_type):
+        payload = change.get("payload", {}) or {}
+        old_text = _normalize_text(payload.get("old_text"))
+        new_text = _normalize_text(payload.get("new_text"))
+
+        if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
+            blocks.append(_build_detail_block("Trimestre courant", new_text))
+        elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
+            blocks.append(_build_detail_block("Trimestre précédent", old_text))
+            blocks.append(_build_detail_block("Trimestre courant", "", muted=True))
+        else:
+            blocks.append(_build_detail_block("Trimestre précédent", old_text, muted=not old_text))
+            blocks.append(_build_detail_block("Trimestre courant", new_text, muted=not new_text))
+
+    # --- Justification GPT par changement ---
     payload = change.get("payload", {}) or {}
-    old_text = _normalize_text(payload.get("old_text"))
-    new_text = _normalize_text(payload.get("new_text"))
+    assessment = payload.get("analyst_assessment") or {}
+    justification = str(assessment.get("justification", "") or "").strip()
+    if justification:
+        relevance_level = assessment.get("relevance_level")
+        level_labels = {1: "Critique / Réglementaire", 2: "Élevé / Structurel", 3: "Faible / Cosmétique"}
+        level_colors = {1: "danger", 2: "warning", 3: "secondary"}
+        level_badge = (
+            dbc.Badge(
+                level_labels.get(relevance_level, ""),
+                color=level_colors.get(relevance_level, "secondary"),
+                className="me-2",
+            )
+            if relevance_level in level_labels
+            else None
+        )
+        blocks.append(
+            html.Div(
+                [
+                    html.Small(
+                        [level_badge, "Justification IA :"] if level_badge else "Justification IA :",
+                        className="fw-bold text-muted",
+                    ),
+                    html.P(justification, className="mb-0 mt-1 small fst-italic"),
+                ],
+                className="mt-2 p-2 bg-light rounded",
+            )
+        )
 
-    if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
-        blocks = [_build_detail_block("Trimestre courant", new_text)]
-    elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
-        blocks = [
-            _build_detail_block("Trimestre précédent", old_text),
-            _build_detail_block("Trimestre courant", "", muted=True),
-        ]
-    else:
-        blocks = [
-            _build_detail_block("Trimestre précédent", old_text, muted=not old_text),
-            _build_detail_block("Trimestre courant", new_text, muted=not new_text),
-        ]
+    if not blocks:
+        return None
 
     return html.Div(blocks, className="d-grid gap-3 mt-3")
 

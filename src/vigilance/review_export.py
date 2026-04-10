@@ -39,8 +39,6 @@ VALIDATION_CSV_COLUMNS = [
 EXPERT_EXCEL_SHEET_SUMMARY = "Synthèse"
 EXPERT_EXCEL_SHEET_REVIEW = "Revue expert"
 EXPERT_EXCEL_COLUMNS = [
-    "Banque",
-    "Trimestre comparé",
     "Section",
     "Tableau",
     "Type d’élément",
@@ -393,8 +391,6 @@ def _iter_expert_excel_rows(
                 edited_value=str(base.get("edited_value", "") or ""),
             )
             yield {
-                "Banque": banque,
-                "Trimestre comparé": trimestre,
                 "Section": section,
                 "Tableau": tableau,
                 "Type d’élément": type_elem.capitalize(),
@@ -436,8 +432,11 @@ def _iter_expert_excel_rows(
                 courant = to_val or ind_name
 
             resume_type = item_change_type if item_change_type in ("table_added", "table_removed") else ind_type
-            # Utilise le résumé LLM si disponible, sinon fallback local
-            resume = base.get("genai_analysis", {}).get("justification")
+            # Priorité : justification GPT par indicateur/note > table-level > fallback local
+            ind_assessment = ind.get("analyst_assessment") or {}
+            resume = ind_assessment.get("justification") or ""
+            if not resume:
+                resume = base.get("genai_analysis", {}).get("justification")
             if not resume:
                 resume = _build_resume_court(
                     resume_type,
@@ -454,8 +453,6 @@ def _iter_expert_excel_rows(
             )
             ind_validation = _to_validation_finale(ind.get("review_status", base.get("review_status", "")))
             yield {
-                "Banque": banque,
-                "Trimestre comparé": trimestre,
                 "Section": section,
                 "Tableau": tableau,
                 "Type d’élément": type_elem.capitalize(),
@@ -553,21 +550,18 @@ def _style_expert_workbook(wb: Any) -> None:
             cell.font = header_font
 
     widths = {
-        "A": 12,
-        "B": 22,
-        "C": 22,
-        "D": 48,
-        "E": 18,
-        "F": 18,
-        "G": 15,
-        "H": 15,
-        "I": 28,
-        "J": 28,
-        "K": 48,
-        "L": 16,
-        "M": 18,
-        "N": 40,
-        "O": 18,
+        "A": 22,   # Section
+        "B": 48,   # Tableau
+        "C": 18,   # Type d'élément
+        "D": 18,   # Type de changement
+        "E": 15,   # Page précédente
+        "F": 15,   # Page courante
+        "G": 28,   # Libellé
+        "H": 48,   # Justifications
+        "I": 16,   # Nouvelle idée ?
+        "J": 18,   # Validation expert
+        "K": 40,   # Commentaire expert
+        "L": 18,   # Date de validation
     }
     for col, width in widths.items():
         review_ws.column_dimensions[col].width = width
