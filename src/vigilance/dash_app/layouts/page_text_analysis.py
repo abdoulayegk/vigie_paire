@@ -93,10 +93,10 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
     evidence_t2 = change.get("evidence_t2") or {}
 
     if diff_type == "removed":
-        phrase = f"[SUPPRIMÉ] {(change.get('semantic_text_t1') or '').strip()}"
+        phrase = f"[SUPPRIMÉ] {(change.get('source_text_t1') or change.get('semantic_text_t1') or '').strip()}"
         pages = evidence_t1.get("pages") or []
     else:
-        phrase = (change.get("semantic_text_t2") or "").strip()
+        phrase = (change.get("source_text_t2") or change.get("semantic_text_t2") or "").strip()
         pages = evidence_t2.get("pages") or []
     page_label = ", ".join(str(p) for p in pages if p) if pages else ""
 
