@@ -75,8 +75,30 @@ Desktop.ini
 *.log
 session.log
 
-# Local generated data and caches
-/outputs/
+# Local generated data and caches — garder les résultats et preuves d'audit
+/outputs/**
+!/outputs/
+# Extractions indicateurs (preuve d'audit) : tables.json, indicators.json, footnotes.json
+!/outputs/extractions/
+!/outputs/extractions/*/
+!/outputs/extractions/*/*/
+!/outputs/extractions/*/*/*/
+!/outputs/extractions/*/*/*/tables.json
+!/outputs/extractions/*/*/*/indicators.json
+!/outputs/extractions/*/*/*/footnotes.json
+# Comparaisons indicateurs : comparison.json + comparison.xlsx
+!/outputs/comparisons/
+!/outputs/comparisons/*/
+!/outputs/comparisons/*/*/
+!/outputs/comparisons/*/*/comparison.json
+!/outputs/comparisons/*/*/comparison.xlsx
+# Extractions texte (preuve d'audit) : .md source de vérité
+!/outputs/text_comparisons/
+!/outputs/text_comparisons/*/
+!/outputs/text_comparisons/*/*/
+!/outputs/text_comparisons/*/*/text_comparison.json
+!/outputs/text_comparisons/*/*/text_comparison.xlsx
+!/outputs/text_comparisons/*/*/*.md
 /logs/
 /Documentation/
 /docs/_build/

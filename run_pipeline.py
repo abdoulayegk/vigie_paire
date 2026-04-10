@@ -284,6 +284,13 @@ def main(argv: list[str] | None = None) -> int:
         print("   ✓ comparison.json enrichi avec l'analyse GenAI et résumé métier LLM injecté")
         print(f"   ⏱  Triage GenAI terminé en {elapsed:.1f}s")
 
+        # Export Excel avec justifications IA à côté de comparison.json
+        from vigilance.comparison_excel import generate_comparison_excel
+
+        excel_path = comparison_path.with_suffix(".xlsx")
+        generate_comparison_excel(comparison, excel_path)
+        print(f"   ✓ comparison.xlsx → {excel_path}")
+
     # ── Step 3: Manifest ─────────────────────────────────────────────────
     print("\n" + "─" * 70)
     print("📋 ÉTAPE 3 — Génération du manifeste")

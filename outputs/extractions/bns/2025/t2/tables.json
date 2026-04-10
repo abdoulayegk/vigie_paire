@@ -1,0 +1,405 @@
+{
+  "bank_code": "bns",
+  "year": 2025,
+  "quarter": "t2",
+  "created_at": "2026-04-08T21:47:27",
+  "schema_version": 7,
+  "tables": [
+    {
+      "table_id": "tbl_p037_i01",
+      "page": 37,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.059484364776864376,
+        0.17125289741603808,
+        0.9399818939158375,
+        0.4534019187644676
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p040_i01",
+      "page": 40,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.05995807046716289,
+        0.23654691226028698,
+        0.939674592532131,
+        0.5569544532746648
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p040_i02",
+      "page": 40,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.06022620003417159,
+        0.7378543936582057,
+        0.9392166770315091,
+        0.9305720810384739
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p041_i01",
+      "page": 41,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.06002410964586249,
+        0.172950501033934,
+        0.9392554439715485,
+        0.45114494313986675
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p042_i01",
+      "page": 42,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.06027379834632178,
+        0.16062718728797495,
+        0.9391458236162935,
+        0.3594879501167385
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p042_i02",
+      "page": 42,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.06026763030347935,
+        0.5825865685863666,
+        0.9392100977858105,
+        0.7378933688537676
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p043_i01",
+      "page": 43,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.0598624373352152,
+        0.08253084380051186,
+        0.9399783512450767,
+        0.20774091036079184
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p043_i02",
+      "page": 43,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.060303714935657005,
+        0.40712043304248485,
+        0.9393231595926617,
+        0.6472075987288474
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p043_i03",
+      "page": 43,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.06024324913720784,
+        0.689291377938418,
+        0.9396417975228026,
+        0.9213658280451789
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p044_i01",
+      "page": 44,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.06044983745214358,
+        0.5128889022963562,
+        0.9397818848466003,
+        0.7206573681204104
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p044_i02",
+      "page": 44,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.05999648314012619,
+        0.7380763184217354,
+        0.9399485928106862,
+        0.9410375446499841
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p045_i01",
+      "page": 45,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.05968576560961469,
+        0.12174183929560285,
+        0.9395468539464138,
+        0.21155911539401742
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p045_i02",
+      "page": 45,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.060087947307732176,
+        0.38462285885865666,
+        0.9401934419698383,
+        0.6261497292938818
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p045_i03",
+      "page": 45,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.05988970324767763,
+        0.6441717817713323,
+        0.9397574910279333,
+        0.8810831705729167
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p046_i01",
+      "page": 46,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.059971513637460484,
+        0.3841592099322518,
+        0.9397979786937708,
+        0.8504809383231562
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p048_i01",
+      "page": 48,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.06045469597204408,
+        0.09873500546276341,
+        0.9389579608468076,
+        0.8316886580310106
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p050_i01",
+      "page": 50,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.05990907406530175,
+        0.1622540801573226,
+        0.9397711556151535,
+        0.42529468365860473
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p050_i02",
+      "page": 50,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.05970746446802446,
+        0.4363437228732639,
+        0.9394056532118056,
+        0.6985147800177602
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p051_i01",
+      "page": 51,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.0592766693773159,
+        0.20472150196060826,
+        0.9398670101640236,
+        0.8879601099786479
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p052_i01",
+      "page": 52,
+      "section": "risk_management",
+      "title": "",
+      "bbox": [
+        0.05908053826732224,
+        0.05795219392155322,
+        0.9397368423183562,
+        0.7581393459899824
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p053_i01",
+      "page": 53,
+      "section": "capital_management",
+      "title": "",
+      "bbox": [
+        0.05954462181078656,
+        0.5303743053061143,
+        0.9392544317799026,
+        0.7474569464399745
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p054_i01",
+      "page": 54,
+      "section": "capital_management",
+      "title": "",
+      "bbox": [
+        0.11873662135691983,
+        0.14595517953845885,
+        0.8822296800502695,
+        0.3492154137232599
+      ],
+      "extraction_status": "confirmed_no_table",
+      "headers": [],
+      "table_summary": "",
+      "row_count": 0,
+      "indicators": [],
+      "footnotes": []
+    }
+  ]
+}

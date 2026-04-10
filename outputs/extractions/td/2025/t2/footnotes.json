@@ -1,0 +1,462 @@
+{
+  "bank_code": "td",
+  "year": 2025,
+  "quarter": "t2",
+  "created_at": "2026-04-09T10:36:12",
+  "schema_version": 7,
+  "tables": [
+    {
+      "table_id": "tbl_p036_i01",
+      "page": 36,
+      "section": "capital_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les expositions, y compris les dépôts productifs d’intérêts auprès de banques, sont présentées déduction faite des imputations pour dépréciation, s’il y a lieu."
+        },
+        {
+          "id": "2",
+          "text": "Les expositions sont calculées à la juste valeur et sont présentées déduction faite des sûretés. Les dérivés sont présentés comme des expositions nettes lorsqu’il existe une convention-cadre de compensation de l’International Swaps and Derivatives Association."
+        },
+        {
+          "id": "3",
+          "text": "Les expositions du portefeuille de négociation sont présentées déduction faite des positions vendeur admissibles."
+        },
+        {
+          "id": "4",
+          "text": "En plus des expositions présentées ci-dessus, la Banque a également une exposition de 33,6 milliards de dollars (35,5 milliards de dollars au 31 octobre 2024) à des entités supranationales."
+        },
+        {
+          "id": "5",
+          "text": "L’exposition régionale présentée au poste Autres pays est largement attribuable à l’Australie."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p037_i01",
+      "page": 37,
+      "section": "capital_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le plus élevé des suppléments pour les BISI et les banques d’importance systémique mondiale (BISM) s’applique aux fonds propres pondérés en fonction des risques. Le supplément pour les BISI est actuellement équivalent à l’exigence supplémentaire de 1 % relative au ratio de fonds propres sous forme d’actions ordinaires pour les fonds propres pondérés en fonction des risques pour les BISM que doit respecter la Banque. Le supplément pour les BISM pourrait augmenter au-delà de 1 %, si la cote pour les BISM attribuée à la Banque devait augmenter au-delà de certains seuils, pour atteindre un maximum de 4,5 %. Les lignes directrices Exigences de levier du BSIF comprennent une exigence selon laquelle les BISI doivent maintenir un coussin de ratio de levier fixé à 50 % des exigences pondérées de capacité accrue d’absorption des pertes d’une BISI, soit 0,50 %. Ce coussin s’applique également au ratio de levier TLAC."
+        },
+        {
+          "id": "2",
+          "text": "L’exigence à l’égard de la réserve anticyclique de la Banque était de 0 % au 30 avril 2025."
+        },
+        {
+          "id": "3",
+          "text": "Sans objet."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p038_i01",
+      "page": 38,
+      "section": "capital_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Comprennent les autres instruments admissibles à la TLAC émis par des BISM et des BISI canadiennes qui sortent du périmètre de la consolidation réglementaire, à hauteur de 10 % au plus des actions ordinaires émises de l’entité."
+        },
+        {
+          "id": "2",
+          "text": "Le ratio de levier correspond au total des fonds propres de catégorie 1 divisé par l’exposition à l’endettement, telle qu’elle est définie dans la rubrique « Fonds propres réglementaires » du présent document."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p039_i01",
+      "page": 39,
+      "section": "capital_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "¹ Pour plus de renseignements, y compris les caractéristiques de conversion et d’échange, et les distributions, se reporter à la note 20 des états financiers consolidés de 2024 de la Banque."
+        },
+        {
+          "id": "2",
+          "text": "² Le 31 janvier 2025, la Banque a racheté la totalité de ses 20 millions d’actions privilégiées de premier rang de catégorie A à taux rajusté tous les cinq ans et à dividende non cumulatif comprenant des dispositions relatives aux fonds propres d’urgence en cas de non-viabilité (FPUNV), série 5 (« actions privilégiées de série 5 ») en circulation, à un prix de rachat de 25,00 $ l’action privilégiée de série 5, pour un coût de rachat total d’environ 500 millions de dollars."
+        },
+        {
+          "id": "3",
+          "text": "³ Pour les autres instruments de capitaux propres, le nombre d’actions ou de parts correspond au nombre de billets émis."
+        },
+        {
+          "id": "4",
+          "text": "⁴ Pour plus de renseignements, se reporter au tableau « Conditions importantes rattachées aux actions privilégiées et autres instruments de capitaux propres » à la note 20 des états financiers consolidés de 2024 de la Banque."
+        },
+        {
+          "id": "5",
+          "text": "⁵ Pour les BRCRL, série 3 et série 4, le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars américains."
+        },
+        {
+          "id": "6",
+          "text": "⁶ Le 18 décembre 2024, la Banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital de 750 millions de dollars à taux fixe rajusté à 5,909 % comprenant des dispositions relatives aux FPUNV, série 5 (les « BRCRL »). Les BRCRL porteront intérêt au taux de 5,909 % par année, payable trimestriellement, pour la période initiale se terminant le 1er janvier 2030, exclusivement. Par la suite, le taux d’intérêt sur les BRCRL sera rajusté tous les cinq ans à un taux correspondant au rendement des obligations du gouvernement du Canada alors en vigueur, majoré de 3,10 %. Les BRCRL viendront à échéance le 1er janvier 2085. Parallèlement à l’émission des BRCRL, la Banque a émis 750 000 actions privilégiées à taux fixe rajusté à 5,909 % et à dividende non cumulatif comprenant des dispositions relatives aux FPUNV, série 32 (« actions privilégiées de série 32 »). Les actions privilégiées de série 32 sont éliminées des états financiers consolidés de la Banque."
+        },
+        {
+          "id": "7",
+          "text": "⁷ Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p042_i01",
+      "page": 42,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les expositions brutes au risque de crédit représentent l’ECD et ne tiennent pas compte de l’incidence des mesures d’atténuation du risque de crédit. Ce tableau ne tient compte ni des titrisations, ni des titres de capitaux propres, ni de certains autres actifs pondérés en fonction du risque de crédit."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p043_i01",
+      "page": 43,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "¹ Se rapportent aux prestations de retraite, aux assurances et aux passifs liés aux entités structurées."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p045_i01",
+      "page": 45,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "La VaR globale est moins élevée que la somme de la VaR des différents types de risque, étant donné que certains risques sont atténués par la diversification des portefeuilles."
+        },
+        {
+          "id": "2",
+          "text": "Négligeable. Il n’est pas important de calculer un effet de diversification, du fait que le haut et le bas peuvent survenir à différents jours pour différents types de risque."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p045_i02",
+      "page": 45,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Représente l’exposition des produits d’intérêts nets au cours des douze mois suivant un choc immédiat et soutenu des taux d’intérêt et peut comprendre des ajustements au titre d’éléments non récurrents."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p047_i01",
+      "page": 47,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les actifs liquides non grevés comprennent les actifs au bilan, les actifs empruntés ou acquis en vertu de prises en pension et d’autres sûretés hors bilan reçues moins les actifs liquides grevés."
+        },
+        {
+          "id": "2",
+          "text": "Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p047_i02",
+      "page": 47,
+      "section": "risk_management",
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p048_i01",
+      "page": 48,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les actifs liquides non grevés comprennent les actifs au bilan, les actifs empruntés ou acquis en vertu de prises en pension et d’autres sûretés hors bilan reçues moins les actifs liquides grevés."
+        },
+        {
+          "id": "2",
+          "text": "Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p048_i02",
+      "page": 48,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "2",
+          "text": "Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p049_i01",
+      "page": 49,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les sûretés données en garanties correspondent à la portion des actifs donnés en garanties dans le cadre d’opérations de grèvement, telles que des mises en pension, des prêts de valeurs mobilières, des contrats de dérivés, et des exigences liées à la participation aux chambres de compensation et aux systèmes de paiement."
+        },
+        {
+          "id": "2",
+          "text": "Comprennent les actifs qui soutiennent les activités de financement à long terme de la TD, telles que la titrisation des actifs et l’émission d’obligations sécurisées."
+        },
+        {
+          "id": "3",
+          "text": "Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d’obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la Federal Home Loan Bank (FHLB)."
+        },
+        {
+          "id": "4",
+          "text": "Les autres actifs non grevés ne sont assujettis à aucune restriction quant à leur utilisation pour garantir un financement ou à titre de sûreté, mais ne sont pas considérés comme immédiatement disponibles."
+        },
+        {
+          "id": "5",
+          "text": "Les autres actifs comprennent le goodwill, les autres immobilisations incorporelles, les terrains, bâtiments, matériel et mobilier, autres actifs amortissables et actifs au titre de droits d’utilisation, les actifs d’impôt différé, les montants à recevoir des courtiers et des clients et les autres actifs du bilan qui ne sont pas présentés dans les catégories ci-dessus."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p050_i01",
+      "page": 50,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les notations ci-dessus s’appliquent à l’entité juridique La Banque Toronto-Dominion. Les notations des filiales sont disponibles sur le site Web de la Banque à l’adresse http://www.td.com/francais/investisseurs/accueil/renseignements-sur-les-creances/notes-de-credit/credit.jsp. Les notations de crédit ne constituent pas des recommandations visant l’achat, la vente ou la conservation d’une obligation financière, car elles ne fournissent pas de commentaires sur le cours du marché ni sur la pertinence pour un investisseur en particulier. Les notations de crédit peuvent en tout temps faire l’objet d’une révision ou d’un retrait par l’agence de notation."
+        },
+        {
+          "id": "2",
+          "text": "Tient compte de l’abaissement des notations de crédit et de la modification des perspectives par DBRS après la fin du trimestre, le 2 mai 2025."
+        },
+        {
+          "id": "3",
+          "text": "Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody’s, la notation de crédit d’émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d’émetteur à long terme attribuée par DBRS."
+        },
+        {
+          "id": "4",
+          "text": "Comprend a) la dette de premier rang émise avant le 23 septembre 2018; et b) la dette de premier rang émise à partir du 23 septembre 2018, qui est exclue du régime de recapitalisation interne des banques."
+        },
+        {
+          "id": "5",
+          "text": "Assujettie à une conversion au titre du régime de recapitalisation interne des banques."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p050_i02",
+      "page": 50,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Ces exigences de sûretés sont fondées sur l’annexe de soutien au crédit pour chaque contrepartie figurant au contrat de gré à gré et sur les notations de crédit de la Banque attribuées par les agences de notation pertinentes."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p051_i01",
+      "page": 51,
+      "section": "risk_management",
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p051_i02",
+      "page": 51,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le LCR est calculé conformément à la ligne directrice Normes de liquidité du BSIF, qui tient compte des exigences en matière de liquidité publiées par le CBCB. Le LCR pour le trimestre clos le 30 avril 2025 représente la moyenne des 61 données quotidiennes du trimestre."
+        },
+        {
+          "id": "2",
+          "text": "Les valeurs non pondérées des entrées et des sorties de trésorerie représentent les soldes impayés qui arrivent à échéance ou qui deviennent exigibles dans les 30 jours."
+        },
+        {
+          "id": "3",
+          "text": "Les valeurs pondérées sont calculées après l’application des décotes des HQLA ou des taux des entrées et des sorties de trésorerie, et des plafonds prescrits par la ligne directrice Normes de liquidité du BSIF."
+        },
+        {
+          "id": "4",
+          "text": "Sans objet conformément au modèle de divulgation commun du LCR."
+        },
+        {
+          "id": "15",
+          "text": "Les attentes de la Banque à l’égard des niveaux de liquidités s’appuient sur les hypothèses de la Banque à l’égard de certains facteurs, notamment la croissance des produits, les plans stratégiques, le rythme des rachats d’actions dans le cadre de l’offre publique de rachat dans le cours normal des activités de la Banque (laquelle est assujettie aux prévisions financières et aux exigences en matière de fonds propres). Les hypothèses de la Banque sont assujetties à des incertitudes inhérentes et peuvent varier en fonction de plusieurs facteurs dépendants et indépendants de la volonté de la Banque, y compris les conditions générales du marché, les perspectives économiques et les enjeux géopolitiques. Se reporter à la section « Facteurs de risque qui pourraient avoir une incidence sur les résultats futurs » du présent document pour plus de renseignements sur les risques et les incertitudes susceptibles"
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p052_i01",
+      "page": 52,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le NSFR est calculé conformément à la ligne directrice Normes de liquidité du BSIF, qui tient compte des exigences en matière de liquidité publiées par le CBCB."
+        },
+        {
+          "id": "2",
+          "text": "Les éléments présentés sous la catégorie « Aucune échéance » ne sont assortis d’aucune échéance précise. Cette catégorie regroupe notamment les fonds propres sans échéance, les dépôts sans échéance, les positions courtes, les positions à échéance ouverte, les actions qui ne remplissent pas les critères définissant les HQLA et les marchandises physiques."
+        },
+        {
+          "id": "3",
+          "text": "Les valeurs pondérées sont calculées après l’application des pondérations aux fins du NSFR prescrites par la ligne directrice Normes de liquidité du BSIF."
+        },
+        {
+          "id": "4",
+          "text": "Certains éléments de l’actif et du passif réputés interdépendants par le BSIF, et à ce titre, leurs coefficients de FSR et de FSD sont ajustés à zéro. Les passifs interdépendants ne peuvent être échus pendant que l’actif demeure au bilan, ne peuvent servir à financer d’autres actifs tandis que le principal de l’actif ne peut servir qu’à rembourser le passif. Par conséquent, les seuls actifs et passifs interdépendants de la Banque qui sont admissibles à ce traitement sont les passifs découlant du Programme des Obligations hypothécaires du Canada et leurs actifs grevés correspondants."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p053_i01",
+      "page": 53,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "¹ La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p053_i02",
+      "page": 53,
+      "section": "risk_management",
+      "footnotes": []
+    },
+    {
+      "table_id": "tbl_p053_i03",
+      "page": 53,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Le tableau ne comprend que le financement émis à des investisseurs externes."
+        },
+        {
+          "id": "2",
+          "text": "La titrisation de prêts hypothécaires exclut les activités de négociation de prêts hypothécaires résidentiels."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p054_i01",
+      "page": 54,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Comprennent seulement les dépôts commerciaux à échéance déterminée auprès de banques."
+        },
+        {
+          "id": "2",
+          "text": "Comprend les titres adossés à des créances hypothécaires émises à des investisseurs externes et dans le cadre des activités de négociation de prêts hypothécaires résidentiels du secteur Services bancaires de gros."
+        },
+        {
+          "id": "3",
+          "text": "Comprennent a) la dette de premier rang émise avant le 23 septembre 2018; et b) la dette de premier rang émise à partir du 23 septembre 2018 qui est exclue du régime de recapitalisation interne des banques, y compris la dette dont la durée initiale est de moins de 400 jours."
+        },
+        {
+          "id": "4",
+          "text": "Comprennent la dette de premier rang qui est assujettie à une conversion au titre du régime de recapitalisation interne des banques. Excluent des billets structurés d’un montant de 3,7 milliards de dollars qui sont assujettis à une conversion au titre du régime de recapitalisation interne des banques (4,4 milliards de dollars au 31 octobre 2024)."
+        },
+        {
+          "id": "5",
+          "text": "Les billets et débentures subordonnés ne sont pas considérés en tant que financement de gros étant donné qu’ils peuvent être engagés essentiellement à des fins de gestion des fonds propres."
+        },
+        {
+          "id": "6",
+          "text": "Comprend les dépôts à échéance déterminée d’institutions autres que des banques (non garantis) de 19,8 milliards de dollars (17,3 milliards de dollars au 31 octobre 2024) et les autres dépôts n’ont aucune échéance."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p055_i01",
+      "page": 55,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les montants ont été présentés en fonction des durées contractuelles restantes du titre sous-jacent."
+        },
+        {
+          "id": "2",
+          "text": "Certains contrats considérés comme étant à court terme sont présentés dans la catégorie « moins de 1 mois »."
+        },
+        {
+          "id": "3",
+          "text": "Certains actifs non financiers ont été présentés comme n’ayant « aucune échéance précise »."
+        },
+        {
+          "id": "4",
+          "text": "Comme les dépôts payables à vue et les dépôts payables sur préavis n’ont pas d’échéance précise et peuvent être rachetés au gré du déposant, les obligations sont considérées comme n’ayant « aucune échéance précise »."
+        },
+        {
+          "id": "5",
+          "text": "Comprennent 74 milliards de dollars d’obligations sécurisées, dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 1 à 3 mois », une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 22 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 26 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 6 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans »."
+        },
+        {
+          "id": "6",
+          "text": "Comprennent 653 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé."
+        },
+        {
+          "id": "7",
+          "text": "Les engagements de crédit excluent les lignes de crédit personnelles et sur cartes de crédit, lesquelles sont annulables sans condition en tout temps, au gré de la Banque."
+        },
+        {
+          "id": "8",
+          "text": "Comprennent divers engagements d’acquisition ainsi que des engagements au titre de contrats de location qui n’ont pas encore débuté et des paiements découlant de contrats de location."
+        }
+      ]
+    },
+    {
+      "table_id": "tbl_p056_i01",
+      "page": 56,
+      "section": "risk_management",
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Les montants ont été présentés en fonction des durées contractuelles restantes du titre sous-jacent."
+        },
+        {
+          "id": "2",
+          "text": "Certains contrats considérés comme étant à court terme sont présentés dans la catégorie « moins de 1 mois »."
+        },
+        {
+          "id": "3",
+          "text": "Certains actifs non financiers ont été présentés comme n’ayant « aucune échéance précise »."
+        },
+        {
+          "id": "4",
+          "text": "Comme les dépôts payables à vue et les dépôts payables sur préavis n’ont pas d’échéance précise et peuvent être rachetés au gré du déposant, les obligations sont considérées comme n’ayant « aucune échéance précise »."
+        },
+        {
+          "id": "5",
+          "text": "Comprennent 75 milliards de dollars d’obligations sécurisées dont une tranche de 2 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 18 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 37 milliards de dollars comporte une durée contractuelle restante de « plus de 2 ans à 5 ans et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans »."
+        },
+        {
+          "id": "6",
+          "text": "Comprennent 609 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé."
+        },
+        {
+          "id": "7",
+          "text": "Les engagements de crédit excluent les lignes de crédit personnelles et sur cartes de crédit, lesquelles sont annulables sans condition en tout temps, au gré de la Banque."
+        },
+        {
+          "id": "8",
+          "text": "Comprennent divers engagements d’acquisition ainsi que des engagements au titre de contrats de location qui n’ont pas encore débuté et des paiements découlant de contrats de location."
+        }
+      ]
+    }
+  ]
+}
