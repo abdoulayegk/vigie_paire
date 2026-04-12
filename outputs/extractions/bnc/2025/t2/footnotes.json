@@ -2,7 +2,7 @@
   "bank_code": "bnc",
   "year": 2025,
   "quarter": "t2",
-  "created_at": "2026-04-08T22:01:17",
+  "created_at": "2026-04-10T22:26:23",
   "schema_version": 7,
   "tables": [
     {
@@ -11,16 +11,20 @@
       "section": "capital_management",
       "footnotes": [
         {
+          "id": "s. o.",
+          "text": "s.o. Sans objet"
+        },
+        {
           "id": "1",
-          "text": "Les ratios des fonds propres et le ratio de levier sont calculés selon les règles de Bâle III telles qu’énoncées dans les lignes directrices « Normes de fonds propres » et « Exigences de levier » du BSIF."
+          "text": "(1) Les ratios des fonds propres et le ratio de levier sont calculés selon les règles de Bâle III telles qu’énoncées dans les lignes directrices « Normes de fonds propres » et « Exigences de levier » du BSIF."
         },
         {
           "id": "2",
-          "text": "Le ratio TLAC et le ratio de levier TLAC sont calculés selon la ligne directrice « Capacité totale d’absorption des pertes » du BSIF."
+          "text": "(2) Le ratio TLAC et le ratio de levier TLAC sont calculés selon la ligne directrice « Capacité totale d’absorption des pertes » du BSIF."
         },
         {
           "id": "3",
-          "text": "Le 17 décembre 2024, le BSIF a confirmé que la réserve pour stabilité intérieure était maintenue à 3,5 %."
+          "text": "(3) Le 17 décembre 2024, le BSIF a confirmé que la réserve pour stabilité intérieure était maintenue à 3,5 %."
         }
       ]
     },
@@ -191,16 +195,20 @@
       "section": "risk_management",
       "footnotes": [
         {
+          "id": "s. o.",
+          "text": "n.s. Le calcul de l'effet de diversification sur le cours le plus haut et sur le cours le plus bas n'est pas significatif puisqu'ils peuvent survenir à des jours différents et pour divers types de risques."
+        },
+        {
           "id": "1",
-          "text": "Consulter le « Glossaire » aux pages 51 à 54 pour plus de détails sur la composition de ces mesures."
+          "text": "(1) Consulter le « Glossaire » aux pages 51 à 54 pour plus de détails sur la composition de ces mesures."
         },
         {
           "id": "2",
-          "text": "Les montants sont présentés avant impôts et représentent la VaR quotidienne, selon un niveau de confiance de 99 %."
+          "text": "(2) Les montants sont présentés avant impôts et représentent la VaR quotidienne, selon un niveau de confiance de 99 %."
         },
         {
           "id": "3",
-          "text": "La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l’effet de diversification."
+          "text": "(3) La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l'effet de diversification."
         }
       ]
     },
@@ -277,6 +285,10 @@
       "page": 39,
       "section": "risk_management",
       "footnotes": [
+        {
+          "id": "*",
+          "text": "s.o. Sans objet"
+        },
         {
           "id": "1",
           "text": "Consulter le « Mode de présentation de l’information » aux pages 6 à 12 pour de plus amples renseignements sur les mesures de gestion du capital."
@@ -402,7 +414,7 @@
         },
         {
           "id": "6",
-          "text": "Ces montants sont révocables sans condition ou en tout temps à la discrétion de la Banque."
+          "text": "Ces montants sont révocables sans condition ou en temps à la discrétion de la Banque."
         },
         {
           "id": "7",

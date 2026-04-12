@@ -73,9 +73,14 @@ Rules:
 - For each change (added, removed, renamed), you MUST act as a Senior Risk Analyst and provide an 'analyst_assessment'.
 - The 'analyst_assessment' MUST include:
   1. A 'relevance_level' (integer: 1 for Critical/Regulatory, 2 for High/Structural, 3 for Low/Cosmetic).
-  2. A 'justification' : une ou deux phrases claires et complètes EN FRANÇAIS expliquant l'impact métier et POURQUOI ce changement est important pour guider l'analyste. Par exemple : « Cet indicateur a été ajouté pour répondre aux exigences de divulgation Bâle III sur les ratios de fonds propres CET1. » ou « La suppression de cette note modifie le périmètre méthodologique utilisé pour le calcul du ratio de levier. »
+  2. A 'justification' : un texte fluide et naturel d'au moins 3 paragraphes EN FRANÇAIS (separés par \n\n). NE PAS écrire « Paragraphe 1 » ou « Paragraphe 2 » ni aucune étiquette de structure -- le texte doit se lire comme une analyse rédigée par un analyste senior.
+     Le contenu doit couvrir, dans l'ordre, ces trois aspects :
+     (a) Décrire précisément le changement constaté (quel indicateur, quelle valeur, quel tableau, quel contexte).
+     (b) Expliquer l'impact métier ou réglementaire concret (lien avec Bâle III, BSIF, ratios prudentiels, divulgation, méthodologie de calcul, etc.). Mentionner les références réglementaires applicables si pertinent.
+     (c) Conclure en indiquant clairement si ce changement constitue une nouvelle divulgation, un changement méthodologique, ou une mise à jour ordinaire, et formuler une recommandation pour l'analyste (confirmer, investiguer, escalader).
+     Par exemple : « L'indicateur "Ratio CET1" a été ajouté dans le tableau de synthèse des fonds propres au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout répond aux exigences de divulgation Bâle III sur les ratios de fonds propres de catégorie 1 (CET1), conformément aux lignes directrices du BSIF. La présence de ce ratio dans le tableau de synthèse renforce la transparence envers les parties prenantes et s'inscrit dans le cadre des exigences TLAC.\n\nIl s'agit d'une nouvelle divulgation réglementaire. L'analyste devrait confirmer que les valeurs divulguées sont cohérentes avec les autres tableaux de fonds propres du rapport. »
 
-IMPORTANT : Toutes les justifications doivent être rédigées exclusivement en français.
+IMPORTANT : Toutes les justifications doivent être rédigées exclusivement en français, avec au minimum 3 paragraphes distincts. Ne jamais inclure d'étiquettes comme « Paragraphe 1 » dans le texte.
 
 Output must be valid JSON following the response_schema.
 """
@@ -106,9 +111,14 @@ Rules:
 - For each change (added, removed, renamed), you MUST act as a Senior Risk Analyst and provide an 'analyst_assessment'.
 - The 'analyst_assessment' MUST include:
   1. A 'relevance_level' (integer: 1 for Critical/Regulatory, 2 for High/Structural, 3 for Low/Cosmetic).
-  2. A 'justification' : une ou deux phrases claires et complètes EN FRANÇAIS expliquant l'impact métier et POURQUOI ce changement est important pour guider l'analyste. Par exemple : « Cette note a été ajoutée pour préciser un changement méthodologique dans le calcul des provisions. » ou « La suppression de cette note supprime une divulgation réglementaire requise par le BSIF. »
+  2. A 'justification' : un texte fluide et naturel d'au moins 3 paragraphes EN FRANÇAIS (separés par \n\n). NE PAS écrire « Paragraphe 1 » ou « Paragraphe 2 » ni aucune étiquette de structure -- le texte doit se lire comme une analyse rédigée par un analyste senior.
+     Le contenu doit couvrir, dans l'ordre, ces trois aspects :
+     (a) Décrire précisément le changement constaté (quelle note, quel texte modifié, quel tableau, quel contexte).
+     (b) Expliquer l'impact métier ou réglementaire concret (lien avec Bâle III, BSIF, ratios prudentiels, divulgation, méthodologie de calcul, etc.). Mentionner les références réglementaires applicables si pertinent.
+     (c) Conclure en indiquant clairement si ce changement constitue une nouvelle divulgation, un changement méthodologique, ou une mise à jour ordinaire, et formuler une recommandation pour l'analyste (confirmer, investiguer, escalader).
+     Par exemple : « La note de bas de page n-3 a été ajoutée dans le tableau des provisions pour pertes de crédit attendues (ECL) au T2 2025.\n\nCette note précise un changement méthodologique dans le calcul des provisions de stade 2, en introduisant une pondération macroéconomique révisée conforme aux recommandations du BSIF sur les modèles IFRS 9.\n\nIl s'agit d'un changement méthodologique significatif. L'analyste devrait investiguer la cohérence de cette nouvelle méthodologie avec les autres tableaux de risque de crédit du rapport. »
 
-IMPORTANT : Toutes les justifications doivent être rédigées exclusivement en français.
+IMPORTANT : Toutes les justifications doivent être rédigées exclusivement en français, avec au minimum 3 paragraphes distincts. Ne jamais inclure d'étiquettes comme « Paragraphe 1 » dans le texte.
 
 Output must be valid JSON following the response_schema.
 """

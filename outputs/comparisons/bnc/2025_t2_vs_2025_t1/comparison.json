@@ -1,13 +1,13 @@
 {
   "schema_version": 2,
   "artifact_type": "report_comparison",
-  "run_id": "20260410_011605",
+  "run_id": "20260410_223506",
   "bank_code": "bnc",
   "year_previous": 2025,
   "quarter_previous": "t1",
   "year_current": 2025,
   "quarter_current": "t2",
-  "created_at": "2026-04-10T01:16:05",
+  "created_at": "2026-04-10T22:35:06",
   "source_pdf_previous": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
   "source_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
   "archived_pdf_previous": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
@@ -26,206 +26,166 @@
       {
         "previous_table_id": "tbl_p022_i01",
         "current_table_id": "tbl_p026_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on regulatory capital requirements and ratios. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires'; indicators: same 7 rows (Ratios des fonds propres, CET1, catégorie 1, total, Ratio de levier, Ratio TLAC, Ratio de levier TLAC); row_count 7 vs 7."
       },
       {
         "previous_table_id": "tbl_p023_i01",
         "current_table_id": "tbl_p027_i01",
-        "match_confidence": 0.95,
-        "reason": "Title identical; indicators mostly match with minor series changes; row count difference is minimal."
+        "match_confidence": 0.9,
+        "reason": "Title identical: 'Actions, autres instruments de capitaux propres et options d’achat d’actions'; indicators: similar series and instruments; row_count 13 vs 12."
       },
       {
         "previous_table_id": "tbl_p024_i01",
         "current_table_id": "tbl_p028_i01",
-        "match_confidence": 0.97,
-        "reason": "Indicators and headers align closely; both tables focus on regulatory capital variations. Row count and footnote count are consistent."
+        "match_confidence": 0.92,
+        "reason": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: same core structure with minor additions; row_count 42 vs 40."
       },
       {
         "previous_table_id": "tbl_p025_i01",
         "current_table_id": "tbl_p029_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on risk-weighted assets variations. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same structure; row_count 20 vs 20."
       },
       {
         "previous_table_id": "tbl_p026_i01",
         "current_table_id": "tbl_p030_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on regulatory capital, leverage, and TLAC. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same structure; row_count 14 vs 14."
       },
       {
         "previous_table_id": "tbl_p029_i01",
         "current_table_id": "tbl_p032_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on maximum credit risk exposure. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'Exposition maximale au risque de crédit selon les catégories d'actifs de Bâle (1)'; indicators: same structure; row_count 14 vs 14."
+      },
+      {
+        "previous_table_id": "tbl_p029_i02",
+        "current_table_id": "tbl_p032_i02",
+        "match_confidence": 0.95,
+        "reason": "Continuation of the previous table; indicators and structure match; row_count 14 vs 14."
       },
       {
         "previous_table_id": "tbl_p030_i01",
         "current_table_id": "tbl_p033_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on market risk reconciliation. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'Conciliation du risque de marché avec les éléments du bilan consolidé'; indicators: same structure; row_count 20 vs 20."
       },
       {
         "previous_table_id": "tbl_p031_i01",
         "current_table_id": "tbl_p034_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on market risk measures. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Indicators and structure match; row_count 20 vs 20; both tables describe market risk measures."
       },
       {
         "previous_table_id": "tbl_p032_i01",
         "current_table_id": "tbl_p035_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on VaR for trading portfolios. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'VaR des portefeuilles de négociation (1)(2)'; indicators: same structure; row_count 6 vs 6."
       },
       {
         "previous_table_id": "tbl_p033_i01",
         "current_table_id": "tbl_p036_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on interest rate sensitivity. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'Sensibilité aux taux d'intérêt – Activités autres que de négociation (avant impôts)'; indicators: same structure; row_count 6 vs 6."
       },
       {
         "previous_table_id": "tbl_p034_i01",
         "current_table_id": "tbl_p037_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on liquid asset portfolios. Row count and footnote count are consistent."
+        "match_confidence": 0.9,
+        "reason": "Title identical: 'Portefeuille d’actifs liquides (1)'; indicators: same structure; row_count 16 vs 20."
       },
       {
         "previous_table_id": "tbl_p034_i02",
         "current_table_id": "tbl_p037_i02",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on average liquid asset portfolios. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Continuation of the previous table; indicators and structure match; row_count 8 vs 8."
       },
       {
         "previous_table_id": "tbl_p035_i01",
         "current_table_id": "tbl_p038_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on encumbered and unencumbered assets. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'Sommaire des actifs grevés et non grevés (1)'; indicators: same structure; row_count 9 vs 9."
       },
       {
         "previous_table_id": "tbl_p035_i02",
         "current_table_id": "tbl_p038_i02",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on encumbered and unencumbered assets by category. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Continuation of the previous table; indicators and structure match; row_count 9 vs 9."
       },
       {
         "previous_table_id": "tbl_p036_i01",
         "current_table_id": "tbl_p039_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on short-term liquidity ratio requirements. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2)'; indicators: same structure; row_count 26 vs 26."
       },
       {
         "previous_table_id": "tbl_p038_i01",
         "current_table_id": "tbl_p041_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on residual maturities of institutional funding. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'Échéances contractuelles résiduelles du financement institutionnel'; indicators: same structure; row_count 10 vs 10."
       },
       {
         "previous_table_id": "tbl_p038_i02",
         "current_table_id": "tbl_p041_i02",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on additional collateral requirements due to credit rating downgrades. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Continuation of the previous table; indicators and structure match; row_count 1 vs 1."
       },
       {
         "previous_table_id": "tbl_p039_i01",
         "current_table_id": "tbl_p042_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on financial asset maturities. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Title identical: 'Échéances contractuelles des actifs financiers au 30 avril 2025'; indicators: same structure; row_count 19 vs 19."
       },
       {
         "previous_table_id": "tbl_p041_i01",
         "current_table_id": "tbl_p044_i01",
-        "match_confidence": 0.98,
-        "reason": "Indicators and headers are identical; both focus on financial asset maturities. Row count and footnote count are consistent."
+        "match_confidence": 0.95,
+        "reason": "Table summary and indicators match: 'Échéances contractuelles des actifs'; identical headers and first indicator 'Actif'; row_count 19 vs 19."
       },
       {
         "previous_table_id": "tbl_p042_i01",
         "current_table_id": "tbl_p045_i01",
         "match_confidence": 0.95,
-        "reason": "Exact match in indicators, headers, and row count; both tables have the same table summary and footnote count."
+        "reason": "Table summary and indicators match: 'Échéances des passifs, capitaux propres et engagements hors bilan'; identical headers and first indicator 'Passif et capitaux propres'; row_count 23 vs 23."
       },
       {
         "previous_table_id": "tbl_p044_i01",
         "current_table_id": "tbl_p047_i01",
-        "match_confidence": 0.9,
-        "reason": "Highly similar indicators and headers; both tables have the same footnote count and serve a similar purpose in summarizing risk disclosures."
-      },
-      {
-        "previous_table_id": "tbl_p028_i01",
-        "current_table_id": "tbl_p031_i01",
-        "match_confidence": 0.8,
-        "reason": "Both tables discuss emerging risks related to tariffs on imports. The CQ table appears to be an updated version with a slightly expanded description of the risks.",
+        "match_confidence": 0.85,
+        "reason": "Both tables share a comprehensive list of risk-related indicators and have the same row count and footnote count, indicating they are likely the same table with updated content for a new quarter.",
         "source": "devil_advocate"
       }
     ],
     "tables_added": [
       {
-        "table_id": "tbl_p032_i02",
-        "reason": "Indicators and headers are unique; no remaining previous table has a sufficiently similar indicator structure or table summary.",
+        "table_id": "tbl_p031_i01",
+        "reason": "Unique indicator 'Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux'; no previous table with similar risk description or structure.",
         "title": "",
-        "table_summary": "Suite: risque de crédit brut par catégorie et approche",
+        "table_summary": "Description d’un risque émergent lié aux échanges commerciaux",
         "extraction_status": "rescued",
-        "page": 32,
+        "page": 31,
         "section": "risk_management",
         "bbox": [
-          0.05422672570920458,
-          0.4487144393150253,
-          0.9411691902509702,
-          0.7168698551678899
+          0.057464481179231135,
+          0.20457310146755645,
+          0.9411860447303921,
+          0.501263743699199
         ],
-        "row_count": 14,
+        "row_count": 1,
         "headers": [
-          "Montants utilisés (2)",
-          "Engagements inutilisés",
-          "Transactions assimilées à des accords de prise en pension (3)",
-          "Instruments financiers dérivés",
-          "Autres éléments hors bilan (4)",
-          "Total",
-          "Approche standardisée (5)",
-          "Approche NI"
+          "Risques",
+          "Description"
         ],
         "indicators": [
-          "Particuliers",
-          "Hypothèques résidentielles",
-          "Crédits rotatifs admissibles",
-          "Particuliers – autres",
-          "Autres que particuliers",
-          "Entreprises",
-          "États souverains",
-          "Institutions financières",
-          "Portefeuille de négociation",
-          "Titrisation",
-          "Total – Risque de crédit brut",
-          "Approche standardisée (5)",
-          "Approche NI",
-          "Total – Risque de crédit brut (bloc 2)"
+          "Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux"
         ],
-        "footnotes": [
-          {
-            "id": "1",
-            "text": "Consulter le « Mode de présentation de l’information » aux pages 6 à 12 pour de plus amples renseignements sur les mesures de gestion du capital."
-          },
-          {
-            "id": "2",
-            "text": "Excluent les titres de participation et certains autres actifs tels les participations dans des filiales déconsolidées et coentreprises, les immeubles et actifs assortis du droit d’utilisation, les goodwills, les actifs d’impôt différé et les immobilisations incorporelles."
-          },
-          {
-            "id": "3",
-            "text": "Correspondent aux valeurs mobilières acquises en vertu de conventions de revente et vendues en vertu de conventions de rachat et aux valeurs mobilières prêtées et empruntées."
-          },
-          {
-            "id": "4",
-            "text": "Correspondent aux lettres de garantie, de crédit documentaire et aux actifs titrisés qui constituent l’engagement de la Banque d’effectuer les paiements d’un débiteur qui ne respecterait pas ses obligations financières envers des tiers."
-          },
-          {
-            "id": "5",
-            "text": "Incluent les expositions aux contreparties centrales éligibles (CCE)."
-          }
-        ],
+        "footnotes": [],
         "analyst_assessment": {
-          "theme": "risque_credit",
+          "theme": "autre",
           "change_significance": "moyen",
-          "review_priority": "prioritaire",
-          "analyst_summary": "Nouveau tableau sur le theme risque_credit a revoir par l'analyste."
+          "review_priority": "normale",
+          "analyst_summary": "Nouveau tableau sur le theme autre a revoir par l'analyste."
         },
         "visual_sanity_applied": false,
         "visual_sanity_rejected_count": 0,
@@ -243,15 +203,15 @@
         "table_id": "tbl_p027_i01",
         "reason": "No current business table was matched to this previous table.",
         "title": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
-        "table_summary": "Indicateurs des banques d’importance systémique mondiale",
+        "table_summary": "Indicateurs BISM par catégorie pour 2024 et 2023",
         "extraction_status": "rescued",
         "page": 27,
         "section": "capital_management",
         "bbox": [
-          0.054227380191578585,
-          0.12022950914171009,
-          0.9408027798521753,
-          0.3318582399927005
+          0.05418464560913884,
+          0.12026377398558338,
+          0.940802081737643,
+          0.331821210456617
         ],
         "row_count": 5,
         "headers": [
@@ -320,29 +280,50 @@
         ],
         "visual_sanity_render_mode": "full",
         "visual_sanity_render_status": "skipped_missing_anchor"
-      }
-    ],
-    "artifacts_confirmed_previous": [
+      },
       {
-        "table_id": "tbl_p029_i02",
-        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "table_id": "tbl_p028_i01",
+        "reason": "No current business table was matched to this previous table.",
         "title": "",
-        "table_summary": "",
-        "extraction_status": "confirmed_no_table",
-        "page": 29,
+        "table_summary": "Risques et descriptions, avec sections sur le risque de crédit",
+        "extraction_status": "rescued",
+        "page": 28,
         "section": "risk_management",
         "bbox": [
-          0.054269460291644325,
-          0.4482420719031132,
-          0.9411047642527063,
-          0.7168450403695156
+          0.05708142822864009,
+          0.20506548640703917,
+          0.9455720988753574,
+          0.3968209546021741
         ],
-        "row_count": 0,
-        "headers": [],
-        "indicators": [],
-        "footnotes": []
+        "row_count": 3,
+        "headers": [
+          "Risques",
+          "Description"
+        ],
+        "indicators": [
+          "Risques émergents – Droits de douane sur les importations",
+          "Risque de crédit",
+          "Faits nouveaux en matière de réglementation"
+        ],
+        "footnotes": [],
+        "analyst_assessment": {
+          "theme": "autre",
+          "change_significance": "moyen",
+          "review_priority": "normale",
+          "analyst_summary": "Tableau supprime sur le theme autre a confirmer par l'analyste."
+        },
+        "visual_sanity_applied": false,
+        "visual_sanity_rejected_count": 0,
+        "visual_sanity_scope": [
+          "indicators",
+          "footnotes",
+          "tables"
+        ],
+        "visual_sanity_render_mode": "full",
+        "visual_sanity_render_status": "skipped_missing_anchor"
       }
     ],
+    "artifacts_confirmed_previous": [],
     "artifacts_confirmed_current": [],
     "extraction_suspects_previous": [],
     "extraction_suspects_current": []
@@ -351,21 +332,21 @@
     {
       "previous_table_id": "tbl_p022_i01",
       "current_table_id": "tbl_p026_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on regulatory capital requirements and ratios. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires'; indicators: same 7 rows (Ratios des fonds propres, CET1, catégorie 1, total, Ratio de levier, Ratio TLAC, Ratio de levier TLAC); row_count 7 vs 7.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p022_i01",
         "title": "Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires",
-        "table_summary": "Exigences réglementaires et ratios de fonds propres, levier et TLAC",
+        "table_summary": "Ratios réglementaires de fonds propres, de levier et TLAC",
         "extraction_status": "rescued",
         "page": 22,
         "section": "capital_management",
         "bbox": [
-          0.05712896858165467,
-          0.2928073767459754,
-          0.942975212545956,
-          0.44839385061553033
+          0.0571293550379136,
+          0.29280895657009554,
+          0.9429759106604881,
+          0.4483943130030777
         ],
         "row_count": 7,
         "headers": [
@@ -389,35 +370,39 @@
         ],
         "footnotes": [
           {
+            "id": "s. o.",
+            "text": "s.o. Sans objet"
+          },
+          {
             "id": "1",
-            "text": "Les ratios des fonds propres et le ratio de levier sont calculés selon les règles de Bâle III telles qu’énoncées dans les lignes directrices « Normes de fonds propres » et « Exigences de levier » du BSIF."
+            "text": "(1) Les ratios des fonds propres et le ratio de levier sont calculés selon les règles de Bâle III telles qu’énoncées dans les lignes directrices « Normes de fonds propres » et « Exigences de levier » du BSIF."
           },
           {
             "id": "2",
-            "text": "Le ratio TLAC et le ratio de levier TLAC sont calculés selon la ligne directrice « Capacité totale d’absorption des pertes » du BSIF."
+            "text": "(2) Le ratio TLAC et le ratio de levier TLAC sont calculés selon la ligne directrice « Capacité totale d’absorption des pertes » du BSIF."
           },
           {
             "id": "3",
-            "text": "Le 17 décembre 2024, le BSIF a confirmé que la réserve pour stabilité intérieure était maintenue à 3,5 %."
+            "text": "(3) Le 17 décembre 2024, le BSIF a confirmé que la réserve pour stabilité intérieure était maintenue à 3,5 %."
           },
           {
             "id": "4",
-            "text": "Les ratios au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025."
+            "text": "(4) Les ratios au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025."
           }
         ]
       },
       "current_table": {
         "table_id": "tbl_p026_i01",
-        "title": "",
-        "table_summary": "Exigences et ratios réglementaires de fonds propres, levier et TLAC",
+        "title": "Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires",
+        "table_summary": "Exigences réglementaires de ratios des fonds propres, de levier et TLAC",
         "extraction_status": "rescued",
         "page": 26,
         "section": "capital_management",
         "bbox": [
-          0.05689177170298458,
-          0.22910457187228733,
-          0.9427594951554841,
-          0.39491437661527384
+          0.056896028954998346,
+          0.2291044755415483,
+          0.9427597943474265,
+          0.3949099068689828
         ],
         "row_count": 7,
         "headers": [
@@ -441,16 +426,20 @@
         ],
         "footnotes": [
           {
+            "id": "s. o.",
+            "text": "s.o. Sans objet"
+          },
+          {
             "id": "1",
-            "text": "Les ratios des fonds propres et le ratio de levier sont calculés selon les règles de Bâle III telles qu’énoncées dans les lignes directrices « Normes de fonds propres » et « Exigences de levier » du BSIF."
+            "text": "(1) Les ratios des fonds propres et le ratio de levier sont calculés selon les règles de Bâle III telles qu’énoncées dans les lignes directrices « Normes de fonds propres » et « Exigences de levier » du BSIF."
           },
           {
             "id": "2",
-            "text": "Le ratio TLAC et le ratio de levier TLAC sont calculés selon la ligne directrice « Capacité totale d’absorption des pertes » du BSIF."
+            "text": "(2) Le ratio TLAC et le ratio de levier TLAC sont calculés selon la ligne directrice « Capacité totale d’absorption des pertes » du BSIF."
           },
           {
             "id": "3",
-            "text": "Le 17 décembre 2024, le BSIF a confirmé que la réserve pour stabilité intérieure était maintenue à 3,5 %."
+            "text": "(3) Le 17 décembre 2024, le BSIF a confirmé que la réserve pour stabilité intérieure était maintenue à 3,5 %."
           }
         ]
       },
@@ -462,7 +451,7 @@
         "footnotes_removed": [
           {
             "id": "4",
-            "text": "Les ratios au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
+            "text": "(4) Les ratios au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
             "reason": "Footnote removed from the current table.",
             "analyst_assessment": {
               "relevance_level": 2,
@@ -479,7 +468,7 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The only meaningful change is the removal of a footnote related to preferred shares buyback, which may affect capital ratios analysis.",
+      "reason": "The only meaningful change is the removal of a footnote related to the impact of preferred share buyback on capital ratios, which may affect capital analysis.",
       "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -493,21 +482,21 @@
     {
       "previous_table_id": "tbl_p023_i01",
       "current_table_id": "tbl_p027_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Title identical; indicators mostly match with minor series changes; row count difference is minimal.",
+      "match_confidence": 0.9,
+      "match_reason": "Title identical: 'Actions, autres instruments de capitaux propres et options d’achat d’actions'; indicators: similar series and instruments; row_count 13 vs 12.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p023_i01",
         "title": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
-        "table_summary": "Actions, instruments de capitaux propres et options d’achat d’actions",
+        "table_summary": "Actions privilégiées, autres instruments de capitaux propres et options d’achat d’actions",
         "extraction_status": "rescued",
         "page": 23,
         "section": "capital_management",
         "bbox": [
-          0.05622189964344299,
-          0.16446331293895994,
-          0.9431193233315461,
-          0.39134189335986824
+          0.05622223000121273,
+          0.1644632744066643,
+          0.9431194230621937,
+          0.39134197042445945
         ],
         "row_count": 12,
         "headers": [
@@ -538,14 +527,14 @@
       "current_table": {
         "table_id": "tbl_p027_i01",
         "title": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
-        "table_summary": "Actions, instruments de capitaux propres et options d’achat d’actions",
+        "table_summary": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
         "extraction_status": "rescued",
         "page": 27,
         "section": "capital_management",
         "bbox": [
-          0.05633598527098014,
-          0.16457667495265152,
-          0.943202299230239,
+          0.056336166032778676,
+          0.16457673275109494,
+          0.9432020997689441,
           0.4032980408331361
         ],
         "row_count": 13,
@@ -579,28 +568,28 @@
         "indicators_added": [
           {
             "value": "Série 47",
-            "reason": "Nouvelle série d'actions ajoutée dans le tableau actuel.",
+            "reason": "This indicator is present in the current table but not in the previous one, indicating a new issuance or classification.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'ajout de la Série 47 indique une nouvelle émission d'actions ou un changement dans la structure du capital qui peut affecter les ratios de fonds propres."
+              "justification": "L'ajout de la Série 47 indique une nouvelle émission ou une nouvelle classification d'actions privilégiées, ce qui peut affecter la structure du capital."
             }
           },
           {
             "value": "Série 49",
-            "reason": "Nouvelle série d'actions ajoutée dans le tableau actuel.",
+            "reason": "This indicator is present in the current table but not in the previous one, indicating a new issuance or classification.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'ajout de la Série 49 reflète potentiellement une nouvelle émission d'actions, ce qui peut avoir un impact sur la gestion du capital et les obligations réglementaires."
+              "justification": "L'ajout de la Série 49 indique une nouvelle émission ou une nouvelle classification d'actions privilégiées, ce qui peut affecter la structure du capital."
             }
           }
         ],
         "indicators_removed": [
           {
             "value": "Série 32",
-            "reason": "Série d'actions retirée du tableau actuel.",
+            "reason": "This indicator is present in the previous table but not in the current one, indicating a possible redemption or reclassification.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "La suppression de la Série 32 peut indiquer un rachat ou une conversion d'actions, affectant ainsi la structure du capital et les ratios de fonds propres."
+              "justification": "La suppression de la Série 32 peut indiquer un rachat ou une reclassification, ce qui modifie la composition des instruments de capitaux propres."
             }
           }
         ],
@@ -616,7 +605,7 @@
         "review_priority": "critique",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote."
       },
-      "reason": "Les changements identifiés reflètent des modifications dans la structure des séries d'actions, ce qui est crucial pour l'analyse de la gestion du capital et des obligations réglementaires.",
+      "reason": "The comparison reveals changes in the series of preferred shares, with new series added and one removed, impacting the capital structure.",
       "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -630,8 +619,8 @@
     {
       "previous_table_id": "tbl_p024_i01",
       "current_table_id": "tbl_p028_i01",
-      "match_confidence": 0.97,
-      "match_reason": "Indicators and headers align closely; both tables focus on regulatory capital variations. Row count and footnote count are consistent.",
+      "match_confidence": 0.92,
+      "match_reason": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: same core structure with minor additions; row_count 42 vs 40.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p024_i01",
@@ -641,10 +630,10 @@
         "page": 24,
         "section": "capital_management",
         "bbox": [
-          0.05577388464235792,
-          0.1087901857164171,
-          0.9408593271292892,
-          0.6446280431265783
+          0.05577316782832925,
+          0.10878965589735244,
+          0.9408591276679943,
+          0.6446285055141256
         ],
         "row_count": 40,
         "headers": [
@@ -711,10 +700,10 @@
         "page": 28,
         "section": "capital_management",
         "bbox": [
-          0.05598244012570849,
-          0.10800987783104483,
-          0.9406820060380924,
-          0.6693677805890941
+          0.05598300734376596,
+          0.10801076407384391,
+          0.9406819063074449,
+          0.669367395266138
         ],
         "row_count": 42,
         "headers": [
@@ -722,23 +711,23 @@
         ],
         "indicators": [
           "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1)",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Solde au début",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Émission d’actions ordinaires (y compris au titre du régime d’options d’achat d’actions)",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Émission d’actions ordinaires relatives à l’acquisition de CWB",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Incidence des actions acquises ou vendues à des fins de négociation",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Rachat d’actions ordinaires",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Options de remplacement relatives à l'acquisition de CWB",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Autres surplus d’apport",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Dividendes sur actions privilégiées et actions ordinaires et distributions sur les autres instruments de capitaux propres",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Résultat net attribuable aux actionnaires et aux détenteurs d’autres instruments de capitaux propres de la Banque",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Déduction de l’écart de crédit de la Banque (déduction faite des impôts)",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Autres",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Variations des autres éléments cumulés du résultat global",
+          "Solde au début",
+          "Émission d’actions ordinaires (y compris au titre du régime d’options d’achat d’actions)",
+          "Émission d’actions ordinaires relatives à l'acquisition de CWB",
+          "Incidence des actions acquises ou vendues à des fins de négociation",
+          "Rachat d’actions ordinaires",
+          "Options de remplacement relatives à l'acquisition de CWB",
+          "Autres surplus d’apport",
+          "Dividendes sur actions privilégiées et actions ordinaires et distributions sur les autres instruments de capitaux propres",
+          "Résultat net attribuable aux actionnaires et aux détenteurs d’autres instruments de capitaux propres de la Banque",
+          "Déduction de l’écart de crédit de la Banque (déduction faite des impôts)",
+          "Autres",
+          "Variations des autres éléments cumulés du résultat global",
           "Écarts de conversion",
           "Titres de créance à la juste valeur par le biais des autres éléments du résultat global",
           "Autres",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Variation du goodwill et des immobilisations incorporelles (déduction faite des passifs d’impôt)",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Autres, y compris les ajustements réglementaires",
+          "Variation du goodwill et des immobilisations incorporelles (déduction faite des passifs d’impôt)",
+          "Autres, y compris les ajustements réglementaires",
           "Variation de l'actif des régimes de retraite à prestations définies (déduction faite des passifs d’impôt)",
           "Variation du montant excédant le seuil de 15 %",
           "Actifs d’impôt différé",
@@ -746,21 +735,21 @@
           "Actifs d'impôt différé, sauf s'ils résultent de différences temporaires (déduction faite des passifs d'impôt)",
           "Autres déductions et ajustements réglementaires du CET1 instaurés par le BSIF",
           "Variation des autres ajustements réglementaires",
-          "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Solde à la fin",
+          "Solde à la fin",
           "Autres éléments de fonds propres de catégorie 1",
           "Autres éléments de fonds propres de catégorie 1 – Solde au début",
-          "Autres éléments de fonds propres de catégorie 1 – Nouvelles émissions d’instruments admissibles à titre de fonds propres de catégorie 1",
-          "Autres éléments de fonds propres de catégorie 1 – Rachats de fonds propres",
-          "Autres éléments de fonds propres de catégorie 1 – Autres, y compris des ajustements réglementaires",
+          "Nouvelles émissions d’instruments admissibles à titre de fonds propres de catégorie 1",
+          "Rachats de fonds propres",
+          "Autres, y compris des ajustements réglementaires",
           "Autres éléments de fonds propres de catégorie 1 – Solde à la fin",
           "Total des fonds propres de catégorie 1",
           "Fonds propres de catégorie 2",
           "Fonds propres de catégorie 2 – Solde au début",
-          "Fonds propres de catégorie 2 – Nouvelles émissions d’instruments admissibles à titre de fonds propres de catégorie 2",
-          "Fonds propres de catégorie 2 – Rachat de fonds propres",
-          "Fonds propres de catégorie 2 – Fonds propres de catégorie 2 émis par des filiales et détenus par des tierces parties",
-          "Fonds propres de catégorie 2 – Variation de certaines provisions pour pertes de crédit",
-          "Fonds propres de catégorie 2 – Autres, y compris des ajustements réglementaires",
+          "Nouvelles émissions d’instruments admissibles à titre de fonds propres de catégorie 2",
+          "Rachat de fonds propres",
+          "Fonds propres de catégorie 2 émis par des filiales et détenus par des tierces parties",
+          "Variation de certaines provisions pour pertes de crédit",
+          "Autres, y compris des ajustements réglementaires (bloc 2)",
           "Fonds propres de catégorie 2 – Solde à la fin",
           "Total des fonds propres réglementaires"
         ],
@@ -774,42 +763,33 @@
       "technical_diff": {
         "indicators_added": [
           {
-            "value": "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Émission d’actions ordinaires relatives à l’acquisition de CWB",
+            "value": "Émission d’actions ordinaires relatives à l'acquisition de CWB",
             "reason": "Nouvel indicateur lié à une acquisition spécifique.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "Cet indicateur a été ajouté pour refléter l'impact de l'acquisition de CWB sur les fonds propres de catégorie 1, ce qui est crucial pour l'analyse des mouvements de capital liés aux fusions et acquisitions."
+              "justification": "Cet indicateur a été ajouté pour refléter l'impact de l'acquisition de CWB sur les fonds propres, ce qui est crucial pour comprendre les changements structurels dans le capital de la banque."
             }
           },
           {
-            "value": "Fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) – Options de remplacement relatives à l'acquisition de CWB",
+            "value": "Options de remplacement relatives à l'acquisition de CWB",
             "reason": "Nouvel indicateur lié à une acquisition spécifique.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'ajout de cet indicateur permet de suivre les options de remplacement émises dans le cadre de l'acquisition de CWB, ce qui est important pour comprendre les ajustements de capital post-acquisition."
+              "justification": "L'ajout de cet indicateur permet de suivre les options de remplacement émises dans le cadre de l'acquisition de CWB, ce qui est important pour l'analyse des mouvements de capital."
             }
           }
         ],
-        "indicators_removed": [
-          {
-            "value": "Autres",
-            "reason": "Indicateur non présent dans le tableau actuel.",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "La suppression de cet indicateur 'Autres' peut indiquer une consolidation ou une réallocation des éléments précédemment classés sous cette catégorie, mais n'affecte pas directement les exigences réglementaires."
-            }
-          }
-        ],
+        "indicators_removed": [],
         "indicators_renamed": [],
         "footnotes_added": [],
         "footnotes_removed": [
           {
             "id": "2",
             "text": "Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
-            "reason": "Footnote only present in the previous table.",
+            "reason": "Footnote removed from the current table.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "La suppression de cette note pourrait indiquer que l'information sur le rachat d'actions privilégiées n'est plus pertinente ou a été intégrée ailleurs, ce qui est important pour l'analyse des mouvements de capital."
+              "justification": "La suppression de cette note pourrait indiquer que l'information sur le rachat d'actions privilégiées n'est plus pertinente pour la période actuelle, ce qui peut affecter l'analyse des mouvements de capital."
             }
           }
         ],
@@ -820,9 +800,9 @@
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "Les changements identifiés reflètent principalement des ajustements structurels liés à des événements spécifiques (acquisition de CWB) et des clarifications dans la présentation des fonds propres, sans impact direct sur les exigences réglementaires globales. The analysis identified a footnote removed from the previous table, with no new footnotes added or renamed in the current table.",
+      "reason": "Les changements identifiés reflètent principalement des ajustements structurels liés à des événements spécifiques (acquisition de CWB) et des simplifications de présentation sans impact significatif sur l'analyse des fonds propres. The analysis identified a footnote removed from the previous table, with no new footnotes added or renamed in the current table.",
       "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -836,8 +816,8 @@
     {
       "previous_table_id": "tbl_p025_i01",
       "current_table_id": "tbl_p029_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on risk-weighted assets variations. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same structure; row_count 20 vs 20.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p025_i01",
@@ -847,10 +827,10 @@
         "page": 25,
         "section": "capital_management",
         "bbox": [
-          0.05370339536978529,
-          0.1932465909707426,
-          0.9433112050972733,
-          0.5317334647130485
+          0.05370345770143995,
+          0.19324670656762943,
+          0.9433114045585682,
+          0.5317336188422309
         ],
         "row_count": 20,
         "headers": [
@@ -870,14 +850,14 @@
           "Risque de crédit – actif pondéré en fonction des risques à la fin",
           "Risque de marché – actif pondéré en fonction des risques au début",
           "Variation des niveaux de risque (2)",
-          "Risque de marché – Mises à jour des modèles",
-          "Risque de marché – Méthode et politique",
-          "Risque de marché – Acquisitions et cessions",
+          "Mises à jour des modèles",
+          "Méthode et politique",
+          "Acquisitions et cessions",
           "Risque de marché – actif pondéré en fonction des risques à la fin",
           "Risque opérationnel – actif pondéré en fonction des risques au début",
-          "Risque opérationnel – Variation des niveaux de risque",
-          "Risque opérationnel – Méthode et politique",
-          "Risque opérationnel – Acquisitions et cessions",
+          "Variation des niveaux de risque",
+          "Méthode et politique",
+          "Acquisitions et cessions",
           "Risque opérationnel – actif pondéré en fonction des risques à la fin",
           "Actif pondéré en fonction des risques à la fin"
         ],
@@ -900,18 +880,18 @@
         "page": 29,
         "section": "capital_management",
         "bbox": [
-          0.05350002588010302,
-          0.1934263055974787,
-          0.9430964850132761,
-          0.5324386827873462
+          0.05350556716420292,
+          0.1934253037577928,
+          0.9430958866293914,
+          0.5324434607920021
         ],
         "row_count": 20,
         "headers": [
           "Risque autre que le risque de crédit de contrepartie",
           "Risque de crédit de contrepartie",
-          "30 avril 2025 Total",
-          "31 janvier 2025 Total",
-          "31 octobre 2024 Total"
+          "Total",
+          "Total",
+          "Total"
         ],
         "indicators": [
           "Risque de crédit – actif pondéré en fonction des risques au début",
@@ -931,7 +911,7 @@
           "Risque opérationnel – actif pondéré en fonction des risques au début",
           "Risque opérationnel – Variation des niveaux de risque",
           "Risque opérationnel – Méthode et politique",
-          "Risque opérationnel – Acquisitions et cessions (3)",
+          "Acquisitions et cessions (3)",
           "Risque opérationnel – actif pondéré en fonction des risques à la fin",
           "Actif pondéré en fonction des risques à la fin"
         ],
@@ -961,7 +941,7 @@
             "reason": "New footnote added in the current table.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "Cette note a été ajoutée pour expliquer un changement méthodologique dans le calcul du risque opérationnel, ce qui peut avoir un impact significatif sur l'évaluation des risques de la Banque."
+              "justification": "Cette note a été ajoutée pour expliquer un changement méthodologique important dans le calcul du risque opérationnel, ce qui est essentiel pour la transparence et la conformité réglementaire."
             }
           }
         ],
@@ -975,7 +955,7 @@
         "review_priority": "normale",
         "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The analysis identified a new footnote added in the current table, which provides additional context on operational risk changes.",
+      "reason": "The analysis identified a new footnote added in the current table, which provides important methodological information.",
       "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -989,8 +969,8 @@
     {
       "previous_table_id": "tbl_p026_i01",
       "current_table_id": "tbl_p030_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on regulatory capital, leverage, and TLAC. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same structure; row_count 14 vs 14.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p026_i01",
@@ -1000,10 +980,10 @@
         "page": 26,
         "section": "capital_management",
         "bbox": [
-          0.05372231926014221,
-          0.35637437454377763,
+          0.05372241275762421,
+          0.3563744516083689,
           0.9413963766659008,
-          0.5477746905702534
+          0.5477748061671402
         ],
         "row_count": 14,
         "headers": [
@@ -1049,10 +1029,10 @@
         "page": 30,
         "section": "capital_management",
         "bbox": [
-          0.053861262751560585,
-          0.3936662770280935,
-          0.9417057411343444,
-          0.5858106131505485
+          0.053861231585733256,
+          0.39366816511057845,
+          0.9417060403262868,
+          0.58581007369841
         ],
         "row_count": 14,
         "headers": [
@@ -1067,9 +1047,9 @@
           "Actif pondéré en fonction des risques",
           "Exposition totale",
           "Ratios des fonds propres",
-          "Ratios des fonds propres –   CET1",
-          "Ratios des fonds propres –   catégorie 1",
-          "Ratios des fonds propres –   total",
+          "Fonds propres – CET1",
+          "Fonds propres – catégorie 1",
+          "Fonds propres – total",
           "Ratio de levier",
           "TLAC disponible",
           "Ratio TLAC",
@@ -1095,7 +1075,7 @@
           {
             "id": "3",
             "text": "Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
-            "reason": "Footnote removed from the current table.",
+            "reason": "This footnote was present in the previous report but is missing in the current report.",
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de cette note pourrait indiquer que l'impact du rachat d'actions privilégiées série 32 n'est plus pertinent pour la période actuelle, ce qui peut affecter l'analyse des fonds propres."
@@ -1111,7 +1091,7 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The analysis identified a footnote removed from the current table, which may have implications for capital analysis.",
+      "reason": "The analysis identified a footnote removed from the previous report, which may have implications for the interpretation of capital data.",
       "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1125,21 +1105,21 @@
     {
       "previous_table_id": "tbl_p029_i01",
       "current_table_id": "tbl_p032_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on maximum credit risk exposure. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'Exposition maximale au risque de crédit selon les catégories d'actifs de Bâle (1)'; indicators: same structure; row_count 14 vs 14.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p029_i01",
-        "title": "Exposition maximale au risque de crédit selon les catégories d'actifs de Bâle(1)",
+        "title": "Exposition maximale au risque de crédit selon les catégories d'actifs de Bâle (1)",
         "table_summary": "Exposition maximale au risque de crédit par catégories d’actifs de Bâle",
         "extraction_status": "rescued",
         "page": 29,
         "section": "risk_management",
         "bbox": [
-          0.05402869180916182,
-          0.1650941251504301,
-          0.9409354216133068,
-          0.4351686805185646
+          0.05402952705333436,
+          0.165093836158213,
+          0.9409351224213645,
+          0.43516910437381634
         ],
         "row_count": 14,
         "headers": [
@@ -1178,10 +1158,10 @@
         "page": 32,
         "section": "risk_management",
         "bbox": [
-          0.05403744940664254,
-          0.1648820819276752,
-          0.9409800012127247,
-          0.43513303814512316
+          0.05404192481944764,
+          0.16488695626307018,
+          0.9409758125255311,
+          0.435135234485973
         ],
         "row_count": 14,
         "headers": [
@@ -1227,7 +1207,165 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des positions et des noms cohérents, et les différences mineures telles que les marques de notes de bas de page ou les étiquettes de désambiguïsation ont été ignorées conformément aux règles.",
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux comparés. Tous les indicateurs sont présents dans les deux versions avec des positions et des noms cohérents, et les différences mineures de formatage ou de marquage de notes de bas de page ont été ignorées conformément aux règles.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok"
+    },
+    {
+      "previous_table_id": "tbl_p029_i02",
+      "current_table_id": "tbl_p032_i02",
+      "match_confidence": 0.95,
+      "match_reason": "Continuation of the previous table; indicators and structure match; row_count 14 vs 14.",
+      "diff_mode": "gpt",
+      "previous_table": {
+        "table_id": "tbl_p029_i02",
+        "title": "",
+        "table_summary": "Suite: risque de crédit brut par catégorie d’exposition",
+        "extraction_status": "rescued",
+        "page": 29,
+        "section": "risk_management",
+        "bbox": [
+          0.05426958495495366,
+          0.4482425342906606,
+          0.9411043653301164,
+          0.716844886240333
+        ],
+        "row_count": 14,
+        "headers": [
+          "Montants utilisés (2)",
+          "Engagements inutilisés",
+          "Transactions assimilées à des accords de prise en pension (3)",
+          "Instruments financiers dérivés",
+          "Autres éléments hors bilan (4)",
+          "Total",
+          "Approche standardisée (5)",
+          "Approche NI"
+        ],
+        "indicators": [
+          "Particuliers",
+          "Hypothèques résidentielles",
+          "Crédits rotatifs admissibles",
+          "Particuliers – autres",
+          "Autres que particuliers",
+          "Entreprises",
+          "États souverains",
+          "Institutions financières",
+          "Portefeuille de négociation",
+          "Titrisation",
+          "Total – Risque de crédit brut",
+          "Approche standardisée (5)",
+          "Approche NI",
+          "Total – Risque de crédit brut (bloc 2)"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 4 à 9 pour de plus amples renseignements sur les mesures de gestion du capital."
+          },
+          {
+            "id": "2",
+            "text": "Excluent les titres de participation et certains autres actifs tels les participations dans des filiales déconsolidées et coentreprises, les immeubles et actifs assortis du droit d’utilisation, les goodwills, les actifs d’impôt différé et les immobilisations incorporelles."
+          },
+          {
+            "id": "3",
+            "text": "Correspondent aux valeurs mobilières acquises en vertu de conventions de revente et vendues en vertu de conventions de rachat et aux valeurs mobilières prêtées et empruntées."
+          },
+          {
+            "id": "4",
+            "text": "Correspondent aux lettres de garantie, de crédit documentaire et aux actifs titrisés qui constituent l’engagement de la Banque d’effectuer les paiements d’un débiteur qui ne respecterait pas ses obligations financières envers des tiers."
+          },
+          {
+            "id": "5",
+            "text": "Incluent les expositions aux contreparties centrales éligibles (CCE)."
+          }
+        ]
+      },
+      "current_table": {
+        "table_id": "tbl_p032_i02",
+        "title": "",
+        "table_summary": "Suite: risque de crédit brut par catégorie d’exposition",
+        "extraction_status": "rescued",
+        "page": 32,
+        "section": "risk_management",
+        "bbox": [
+          0.05422103482913348,
+          0.4487452651515152,
+          0.9411468505859375,
+          0.7169090810448233
+        ],
+        "row_count": 14,
+        "headers": [
+          "Montants utilisés (2)",
+          "Engagements inutilisés",
+          "Transactions assimilées à des accords de prise en pension (3)",
+          "Instruments financiers dérivés",
+          "Autres éléments hors bilan (4)",
+          "Total",
+          "Approche standardisée (5)",
+          "Approche NI"
+        ],
+        "indicators": [
+          "Particuliers",
+          "Hypothèques résidentielles",
+          "Crédits rotatifs admissibles",
+          "Particuliers – autres",
+          "Autres que particuliers",
+          "Entreprises",
+          "États souverains",
+          "Institutions financières",
+          "Portefeuille de négociation",
+          "Titrisation",
+          "Total – Risque de crédit brut",
+          "Approche standardisée (5)",
+          "Approche NI",
+          "Total – Risque de crédit brut (bloc 2)"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 6 à 12 pour de plus amples renseignements sur les mesures de gestion du capital."
+          },
+          {
+            "id": "2",
+            "text": "Excluent les titres de participation et certains autres actifs tels les participations dans des filiales déconsolidées et coentreprises, les immeubles et actifs assortis du droit d’utilisation, les goodwills, les actifs d’impôt différé et les immobilisations incorporelles."
+          },
+          {
+            "id": "3",
+            "text": "Correspondent aux valeurs mobilières acquises en vertu de conventions de revente et vendues en vertu de conventions de rachat et aux valeurs mobilières prêtées et empruntées."
+          },
+          {
+            "id": "4",
+            "text": "Correspondent aux lettres de garantie, de crédit documentaire et aux actifs titrisés qui constituent l’engagement de la Banque d’effectuer les paiements d’un débiteur qui ne respecterait pas ses obligations financières envers des tiers."
+          },
+          {
+            "id": "5",
+            "text": "Incluent les expositions aux contreparties centrales éligibles (CCE)."
+          }
+        ]
+      },
+      "technical_diff": {
+        "indicators_added": [],
+        "indicators_removed": [],
+        "indicators_renamed": [],
+        "footnotes_added": [],
+        "footnotes_removed": [],
+        "footnotes_renamed": [],
+        "table_level_change": "inchange"
+      },
+      "analyst_assessment": {
+        "theme": "risque_credit",
+        "change_significance": "faible",
+        "review_priority": "normale",
+        "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
+      },
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et des positions correspondants, et les différences mineures telles que les marques de notes de bas de page ou les étiquettes de désambiguïsation ont été ignorées conformément aux règles.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1241,21 +1379,21 @@
     {
       "previous_table_id": "tbl_p030_i01",
       "current_table_id": "tbl_p033_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on market risk reconciliation. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'Conciliation du risque de marché avec les éléments du bilan consolidé'; indicators: same structure; row_count 20 vs 20.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p030_i01",
         "title": "Conciliation du risque de marché avec les éléments du bilan consolidé",
-        "table_summary": "Conciliation du risque de marché avec les éléments du bilan consolidé",
+        "table_summary": "Conciliation du risque de marché avec le bilan consolidé",
         "extraction_status": "rescued",
         "page": 30,
         "section": "risk_management",
         "bbox": [
-          0.05390882803723703,
-          0.28045197689171997,
-          0.9404804503995609,
-          0.6651639842023753
+          0.05390968821407144,
+          0.28045076312440814,
+          0.940481946359273,
+          0.6651637530086016
         ],
         "row_count": 20,
         "headers": [
@@ -1313,15 +1451,15 @@
       "current_table": {
         "table_id": "tbl_p033_i01",
         "title": "Conciliation du risque de marché avec les éléments du bilan consolidé",
-        "table_summary": "Rapprochement du risque de marché avec le bilan consolidé",
+        "table_summary": "Actifs et passifs par mesure du risque de marché",
         "extraction_status": "rescued",
         "page": 33,
         "section": "risk_management",
         "bbox": [
-          0.054228844985463265,
-          0.24159038428104287,
-          0.9405015932968239,
-          0.6267399258083768
+          0.0542293810376934,
+          0.24159402558297824,
+          0.9405037873710682,
+          0.626738114790483
         ],
         "row_count": 20,
         "headers": [
@@ -1391,7 +1529,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_marche."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et positions identiques, ce qui indique qu'il n'y a pas eu d'ajout, de suppression ou de renommage d'indicateurs.",
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et des positions identiques, ce qui indique qu'il n'y a pas eu d'ajout, de suppression ou de renommage d'indicateurs.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1405,27 +1543,27 @@
     {
       "previous_table_id": "tbl_p031_i01",
       "current_table_id": "tbl_p034_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on market risk measures. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Indicators and structure match; row_count 20 vs 20; both tables describe market risk measures.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p031_i01",
         "title": "",
-        "table_summary": "Mesures du risque de marché par actifs et passifs",
+        "table_summary": "Mesures du risque de marché des actifs et passifs",
         "extraction_status": "rescued",
         "page": 31,
         "section": "risk_management",
         "bbox": [
-          0.0536349427466299,
-          0.09452487483169095,
+          0.053634674720514836,
+          0.09452435464570018,
           0.9394991008284824,
-          0.47684555824356856
+          0.47684559677586413
         ],
         "row_count": 20,
         "headers": [
           "Solde au bilan",
-          "Mesures du risque de marché – Négociation (1)",
-          "Mesures du risque de marché – Autres que de négociation (2)",
+          "Négociation (1)",
+          "Autres que de négociation (2)",
           "Non assujettis au risque de marché",
           "Risque principal associé au risque lié aux activités autres que de négociation"
         ],
@@ -1489,15 +1627,15 @@
       "current_table": {
         "table_id": "tbl_p034_i01",
         "title": "",
-        "table_summary": "Mesures du risque de marché par actifs et passifs",
+        "table_summary": "Mesures du risque de marché des actifs et passifs",
         "extraction_status": "rescued",
         "page": 34,
         "section": "risk_management",
         "bbox": [
-          0.053592295428506694,
-          0.09536503300522314,
+          0.053591908972247755,
+          0.09536373254024622,
           0.9395447774650225,
-          0.4767938093705611
+          0.4767940020320392
         ],
         "row_count": 20,
         "headers": [
@@ -1579,7 +1717,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Les indicateurs sont identiques en termes de position et de nom, et les différences de formatage ou de ponctuation dans les en-têtes ne sont pas considérées comme des changements significatifs.",
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et des positions identiques, ce qui indique qu'il n'y a pas eu d'ajout, de suppression ou de renommage d'indicateurs.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1593,8 +1731,8 @@
     {
       "previous_table_id": "tbl_p032_i01",
       "current_table_id": "tbl_p035_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on VaR for trading portfolios. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'VaR des portefeuilles de négociation (1)(2)'; indicators: same structure; row_count 6 vs 6.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p032_i01",
@@ -1604,10 +1742,10 @@
         "page": 32,
         "section": "risk_management",
         "bbox": [
-          0.05407726686764387,
-          0.15210340480611784,
-          0.9409692303027982,
-          0.26603544601286305
+          0.05409911411260468,
+          0.1521001488271386,
+          0.9409647424236622,
+          0.2660461965233389
         ],
         "row_count": 6,
         "headers": [
@@ -1630,44 +1768,48 @@
         ],
         "footnotes": [
           {
+            "id": "*",
+            "text": "n.s. Le calcul de l'effet de diversification sur le cours le plus haut et sur le cours le plus bas n'est pas significatif puisqu'ils peuvent survenir à des jours différents et pour divers types de risques."
+          },
+          {
             "id": "1",
-            "text": "Consulter le « Glossaire » aux pages 47 à 50 pour plus de détails sur la composition de ces mesures."
+            "text": "(1) Consulter le « Glossaire » aux pages 47 à 50 pour plus de détails sur la composition de ces mesures."
           },
           {
             "id": "2",
-            "text": "Les montants sont présentés avant impôts et représentent la VaR quotidienne, selon un niveau de confiance de 99 %."
+            "text": "(2) Les montants sont présentés avant impôts et représentent la VaR quotidienne, selon un niveau de confiance de 99 %."
           },
           {
             "id": "3",
-            "text": "La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l’effet de diversification."
+            "text": "(3) La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l'effet de diversification."
           }
         ]
       },
       "current_table": {
         "table_id": "tbl_p035_i01",
-        "title": "VaR des portefeuilles de négociation (1) (2)",
+        "title": "VaR des portefeuilles de négociation (1)(2)",
         "table_summary": "VaR des portefeuilles de négociation par catégorie de risque",
         "extraction_status": "rescued",
         "page": 35,
         "section": "risk_management",
         "bbox": [
-          0.053853302999259604,
-          0.15190905754012293,
-          0.9410306643816381,
-          0.26610403349905304
+          0.05385303497314453,
+          0.15190792083740234,
+          0.9410334568397671,
+          0.26610549772628633
         ],
         "row_count": 6,
         "headers": [
           "Bas",
           "Haut",
-          "Moyenne",
-          "À la fin",
-          "Moyenne",
-          "À la fin",
-          "Moyenne",
-          "À la fin",
-          "Moyenne",
-          "Moyenne"
+          "30 avril 2025 – Moyenne",
+          "30 avril 2025 – À la fin",
+          "31 janvier 2025 – Moyenne",
+          "31 janvier 2025 – À la fin",
+          "30 avril 2024 – Moyenne",
+          "30 avril 2024 – À la fin",
+          "Semestre terminé le 30 avril 2025 – Moyenne",
+          "Semestre terminé le 30 avril 2024 – Moyenne"
         ],
         "indicators": [
           "Taux d'intérêt",
@@ -1679,16 +1821,20 @@
         ],
         "footnotes": [
           {
+            "id": "s. o.",
+            "text": "n.s. Le calcul de l'effet de diversification sur le cours le plus haut et sur le cours le plus bas n'est pas significatif puisqu'ils peuvent survenir à des jours différents et pour divers types de risques."
+          },
+          {
             "id": "1",
-            "text": "Consulter le « Glossaire » aux pages 51 à 54 pour plus de détails sur la composition de ces mesures."
+            "text": "(1) Consulter le « Glossaire » aux pages 51 à 54 pour plus de détails sur la composition de ces mesures."
           },
           {
             "id": "2",
-            "text": "Les montants sont présentés avant impôts et représentent la VaR quotidienne, selon un niveau de confiance de 99 %."
+            "text": "(2) Les montants sont présentés avant impôts et représentent la VaR quotidienne, selon un niveau de confiance de 99 %."
           },
           {
             "id": "3",
-            "text": "La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l’effet de diversification."
+            "text": "(3) La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l'effet de diversification."
           }
         ]
       },
@@ -1707,7 +1853,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_marche."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et des positions identiques, et les différences de formatage ou de ponctuation sont ignorées conformément aux règles.",
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et positions identiques, et les différences de formatage ou de notes de bas de page ont été ignorées conformément aux règles.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1721,8 +1867,8 @@
     {
       "previous_table_id": "tbl_p033_i01",
       "current_table_id": "tbl_p036_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on interest rate sensitivity. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'Sensibilité aux taux d'intérêt – Activités autres que de négociation (avant impôts)'; indicators: same structure; row_count 6 vs 6.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p033_i01",
@@ -1732,10 +1878,10 @@
         "page": 33,
         "section": "risk_management",
         "bbox": [
-          0.05456349117303986,
-          0.15609245107631492,
-          0.9404909221175449,
-          0.2697320610585839
+          0.05456408955692466,
+          0.1560930579599708,
+          0.9404911215788399,
+          0.2697308665574199
         ],
         "row_count": 6,
         "headers": [
@@ -1753,8 +1899,8 @@
           "Augmentation du taux d'intérêt de 100 points de base",
           "Diminution du taux d'intérêt de 100 points de base",
           "Effet sur le revenu net d'intérêts",
-          "Augmentation du taux d'intérêt de 100 points de base (bloc 2)",
-          "Diminution du taux d'intérêt de 100 points de base (bloc 2)"
+          "Effet sur le revenu net d'intérêts – Augmentation du taux d'intérêt de 100 points de base",
+          "Effet sur le revenu net d'intérêts – Diminution du taux d'intérêt de 100 points de base"
         ],
         "footnotes": []
       },
@@ -1766,10 +1912,10 @@
         "page": 36,
         "section": "risk_management",
         "bbox": [
-          0.05454653696297041,
-          0.1562484394420277,
-          0.9404425527535233,
-          0.26969822970303625
+          0.05454737220714295,
+          0.15625068394824712,
+          0.9404433505987031,
+          0.2696952434501263
         ],
         "row_count": 6,
         "headers": [
@@ -1807,7 +1953,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Les indicateurs sont identiques en termes de signification et de position structurelle, et les différences mineures telles que les marqueurs de notes de bas de page ou les étiquettes de désambiguïsation ont été ignorées conformément aux règles.",
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Les indicateurs sont identiques en termes de signification et de rôle, malgré des différences mineures de formatage ou de balisage qui ne sont pas pertinentes pour l'analyse.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1821,8 +1967,8 @@
     {
       "previous_table_id": "tbl_p034_i01",
       "current_table_id": "tbl_p037_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on liquid asset portfolios. Row count and footnote count are consistent.",
+      "match_confidence": 0.9,
+      "match_reason": "Title identical: 'Portefeuille d’actifs liquides (1)'; indicators: same structure; row_count 16 vs 20.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p034_i01",
@@ -1832,12 +1978,12 @@
         "page": 34,
         "section": "risk_management",
         "bbox": [
-          0.05406573551153046,
-          0.11163970677539557,
-          0.9406237633399714,
-          0.514473693539398
+          0.05406829734253728,
+          0.11164431138472125,
+          0.9406256582222733,
+          0.5144713045370699
         ],
-        "row_count": 16,
+        "row_count": 20,
         "headers": [
           "Actifs liquides appartenant à la Banque (2)",
           "Actifs liquides reçus (3)",
@@ -1855,10 +2001,14 @@
           "Titres de participation",
           "Prêts",
           "Titres adossés à des prêts hypothécaires résidentiels assurés",
+          "Actifs liquides – Au 31 janvier 2025",
+          "Actifs liquides – Au 31 octobre 2024",
+          "(en millions de dollars canadiens)",
           "Actifs liquides non grevés par entité",
           "Banque Nationale (société mère)",
           "Filiales canadiennes",
           "Filiales et succursales étrangères",
+          "(en millions de dollars canadiens) (bloc 2)",
           "Actifs liquides non grevés par monnaie",
           "Dollar canadien",
           "Dollar américain",
@@ -1874,10 +2024,10 @@
         "page": 37,
         "section": "risk_management",
         "bbox": [
-          0.05410334643195657,
-          0.11212028156627309,
-          0.9404504314746732,
-          0.5201412933041352
+          0.054107666015625,
+          0.11211926046043937,
+          0.9404452454810049,
+          0.5201454162597656
         ],
         "row_count": 16,
         "headers": [
@@ -1886,7 +2036,11 @@
           "Total des actifs liquides",
           "Actifs liquides grevés (4)",
           "Actifs liquides non grevés",
-          "Actifs liquides non grevés"
+          "Actifs liquides non grevés",
+          "Au 30 avril 2025",
+          "Au 31 octobre 2024",
+          "Au 30 avril 2025",
+          "Au 31 octobre 2024"
         ],
         "indicators": [
           "Trésorerie et dépôts auprès d'institutions financières",
@@ -1910,21 +2064,30 @@
       },
       "technical_diff": {
         "indicators_added": [],
-        "indicators_removed": [],
+        "indicators_removed": [
+          {
+            "value": "Actifs liquides – Au 31 janvier 2025",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 3,
+              "justification": "La suppression de cet indicateur est probablement due à une mise à jour des périodes de reporting, ce qui est une modification cosmétique sans impact majeur sur l'analyse."
+            }
+          }
+        ],
         "indicators_renamed": [],
         "footnotes_added": [],
         "footnotes_removed": [],
         "footnotes_renamed": [],
-        "table_level_change": "inchange"
+        "table_level_change": "modifie"
       },
       "analyst_assessment": {
         "theme": "financement",
-        "change_significance": "faible",
-        "review_priority": "normale",
-        "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et des positions identiques, ce qui indique qu'il n'y a pas eu d'ajout, de suppression ou de renommage d'indicateurs.",
-      "visual_sanity_applied": false,
+      "reason": "Les changements identifiés reflètent principalement des ajustements dans la présentation des données pour améliorer la clarté et la pertinence des informations fournies dans le contexte de la gestion des risques.",
+      "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
         "indicators",
@@ -1937,8 +2100,8 @@
     {
       "previous_table_id": "tbl_p034_i02",
       "current_table_id": "tbl_p037_i02",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on average liquid asset portfolios. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Continuation of the previous table; indicators and structure match; row_count 8 vs 8.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p034_i02",
@@ -1948,10 +2111,10 @@
         "page": 34,
         "section": "risk_management",
         "bbox": [
-          0.053916183172487746,
-          0.5496440078272965,
-          0.9410783356311275,
-          0.7724655613754735
+          0.053915890213710814,
+          0.5496475142661972,
+          0.9410779367085376,
+          0.7724657925692472
         ],
         "row_count": 8,
         "headers": [
@@ -1998,15 +2161,15 @@
       "current_table": {
         "table_id": "tbl_p037_i02",
         "title": "Portefeuille d’actifs liquides (1) – Moyenne (5)",
-        "table_summary": "Portefeuille d’actifs liquides moyen",
+        "table_summary": "Portefeuille d’actifs liquides moyens",
         "extraction_status": "rescued",
         "page": 37,
         "section": "risk_management",
         "bbox": [
-          0.05396178501104218,
-          0.5539056026574337,
-          0.9409432006038093,
-          0.7824622260199653
+          0.053969832027659696,
+          0.5539136559072168,
+          0.9409369175730188,
+          0.7824552902067551
         ],
         "row_count": 8,
         "headers": [
@@ -2065,7 +2228,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et des positions identiques, ce qui indique qu'il n'y a pas eu d'ajout, de suppression ou de renommage d'indicateurs.",
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et des positions identiques.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2079,8 +2242,8 @@
     {
       "previous_table_id": "tbl_p035_i01",
       "current_table_id": "tbl_p038_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on encumbered and unencumbered assets. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'Sommaire des actifs grevés et non grevés (1)'; indicators: same structure; row_count 9 vs 9.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p035_i01",
@@ -2090,21 +2253,21 @@
         "page": 35,
         "section": "risk_management",
         "bbox": [
-          0.05376857558107065,
-          0.1125908283272175,
-          0.9411964167177288,
-          0.3267497438372988
+          0.05376842598509945,
+          0.11259084759336531,
+          0.9411965164483762,
+          0.3267497823695944
         ],
         "row_count": 9,
         "headers": [
           "Actifs grevés (2)",
+          "Actifs non grevés",
+          "Total",
+          "Actifs grevés en % du total des actifs",
           "Donnés en garantie",
           "Autres (3)",
-          "Actifs non grevés",
           "Disponibles pour garantie",
-          "Autres (4)",
-          "Total",
-          "Actifs grevés en % du total des actifs"
+          "Autres (4)"
         ],
         "indicators": [
           "Trésorerie et dépôts auprès d'institutions financières",
@@ -2127,14 +2290,14 @@
         "page": 38,
         "section": "risk_management",
         "bbox": [
-          0.053876191182853354,
-          0.11286402230310923,
-          0.9410716536777471,
-          0.33520076250789144
+          0.053877649743572564,
+          0.11286533240116005,
+          0.9410713544858048,
+          0.3351991056191801
         ],
         "row_count": 9,
         "headers": [
-          "Donnés en garantie",
+          "Données en garantie",
           "Actifs grevés (2) Autres (3)",
           "Disponibles pour garantie",
           "Actifs non grevés Autres (4)",
@@ -2183,33 +2346,33 @@
     {
       "previous_table_id": "tbl_p035_i02",
       "current_table_id": "tbl_p038_i02",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on encumbered and unencumbered assets by category. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Continuation of the previous table; indicators and structure match; row_count 9 vs 9.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p035_i02",
         "title": "",
-        "table_summary": "Actifs grevés et non grevés",
+        "table_summary": "Actifs grevés et non grevés au 31 octobre 2024",
         "extraction_status": "rescued",
         "page": 35,
         "section": "risk_management",
         "bbox": [
-          0.05373421213985269,
+          0.05373442406747855,
           0.3404060132575758,
           0.9410345538768893,
           0.5507630242241754
         ],
         "row_count": 9,
         "headers": [
-          "Actifs grevés (2) Donnés en garantie",
-          "Actifs grevés Autres (3)",
+          "Donnés en garantie",
+          "Actifs grevés (2) Autres (3)",
           "Actifs non grevés Disponibles pour garantie",
-          "Actifs non grevés Autres (4)",
+          "Autres (4)",
           "Total",
           "Actifs grevés en % du total des actifs"
         ],
         "indicators": [
-          "Trésorerie et dépôts auprès d’institutions financières",
+          "Trésorerie et dépôts auprès d'institutions financières",
           "Valeurs mobilières",
           "Valeurs mobilières acquises en vertu de conventions de revente et valeurs mobilières empruntées",
           "Prêts, déduction faite des provisions",
@@ -2241,22 +2404,22 @@
       "current_table": {
         "table_id": "tbl_p038_i02",
         "title": "",
-        "table_summary": "Actifs grevés et non grevés par catégorie d’actifs",
+        "table_summary": "Actifs grevés et non grevés",
         "extraction_status": "rescued",
         "page": 38,
         "section": "risk_management",
         "bbox": [
-          0.05381837233998417,
-          0.34871511748342804,
-          0.9407790439580781,
-          0.5679696208298809
+          0.05380970200681998,
+          0.348715425741793,
+          0.9407776477290135,
+          0.5679735511240334
         ],
         "row_count": 9,
         "headers": [
           "Donnés en garantie",
           "Actifs grevés (2) Autres (3)",
-          "Disponibles pour garantie",
-          "Actifs non grevés Autres (4)",
+          "Actifs non grevés Disponibles pour garantie",
+          "Autres (4)",
           "Total",
           "Actifs grevés en % du total des actifs"
         ],
@@ -2305,7 +2468,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Les indicateurs sont identiques en termes de position et de signification, malgré des différences mineures de ponctuation et de formatage qui ne sont pas pertinentes pour l'analyse.",
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et des positions identiques, ce qui indique qu'il n'y a pas eu d'ajout, de suppression ou de renommage d'indicateurs.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2319,8 +2482,8 @@
     {
       "previous_table_id": "tbl_p036_i01",
       "current_table_id": "tbl_p039_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on short-term liquidity ratio requirements. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2)'; indicators: same structure; row_count 26 vs 26.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p036_i01",
@@ -2330,10 +2493,10 @@
         "page": 36,
         "section": "risk_management",
         "bbox": [
-          0.05432659348631217,
-          0.1137480398621222,
-          0.9404257980047488,
-          0.5375473330719303
+          0.05432674308228337,
+          0.11374756784150096,
+          0.9404259974660437,
+          0.5375477183948865
         ],
         "row_count": 26,
         "headers": [
@@ -2375,6 +2538,10 @@
         ],
         "footnotes": [
           {
+            "id": "*",
+            "text": "s.o.    Sans objet"
+          },
+          {
             "id": "1",
             "text": "Consulter le « Mode de présentation de l’information » aux pages 4 à 9 pour de plus amples renseignements sur les mesures de gestion du capital."
           },
@@ -2408,20 +2575,15 @@
         "page": 39,
         "section": "risk_management",
         "bbox": [
-          0.05441513560176675,
-          0.11398799973304827,
-          0.9403926874297897,
-          0.5448591829550388
+          0.05442368750478707,
+          0.11399889473963266,
+          0.9403865041296466,
+          0.5448647316056069
         ],
         "row_count": 26,
         "headers": [
           "30 avril 2025",
-          "31 janvier 2025",
-          "Valeur non pondérée totale (moyenne)",
-          "Valeur pondérée totale (moyenne)",
-          "Valeur pondérée totale (moyenne)",
-          "Valeur ajustée totale (5)",
-          "Valeur ajustée totale (5)"
+          "31 janvier 2025"
         ],
         "indicators": [
           "Actifs liquides de haute qualité (HQLA)",
@@ -2452,6 +2614,10 @@
           "Ratio de liquidité à court terme (%) (6)"
         ],
         "footnotes": [
+          {
+            "id": "*",
+            "text": "s.o. Sans objet"
+          },
           {
             "id": "1",
             "text": "Consulter le « Mode de présentation de l’information » aux pages 6 à 12 pour de plus amples renseignements sur les mesures de gestion du capital."
@@ -2493,7 +2659,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme liquidite."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs présents dans le tableau précédent sont également présents dans le tableau actuel, et vice versa. Les différences mineures telles que les marques de notes de bas de page ou les variations de formatage ont été ignorées conformément aux règles.",
+      "reason": "Aucune différence sémantique significative n'a été détectée entre les indicateurs des deux tableaux comparés. Tous les indicateurs présents dans le tableau précédent se retrouvent dans le tableau actuel avec des noms et des positions correspondants, en tenant compte des règles d'alignement et de normalisation des indicateurs.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2507,8 +2673,8 @@
     {
       "previous_table_id": "tbl_p038_i01",
       "current_table_id": "tbl_p041_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on residual maturities of institutional funding. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'Échéances contractuelles résiduelles du financement institutionnel'; indicators: same structure; row_count 10 vs 10.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p038_i01",
@@ -2518,10 +2684,10 @@
         "page": 38,
         "section": "risk_management",
         "bbox": [
-          0.05437869028328291,
-          0.3414645724826389,
-          0.9409971548840891,
-          0.5669287864607995
+          0.054379968082203585,
+          0.34146464954723016,
+          0.9409992492276859,
+          0.5669315993183791
         ],
         "row_count": 10,
         "headers": [
@@ -2573,10 +2739,10 @@
         "page": 41,
         "section": "risk_management",
         "bbox": [
-          0.054386674968245764,
-          0.34143459435665247,
-          0.9409748152190563,
-          0.5669531388716265
+          0.054380030413858256,
+          0.34144353384923454,
+          0.9409824944789114,
+          0.5669438911206794
         ],
         "row_count": 10,
         "headers": [
@@ -2635,7 +2801,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme financement."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux comparés. Tous les indicateurs sont présents dans les deux versions avec des noms et positions identiques, ou des différences mineures ignorées selon les règles établies.",
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux comparés. Tous les indicateurs sont présents dans les deux versions avec des noms et positions identiques, et les différences de formatage ou de notes de bas de page ont été ignorées conformément aux règles.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2649,21 +2815,21 @@
     {
       "previous_table_id": "tbl_p038_i02",
       "current_table_id": "tbl_p041_i02",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on additional collateral requirements due to credit rating downgrades. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Continuation of the previous table; indicators and structure match; row_count 1 vs 1.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p038_i02",
         "title": "",
-        "table_summary": "Exigences de garanties supplémentaires selon une baisse de notation de crédit",
+        "table_summary": "Exigences de garanties supplémentaires selon une diminution de notation de crédit",
         "extraction_status": "rescued",
         "page": 38,
         "section": "risk_management",
         "bbox": [
-          0.05382245506336487,
-          0.691648001622672,
-          0.9407787447661357,
-          0.744749897658223
+          0.05382400712156608,
+          0.6916483869456282,
+          0.9407770493451287,
+          0.7447505141749527
         ],
         "row_count": 1,
         "headers": [
@@ -2684,15 +2850,15 @@
       "current_table": {
         "table_id": "tbl_p041_i02",
         "title": "",
-        "table_summary": "Exigences de garanties supplémentaires selon la diminution de la notation de crédit",
+        "table_summary": "Exigences de garanties supplémentaires selon une baisse de notation de crédit",
         "extraction_status": "rescued",
         "page": 41,
         "section": "risk_management",
         "bbox": [
-          0.05387097402335772,
-          0.6917881821141099,
-          0.940731871361826,
-          0.744856940375434
+          0.05387038187263838,
+          0.6917863325639205,
+          0.9407302756714665,
+          0.7448585587318498
         ],
         "row_count": 1,
         "headers": [
@@ -2725,7 +2891,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_marche."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les indicateurs des deux tableaux comparés. Les indicateurs sont identiques en termes de position et de nom normalisé, et les différences de formatage ou de ponctuation sont ignorées selon les règles.",
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les indicateurs des deux tableaux comparés. Les indicateurs sont identiques en termes de position et de nom normalisé, et les différences de titre de tableau ne sont pas pertinentes pour l'analyse des indicateurs.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2739,21 +2905,21 @@
     {
       "previous_table_id": "tbl_p039_i01",
       "current_table_id": "tbl_p042_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on financial asset maturities. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Title identical: 'Échéances contractuelles des actifs financiers au 30 avril 2025'; indicators: same structure; row_count 19 vs 19.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p039_i01",
         "title": "",
-        "table_summary": "Suite: échéances contractuelles des actifs financiers",
+        "table_summary": "Échéances contractuelles des actifs",
         "extraction_status": "rescued",
         "page": 39,
         "section": "risk_management",
         "bbox": [
-          0.05432167551875894,
-          0.2841045880558515,
-          0.9408294079350491,
-          0.7069255173808398
+          0.05432230506847108,
+          0.28410501191110327,
+          0.9408292084737541,
+          0.7069258256392046
         ],
         "row_count": 19,
         "headers": [
@@ -2799,15 +2965,15 @@
       "current_table": {
         "table_id": "tbl_p042_i01",
         "title": "",
-        "table_summary": "Échéances des actifs financiers au 30 avril 2025",
+        "table_summary": "Échéances contractuelles des actifs financiers au 30 avril 2025",
         "extraction_status": "rescued",
         "page": 42,
         "section": "risk_management",
         "bbox": [
-          0.05423605675790824,
-          0.2837386468444208,
-          0.9409853866676879,
-          0.7068949998027148
+          0.05424151077769161,
+          0.2837324046125316,
+          0.940988179125817,
+          0.7068941520922112
         ],
         "row_count": 19,
         "headers": [
@@ -2862,10 +3028,10 @@
           {
             "id": "1",
             "text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les soldes au 30 avril 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB.",
-            "reason": "New footnote added regarding the acquisition of CWB.",
+            "reason": "New footnote added in the current table.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "Cette note a été ajoutée pour informer sur l'impact de l'acquisition de CWB sur les états financiers, ce qui est crucial pour l'analyse des changements structurels dans les actifs financiers."
+              "justification": "Cette note a été ajoutée pour informer sur l'impact de l'acquisition de CWB sur les états financiers, ce qui est crucial pour l'analyse des changements structurels dans les actifs de la banque."
             }
           }
         ],
@@ -2879,7 +3045,7 @@
         "review_priority": "normale",
         "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The analysis identified a new footnote related to a significant acquisition, which is a structural change, and no other meaningful semantic changes.",
+      "reason": "The analysis identified a new footnote related to an acquisition, which is a significant structural change.",
       "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2893,21 +3059,21 @@
     {
       "previous_table_id": "tbl_p041_i01",
       "current_table_id": "tbl_p044_i01",
-      "match_confidence": 0.98,
-      "match_reason": "Indicators and headers are identical; both focus on financial asset maturities. Row count and footnote count are consistent.",
+      "match_confidence": 0.95,
+      "match_reason": "Table summary and indicators match: 'Échéances contractuelles des actifs'; identical headers and first indicator 'Actif'; row_count 19 vs 19.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p041_i01",
         "title": "",
-        "table_summary": "Suite: actifs par échéance contractuelle",
+        "table_summary": "Échéances contractuelles des actifs financiers",
         "extraction_status": "rescued",
         "page": 41,
         "section": "risk_management",
         "bbox": [
           0.053793134253009474,
-          0.09462187025282119,
+          0.09462184135359948,
           0.9406152862349367,
-          0.5110284053918087
+          0.5110283668595131
         ],
         "row_count": 19,
         "headers": [
@@ -2953,14 +3119,14 @@
       "current_table": {
         "table_id": "tbl_p044_i01",
         "title": "",
-        "table_summary": "Échéances des actifs financiers",
+        "table_summary": "Échéances contractuelles des actifs",
         "extraction_status": "rescued",
         "page": 44,
         "section": "risk_management",
         "bbox": [
-          0.05374675950193717,
-          0.09495898930713384,
-          0.9405585394965278,
+          0.053746672237620634,
+          0.09495903747250337,
+          0.9405586392271753,
           0.5108733129019689
         ],
         "row_count": 19,
@@ -3019,7 +3185,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux comparés. Tous les indicateurs présents dans le tableau précédent se retrouvent dans le tableau actuel avec des noms et des positions inchangés, ou des variations mineures non significatives (comme les notes de bas de page) qui ne justifient pas une classification en tant que changement sémantique.",
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux comparés. Tous les indicateurs présents dans le tableau précédent se retrouvent dans le tableau actuel avec des noms et des positions inchangés, ou des variations mineures qui ne modifient pas leur signification ou leur rôle dans le tableau.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -3034,19 +3200,19 @@
       "previous_table_id": "tbl_p042_i01",
       "current_table_id": "tbl_p045_i01",
       "match_confidence": 0.95,
-      "match_reason": "Exact match in indicators, headers, and row count; both tables have the same table summary and footnote count.",
+      "match_reason": "Table summary and indicators match: 'Échéances des passifs, capitaux propres et engagements hors bilan'; identical headers and first indicator 'Passif et capitaux propres'; row_count 23 vs 23.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p042_i01",
         "title": "",
-        "table_summary": "Échéances des passifs, capitaux propres et engagements hors bilan",
+        "table_summary": "Échéances contractuelles des passifs, capitaux propres et engagements hors bilan",
         "extraction_status": "rescued",
         "page": 42,
         "section": "risk_management",
         "bbox": [
-          0.05414012210821015,
-          0.09399086537987296,
-          0.9404291888467627,
+          0.05414002861072815,
+          0.0939909809767598,
+          0.9404292885774101,
           0.5883989430437185
         ],
         "row_count": 23,
@@ -3064,7 +3230,7 @@
         ],
         "indicators": [
           "Passif et capitaux propres",
-          "Dépôts (1)",
+          "Dépôts (1) (2)",
           "Particuliers",
           "Entreprises et administrations publiques",
           "Institutions de dépôts",
@@ -3110,7 +3276,7 @@
           },
           {
             "id": "6",
-            "text": "Ces montants sont révocables sans condition en tout temps à la discrétion de la Banque."
+            "text": "Ces montants sont révocables sans condition ou en temps à la discrétion de la Banque."
           },
           {
             "id": "7",
@@ -3133,14 +3299,14 @@
       "current_table": {
         "table_id": "tbl_p045_i01",
         "title": "",
-        "table_summary": "Échéances contractuelles des passifs et engagements hors bilan",
+        "table_summary": "Échéances des passifs, capitaux propres et engagements hors bilan",
         "extraction_status": "rescued",
         "page": 45,
         "section": "risk_management",
         "bbox": [
-          0.054157107484106924,
-          0.09398395846588443,
-          0.9404149273641749,
+          0.05415734434439466,
+          0.09398408369584518,
+          0.9404146281722324,
           0.5883906586001618
         ],
         "row_count": 23,
@@ -3204,7 +3370,7 @@
           },
           {
             "id": "6",
-            "text": "Ces montants sont révocables sans condition ou en tout temps à la discrétion de la Banque."
+            "text": "Ces montants sont révocables sans condition ou en temps à la discrétion de la Banque."
           },
           {
             "id": "7",
@@ -3239,9 +3405,9 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme liquidite."
       },
-      "reason": "A single footnote was semantically revised, impacting the interpretation of credit revocability conditions.",
-      "visual_sanity_applied": true,
-      "visual_sanity_rejected_count": 1,
+      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et des positions correspondants, et les différences mineures telles que les marques de notes de bas de page ont été ignorées conformément aux règles.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
         "indicators",
         "footnotes",
@@ -3253,8 +3419,8 @@
     {
       "previous_table_id": "tbl_p044_i01",
       "current_table_id": "tbl_p047_i01",
-      "match_confidence": 0.9,
-      "match_reason": "Highly similar indicators and headers; both tables have the same footnote count and serve a similar purpose in summarizing risk disclosures.",
+      "match_confidence": 0.85,
+      "match_reason": "Both tables share a comprehensive list of risk-related indicators and have the same row count and footnote count, indicating they are likely the same table with updated content for a new quarter.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p044_i01",
@@ -3264,10 +3430,10 @@
         "page": 44,
         "section": "risk_management",
         "bbox": [
-          0.055831105101342295,
-          0.18502508991896505,
-          0.9456809050117443,
-          0.8920613298512469
+          0.05584987939572802,
+          0.1850152834497317,
+          0.9456840963924633,
+          0.8920364379882814
         ],
         "row_count": 44,
         "headers": [
@@ -3307,7 +3473,7 @@
           "20 Échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan",
           "21 Stratégie de financement et sources de financement",
           "Risque de marché",
-          "22 Lien entre les mesures de risque de marché et le bilan",
+          "22 Lien entre les mesures du risque de marché et le bilan",
           "23 Facteurs de risque de marché",
           "24 VaR : hypothèses, limites et processus de validation",
           "25 Tests de tension et tests de validité rétroactifs",
@@ -3335,17 +3501,17 @@
       "current_table": {
         "table_id": "tbl_p047_i01",
         "title": "",
-        "table_summary": "Sommaire des divulgations sur les risques et pages de référence",
+        "table_summary": "Sommaire des informations relatives aux recommandations du groupe EDTF sur les risques",
         "extraction_status": "rescued",
         "page": 47,
         "section": "risk_management",
         "bbox": [
-          0.05596551084830091,
-          0.18502890461623067,
-          0.9460027358111214,
-          0.85380569612137
+          0.05596562927844478,
+          0.1850286348901614,
+          0.9460023368885315,
+          0.8538055419921876
         ],
-        "row_count": 40,
+        "row_count": 44,
         "headers": [
           "Rapport annuel 2024",
           "Rapport aux actionnaires (1)",
@@ -3354,6 +3520,10 @@
         "indicators": [
           "Général",
           "Localisation de la divulgation concernant les risques",
+          "Rapport de gestion",
+          "États financiers consolidés",
+          "Informations financières complémentaires",
+          "Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3",
           "Terminologie relative aux risques et mesures de risque",
           "Risques principaux et risques émergents",
           "Principaux nouveaux ratios réglementaires",
@@ -3419,104 +3589,8 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme liquidite."
       },
-      "reason": "Les changements observés semblent principalement liés à des ajustements de présentation et de structure des sections du rapport, sans impact significatif sur le contenu réglementaire ou les exigences de divulgation. No meaningful semantic changes detected in footnotes.",
-      "visual_sanity_applied": true,
-      "visual_sanity_rejected_count": 3,
-      "visual_sanity_scope": [
-        "indicators",
-        "footnotes",
-        "tables"
-      ],
-      "visual_sanity_render_mode": "full",
-      "visual_sanity_render_status": "ok"
-    },
-    {
-      "previous_table_id": "tbl_p028_i01",
-      "current_table_id": "tbl_p031_i01",
-      "match_confidence": 0.8,
-      "match_reason": "Both tables discuss emerging risks related to tariffs on imports. The CQ table appears to be an updated version with a slightly expanded description of the risks.",
-      "diff_mode": "gpt",
-      "previous_table": {
-        "table_id": "tbl_p028_i01",
-        "title": "",
-        "table_summary": "Risque émergent lié aux droits de douane sur les importations",
-        "extraction_status": "rescued",
-        "page": 28,
-        "section": "risk_management",
-        "bbox": [
-          0.05708134096432356,
-          0.20506382951832783,
-          0.9455701042624081,
-          0.39682530875157834
-        ],
-        "row_count": 1,
-        "headers": [
-          "Risques",
-          "Description"
-        ],
-        "indicators": [
-          "Risques émergents – Droits de douane sur les importations"
-        ],
-        "footnotes": []
-      },
-      "current_table": {
-        "table_id": "tbl_p031_i01",
-        "title": "",
-        "table_summary": "Risques émergents et description",
-        "extraction_status": "rescued",
-        "page": 31,
-        "section": "risk_management",
-        "bbox": [
-          0.05744427325678807,
-          0.20454304627697878,
-          0.9411850474239175,
-          0.5012929511792732
-        ],
-        "row_count": 1,
-        "headers": [
-          "Risques",
-          "Description"
-        ],
-        "indicators": [
-          "Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux"
-        ],
-        "footnotes": []
-      },
-      "technical_diff": {
-        "indicators_added": [
-          {
-            "value": "Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux",
-            "reason": "Un nouvel indicateur a été ajouté pour refléter les changements dans les risques liés aux droits de douane et aux échanges commerciaux.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "Cet indicateur a été ajouté pour capturer les risques accrus et l'incertitude associés aux droits de douane et aux restrictions commerciales, ce qui est crucial pour l'évaluation des risques émergents."
-            }
-          }
-        ],
-        "indicators_removed": [
-          {
-            "value": "Risques émergents – Droits de douane sur les importations",
-            "reason": "L'indicateur précédent a été supprimé et remplacé par un indicateur plus détaillé.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "La suppression de cet indicateur reflète un changement dans la manière dont les risques liés aux droits de douane sont évalués, passant d'une approche générale à une approche plus détaillée et nuancée."
-            }
-          }
-        ],
-        "indicators_renamed": [],
-        "footnotes_added": [],
-        "footnotes_removed": [],
-        "footnotes_renamed": [],
-        "table_level_change": "modifie"
-      },
-      "analyst_assessment": {
-        "theme": "autre",
-        "change_significance": "moyen",
-        "review_priority": "normale",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "reason": "Les changements reflètent une mise à jour et une spécification des risques liés aux droits de douane et aux échanges commerciaux.",
-      "visual_sanity_applied": true,
+      "reason": "The primary change observed is the removal of numeric prefixes from indicator names, which is a cosmetic change to simplify the naming convention without affecting the content or scope of the indicators.",
+      "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
         "indicators",
@@ -3529,29 +3603,29 @@
   ],
   "run_metrics": {
     "runtime_extraction_sec": 0.0,
-    "runtime_comparison_sec": 171.38,
+    "runtime_comparison_sec": 197.044,
     "vision_calls_total": 0,
     "vision_rescue_total": 0,
     "comparison_calls_total": 74,
     "matching_passes_total": 2,
-    "inspector_passes_total": 19,
+    "inspector_passes_total": 18,
     "audit_passes_total": 0,
     "matching_output_retries_total": 0,
     "matching_validation_failures_total": 0,
     "stage1_validation_retries_total": 0,
     "stage2_validation_retries_total": 0,
-    "unresolved_after_stage1_total": 4,
-    "matched_in_stage2_total": 2,
-    "unmatched_after_primary_total": 8,
-    "unmatched_after_rescue_total": 4,
+    "unresolved_after_stage1_total": 5,
+    "matched_in_stage2_total": 3,
+    "unmatched_after_primary_total": 11,
+    "unmatched_after_rescue_total": 5,
     "matching_pairs_llm_duplicates_total": 0,
     "matching_pairs_llm_deduped_total": 0,
     "inspector_rejected_total": 0,
-    "inspector_confirmed_total": 19,
-    "prompt_tokens_total": 216640,
-    "completion_tokens_total": 12224,
-    "total_tokens_total": 228864,
-    "estimated_cost_usd": 0.66384,
+    "inspector_confirmed_total": 18,
+    "prompt_tokens_total": 225145,
+    "completion_tokens_total": 18261,
+    "total_tokens_total": 243406,
+    "estimated_cost_usd": 0.745472,
     "extraction": {
       "runtime_extraction_sec": 0.0,
       "vision_calls_total": 0,
@@ -3565,38 +3639,38 @@
       "current": {}
     },
     "comparison": {
-      "prompt_tokens_total": 216640,
-      "completion_tokens_total": 12224,
-      "total_tokens_total": 228864,
+      "prompt_tokens_total": 225145,
+      "completion_tokens_total": 18261,
+      "total_tokens_total": 243406,
       "comparison_calls_total": 74,
-      "runtime_comparison_sec": 171.38,
+      "runtime_comparison_sec": 197.044,
       "matching_passes_total": 2,
-      "inspector_passes_total": 19,
+      "inspector_passes_total": 18,
       "audit_passes_total": 0,
       "matching_output_retries_total": 0,
       "matching_validation_failures_total": 0,
       "stage1_validation_retries_total": 0,
       "stage2_validation_retries_total": 0,
-      "unresolved_after_stage1_total": 4,
-      "matched_in_stage2_total": 2,
-      "unmatched_after_primary_total": 8,
-      "unmatched_after_rescue_total": 4,
+      "unresolved_after_stage1_total": 5,
+      "matched_in_stage2_total": 3,
+      "unmatched_after_primary_total": 11,
+      "unmatched_after_rescue_total": 5,
       "matching_pairs_llm_duplicates_total": 0,
       "matching_pairs_llm_deduped_total": 0,
       "inspector_rejected_total": 0,
-      "inspector_confirmed_total": 19,
-      "estimated_cost_usd": 0.66384
+      "inspector_confirmed_total": 18,
+      "estimated_cost_usd": 0.745472
     }
   },
   "summary": {
     "matched_pairs_total": 22,
     "tables_added_total": 1,
-    "tables_removed_total": 1,
-    "artifacts_confirmed_previous_total": 1,
+    "tables_removed_total": 2,
+    "artifacts_confirmed_previous_total": 0,
     "artifacts_confirmed_current_total": 0,
     "extraction_suspects_previous_total": 0,
     "extraction_suspects_current_total": 0,
-    "indicator_changes_total": 8,
+    "indicator_changes_total": 6,
     "footnote_changes_total": 5,
     "high_priority_items_total": 6
   }

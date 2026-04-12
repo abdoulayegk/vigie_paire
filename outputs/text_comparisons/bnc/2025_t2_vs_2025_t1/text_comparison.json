@@ -7,7 +7,7 @@
   "quarter_previous": "2025_t1",
   "year_current": 2025,
   "quarter_current": "2025_t2",
-  "generated_at": "2026-04-09T23:52:52.915497+00:00",
+  "generated_at": "2026-04-11T15:59:22.342433+00:00",
   "extraction_artifact_t1": "text_extraction_2025_t1.md",
   "extraction_artifact_t2": "text_extraction_2025_t2.md",
   "section_comparisons": [
@@ -44,16 +44,16 @@
             ],
             "snippet": "Le 3 février 2025, lors de la clôture de l'acquisition de CWB, la Banque a émis un total de 50 272 878 actions ordinaires, pour un produit brut de 6,3 G$."
           },
-          "change_summary": "Ajout d'une émission d'actions ordinaires liée à l'acquisition de CWB",
+          "change_summary": "Ajout d'informations sur l'émission d'actions ordinaires lors de l'acquisition de CWB",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
-            "impact_level": "MAJEUR",
+            "impact_level": "MODERE",
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La banque a émis un total de actions ordinaires pour un produit brut de G$ lors de l'acquisition de CWB. Ce changement est substantiel car il augmente significativement les fonds propres de la banque. Cela implique une amélioration de la capacité de la banque à absorber les pertes et à respecter les des exigences prudentielles",
-            "impact_description": "Augmentation significative des fonds propres, renforçant la capacité de la banque à absorber les pertes",
+            "explanation": "La banque a émis un total de actions ordinaires lors de l'acquisition de CWB, générant un produit brut de G$. Ce changement est substantiel car il augmente le capital de la banque, renforçant ainsi sa capacité à absorber les pertes. Cela implique une surveillance accrue des impacts de cette acquisition sur la structure de capital de la banque",
+            "impact_description": "Augmentation du capital de la banque par l'émission d'actions ordinaires, renforçant la capacité d'absorption des pertes",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -101,12 +101,12 @@
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
-            "impact_level": "MAJEUR",
+            "impact_level": "MODERE",
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La banque a acquis des obligations liées aux dettes subordonnées de CWB pour un montant total de M$. Ce changement est important car ces obligations sont admissibles aux fonds propres réglementaires, augmentant ainsi la capacité de la banque à absorber les pertes. Cela renforce la position de capital de la banque et sa conformité aux des exigences prudentielles",
-            "impact_description": "Renforcement de la position de capital grâce à l'acquisition d'obligations admissibles aux fonds propres réglementaires",
+            "explanation": "La banque a acquis des obligations liées aux dettes subordonnées de CWB pour un montant total de M$. Ce changement est significatif car ces obligations sont admissibles aux fonds propres réglementaires, augmentant ainsi le capital réglementaire de la banque. Cela nécessite une surveillance pour évaluer l'impact sur les ratios de fonds propres",
+            "impact_description": "Augmentation du capital réglementaire grâce à l'acquisition d'obligations subordonnées admissibles",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -154,12 +154,12 @@
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
-            "impact_level": "MAJEUR",
+            "impact_level": "MODERE",
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Un échange d'actions privilégiées de CWB contre celles de la Banque Nationale a eu lieu, pour un montant total de M$. Ce changement est significatif car il affecte la structure du capital et les fonds propres réglementaires de la banque. Cela implique une réévaluation de la composition des fonds propres et de leur admissibilité réglementaire",
-            "impact_description": "Modification de la structure du capital et des fonds propres réglementaires suite à l'échange d'actions privilégiées",
+            "explanation": "Un échange d'actions privilégiées de CWB contre celles de la Banque Nationale a eu lieu, pour un montant total de M$. Ce changement est significatif car il affecte la composition des fonds propres de la banque, avec des implications sur les ratios de capital. Cela nécessite une confirmation pour évaluer l'impact sur la structure de capital",
+            "impact_description": "Modification de la composition des fonds propres par l'échange d'actions privilégiées, influençant les ratios de capital",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -175,14 +175,14 @@
           }
         },
         {
-          "change_id": "gestion_capital_actif_pondéré_en_fonction_des_risques_se_change_020",
+          "change_id": "gestion_capital_actif_pondéré_en_fonction_des_risques_se_change_019",
           "section_key": "gestion_capital",
           "subsection_heading": "Actif pondéré en fonction des risques selon les principaux facteurs de risque",
           "diff_type": "modified",
-          "semantic_text_t1": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au janvier, comparativement à G$ au octobre. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondéré en fonction des risques de la Banque par type de risque est présentée dans le tableau suivant",
-          "semantic_text_t2": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au avril, comparativement à G$ au octobre. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondéré en fonction des risques de la Banque par type de risque est présentée dans le tableau suivant",
-          "source_text_t1": "L'actif pondéré en fonction des risques a augmenté de 7,5 G$ pour s'établir à 148,5 G$ au 31 janvier 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondéré en fonction des risques de la Banque par type de risque est présentée dans le tableau suivant.",
-          "source_text_t2": "L'actif pondéré en fonction des risques a augmenté de 41,8 G$ pour s'établir à 182,8 G$ au 30 avril 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondéré en fonction des risques de la Banque par type de risque est présentée dans le tableau suivant.",
+          "semantic_text_t1": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au janvier, comparativement à G$ au octobre. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts",
+          "semantic_text_t2": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au avril, comparativement à G$ au octobre. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts",
+          "source_text_t1": "L'actif pondéré en fonction des risques a augmenté de 7,5 G$ pour s'établir à 148,5 G$ au 31 janvier 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts.",
+          "source_text_t2": "L'actif pondéré en fonction des risques a augmenté de 41,8 G$ pour s'établir à 182,8 G$ au 30 avril 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts.",
           "source_block_ids_t1": [],
           "source_block_ids_t2": [],
           "source_refs_t1": [],
@@ -199,15 +199,15 @@
             "pages": [
               25
             ],
-            "snippet": "L'actif pondéré en fonction des risques a augmenté de 7,5 G$ pour s'établir à 148,5 G$ au 31 janvier 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif po"
+            "snippet": "L'actif pondéré en fonction des risques a augmenté de 7,5 G$ pour s'établir à 148,5 G$ au 31 janvier 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts."
           },
           "evidence_t2": {
             "pages": [
               29
             ],
-            "snippet": "L'actif pondéré en fonction des risques a augmenté de 41,8 G$ pour s'établir à 182,8 G$ au 30 avril 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondé"
+            "snippet": "L'actif pondéré en fonction des risques a augmenté de 41,8 G$ pour s'établir à 182,8 G$ au 30 avril 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts."
           },
-          "change_summary": "Changement des montants et des dates, ajout de l'inclusion de CWB comme facteur d'augmentation",
+          "change_summary": "Les chiffres de l'augmentation de l'actif pondéré en fonction des risques ont changé, la date de référence est passée au avril, et l'inclusion de CWB est mentionnée comme une nouvelle raison de l'augmentation",
           "genai_triage": {
             "is_relevant": true,
             "category": "RISQUE",
@@ -215,8 +215,8 @@
             "risk_type": "credit",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "L'actif pondéré en fonction des risques a considérablement augmenté de G$, principalement en raison de l'inclusion de CWB. Ce changement est substantiel car il reflète une augmentation significative de l'exposition au risque de la banque. Cela nécessite une surveillance accrue pour évaluer l'impact sur la gestion des risques et les exigences de capital",
-            "impact_description": "Augmentation significative de l'exposition au risque, nécessitant une surveillance accrue",
+            "explanation": "L'actif pondéré en fonction des risques a considérablement augmenté de G$, principalement en raison de l'inclusion de CWB. Ce changement est majeur car il reflète une augmentation significative de l'exposition au risque, nécessitant une réévaluation des stratégies de gestion des risques. Cela implique une escalade pour évaluer l'impact sur la stabilité financière de la banque",
+            "impact_description": "Augmentation significative de l'exposition au risque due à l'inclusion de CWB, nécessitant une réévaluation des stratégies de gestion des risques",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -226,7 +226,7 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
@@ -264,7 +264,7 @@
             ],
             "snippet": "Le ratio des fonds propres CET1, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres s'établissent, respectivement, à 13,4 %, à 15,1 % et à 16,9 % au 30 avril 2025, comparativement à des ratios de 13,7 %, de 15,9 % et de 17,0 %, respectivement, au 31 octobre 2024. Tous les ratios des fonds propres sont en baisse comparativement au 31 octobre 2024. La croissance de l'ac"
           },
-          "change_summary": "Les ratios des fonds propres ont diminué davantage en. L'inclusion de CWB a été un facteur défavorable, compensé par des actions ordinaires émises. L'impact du rachat d'actions privilégiées a été atténué par un échange d'actions avec CWB. Ajout des obligations de CWB comme facteur favorable",
+          "change_summary": "Les ratios des fonds propres ont diminué davantage en, principalement en raison de l'inclusion de CWB. L'impact du rachat d'actions privilégiées a été atténué par l'échange d'actions de CWB. Ajout des obligations liées aux dettes subordonnées de CWB",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -272,8 +272,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les ratios des fonds propres ont diminué, principalement en raison de l'inclusion de CWB, malgré l'émission d'actions ordinaires. Ce changement est significatif car il affecte la capacité de la banque à respecter les exigences de capital réglementaires. Cela nécessite une évaluation approfondie pour s'assurer que la banque maintient des niveaux de capital adéquats",
-            "impact_description": "Diminution des ratios de fonds propres, impactant la capacité à respecter les des exigences prudentielles",
+            "explanation": "Les ratios des fonds propres ont diminué, principalement en raison de l'inclusion de CWB, malgré l'émission d'actions ordinaires. Ce changement est majeur car il affecte la capacité de la banque à maintenir des niveaux de capital adéquats, ce qui est crucial pour sa stabilité financière. Cela nécessite une escalade pour évaluer l'impact sur la conformité réglementaire et la gestion du capital",
+            "impact_description": "Diminution des ratios de fonds propres, affectant la capacité à maintenir des niveaux de capital adéquats",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -283,7 +283,7 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
@@ -321,7 +321,7 @@
             ],
             "snippet": "Au 30 avril 2025, le ratio TLAC et le ratio de levier TLAC s'établissent à 28,2 % et à 8,8 %, comparativement à 31,2 % et à 8,6 %, respectivement, au 31 octobre 2024. L'augmentation du ratio de levier TLAC s'explique principalement par les émissions nettes d'instruments qui satisfont tous les critères d'admissibilité TLAC au cours de la période. Cependant, la croissance de l'actif pondéré en fonct"
           },
-          "change_summary": "Le ratio a diminué en, principalement en raison de l'inclusion de CWB, malgré l'augmentation du ratio de levier",
+          "change_summary": "Le ratio a diminué en, principalement en raison de l'inclusion de CWB, malgré les émissions nettes d'instruments",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -329,8 +329,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio a diminué, principalement en raison de l'inclusion de CWB, malgré l'augmentation du ratio de levier. Ce changement est significatif car il affecte la capacité de la banque à respecter les exigences de capacité totale d'absorption des pertes. Cela nécessite une évaluation approfondie pour s'assurer que la banque maintient des niveaux de adéquats",
-            "impact_description": "Diminution du ratio, impactant la capacité à respecter les exigences de capacité d'absorption des pertes",
+            "explanation": "Le ratio a diminué, principalement en raison de l'inclusion de CWB, malgré les émissions nettes d'instruments. Ce changement est majeur car il affecte la capacité de la banque à respecter les exigences de capital total, cruciales pour sa résilience en cas de crise. Cela nécessite une escalade pour évaluer l'impact sur la conformité réglementaire et la gestion du capital",
+            "impact_description": "Diminution du ratio, affectant la capacité à respecter les exigences de capital total",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -340,13 +340,13 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
         },
         {
-          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_019",
+          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_018",
           "section_key": "gestion_capital",
           "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
           "diff_type": "removed",
@@ -379,11 +379,11 @@
             "is_relevant": true,
             "category": "CAPITAL",
             "impact_level": "MODERE",
-            "risk_type": "capital",
+            "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La mention des actions privilégiées rachetées a été supprimée. Ce changement est important car il peut affecter la transparence des informations sur les rachats d'actions et leur impact sur les fonds propres. Cela nécessite une vérification pour s'assurer que les rachats sont correctement reflétés dans les calculs de fonds propres",
-            "impact_description": "Potentiel impact sur la transparence des informations sur les rachats d'actions et les fonds propres",
+            "explanation": "La mention des actions privilégiées série rachetées a été supprimée. Ce changement est significatif car il peut affecter la transparence des informations sur les rachats d'actions et leur impact sur les ratios de capital. Cela nécessite une investigation pour s'assurer que les informations sur les rachats sont correctement rapportées",
+            "impact_description": "Potentiel impact sur la transparence des informations sur les rachats d'actions et les ratios de capital",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -436,11 +436,11 @@
             "is_relevant": true,
             "category": "CAPITAL",
             "impact_level": "MODERE",
-            "risk_type": "capital",
+            "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La mention de l'exclusion des instruments du calcul des ratios de fonds propres a été supprimée. Ce changement est substantiel car il peut affecter la transparence et la précision des informations sur les fonds propres. Cela nécessite une vérification pour s'assurer que les ratios de fonds propres sont correctement calculés et présentés",
-            "impact_description": "Potentiel impact sur la transparence et la précision des informations sur les fonds propres",
+            "explanation": "La mention de l'exclusion des actions privilégiées du calcul des ratios de fonds propres a été supprimée. Ce changement est important car il peut affecter la transparence et la précision des rapports de capital. Cela implique une vérification pour s'assurer que les ratios de fonds propres sont correctement calculés et rapportés",
+            "impact_description": "Potentiel impact sur la transparence et la précision des rapports de capital en raison de la suppression d'informations",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -492,8 +492,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La sous section sur les exigences de communication publique pour les banques d'importance systémique mondiale a été supprimée. Ce changement est important car il peut affecter la transparence et la conformité aux exigences de communication réglementaires. Cela nécessite une vérification pour s'assurer que toutes les obligations de communication sont respectées",
-            "impact_description": "Potentiel impact sur la transparence et la conformité aux exigences de communication réglementaires",
+            "explanation": "La sous section sur les exigences de communication publique pour les banques d'importance systémique mondiale a été supprimée. Ce changement est significatif car il peut affecter la transparence et la conformité aux exigences de communication réglementaire. Cela nécessite une investigation pour s'assurer que la banque continue de respecter toutes les obligations de communication",
+            "impact_description": "Potentiel impact sur la transparence et la conformité aux exigences de communication réglementaire",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -541,7 +541,7 @@
             ],
             "snippet": "Le 27 mai 2025, le conseil d'administration a déclaré les dividendes réguliers sur les diverses séries d'actions privilégiées de premier rang, ainsi qu'un dividende de 1,18 $ par action ordinaire, en hausse de 4 cents ou 3,4 %, payable le 1 er août 2025 aux actionnaires inscrits le 30 juin 2025."
           },
-          "change_summary": "La date de déclaration des dividendes a changé, le montant du dividende par action ordinaire a augmenté de cents, et les dates de paiement et d'enregistrement ont été modifiées",
+          "change_summary": "La date de déclaration des dividendes a changé, le montant du dividende par action ordinaire a augmenté de cents, et les dates de paiement et d'inscription ont été modifiées",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -549,8 +549,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le montant du dividende par action ordinaire a augmenté de cents, passant à $. Ce changement est important car il reflète une politique de distribution plus généreuse, ce qui peut affecter les réserves de capital. Cela nécessite une évaluation de l'impact sur la capacité de la banque à maintenir ses niveaux de capital réglementaire",
-            "impact_description": "Augmentation des dividendes, potentiellement impactant les réserves de capital",
+            "explanation": "Le montant du dividende par action ordinaire a augmenté de cents, passant à $. Ce changement est significatif car il reflète une politique de distribution de dividendes plus généreuse, ce qui peut affecter la rétention des bénéfices et la capitalisation future. Cela nécessite une investigation pour comprendre l'impact sur la stratégie de capitalisation de la banque",
+            "impact_description": "Augmentation des dividendes, potentiellement influençant la rétention des bénéfices et la capitalisation future",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -560,13 +560,13 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
         },
         {
-          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_017",
+          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_016",
           "section_key": "gestion_capital",
           "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
           "diff_type": "modified",
@@ -598,7 +598,7 @@
             ],
             "snippet": "Si un événement déclencheur faisant intervenir les clauses FPUNV devait se produire, toutes les actions privilégiées et les BCRL de la Banque ainsi que les billets à moyen terme et les débentures subordonnées, qui sont des instruments de fonds propres assortis d'une clause FPUNV, seraient convertis en actions ordinaires de la Banque selon une formule de conversion automatique, à un prix de convers"
           },
-          "change_summary": "Modification des instruments convertibles: ajout des débentures subordonnées et suppression des dates d'échéance spécifiques des billets à moyen terme",
+          "change_summary": "Ajout des débentures subordonnées dans la liste des instruments convertibles",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -606,24 +606,24 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les débentures subordonnées ont été ajoutées aux instruments convertibles en cas de déclenchement des clauses FPUNV. Ce changement est important car il modifie la composition des instruments de fonds propres convertibles, affectant potentiellement la structure du capital en cas de crise. Cela nécessite une vérification pour s'assurer que tous les instruments sont correctement inclus dans les calculs de fonds propres",
-            "impact_description": "Modification de la composition des instruments convertibles, impactant la structure du capital en cas de crise",
-            "action_requise": "investigation",
+            "explanation": "Les débentures subordonnées ont été ajoutées à la liste des instruments convertibles en cas de déclenchement des clauses FPUNV. Ce changement est significatif car il élargit le champ des instruments pouvant être convertis en actions ordinaires, affectant potentiellement la structure de capital en cas de crise. Cela nécessite une confirmation pour évaluer l'impact sur la gestion des risques de capital",
+            "impact_description": "Extension des instruments convertibles, influençant la structure de capital en cas de crise",
+            "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
             "confidence": 0.0,
             "source": "gpt4o_triage",
             "signals": {
               "regulatory_reference_added": false,
-              "methodology_change": true,
+              "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": false
             }
           }
         },
         {
-          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_018",
+          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_017",
           "section_key": "gestion_capital",
           "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
           "diff_type": "modified",
@@ -655,7 +655,7 @@
             ],
             "snippet": "Selon un prix-plancher de 5,00 $ et en tenant compte des dividendes et intérêts cumulés estimés, ces instruments de fonds propres assortis d'une clause FPUNV se convertiraient en un maximum de 1 472 millions d'actions ordinaires de la Banque, d'où un effet dilutif de 79,0 % selon le nombre d'actions ordinaires de la Banque en circulation au 30 avril 2025."
           },
-          "change_summary": "Mise à jour des chiffres de conversion maximale et de l'effet dilutif, ainsi que de la date de référence",
+          "change_summary": "Mise à jour du nombre maximum d'actions convertibles et de l'effet dilutif",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -663,8 +663,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le nombre maximal d'actions ordinaires convertibles a augmenté, entraînant un effet dilutif plus élevé. Ce changement est significatif car il augmente le potentiel de dilution des actions en cas de conversion des instruments de fonds propres. Cela nécessite une évaluation de l'impact sur les actionnaires et la structure du capital",
-            "impact_description": "Augmentation du potentiel de dilution des actions ordinaires en cas de conversion",
+            "explanation": "Le nombre maximum d'actions convertibles et l'effet dilutif ont été mis à jour. Ce changement est important car il modifie les prévisions de dilution potentielle en cas de conversion, ce qui peut affecter la perception des investisseurs et la valorisation des actions. Cela nécessite une investigation pour comprendre l'impact sur la stratégie de gestion du capital",
+            "impact_description": "Modification des prévisions de dilution potentielle, influençant la perception des investisseurs",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -674,7 +674,7 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
@@ -712,7 +712,7 @@
             ],
             "snippet": "Le ratio de levier en date du 30 avril 2025 s'établit à 4,7 %, comparativement à 4,4 % au 31 octobre 2024. L'augmentation du ratio de levier s'explique essentiellement par la croissance des fonds propres de catégorie 1 en lien avec les actions ordinaires émises dans le cadre de l'acquisition de CWB, en partie contrebalancée par l'augmentation de l'exposition totale."
           },
-          "change_summary": "Le ratio de levier a augmenté en, principalement en raison de l'acquisition de CWB, contrairement à la baisse observée en",
+          "change_summary": "Le ratio de levier a augmenté en, principalement en raison de l'acquisition de CWB",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -720,8 +720,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio de levier a augmenté, principalement en raison de l'acquisition de CWB. Ce changement est important car il reflète une amélioration de la capacité de la banque à absorber les pertes, mais nécessite une vérification pour s'assurer que l'augmentation est durable. Cela implique une surveillance continue pour évaluer l'impact sur la gestion des risques et les exigences de capital",
-            "impact_description": "Augmentation du ratio de levier, reflétant une amélioration de la capacité à absorber les pertes",
+            "explanation": "Le ratio de levier a augmenté, principalement en raison de la croissance des fonds propres liée à l'acquisition de CWB. Ce changement est modéré car il améliore la capacité de la banque à absorber les pertes, mais nécessite une investigation pour comprendre l'impact sur la gestion globale du capital",
+            "impact_description": "Augmentation du ratio de levier, améliorant la capacité d'absorption des pertes",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -731,7 +731,7 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
@@ -741,10 +741,10 @@
           "section_key": "gestion_capital",
           "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
           "diff_type": "modified",
-          "semantic_text_t1": "Au février, le nombre d'actions ordinaires en circulation se chiffre à et le nombre d'options en cours est de",
-          "semantic_text_t2": "Au mai, le nombre d'actions ordinaires en circulation se chiffre à et le nombre d'options en cours est de",
-          "source_text_t1": "Au 21 février 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 216 059 et le nombre d'options en cours est de 11 778 661.",
-          "source_text_t2": "Au 23 mai 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 340 763 et le nombre d'options en cours est de 11 619 774.",
+          "semantic_text_t1": "Au février, le nombre d'actions ordinaires en circulation se chiffre à et le nombre d'options en cours est de. Les nombres d'actions ordinaires et d'options en circulation tiennent compte de la conclusion de la transaction CWB",
+          "semantic_text_t2": "Au mai, le nombre d'actions ordinaires en circulation se chiffre à et le nombre d'options en cours est de. Le nombre d'actions ordinaires et le nombre d'options en circulation reflètent la clôture de la transaction avec CWB",
+          "source_text_t1": "Au 21 février 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 216 059 et le nombre d'options en cours est de 11 778 661. Les nombres d'actions ordinaires et d'options en circulation tiennent compte de la conclusion de la transaction CWB.",
+          "source_text_t2": "Au 23 mai 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 340 763 et le nombre d'options en cours est de 11 619 774. Le nombre d'actions ordinaires et le nombre d'options en circulation reflètent la clôture de la transaction avec CWB.",
           "source_block_ids_t1": [],
           "source_block_ids_t2": [],
           "source_refs_t1": [],
@@ -761,15 +761,15 @@
             "pages": [
               23
             ],
-            "snippet": "Au 21 février 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 216 059 et le nombre d'options en cours est de 11 778 661."
+            "snippet": "Au 21 février 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 216 059 et le nombre d'options en cours est de 11 778 661. Les nombres d'actions ordinaires et d'options en circulation tiennent compte de la conclusion de la transaction CWB."
           },
           "evidence_t2": {
             "pages": [
               27
             ],
-            "snippet": "Au 23 mai 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 340 763 et le nombre d'options en cours est de 11 619 774."
+            "snippet": "Au 23 mai 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 340 763 et le nombre d'options en cours est de 11 619 774. Le nombre d'actions ordinaires et le nombre d'options en circulation reflètent la clôture de la transaction avec CWB."
           },
-          "change_summary": "Mise à jour des chiffres des actions ordinaires et des options en circulation",
+          "change_summary": "Mise à jour des chiffres des actions et options en circulation et de la date de référence",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -777,8 +777,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le nombre d'actions ordinaires en circulation a légèrement augmenté, tandis que le nombre d'options en cours a diminué. Ce changement est mineur mais pertinent car il affecte la dilution potentielle des actions. Cela implique un suivi continu pour évaluer l'impact sur la structure du capital et la dilution des actionnaires",
-            "impact_description": "Légère modification de la dilution potentielle des actions ordinaires",
+            "explanation": "Le nombre d'actions ordinaires et d'options en circulation a été mis à jour suite à la clôture de la transaction avec CWB. Ce changement est mineur car il s'agit d'une mise à jour quantitative sans impact significatif sur la structure de capital. Cela implique simplement de tenir à jour les informations sur le capital en circulation",
+            "impact_description": "Mise à jour quantitative des actions et options en circulation après une transaction",
             "action_requise": "information",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -824,16 +824,16 @@
             ],
             "snippet": "Le 3 février 2025, lors de la clôture de l'acquisition de CWB, la Banque a émis un total de 50 272 878 actions ordinaires, pour un produit brut de 6,3 G$."
           },
-          "change_summary": "Ajout d'une émission d'actions ordinaires liée à l'acquisition de CWB",
+          "change_summary": "Ajout d'informations sur l'émission d'actions ordinaires lors de l'acquisition de CWB",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
-            "impact_level": "MAJEUR",
+            "impact_level": "MODERE",
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La banque a émis un total de actions ordinaires pour un produit brut de G$ lors de l'acquisition de CWB. Ce changement est substantiel car il augmente significativement les fonds propres de la banque. Cela implique une amélioration de la capacité de la banque à absorber les pertes et à respecter les des exigences prudentielles",
-            "impact_description": "Augmentation significative des fonds propres, renforçant la capacité de la banque à absorber les pertes",
+            "explanation": "La banque a émis un total de actions ordinaires lors de l'acquisition de CWB, générant un produit brut de G$. Ce changement est substantiel car il augmente le capital de la banque, renforçant ainsi sa capacité à absorber les pertes. Cela implique une surveillance accrue des impacts de cette acquisition sur la structure de capital de la banque",
+            "impact_description": "Augmentation du capital de la banque par l'émission d'actions ordinaires, renforçant la capacité d'absorption des pertes",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -881,12 +881,12 @@
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
-            "impact_level": "MAJEUR",
+            "impact_level": "MODERE",
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La banque a acquis des obligations liées aux dettes subordonnées de CWB pour un montant total de M$. Ce changement est important car ces obligations sont admissibles aux fonds propres réglementaires, augmentant ainsi la capacité de la banque à absorber les pertes. Cela renforce la position de capital de la banque et sa conformité aux des exigences prudentielles",
-            "impact_description": "Renforcement de la position de capital grâce à l'acquisition d'obligations admissibles aux fonds propres réglementaires",
+            "explanation": "La banque a acquis des obligations liées aux dettes subordonnées de CWB pour un montant total de M$. Ce changement est significatif car ces obligations sont admissibles aux fonds propres réglementaires, augmentant ainsi le capital réglementaire de la banque. Cela nécessite une surveillance pour évaluer l'impact sur les ratios de fonds propres",
+            "impact_description": "Augmentation du capital réglementaire grâce à l'acquisition d'obligations subordonnées admissibles",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -934,12 +934,12 @@
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
-            "impact_level": "MAJEUR",
+            "impact_level": "MODERE",
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Un échange d'actions privilégiées de CWB contre celles de la Banque Nationale a eu lieu, pour un montant total de M$. Ce changement est significatif car il affecte la structure du capital et les fonds propres réglementaires de la banque. Cela implique une réévaluation de la composition des fonds propres et de leur admissibilité réglementaire",
-            "impact_description": "Modification de la structure du capital et des fonds propres réglementaires suite à l'échange d'actions privilégiées",
+            "explanation": "Un échange d'actions privilégiées de CWB contre celles de la Banque Nationale a eu lieu, pour un montant total de M$. Ce changement est significatif car il affecte la composition des fonds propres de la banque, avec des implications sur les ratios de capital. Cela nécessite une confirmation pour évaluer l'impact sur la structure de capital",
+            "impact_description": "Modification de la composition des fonds propres par l'échange d'actions privilégiées, influençant les ratios de capital",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -955,14 +955,14 @@
           }
         },
         {
-          "change_id": "gestion_capital_actif_pondéré_en_fonction_des_risques_se_change_020",
+          "change_id": "gestion_capital_actif_pondéré_en_fonction_des_risques_se_change_019",
           "section_key": "gestion_capital",
           "subsection_heading": "Actif pondéré en fonction des risques selon les principaux facteurs de risque",
           "diff_type": "modified",
-          "semantic_text_t1": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au janvier, comparativement à G$ au octobre. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondéré en fonction des risques de la Banque par type de risque est présentée dans le tableau suivant",
-          "semantic_text_t2": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au avril, comparativement à G$ au octobre. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondéré en fonction des risques de la Banque par type de risque est présentée dans le tableau suivant",
-          "source_text_t1": "L'actif pondéré en fonction des risques a augmenté de 7,5 G$ pour s'établir à 148,5 G$ au 31 janvier 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondéré en fonction des risques de la Banque par type de risque est présentée dans le tableau suivant.",
-          "source_text_t2": "L'actif pondéré en fonction des risques a augmenté de 41,8 G$ pour s'établir à 182,8 G$ au 30 avril 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondéré en fonction des risques de la Banque par type de risque est présentée dans le tableau suivant.",
+          "semantic_text_t1": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au janvier, comparativement à G$ au octobre. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts",
+          "semantic_text_t2": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au avril, comparativement à G$ au octobre. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts",
+          "source_text_t1": "L'actif pondéré en fonction des risques a augmenté de 7,5 G$ pour s'établir à 148,5 G$ au 31 janvier 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts.",
+          "source_text_t2": "L'actif pondéré en fonction des risques a augmenté de 41,8 G$ pour s'établir à 182,8 G$ au 30 avril 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts.",
           "source_block_ids_t1": [],
           "source_block_ids_t2": [],
           "source_refs_t1": [],
@@ -979,15 +979,15 @@
             "pages": [
               25
             ],
-            "snippet": "L'actif pondéré en fonction des risques a augmenté de 7,5 G$ pour s'établir à 148,5 G$ au 31 janvier 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif po"
+            "snippet": "L'actif pondéré en fonction des risques a augmenté de 7,5 G$ pour s'établir à 148,5 G$ au 31 janvier 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de la croissance organique de l'actif pondéré en fonction des risques, de la variation du taux de change et de la détérioration de la qualité de crédit du portefeuille de prêts."
           },
           "evidence_t2": {
             "pages": [
               29
             ],
-            "snippet": "L'actif pondéré en fonction des risques a augmenté de 41,8 G$ pour s'établir à 182,8 G$ au 30 avril 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondé"
+            "snippet": "L'actif pondéré en fonction des risques a augmenté de 41,8 G$ pour s'établir à 182,8 G$ au 30 avril 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts."
           },
-          "change_summary": "Changement des montants et des dates, ajout de l'inclusion de CWB comme facteur d'augmentation",
+          "change_summary": "Les chiffres de l'augmentation de l'actif pondéré en fonction des risques ont changé, la date de référence est passée au avril, et l'inclusion de CWB est mentionnée comme une nouvelle raison de l'augmentation",
           "genai_triage": {
             "is_relevant": true,
             "category": "RISQUE",
@@ -995,8 +995,8 @@
             "risk_type": "credit",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "L'actif pondéré en fonction des risques a considérablement augmenté de G$, principalement en raison de l'inclusion de CWB. Ce changement est substantiel car il reflète une augmentation significative de l'exposition au risque de la banque. Cela nécessite une surveillance accrue pour évaluer l'impact sur la gestion des risques et les exigences de capital",
-            "impact_description": "Augmentation significative de l'exposition au risque, nécessitant une surveillance accrue",
+            "explanation": "L'actif pondéré en fonction des risques a considérablement augmenté de G$, principalement en raison de l'inclusion de CWB. Ce changement est majeur car il reflète une augmentation significative de l'exposition au risque, nécessitant une réévaluation des stratégies de gestion des risques. Cela implique une escalade pour évaluer l'impact sur la stabilité financière de la banque",
+            "impact_description": "Augmentation significative de l'exposition au risque due à l'inclusion de CWB, nécessitant une réévaluation des stratégies de gestion des risques",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1006,7 +1006,7 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
@@ -1044,7 +1044,7 @@
             ],
             "snippet": "Le ratio des fonds propres CET1, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres s'établissent, respectivement, à 13,4 %, à 15,1 % et à 16,9 % au 30 avril 2025, comparativement à des ratios de 13,7 %, de 15,9 % et de 17,0 %, respectivement, au 31 octobre 2024. Tous les ratios des fonds propres sont en baisse comparativement au 31 octobre 2024. La croissance de l'ac"
           },
-          "change_summary": "Les ratios des fonds propres ont diminué davantage en. L'inclusion de CWB a été un facteur défavorable, compensé par des actions ordinaires émises. L'impact du rachat d'actions privilégiées a été atténué par un échange d'actions avec CWB. Ajout des obligations de CWB comme facteur favorable",
+          "change_summary": "Les ratios des fonds propres ont diminué davantage en, principalement en raison de l'inclusion de CWB. L'impact du rachat d'actions privilégiées a été atténué par l'échange d'actions de CWB. Ajout des obligations liées aux dettes subordonnées de CWB",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1052,8 +1052,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les ratios des fonds propres ont diminué, principalement en raison de l'inclusion de CWB, malgré l'émission d'actions ordinaires. Ce changement est significatif car il affecte la capacité de la banque à respecter les exigences de capital réglementaires. Cela nécessite une évaluation approfondie pour s'assurer que la banque maintient des niveaux de capital adéquats",
-            "impact_description": "Diminution des ratios de fonds propres, impactant la capacité à respecter les des exigences prudentielles",
+            "explanation": "Les ratios des fonds propres ont diminué, principalement en raison de l'inclusion de CWB, malgré l'émission d'actions ordinaires. Ce changement est majeur car il affecte la capacité de la banque à maintenir des niveaux de capital adéquats, ce qui est crucial pour sa stabilité financière. Cela nécessite une escalade pour évaluer l'impact sur la conformité réglementaire et la gestion du capital",
+            "impact_description": "Diminution des ratios de fonds propres, affectant la capacité à maintenir des niveaux de capital adéquats",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1063,7 +1063,7 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
@@ -1101,7 +1101,7 @@
             ],
             "snippet": "Au 30 avril 2025, le ratio TLAC et le ratio de levier TLAC s'établissent à 28,2 % et à 8,8 %, comparativement à 31,2 % et à 8,6 %, respectivement, au 31 octobre 2024. L'augmentation du ratio de levier TLAC s'explique principalement par les émissions nettes d'instruments qui satisfont tous les critères d'admissibilité TLAC au cours de la période. Cependant, la croissance de l'actif pondéré en fonct"
           },
-          "change_summary": "Le ratio a diminué en, principalement en raison de l'inclusion de CWB, malgré l'augmentation du ratio de levier",
+          "change_summary": "Le ratio a diminué en, principalement en raison de l'inclusion de CWB, malgré les émissions nettes d'instruments",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1109,8 +1109,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio a diminué, principalement en raison de l'inclusion de CWB, malgré l'augmentation du ratio de levier. Ce changement est significatif car il affecte la capacité de la banque à respecter les exigences de capacité totale d'absorption des pertes. Cela nécessite une évaluation approfondie pour s'assurer que la banque maintient des niveaux de adéquats",
-            "impact_description": "Diminution du ratio, impactant la capacité à respecter les exigences de capacité d'absorption des pertes",
+            "explanation": "Le ratio a diminué, principalement en raison de l'inclusion de CWB, malgré les émissions nettes d'instruments. Ce changement est majeur car il affecte la capacité de la banque à respecter les exigences de capital total, cruciales pour sa résilience en cas de crise. Cela nécessite une escalade pour évaluer l'impact sur la conformité réglementaire et la gestion du capital",
+            "impact_description": "Diminution du ratio, affectant la capacité à respecter les exigences de capital total",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1120,13 +1120,13 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
         },
         {
-          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_019",
+          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_018",
           "section_key": "gestion_capital",
           "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
           "diff_type": "removed",
@@ -1159,11 +1159,11 @@
             "is_relevant": true,
             "category": "CAPITAL",
             "impact_level": "MODERE",
-            "risk_type": "capital",
+            "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La mention des actions privilégiées rachetées a été supprimée. Ce changement est important car il peut affecter la transparence des informations sur les rachats d'actions et leur impact sur les fonds propres. Cela nécessite une vérification pour s'assurer que les rachats sont correctement reflétés dans les calculs de fonds propres",
-            "impact_description": "Potentiel impact sur la transparence des informations sur les rachats d'actions et les fonds propres",
+            "explanation": "La mention des actions privilégiées série rachetées a été supprimée. Ce changement est significatif car il peut affecter la transparence des informations sur les rachats d'actions et leur impact sur les ratios de capital. Cela nécessite une investigation pour s'assurer que les informations sur les rachats sont correctement rapportées",
+            "impact_description": "Potentiel impact sur la transparence des informations sur les rachats d'actions et les ratios de capital",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1216,11 +1216,11 @@
             "is_relevant": true,
             "category": "CAPITAL",
             "impact_level": "MODERE",
-            "risk_type": "capital",
+            "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La mention de l'exclusion des instruments du calcul des ratios de fonds propres a été supprimée. Ce changement est substantiel car il peut affecter la transparence et la précision des informations sur les fonds propres. Cela nécessite une vérification pour s'assurer que les ratios de fonds propres sont correctement calculés et présentés",
-            "impact_description": "Potentiel impact sur la transparence et la précision des informations sur les fonds propres",
+            "explanation": "La mention de l'exclusion des actions privilégiées du calcul des ratios de fonds propres a été supprimée. Ce changement est important car il peut affecter la transparence et la précision des rapports de capital. Cela implique une vérification pour s'assurer que les ratios de fonds propres sont correctement calculés et rapportés",
+            "impact_description": "Potentiel impact sur la transparence et la précision des rapports de capital en raison de la suppression d'informations",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1272,8 +1272,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La sous section sur les exigences de communication publique pour les banques d'importance systémique mondiale a été supprimée. Ce changement est important car il peut affecter la transparence et la conformité aux exigences de communication réglementaires. Cela nécessite une vérification pour s'assurer que toutes les obligations de communication sont respectées",
-            "impact_description": "Potentiel impact sur la transparence et la conformité aux exigences de communication réglementaires",
+            "explanation": "La sous section sur les exigences de communication publique pour les banques d'importance systémique mondiale a été supprimée. Ce changement est significatif car il peut affecter la transparence et la conformité aux exigences de communication réglementaire. Cela nécessite une investigation pour s'assurer que la banque continue de respecter toutes les obligations de communication",
+            "impact_description": "Potentiel impact sur la transparence et la conformité aux exigences de communication réglementaire",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1321,7 +1321,7 @@
             ],
             "snippet": "Le 27 mai 2025, le conseil d'administration a déclaré les dividendes réguliers sur les diverses séries d'actions privilégiées de premier rang, ainsi qu'un dividende de 1,18 $ par action ordinaire, en hausse de 4 cents ou 3,4 %, payable le 1 er août 2025 aux actionnaires inscrits le 30 juin 2025."
           },
-          "change_summary": "La date de déclaration des dividendes a changé, le montant du dividende par action ordinaire a augmenté de cents, et les dates de paiement et d'enregistrement ont été modifiées",
+          "change_summary": "La date de déclaration des dividendes a changé, le montant du dividende par action ordinaire a augmenté de cents, et les dates de paiement et d'inscription ont été modifiées",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1329,8 +1329,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le montant du dividende par action ordinaire a augmenté de cents, passant à $. Ce changement est important car il reflète une politique de distribution plus généreuse, ce qui peut affecter les réserves de capital. Cela nécessite une évaluation de l'impact sur la capacité de la banque à maintenir ses niveaux de capital réglementaire",
-            "impact_description": "Augmentation des dividendes, potentiellement impactant les réserves de capital",
+            "explanation": "Le montant du dividende par action ordinaire a augmenté de cents, passant à $. Ce changement est significatif car il reflète une politique de distribution de dividendes plus généreuse, ce qui peut affecter la rétention des bénéfices et la capitalisation future. Cela nécessite une investigation pour comprendre l'impact sur la stratégie de capitalisation de la banque",
+            "impact_description": "Augmentation des dividendes, potentiellement influençant la rétention des bénéfices et la capitalisation future",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1340,13 +1340,13 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
         },
         {
-          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_017",
+          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_016",
           "section_key": "gestion_capital",
           "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
           "diff_type": "modified",
@@ -1378,7 +1378,7 @@
             ],
             "snippet": "Si un événement déclencheur faisant intervenir les clauses FPUNV devait se produire, toutes les actions privilégiées et les BCRL de la Banque ainsi que les billets à moyen terme et les débentures subordonnées, qui sont des instruments de fonds propres assortis d'une clause FPUNV, seraient convertis en actions ordinaires de la Banque selon une formule de conversion automatique, à un prix de convers"
           },
-          "change_summary": "Modification des instruments convertibles: ajout des débentures subordonnées et suppression des dates d'échéance spécifiques des billets à moyen terme",
+          "change_summary": "Ajout des débentures subordonnées dans la liste des instruments convertibles",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1386,24 +1386,24 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les débentures subordonnées ont été ajoutées aux instruments convertibles en cas de déclenchement des clauses FPUNV. Ce changement est important car il modifie la composition des instruments de fonds propres convertibles, affectant potentiellement la structure du capital en cas de crise. Cela nécessite une vérification pour s'assurer que tous les instruments sont correctement inclus dans les calculs de fonds propres",
-            "impact_description": "Modification de la composition des instruments convertibles, impactant la structure du capital en cas de crise",
-            "action_requise": "investigation",
+            "explanation": "Les débentures subordonnées ont été ajoutées à la liste des instruments convertibles en cas de déclenchement des clauses FPUNV. Ce changement est significatif car il élargit le champ des instruments pouvant être convertis en actions ordinaires, affectant potentiellement la structure de capital en cas de crise. Cela nécessite une confirmation pour évaluer l'impact sur la gestion des risques de capital",
+            "impact_description": "Extension des instruments convertibles, influençant la structure de capital en cas de crise",
+            "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
             "confidence": 0.0,
             "source": "gpt4o_triage",
             "signals": {
               "regulatory_reference_added": false,
-              "methodology_change": true,
+              "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": false
             }
           }
         },
         {
-          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_018",
+          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_017",
           "section_key": "gestion_capital",
           "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
           "diff_type": "modified",
@@ -1435,7 +1435,7 @@
             ],
             "snippet": "Selon un prix-plancher de 5,00 $ et en tenant compte des dividendes et intérêts cumulés estimés, ces instruments de fonds propres assortis d'une clause FPUNV se convertiraient en un maximum de 1 472 millions d'actions ordinaires de la Banque, d'où un effet dilutif de 79,0 % selon le nombre d'actions ordinaires de la Banque en circulation au 30 avril 2025."
           },
-          "change_summary": "Mise à jour des chiffres de conversion maximale et de l'effet dilutif, ainsi que de la date de référence",
+          "change_summary": "Mise à jour du nombre maximum d'actions convertibles et de l'effet dilutif",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1443,8 +1443,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le nombre maximal d'actions ordinaires convertibles a augmenté, entraînant un effet dilutif plus élevé. Ce changement est significatif car il augmente le potentiel de dilution des actions en cas de conversion des instruments de fonds propres. Cela nécessite une évaluation de l'impact sur les actionnaires et la structure du capital",
-            "impact_description": "Augmentation du potentiel de dilution des actions ordinaires en cas de conversion",
+            "explanation": "Le nombre maximum d'actions convertibles et l'effet dilutif ont été mis à jour. Ce changement est important car il modifie les prévisions de dilution potentielle en cas de conversion, ce qui peut affecter la perception des investisseurs et la valorisation des actions. Cela nécessite une investigation pour comprendre l'impact sur la stratégie de gestion du capital",
+            "impact_description": "Modification des prévisions de dilution potentielle, influençant la perception des investisseurs",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1454,7 +1454,7 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
@@ -1492,7 +1492,7 @@
             ],
             "snippet": "Le ratio de levier en date du 30 avril 2025 s'établit à 4,7 %, comparativement à 4,4 % au 31 octobre 2024. L'augmentation du ratio de levier s'explique essentiellement par la croissance des fonds propres de catégorie 1 en lien avec les actions ordinaires émises dans le cadre de l'acquisition de CWB, en partie contrebalancée par l'augmentation de l'exposition totale."
           },
-          "change_summary": "Le ratio de levier a augmenté en, principalement en raison de l'acquisition de CWB, contrairement à la baisse observée en",
+          "change_summary": "Le ratio de levier a augmenté en, principalement en raison de l'acquisition de CWB",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1500,8 +1500,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio de levier a augmenté, principalement en raison de l'acquisition de CWB. Ce changement est important car il reflète une amélioration de la capacité de la banque à absorber les pertes, mais nécessite une vérification pour s'assurer que l'augmentation est durable. Cela implique une surveillance continue pour évaluer l'impact sur la gestion des risques et les exigences de capital",
-            "impact_description": "Augmentation du ratio de levier, reflétant une amélioration de la capacité à absorber les pertes",
+            "explanation": "Le ratio de levier a augmenté, principalement en raison de la croissance des fonds propres liée à l'acquisition de CWB. Ce changement est modéré car il améliore la capacité de la banque à absorber les pertes, mais nécessite une investigation pour comprendre l'impact sur la gestion globale du capital",
+            "impact_description": "Augmentation du ratio de levier, améliorant la capacité d'absorption des pertes",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1511,7 +1511,7 @@
               "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
-              "forward_looking": false,
+              "forward_looking": true,
               "quantitative_changed": true
             }
           }
@@ -1549,7 +1549,7 @@
             ],
             "snippet": "La ligne directrice Capacité totale d'absorption des pertes (Total Loss Absorbing Capacity ou TLAC) du BSIF, qui s'applique à toutes les BISI dans le cadre des règlements sur la recapitalisation interne du gouvernement fédéral, vise à faire en sorte qu'une BISI dispose d'une capacité d'absorption des pertes suffisante pour soutenir sa recapitalisation interne dans le cas peu probable où elle devie"
           },
-          "change_summary": "La date de référence pour la valeur des éléments de passif en circulation a changé de ' janvier ' à ' avril ', et la valeur a été ajustée de ' G$' à ' G$'",
+          "change_summary": "La date de référence pour la valeur des éléments de passif en circulation a été mise à jour de ' janvier ' à ' avril ', et la valeur a été ajustée de ' G$' à ' G$'",
           "genai_triage": {
             "is_relevant": false,
             "category": "COSMETIQUE",
@@ -1578,10 +1578,10 @@
           "section_key": "gestion_capital",
           "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
           "diff_type": "modified",
-          "semantic_text_t1": "Au février, le nombre d'actions ordinaires en circulation se chiffre à et le nombre d'options en cours est de",
-          "semantic_text_t2": "Au mai, le nombre d'actions ordinaires en circulation se chiffre à et le nombre d'options en cours est de",
-          "source_text_t1": "Au 21 février 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 216 059 et le nombre d'options en cours est de 11 778 661.",
-          "source_text_t2": "Au 23 mai 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 340 763 et le nombre d'options en cours est de 11 619 774.",
+          "semantic_text_t1": "Au février, le nombre d'actions ordinaires en circulation se chiffre à et le nombre d'options en cours est de. Les nombres d'actions ordinaires et d'options en circulation tiennent compte de la conclusion de la transaction CWB",
+          "semantic_text_t2": "Au mai, le nombre d'actions ordinaires en circulation se chiffre à et le nombre d'options en cours est de. Le nombre d'actions ordinaires et le nombre d'options en circulation reflètent la clôture de la transaction avec CWB",
+          "source_text_t1": "Au 21 février 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 216 059 et le nombre d'options en cours est de 11 778 661. Les nombres d'actions ordinaires et d'options en circulation tiennent compte de la conclusion de la transaction CWB.",
+          "source_text_t2": "Au 23 mai 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 340 763 et le nombre d'options en cours est de 11 619 774. Le nombre d'actions ordinaires et le nombre d'options en circulation reflètent la clôture de la transaction avec CWB.",
           "source_block_ids_t1": [],
           "source_block_ids_t2": [],
           "source_refs_t1": [],
@@ -1598,15 +1598,15 @@
             "pages": [
               23
             ],
-            "snippet": "Au 21 février 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 216 059 et le nombre d'options en cours est de 11 778 661."
+            "snippet": "Au 21 février 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 216 059 et le nombre d'options en cours est de 11 778 661. Les nombres d'actions ordinaires et d'options en circulation tiennent compte de la conclusion de la transaction CWB."
           },
           "evidence_t2": {
             "pages": [
               27
             ],
-            "snippet": "Au 23 mai 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 340 763 et le nombre d'options en cours est de 11 619 774."
+            "snippet": "Au 23 mai 2025, le nombre d'actions ordinaires en circulation se chiffre à 391 340 763 et le nombre d'options en cours est de 11 619 774. Le nombre d'actions ordinaires et le nombre d'options en circulation reflètent la clôture de la transaction avec CWB."
           },
-          "change_summary": "Mise à jour des chiffres des actions ordinaires et des options en circulation",
+          "change_summary": "Mise à jour des chiffres des actions et options en circulation et de la date de référence",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1614,8 +1614,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le nombre d'actions ordinaires en circulation a légèrement augmenté, tandis que le nombre d'options en cours a diminué. Ce changement est mineur mais pertinent car il affecte la dilution potentielle des actions. Cela implique un suivi continu pour évaluer l'impact sur la structure du capital et la dilution des actionnaires",
-            "impact_description": "Légère modification de la dilution potentielle des actions ordinaires",
+            "explanation": "Le nombre d'actions ordinaires et d'options en circulation a été mis à jour suite à la clôture de la transaction avec CWB. Ce changement est mineur car il s'agit d'une mise à jour quantitative sans impact significatif sur la structure de capital. Cela implique simplement de tenir à jour les informations sur le capital en circulation",
+            "impact_description": "Mise à jour quantitative des actions et options en circulation après une transaction",
             "action_requise": "information",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1763,7 +1763,113 @@
       "section_title": "Gestion des risques",
       "block_comparisons": [
         {
-          "change_id": "gestion_risques_revenus_de_négociation_et_de_souscriptio_change_041",
+          "change_id": "gestion_risques_risque_environnemental_et_social_change_039",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Risque environnemental et social",
+          "diff_type": "added",
+          "semantic_text_t1": "",
+          "semantic_text_t2": "Le avril, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années",
+          "source_text_t1": "",
+          "source_text_t2": "Le 23 avril 2025, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [],
+          "pages_t2": [
+            46
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [],
+            "snippet": ""
+          },
+          "evidence_t2": {
+            "pages": [
+              46
+            ],
+            "snippet": "Le 23 avril 2025, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années."
+          },
+          "change_summary": "Ajout d'une annonce des ACVM concernant la suspension des travaux sur la communication obligatoire d'information liée au changement climatique et la diversité",
+          "genai_triage": {
+            "is_relevant": true,
+            "category": "REGLEMENTAIRE",
+            "impact_level": "MAJEUR",
+            "risk_type": "conformite",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "Les ACVM ont annoncé la suspension de leurs travaux sur la communication obligatoire d'information liée au changement climatique et la diversité. Ce changement est substantiel car il affecte les obligations de divulgation réglementaire des institutions financières. Cela implique que la banque doit réévaluer ses stratégies de conformité et de communication en matière de durabilité",
+            "impact_description": "La suspension des projets par les ACVM pourrait entraîner des incertitudes réglementaires, nécessitant une révision des pratiques de divulgation de la banque",
+            "action_requise": "escalade",
+            "reference_reglementaire": "",
+            "nouvelle_idee": true,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": true,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": true,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_risque_environnemental_et_social_change_040",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Risque environnemental et social",
+          "diff_type": "added",
+          "semantic_text_t1": "",
+          "semantic_text_t2": "Le mars, le a publié une mise à jour de la ligne directrice intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs",
+          "source_text_t1": "",
+          "source_text_t2": "Le 7 mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [],
+          "pages_t2": [
+            46
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [],
+            "snippet": ""
+          },
+          "evidence_t2": {
+            "pages": [
+              46
+            ],
+            "snippet": "Le 7 mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs."
+          },
+          "change_summary": "Ajout d'une mise à jour du sur la ligne directrice concernant la gestion des risques climatiques",
+          "genai_triage": {
+            "is_relevant": true,
+            "category": "REGLEMENTAIRE",
+            "impact_level": "MAJEUR",
+            "risk_type": "conformite",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "Une mise à jour de la ligne directrice sur la gestion des risques climatiques a été publiée, reportant certaines exigences de divulgation. Ce changement est substantiel car il modifie les attentes réglementaires en matière de gestion des risques climatiques. Cela implique que la banque doit ajuster ses pratiques de gestion des risques pour se conformer aux nouvelles directives",
+            "impact_description": "Le report des exigences de divulgation des émissions de GES pourrait affecter la transparence et la gestion des risques climatiques de la banque",
+            "action_requise": "escalade",
+            "reference_reglementaire": "",
+            "nouvelle_idee": true,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": true,
+              "methodology_change": true,
+              "tone_changed": false,
+              "forward_looking": true,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_revenus_de_négociation_et_de_souscriptio_change_042",
           "section_key": "gestion_risques",
           "subsection_heading": "Revenus de négociation et de souscription quotidiens",
           "diff_type": "added",
@@ -1799,8 +1905,8 @@
             "risk_type": "marche",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Une nouvelle section sur les revenus de négociation et de souscription quotidiens a été ajoutée. Ce changement est substantiel car il fournit des informations détaillées sur la performance quotidienne des activités de marché. Cela implique une surveillance accrue des fluctuations quotidiennes des revenus de négociation",
-            "impact_description": "L'ajout de cette section permet une meilleure compréhension des performances quotidiennes et des risques associés",
+            "explanation": "Une nouvelle section a été ajoutée pour illustrer les revenus de négociation et de souscription quotidiens. Ce changement est substantiel car il fournit des informations supplémentaires sur la performance quotidienne des activités de marché. Cela implique que la banque pourrait être plus transparente sur ses résultats de négociation, nécessitant une analyse pour comprendre l'impact sur le risque de marché",
+            "impact_description": "L'ajout de cette section pourrait indiquer une volonté de la banque d'améliorer la transparence de ses activités de marché, ce qui pourrait influencer la perception du risque par les parties prenantes",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -1812,116 +1918,6 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
-          }
-        },
-        {
-          "change_id": "gestion_risques_risque_environnemental_et_social_change_039",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Risque environnemental et social",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le mars, le a publié une mise à jour de la ligne directrice intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs",
-          "source_text_t1": "",
-          "source_text_t2": "Le 7 mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            46
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              46
-            ],
-            "snippet": "Le 7 mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs."
-          },
-          "change_summary": "Ajout d'une mise à jour par le sur la gestion des risques climatiques, incluant le report de la divulgation des émissions de GES de portée trois",
-          "genai_triage": {
-            "is_relevant": true,
-            "category": "REGLEMENTAIRE",
-            "impact_level": "MODERE",
-            "risk_type": "conformite",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "explanation": "Une mise à jour de la ligne directrice sur la gestion des risques climatiques a été publiée, reportant certaines exigences de divulgation. Ce changement est substantiel car il modifie les attentes réglementaires pour la banque. Cela implique que la banque doit ajuster ses pratiques de divulgation pour se conformer aux nouvelles directives",
-            "impact_description": "Le report des exigences de divulgation offre un délai supplémentaire pour se conformer aux nouvelles normes",
-            "action_requise": "information",
-            "reference_reglementaire": "",
-            "nouvelle_idee": true,
-            "confidence": 0.0,
-            "source": "gpt4o_triage",
-            "signals": {
-              "regulatory_reference_added": true,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": true,
-              "quantitative_changed": false
-            }
-          }
-        },
-        {
-          "change_id": "gestion_risques_risque_environnemental_et_social_change_038",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Risque environnemental et social",
-          "diff_type": "modified",
-          "semantic_text_t1": "Le décembre, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes Obligations générales en matière d'informations financières liées à la durabilité et Informations à fournir en lien avec les changements climatiques, reprennent les propositions énoncées dans les exposés sondages publiés le mars et incluent des allègements transitoires additionnels pour certaines exigences en matière d'informations à fournir. Les NCID s'appliqueront aux BISI à la fin de l'exercice, et les mesures d'allègements transitoires entraîneront le report de plusieurs exigences jusqu'à la fin de l'exercice. La présentation des informations selon les NCID se fera de façon volontaire jusqu'à ce que les ACVM la rendent obligatoire",
-          "semantic_text_t2": "Le décembre, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes Obligations générales en matière d'informations financières liées à la durabilité et Informations à fournir en lien avec les changements climatiques, reprennent les propositions énoncées dans les exposés sondages publiés le mars et incluent des allègements transitoires additionnels pour certaines exigences en matière d'informations à fournir. Les NCID s'appliqueront aux BISI à la fin de l'exercice, et les mesures d'allègements transitoires entraîneront le report de plusieurs exigences jusqu'à la fin de l'exercice. La présentation des informations selon les NCID se fera de façon volontaire jusqu'à ce que les ACVM la rendent obligatoire. Le avril, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années",
-          "source_text_t1": "Le 18 décembre 2024, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID 1 - Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID 2 - Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes IFRS S1 - Obligations générales en matière d'informations financières liées à la durabilité et IFRS S2 - Informations à fournir en lien avec les changements climatiques, reprennent les propositions énoncées dans les exposés-sondages publiés le 13 mars 2024 et incluent des allègements transitoires additionnels pour certaines exigences en matière d'informations à fournir. Les NCID s'appliqueront aux BISI à la fin de l'exercice 2026, et les mesures d'allègements transitoires entraîneront le report de plusieurs exigences jusqu'à la fin de l'exercice 2029. La présentation des informations selon les NCID se fera de façon volontaire jusqu'à ce que les ACVM la rendent obligatoire.",
-          "source_text_t2": "Le 18 décembre 2024, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID 1 - Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID 2 - Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes IFRS S1 - Obligations générales en matière d'informations financières liées à la durabilité et IFRS S2 - Informations à fournir en lien avec les changements climatiques, reprennent les propositions énoncées dans les exposés-sondages publiés le 13 mars 2024 et incluent des allègements transitoires additionnels pour certaines exigences en matière d'informations à fournir. Les NCID s'appliqueront aux BISI à la fin de l'exercice 2026, et les mesures d'allègements transitoires entraîneront le report de plusieurs exigences jusqu'à la fin de l'exercice 2029. La présentation des informations selon les NCID se fera de façon volontaire jusqu'à ce que les ACVM la rendent obligatoire. Le 23 avril 2025, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            43
-          ],
-          "pages_t2": [
-            46
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              43
-            ],
-            "snippet": "Le 18 décembre 2024, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID 1 - Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID 2 - Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes"
-          },
-          "evidence_t2": {
-            "pages": [
-              46
-            ],
-            "snippet": "Le 18 décembre 2024, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID 1 - Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID 2 - Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes"
-          },
-          "change_summary": "Ajout d'informations sur la suspension par les ACVM des travaux sur la communication obligatoire liée au changement climatique et la diversité",
-          "genai_triage": {
-            "is_relevant": true,
-            "category": "REGLEMENTAIRE",
-            "impact_level": "MAJEUR",
-            "risk_type": "conformite",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "explanation": "Les ACVM ont suspendu leurs travaux sur la communication obligatoire liée au changement climatique et à la diversité. Ce changement est substantiel car il modifie le cadre réglementaire attendu pour la divulgation d'informations importantes. Cela implique une incertitude accrue pour la banque quant aux exigences futures en matière de divulgation",
-            "impact_description": "La suspension des travaux réglementaires pourrait retarder l'adoption de pratiques de divulgation plus transparentes",
-            "action_requise": "escalade",
-            "reference_reglementaire": "",
-            "nouvelle_idee": false,
-            "confidence": 0.0,
-            "source": "gpt4o_triage",
-            "signals": {
-              "regulatory_reference_added": true,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": true,
-              "quantitative_changed": false
             }
           }
         },
@@ -1966,8 +1962,8 @@
             "risk_type": "marche",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La description du contexte géopolitique et économique volatile a été supprimée. Ce changement est substantiel car il omet des facteurs de risque importants qui influencent le risque de marché. Cela implique une surveillance accrue des expositions de la banque aux événements géopolitiques et économiques",
-            "impact_description": "La suppression de ces informations pourrait sous estimer les risques de marché actuels auxquels la banque est exposée",
+            "explanation": "La description du contexte géopolitique et économique volatile a été supprimée. Ce changement est substantiel car il retire des informations cruciales sur les facteurs externes influençant le risque de marché. Cela implique une vigilance accrue pour comprendre comment la banque évalue et communique ses expositions aux risques de marché",
+            "impact_description": "La suppression de ces informations pourrait indiquer un changement dans la perception ou la communication des risques par la banque, nécessitant une analyse plus approfondie",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2015,7 +2011,7 @@
             ],
             "snippet": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée stable entre le premier trimestre et le deuxième trimestre de 2025."
           },
-          "change_summary": "Le texte indique que la la mesure de risque de marché est restée stable entre et, alors que mentionne une augmentation entre et",
+          "change_summary": "La la mesure de risque de marché totale est passée d'une augmentation à une stabilité, et la période de comparaison a changé",
           "genai_triage": {
             "is_relevant": true,
             "category": "RISQUE",
@@ -2023,8 +2019,8 @@
             "risk_type": "marche",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La mesure de risque de marché totale des portefeuilles de négociation est passée d'une augmentation à une stabilité. Ce changement est substantiel car il indique une inversion de tendance dans l'évaluation du risque de marché. Cela nécessite une vérification pour comprendre les raisons de cette stabilité apparente",
-            "impact_description": "La stabilité apparente du risque de marché pourrait masquer des fluctuations sous jacentes non capturées",
+            "explanation": "La mesure de risque de marché totale est passée d'une augmentation à une stabilité entre les trimestres. Ce changement est substantiel car il indique une inversion de tendance dans l'évaluation du risque de marché. Cela implique que la banque pourrait avoir ajusté ses stratégies de gestion des risques, nécessitant une analyse plus approfondie",
+            "impact_description": "La stabilité de la mesure de risque de marché après une période d'augmentation pourrait signaler un changement dans la gestion des risques ou une adaptation aux conditions du marché",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2072,7 +2068,7 @@
             ],
             "snippet": "Le tableau de la page suivante présente les positions moyennes du LCR calculées à partir des observations quotidiennes du trimestre. Le LCR moyen de la Banque au cours du trimestre terminé le 30 avril 2025 est de 166 %, bien au-delà de l'exigence réglementaire de 100 %, ce qui démontre que la position de liquidité à court terme de la Banque est solide."
           },
-          "change_summary": "Les dates et le pourcentage du moyen ont été mis à jour pour refléter le trimestre terminé le avril avec un de",
+          "change_summary": "Mise à jour de la date de fin du trimestre et du moyen de à",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -2080,8 +2076,8 @@
             "risk_type": "liquidite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio de liquidité à court terme a été mis à jour de à. Ce changement est substantiel car il montre une amélioration significative de la position de liquidité de la banque. Cela implique que la banque a renforcé sa capacité à faire face à des sorties de trésorerie imprévues",
-            "impact_description": "Une amélioration du ratio de liquidité à court terme renforce la résilience financière de la banque",
+            "explanation": "Le ratio de liquidité à court terme a été mis à jour, passant de à. Ce changement est substantiel car il montre une amélioration significative de la position de liquidité de la banque. Cela implique que la banque a renforcé sa capacité à faire face à des sorties de trésorerie imprévues, ce qui est crucial pour sa stabilité financière",
+            "impact_description": "Une augmentation du ratio de liquidité à court terme renforce la résilience de la banque face aux chocs de liquidité",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2137,8 +2133,8 @@
             "risk_type": "liquidite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio de liquidité à long terme est passé de à. Ce changement est substantiel car il indique une amélioration de la capacité de la banque à maintenir des liquidités sur le long terme. Cela implique une meilleure gestion des ressources financières pour répondre aux obligations futures",
-            "impact_description": "Une augmentation du ratio de liquidité à long terme améliore la stabilité financière de la banque",
+            "explanation": "Le ratio de liquidité à long terme a été mis à jour, passant de à. Ce changement est substantiel car il montre une amélioration de la capacité de la banque à maintenir une liquidité stable à long terme. Cela implique que la banque est mieux préparée pour gérer ses obligations financières futures",
+            "impact_description": "Une augmentation du ratio de liquidité à long terme indique une gestion prudente des ressources financières, renforçant la stabilité à long terme de la banque",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2156,7 +2152,113 @@
       ],
       "all_block_comparisons": [
         {
-          "change_id": "gestion_risques_revenus_de_négociation_et_de_souscriptio_change_041",
+          "change_id": "gestion_risques_risque_environnemental_et_social_change_039",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Risque environnemental et social",
+          "diff_type": "added",
+          "semantic_text_t1": "",
+          "semantic_text_t2": "Le avril, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années",
+          "source_text_t1": "",
+          "source_text_t2": "Le 23 avril 2025, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [],
+          "pages_t2": [
+            46
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [],
+            "snippet": ""
+          },
+          "evidence_t2": {
+            "pages": [
+              46
+            ],
+            "snippet": "Le 23 avril 2025, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années."
+          },
+          "change_summary": "Ajout d'une annonce des ACVM concernant la suspension des travaux sur la communication obligatoire d'information liée au changement climatique et la diversité",
+          "genai_triage": {
+            "is_relevant": true,
+            "category": "REGLEMENTAIRE",
+            "impact_level": "MAJEUR",
+            "risk_type": "conformite",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "Les ACVM ont annoncé la suspension de leurs travaux sur la communication obligatoire d'information liée au changement climatique et la diversité. Ce changement est substantiel car il affecte les obligations de divulgation réglementaire des institutions financières. Cela implique que la banque doit réévaluer ses stratégies de conformité et de communication en matière de durabilité",
+            "impact_description": "La suspension des projets par les ACVM pourrait entraîner des incertitudes réglementaires, nécessitant une révision des pratiques de divulgation de la banque",
+            "action_requise": "escalade",
+            "reference_reglementaire": "",
+            "nouvelle_idee": true,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": true,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": true,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_risque_environnemental_et_social_change_040",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Risque environnemental et social",
+          "diff_type": "added",
+          "semantic_text_t1": "",
+          "semantic_text_t2": "Le mars, le a publié une mise à jour de la ligne directrice intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs",
+          "source_text_t1": "",
+          "source_text_t2": "Le 7 mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [],
+          "pages_t2": [
+            46
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [],
+            "snippet": ""
+          },
+          "evidence_t2": {
+            "pages": [
+              46
+            ],
+            "snippet": "Le 7 mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs."
+          },
+          "change_summary": "Ajout d'une mise à jour du sur la ligne directrice concernant la gestion des risques climatiques",
+          "genai_triage": {
+            "is_relevant": true,
+            "category": "REGLEMENTAIRE",
+            "impact_level": "MAJEUR",
+            "risk_type": "conformite",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "Une mise à jour de la ligne directrice sur la gestion des risques climatiques a été publiée, reportant certaines exigences de divulgation. Ce changement est substantiel car il modifie les attentes réglementaires en matière de gestion des risques climatiques. Cela implique que la banque doit ajuster ses pratiques de gestion des risques pour se conformer aux nouvelles directives",
+            "impact_description": "Le report des exigences de divulgation des émissions de GES pourrait affecter la transparence et la gestion des risques climatiques de la banque",
+            "action_requise": "escalade",
+            "reference_reglementaire": "",
+            "nouvelle_idee": true,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": true,
+              "methodology_change": true,
+              "tone_changed": false,
+              "forward_looking": true,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_revenus_de_négociation_et_de_souscriptio_change_042",
           "section_key": "gestion_risques",
           "subsection_heading": "Revenus de négociation et de souscription quotidiens",
           "diff_type": "added",
@@ -2192,8 +2294,8 @@
             "risk_type": "marche",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Une nouvelle section sur les revenus de négociation et de souscription quotidiens a été ajoutée. Ce changement est substantiel car il fournit des informations détaillées sur la performance quotidienne des activités de marché. Cela implique une surveillance accrue des fluctuations quotidiennes des revenus de négociation",
-            "impact_description": "L'ajout de cette section permet une meilleure compréhension des performances quotidiennes et des risques associés",
+            "explanation": "Une nouvelle section a été ajoutée pour illustrer les revenus de négociation et de souscription quotidiens. Ce changement est substantiel car il fournit des informations supplémentaires sur la performance quotidienne des activités de marché. Cela implique que la banque pourrait être plus transparente sur ses résultats de négociation, nécessitant une analyse pour comprendre l'impact sur le risque de marché",
+            "impact_description": "L'ajout de cette section pourrait indiquer une volonté de la banque d'améliorer la transparence de ses activités de marché, ce qui pourrait influencer la perception du risque par les parties prenantes",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -2205,116 +2307,6 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
-          }
-        },
-        {
-          "change_id": "gestion_risques_risque_environnemental_et_social_change_039",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Risque environnemental et social",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le mars, le a publié une mise à jour de la ligne directrice intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs",
-          "source_text_t1": "",
-          "source_text_t2": "Le 7 mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            46
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              46
-            ],
-            "snippet": "Le 7 mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 intitulée Gestion des risques climatiques. Les principales modifications comprennent le report de l'exigence de divulgation des émissions de gaz à effet de serre (GES) de portée trois et une clarification des attentes concernant les activités de gestion d'actifs."
-          },
-          "change_summary": "Ajout d'une mise à jour par le sur la gestion des risques climatiques, incluant le report de la divulgation des émissions de GES de portée trois",
-          "genai_triage": {
-            "is_relevant": true,
-            "category": "REGLEMENTAIRE",
-            "impact_level": "MODERE",
-            "risk_type": "conformite",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "explanation": "Une mise à jour de la ligne directrice sur la gestion des risques climatiques a été publiée, reportant certaines exigences de divulgation. Ce changement est substantiel car il modifie les attentes réglementaires pour la banque. Cela implique que la banque doit ajuster ses pratiques de divulgation pour se conformer aux nouvelles directives",
-            "impact_description": "Le report des exigences de divulgation offre un délai supplémentaire pour se conformer aux nouvelles normes",
-            "action_requise": "information",
-            "reference_reglementaire": "",
-            "nouvelle_idee": true,
-            "confidence": 0.0,
-            "source": "gpt4o_triage",
-            "signals": {
-              "regulatory_reference_added": true,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": true,
-              "quantitative_changed": false
-            }
-          }
-        },
-        {
-          "change_id": "gestion_risques_risque_environnemental_et_social_change_038",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Risque environnemental et social",
-          "diff_type": "modified",
-          "semantic_text_t1": "Le décembre, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes Obligations générales en matière d'informations financières liées à la durabilité et Informations à fournir en lien avec les changements climatiques, reprennent les propositions énoncées dans les exposés sondages publiés le mars et incluent des allègements transitoires additionnels pour certaines exigences en matière d'informations à fournir. Les NCID s'appliqueront aux BISI à la fin de l'exercice, et les mesures d'allègements transitoires entraîneront le report de plusieurs exigences jusqu'à la fin de l'exercice. La présentation des informations selon les NCID se fera de façon volontaire jusqu'à ce que les ACVM la rendent obligatoire",
-          "semantic_text_t2": "Le décembre, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes Obligations générales en matière d'informations financières liées à la durabilité et Informations à fournir en lien avec les changements climatiques, reprennent les propositions énoncées dans les exposés sondages publiés le mars et incluent des allègements transitoires additionnels pour certaines exigences en matière d'informations à fournir. Les NCID s'appliqueront aux BISI à la fin de l'exercice, et les mesures d'allègements transitoires entraîneront le report de plusieurs exigences jusqu'à la fin de l'exercice. La présentation des informations selon les NCID se fera de façon volontaire jusqu'à ce que les ACVM la rendent obligatoire. Le avril, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années",
-          "source_text_t1": "Le 18 décembre 2024, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID 1 - Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID 2 - Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes IFRS S1 - Obligations générales en matière d'informations financières liées à la durabilité et IFRS S2 - Informations à fournir en lien avec les changements climatiques, reprennent les propositions énoncées dans les exposés-sondages publiés le 13 mars 2024 et incluent des allègements transitoires additionnels pour certaines exigences en matière d'informations à fournir. Les NCID s'appliqueront aux BISI à la fin de l'exercice 2026, et les mesures d'allègements transitoires entraîneront le report de plusieurs exigences jusqu'à la fin de l'exercice 2029. La présentation des informations selon les NCID se fera de façon volontaire jusqu'à ce que les ACVM la rendent obligatoire.",
-          "source_text_t2": "Le 18 décembre 2024, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID 1 - Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID 2 - Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes IFRS S1 - Obligations générales en matière d'informations financières liées à la durabilité et IFRS S2 - Informations à fournir en lien avec les changements climatiques, reprennent les propositions énoncées dans les exposés-sondages publiés le 13 mars 2024 et incluent des allègements transitoires additionnels pour certaines exigences en matière d'informations à fournir. Les NCID s'appliqueront aux BISI à la fin de l'exercice 2026, et les mesures d'allègements transitoires entraîneront le report de plusieurs exigences jusqu'à la fin de l'exercice 2029. La présentation des informations selon les NCID se fera de façon volontaire jusqu'à ce que les ACVM la rendent obligatoire. Le 23 avril 2025, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            43
-          ],
-          "pages_t2": [
-            46
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              43
-            ],
-            "snippet": "Le 18 décembre 2024, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID 1 - Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID 2 - Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes"
-          },
-          "evidence_t2": {
-            "pages": [
-              46
-            ],
-            "snippet": "Le 18 décembre 2024, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID 1 - Obligations générales en matière d'informations financières liées à la durabilité, et la norme NCID 2 - Informations à fournir en lien avec les changements climatiques, qui se fondent largement sur les normes"
-          },
-          "change_summary": "Ajout d'informations sur la suspension par les ACVM des travaux sur la communication obligatoire liée au changement climatique et la diversité",
-          "genai_triage": {
-            "is_relevant": true,
-            "category": "REGLEMENTAIRE",
-            "impact_level": "MAJEUR",
-            "risk_type": "conformite",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "explanation": "Les ACVM ont suspendu leurs travaux sur la communication obligatoire liée au changement climatique et à la diversité. Ce changement est substantiel car il modifie le cadre réglementaire attendu pour la divulgation d'informations importantes. Cela implique une incertitude accrue pour la banque quant aux exigences futures en matière de divulgation",
-            "impact_description": "La suspension des travaux réglementaires pourrait retarder l'adoption de pratiques de divulgation plus transparentes",
-            "action_requise": "escalade",
-            "reference_reglementaire": "",
-            "nouvelle_idee": false,
-            "confidence": 0.0,
-            "source": "gpt4o_triage",
-            "signals": {
-              "regulatory_reference_added": true,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": true,
-              "quantitative_changed": false
             }
           }
         },
@@ -2359,8 +2351,8 @@
             "risk_type": "marche",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La description du contexte géopolitique et économique volatile a été supprimée. Ce changement est substantiel car il omet des facteurs de risque importants qui influencent le risque de marché. Cela implique une surveillance accrue des expositions de la banque aux événements géopolitiques et économiques",
-            "impact_description": "La suppression de ces informations pourrait sous estimer les risques de marché actuels auxquels la banque est exposée",
+            "explanation": "La description du contexte géopolitique et économique volatile a été supprimée. Ce changement est substantiel car il retire des informations cruciales sur les facteurs externes influençant le risque de marché. Cela implique une vigilance accrue pour comprendre comment la banque évalue et communique ses expositions aux risques de marché",
+            "impact_description": "La suppression de ces informations pourrait indiquer un changement dans la perception ou la communication des risques par la banque, nécessitant une analyse plus approfondie",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2408,7 +2400,7 @@
             ],
             "snippet": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée stable entre le premier trimestre et le deuxième trimestre de 2025."
           },
-          "change_summary": "Le texte indique que la la mesure de risque de marché est restée stable entre et, alors que mentionne une augmentation entre et",
+          "change_summary": "La la mesure de risque de marché totale est passée d'une augmentation à une stabilité, et la période de comparaison a changé",
           "genai_triage": {
             "is_relevant": true,
             "category": "RISQUE",
@@ -2416,8 +2408,8 @@
             "risk_type": "marche",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La mesure de risque de marché totale des portefeuilles de négociation est passée d'une augmentation à une stabilité. Ce changement est substantiel car il indique une inversion de tendance dans l'évaluation du risque de marché. Cela nécessite une vérification pour comprendre les raisons de cette stabilité apparente",
-            "impact_description": "La stabilité apparente du risque de marché pourrait masquer des fluctuations sous jacentes non capturées",
+            "explanation": "La mesure de risque de marché totale est passée d'une augmentation à une stabilité entre les trimestres. Ce changement est substantiel car il indique une inversion de tendance dans l'évaluation du risque de marché. Cela implique que la banque pourrait avoir ajusté ses stratégies de gestion des risques, nécessitant une analyse plus approfondie",
+            "impact_description": "La stabilité de la mesure de risque de marché après une période d'augmentation pourrait signaler un changement dans la gestion des risques ou une adaptation aux conditions du marché",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2465,7 +2457,7 @@
             ],
             "snippet": "Le tableau de la page suivante présente les positions moyennes du LCR calculées à partir des observations quotidiennes du trimestre. Le LCR moyen de la Banque au cours du trimestre terminé le 30 avril 2025 est de 166 %, bien au-delà de l'exigence réglementaire de 100 %, ce qui démontre que la position de liquidité à court terme de la Banque est solide."
           },
-          "change_summary": "Les dates et le pourcentage du moyen ont été mis à jour pour refléter le trimestre terminé le avril avec un de",
+          "change_summary": "Mise à jour de la date de fin du trimestre et du moyen de à",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -2473,8 +2465,8 @@
             "risk_type": "liquidite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio de liquidité à court terme a été mis à jour de à. Ce changement est substantiel car il montre une amélioration significative de la position de liquidité de la banque. Cela implique que la banque a renforcé sa capacité à faire face à des sorties de trésorerie imprévues",
-            "impact_description": "Une amélioration du ratio de liquidité à court terme renforce la résilience financière de la banque",
+            "explanation": "Le ratio de liquidité à court terme a été mis à jour, passant de à. Ce changement est substantiel car il montre une amélioration significative de la position de liquidité de la banque. Cela implique que la banque a renforcé sa capacité à faire face à des sorties de trésorerie imprévues, ce qui est crucial pour sa stabilité financière",
+            "impact_description": "Une augmentation du ratio de liquidité à court terme renforce la résilience de la banque face aux chocs de liquidité",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2530,8 +2522,8 @@
             "risk_type": "liquidite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio de liquidité à long terme est passé de à. Ce changement est substantiel car il indique une amélioration de la capacité de la banque à maintenir des liquidités sur le long terme. Cela implique une meilleure gestion des ressources financières pour répondre aux obligations futures",
-            "impact_description": "Une augmentation du ratio de liquidité à long terme améliore la stabilité financière de la banque",
+            "explanation": "Le ratio de liquidité à long terme a été mis à jour, passant de à. Ce changement est substantiel car il montre une amélioration de la capacité de la banque à maintenir une liquidité stable à long terme. Cela implique que la banque est mieux préparée pour gérer ses obligations financières futures",
+            "impact_description": "Une augmentation du ratio de liquidité à long terme indique une gestion prudente des ressources financières, renforçant la stabilité à long terme de la banque",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2864,7 +2856,7 @@
             ],
             "snippet": "Dans le cours normal de ses activités, la Banque prend divers engagements hors bilan. Les instruments de crédit utilisés pour répondre aux besoins de financement de sa clientèle représentent le montant maximal du crédit additionnel que la Banque peut devoir consentir si les engagements sont entièrement utilisés."
           },
-          "change_summary": "Le terme 'clients' a été remplacé par 'clientèle'",
+          "change_summary": "Le terme 'ses clients' a été modifié en 'sa clientèle'",
           "genai_triage": {
             "is_relevant": false,
             "category": "COSMETIQUE",
@@ -2889,7 +2881,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_divulgation_d_information_sur_les_risque_change_040",
+          "change_id": "gestion_risques_divulgation_d_information_sur_les_risque_change_041",
           "section_key": "gestion_risques",
           "subsection_heading": "Divulgation d'information sur les risques",
           "diff_type": "modified",
@@ -2921,7 +2913,7 @@
             ],
             "snippet": "Le Rapport annuel 2024, le Rapport aux actionnaires - Deuxième trimestre 2025 et les documents d'informations complémentaires y afférant ont pour objectif la présentation de renseignements transparents et de grande qualité concernant les risques, conformément aux recommandations du groupe EDTF du Conseil de stabilité financière. Le tableau suivant présente un sommaire des informations relatives au"
           },
-          "change_summary": "Le rapport aux actionnaires est maintenant pour le deuxième trimestre au lieu du premier trimestre",
+          "change_summary": "Le rapport aux actionnaires est mis à jour du premier au deuxième trimestre",
           "genai_triage": {
             "is_relevant": false,
             "category": "COSMETIQUE",
@@ -2963,19 +2955,19 @@
   "global_summary": {
     "executive_overview": "21 changement(s) textuel(s) non cosmétique(s) retenu(s) pour revue experte.",
     "key_highlights": [
-      "Ajout d'une émission d'actions ordinaires liée à l'acquisition de CWB",
+      "Ajout d'informations sur l'émission d'actions ordinaires lors de l'acquisition de CWB",
       "Ajout d'informations sur l'acquisition des obligations liées aux dettes subordonnées de CWB",
       "Ajout d'informations sur l'échange d'actions privilégiées de CWB contre celles de la Banque Nationale",
-      "Changement des montants et des dates, ajout de l'inclusion de CWB comme facteur d'augmentation",
-      "Les ratios des fonds propres ont diminué davantage en. L'inclusion de CWB a été un facteur défavorable, compensé par des actions ordinaires émises. L'impact du rachat d'actions privilégiées a été atténué par un échange d'actions avec CWB. Ajout des obligations de CWB comme facteur favorable"
+      "Les chiffres de l'augmentation de l'actif pondéré en fonction des risques ont changé, la date de référence est passée au avril, et l'inclusion de CWB est mentionnée comme une nouvelle raison de l'augmentation",
+      "Les ratios des fonds propres ont diminué davantage en, principalement en raison de l'inclusion de CWB. L'impact du rachat d'actions privilégiées a été atténué par l'échange d'actions de CWB. Ajout des obligations liées aux dettes subordonnées de CWB"
     ],
     "pertinence_globale": "ELEVEE",
     "counts": {
       "total": 21,
       "total_relevant": 21,
       "by_impact": {
-        "MAJEUR": 7,
-        "MODERE": 13,
+        "MODERE": 15,
+        "MAJEUR": 5,
         "MINEUR": 1
       },
       "by_category": {
@@ -2984,29 +2976,29 @@
         "REGLEMENTAIRE": 3
       },
       "by_action": {
-        "confirmation": 5,
-        "escalade": 4,
-        "investigation": 10,
-        "information": 2
+        "confirmation": 6,
+        "escalade": 5,
+        "investigation": 9,
+        "information": 1
       }
     }
   },
   "all_changes_summary": {
     "executive_overview": "31 changement(s) textuel(s) non cosmétique(s) retenu(s) pour revue experte.",
     "key_highlights": [
-      "Ajout d'une émission d'actions ordinaires liée à l'acquisition de CWB",
+      "Ajout d'informations sur l'émission d'actions ordinaires lors de l'acquisition de CWB",
       "Ajout d'informations sur l'acquisition des obligations liées aux dettes subordonnées de CWB",
       "Ajout d'informations sur l'échange d'actions privilégiées de CWB contre celles de la Banque Nationale",
-      "Changement des montants et des dates, ajout de l'inclusion de CWB comme facteur d'augmentation",
-      "Les ratios des fonds propres ont diminué davantage en. L'inclusion de CWB a été un facteur défavorable, compensé par des actions ordinaires émises. L'impact du rachat d'actions privilégiées a été atténué par un échange d'actions avec CWB. Ajout des obligations de CWB comme facteur favorable"
+      "Les chiffres de l'augmentation de l'actif pondéré en fonction des risques ont changé, la date de référence est passée au avril, et l'inclusion de CWB est mentionnée comme une nouvelle raison de l'augmentation",
+      "Les ratios des fonds propres ont diminué davantage en, principalement en raison de l'inclusion de CWB. L'impact du rachat d'actions privilégiées a été atténué par l'échange d'actions de CWB. Ajout des obligations liées aux dettes subordonnées de CWB"
     ],
     "pertinence_globale": "ELEVEE",
     "counts": {
       "total": 31,
       "total_relevant": 31,
       "by_impact": {
-        "MAJEUR": 7,
-        "MODERE": 13,
+        "MODERE": 15,
+        "MAJEUR": 5,
         "MINEUR": 11
       },
       "by_category": {
@@ -3016,11 +3008,11 @@
         "COSMETIQUE": 10
       },
       "by_action": {
-        "confirmation": 5,
-        "escalade": 4,
-        "investigation": 10,
+        "confirmation": 6,
+        "escalade": 5,
+        "investigation": 9,
         "aucune": 10,
-        "information": 2
+        "information": 1
       }
     }
   }
