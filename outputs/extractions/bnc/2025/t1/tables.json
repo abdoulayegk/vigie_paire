@@ -2,7 +2,7 @@
   "bank_code": "bnc",
   "year": 2025,
   "quarter": "t1",
-  "created_at": "2026-04-08T22:05:22",
+  "created_at": "2026-04-10T22:31:49",
   "schema_version": 7,
   "tables": [
     {
@@ -11,10 +11,10 @@
       "section": "capital_management",
       "title": "Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires",
       "bbox": [
-        0.05712896858165467,
-        0.2928073767459754,
-        0.942975212545956,
-        0.44839385061553033
+        0.0571293550379136,
+        0.29280895657009554,
+        0.9429759106604881,
+        0.4483943130030777
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -27,7 +27,7 @@
         "Minimum établi par le BSIF, y compris la réserve pour stabilité intérieure",
         "Ratios au 31 janvier 2025"
       ],
-      "table_summary": "Exigences réglementaires et ratios de fonds propres, levier et TLAC",
+      "table_summary": "Ratios réglementaires de fonds propres, de levier et TLAC",
       "row_count": 7,
       "indicators": [
         "Ratios des fonds propres",
@@ -40,20 +40,24 @@
       ],
       "footnotes": [
         {
+          "id": "s. o.",
+          "text": "s.o. Sans objet"
+        },
+        {
           "id": "1",
-          "text": "Les ratios des fonds propres et le ratio de levier sont calculés selon les règles de Bâle III telles qu’énoncées dans les lignes directrices « Normes de fonds propres » et « Exigences de levier » du BSIF."
+          "text": "(1) Les ratios des fonds propres et le ratio de levier sont calculés selon les règles de Bâle III telles qu’énoncées dans les lignes directrices « Normes de fonds propres » et « Exigences de levier » du BSIF."
         },
         {
           "id": "2",
-          "text": "Le ratio TLAC et le ratio de levier TLAC sont calculés selon la ligne directrice « Capacité totale d’absorption des pertes » du BSIF."
+          "text": "(2) Le ratio TLAC et le ratio de levier TLAC sont calculés selon la ligne directrice « Capacité totale d’absorption des pertes » du BSIF."
         },
         {
           "id": "3",
-          "text": "Le 17 décembre 2024, le BSIF a confirmé que la réserve pour stabilité intérieure était maintenue à 3,5 %."
+          "text": "(3) Le 17 décembre 2024, le BSIF a confirmé que la réserve pour stabilité intérieure était maintenue à 3,5 %."
         },
         {
           "id": "4",
-          "text": "Les ratios au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025."
+          "text": "(4) Les ratios au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025."
         }
       ]
     },
@@ -63,17 +67,17 @@
       "section": "capital_management",
       "title": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
       "bbox": [
-        0.05622189964344299,
-        0.16446331293895994,
-        0.9431193233315461,
-        0.39134189335986824
+        0.05622223000121273,
+        0.1644632744066643,
+        0.9431194230621937,
+        0.39134197042445945
       ],
       "extraction_status": "rescued",
       "headers": [
         "Nombre d'actions ou de BCRL (1)",
         "M$"
       ],
-      "table_summary": "Actions, instruments de capitaux propres et options d’achat d’actions",
+      "table_summary": "Actions privilégiées, autres instruments de capitaux propres et options d’achat d’actions",
       "row_count": 12,
       "indicators": [
         "Actions privilégiées de premier rang",
@@ -102,10 +106,10 @@
       "section": "capital_management",
       "title": "Variation des fonds propres réglementaires (1)",
       "bbox": [
-        0.05577388464235792,
-        0.1087901857164171,
-        0.9408593271292892,
-        0.6446280431265783
+        0.05577316782832925,
+        0.10878965589735244,
+        0.9408591276679943,
+        0.6446285055141256
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -172,10 +176,10 @@
       "section": "capital_management",
       "title": "Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)",
       "bbox": [
-        0.05370339536978529,
-        0.1932465909707426,
-        0.9433112050972733,
-        0.5317334647130485
+        0.05370345770143995,
+        0.19324670656762943,
+        0.9433114045585682,
+        0.5317336188422309
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -197,14 +201,14 @@
         "Risque de crédit – actif pondéré en fonction des risques à la fin",
         "Risque de marché – actif pondéré en fonction des risques au début",
         "Variation des niveaux de risque (2)",
-        "Risque de marché – Mises à jour des modèles",
-        "Risque de marché – Méthode et politique",
-        "Risque de marché – Acquisitions et cessions",
+        "Mises à jour des modèles",
+        "Méthode et politique",
+        "Acquisitions et cessions",
         "Risque de marché – actif pondéré en fonction des risques à la fin",
         "Risque opérationnel – actif pondéré en fonction des risques au début",
-        "Risque opérationnel – Variation des niveaux de risque",
-        "Risque opérationnel – Méthode et politique",
-        "Risque opérationnel – Acquisitions et cessions",
+        "Variation des niveaux de risque",
+        "Méthode et politique",
+        "Acquisitions et cessions",
         "Risque opérationnel – actif pondéré en fonction des risques à la fin",
         "Actif pondéré en fonction des risques à la fin"
       ],
@@ -225,10 +229,10 @@
       "section": "capital_management",
       "title": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
       "bbox": [
-        0.05372231926014221,
-        0.35637437454377763,
+        0.05372241275762421,
+        0.3563744516083689,
         0.9413963766659008,
-        0.5477746905702534
+        0.5477748061671402
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -274,10 +278,10 @@
       "section": "capital_management",
       "title": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
       "bbox": [
-        0.054227380191578585,
-        0.12022950914171009,
-        0.9408027798521753,
-        0.3318582399927005
+        0.05418464560913884,
+        0.12026377398558338,
+        0.940802081737643,
+        0.331821210456617
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -286,7 +290,7 @@
         "2024",
         "2023"
       ],
-      "table_summary": "Indicateurs des banques d’importance systémique mondiale",
+      "table_summary": "Indicateurs BISM par catégorie pour 2024 et 2023",
       "row_count": 5,
       "indicators": [
         "Activité transfrontière (2)",
@@ -340,20 +344,22 @@
       "section": "risk_management",
       "title": "",
       "bbox": [
-        0.05708134096432356,
-        0.20506382951832783,
-        0.9455701042624081,
-        0.39682530875157834
+        0.05708142822864009,
+        0.20506548640703917,
+        0.9455720988753574,
+        0.3968209546021741
       ],
       "extraction_status": "rescued",
       "headers": [
         "Risques",
         "Description"
       ],
-      "table_summary": "Risque émergent lié aux droits de douane sur les importations",
-      "row_count": 1,
+      "table_summary": "Risques et descriptions, avec sections sur le risque de crédit",
+      "row_count": 3,
       "indicators": [
-        "Risques émergents – Droits de douane sur les importations"
+        "Risques émergents – Droits de douane sur les importations",
+        "Risque de crédit",
+        "Faits nouveaux en matière de réglementation"
       ],
       "footnotes": []
     },
@@ -361,12 +367,12 @@
       "table_id": "tbl_p029_i01",
       "page": 29,
       "section": "risk_management",
-      "title": "Exposition maximale au risque de crédit selon les catégories d'actifs de Bâle(1)",
+      "title": "Exposition maximale au risque de crédit selon les catégories d'actifs de Bâle (1)",
       "bbox": [
-        0.05402869180916182,
-        0.1650941251504301,
-        0.9409354216133068,
-        0.4351686805185646
+        0.05402952705333436,
+        0.165093836158213,
+        0.9409351224213645,
+        0.43516910437381634
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -405,17 +411,62 @@
       "section": "risk_management",
       "title": "",
       "bbox": [
-        0.054269460291644325,
-        0.4482420719031132,
-        0.9411047642527063,
-        0.7168450403695156
+        0.05426958495495366,
+        0.4482425342906606,
+        0.9411043653301164,
+        0.716844886240333
       ],
-      "extraction_status": "confirmed_no_table",
-      "headers": [],
-      "table_summary": "",
-      "row_count": 0,
-      "indicators": [],
-      "footnotes": []
+      "extraction_status": "rescued",
+      "headers": [
+        "Montants utilisés (2)",
+        "Engagements inutilisés",
+        "Transactions assimilées à des accords de prise en pension (3)",
+        "Instruments financiers dérivés",
+        "Autres éléments hors bilan (4)",
+        "Total",
+        "Approche standardisée (5)",
+        "Approche NI"
+      ],
+      "table_summary": "Suite: risque de crédit brut par catégorie d’exposition",
+      "row_count": 14,
+      "indicators": [
+        "Particuliers",
+        "Hypothèques résidentielles",
+        "Crédits rotatifs admissibles",
+        "Particuliers – autres",
+        "Autres que particuliers",
+        "Entreprises",
+        "États souverains",
+        "Institutions financières",
+        "Portefeuille de négociation",
+        "Titrisation",
+        "Total – Risque de crédit brut",
+        "Approche standardisée (5)",
+        "Approche NI",
+        "Total – Risque de crédit brut (bloc 2)"
+      ],
+      "footnotes": [
+        {
+          "id": "1",
+          "text": "Consulter le « Mode de présentation de l’information » aux pages 4 à 9 pour de plus amples renseignements sur les mesures de gestion du capital."
+        },
+        {
+          "id": "2",
+          "text": "Excluent les titres de participation et certains autres actifs tels les participations dans des filiales déconsolidées et coentreprises, les immeubles et actifs assortis du droit d’utilisation, les goodwills, les actifs d’impôt différé et les immobilisations incorporelles."
+        },
+        {
+          "id": "3",
+          "text": "Correspondent aux valeurs mobilières acquises en vertu de conventions de revente et vendues en vertu de conventions de rachat et aux valeurs mobilières prêtées et empruntées."
+        },
+        {
+          "id": "4",
+          "text": "Correspondent aux lettres de garantie, de crédit documentaire et aux actifs titrisés qui constituent l’engagement de la Banque d’effectuer les paiements d’un débiteur qui ne respecterait pas ses obligations financières envers des tiers."
+        },
+        {
+          "id": "5",
+          "text": "Incluent les expositions aux contreparties centrales éligibles (CCE)."
+        }
+      ]
     },
     {
       "table_id": "tbl_p030_i01",
@@ -423,10 +474,10 @@
       "section": "risk_management",
       "title": "Conciliation du risque de marché avec les éléments du bilan consolidé",
       "bbox": [
-        0.05390882803723703,
-        0.28045197689171997,
-        0.9404804503995609,
-        0.6651639842023753
+        0.05390968821407144,
+        0.28045076312440814,
+        0.940481946359273,
+        0.6651637530086016
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -436,7 +487,7 @@
         "Non assujettis au risque de marché",
         "Risque principal associé au risque lié aux activités autres que de négociation"
       ],
-      "table_summary": "Conciliation du risque de marché avec les éléments du bilan consolidé",
+      "table_summary": "Conciliation du risque de marché avec le bilan consolidé",
       "row_count": 20,
       "indicators": [
         "Actifs",
@@ -489,20 +540,20 @@
       "section": "risk_management",
       "title": "",
       "bbox": [
-        0.0536349427466299,
-        0.09452487483169095,
+        0.053634674720514836,
+        0.09452435464570018,
         0.9394991008284824,
-        0.47684555824356856
+        0.47684559677586413
       ],
       "extraction_status": "rescued",
       "headers": [
         "Solde au bilan",
-        "Mesures du risque de marché – Négociation (1)",
-        "Mesures du risque de marché – Autres que de négociation (2)",
+        "Négociation (1)",
+        "Autres que de négociation (2)",
         "Non assujettis au risque de marché",
         "Risque principal associé au risque lié aux activités autres que de négociation"
       ],
-      "table_summary": "Mesures du risque de marché par actifs et passifs",
+      "table_summary": "Mesures du risque de marché des actifs et passifs",
       "row_count": 20,
       "indicators": [
         "Actifs",
@@ -567,10 +618,10 @@
       "section": "risk_management",
       "title": "VaR des portefeuilles de négociation (1)(2)",
       "bbox": [
-        0.05407726686764387,
-        0.15210340480611784,
-        0.9409692303027982,
-        0.26603544601286305
+        0.05409911411260468,
+        0.1521001488271386,
+        0.9409647424236622,
+        0.2660461965233389
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -595,16 +646,20 @@
       ],
       "footnotes": [
         {
+          "id": "*",
+          "text": "n.s. Le calcul de l'effet de diversification sur le cours le plus haut et sur le cours le plus bas n'est pas significatif puisqu'ils peuvent survenir à des jours différents et pour divers types de risques."
+        },
+        {
           "id": "1",
-          "text": "Consulter le « Glossaire » aux pages 47 à 50 pour plus de détails sur la composition de ces mesures."
+          "text": "(1) Consulter le « Glossaire » aux pages 47 à 50 pour plus de détails sur la composition de ces mesures."
         },
         {
           "id": "2",
-          "text": "Les montants sont présentés avant impôts et représentent la VaR quotidienne, selon un niveau de confiance de 99 %."
+          "text": "(2) Les montants sont présentés avant impôts et représentent la VaR quotidienne, selon un niveau de confiance de 99 %."
         },
         {
           "id": "3",
-          "text": "La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l’effet de diversification."
+          "text": "(3) La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l'effet de diversification."
         }
       ]
     },
@@ -614,10 +669,10 @@
       "section": "risk_management",
       "title": "Sensibilité aux taux d'intérêt – Activités autres que de négociation (avant impôts)",
       "bbox": [
-        0.05456349117303986,
-        0.15609245107631492,
-        0.9404909221175449,
-        0.2697320610585839
+        0.05456408955692466,
+        0.1560930579599708,
+        0.9404911215788399,
+        0.2697308665574199
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -637,8 +692,8 @@
         "Augmentation du taux d'intérêt de 100 points de base",
         "Diminution du taux d'intérêt de 100 points de base",
         "Effet sur le revenu net d'intérêts",
-        "Augmentation du taux d'intérêt de 100 points de base (bloc 2)",
-        "Diminution du taux d'intérêt de 100 points de base (bloc 2)"
+        "Effet sur le revenu net d'intérêts – Augmentation du taux d'intérêt de 100 points de base",
+        "Effet sur le revenu net d'intérêts – Diminution du taux d'intérêt de 100 points de base"
       ],
       "footnotes": []
     },
@@ -648,10 +703,10 @@
       "section": "risk_management",
       "title": "Portefeuille d’actifs liquides (1)",
       "bbox": [
-        0.05406573551153046,
-        0.11163970677539557,
-        0.9406237633399714,
-        0.514473693539398
+        0.05406829734253728,
+        0.11164431138472125,
+        0.9406256582222733,
+        0.5144713045370699
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -663,7 +718,7 @@
         "Actifs liquides non grevés"
       ],
       "table_summary": "Portefeuille d’actifs liquides",
-      "row_count": 16,
+      "row_count": 20,
       "indicators": [
         "Trésorerie et dépôts auprès d'institutions financières",
         "Valeurs mobilières",
@@ -673,10 +728,14 @@
         "Titres de participation",
         "Prêts",
         "Titres adossés à des prêts hypothécaires résidentiels assurés",
+        "Actifs liquides – Au 31 janvier 2025",
+        "Actifs liquides – Au 31 octobre 2024",
+        "(en millions de dollars canadiens)",
         "Actifs liquides non grevés par entité",
         "Banque Nationale (société mère)",
         "Filiales canadiennes",
         "Filiales et succursales étrangères",
+        "(en millions de dollars canadiens) (bloc 2)",
         "Actifs liquides non grevés par monnaie",
         "Dollar canadien",
         "Dollar américain",
@@ -690,10 +749,10 @@
       "section": "risk_management",
       "title": "Portefeuille d’actifs liquides (1) – Moyenne (5)",
       "bbox": [
-        0.053916183172487746,
-        0.5496440078272965,
-        0.9410783356311275,
-        0.7724655613754735
+        0.053915890213710814,
+        0.5496475142661972,
+        0.9410779367085376,
+        0.7724657925692472
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -745,21 +804,21 @@
       "section": "risk_management",
       "title": "Sommaire des actifs grevés et non grevés (1)",
       "bbox": [
-        0.05376857558107065,
-        0.1125908283272175,
-        0.9411964167177288,
-        0.3267497438372988
+        0.05376842598509945,
+        0.11259084759336531,
+        0.9411965164483762,
+        0.3267497823695944
       ],
       "extraction_status": "rescued",
       "headers": [
         "Actifs grevés (2)",
+        "Actifs non grevés",
+        "Total",
+        "Actifs grevés en % du total des actifs",
         "Donnés en garantie",
         "Autres (3)",
-        "Actifs non grevés",
         "Disponibles pour garantie",
-        "Autres (4)",
-        "Total",
-        "Actifs grevés en % du total des actifs"
+        "Autres (4)"
       ],
       "table_summary": "Sommaire des actifs grevés et non grevés",
       "row_count": 9,
@@ -782,24 +841,24 @@
       "section": "risk_management",
       "title": "",
       "bbox": [
-        0.05373421213985269,
+        0.05373442406747855,
         0.3404060132575758,
         0.9410345538768893,
         0.5507630242241754
       ],
       "extraction_status": "rescued",
       "headers": [
-        "Actifs grevés (2) Donnés en garantie",
-        "Actifs grevés Autres (3)",
+        "Donnés en garantie",
+        "Actifs grevés (2) Autres (3)",
         "Actifs non grevés Disponibles pour garantie",
-        "Actifs non grevés Autres (4)",
+        "Autres (4)",
         "Total",
         "Actifs grevés en % du total des actifs"
       ],
-      "table_summary": "Actifs grevés et non grevés",
+      "table_summary": "Actifs grevés et non grevés au 31 octobre 2024",
       "row_count": 9,
       "indicators": [
-        "Trésorerie et dépôts auprès d’institutions financières",
+        "Trésorerie et dépôts auprès d'institutions financières",
         "Valeurs mobilières",
         "Valeurs mobilières acquises en vertu de conventions de revente et valeurs mobilières empruntées",
         "Prêts, déduction faite des provisions",
@@ -834,10 +893,10 @@
       "section": "risk_management",
       "title": "Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2)",
       "bbox": [
-        0.05432659348631217,
-        0.1137480398621222,
-        0.9404257980047488,
-        0.5375473330719303
+        0.05432674308228337,
+        0.11374756784150096,
+        0.9404259974660437,
+        0.5375477183948865
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -881,6 +940,10 @@
       ],
       "footnotes": [
         {
+          "id": "*",
+          "text": "s.o.    Sans objet"
+        },
+        {
           "id": "1",
           "text": "Consulter le « Mode de présentation de l’information » aux pages 4 à 9 pour de plus amples renseignements sur les mesures de gestion du capital."
         },
@@ -912,10 +975,10 @@
       "section": "risk_management",
       "title": "Rapport de gestion",
       "bbox": [
-        0.05436209136364507,
-        0.16482091190839057,
-        0.9707907882391238,
-        0.8184503882822365
+        0.05436206019781774,
+        0.1648210082391296,
+        0.9707908879697713,
+        0.8184503112176452
       ],
       "extraction_status": "ok",
       "headers": [],
@@ -930,10 +993,10 @@
       "section": "risk_management",
       "title": "Échéances contractuelles résiduelles du financement institutionnel",
       "bbox": [
-        0.05437869028328291,
-        0.3414645724826389,
-        0.9409971548840891,
-        0.5669287864607995
+        0.054379968082203585,
+        0.34146464954723016,
+        0.9409992492276859,
+        0.5669315993183791
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -985,10 +1048,10 @@
       "section": "risk_management",
       "title": "",
       "bbox": [
-        0.05382245506336487,
-        0.691648001622672,
-        0.9407787447661357,
-        0.744749897658223
+        0.05382400712156608,
+        0.6916483869456282,
+        0.9407770493451287,
+        0.7447505141749527
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -996,7 +1059,7 @@
         "Diminution de deux crans",
         "Diminution de trois crans"
       ],
-      "table_summary": "Exigences de garanties supplémentaires selon une baisse de notation de crédit",
+      "table_summary": "Exigences de garanties supplémentaires selon une diminution de notation de crédit",
       "row_count": 1,
       "indicators": [
         "Dérivés (1)"
@@ -1014,10 +1077,10 @@
       "section": "risk_management",
       "title": "",
       "bbox": [
-        0.05432167551875894,
-        0.2841045880558515,
-        0.9408294079350491,
-        0.7069255173808398
+        0.05432230506847108,
+        0.28410501191110327,
+        0.9408292084737541,
+        0.7069258256392046
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -1032,7 +1095,7 @@
         "Sans échéance spécifique",
         "Total"
       ],
-      "table_summary": "Suite: échéances contractuelles des actifs financiers",
+      "table_summary": "Échéances contractuelles des actifs",
       "row_count": 19,
       "indicators": [
         "Actif",
@@ -1068,10 +1131,10 @@
       "section": "risk_management",
       "title": "Rapport de gestion",
       "bbox": [
-        0.05324378668093214,
-        0.09193401144008445,
-        0.9614506141812194,
-        0.5755689601705533
+        0.053243873945248675,
+        0.0919344738276318,
+        0.9614509133731618,
+        0.5755690372351444
       ],
       "extraction_status": "ok",
       "headers": [],
@@ -1087,9 +1150,9 @@
       "title": "",
       "bbox": [
         0.053793134253009474,
-        0.09462187025282119,
+        0.09462184135359948,
         0.9406152862349367,
-        0.5110284053918087
+        0.5110283668595131
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -1104,7 +1167,7 @@
         "Sans échéance spécifique",
         "Total"
       ],
-      "table_summary": "Suite: actifs par échéance contractuelle",
+      "table_summary": "Échéances contractuelles des actifs financiers",
       "row_count": 19,
       "indicators": [
         "Actif",
@@ -1140,9 +1203,9 @@
       "section": "risk_management",
       "title": "",
       "bbox": [
-        0.05414012210821015,
-        0.09399086537987296,
-        0.9404291888467627,
+        0.05414002861072815,
+        0.0939909809767598,
+        0.9404292885774101,
         0.5883989430437185
       ],
       "extraction_status": "rescued",
@@ -1158,11 +1221,11 @@
         "Sans échéance spécifique",
         "Total"
       ],
-      "table_summary": "Échéances des passifs, capitaux propres et engagements hors bilan",
+      "table_summary": "Échéances contractuelles des passifs, capitaux propres et engagements hors bilan",
       "row_count": 23,
       "indicators": [
         "Passif et capitaux propres",
-        "Dépôts (1)",
+        "Dépôts (1) (2)",
         "Particuliers",
         "Entreprises et administrations publiques",
         "Institutions de dépôts",
@@ -1208,7 +1271,7 @@
         },
         {
           "id": "6",
-          "text": "Ces montants sont révocables sans condition en tout temps à la discrétion de la Banque."
+          "text": "Ces montants sont révocables sans condition ou en temps à la discrétion de la Banque."
         },
         {
           "id": "7",
@@ -1234,10 +1297,10 @@
       "section": "risk_management",
       "title": "",
       "bbox": [
-        0.055831105101342295,
-        0.18502508991896505,
-        0.9456809050117443,
-        0.8920613298512469
+        0.05584987939572802,
+        0.1850152834497317,
+        0.9456840963924633,
+        0.8920364379882814
       ],
       "extraction_status": "rescued",
       "headers": [
@@ -1279,7 +1342,7 @@
         "20 Échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan",
         "21 Stratégie de financement et sources de financement",
         "Risque de marché",
-        "22 Lien entre les mesures de risque de marché et le bilan",
+        "22 Lien entre les mesures du risque de marché et le bilan",
         "23 Facteurs de risque de marché",
         "24 VaR : hypothèses, limites et processus de validation",
         "25 Tests de tension et tests de validité rétroactifs",

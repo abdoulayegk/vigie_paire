@@ -532,8 +532,8 @@ def _append_summary_sheet(
 
 
 def _style_expert_workbook(wb: Any) -> None:
-    """Applique un formatage leger adapte aux analystes."""
-    from openpyxl.styles import Font, PatternFill
+    """Applique un formatage riche aligne sur comparison_excel.py."""
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
     review_ws = wb[EXPERT_EXCEL_SHEET_REVIEW]
     summary_ws = wb[EXPERT_EXCEL_SHEET_SUMMARY]
@@ -542,30 +542,49 @@ def _style_expert_workbook(wb: Any) -> None:
     summary_ws.freeze_panes = "A2"
     review_ws.auto_filter.ref = review_ws.dimensions
 
+    header_font = Font(name="Calibri", bold=True, color="FFFFFF", size=11)
     header_fill = PatternFill("solid", fgColor="1F4E78")
-    header_font = Font(color="FFFFFF", bold=True)
+    header_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    thin = Side(style="thin")
+    thin_border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    cell_align = Alignment(vertical="top", wrap_text=True)
+
     for ws in (review_ws, summary_ws):
         for cell in ws[1]:
-            cell.fill = header_fill
             cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_align
+            cell.border = thin_border
+
+    for row_idx in range(2, review_ws.max_row + 1):
+        for col_idx in range(1, len(EXPERT_EXCEL_COLUMNS) + 1):
+            cell = review_ws.cell(row=row_idx, column=col_idx)
+            cell.alignment = cell_align
+            cell.border = thin_border
+
+    for row_idx in range(2, summary_ws.max_row + 1):
+        for col_idx in range(1, summary_ws.max_column + 1):
+            cell = summary_ws.cell(row=row_idx, column=col_idx)
+            cell.alignment = cell_align
+            cell.border = thin_border
 
     widths = {
-        "A": 22,   # Section
+        "A": 30,   # Section
         "B": 48,   # Tableau
-        "C": 18,   # Type d'élément
+        "C": 22,   # Type d'element
         "D": 18,   # Type de changement
-        "E": 15,   # Page précédente
-        "F": 15,   # Page courante
-        "G": 28,   # Libellé
-        "H": 48,   # Justifications
-        "I": 16,   # Nouvelle idée ?
+        "E": 10,   # Page precedente
+        "F": 10,   # Page courante
+        "G": 50,   # Libelle
+        "H": 70,   # Justifications
+        "I": 22,   # Nouvelle idee ?
         "J": 18,   # Validation expert
         "K": 40,   # Commentaire expert
         "L": 18,   # Date de validation
     }
     for col, width in widths.items():
         review_ws.column_dimensions[col].width = width
-    summary_ws.column_dimensions["A"].width = 28
+    summary_ws.column_dimensions["A"].width = 30
     summary_ws.column_dimensions["B"].width = 22
     summary_ws.column_dimensions["C"].width = 14
     summary_ws.column_dimensions["D"].width = 14

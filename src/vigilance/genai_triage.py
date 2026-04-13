@@ -81,7 +81,7 @@ RÉPONDRE UNIQUEMENT en JSON valide, sans markdown, selon ce schéma exact :
   "relevance_score": "ELEVEE" | "MOYENNE" | "FAIBLE",
   "risk_level": "ELEVE" | "MODERE" | "FAIBLE",
   "confidence": 0.0 à 1.0,
-  "explanation": "<3-5 phrases en français structurées ainsi : (1) indiquer clairement si le changement est pertinent ou non et pourquoi ; (2) décrire l'impact réglementaire ou métier concret ; (3) préciser s'il s'agit d'une nouvelle divulgation, d'un changement méthodologique, ou d'une mise à jour ordinaire>",
+  "explanation": "<Texte fluide et naturel d'au moins 3 paragraphes en français (separes par \\n\\n). NE PAS inclure d'etiquettes comme 'Paragraphe 1' -- le texte doit se lire comme une analyse redigee par un analyste senior. Couvrir dans l'ordre : (a) decrire precisement le changement constate (quel element, dans quel tableau, quel contexte trimestriel) ; (b) expliquer l'impact reglementaire ou metier concret (Bale III, BSIF, ratios prudentiels, divulgation, methodologie) et mentionner les references reglementaires applicables ; (c) conclure en indiquant si c'est une nouvelle divulgation, un changement methodologique ou une mise a jour ordinaire, et formuler une recommandation (confirmer, investiguer, escalader).>",
   "impact_type": "structurel" | "contenu" | "methodologique" | "cosmetique",
   "project_phase": "rapport_gestion" | "pilier_3" | "ifc" | "autre",
   "action_requise": "escalade" | "investigation" | "confirmation" | "information" | "aucune",
