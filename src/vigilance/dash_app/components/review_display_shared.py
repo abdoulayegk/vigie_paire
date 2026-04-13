@@ -250,10 +250,10 @@ def build_proofs_section(
     flag_state = compute_flag_state(item)
     normalized_mode = (proof_display_mode or "crop").strip().lower()
     mode_label_map = {
-        "crop": "Mode focus tableau",
-        "full": "Mode page complète + bbox",
+        "crop": "Mode zoom tableau",
+        "full": "Mode page complète encadrée",
         "footnote": "Mode note de bas de tableau",
-        "full_without_bbox": "Mode page complète sans bbox",
+        "full_without_bbox": "Mode page complète",
     }
 
     def _mode_label(mode_value: str | None) -> str:
@@ -277,8 +277,8 @@ def build_proofs_section(
         status = str((render_result or {}).get("status") or "").strip().lower()
         if status == "bbox_missing":
             if mode_value == "footnote":
-                return "Zone footnote indisponible: bbox absente pour ce tableau."
-            return "Crop indisponible: bbox absente pour ce tableau."
+                return "Zone footnote indisponible: zone de tableau non détectée."
+            return "Zoom indisponible: zone de tableau non détectée."
         if status == "page_missing":
             return "Page indisponible pour cette preuve."
         if status == "render_failed":
@@ -435,8 +435,8 @@ def build_proofs_section(
                 dbc.RadioItems(
                     id="proof-display-mode",
                     options=[
-                        {"label": "Crop (focus)", "value": "crop"},
-                        {"label": "Page complète + bbox", "value": "full"},
+                        {"label": "Zoom sur le tableau", "value": "crop"},
+                        {"label": "Page complète encadrée", "value": "full"},
                         {"label": "Note de bas de table", "value": "footnote"},
                     ],
                     value=normalized_mode,

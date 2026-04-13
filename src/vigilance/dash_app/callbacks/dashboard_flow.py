@@ -89,122 +89,22 @@ def render_results(comparison, indicator, show_results):
 
     executive_summary = html.Div()
     if indicator and isinstance(indicator, dict):
-        kpi = indicator.get("summary", indicator.get("kpi_metier", {})) or {}
-        status_counts = kpi.get("status_counts", {}) or {}
-        tables_t1 = kpi.get("tables_t1", 0)
-        tables_t2 = kpi.get("tables_t2", 0)
-        tables_comparable_t1 = int(kpi.get("tables_comparable_t1", 0) or 0)
-        tables_comparable_t2 = int(kpi.get("tables_comparable_t2", 0) or 0)
-        tables_matched = kpi.get("tables_matched", 0)
-        ambiguous_tables = kpi.get("ambiguous_tables", 0)
-        vision_rescued_pairs = kpi.get("vision_rescued_pairs", 0)
-        cross_section_rescued_pairs = kpi.get("cross_section_rescued_pairs", 0)
-        structure_change = status_counts.get("structure_change", 0)
-        incertain = status_counts.get("incertain", 0)
-        added = kpi.get("total_added_indicators", 0)
-        removed = kpi.get("total_removed_indicators", 0)
-        renamed = kpi.get("total_renamed_indicators", 0)
-
-        comparisons = indicator.get("table_comparisons", []) or []
-        tables_added = indicator.get("tables_added", []) or []
-        tables_removed = indicator.get("tables_removed", []) or []
-        section_counts: dict[str, int] = {}
-        for comp in comparisons:
-            n_changes = (
-                len(comp.get("added_indicators", []))
-                + len(comp.get("removed_indicators", []))
-                + len(comp.get("renamed_indicators", []))
-            )
-            fn = comp.get("footnotes_counts", {}) or {}
-            n_changes += sum(fn.get(k, 0) for k in ("added", "removed", "modified"))
-            if n_changes > 0:
-                sec = comp.get("section", "Autres")
-                section_counts[sec] = section_counts.get(sec, 0) + 1
-        for tab in tables_added:
-            sec = tab.get("section", "Autres")
-            section_counts[sec] = section_counts.get(sec, 0) + 1
-        for tab in tables_removed:
-            sec = tab.get("section", "Autres")
-            section_counts[sec] = section_counts.get(sec, 0) + 1
-
-        notes_total = 0
-        for comp in comparisons:
-            fn = comp.get("footnotes_counts", {}) or {}
-            notes_total += sum(fn.get(k, 0) for k in ("added", "removed", "modified"))
-
-        parts = [
-            f"{tables_t1} {t('tables')} au trimestre précédent ({previous_label}), "
-            f"{tables_t2} au trimestre courant ({current_label}). "
-            f"{tables_matched} appariés",
-        ]
-        if structure_change:
-            parts.append(f", {structure_change} fusion/split")
-        if incertain:
-            parts.append(f", {incertain} incertain(s)")
-        if ambiguous_tables:
-            parts.append(f", {ambiguous_tables} ambigu(s)")
-        parts.append(". ")
-        if added or removed or renamed:
-            sub = []
-            if added:
-                sub.append(f"{added} ajout(s)")
-            if removed:
-                sub.append(f"{removed} retrait(s)")
-            if renamed:
-                sub.append(f"{renamed} renommage(s)")
-            parts.append(", ".join(sub))
-            parts.append(". ")
-        if section_counts:
-            sections_str = ", ".join(
-                f"{section_display_label(s)} ({n} tableaux)"
-                for s, n in sorted(section_counts.items())
-            )
-            parts.append(f"Sections impactees : {sections_str}. ")
-
-        if notes_total:
-            parts.append(f"{notes_total} note(s) de bas de tableau modifiées.")
-        else:
-            parts.append("Aucune note de bas de tableau modifiée.")
-        if (
-            tables_t1
-            and tables_t2
-            and tables_comparable_t1 == 0
-            and tables_comparable_t2 == 0
-        ):
-            parts.append(
-                " Aucun tableau comparable: l'extraction Vision de ce run n'a "
-                "renvoyé aucun indicateur exploitable."
-            )
-        if vision_rescued_pairs:
-            parts.append(f" {vision_rescued_pairs} tableau(x) récupérés par Vision.")
-        if cross_section_rescued_pairs:
-            parts.append(
-                f" {cross_section_rescued_pairs} tableau(x) récupérés par appariement inter-sections."
-            )
-
-        summary_text = "".join(parts)
-        executive_summary = dbc.Alert(
-            html.P(summary_text, className="mb-0 small"),
-            color="info",
-            className="mb-3",
-        )
         meta = indicator.get("meta", {}) or {}
         genai_text = get_meta_value(meta, "executive_summary", "content") or ""
         if genai_text:
-            executive_summary = html.Div(
-                [
-                    executive_summary,
-                    dbc.Accordion(
-                        [
-                            dbc.AccordionItem(
-                                html.P(genai_text, className="mb-0 small text-muted"),
-                                title="Résumé IA générative (cliquer pour dérouler)",
-                            )
-                        ],
-                        start_collapsed=True,
-                        className="mb-3 shadow-sm",
-                    ),
-                ]
+            executive_summary = dbc.Alert(
+                html.P(genai_text, className="mb-0 small"),
+                color="info",
+                className="mb-3 shadow-sm",
+            )
+        else:
+            executive_summary = dbc.Alert(
+                html.P(
+                    "Résumé en cours de génération ou non disponible.",
+                    className="mb-0 small text-muted",
+                ),
+                color="light",
+                className="mb-3",
             )
 
     kpis = []
