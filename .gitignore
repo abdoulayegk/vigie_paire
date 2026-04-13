@@ -107,9 +107,12 @@ session.log
 /data/processed/
 /_lib/
 
-# Input/source documents that should stay local
-/Inputs/
+# PDFs ignores par defaut
 *.pdf
+# Input/source documents — PDFs tracked pour preuve visuelle side-by-side
+!/Inputs/
+!/Inputs/**/
+!/Inputs/**/*.pdf
 
 # Project-specific local configs
 pyrightconfig.json
