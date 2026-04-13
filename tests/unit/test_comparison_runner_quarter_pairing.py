@@ -62,7 +62,7 @@ def test_run_comparison_uses_current_vs_previous_quarter_context(
     tmp_path: Path,
 ) -> None:
     extraction_calls: list[dict] = []
-    monkeypatch.setattr(cr, "COMPARISON_ROOT", tmp_path / "outputs" / "comparisons")
+    monkeypatch.setattr(cr, "COMPARISON_ROOT", tmp_path / "outputs" / "resultats")
 
     def _fake_extract_tables(**kwargs):
         extraction_calls.append(dict(kwargs))
@@ -132,7 +132,7 @@ def test_run_comparison_includes_extraction_source_provenance(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
-    monkeypatch.setattr(cr, "COMPARISON_ROOT", tmp_path / "outputs" / "comparisons")
+    monkeypatch.setattr(cr, "COMPARISON_ROOT", tmp_path / "outputs" / "resultats")
 
     def _fake_extract_tables(**kwargs):
         quarter = kwargs["quarter"]

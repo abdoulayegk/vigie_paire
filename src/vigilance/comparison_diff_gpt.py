@@ -103,8 +103,9 @@ Rules:
 - Ignore changes caused only by dates, quarter references, formatting, punctuation, or minor drafting changes that do not alter meaning.
 - IGNORE page number changes: if two footnotes differ ONLY by page references (e.g. 'pages 6 à 10' vs 'pages 6 à 12'), they are THE SAME footnote. Do NOT classify this as renamed.
 - IGNORE quarter/date reference updates: if a footnote text changes only the quarter or date reference (e.g. '31 janvier 2025' vs '30 avril 2025'), this is NOT a meaningful change.
-- Footnote present only in current = footnotes_added.
-- Footnote present only in previous = footnotes_removed.
+- Footnote present only in current quarter = footnotes_added. A note absent from the previous table but present in the current table is an addition.
+- Footnote present only in previous quarter = footnotes_removed. A note present in the previous table but absent from the current table is a REMOVAL — never classify it as footnotes_added.
+- CRITICAL DIRECTION RULE: The direction (added vs removed) is determined solely by which quarter contains the note. A note that existed in the previous quarter and is GONE in the current quarter is ALWAYS footnotes_removed, regardless of its semantic content.
 - Footnote with the same semantic meaning but materially revised wording = footnotes_renamed.
 - Compare footnotes within the logical scope of the same table and in the context of the already-matched pair.
 - Be conservative and report only clear semantic differences.
@@ -726,13 +727,18 @@ def diff_footnotes_pair_gpt(
     if det_fn_diff["det_added"] or det_fn_diff["det_removed"] or det_fn_diff["det_modified"]:
         det_fn_hints = {
             "deterministic_footnote_analysis": {
-                "footnotes_only_in_current": [
+                "direction_note": (
+                    "footnotes_only_in_current → must become footnotes_added (absent in previous, new in current). "
+                    "footnotes_only_in_previous → must become footnotes_removed (existed in previous, gone from current). "
+                    "Do NOT swap these directions."
+                ),
+                "footnotes_only_in_current__must_be_ADDED": [
                     {"id": fn.get("id", ""), "text": fn.get("text", "")} for fn in det_fn_diff["det_added"]
                 ],
-                "footnotes_only_in_previous": [
+                "footnotes_only_in_previous__must_be_REMOVED": [
                     {"id": fn.get("id", ""), "text": fn.get("text", "")} for fn in det_fn_diff["det_removed"]
                 ],
-                "footnotes_with_text_changes": [
+                "footnotes_with_text_changes__must_be_RENAMED": [
                     {
                         "id": fn["previous_id"],
                         "previous_text": fn["previous_text"],
@@ -756,8 +762,11 @@ def diff_footnotes_pair_gpt(
     if det_fn_hints:
         fn_rules.append(
             "A deterministic footnote analysis is provided in 'deterministic_footnote_analysis'. "
-            "You MUST account for every footnote listed there: classify each change as truly "
-            "added/removed/renamed, or explain why it is pure renumbering / date-only change."
+            "CRITICAL — the direction is already established by the field names: "
+            "'footnotes_only_in_current__must_be_ADDED' entries MUST go into footnotes_added (or be dismissed as pure renumbering/date-only); "
+            "'footnotes_only_in_previous__must_be_REMOVED' entries MUST go into footnotes_removed (or be dismissed as pure renumbering/date-only); "
+            "'footnotes_with_text_changes__must_be_RENAMED' entries MUST go into footnotes_renamed (or be dismissed). "
+            "Do NOT reclassify the direction — a note that is only in the previous table can NEVER be footnotes_added."
         )
 
     prompt: dict[str, Any] = {

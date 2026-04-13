@@ -94,7 +94,7 @@ def test_run_comparison_with_sections_propagates_prompt_versions_to_dash_meta(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
-    monkeypatch.setattr(cr, "COMPARISON_ROOT", tmp_path / "outputs" / "comparisons")
+    monkeypatch.setattr(cr, "COMPARISON_ROOT", tmp_path / "outputs" / "resultats")
 
     def _fake_compare_reports_gpt4o(*, out_root, **_kwargs):
         out_path = (
@@ -136,7 +136,7 @@ def test_run_comparison_with_sections_propagates_compare_path_reference_and_run_
     monkeypatch,
     tmp_path: Path,
 ) -> None:
-    monkeypatch.setattr(cr, "COMPARISON_ROOT", tmp_path / "outputs" / "comparisons")
+    monkeypatch.setattr(cr, "COMPARISON_ROOT", tmp_path / "outputs" / "resultats")
 
     def _fake_compare_reports_gpt4o(*, out_root, **_kwargs):
         out_path = (

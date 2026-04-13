@@ -1076,7 +1076,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--run-dir",
         required=True,
-        help="Path to outputs/comparisons/{bank}/extractions/{run_id}",
+        help="Path to extraction run directory (e.g. outputs/extractions/{bank}/...)",
     )
     parser.add_argument("--bank", default="", help="Bank code override")
     parser.add_argument("--run-id", default="", help="Run id override")

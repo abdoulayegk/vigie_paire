@@ -63,7 +63,8 @@ def resolve_text_comparison_from_payload(
 
     Le fichier comparison.json contient bank_code, year_current, year_previous,
     quarter_current, quarter_previous. On les combine pour former le chemin
-    text_comparisons/{bank}/{year_cur}_{q_cur}_vs_{year_prev}_{q_prev}/.
+    ``{root}/`` ``{bank}/{year_cur}_{q_cur}_vs_{year_prev}_{q_prev}/text_comparison.json``
+    (défaut : racine ``outputs/resultats``).
 
     Args:
         comparison_payload: Payload brut issu de comparison.json (raw_data).

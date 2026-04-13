@@ -7,13 +7,22 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parents[2]
 OUTPUT_DIR = ROOT_DIR / "outputs"
 INDICATOR_EXPORT_DIR = OUTPUT_DIR / "indicator_tables"
-INDICATOR_COMPARISON_DIR = OUTPUT_DIR / "comparisons"
 LOGS_DIR = ROOT_DIR / "logs"
 
-TEXT_EXTRACTION_DIR = OUTPUT_DIR / "text_extractions"
-TEXT_COMPARISON_DIR = OUTPUT_DIR / "text_comparisons"
+# Racine unique pour comparaisons indicateurs et texte (Dash + pipelines).
+RESULTATS_DIR = OUTPUT_DIR / "resultats"
+INDICATOR_COMPARISON_DIR = RESULTATS_DIR
+TEXT_COMPARISON_DIR = RESULTATS_DIR
 
-for _path in (OUTPUT_DIR, INDICATOR_EXPORT_DIR, INDICATOR_COMPARISON_DIR, LOGS_DIR, TEXT_EXTRACTION_DIR, TEXT_COMPARISON_DIR):
+TEXT_EXTRACTION_DIR = OUTPUT_DIR / "text_extractions"
+
+for _path in (
+    OUTPUT_DIR,
+    INDICATOR_EXPORT_DIR,
+    RESULTATS_DIR,
+    LOGS_DIR,
+    TEXT_EXTRACTION_DIR,
+):
     _path.mkdir(parents=True, exist_ok=True)
 
 AVAILABLE_BANKS = {

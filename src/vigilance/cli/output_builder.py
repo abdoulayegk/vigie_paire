@@ -2,7 +2,7 @@
 
 Architecture « Extract Once, Reference Everywhere » :
 - Les extractions vivent dans ``outputs/extractions/{bank}/{year}/{quarter}/``.
-- Les comparaisons vivent dans ``outputs/comparisons/{bank}/{label}/``.
+- Les comparaisons vivent dans ``outputs/resultats/{bank}/{label}/``.
 - Le manifest contient des references vers les extractions et les PDFs sources.
 """
 
