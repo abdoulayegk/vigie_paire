@@ -129,51 +129,79 @@ Le trimestre de référence est déduit automatiquement :
 
 ## Exécuter le pipeline
 
-### Pipeline Tableaux (Chiffres)
+### Commande recommandée — Pipeline complet (indicateurs + texte)
+
+`run_full_pipeline.py` est le point d’entrée principal. Il enchaîne automatiquement le pipeline indicateurs (tableaux chiffrés) puis le pipeline texte (risques, capital, etc.).
+
+```bash
+# Flux complet : extraction + comparaison indicateurs + comparaison texte
+uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2
+
+# Réutiliser les extractions indicateurs existantes (tables.json déjà présents)
+# Le pipeline texte fait toujours son extraction de texte
+uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-extraction
+
+# Indicateurs seulement (sauter le pipeline texte)
+uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-texte
+
+# Texte seulement (sauter le pipeline indicateurs)
+uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-indicateurs
+```
+
+**Options de `run_full_pipeline.py` :**
+
+| Option | Description |
+| --- | --- |
+| `--banque` | Code banque : `BNC`, `RBC`, `TD`, `BMO`, `BNS`, `CIBC` |
+| `--annee` | Année du rapport courant (ex : `2025`) |
+| `--T1` / `--T2` / `--T3` / `--T4` | Trimestre courant (flags exclusifs) |
+| `--sans-extraction` | Saute l’extraction indicateurs — le pipeline texte s’exécute en entier |
+| `--sans-comparaison` | Saute toutes les comparaisons GPT-4o (indicateurs et texte) |
+| `--sans-indicateurs` | Ignore entièrement le pipeline indicateurs (tableaux chiffrés) |
+| `--sans-texte` | Ignore entièrement le pipeline texte (risques, capital, etc.) |
+| `--sortie` | Répertoire racine des résultats (défaut : `outputs/resultats`) |
+
+> **Note `--sans-extraction` :** ce flag ne s’applique qu’au pipeline indicateurs (réutilise les `tables.json` existants). Le pipeline texte effectue toujours sa propre extraction de texte depuis les PDFs.
+
+---
+
+### Pipelines individuels (usage avancé)
+
+Il est aussi possible de lancer chaque pipeline séparément.
+
+**Pipeline indicateurs uniquement :**
 
 ```bash
 # Extraction + Comparaison complètes des tableaux
-uv run run_pipeline.py --bank TD --year 2026 --quarter T1
+uv run python run_pipeline.py --bank TD --year 2026 --quarter T1
 
-# Réutiliser l'extraction existante (tables.json déjà présent)
-uv run run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
+# Réutiliser l’extraction existante (tables.json déjà présent)
+uv run python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
 
 # Sauter la comparaison (re-triage uniquement)
-uv run run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-comparison
-
- uv run run_text_pipeline.py --bank BNC --year 2025 --T2
-
+uv run python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-comparison
 ```
 
-### Pipeline Texte (Risques, Capital, etc.)
-
-Le module de comparaison de texte utilise l'alignement intelligent par sous-sections de Docling pour éviter les faux-positifs lors du rapprochement sémantique.
+**Pipeline texte uniquement :**
 
 ```bash
 # Extraction + Comparaison sémantique par sous-sections (T2 vs T1)
-uv run run_text_pipeline.py --bank BNS --year 2025 --T2
+uv run python run_text_pipeline.py --bank BNS --year 2025 --T2
 
-# Utilise les mêmes drapeaux locaux (--skip-extraction, etc.)
-uv run run_text_pipeline.py --bank BNS --year 2025 --T2 --skip-extraction
+# Réutiliser l’extraction texte existante
+uv run python run_text_pipeline.py --bank BNS --year 2025 --T2 --skip-extraction
 ```
 
-**Options :**
+---
 
-| Option              | Description                                            |
-| ------------------- | ------------------------------------------------------ |
-| `--bank`            | Code banque : `BNC`, `RBC`, `TD`, `BMO`, `BNS`, `CIBC` |
-| `--year`            | Année du rapport courant                               |
-| `--quarter`         | Trimestre courant : `T1`, `T2`, `T3`, `T4`             |
-| `--skip-extraction` | Réutilise les `tables.json` existants                  |
-| `--skip-comparison` | Saute la comparaison GPT-4o                            |
-| `--inputs-root`     | Répertoire des PDFs (défaut : `Inputs/`)               |
-| `--outputs-root`    | Répertoire de sortie (défaut : `Outputs/`)             |
-
-**Artefact produit :**
+**Artefacts produits :**
 
 ```text
-outputs/comparisons/{banque}/{annee_q}_vs_{annee_prev_q}/comparison.json
+outputs/resultats/{banque}/{annee_q}_vs_{annee_prev_q}/comparison.json
+outputs/resultats/{banque}/{annee_q}_vs_{annee_prev_q}/text_comparison.json
 ```
+
+Les comparaisons indicateurs et texte partagent la même racine `outputs/resultats/`, ce que lit aussi l’interface Dash. Si vous avez d’anciens dossiers sous `outputs/comparisons/` ou `outputs/text_comparisons/`, fusionnez-les vers `outputs/resultats/` (mêmes sous-dossiers `banque/année_q_vs_année_q`). Un script automatise la fusion : `uv run python scripts/migrate_outputs_to_resultats.py` (voir `--dry-run`).
 
 ---
 
@@ -185,14 +213,14 @@ Commande de référence, identique sur toutes les plateformes :
 uv run python -m vigilance.dash_app.app
 ```
 
-### Linux / macOS
+### Dash — Linux / macOS
 
 ```bash
 # Alternative pratique sous Bash
 bash scripts/run_dash.sh
 ```
 
-### Windows (PowerShell)
+### Dash — Windows (PowerShell)
 
 ```powershell
 uv run python -m vigilance.dash_app.app
@@ -234,24 +262,3 @@ Pour chaque changement :
 4. Ajouter une note si nécessaire
 
 L'interface avance automatiquement au changement suivant après validation.
-
-### 4. Navigation
-
-- Flèches `← →` pour naviguer entre les tableaux
-- Flèches `‹ ›` pour naviguer entre les changements d'un tableau
-- Clic direct sur un tableau dans la file pour y accéder
-
----
-
-## Architecture
-
-Le pipeline suit ce flux :
-
-```text
-PDF → Détection des sections → Extraction des tableaux (Vision GPT-4o)
-    → Artefacts canoniques (tables.json)
-    → Comparaison GPT-4o → comparison.json
-    → Triage GenAI → Interface Dash
-```
-
-Voir `Architecture_Vigilance_Bancaire_Desjardins.pdf` pour le détail technique.

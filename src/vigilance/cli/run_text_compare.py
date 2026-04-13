@@ -15,7 +15,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 DEFAULT_OUT_ROOT_EXTRACTIONS = "outputs/text_extractions"
-DEFAULT_OUT_ROOT_COMPARISONS = "outputs/text_comparisons"
+DEFAULT_OUT_ROOT_COMPARISONS = "outputs/resultats"
 DEFAULT_INPUTS_ROOT = "Inputs"
 
 

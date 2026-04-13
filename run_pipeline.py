@@ -15,7 +15,7 @@ This single command will:
 
 Architecture:
     outputs/extractions/{bank}/{year}/{quarter}/tables.json   — one per extraction
-    outputs/comparisons/{bank}/{year_q_vs_year_q}/comparison.json  — one per comparison
+    outputs/resultats/{bank}/{year_q_vs_year_q}/comparison.json  — one per comparison
 """
 
 from __future__ import annotations
@@ -66,6 +66,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--quarter", required=True, help="Trimestre courant (ex: T1, T2, T3)")
     p.add_argument("--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration")
     p.add_argument("--inputs-root", default=DEFAULT_INPUTS_ROOT, help="Répertoire racine des PDFs")
+    p.add_argument(
+        "--out-root",
+        default="outputs/resultats",
+        help="Répertoire racine des sorties de comparaison (défaut: outputs/resultats)",
+    )
     p.add_argument(
         "--skip-extraction",
         action="store_true",
@@ -206,10 +211,9 @@ def main(argv: list[str] | None = None) -> int:
     extraction_root = project_root / "outputs" / "extractions"
     extraction_root.mkdir(parents=True, exist_ok=True)
 
+    comparison_root = project_root / args.out_root
     comparison_dir = (
-        project_root
-        / "outputs"
-        / "comparisons"
+        comparison_root
         / bank.lower()
         / f"{year_current}_{q_current.lower()}_vs_{year_previous}_{q_previous.lower()}"
     )
@@ -246,7 +250,7 @@ def main(argv: list[str] | None = None) -> int:
         print("─" * 70)
 
         t0 = time.time()
-        comparison_out = project_root / "outputs" / "comparisons"
+        comparison_out = comparison_root
         comparison_path = _step_compare(
             bank=bank.lower(),
             year_current=year_current,

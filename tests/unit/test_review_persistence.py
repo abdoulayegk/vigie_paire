@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+
+import pytest
 from types import SimpleNamespace
 
 from vigilance.comparison_canonical import to_canonical_payload
@@ -332,7 +334,15 @@ def test_init_review_items_v2_ignores_legacy_cursor_restore(
 
 def test_td_review_queue_keeps_structure_and_actions_tables_separate() -> None:
     repo_root = Path(__file__).resolve().parents[2]
-    compare_path = (
+    compare_new = (
+        repo_root
+        / "outputs"
+        / "resultats"
+        / "td"
+        / "2026_t1_vs_2025_t3"
+        / "comparison.json"
+    )
+    compare_legacy = (
         repo_root
         / "outputs"
         / "comparisons"
@@ -340,6 +350,9 @@ def test_td_review_queue_keeps_structure_and_actions_tables_separate() -> None:
         / "2026_t1_vs_2025_t3"
         / "comparison.json"
     )
+    compare_path = compare_new if compare_new.exists() else compare_legacy
+    if not compare_path.exists():
+        pytest.skip("Fixture comparison.json introuvable (resultats ou comparisons).")
     raw = load_comparison_result(compare_path)
     payload = to_canonical_payload(raw)
 

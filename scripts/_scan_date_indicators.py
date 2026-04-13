@@ -1,7 +1,7 @@
 """Scan comparison.json files for pure date strings falsely flagged as added/removed."""
 import json
-import glob
 import re
+from pathlib import Path
 
 date_re = re.compile(
     r"^(?:Au\s+)?\d{1,2}\s+"
@@ -10,11 +10,12 @@ date_re = re.compile(
     re.IGNORECASE,
 )
 
+repo_root = Path(__file__).resolve().parents[1]
 count = 0
-for f in sorted(glob.glob("outputs/comparisons/*/2*_vs_*/comparison.json")):
-    with open(f) as fh:
+for f in sorted(repo_root.glob("outputs/resultats/*/2*_vs_*/comparison.json")):
+    with open(f, encoding="utf-8") as fh:
         data = json.load(fh)
-    bank = f.split("/")[2].upper()
+    bank = f.parent.parent.name.upper()
     for p in data.get("pair_comparisons", []):
         td = p.get("technical_diff", {})
         for cat in ("indicators_added", "indicators_removed"):

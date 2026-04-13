@@ -9,7 +9,7 @@ def test_get_available_indicator_comparison_options_recurses_and_skips_review_st
     monkeypatch,
     tmp_path: Path,
 ) -> None:
-    compare_root = tmp_path / "comparisons"
+    compare_root = tmp_path / "resultats"
     nested = compare_root / "bnc" / "2026_t1_vs_2025_t3" / "20260323_143015"
     nested.mkdir(parents=True, exist_ok=True)
     (nested / "comparison.json").write_text("{}", encoding="utf-8")

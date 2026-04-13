@@ -24,7 +24,7 @@ def get_text_comparison_path(
     """Retourne le chemin canonique du fichier text_comparison.json.
 
     Pattern : out_root/{bank}/{year_t2}_{qt2}_vs_{year_t1}_{qt1}/text_comparison.json
-    Exemple  : outputs/text_comparisons/bns/2025_t2_vs_2025_t1/text_comparison.json
+    Exemple  : outputs/resultats/bns/2025_t2_vs_2025_t1/text_comparison.json
     """
     folder = f"{year_t2}_{quarter_t2.lower()}_vs_{year_t1}_{quarter_t1.lower()}"
     return out_root / bank_code.lower() / folder / "text_comparison.json"

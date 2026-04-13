@@ -16,7 +16,7 @@ from vigilance.comparison_canonical import (
     to_canonical_payload,
 )
 from vigilance.quarter_utils import format_quarter_label
-from vigilance.ui_config import OUTPUT_DIR
+from vigilance.ui_config import OUTPUT_DIR, RESULTATS_DIR
 from vigilance.compare_gpt import (
     REFERENCE_RESOLUTION_RULE,
     compare_reports_gpt4o,
@@ -29,7 +29,7 @@ from vigilance.utils.genai import get_openai_api_key
 from vigilance.utils.model_cost import estimate_openai_cost_usd
 
 EXTRACTION_ROOT = OUTPUT_DIR / "extractions"
-COMPARISON_ROOT = OUTPUT_DIR / "comparisons"
+COMPARISON_ROOT = RESULTATS_DIR
 logger = logging.getLogger(__name__)
 
 

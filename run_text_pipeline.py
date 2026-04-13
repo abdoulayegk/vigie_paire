@@ -11,10 +11,10 @@ Ce pipeline:
 3. Extrait des unités sémantiques propres via GPT-4o Vision.
 4. Compare explicitement les idées T1 vs T2.
 5. Trie les changements et ne garde que les majeurs ou modérés réellement nouveaux.
-6. Écrit text_comparison.json dans outputs/text_comparisons/.
+6. Écrit text_comparison.json dans outputs/resultats/.
 
 Architecture:
-    outputs/text_comparisons/{bank}/{year_q_vs_year_q}/text_comparison.json
+    outputs/resultats/{bank}/{year_q_vs_year_q}/text_comparison.json
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ from vigilance.cli.quarter_logic import (
 
 DEFAULT_INPUTS_ROOT = "Inputs"
 DEFAULT_LEGACY_DATA_ROOT = "data"
-DEFAULT_COMPARISON_ROOT = "outputs/text_comparisons"
+DEFAULT_COMPARISON_ROOT = "outputs/resultats"
 
 
 # ---------------------------------------------------------------------------

@@ -14,7 +14,7 @@ from vigilance.compare_gpt import (
 
 DEFAULT_CONFIG = "configs/bank_profiles.yaml"
 DEFAULT_EXTRACTION_ROOT = "outputs/extractions"
-DEFAULT_OUT_ROOT = "outputs/comparisons"
+DEFAULT_OUT_ROOT = "outputs/resultats"
 
 
 def build_parser() -> argparse.ArgumentParser:

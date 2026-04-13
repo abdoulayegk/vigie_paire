@@ -45,7 +45,7 @@ def test_run_comparison_with_sections_returns_dash_canonical(
     tmp_path: Path,
 ) -> None:
     extraction_root = tmp_path / "outputs" / "extractions"
-    comparison_root = tmp_path / "outputs" / "comparisons"
+    comparison_root = tmp_path / "outputs" / "resultats"
     monkeypatch.setattr(cr, "EXTRACTION_ROOT", extraction_root)
     monkeypatch.setattr(cr, "COMPARISON_ROOT", comparison_root)
 
