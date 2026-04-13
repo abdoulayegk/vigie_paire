@@ -86,19 +86,18 @@ session.log
 !/outputs/extractions/*/*/*/tables.json
 !/outputs/extractions/*/*/*/indicators.json
 !/outputs/extractions/*/*/*/footnotes.json
-# Comparaisons indicateurs : comparison.json + comparison.xlsx
-!/outputs/comparisons/
-!/outputs/comparisons/*/
-!/outputs/comparisons/*/*/
-!/outputs/comparisons/*/*/comparison.json
-!/outputs/comparisons/*/*/comparison.xlsx
-# Extractions texte (preuve d'audit) : .md source de vérité
-!/outputs/text_comparisons/
-!/outputs/text_comparisons/*/
-!/outputs/text_comparisons/*/*/
-!/outputs/text_comparisons/*/*/text_comparison.json
-!/outputs/text_comparisons/*/*/text_comparison.xlsx
-!/outputs/text_comparisons/*/*/*.md
+# Resultats unifies (indicateurs + texte + manifest + revue + preuves PDF)
+!/outputs/resultats/
+!/outputs/resultats/*/
+!/outputs/resultats/*/*/
+!/outputs/resultats/*/*/comparison.json
+!/outputs/resultats/*/*/comparison.xlsx
+!/outputs/resultats/*/*/comparison.review_state.json
+!/outputs/resultats/*/*/manifest.json
+!/outputs/resultats/*/*/text_comparison.json
+!/outputs/resultats/*/*/text_comparison.xlsx
+!/outputs/resultats/*/*/*.md
+!/outputs/resultats/*/*/text_extraction*.json
 /logs/
 /Documentation/
 /docs/_build/
@@ -113,6 +112,8 @@ session.log
 !/Inputs/
 !/Inputs/**/
 !/Inputs/**/*.pdf
+# PDFs archives copies dans outputs/resultats (Dash / preuve)
+!/outputs/resultats/*/*/*.pdf
 
 # Project-specific local configs
 pyrightconfig.json

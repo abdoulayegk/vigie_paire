@@ -1,0 +1,1002 @@
+{
+  "schema_version": 2,
+  "artifact_type": "report_comparison",
+  "run_id": "20260410_012336",
+  "bank_code": "cibc",
+  "year_previous": 2025,
+  "quarter_previous": "t1",
+  "year_current": 2025,
+  "quarter_current": "t2",
+  "created_at": "2026-04-10T01:23:36",
+  "source_pdf_previous": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+  "source_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+  "archived_pdf_previous": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T1.pdf",
+  "archived_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/CIBC/2025/CIBC_2025_T2.pdf",
+  "model_version": "gpt-4o",
+  "prompt_version_match": "table_match_v8",
+  "prompt_version_diff": "table_diff_v4",
+  "reference_resolution": {
+    "mode": "automatique",
+    "year_previous": 2025,
+    "quarter_previous": "t1",
+    "rule": "t2->t1 meme annee; t3->t2 meme annee; t1->t3 annee precedente; t4->t4 annee precedente"
+  },
+  "matching": {
+    "matched_pairs": [],
+    "tables_added": [],
+    "tables_removed": [],
+    "artifacts_confirmed_previous": [
+      {
+        "table_id": "tbl_p024_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 24,
+        "section": "capital_management",
+        "bbox": [
+          0.05644366320441751,
+          0.14019222452182964,
+          0.9426552766288807,
+          0.26445400353633997
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p024_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 24,
+        "section": "capital_management",
+        "bbox": [
+          0.05631577734853707,
+          0.5942629033868964,
+          0.948837380004085,
+          0.7993367513020834
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p026_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 26,
+        "section": "capital_management",
+        "bbox": [
+          0.0570019491357741,
+          0.2129549739336727,
+          0.9418629166347529,
+          0.5019432992646189
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p027_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 27,
+        "section": "capital_management",
+        "bbox": [
+          0.05658989949943194,
+          0.2014561277447325,
+          0.943034352819904,
+          0.3893577883941959
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p032_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 32,
+        "section": "risk_management",
+        "bbox": [
+          0.057053266787061505,
+          0.30433774235272654,
+          0.9429701262829351,
+          0.5587139707623107
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p033_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 33,
+        "section": "risk_management",
+        "bbox": [
+          0.05699479346181832,
+          0.20349288709235916,
+          0.9427696676815258,
+          0.35961139563358197
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p033_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 33,
+        "section": "risk_management",
+        "bbox": [
+          0.05761372809316598,
+          0.48907266481958256,
+          0.9456091986762153,
+          0.6356090198863636
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p034_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 34,
+        "section": "risk_management",
+        "bbox": [
+          0.056257578282574425,
+          0.1510719915833136,
+          0.9434963051789726,
+          0.42703351107510656
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p035_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 35,
+        "section": "risk_management",
+        "bbox": [
+          0.05728927313112745,
+          0.10503660067163334,
+          0.9436704348894506,
+          0.328049052845348
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p035_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 35,
+        "section": "risk_management",
+        "bbox": [
+          0.056306122175229144,
+          0.7741807879823628,
+          0.9431337842754289,
+          0.8766609731346671
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p036_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 36,
+        "section": "risk_management",
+        "bbox": [
+          0.05739215152715546,
+          0.2174704195273043,
+          0.9438866509331597,
+          0.4080572802611072
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p037_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 37,
+        "section": "risk_management",
+        "bbox": [
+          0.056243005141713265,
+          0.2295833549114189,
+          0.9433864020054636,
+          0.6861020483151832
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p038_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 38,
+        "section": "risk_management",
+        "bbox": [
+          0.056824297686807475,
+          0.06967729510683003,
+          0.9443280587788501,
+          0.18839177218350497
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p039_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 39,
+        "section": "risk_management",
+        "bbox": [
+          0.056862743851406126,
+          0.3522407069350734,
+          0.9422377044079351,
+          0.5206360865120936
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p040_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 40,
+        "section": "risk_management",
+        "bbox": [
+          0.05673644121955423,
+          0.21962042529173573,
+          0.943136975656148,
+          0.4993246059225064
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p040_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 40,
+        "section": "risk_management",
+        "bbox": [
+          0.05622738482905369,
+          0.561359328452987,
+          0.9433649599162582,
+          0.6313560562904436
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p041_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 41,
+        "section": "risk_management",
+        "bbox": [
+          0.05697909211800769,
+          0.12718111096006451,
+          0.9422416936338338,
+          0.28633437493834835
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p042_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 42,
+        "section": "risk_management",
+        "bbox": [
+          0.05569342070934819,
+          0.08652672623143053,
+          0.9433906904233048,
+          0.4543035487936001
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p043_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 43,
+        "section": "risk_management",
+        "bbox": [
+          0.05592298819348703,
+          0.12159946711376461,
+          0.9433104072520936,
+          0.7260322956123738
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p044_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 44,
+        "section": "risk_management",
+        "bbox": [
+          0.05658882739497166,
+          0.27728751211455377,
+          0.9434188144658906,
+          0.5053279375789141
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p044_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 44,
+        "section": "risk_management",
+        "bbox": [
+          0.05643225027844797,
+          0.572973000882852,
+          0.9436647502425449,
+          0.6414396883261325
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p045_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 45,
+        "section": "risk_management",
+        "bbox": [
+          0.056700083165386925,
+          0.13366153986767085,
+          0.9415691101473141,
+          0.25448579499215795
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p045_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 45,
+        "section": "risk_management",
+        "bbox": [
+          0.05619618160272736,
+          0.40485116207238403,
+          0.9431871401718239,
+          0.4628358320756392
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p046_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 46,
+        "section": "risk_management",
+        "bbox": [
+          0.05764877718258528,
+          0.18059805667761603,
+          0.9420354506548714,
+          0.5742454528808594
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      }
+    ],
+    "artifacts_confirmed_current": [
+      {
+        "table_id": "tbl_p031_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 31,
+        "section": "capital_management",
+        "bbox": [
+          0.05631590201184641,
+          0.10133929204459143,
+          0.9421133402905433,
+          0.22529808198562778
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p031_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 31,
+        "section": "capital_management",
+        "bbox": [
+          0.05645951414419935,
+          0.5756821680550623,
+          0.9435792810776654,
+          0.778254114016138
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p039_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 39,
+        "section": "risk_management",
+        "bbox": [
+          0.05714219535877502,
+          0.30430448898161305,
+          0.943029864940768,
+          0.558693355984158
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p040_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 40,
+        "section": "risk_management",
+        "bbox": [
+          0.05721843320559832,
+          0.20236223394220526,
+          0.9432244394339767,
+          0.36933494336677325
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p040_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 40,
+        "section": "risk_management",
+        "bbox": [
+          0.057047339046702665,
+          0.4984861046376855,
+          0.9444706736047284,
+          0.6572529956547901
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p041_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 41,
+        "section": "risk_management",
+        "bbox": [
+          0.05668607100941776,
+          0.2956997071853792,
+          0.9434229034224367,
+          0.4233541006993766
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p042_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 42,
+        "section": "risk_management",
+        "bbox": [
+          0.05684643789054522,
+          0.09711391757232975,
+          0.9432462804457721,
+          0.3128578686955
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p042_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 42,
+        "section": "risk_management",
+        "bbox": [
+          0.05620238360236673,
+          0.7570979571101643,
+          0.9424656886680454,
+          0.8585830842605746
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p043_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 43,
+        "section": "risk_management",
+        "bbox": [
+          0.05747806947994856,
+          0.21608632020276003,
+          0.9432422912198734,
+          0.4068921021740846
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p044_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 44,
+        "section": "risk_management",
+        "bbox": [
+          0.056420712689169095,
+          0.22959923021721118,
+          0.9433321485332414,
+          0.6834371547506314
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p045_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 45,
+        "section": "risk_management",
+        "bbox": [
+          0.0545650743970684,
+          0.20243398107663552,
+          0.9446098975885927,
+          0.3492904046569208
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p046_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 46,
+        "section": "risk_management",
+        "bbox": [
+          0.05690279817269519,
+          0.35128048212841306,
+          0.9424971038219976,
+          0.46647181655421405
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p047_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 47,
+        "section": "risk_management",
+        "bbox": [
+          0.057026445476058264,
+          0.17739070545543326,
+          0.9427232929304534,
+          0.4566687766951744
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p047_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 47,
+        "section": "risk_management",
+        "bbox": [
+          0.05655291812871796,
+          0.5120430763321694,
+          0.9427055408752043,
+          0.5767433089439316
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p048_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 48,
+        "section": "risk_management",
+        "bbox": [
+          0.057168393353231595,
+          0.12702077807802142,
+          0.9423124026628881,
+          0.28737189553000714
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p049_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 49,
+        "section": "risk_management",
+        "bbox": [
+          0.0560704150231056,
+          0.08586704369747278,
+          0.9434345719081904,
+          0.46531839081735327
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p050_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 50,
+        "section": "risk_management",
+        "bbox": [
+          0.05611965079712712,
+          0.1211170524057716,
+          0.9429899726817811,
+          0.7277439001834755
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p051_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 51,
+        "section": "risk_management",
+        "bbox": [
+          0.05732804342033038,
+          0.2730656826134884,
+          0.9433858036215789,
+          0.5238677901451034
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p051_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 51,
+        "section": "risk_management",
+        "bbox": [
+          0.05613360062144161,
+          0.591275109185113,
+          0.9433223749297897,
+          0.6608467487373738
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p052_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 52,
+        "section": "risk_management",
+        "bbox": [
+          0.05679512023925781,
+          0.13639559890284683,
+          0.9418030782462725,
+          0.25657567110928625
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p052_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 52,
+        "section": "risk_management",
+        "bbox": [
+          0.05636349223018472,
+          0.4018230245570944,
+          0.9429524739583334,
+          0.4590361624053031
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p053_i01",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 53,
+        "section": "risk_management",
+        "bbox": [
+          0.05768168206308402,
+          0.17873033851084086,
+          0.9422863729638992,
+          0.5743240202316131
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      },
+      {
+        "table_id": "tbl_p053_i02",
+        "reason": "Excluded from business matching by extraction_status=confirmed_no_table.",
+        "title": "",
+        "table_summary": "",
+        "extraction_status": "confirmed_no_table",
+        "page": 53,
+        "section": "risk_management",
+        "bbox": [
+          0.05706992803835401,
+          0.7092604974303583,
+          0.9427701663347631,
+          0.8263908925682608
+        ],
+        "row_count": 0,
+        "headers": [],
+        "indicators": [],
+        "footnotes": []
+      }
+    ],
+    "extraction_suspects_previous": [],
+    "extraction_suspects_current": []
+  },
+  "pair_comparisons": [],
+  "run_metrics": {
+    "runtime_extraction_sec": 0.0,
+    "runtime_comparison_sec": 0.061,
+    "vision_calls_total": 0,
+    "vision_rescue_total": 0,
+    "comparison_calls_total": 0,
+    "matching_passes_total": 0,
+    "inspector_passes_total": 0,
+    "audit_passes_total": 0,
+    "matching_output_retries_total": 0,
+    "matching_validation_failures_total": 0,
+    "stage1_validation_retries_total": 0,
+    "stage2_validation_retries_total": 0,
+    "unresolved_after_stage1_total": 0,
+    "matched_in_stage2_total": 0,
+    "unmatched_after_primary_total": 0,
+    "unmatched_after_rescue_total": 0,
+    "matching_pairs_llm_duplicates_total": 0,
+    "matching_pairs_llm_deduped_total": 0,
+    "inspector_rejected_total": 0,
+    "inspector_confirmed_total": 0,
+    "prompt_tokens_total": 0,
+    "completion_tokens_total": 0,
+    "total_tokens_total": 0,
+    "estimated_cost_usd": 0.0,
+    "extraction": {
+      "runtime_extraction_sec": 0.0,
+      "vision_calls_total": 0,
+      "vision_rescue_total": 0,
+      "prompt_tokens_total": 0,
+      "completion_tokens_total": 0,
+      "total_tokens_total": 0,
+      "estimated_cost_usd": 0.0,
+      "cache_hits_total": 0,
+      "previous": {},
+      "current": {}
+    },
+    "comparison": {
+      "prompt_tokens_total": 0,
+      "completion_tokens_total": 0,
+      "total_tokens_total": 0,
+      "comparison_calls_total": 0,
+      "runtime_comparison_sec": 0.061,
+      "matching_passes_total": 0,
+      "inspector_passes_total": 0,
+      "audit_passes_total": 0,
+      "matching_output_retries_total": 0,
+      "matching_validation_failures_total": 0,
+      "stage1_validation_retries_total": 0,
+      "stage2_validation_retries_total": 0,
+      "unresolved_after_stage1_total": 0,
+      "matched_in_stage2_total": 0,
+      "unmatched_after_primary_total": 0,
+      "unmatched_after_rescue_total": 0,
+      "matching_pairs_llm_duplicates_total": 0,
+      "matching_pairs_llm_deduped_total": 0,
+      "inspector_rejected_total": 0,
+      "inspector_confirmed_total": 0,
+      "estimated_cost_usd": 0.0
+    }
+  },
+  "summary": {
+    "matched_pairs_total": 0,
+    "tables_added_total": 0,
+    "tables_removed_total": 0,
+    "artifacts_confirmed_previous_total": 24,
+    "artifacts_confirmed_current_total": 23,
+    "extraction_suspects_previous_total": 0,
+    "extraction_suspects_current_total": 0,
+    "indicator_changes_total": 0,
+    "footnote_changes_total": 0,
+    "high_priority_items_total": 0
+  }
+}

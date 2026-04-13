@@ -1,0 +1,1280 @@
+{
+  "schema_version": "review_state_v1",
+  "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bns/2025_t2_vs_2025_t1/comparison.json",
+  "comparison_run_id": "20260410_112937",
+  "review_items_signature": "f92f0374cc5149b3bf365d58af638fd291f7951e8823d2f3ca19b5d0aa8ed783",
+  "saved_at": "2026-04-13T19:57:17+00:00",
+  "source": "on_validate_change_v2",
+  "preferred_store": "review_queue",
+  "review_selection": {
+    "review_id": "bns::risk_management::tbl_p039_i02|tbl_p045_i02",
+    "change_id": "chg_00011"
+  },
+  "review_current_idx": 0,
+  "current_change_idx": 2,
+  "current_indicator_idx": 0,
+  "review_items": [
+    {
+      "change_id": "bns::risk_management::tbl_p039_i02|tbl_p045_i02",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "T27 Grèvement d’actifs",
+      "table_number": "",
+      "table_id_t1": "tbl_p039_i02",
+      "table_id_t2": "tbl_p045_i02",
+      "page_t1": 39,
+      "page_t2": 45,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-13T19:57:17.546297+00:00",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "T27 Grèvement d’actifs",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "[1] Autres actifs grevés qui ne peuvent être donnés en garantie dans le cours normal des activités comprennent les actifs so",
+          "type": "modified",
+          "review_status": "approved"
+        },
+        {
+          "name": "[2] Actifs non grevés qui peuvent être donnés en garantie dans le cours normal des activités comprennent les prêts admissibl",
+          "type": "modified",
+          "review_status": "approved"
+        },
+        {
+          "name": "[3] Autres actifs non grevés qui ne peuvent être donnés en garantie dans le cours normal des activités comprennent les prêts",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[4] Comprennent les instruments dérivés, les actifs au titre des transactions de financement de titres et les autres actifs ",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'T27 Grèvement d’actifs'; indicators: identical structure with same 14 rows; row_count 14 vs 14; headers similar structure.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.059688599746223314,
+        0.35346109870140885,
+        0.940067727767413,
+        0.6103964619252874
+      ],
+      "bbox_t2": [
+        0.06008809913647906,
+        0.38462293680904774,
+        0.9401933407506737,
+        0.6261497682690773
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "financement",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "financement",
+        "review_priority": "critique",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bns::risk_management::tbl_p034_i01|tbl_p040_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques",
+      "table_number": "",
+      "table_id_t1": "tbl_p034_i01",
+      "table_id_t2": "tbl_p040_i01",
+      "page_t1": 34,
+      "page_t2": 40,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.95,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[4] Comprend des immeubles d’habitation (quatre unités ou plus)  -> Comprend des immeubles d’habitation (quatre unités ou plus) ",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[5] Les prêts hypothécaires à taux variable représentent 31 % (3 -> Les prêts hypothécaires à taux variable représentent 33 % (3",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques'; indicators: similar structure with additional rows in CQ; row_count 16 vs 13; headers similar structure.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05989760466871372,
+        0.15648722252778777,
+        0.9393479582879871,
+        0.4124393390056274
+      ],
+      "bbox_t2": [
+        0.05995986078113664,
+        0.23654365783145756,
+        0.9396711510805349,
+        0.55695897439735
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bns::risk_management::tbl_p036_i01|tbl_p042_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "T21 Expositions au risque de crédit de la Banque par régions",
+      "table_number": "",
+      "table_id_t1": "tbl_p036_i01",
+      "table_id_t2": "tbl_p042_i01",
+      "page_t1": 36,
+      "page_t2": 42,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "T21 Expositions au risque de crédit de la Banque par régions",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[1] Les comptes de correction de valeur pour pertes sur créances -> Les comptes de correction de valeur pour pertes sur créances",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[3] Les transactions de financement sur titres comprennent des t -> Les transactions de financement sur titres comprennent des t",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'T21 Expositions au risque de crédit de la Banque par régions'; indicators: identical structure with same 7 rows; row_count 7 vs 7; headers similar structure.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.06024658936963943,
+        0.12244202868387313,
+        0.9398200444716521,
+        0.3202799557117058
+      ],
+      "bbox_t2": [
+        0.06027379834632178,
+        0.16062724575076828,
+        0.9391458236162935,
+        0.3594879501167385
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bns::risk_management::tbl_p040_i01|tbl_p046_i01",
+      "change_type": "added",
+      "indicator": "1 ajouté(s)",
+      "section": "risk_management",
+      "table_name": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
+      "table_number": "",
+      "table_id_t1": "tbl_p040_i01",
+      "table_id_t2": "tbl_p046_i01",
+      "page_t1": 40,
+      "page_t2": 46,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-13T19:57:04.364854+00:00",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "Pour le trimestre clos le 31janvier 2025 (en millions de dollars)",
+          "type": "added",
+          "review_status": "approved"
+        },
+        {
+          "name": "[*] La présentation de cette information n’est pas exigée aux termes de la ligne directrice.",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'T28 Ratio de liquidité à court terme moyen de la Banque¹)'; indicators: identical structure with same 29 rows; row_count 30 vs 29; headers similar structure.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.06012743543431929,
+        0.3327471853672773,
+        0.9399256160603234,
+        0.7961349389866699
+      ],
+      "bbox_t2": [
+        0.05997148200647155,
+        0.38415924890744735,
+        0.9397977762554416,
+        0.8504809383231562
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "critique",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bns::risk_management::tbl_p041_i01|tbl_p048_i01",
+      "change_type": "removed",
+      "indicator": "1 retiré(s)",
+      "section": "risk_management",
+      "table_name": "T29 Ratio structurel de liquidité à long terme de la Banque(1)",
+      "table_number": "",
+      "table_id_t1": "tbl_p041_i01",
+      "table_id_t2": "tbl_p048_i01",
+      "page_t1": 41,
+      "page_t2": 48,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.9,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "T29 Ratio structurel de liquidité à long terme de la Banque(1)",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "Éléments entrant dans le calcul du financement stable requis",
+          "type": "removed",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Table summary and indicators are highly similar to tbl_p041_i01. Both tables are in the 'risk_management' section and focus on the 'Ratio structurel de liquidité à long terme'. Headers and footnotes are also closely aligned.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.06096503034752993,
+        0.48576629755597467,
+        0.9393133413336962,
+        0.8903689329651581
+      ],
+      "bbox_t2": [
+        0.060454784538813096,
+        0.09873509315695343,
+        0.9389578596276431,
+        0.8316885021302284
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "matched_pair",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bns::capital_management::tbl_p046_i01|tbl_p053_i01",
+      "change_type": "added",
+      "indicator": "1 ajouté(s)",
+      "section": "capital_management",
+      "table_name": "T32 Ratios de fonds propres réglementaires et de capacité totale d’absorption des pertes",
+      "table_number": "",
+      "table_id_t1": "tbl_p046_i01",
+      "table_id_t2": "tbl_p053_i01",
+      "page_t1": 46,
+      "page_t2": 53,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-13T19:57:08.025693+00:00",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "T32 Ratios de fonds propres réglementaires et de capacité totale d’absorption des pertes",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "Risque de levier",
+          "type": "added",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Title identical: 'T32 Ratios de fonds propres réglementaires et de capacité totale d’absorption des pertes'; indicators: identical structure with same 14 rows; row_count 14 vs 15; headers similar structure.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05938962363880468,
+        0.4221622861664871,
+        0.9396885607768449,
+        0.6412296222087525
+      ],
+      "bbox_t2": [
+        0.0595446534417755,
+        0.5303741883805276,
+        0.9392544317799026,
+        0.7474569464399745
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "matched_pair",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bns::risk_management::tbl_p037_i02|tbl_p043_i02",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "T24 Interdépendance du risque de marché et de l’état consolidé de la situation financière de la Banque",
+      "table_number": "",
+      "table_id_t1": "tbl_p037_i02",
+      "table_id_t2": "tbl_p043_i02",
+      "page_t1": 37,
+      "page_t2": 43,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "T24 Interdépendance du risque de marché et de l’état consolidé de la situation financière de la Banque",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[3] 3) Comprend les provisions, les autres passifs et les titres empruntés.",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'T24 Interdépendance du risque de marché et de l’état consolidé de la situation financière de la Banque'; indicators: identical structure with same 15 rows; row_count 15 vs 15; headers similar structure.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.06028872817309935,
+        0.3904148847207256,
+        0.939261820778918,
+        0.637942843967014
+      ],
+      "bbox_t2": [
+        0.06030368963086585,
+        0.407120510992876,
+        0.9393232608118263,
+        0.6472076766792385
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_marche",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_marche",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bns::capital_management::tbl_p047_i02|",
+      "change_type": "table_removed",
+      "indicator": "Tableau entier retiré",
+      "section": "capital_management",
+      "table_name": "T33 Indicateurs de BISm",
+      "table_number": "",
+      "table_id_t1": "tbl_p047_i02",
+      "table_id_t2": "",
+      "page_t1": 47,
+      "page_t2": null,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-13T19:57:14.298945+00:00",
+      "edited_value": "",
+      "confidence": 1.0,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "T33 Indicateurs de BISm",
+      "table_status": "completed",
+      "indicators": [],
+      "match_method": "",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.059590695509270056,
+        0.6792322697158366,
+        0.9397050595006737,
+        0.931013825904973
+      ],
+      "bbox_t2": null,
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "table_removed",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Tableau supprime sur le theme capital a confirmer par l'analyste."
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
+      }
+    }
+  ],
+  "review_queue": [
+    {
+      "review_id": "bns::risk_management::tbl_p039_i02|tbl_p045_i02",
+      "table_key": "bns::risk_management::tbl_p039_i02|tbl_p045_i02",
+      "table_title": "T27 Grèvement d’actifs",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "T27 Grèvement d’actifs",
+      "table_number": "",
+      "table_id_t1": "tbl_p039_i02",
+      "table_id_t2": "tbl_p045_i02",
+      "page_t1": 39,
+      "page_t2": 45,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.059688599746223314,
+        0.35346109870140885,
+        0.940067727767413,
+        0.6103964619252874
+      ],
+      "bbox_t2": [
+        0.06008809913647906,
+        0.38462293680904774,
+        0.9401933407506737,
+        0.6261497682690773
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00009",
+          "change_type": "footnote_added",
+          "payload": {
+            "indicator_name": "[1] Autres actifs grevés qui ne peuvent être donnés en garantie dans le cours normal des activités comprennent les actifs so",
+            "indicator_name_clean": "[1] autres actifs grevés qui ne peuvent être donnés en garantie dans le cours normal des activités comprennent les actifs so",
+            "footnote_ref": "1",
+            "old_text": "",
+            "new_text": "Autres actifs grevés qui ne peuvent être donnés en garantie dans le cours normal des activités comprennent les actifs sous-jacents liés aux structures de titrisation et les actifs donnés en garantie relativement aux obligations sécurisées."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-13T19:56:57.920799+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00010",
+          "change_type": "footnote_added",
+          "payload": {
+            "indicator_name": "[2] Actifs non grevés qui peuvent être donnés en garantie dans le cours normal des activités comprennent les prêts admissibl",
+            "indicator_name_clean": "[2] actifs non grevés qui peuvent être donnés en garantie dans le cours normal des activités comprennent les prêts admissibl",
+            "footnote_ref": "2",
+            "old_text": "",
+            "new_text": "Actifs non grevés qui peuvent être donnés en garantie dans le cours normal des activités comprennent les prêts admissibles à des programmes de banques centrales et les titres disponibles immédiatement pour être donnés en garantie."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-13T19:57:17.546297+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00011",
+          "change_type": "footnote_added",
+          "payload": {
+            "indicator_name": "[3] Autres actifs non grevés qui ne peuvent être donnés en garantie dans le cours normal des activités comprennent les prêts",
+            "indicator_name_clean": "[3] autres actifs non grevés qui ne peuvent être donnés en garantie dans le cours normal des activités comprennent les prêts",
+            "footnote_ref": "3",
+            "old_text": "",
+            "new_text": "Autres actifs non grevés qui ne peuvent être donnés en garantie dans le cours normal des activités comprennent les prêts non admissibles à des programmes de banques centrales, les actifs physiques et les autres actifs."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00012",
+          "change_type": "footnote_added",
+          "payload": {
+            "indicator_name": "[4] Comprennent les instruments dérivés, les actifs au titre des transactions de financement de titres et les autres actifs ",
+            "indicator_name_clean": "[4] comprennent les instruments dérivés, les actifs au titre des transactions de financement de titres et les autres actifs",
+            "footnote_ref": "4",
+            "old_text": "",
+            "new_text": "Comprennent les instruments dérivés, les actifs au titre des transactions de financement de titres et les autres actifs financiers."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.99,
+      "match_method": "Title identical: 'T27 Grèvement d’actifs'; indicators: identical structure with same 14 rows; row_count 14 vs 14; headers similar structure.",
+      "genai_analysis": {
+        "theme": "financement",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "financement",
+        "review_priority": "critique",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 4,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 4,
+        "validated": 2,
+        "pending": 2
+      }
+    },
+    {
+      "review_id": "bns::risk_management::tbl_p034_i01|tbl_p040_i01",
+      "table_key": "bns::risk_management::tbl_p034_i01|tbl_p040_i01",
+      "table_title": "T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques",
+      "table_number": "",
+      "table_id_t1": "tbl_p034_i01",
+      "table_id_t2": "tbl_p040_i01",
+      "page_t1": 34,
+      "page_t2": 40,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05989760466871372,
+        0.15648722252778777,
+        0.9393479582879871,
+        0.4124393390056274
+      ],
+      "bbox_t2": [
+        0.05995986078113664,
+        0.23654365783145756,
+        0.9396711510805349,
+        0.55695897439735
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00004",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[4] Comprend des immeubles d’habitation (quatre unités ou plus)  -> Comprend des immeubles d’habitation (quatre unités ou plus) ",
+            "indicator_name_clean": "[4] comprend des immeubles d’habitation (quatre unités ou plus)  -> comprend des immeubles d’habitation (quatre unités ou plus)",
+            "footnote_ref": "4",
+            "old_text": "Comprend des immeubles d’habitation (quatre unités ou plus) de 3 505 $ (31 octobre 2024 – 3 796 $), dont une tranche de 2 764 $ est assurée (31 octobre 2024 – 3 024 $).",
+            "new_text": "Comprend des immeubles d’habitation (quatre unités ou plus) de 3 228 $ (31 janvier 2025 – 3 505 $; 31 octobre 2024 – 3 796 $), dont une tranche de 2 548 $ est assurée (31 janvier 2025 – 2 764 $; 31 octobre 2024 – 3 024 $)."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00005",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[5] Les prêts hypothécaires à taux variable représentent 31 % (3 -> Les prêts hypothécaires à taux variable représentent 33 % (3",
+            "indicator_name_clean": "[5] les prêts hypothécaires à taux variable représentent 31 % (3 -> les prêts hypothécaires à taux variable représentent 33 % (3",
+            "footnote_ref": "5",
+            "old_text": "Les prêts hypothécaires à taux variable représentent 31 % (31 octobre 2024 – 30 %) du total du portefeuille de prêts hypothécaires à l’habitation au Canada.",
+            "new_text": "Les prêts hypothécaires à taux variable représentent 33 % (31 janvier 2025 – 31 %; 31 octobre 2024 – 30 %) du total du portefeuille de prêts hypothécaires à l’habitation au Canada."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.95,
+      "match_method": "Title identical: 'T18 Montants des prêts hypothécaires à l’habitation et des marges de crédit hypothécaires à l’habitation assurés et non assurés, par régions géographiques'; indicators: similar structure with additional rows in CQ; row_count 16 vs 13; headers similar structure.",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 2,
+        "validated": 0,
+        "pending": 2
+      }
+    },
+    {
+      "review_id": "bns::risk_management::tbl_p036_i01|tbl_p042_i01",
+      "table_key": "bns::risk_management::tbl_p036_i01|tbl_p042_i01",
+      "table_title": "T21 Expositions au risque de crédit de la Banque par régions",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "T21 Expositions au risque de crédit de la Banque par régions",
+      "table_number": "",
+      "table_id_t1": "tbl_p036_i01",
+      "table_id_t2": "tbl_p042_i01",
+      "page_t1": 36,
+      "page_t2": 42,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.06024658936963943,
+        0.12244202868387313,
+        0.9398200444716521,
+        0.3202799557117058
+      ],
+      "bbox_t2": [
+        0.06027379834632178,
+        0.16062724575076828,
+        0.9391458236162935,
+        0.3594879501167385
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00006",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Les comptes de correction de valeur pour pertes sur créances -> Les comptes de correction de valeur pour pertes sur créances",
+            "indicator_name_clean": "[1] les comptes de correction de valeur pour pertes sur créances -> les comptes de correction de valeur pour pertes sur créances",
+            "footnote_ref": "1",
+            "old_text": "Les comptes de correction de valeur pour pertes sur créances s’établissaient à 598 $. Les lettres de crédit et de garanties sont incluses dans les expositions financées puisqu’elles ont été émises. Les prêts et équivalents de prêts comprenaient des lettres de crédit et de garanties d’un montant total de 14 740 $ au 31 janvier 2025 (31 octobre 2024 – 14 446 $).",
+            "new_text": "Les comptes de correction de valeur pour pertes sur créances s’établissaient à 581 $. Les lettres de crédit et de garanties sont incluses dans les expositions financées puisqu’elles ont été émises. Les prêts et équivalents de prêts comprenaient des lettres de crédit et de garanties d’un montant total de 14 272 $ au 30 avril 2025 (31 janvier 2025 – 14 740 $; 31 octobre 2024 – 14 446 $)."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00007",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[3] Les transactions de financement sur titres comprennent des t -> Les transactions de financement sur titres comprennent des t",
+            "indicator_name_clean": "[3] les transactions de financement sur titres comprennent des t -> les transactions de financement sur titres comprennent des t",
+            "footnote_ref": "3",
+            "old_text": "Les transactions de financement sur titres comprennent des titres pris en pension, des obligations relatives aux titres mis en pension et des transactions de prêt ou d’emprunt de titres. Les expositions financées brutes et nettes représentent la totalité des positions nettes positives, compte tenu des garanties. Les garanties au titre des dérivés s’établissaient à 6 598 $ et celles au titre des transactions de financement sur titres, à 146 315 $.",
+            "new_text": "Les transactions de financement sur titres comprennent des titres pris en pension, des obligations relatives aux titres mis en pension et des transactions de prêt ou d’emprunt de titres. Les expositions financées brutes et nettes représentent la totalité des positions nettes positives, compte tenu des garanties. Les garanties au titre des dérivés s’établissaient à 7 002 $ et celles au titre des transactions de financement sur titres, à 147 502 $."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.99,
+      "match_method": "Title identical: 'T21 Expositions au risque de crédit de la Banque par régions'; indicators: identical structure with same 7 rows; row_count 7 vs 7; headers similar structure.",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 2,
+        "validated": 0,
+        "pending": 2
+      }
+    },
+    {
+      "review_id": "bns::risk_management::tbl_p040_i01|tbl_p046_i01",
+      "table_key": "bns::risk_management::tbl_p040_i01|tbl_p046_i01",
+      "table_title": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
+      "table_number": "",
+      "table_id_t1": "tbl_p040_i01",
+      "table_id_t2": "tbl_p046_i01",
+      "page_t1": 40,
+      "page_t2": 46,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.06012743543431929,
+        0.3327471853672773,
+        0.9399256160603234,
+        0.7961349389866699
+      ],
+      "bbox_t2": [
+        0.05997148200647155,
+        0.38415924890744735,
+        0.9397977762554416,
+        0.8504809383231562
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00001",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Pour le trimestre clos le 31janvier 2025 (en millions de dollars)",
+            "indicator_name_clean": "pour le trimestre clos le 31janvier 2025 (en millions de dollars)",
+            "analyst_assessment": {
+              "relevance_level": 3,
+              "justification": "Cet indicateur semble être un artefact de date ou de période, et non un indicateur métier réel. Il n'affecte pas l'analyse des ratios de liquidité."
+            }
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-13T19:57:04.364854+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00013",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[*] La présentation de cette information n’est pas exigée aux termes de la ligne directrice.",
+            "indicator_name_clean": "[*] la présentation de cette information n’est pas exigée aux termes de la ligne directrice.",
+            "footnote_ref": "*",
+            "old_text": "La présentation de cette information n’est pas exigée aux termes de la ligne directrice.",
+            "new_text": ""
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.99,
+      "match_method": "Title identical: 'T28 Ratio de liquidité à court terme moyen de la Banque¹)'; indicators: identical structure with same 29 rows; row_count 30 vs 29; headers similar structure.",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "critique",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 1,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 1,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "bns::risk_management::tbl_p041_i01|tbl_p048_i01",
+      "table_key": "bns::risk_management::tbl_p041_i01|tbl_p048_i01",
+      "table_title": "T29 Ratio structurel de liquidité à long terme de la Banque(1)",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "T29 Ratio structurel de liquidité à long terme de la Banque(1)",
+      "table_number": "",
+      "table_id_t1": "tbl_p041_i01",
+      "table_id_t2": "tbl_p048_i01",
+      "page_t1": 41,
+      "page_t2": 48,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.06096503034752993,
+        0.48576629755597467,
+        0.9393133413336962,
+        0.8903689329651581
+      ],
+      "bbox_t2": [
+        0.060454784538813096,
+        0.09873509315695343,
+        0.9389578596276431,
+        0.8316885021302284
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00002",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Éléments entrant dans le calcul du financement stable requis",
+            "indicator_name_clean": "éléments entrant dans le calcul du financement stable requis",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La suppression de cet indicateur modifie la manière dont le financement stable requis est calculé, ce qui peut affecter l'évaluation de la stabilité financière."
+            }
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.9,
+      "match_method": "Table summary and indicators are highly similar to tbl_p041_i01. Both tables are in the 'risk_management' section and focus on the 'Ratio structurel de liquidité à long terme'. Headers and footnotes are also closely aligned.",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 1,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 0,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "bns::capital_management::tbl_p046_i01|tbl_p053_i01",
+      "table_key": "bns::capital_management::tbl_p046_i01|tbl_p053_i01",
+      "table_title": "T32 Ratios de fonds propres réglementaires et de capacité totale d’absorption des pertes",
+      "view_mode": "change_list",
+      "section": "capital_management",
+      "table_name": "T32 Ratios de fonds propres réglementaires et de capacité totale d’absorption des pertes",
+      "table_number": "",
+      "table_id_t1": "tbl_p046_i01",
+      "table_id_t2": "tbl_p053_i01",
+      "page_t1": 46,
+      "page_t2": 53,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05938962363880468,
+        0.4221622861664871,
+        0.9396885607768449,
+        0.6412296222087525
+      ],
+      "bbox_t2": [
+        0.0595446534417755,
+        0.5303741883805276,
+        0.9392544317799026,
+        0.7474569464399745
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00003",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Risque de levier",
+            "indicator_name_clean": "risque de levier",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'ajout de cet indicateur pourrait refléter un changement dans la manière dont la banque évalue ou présente son exposition au risque de levier, ce qui est crucial pour la gestion des risques et la conformité réglementaire."
+            }
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-13T19:57:08.025693+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.99,
+      "match_method": "Title identical: 'T32 Ratios de fonds propres réglementaires et de capacité totale d’absorption des pertes'; indicators: identical structure with same 14 rows; row_count 14 vs 15; headers similar structure.",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 1,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "bns::risk_management::tbl_p037_i02|tbl_p043_i02",
+      "table_key": "bns::risk_management::tbl_p037_i02|tbl_p043_i02",
+      "table_title": "T24 Interdépendance du risque de marché et de l’état consolidé de la situation financière de la Banque",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "T24 Interdépendance du risque de marché et de l’état consolidé de la situation financière de la Banque",
+      "table_number": "",
+      "table_id_t1": "tbl_p037_i02",
+      "table_id_t2": "tbl_p043_i02",
+      "page_t1": 37,
+      "page_t2": 43,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.06028872817309935,
+        0.3904148847207256,
+        0.939261820778918,
+        0.637942843967014
+      ],
+      "bbox_t2": [
+        0.06030368963086585,
+        0.407120510992876,
+        0.9393232608118263,
+        0.6472076766792385
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00008",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[3] 3) Comprend les provisions, les autres passifs et les titres empruntés.",
+            "indicator_name_clean": "[3] 3) comprend les provisions, les autres passifs et les titres empruntés.",
+            "footnote_ref": "3",
+            "old_text": "3) Comprend les provisions, les autres passifs et les titres empruntés.",
+            "new_text": ""
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.99,
+      "match_method": "Title identical: 'T24 Interdépendance du risque de marché et de l’état consolidé de la situation financière de la Banque'; indicators: identical structure with same 15 rows; row_count 15 vs 15; headers similar structure.",
+      "genai_analysis": {
+        "theme": "risque_marche",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_marche",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "bns::capital_management::tbl_p047_i02|",
+      "table_key": "bns::capital_management::tbl_p047_i02|",
+      "table_title": "T33 Indicateurs de BISm",
+      "view_mode": "table_only",
+      "section": "capital_management",
+      "table_name": "T33 Indicateurs de BISm",
+      "table_number": "",
+      "table_id_t1": "tbl_p047_i02",
+      "table_id_t2": "",
+      "page_t1": 47,
+      "page_t2": null,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.059590695509270056,
+        0.6792322697158366,
+        0.9397050595006737,
+        0.931013825904973
+      ],
+      "bbox_t2": null,
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00014",
+          "change_type": "table_removed",
+          "payload": {
+            "description": "Tableau entier supprimé",
+            "table_status": "supprime"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-13T19:57:14.298945+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 1,
+      "match_method": "",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Tableau supprime sur le theme capital a confirmer par l'analyste."
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
+      }
+    }
+  ]
+}

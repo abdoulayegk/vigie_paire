@@ -1,0 +1,2238 @@
+{
+  "schema_version": "review_state_v1",
+  "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/td/2026_t1_vs_2025_t3/comparison.json",
+  "comparison_run_id": "20260408_183445",
+  "review_items_signature": "7415958e138ad24efecae2b939f02aa4f89d72ff6d5191ce8cd1b6a137dbc9e0",
+  "saved_at": "2026-04-08T23:02:27+00:00",
+  "source": "on_validate_change_v2",
+  "preferred_store": "review_queue",
+  "review_selection": {
+    "review_id": "td::risk_management::tbl_p055_i01|tbl_p049_i01",
+    "change_id": "chg_00025"
+  },
+  "review_current_idx": 10,
+  "current_change_idx": 1,
+  "current_indicator_idx": 0,
+  "review_items": [
+    {
+      "change_id": "td::capital_management::tbl_p038_i01|tbl_p033_i01",
+      "change_type": "added",
+      "indicator": "1 ajouté(s)",
+      "section": "capital_management",
+      "table_name": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
+      "table_number": "",
+      "table_id_t1": "tbl_p038_i01",
+      "table_id_t2": "tbl_p033_i01",
+      "page_t1": 38,
+      "page_t2": 33,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-08T23:02:10.008534+00:00",
+      "edited_value": "",
+      "confidence": 0.9,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "Déduction des expositions sur crypto-actifs",
+          "type": "added",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Title and table_summary are highly similar to PQ table 'tbl_p038_i01'. Both tables have similar headers and indicators related to 'Structure de fonds propres et ratios Bâle III'.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.056269732955234505,
+        0.08408946220320886,
+        0.9444691776450164,
+        0.8935623168945314
+      ],
+      "bbox_t2": [
+        0.05610269035389221,
+        0.08337446655889955,
+        0.9443219752093546,
+        0.9047219632851958
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "matched_pair",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il introduit un nouvel indicateur lié à la déduction des expositions sur crypto-actifs dans le cadre de Bâle III ; (2) Cela a un impact direct sur le calcul des fonds propres réglementaires et peut affecter les ratios prudentiels de la banque ; (3) Il s'agit d'une nouvelle divulgation qui pourrait refléter une mise à jour des exigences réglementaires concernant les crypto-actifs.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "ELEVE",
+        "confidence": 0.95,
+        "explanation": "(1) Le changement est pertinent car il introduit un nouvel indicateur lié à la déduction des expositions sur crypto-actifs dans le cadre de Bâle III ; (2) Cela a un impact direct sur le calcul des fonds propres réglementaires et peut affecter les ratios prudentiels de la banque ; (3) Il s'agit d'une nouvelle divulgation qui pourrait refléter une mise à jour des exigences réglementaires concernant les crypto-actifs.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "escalade",
+        "reference_reglementaire": "Bâle III — Déduction des expositions sur crypto-actifs",
+        "impact_description": "L'ajout de cet indicateur pourrait modifier le niveau de fonds propres réglementaires requis, influençant ainsi la conformité aux exigences de Bâle III.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il introduit un nouvel indicateur lié à la déduction des expositions sur crypto-actifs dans le cadre de Bâle III ; (2) Cela a un impact direct sur le calcul des fonds propres réglementaires et peut affecter les ratios prudentiels de la banque ; (3) Il s'agit d'une nouvelle divulgation qui pourrait refléter une mise à jour des exigences réglementaires concernant les crypto-actifs.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::capital_management::tbl_p039_i01|tbl_p034_i01",
+      "change_type": "removed",
+      "indicator": "1 ajouté(s), 3 retiré(s)",
+      "section": "capital_management",
+      "table_name": "ACTIONS ET AUTRES TITRES¹",
+      "table_number": "",
+      "table_id_t1": "tbl_p039_i01",
+      "table_id_t2": "tbl_p034_i01",
+      "page_t1": 39,
+      "page_t2": 34,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-08T23:01:54.541351+00:00",
+      "edited_value": "",
+      "confidence": 0.9,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "ACTIONS ET AUTRES TITRES¹",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "Billets avec remboursement de capital à recours limité – Série 6⁴",
+          "type": "added",
+          "review_status": "approved"
+        },
+        {
+          "name": "Série 5²",
+          "type": "removed",
+          "review_status": "pending"
+        },
+        {
+          "name": "Série 7³",
+          "type": "removed",
+          "review_status": "pending"
+        },
+        {
+          "name": "Série 9",
+          "type": "removed",
+          "review_status": "pending"
+        },
+        {
+          "name": "[6] Pour les BRCRL, série 3 et série 4, le montant représente l’équivalent en dollars canadiens du montant notionnel en doll",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[7] Le 18 décembre 2024, la Banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[8] Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens ",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[1] Pour plus de renseignements, y compris les caractéristiques  -> Pour plus de renseignements, y compris les caractéristiques ",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[2] Le 31 janvier 2025, la Banque a racheté la totalité de ses 2 -> Pour les autres instruments de capitaux propres, le nombre d",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[3] Le 31 juillet 2025, la Banque a racheté la totalité de ses 1 -> Pour plus de renseignements, se reporter au tableau « Condit",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[4] Pour les autres instruments de capitaux propres, le nombre d -> Pour les BRCRL, série 3, série 4 et série 6, le montant repr",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[5] Pour plus de renseignements, se reporter au tableau « Condit -> Pour les billets de fonds propres subordonnés perpétuels con",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title and table_summary are highly similar to PQ table 'tbl_p039_i01'. Both tables have similar headers and indicators related to 'Actions et autres titres'.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05674064237307879,
+        0.2973906006475892,
+        0.9420377444597631,
+        0.6790370748500631
+      ],
+      "bbox_t2": [
+        0.05648765065311607,
+        0.2468519885130603,
+        0.943188436670241,
+        0.6058055222636523
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il implique l'ajout et la suppression d'indicateurs liés aux instruments de capital, ce qui peut affecter la gestion du capital de la banque. (2) L'impact réglementaire concret concerne la composition des instruments de capital, notamment les billets avec remboursement de capital à recours limité, qui peuvent influencer les ratios de capital réglementaires. (3) Il s'agit d'une mise à jour structurelle et de contenu concernant les instruments de capital.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique l'ajout et la suppression d'indicateurs liés aux instruments de capital, ce qui peut affecter la gestion du capital de la banque. (2) L'impact réglementaire concret concerne la composition des instruments de capital, notamment les billets avec remboursement de capital à recours limité, qui peuvent influencer les ratios de capital réglementaires. (3) Il s'agit d'une mise à jour structurelle et de contenu concernant les instruments de capital.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "Bâle III — CET1",
+        "impact_description": "La modification des indicateurs et des notes peut affecter la composition et le calcul des ratios de capital réglementaires.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique l'ajout et la suppression d'indicateurs liés aux instruments de capital, ce qui peut affecter la gestion du capital de la banque. (2) L'impact réglementaire concret concerne la composition des instruments de capital, notamment les billets avec remboursement de capital à recours limité, qui peuvent influencer les ratios de capital réglementaires. (3) Il s'agit d'une mise à jour structurelle et de contenu concernant les instruments de capital.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "critique",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 4 changement(s) d'indicateur et 8 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::risk_management::tbl_p049_i02|tbl_p043_i02",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "NOTATIONS DE CRÉDIT¹",
+      "table_number": "",
+      "table_id_t1": "tbl_p049_i02",
+      "table_id_t2": "tbl_p043_i02",
+      "page_t1": 49,
+      "page_t2": 43,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-08T23:02:13.548924+00:00",
+      "edited_value": "",
+      "confidence": 0.98,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "NOTATIONS DE CRÉDIT¹",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "[5] Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
+          "type": "modified",
+          "review_status": "approved"
+        },
+        {
+          "name": "[2] Après la fin du trimestre, le 22 août 2025, Moody’s a entrep -> Représentent la notation des dépôts à long terme et la notat",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[3] Représentent la notation des dépôts à long terme et la notat -> Comprend a) la dette de premier rang émise avant le 23 septe",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[4] Comprend a) la dette de premier rang émise avant le 23 septe -> Assujettie à une conversion au titre du régime de recapitali",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Indicators and headers match exactly with 'tbl_p049_i02'; row_count 11 vs 11; title and table_summary are identical.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.057083634769215304,
+        0.6505710332080572,
+        0.9460332533892464,
+        0.8294310906920771
+      ],
+      "bbox_t2": [
+        0.05606570898317823,
+        0.6881064983329388,
+        0.9457483229294322,
+        0.856262900612571
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "financement",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il implique une modification des notes de crédit, ce qui peut affecter la perception du risque par les investisseurs et les régulateurs. (2) L'impact réglementaire concret est lié à la gestion du risque de crédit et à la conformité avec les exigences de divulgation. (3) Il s'agit d'une mise à jour ordinaire des notes de crédit, mais avec des implications potentielles sur la gestion du risque.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique une modification des notes de crédit, ce qui peut affecter la perception du risque par les investisseurs et les régulateurs. (2) L'impact réglementaire concret est lié à la gestion du risque de crédit et à la conformité avec les exigences de divulgation. (3) Il s'agit d'une mise à jour ordinaire des notes de crédit, mais avec des implications potentielles sur la gestion du risque.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "information",
+        "reference_reglementaire": "",
+        "impact_description": "La modification des notes de crédit peut influencer la perception du risque de crédit et la conformité réglementaire.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique une modification des notes de crédit, ce qui peut affecter la perception du risque par les investisseurs et les régulateurs. (2) L'impact réglementaire concret est lié à la gestion du risque de crédit et à la conformité avec les exigences de divulgation. (3) Il s'agit d'une mise à jour ordinaire des notes de crédit, mais avec des implications potentielles sur la gestion du risque.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "financement",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::risk_management::tbl_p056_i01|tbl_p050_i01",
+      "change_type": "removed",
+      "indicator": "1 retiré(s)",
+      "section": "risk_management",
+      "table_name": "DURÉE CONTRACTUELLE RESTANTE (suite)",
+      "table_number": "",
+      "table_id_t1": "tbl_p056_i01",
+      "table_id_t2": "tbl_p050_i01",
+      "page_t1": 56,
+      "page_t2": 50,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-08T23:02:01.182681+00:00",
+      "edited_value": "",
+      "confidence": 0.9,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "DURÉE CONTRACTUELLE RESTANTE (suite)",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "Participation dans Schwab",
+          "type": "removed",
+          "review_status": "approved"
+        },
+        {
+          "name": "[5] Comprennent 75 milliards de dollars d’obligations sécurisées -> Comprennent 70 milliards de dollars d’obligations sécurisées",
+          "type": "modified",
+          "review_status": "pending"
+        },
+        {
+          "name": "[6] Comprennent 609 millions de dollars d’engagements de crédit  -> Comprennent 623 millions de dollars d’engagements de crédit ",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title and table_summary are highly similar to PQ table 'tbl_p056_i01'. Both tables have similar headers and indicators related to 'Durée contractuelle restante (suite)'.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05638617471931807,
+        0.05867901233711628,
+        0.943951775045956,
+        0.7362479007605351
+      ],
+      "bbox_t2": [
+        0.05584031148673663,
+        0.05816844015410453,
+        0.9441558239506741,
+        0.7247841574928978
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "(1) Le changement est pertinent car il implique la suppression d'un indicateur et des modifications dans les notes qui peuvent affecter l'évaluation des risques ; (2) L'impact réglementaire ou métier concret concerne la gestion des risques liés aux engagements et obligations sécurisées ; (3) Il s'agit d'une mise à jour ordinaire des notes et d'une suppression d'indicateur.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique la suppression d'un indicateur et des modifications dans les notes qui peuvent affecter l'évaluation des risques ; (2) L'impact réglementaire ou métier concret concerne la gestion des risques liés aux engagements et obligations sécurisées ; (3) Il s'agit d'une mise à jour ordinaire des notes et d'une suppression d'indicateur.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "information",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression de l'indicateur et les modifications des notes peuvent influencer l'évaluation des risques financiers.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique la suppression d'un indicateur et des modifications dans les notes qui peuvent affecter l'évaluation des risques ; (2) L'impact réglementaire ou métier concret concerne la gestion des risques liés aux engagements et obligations sécurisées ; (3) Il s'agit d'une mise à jour ordinaire des notes et d'une suppression d'indicateur.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::risk_management::tbl_p053_i02|tbl_p047_i02",
+      "change_type": "added",
+      "indicator": "1 ajouté(s)",
+      "section": "risk_management",
+      "table_name": "tbl_p047_i02",
+      "table_number": "",
+      "table_id_t1": "tbl_p053_i02",
+      "table_id_t2": "tbl_p047_i02",
+      "page_t1": 53,
+      "page_t2": 47,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-08T23:02:18.392241+00:00",
+      "edited_value": "",
+      "confidence": 0.9,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "tbl_p047_i02",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "Programme d’obligations sécurisées législatives inscrit à la Financial Conduct Authority (FCA) du Royaume-Uni (100 milliards de dollars)",
+          "type": "added",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Indicators and headers are highly similar to PQ table 'tbl_p053_i02'. Both tables relate to 'Programmes de financement à terme par région'.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.0578005921606924,
+        0.4225092801180753,
+        0.9419228547538807,
+        0.5795289241906368
+      ],
+      "bbox_t2": [
+        0.05764132854985256,
+        0.4021963639692827,
+        0.9421623080384498,
+        0.5594519412878788
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "matched_pair",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "autre",
+        "change_significance": "faible",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il implique l'ajout d'un indicateur lié à un programme d'obligations sécurisées législatives ; (2) Cela peut avoir un impact sur la gestion des risques et la conformité réglementaire, notamment en ce qui concerne la transparence et la divulgation des risques associés à ces obligations ; (3) Il s'agit d'une nouvelle divulgation qui pourrait affecter la perception du risque par les régulateurs et les investisseurs.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique l'ajout d'un indicateur lié à un programme d'obligations sécurisées législatives ; (2) Cela peut avoir un impact sur la gestion des risques et la conformité réglementaire, notamment en ce qui concerne la transparence et la divulgation des risques associés à ces obligations ; (3) Il s'agit d'une nouvelle divulgation qui pourrait affecter la perception du risque par les régulateurs et les investisseurs.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "Bâle III — Obligations sécurisées",
+        "impact_description": "L'ajout de cet indicateur pourrait influencer la gestion des risques et la conformité réglementaire liée aux obligations sécurisées.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique l'ajout d'un indicateur lié à un programme d'obligations sécurisées législatives ; (2) Cela peut avoir un impact sur la gestion des risques et la conformité réglementaire, notamment en ce qui concerne la transparence et la divulgation des risques associés à ces obligations ; (3) Il s'agit d'une nouvelle divulgation qui pourrait affecter la perception du risque par les régulateurs et les investisseurs.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "autre",
+        "review_priority": "normale",
+        "change_significance": "faible",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::risk_management::tbl_p053_i01|tbl_p047_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS",
+      "table_number": "",
+      "table_id_t1": "tbl_p053_i01",
+      "table_id_t2": "tbl_p047_i01",
+      "page_t1": 53,
+      "page_t2": 47,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.95,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[1] La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancai",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title and table_summary are identical to PQ table 'tbl_p053_i01'. Both tables have similar headers and indicators related to 'Sommaire du financement provenant des dépôts'.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.055896877463347,
+        0.17117010945021505,
+        0.9440368452882455,
+        0.2614112815471611
+      ],
+      "bbox_t2": [
+        0.05601748921512779,
+        0.17074463584206323,
+        0.9452390982434641,
+        0.2612619111032197
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "financement",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il implique une modification méthodologique dans le calcul du financement provenant des dépôts ; (2) Cela peut affecter la manière dont la banque évalue ses sources de financement et sa gestion des risques de liquidité ; (3) Il s'agit d'un changement méthodologique qui pourrait avoir des implications sur la gestion des risques.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique une modification méthodologique dans le calcul du financement provenant des dépôts ; (2) Cela peut affecter la manière dont la banque évalue ses sources de financement et sa gestion des risques de liquidité ; (3) Il s'agit d'un changement méthodologique qui pourrait avoir des implications sur la gestion des risques.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La modification de la méthode de calcul peut influencer l'évaluation des risques de liquidité liés aux dépôts.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique une modification méthodologique dans le calcul du financement provenant des dépôts ; (2) Cela peut affecter la manière dont la banque évalue ses sources de financement et sa gestion des risques de liquidité ; (3) Il s'agit d'un changement méthodologique qui pourrait avoir des implications sur la gestion des risques.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "financement",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::capital_management::tbl_p037_i01|tbl_p031_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "capital_management",
+      "table_name": "RATIOS CIBLES DE FONDS PROPRES RÉGLEMENTAIRES ET DE TLAC",
+      "table_number": "",
+      "table_id_t1": "tbl_p037_i01",
+      "table_id_t2": "tbl_p031_i01",
+      "page_t1": 37,
+      "page_t2": 31,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-08T23:02:05.331412+00:00",
+      "edited_value": "",
+      "confidence": 0.98,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "RATIOS CIBLES DE FONDS PROPRES RÉGLEMENTAIRES ET DE TLAC",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "[1] Le plus élevé des suppléments pour les BISI et les banques d -> Le plus élevé des suppléments pour les BISI et les BISM s’ap",
+          "type": "modified",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Indicators and headers match exactly with 'tbl_p037_i01'; row_count 6 vs 6; title and table_summary are identical.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05645728267096227,
+        0.0811122547496449,
+        0.9435475667317709,
+        0.2280141657049006
+      ],
+      "bbox_t2": [
+        0.05657628003288718,
+        0.5038843251237966,
+        0.9427918078852635,
+        0.6412899518253828
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il modifie la note concernant les suppléments pour les banques d'importance systémique, ce qui peut affecter la gestion des fonds propres. (2) L'impact réglementaire concret est que cela pourrait influencer les exigences en capital pour certaines banques, en fonction de leur classification. (3) Il s'agit d'une mise à jour méthodologique concernant l'application des suppléments de capital.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il modifie la note concernant les suppléments pour les banques d'importance systémique, ce qui peut affecter la gestion des fonds propres. (2) L'impact réglementaire concret est que cela pourrait influencer les exigences en capital pour certaines banques, en fonction de leur classification. (3) Il s'agit d'une mise à jour méthodologique concernant l'application des suppléments de capital.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "Bâle III — CET1",
+        "impact_description": "La modification de la note peut affecter la manière dont les suppléments de capital sont appliqués aux banques d'importance systémique.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il modifie la note concernant les suppléments pour les banques d'importance systémique, ce qui peut affecter la gestion des fonds propres. (2) L'impact réglementaire concret est que cela pourrait influencer les exigences en capital pour certaines banques, en fonction de leur classification. (3) Il s'agit d'une mise à jour méthodologique concernant l'application des suppléments de capital.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::risk_management::tbl_p045_i02|tbl_p039_i02",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "SENSIBILITÉ AU RISQUE DE TAUX D’INTÉRÊT STRUCTUREL – MESURES",
+      "table_number": "",
+      "table_id_t1": "tbl_p045_i02",
+      "table_id_t2": "tbl_p039_i02",
+      "page_t1": 45,
+      "page_t2": 39,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-08T23:02:21.549871+00:00",
+      "edited_value": "",
+      "confidence": 0.98,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "SENSIBILITÉ AU RISQUE DE TAUX D’INTÉRÊT STRUCTUREL – MESURES",
+      "table_status": "completed",
+      "indicators": [
+        {
+          "name": "[1] Au 31 juillet 2025, les mesures de sensibilité sont présenté -> N’inclut pas les expositions du secteur Services bancaires d",
+          "type": "modified",
+          "review_status": "approved"
+        }
+      ],
+      "match_method": "Indicators and headers match exactly with 'tbl_p045_i02'; row_count 3 vs 3; title and table_summary are identical.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.056507172927357796,
+        0.6666055544458255,
+        0.944879469528697,
+        0.8695200139825995
+      ],
+      "bbox_t2": [
+        0.05758983013676662,
+        0.6500143186010496,
+        0.9498438616983252,
+        0.8308996335424559
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "critique",
+        "analyst_summary": "Le changement est pertinent car il modifie la note explicative d'un tableau de gestion des risques, ce qui peut affecter l'interprétation des mesures de sensibilité au risque de taux d'intérêt. L'impact réglementaire concret est que certaines expositions ne sont plus incluses dans les mesures présentées, ce qui pourrait influencer l'évaluation du risque global. Il s'agit d'un changement méthodologique dans la présentation des données.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le changement est pertinent car il modifie la note explicative d'un tableau de gestion des risques, ce qui peut affecter l'interprétation des mesures de sensibilité au risque de taux d'intérêt. L'impact réglementaire concret est que certaines expositions ne sont plus incluses dans les mesures présentées, ce qui pourrait influencer l'évaluation du risque global. Il s'agit d'un changement méthodologique dans la présentation des données.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La modification des notes peut affecter la compréhension des expositions au risque de taux d'intérêt en excluant certaines données sectorielles.",
+        "source": "llm",
+        "justification": "Le changement est pertinent car il modifie la note explicative d'un tableau de gestion des risques, ce qui peut affecter l'interprétation des mesures de sensibilité au risque de taux d'intérêt. L'impact réglementaire concret est que certaines expositions ne sont plus incluses dans les mesures présentées, ce qui pourrait influencer l'évaluation du risque global. Il s'agit d'un changement méthodologique dans la présentation des données.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::risk_management::tbl_p049_i01|tbl_p043_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "table_number": "",
+      "table_id_t1": "tbl_p049_i01",
+      "table_id_t2": "tbl_p043_i01",
+      "page_t1": 49,
+      "page_t2": 43,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.98,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[1] Les sûretés données en garanties correspondent aux actifs do -> Les sûretés données en garantie correspondent à la portion d",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Indicators and headers match exactly with 'tbl_p049_i01'; row_count 8 vs 8; title and table_summary are identical.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05774512945436964,
+        0.11977773724180281,
+        0.9462373022939645,
+        0.3207452562120226
+      ],
+      "bbox_t2": [
+        0.05746212504268472,
+        0.13939908538201845,
+        0.9461230109719669,
+        0.3330068106603141
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "(1) Le changement est pertinent car il modifie la description des sûretés données en garantie, ce qui peut affecter la compréhension des actifs grevés ; (2) Cela peut avoir un impact sur l'évaluation des risques associés aux actifs grevés et non grevés ; (3) Il s'agit d'une mise à jour de contenu qui pourrait refléter un changement méthodologique ou de définition.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il modifie la description des sûretés données en garantie, ce qui peut affecter la compréhension des actifs grevés ; (2) Cela peut avoir un impact sur l'évaluation des risques associés aux actifs grevés et non grevés ; (3) Il s'agit d'une mise à jour de contenu qui pourrait refléter un changement méthodologique ou de définition.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La modification de la note peut influencer l'évaluation des risques liés aux actifs grevés.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il modifie la description des sûretés données en garantie, ce qui peut affecter la compréhension des actifs grevés ; (2) Cela peut avoir un impact sur l'évaluation des risques associés aux actifs grevés et non grevés ; (3) Il s'agit d'une mise à jour de contenu qui pourrait refléter un changement méthodologique ou de définition.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::capital_management::tbl_p036_i01|",
+      "change_type": "table_removed",
+      "indicator": "Tableau entier retiré",
+      "section": "capital_management",
+      "table_name": "TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE",
+      "table_number": "",
+      "table_id_t1": "tbl_p036_i01",
+      "table_id_t2": "",
+      "page_t1": 36,
+      "page_t2": null,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-08T23:02:25.354229+00:00",
+      "edited_value": "",
+      "confidence": 1.0,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE",
+      "table_status": "completed",
+      "indicators": [],
+      "match_method": "",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.057739438574298536,
+        0.11034342255255189,
+        0.9421658983417586,
+        0.34380074703332153
+      ],
+      "bbox_t2": null,
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "table_removed",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il implique la suppression d'un tableau entier lié à la gestion du capital. (2) Cela pourrait affecter la transparence et la capacité à évaluer l'exposition nette par région et contrepartie, ce qui est crucial pour la gestion des risques et la conformité réglementaire. (3) Il s'agit d'une suppression structurelle qui nécessite une attention particulière pour comprendre l'impact sur les rapports futurs.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique la suppression d'un tableau entier lié à la gestion du capital. (2) Cela pourrait affecter la transparence et la capacité à évaluer l'exposition nette par région et contrepartie, ce qui est crucial pour la gestion des risques et la conformité réglementaire. (3) Il s'agit d'une suppression structurelle qui nécessite une attention particulière pour comprendre l'impact sur les rapports futurs.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression du tableau réduit la visibilité sur l'exposition régionale, ce qui peut affecter l'évaluation des risques géographiques.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique la suppression d'un tableau entier lié à la gestion du capital. (2) Cela pourrait affecter la transparence et la capacité à évaluer l'exposition nette par région et contrepartie, ce qui est crucial pour la gestion des risques et la conformité réglementaire. (3) Il s'agit d'une suppression structurelle qui nécessite une attention particulière pour comprendre l'impact sur les rapports futurs.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
+      }
+    },
+    {
+      "change_id": "td::risk_management::tbl_p055_i01|tbl_p049_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "DURÉE CONTRACTUELLE RESTANTE",
+      "table_number": "",
+      "table_id_t1": "tbl_p055_i01",
+      "table_id_t2": "tbl_p049_i01",
+      "page_t1": 55,
+      "page_t2": 49,
+      "source_ref_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_ref_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-08T23:02:27.258688+00:00",
+      "edited_value": "",
+      "confidence": 0.9,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "DURÉE CONTRACTUELLE RESTANTE",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "[5] Comprennent 65 milliards de dollars d’obligations sécurisées -> Comprennent 73 milliards de dollars d’obligations sécurisées",
+          "type": "modified",
+          "review_status": "approved"
+        },
+        {
+          "name": "[6] Comprennent 627 millions de dollars d’engagements de crédit  -> Comprennent 531 millions de dollars d’engagements de crédit ",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title and table_summary are highly similar to PQ table 'tbl_p055_i01'. Both tables have similar headers and indicators related to 'Durée contractuelle restante'.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05558705174065883,
+        0.06009167372578323,
+        0.9418643128638174,
+        0.7360075363005051
+      ],
+      "bbox_t2": [
+        0.05602067436268127,
+        0.05501994701346966,
+        0.9426935731975082,
+        0.7243572196575127
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "normale",
+        "analyst_summary": "(1) Le changement n'est pas pertinent car il s'agit de variations de valeurs numériques propres à la banque ; (2) Ces modifications n'affectent pas directement les seuils réglementaires ou les méthodologies ; (3) Il s'agit d'une mise à jour ordinaire des montants d'obligations sécurisées et d'engagements de crédit.",
+        "is_relevant": false,
+        "category": "RISQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement n'est pas pertinent car il s'agit de variations de valeurs numériques propres à la banque ; (2) Ces modifications n'affectent pas directement les seuils réglementaires ou les méthodologies ; (3) Il s'agit d'une mise à jour ordinaire des montants d'obligations sécurisées et d'engagements de crédit.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact réglementaire direct, mise à jour des montants d'obligations et d'engagements.",
+        "source": "llm",
+        "justification": "(1) Le changement n'est pas pertinent car il s'agit de variations de valeurs numériques propres à la banque ; (2) Ces modifications n'affectent pas directement les seuils réglementaires ou les méthodologies ; (3) Il s'agit d'une mise à jour ordinaire des montants d'obligations sécurisées et d'engagements de crédit.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
+    }
+  ],
+  "review_queue": [
+    {
+      "review_id": "td::capital_management::tbl_p038_i01|tbl_p033_i01",
+      "table_key": "td::capital_management::tbl_p038_i01|tbl_p033_i01",
+      "table_title": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
+      "view_mode": "change_list",
+      "section": "capital_management",
+      "table_name": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
+      "table_number": "",
+      "table_id_t1": "tbl_p038_i01",
+      "table_id_t2": "tbl_p033_i01",
+      "page_t1": 38,
+      "page_t2": 33,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.056269732955234505,
+        0.08408946220320886,
+        0.9444691776450164,
+        0.8935623168945314
+      ],
+      "bbox_t2": [
+        0.05610269035389221,
+        0.08337446655889955,
+        0.9443219752093546,
+        0.9047219632851958
+      ],
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00001",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Déduction des expositions sur crypto-actifs",
+            "indicator_name_clean": "déduction des expositions sur crypto-actifs"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-08T23:02:10.008534+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.9,
+      "match_method": "Title and table_summary are highly similar to PQ table 'tbl_p038_i01'. Both tables have similar headers and indicators related to 'Structure de fonds propres et ratios Bâle III'.",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il introduit un nouvel indicateur lié à la déduction des expositions sur crypto-actifs dans le cadre de Bâle III ; (2) Cela a un impact direct sur le calcul des fonds propres réglementaires et peut affecter les ratios prudentiels de la banque ; (3) Il s'agit d'une nouvelle divulgation qui pourrait refléter une mise à jour des exigences réglementaires concernant les crypto-actifs.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "ELEVE",
+        "confidence": 0.95,
+        "explanation": "(1) Le changement est pertinent car il introduit un nouvel indicateur lié à la déduction des expositions sur crypto-actifs dans le cadre de Bâle III ; (2) Cela a un impact direct sur le calcul des fonds propres réglementaires et peut affecter les ratios prudentiels de la banque ; (3) Il s'agit d'une nouvelle divulgation qui pourrait refléter une mise à jour des exigences réglementaires concernant les crypto-actifs.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "escalade",
+        "reference_reglementaire": "Bâle III — Déduction des expositions sur crypto-actifs",
+        "impact_description": "L'ajout de cet indicateur pourrait modifier le niveau de fonds propres réglementaires requis, influençant ainsi la conformité aux exigences de Bâle III.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il introduit un nouvel indicateur lié à la déduction des expositions sur crypto-actifs dans le cadre de Bâle III ; (2) Cela a un impact direct sur le calcul des fonds propres réglementaires et peut affecter les ratios prudentiels de la banque ; (3) Il s'agit d'une nouvelle divulgation qui pourrait refléter une mise à jour des exigences réglementaires concernant les crypto-actifs.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "relevance": "Capital",
+      "risk_level": "ELEVE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 1,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "td::capital_management::tbl_p039_i01|tbl_p034_i01",
+      "table_key": "td::capital_management::tbl_p039_i01|tbl_p034_i01",
+      "table_title": "ACTIONS ET AUTRES TITRES¹",
+      "view_mode": "change_list",
+      "section": "capital_management",
+      "table_name": "ACTIONS ET AUTRES TITRES¹",
+      "table_number": "",
+      "table_id_t1": "tbl_p039_i01",
+      "table_id_t2": "tbl_p034_i01",
+      "page_t1": 39,
+      "page_t2": 34,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05674064237307879,
+        0.2973906006475892,
+        0.9420377444597631,
+        0.6790370748500631
+      ],
+      "bbox_t2": [
+        0.05648765065311607,
+        0.2468519885130603,
+        0.943188436670241,
+        0.6058055222636523
+      ],
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00002",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Billets avec remboursement de capital à recours limité – Série 6⁴",
+            "indicator_name_clean": "billets avec remboursement de capital à recours limité – série 6⁴"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-08T23:01:54.541351+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00003",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Série 5²",
+            "indicator_name_clean": "série 5²"
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00004",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Série 7³",
+            "indicator_name_clean": "série 7³"
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00005",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Série 9",
+            "indicator_name_clean": "série 9"
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00009",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[6] Pour les BRCRL, série 3 et série 4, le montant représente l’équivalent en dollars canadiens du montant notionnel en doll",
+            "indicator_name_clean": "[6] pour les brcrl, série 3 et série 4, le montant représente l’équivalent en dollars canadiens du montant notionnel en doll",
+            "footnote_ref": "6",
+            "old_text": "Pour les BRCRL, série 3 et série 4, le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars américains.",
+            "new_text": ""
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00010",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[7] Le 18 décembre 2024, la Banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital",
+            "indicator_name_clean": "[7] le 18 décembre 2024, la banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital",
+            "footnote_ref": "7",
+            "old_text": "Le 18 décembre 2024, la Banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital de 750 millions de dollars à taux fixe rajusté à 5,909 % comprenant des dispositions relatives aux FPUNV, série 5 (les « BRCRL »). Les BRCRL porteront intérêt au taux de 5,909 % par année, payable trimestriellement, pour la période initiale se terminant le 1er janvier 2030, exclusivement. Par la suite, le taux d’intérêt sur les BRCRL sera rajusté tous les cinq ans à un taux correspondant au rendement des obligations du gouvernement du Canada alors en vigueur, majoré de 3,10 %. Les BRCRL viendront à échéance le 1er janvier 2085. Parallèlement à l’émission des BRCRL, la Banque a émis 750 000 actions privilégiées à taux fixe rajusté à 5,909 % et à dividende non cumulatif comprenant des dispositions relatives aux FPUNV, série 32 (« actions privilégiées de série 32 »). Les actions privilégiées de série 32 sont éliminées des états financiers consolidés de la Banque.",
+            "new_text": ""
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00011",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[8] Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens ",
+            "indicator_name_clean": "[8] pour les billets de fonds propres subordonnés perpétuels (at1), le montant représente l’équivalent en dollars canadiens",
+            "footnote_ref": "8",
+            "old_text": "Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour.",
+            "new_text": ""
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00012",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Pour plus de renseignements, y compris les caractéristiques  -> Pour plus de renseignements, y compris les caractéristiques ",
+            "indicator_name_clean": "[1] pour plus de renseignements, y compris les caractéristiques  -> pour plus de renseignements, y compris les caractéristiques",
+            "footnote_ref": "1",
+            "old_text": "Pour plus de renseignements, y compris les caractéristiques de conversion et d’échange, et les distributions, se reporter à la note 20 des états financiers consolidés de 2024 de la Banque.",
+            "new_text": "Pour plus de renseignements, y compris les caractéristiques de conversion et d’échange, les distributions ainsi que les modalités et conditions importantes, se reporter à la note 19 des états financiers consolidés de 2025 de la Banque."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00013",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[2] Le 31 janvier 2025, la Banque a racheté la totalité de ses 2 -> Pour les autres instruments de capitaux propres, le nombre d",
+            "indicator_name_clean": "[2] le 31 janvier 2025, la banque a racheté la totalité de ses 2 -> pour les autres instruments de capitaux propres, le nombre d",
+            "footnote_ref": "2",
+            "old_text": "Le 31 janvier 2025, la Banque a racheté la totalité de ses 20 millions d’actions privilégiées de premier rang de catégorie A à taux rajusté tous les cinq ans et à dividende non cumulatif comprenant des dispositions relatives aux fonds propres d’urgence en cas de non-viabilité (FPUNV), série 5 (« actions privilégiées de série 5 ») en circulation, à un prix de rachat de 25,00 $ l’action privilégiée de série 5, pour un coût de rachat total d’environ 500 millions de dollars.",
+            "new_text": "Pour les autres instruments de capitaux propres, le nombre d’actions ou de parts correspond au nombre de billets émis."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00014",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[3] Le 31 juillet 2025, la Banque a racheté la totalité de ses 1 -> Pour plus de renseignements, se reporter au tableau « Condit",
+            "indicator_name_clean": "[3] le 31 juillet 2025, la banque a racheté la totalité de ses 1 -> pour plus de renseignements, se reporter au tableau « condit",
+            "footnote_ref": "3",
+            "old_text": "Le 31 juillet 2025, la Banque a racheté la totalité de ses 14 millions d’actions privilégiées de premier rang de catégorie A à taux rajusté tous les cinq ans et à dividende non cumulatif comprenant des dispositions relatives aux FPUNV, série 7 (« actions privilégiées de série 7 ») en circulation, à un prix de rachat de 25,00 $ l’action privilégiée de série 7, pour un coût de rachat total d’environ 350 millions de dollars.",
+            "new_text": "Pour plus de renseignements, se reporter au tableau « Conditions importantes rattachées aux actions privilégiées et autres instruments de capitaux propres » à la note 19 des états financiers consolidés de 2025 de la Banque."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00015",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[4] Pour les autres instruments de capitaux propres, le nombre d -> Pour les BRCRL, série 3, série 4 et série 6, le montant repr",
+            "indicator_name_clean": "[4] pour les autres instruments de capitaux propres, le nombre d -> pour les brcrl, série 3, série 4 et série 6, le montant repr",
+            "footnote_ref": "4",
+            "old_text": "Pour les autres instruments de capitaux propres, le nombre d’actions ou de parts correspond au nombre de billets émis.",
+            "new_text": "Pour les BRCRL, série 3, série 4 et série 6, le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars américains."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00016",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[5] Pour plus de renseignements, se reporter au tableau « Condit -> Pour les billets de fonds propres subordonnés perpétuels con",
+            "indicator_name_clean": "[5] pour plus de renseignements, se reporter au tableau « condit -> pour les billets de fonds propres subordonnés perpétuels con",
+            "footnote_ref": "5",
+            "old_text": "Pour plus de renseignements, se reporter au tableau « Conditions importantes rattachées aux actions privilégiées et autres instruments de capitaux propres » à la note 20 des états financiers consolidés de 2024 de la Banque.",
+            "new_text": "Pour les billets de fonds propres subordonnés perpétuels constituant des autres éléments de fonds propres de catégorie 1 (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.9,
+      "match_method": "Title and table_summary are highly similar to PQ table 'tbl_p039_i01'. Both tables have similar headers and indicators related to 'Actions et autres titres'.",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il implique l'ajout et la suppression d'indicateurs liés aux instruments de capital, ce qui peut affecter la gestion du capital de la banque. (2) L'impact réglementaire concret concerne la composition des instruments de capital, notamment les billets avec remboursement de capital à recours limité, qui peuvent influencer les ratios de capital réglementaires. (3) Il s'agit d'une mise à jour structurelle et de contenu concernant les instruments de capital.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique l'ajout et la suppression d'indicateurs liés aux instruments de capital, ce qui peut affecter la gestion du capital de la banque. (2) L'impact réglementaire concret concerne la composition des instruments de capital, notamment les billets avec remboursement de capital à recours limité, qui peuvent influencer les ratios de capital réglementaires. (3) Il s'agit d'une mise à jour structurelle et de contenu concernant les instruments de capital.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "Bâle III — CET1",
+        "impact_description": "La modification des indicateurs et des notes peut affecter la composition et le calcul des ratios de capital réglementaires.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique l'ajout et la suppression d'indicateurs liés aux instruments de capital, ce qui peut affecter la gestion du capital de la banque. (2) L'impact réglementaire concret concerne la composition des instruments de capital, notamment les billets avec remboursement de capital à recours limité, qui peuvent influencer les ratios de capital réglementaires. (3) Il s'agit d'une mise à jour structurelle et de contenu concernant les instruments de capital.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "critique",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 4 changement(s) d'indicateur et 8 changement(s) de footnote."
+      },
+      "relevance": "Capital",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 12,
+        "indicators_added": 1,
+        "indicators_removed": 3,
+        "indicators_renamed": 0,
+        "footnotes_changed": 8,
+        "validated": 1,
+        "pending": 11
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p049_i02|tbl_p043_i02",
+      "table_key": "td::risk_management::tbl_p049_i02|tbl_p043_i02",
+      "table_title": "NOTATIONS DE CRÉDIT¹",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "NOTATIONS DE CRÉDIT¹",
+      "table_number": "",
+      "table_id_t1": "tbl_p049_i02",
+      "table_id_t2": "tbl_p043_i02",
+      "page_t1": 49,
+      "page_t2": 43,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.057083634769215304,
+        0.6505710332080572,
+        0.9460332533892464,
+        0.8294310906920771
+      ],
+      "bbox_t2": [
+        0.05606570898317823,
+        0.6881064983329388,
+        0.9457483229294322,
+        0.856262900612571
+      ],
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00019",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[5] Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
+            "indicator_name_clean": "[5] assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
+            "footnote_ref": "5",
+            "old_text": "Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
+            "new_text": ""
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-08T23:02:13.548924+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00020",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[2] Après la fin du trimestre, le 22 août 2025, Moody’s a entrep -> Représentent la notation des dépôts à long terme et la notat",
+            "indicator_name_clean": "[2] après la fin du trimestre, le 22 août 2025, moody’s a entrep -> représentent la notation des dépôts à long terme et la notat",
+            "footnote_ref": "2",
+            "old_text": "Après la fin du trimestre, le 22 août 2025, Moody’s a entrepris une révision de la notation des dépôts/de contrepartie et des anciennes dettes de premier rang de la TD en vue d’un rehaussement.",
+            "new_text": "Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody’s, la notation de crédit d’émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d’émetteur à long terme attribuée par DBRS."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00021",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[3] Représentent la notation des dépôts à long terme et la notat -> Comprend a) la dette de premier rang émise avant le 23 septe",
+            "indicator_name_clean": "[3] représentent la notation des dépôts à long terme et la notat -> comprend a) la dette de premier rang émise avant le 23 septe",
+            "footnote_ref": "3",
+            "old_text": "Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody’s, la notation de crédit d’émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d’émetteur à long terme attribuée par DBRS.",
+            "new_text": "Comprend a) la dette de premier rang émise avant le 23 septembre 2018; et b) la dette de premier rang émise à partir du 23 septembre 2018, qui est exclue du régime de recapitalisation interne des banques."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00022",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[4] Comprend a) la dette de premier rang émise avant le 23 septe -> Assujettie à une conversion au titre du régime de recapitali",
+            "indicator_name_clean": "[4] comprend a) la dette de premier rang émise avant le 23 septe -> assujettie à une conversion au titre du régime de recapitali",
+            "footnote_ref": "4",
+            "old_text": "Comprend a) la dette de premier rang émise avant le 23 septembre 2018; et b) la dette de premier rang émise à partir du 23 septembre 2018, qui est exclue du régime de recapitalisation interne des banques.",
+            "new_text": "Assujettie à une conversion au titre du régime de recapitalisation interne des banques."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly with 'tbl_p049_i02'; row_count 11 vs 11; title and table_summary are identical.",
+      "genai_analysis": {
+        "theme": "financement",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il implique une modification des notes de crédit, ce qui peut affecter la perception du risque par les investisseurs et les régulateurs. (2) L'impact réglementaire concret est lié à la gestion du risque de crédit et à la conformité avec les exigences de divulgation. (3) Il s'agit d'une mise à jour ordinaire des notes de crédit, mais avec des implications potentielles sur la gestion du risque.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique une modification des notes de crédit, ce qui peut affecter la perception du risque par les investisseurs et les régulateurs. (2) L'impact réglementaire concret est lié à la gestion du risque de crédit et à la conformité avec les exigences de divulgation. (3) Il s'agit d'une mise à jour ordinaire des notes de crédit, mais avec des implications potentielles sur la gestion du risque.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "information",
+        "reference_reglementaire": "",
+        "impact_description": "La modification des notes de crédit peut influencer la perception du risque de crédit et la conformité réglementaire.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique une modification des notes de crédit, ce qui peut affecter la perception du risque par les investisseurs et les régulateurs. (2) L'impact réglementaire concret est lié à la gestion du risque de crédit et à la conformité avec les exigences de divulgation. (3) Il s'agit d'une mise à jour ordinaire des notes de crédit, mais avec des implications potentielles sur la gestion du risque.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "financement",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 4,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 4,
+        "validated": 1,
+        "pending": 3
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p056_i01|tbl_p050_i01",
+      "table_key": "td::risk_management::tbl_p056_i01|tbl_p050_i01",
+      "table_title": "DURÉE CONTRACTUELLE RESTANTE (suite)",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "DURÉE CONTRACTUELLE RESTANTE (suite)",
+      "table_number": "",
+      "table_id_t1": "tbl_p056_i01",
+      "table_id_t2": "tbl_p050_i01",
+      "page_t1": 56,
+      "page_t2": 50,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05638617471931807,
+        0.05867901233711628,
+        0.943951775045956,
+        0.7362479007605351
+      ],
+      "bbox_t2": [
+        0.05584031148673663,
+        0.05816844015410453,
+        0.9441558239506741,
+        0.7247841574928978
+      ],
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00007",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Participation dans Schwab",
+            "indicator_name_clean": "participation dans schwab"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-08T23:02:01.182681+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00026",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[5] Comprennent 75 milliards de dollars d’obligations sécurisées -> Comprennent 70 milliards de dollars d’obligations sécurisées",
+            "indicator_name_clean": "[5] comprennent 75 milliards de dollars d’obligations sécurisées -> comprennent 70 milliards de dollars d’obligations sécurisées",
+            "footnote_ref": "5",
+            "old_text": "Comprennent 75 milliards de dollars d’obligations sécurisées dont une tranche de 2 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 18 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 37 milliards de dollars comporte une durée contractuelle restante de « plus de 2 ans à 5 ans et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans ».",
+            "new_text": "Comprennent 70 milliards de dollars d’obligations sécurisées dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 4 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 5 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 24 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 19 milliards de dollars comporte une durée contractuelle restante de « plus de 2 ans à 5 ans et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans »."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00027",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[6] Comprennent 609 millions de dollars d’engagements de crédit  -> Comprennent 623 millions de dollars d’engagements de crédit ",
+            "indicator_name_clean": "[6] comprennent 609 millions de dollars d’engagements de crédit  -> comprennent 623 millions de dollars d’engagements de crédit",
+            "footnote_ref": "6",
+            "old_text": "Comprennent 609 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé.",
+            "new_text": "Comprennent 623 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.9,
+      "match_method": "Title and table_summary are highly similar to PQ table 'tbl_p056_i01'. Both tables have similar headers and indicators related to 'Durée contractuelle restante (suite)'.",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "(1) Le changement est pertinent car il implique la suppression d'un indicateur et des modifications dans les notes qui peuvent affecter l'évaluation des risques ; (2) L'impact réglementaire ou métier concret concerne la gestion des risques liés aux engagements et obligations sécurisées ; (3) Il s'agit d'une mise à jour ordinaire des notes et d'une suppression d'indicateur.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique la suppression d'un indicateur et des modifications dans les notes qui peuvent affecter l'évaluation des risques ; (2) L'impact réglementaire ou métier concret concerne la gestion des risques liés aux engagements et obligations sécurisées ; (3) Il s'agit d'une mise à jour ordinaire des notes et d'une suppression d'indicateur.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "information",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression de l'indicateur et les modifications des notes peuvent influencer l'évaluation des risques financiers.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique la suppression d'un indicateur et des modifications dans les notes qui peuvent affecter l'évaluation des risques ; (2) L'impact réglementaire ou métier concret concerne la gestion des risques liés aux engagements et obligations sécurisées ; (3) Il s'agit d'une mise à jour ordinaire des notes et d'une suppression d'indicateur.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 3,
+        "indicators_added": 0,
+        "indicators_removed": 1,
+        "indicators_renamed": 0,
+        "footnotes_changed": 2,
+        "validated": 1,
+        "pending": 2
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p053_i02|tbl_p047_i02",
+      "table_key": "td::risk_management::tbl_p053_i02|tbl_p047_i02",
+      "table_title": "tbl_p047_i02",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "tbl_p047_i02",
+      "table_number": "",
+      "table_id_t1": "tbl_p053_i02",
+      "table_id_t2": "tbl_p047_i02",
+      "page_t1": 53,
+      "page_t2": 47,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.0578005921606924,
+        0.4225092801180753,
+        0.9419228547538807,
+        0.5795289241906368
+      ],
+      "bbox_t2": [
+        0.05764132854985256,
+        0.4021963639692827,
+        0.9421623080384498,
+        0.5594519412878788
+      ],
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00006",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Programme d’obligations sécurisées législatives inscrit à la Financial Conduct Authority (FCA) du Royaume-Uni (100 milliards de dollars)",
+            "indicator_name_clean": "programme d’obligations sécurisées législatives inscrit à la financial conduct authority (fca) du royaume-uni (100 milliards de dollars)"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-08T23:02:18.392241+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.9,
+      "match_method": "Indicators and headers are highly similar to PQ table 'tbl_p053_i02'. Both tables relate to 'Programmes de financement à terme par région'.",
+      "genai_analysis": {
+        "theme": "autre",
+        "change_significance": "faible",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il implique l'ajout d'un indicateur lié à un programme d'obligations sécurisées législatives ; (2) Cela peut avoir un impact sur la gestion des risques et la conformité réglementaire, notamment en ce qui concerne la transparence et la divulgation des risques associés à ces obligations ; (3) Il s'agit d'une nouvelle divulgation qui pourrait affecter la perception du risque par les régulateurs et les investisseurs.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique l'ajout d'un indicateur lié à un programme d'obligations sécurisées législatives ; (2) Cela peut avoir un impact sur la gestion des risques et la conformité réglementaire, notamment en ce qui concerne la transparence et la divulgation des risques associés à ces obligations ; (3) Il s'agit d'une nouvelle divulgation qui pourrait affecter la perception du risque par les régulateurs et les investisseurs.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "Bâle III — Obligations sécurisées",
+        "impact_description": "L'ajout de cet indicateur pourrait influencer la gestion des risques et la conformité réglementaire liée aux obligations sécurisées.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique l'ajout d'un indicateur lié à un programme d'obligations sécurisées législatives ; (2) Cela peut avoir un impact sur la gestion des risques et la conformité réglementaire, notamment en ce qui concerne la transparence et la divulgation des risques associés à ces obligations ; (3) Il s'agit d'une nouvelle divulgation qui pourrait affecter la perception du risque par les régulateurs et les investisseurs.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "autre",
+        "review_priority": "normale",
+        "change_significance": "faible",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 1,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p053_i01|tbl_p047_i01",
+      "table_key": "td::risk_management::tbl_p053_i01|tbl_p047_i01",
+      "table_title": "SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS",
+      "table_number": "",
+      "table_id_t1": "tbl_p053_i01",
+      "table_id_t2": "tbl_p047_i01",
+      "page_t1": 53,
+      "page_t2": 47,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.055896877463347,
+        0.17117010945021505,
+        0.9440368452882455,
+        0.2614112815471611
+      ],
+      "bbox_t2": [
+        0.05601748921512779,
+        0.17074463584206323,
+        0.9452390982434641,
+        0.2612619111032197
+      ],
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00023",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[1] La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancai",
+            "indicator_name_clean": "[1] la méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancai",
+            "footnote_ref": "1",
+            "old_text": "La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine.",
+            "new_text": ""
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.95,
+      "match_method": "Title and table_summary are identical to PQ table 'tbl_p053_i01'. Both tables have similar headers and indicators related to 'Sommaire du financement provenant des dépôts'.",
+      "genai_analysis": {
+        "theme": "financement",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il implique une modification méthodologique dans le calcul du financement provenant des dépôts ; (2) Cela peut affecter la manière dont la banque évalue ses sources de financement et sa gestion des risques de liquidité ; (3) Il s'agit d'un changement méthodologique qui pourrait avoir des implications sur la gestion des risques.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique une modification méthodologique dans le calcul du financement provenant des dépôts ; (2) Cela peut affecter la manière dont la banque évalue ses sources de financement et sa gestion des risques de liquidité ; (3) Il s'agit d'un changement méthodologique qui pourrait avoir des implications sur la gestion des risques.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La modification de la méthode de calcul peut influencer l'évaluation des risques de liquidité liés aux dépôts.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique une modification méthodologique dans le calcul du financement provenant des dépôts ; (2) Cela peut affecter la manière dont la banque évalue ses sources de financement et sa gestion des risques de liquidité ; (3) Il s'agit d'un changement méthodologique qui pourrait avoir des implications sur la gestion des risques.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "financement",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "td::capital_management::tbl_p037_i01|tbl_p031_i01",
+      "table_key": "td::capital_management::tbl_p037_i01|tbl_p031_i01",
+      "table_title": "RATIOS CIBLES DE FONDS PROPRES RÉGLEMENTAIRES ET DE TLAC",
+      "view_mode": "change_list",
+      "section": "capital_management",
+      "table_name": "RATIOS CIBLES DE FONDS PROPRES RÉGLEMENTAIRES ET DE TLAC",
+      "table_number": "",
+      "table_id_t1": "tbl_p037_i01",
+      "table_id_t2": "tbl_p031_i01",
+      "page_t1": 37,
+      "page_t2": 31,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05645728267096227,
+        0.0811122547496449,
+        0.9435475667317709,
+        0.2280141657049006
+      ],
+      "bbox_t2": [
+        0.05657628003288718,
+        0.5038843251237966,
+        0.9427918078852635,
+        0.6412899518253828
+      ],
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00008",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Le plus élevé des suppléments pour les BISI et les banques d -> Le plus élevé des suppléments pour les BISI et les BISM s’ap",
+            "indicator_name_clean": "[1] le plus élevé des suppléments pour les bisi et les banques d -> le plus élevé des suppléments pour les bisi et les bism s’ap",
+            "footnote_ref": "1",
+            "old_text": "Le plus élevé des suppléments pour les BISI et les banques d’importance systémique mondiale (BISM) s’applique aux fonds propres pondérés en fonction des risques. Le supplément pour les BISI est actuellement équivalent à l’exigence supplémentaire de 1 % relative au ratio de fonds propres sous forme d’actions ordinaires pour les fonds propres pondérés en fonction des risques pour les BISM que doit respecter la Banque. Le supplément pour les BISM pourrait augmenter au-delà de 1 %, si la cote pour les BISM attribuée à la Banque devait augmenter au-delà de certains seuils, pour atteindre un maximum de 4,5 %. La ligne directrice Exigences de levier du BSIF comprend une exigence selon laquelle les BISI doivent maintenir un coussin de ratio de levier fixé à 50 % des exigences pondérées de capacité accrue d’absorption des pertes d’une BISI, soit 0,50 %. Ce coussin s’applique également au ratio de levier TLAC.",
+            "new_text": "Le plus élevé des suppléments pour les BISI et les BISM s’applique aux fonds propres pondérés en fonction des risques. Le supplément pour les BISI est actuellement équivalent à l’exigence supplémentaire de 1 % relative au ratio de fonds propres sous forme d’actions ordinaires pour les fonds propres pondérés en fonction des risques pour les BISM que doit respecter la Banque. Le supplément pour les BISM pourrait augmenter au-delà de 1 %, pour atteindre un maximum de 4 %, si la cote pour les BISM attribuée à la Banque devait augmenter au-delà de certains seuils. La ligne directrice Exigences de levier du BSIF comprend une exigence selon laquelle les BISI doivent maintenir un coussin de ratio de levier fixé à 50 % des exigences pondérées de capacité accrue d’absorption des pertes d’une BISI, soit 0,50 %. Ce coussin s’applique également au ratio de levier TLAC."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-08T23:02:05.331412+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly with 'tbl_p037_i01'; row_count 6 vs 6; title and table_summary are identical.",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il modifie la note concernant les suppléments pour les banques d'importance systémique, ce qui peut affecter la gestion des fonds propres. (2) L'impact réglementaire concret est que cela pourrait influencer les exigences en capital pour certaines banques, en fonction de leur classification. (3) Il s'agit d'une mise à jour méthodologique concernant l'application des suppléments de capital.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il modifie la note concernant les suppléments pour les banques d'importance systémique, ce qui peut affecter la gestion des fonds propres. (2) L'impact réglementaire concret est que cela pourrait influencer les exigences en capital pour certaines banques, en fonction de leur classification. (3) Il s'agit d'une mise à jour méthodologique concernant l'application des suppléments de capital.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "Bâle III — CET1",
+        "impact_description": "La modification de la note peut affecter la manière dont les suppléments de capital sont appliqués aux banques d'importance systémique.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il modifie la note concernant les suppléments pour les banques d'importance systémique, ce qui peut affecter la gestion des fonds propres. (2) L'impact réglementaire concret est que cela pourrait influencer les exigences en capital pour certaines banques, en fonction de leur classification. (3) Il s'agit d'une mise à jour méthodologique concernant l'application des suppléments de capital.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "Capital",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p045_i02|tbl_p039_i02",
+      "table_key": "td::risk_management::tbl_p045_i02|tbl_p039_i02",
+      "table_title": "SENSIBILITÉ AU RISQUE DE TAUX D’INTÉRÊT STRUCTUREL – MESURES",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "SENSIBILITÉ AU RISQUE DE TAUX D’INTÉRÊT STRUCTUREL – MESURES",
+      "table_number": "",
+      "table_id_t1": "tbl_p045_i02",
+      "table_id_t2": "tbl_p039_i02",
+      "page_t1": 45,
+      "page_t2": 39,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.056507172927357796,
+        0.6666055544458255,
+        0.944879469528697,
+        0.8695200139825995
+      ],
+      "bbox_t2": [
+        0.05758983013676662,
+        0.6500143186010496,
+        0.9498438616983252,
+        0.8308996335424559
+      ],
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00017",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Au 31 juillet 2025, les mesures de sensibilité sont présenté -> N’inclut pas les expositions du secteur Services bancaires d",
+            "indicator_name_clean": "[1] au 31 juillet 2025, les mesures de sensibilité sont présenté -> n’inclut pas les expositions du secteur services bancaires d",
+            "footnote_ref": "1",
+            "old_text": "Au 31 juillet 2025, les mesures de sensibilité sont présentées par devise afin de mettre en évidence la sensibilité des produits d’intérêts nets aux variations des taux sous-jacents.",
+            "new_text": "N’inclut pas les expositions du secteur Services bancaires de gros."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-08T23:02:21.549871+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly with 'tbl_p045_i02'; row_count 3 vs 3; title and table_summary are identical.",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "critique",
+        "analyst_summary": "Le changement est pertinent car il modifie la note explicative d'un tableau de gestion des risques, ce qui peut affecter l'interprétation des mesures de sensibilité au risque de taux d'intérêt. L'impact réglementaire concret est que certaines expositions ne sont plus incluses dans les mesures présentées, ce qui pourrait influencer l'évaluation du risque global. Il s'agit d'un changement méthodologique dans la présentation des données.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le changement est pertinent car il modifie la note explicative d'un tableau de gestion des risques, ce qui peut affecter l'interprétation des mesures de sensibilité au risque de taux d'intérêt. L'impact réglementaire concret est que certaines expositions ne sont plus incluses dans les mesures présentées, ce qui pourrait influencer l'évaluation du risque global. Il s'agit d'un changement méthodologique dans la présentation des données.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La modification des notes peut affecter la compréhension des expositions au risque de taux d'intérêt en excluant certaines données sectorielles.",
+        "source": "llm",
+        "justification": "Le changement est pertinent car il modifie la note explicative d'un tableau de gestion des risques, ce qui peut affecter l'interprétation des mesures de sensibilité au risque de taux d'intérêt. L'impact réglementaire concret est que certaines expositions ne sont plus incluses dans les mesures présentées, ce qui pourrait influencer l'évaluation du risque global. Il s'agit d'un changement méthodologique dans la présentation des données.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p049_i01|tbl_p043_i01",
+      "table_key": "td::risk_management::tbl_p049_i01|tbl_p043_i01",
+      "table_title": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "table_number": "",
+      "table_id_t1": "tbl_p049_i01",
+      "table_id_t2": "tbl_p043_i01",
+      "page_t1": 49,
+      "page_t2": 43,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05774512945436964,
+        0.11977773724180281,
+        0.9462373022939645,
+        0.3207452562120226
+      ],
+      "bbox_t2": [
+        0.05746212504268472,
+        0.13939908538201845,
+        0.9461230109719669,
+        0.3330068106603141
+      ],
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00018",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Les sûretés données en garanties correspondent aux actifs do -> Les sûretés données en garantie correspondent à la portion d",
+            "indicator_name_clean": "[1] les sûretés données en garanties correspondent aux actifs do -> les sûretés données en garantie correspondent à la portion d",
+            "footnote_ref": "1",
+            "old_text": "Les sûretés données en garanties correspondent aux actifs donnés en garanties dans le cadre de diverses opérations, telles que des mises en pension, des prêts de valeurs mobilières, des contrats de dérivés, et des exigences liées à la participation aux chambres de compensation et aux systèmes de paiement.",
+            "new_text": "Les sûretés données en garantie correspondent à la portion des actifs donnés en garantie dans le cadre de grèvement, comme les mises en pension, les prêts de valeurs mobilières, les contrats de dérivés, et les exigences liées à la participation aux chambres de compensation et aux systèmes de paiement."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.98,
+      "match_method": "Indicators and headers match exactly with 'tbl_p049_i01'; row_count 8 vs 8; title and table_summary are identical.",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "(1) Le changement est pertinent car il modifie la description des sûretés données en garantie, ce qui peut affecter la compréhension des actifs grevés ; (2) Cela peut avoir un impact sur l'évaluation des risques associés aux actifs grevés et non grevés ; (3) Il s'agit d'une mise à jour de contenu qui pourrait refléter un changement méthodologique ou de définition.",
+        "is_relevant": true,
+        "category": "RISQUE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il modifie la description des sûretés données en garantie, ce qui peut affecter la compréhension des actifs grevés ; (2) Cela peut avoir un impact sur l'évaluation des risques associés aux actifs grevés et non grevés ; (3) Il s'agit d'une mise à jour de contenu qui pourrait refléter un changement méthodologique ou de définition.",
+        "impact_type": "methodologique",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La modification de la note peut influencer l'évaluation des risques liés aux actifs grevés.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il modifie la description des sûretés données en garantie, ce qui peut affecter la compréhension des actifs grevés ; (2) Cela peut avoir un impact sur l'évaluation des risques associés aux actifs grevés et non grevés ; (3) Il s'agit d'une mise à jour de contenu qui pourrait refléter un changement méthodologique ou de définition.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "td::capital_management::tbl_p036_i01|",
+      "table_key": "td::capital_management::tbl_p036_i01|",
+      "table_title": "TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE",
+      "view_mode": "table_only",
+      "section": "capital_management",
+      "table_name": "TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE",
+      "table_number": "",
+      "table_id_t1": "tbl_p036_i01",
+      "table_id_t2": "",
+      "page_t1": 36,
+      "page_t2": null,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.057739438574298536,
+        0.11034342255255189,
+        0.9421658983417586,
+        0.34380074703332153
+      ],
+      "bbox_t2": null,
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00028",
+          "change_type": "table_removed",
+          "payload": {
+            "description": "Tableau entier supprimé",
+            "table_status": "supprime"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-08T23:02:25.354229+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 1,
+      "match_method": "",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "(1) Le changement est pertinent car il implique la suppression d'un tableau entier lié à la gestion du capital. (2) Cela pourrait affecter la transparence et la capacité à évaluer l'exposition nette par région et contrepartie, ce qui est crucial pour la gestion des risques et la conformité réglementaire. (3) Il s'agit d'une suppression structurelle qui nécessite une attention particulière pour comprendre l'impact sur les rapports futurs.",
+        "is_relevant": true,
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement est pertinent car il implique la suppression d'un tableau entier lié à la gestion du capital. (2) Cela pourrait affecter la transparence et la capacité à évaluer l'exposition nette par région et contrepartie, ce qui est crucial pour la gestion des risques et la conformité réglementaire. (3) Il s'agit d'une suppression structurelle qui nécessite une attention particulière pour comprendre l'impact sur les rapports futurs.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression du tableau réduit la visibilité sur l'exposition régionale, ce qui peut affecter l'évaluation des risques géographiques.",
+        "source": "llm",
+        "justification": "(1) Le changement est pertinent car il implique la suppression d'un tableau entier lié à la gestion du capital. (2) Cela pourrait affecter la transparence et la capacité à évaluer l'exposition nette par région et contrepartie, ce qui est crucial pour la gestion des risques et la conformité réglementaire. (3) Il s'agit d'une suppression structurelle qui nécessite une attention particulière pour comprendre l'impact sur les rapports futurs.",
+        "relevance": "Capital"
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
+      },
+      "relevance": "Capital",
+      "risk_level": "MODERE",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p055_i01|tbl_p049_i01",
+      "table_key": "td::risk_management::tbl_p055_i01|tbl_p049_i01",
+      "table_title": "DURÉE CONTRACTUELLE RESTANTE",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "DURÉE CONTRACTUELLE RESTANTE",
+      "table_number": "",
+      "table_id_t1": "tbl_p055_i01",
+      "table_id_t2": "tbl_p049_i01",
+      "page_t1": 55,
+      "page_t2": 49,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05558705174065883,
+        0.06009167372578323,
+        0.9418643128638174,
+        0.7360075363005051
+      ],
+      "bbox_t2": [
+        0.05602067436268127,
+        0.05501994701346966,
+        0.9426935731975082,
+        0.7243572196575127
+      ],
+      "source_pdf_t1": "Inputs/TD/2025/TD_2025_T3.pdf",
+      "source_pdf_t2": "Inputs/TD/2026/TD_2026_T1.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00024",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[5] Comprennent 65 milliards de dollars d’obligations sécurisées -> Comprennent 73 milliards de dollars d’obligations sécurisées",
+            "indicator_name_clean": "[5] comprennent 65 milliards de dollars d’obligations sécurisées -> comprennent 73 milliards de dollars d’obligations sécurisées",
+            "footnote_ref": "5",
+            "old_text": "Comprennent 65 milliards de dollars d’obligations sécurisées, dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 3 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 25 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 21 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 6 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans ».",
+            "new_text": "Comprennent 73 milliards de dollars d’obligations sécurisées, dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 1 mois à 3 mois », une tranche de 3 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 5 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 5 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 20 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 22 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans »."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-08T23:02:27.258688+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00025",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[6] Comprennent 627 millions de dollars d’engagements de crédit  -> Comprennent 531 millions de dollars d’engagements de crédit ",
+            "indicator_name_clean": "[6] comprennent 627 millions de dollars d’engagements de crédit  -> comprennent 531 millions de dollars d’engagements de crédit",
+            "footnote_ref": "6",
+            "old_text": "Comprennent 627 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé.",
+            "new_text": "Comprennent 531 millions de dollars d’engagements de crédit à l’égard de placements dans des actions de sociétés à capital fermé."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.9,
+      "match_method": "Title and table_summary are highly similar to PQ table 'tbl_p055_i01'. Both tables have similar headers and indicators related to 'Durée contractuelle restante'.",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "normale",
+        "analyst_summary": "(1) Le changement n'est pas pertinent car il s'agit de variations de valeurs numériques propres à la banque ; (2) Ces modifications n'affectent pas directement les seuils réglementaires ou les méthodologies ; (3) Il s'agit d'une mise à jour ordinaire des montants d'obligations sécurisées et d'engagements de crédit.",
+        "is_relevant": false,
+        "category": "RISQUE",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.9,
+        "explanation": "(1) Le changement n'est pas pertinent car il s'agit de variations de valeurs numériques propres à la banque ; (2) Ces modifications n'affectent pas directement les seuils réglementaires ou les méthodologies ; (3) Il s'agit d'une mise à jour ordinaire des montants d'obligations sécurisées et d'engagements de crédit.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact réglementaire direct, mise à jour des montants d'obligations et d'engagements.",
+        "source": "llm",
+        "justification": "(1) Le changement n'est pas pertinent car il s'agit de variations de valeurs numériques propres à la banque ; (2) Ces modifications n'affectent pas directement les seuils réglementaires ou les méthodologies ; (3) Il s'agit d'une mise à jour ordinaire des montants d'obligations sécurisées et d'engagements de crédit.",
+        "relevance": "Risque"
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "Risque",
+      "risk_level": "FAIBLE",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 2,
+        "validated": 1,
+        "pending": 1
+      }
+    }
+  ]
+}

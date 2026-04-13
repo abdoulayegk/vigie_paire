@@ -1,0 +1,17 @@
+{
+  "bank": "BMO",
+  "current": {
+    "year": 2025,
+    "quarter": "T3",
+    "extraction_path": "/Users/balde/Desktop/vigie_paire/outputs/extractions/bmo/2025/t3",
+    "pdf_path": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf"
+  },
+  "previous": {
+    "year": 2025,
+    "quarter": "T2",
+    "extraction_path": "/Users/balde/Desktop/vigie_paire/outputs/extractions/bmo/2025/t2",
+    "pdf_path": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf"
+  },
+  "status": "completed",
+  "generated_at": "2026-04-10T05:10:30.453572+00:00"
+}
