@@ -1,0 +1,17 @@
+{
+  "bank": "BNC",
+  "current": {
+    "year": 2026,
+    "quarter": "T1",
+    "extraction_path": "/Users/balde/Desktop/vigie_paire/outputs/extractions/bnc/2026/t1",
+    "pdf_path": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/rapport-actionnaire-t1-2026.pdf"
+  },
+  "previous": {
+    "year": 2025,
+    "quarter": "T3",
+    "extraction_path": "/Users/balde/Desktop/vigie_paire/outputs/extractions/bnc/2025/t3",
+    "pdf_path": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf"
+  },
+  "status": "completed",
+  "generated_at": "2026-04-10T05:23:07.256423+00:00"
+}

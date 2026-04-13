@@ -1,0 +1,137 @@
+{
+  "schema_version": "review_state_v1",
+  "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/comparison.json",
+  "comparison_run_id": "20260410_011915",
+  "review_items_signature": "3882ffd34df91f063ad10252464a59cda2203a34df671bfc34c756f785a721fc",
+  "saved_at": "2026-04-13T19:57:45+00:00",
+  "source": "on_validate_change_v2",
+  "preferred_store": "review_queue",
+  "review_selection": {
+    "review_id": "bnc::capital_management::|tbl_p032_i01",
+    "change_id": "chg_00001"
+  },
+  "review_current_idx": 0,
+  "current_change_idx": 0,
+  "current_indicator_idx": 0,
+  "review_items": [
+    {
+      "change_id": "bnc::capital_management::|tbl_p032_i01",
+      "change_type": "table_added",
+      "indicator": "Tableau entier ajouté",
+      "section": "capital_management",
+      "table_name": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
+      "table_number": "",
+      "table_id_t1": "",
+      "table_id_t2": "tbl_p032_i01",
+      "page_t1": null,
+      "page_t2": 32,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-13T19:57:45.469625+00:00",
+      "edited_value": "",
+      "confidence": 1.0,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
+      "table_status": "completed",
+      "indicators": [],
+      "match_method": "",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": null,
+      "bbox_t2": [
+        0.05428361581041922,
+        0.12031298936015429,
+        0.940853941674326,
+        0.3318136195943813
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "table_added",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Nouveau tableau sur le theme capital a revoir par l'analyste."
+      },
+      "match_metadata": {
+        "semantic_judge": "Indicators are unique to BISM; no previous table has a similar structure or purpose."
+      }
+    }
+  ],
+  "review_queue": [
+    {
+      "review_id": "bnc::capital_management::|tbl_p032_i01",
+      "table_key": "bnc::capital_management::|tbl_p032_i01",
+      "table_title": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
+      "view_mode": "table_only",
+      "section": "capital_management",
+      "table_name": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
+      "table_number": "",
+      "table_id_t1": "",
+      "table_id_t2": "tbl_p032_i01",
+      "page_t1": null,
+      "page_t2": 32,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": null,
+      "bbox_t2": [
+        0.05428361581041922,
+        0.12031298936015429,
+        0.940853941674326,
+        0.3318136195943813
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00001",
+          "change_type": "table_added",
+          "payload": {
+            "description": "Tableau entier ajouté",
+            "table_status": "ajoute"
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-13T19:57:45.469625+00:00",
+          "validated_by": "analyst"
+        }
+      ],
+      "table_status": "completed",
+      "confidence": 1,
+      "match_method": "",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Nouveau tableau sur le theme capital a revoir par l'analyste."
+      },
+      "match_metadata": {
+        "semantic_judge": "Indicators are unique to BISM; no previous table has a similar structure or purpose."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 1,
+        "pending": 0
+      }
+    }
+  ]
+}
