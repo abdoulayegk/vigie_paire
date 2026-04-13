@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260413_161428",
   "review_items_signature": "427f6246390ef8b61d659c6387356135435c00ae417fd3d61ef1a5f858b0e83a",
-  "saved_at": "2026-04-13T20:16:25+00:00",
+  "saved_at": "2026-04-13T20:38:00+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::capital_management::tbl_p024_i01|tbl_p028_i01",
-    "change_id": "chg_00005"
+    "review_id": "bnc::capital_management::tbl_p023_i01|tbl_p027_i01",
+    "change_id": "chg_00003"
   },
-  "review_current_idx": 1,
-  "current_change_idx": 1,
+  "review_current_idx": 0,
+  "current_change_idx": 2,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -27,10 +27,10 @@
       "page_t2": 27,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:16:25.409079+00:00",
+      "review_timestamp": "2026-04-13T20:38:00.744284+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -40,7 +40,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
-      "table_status": "completed",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Série 47",
@@ -55,7 +55,7 @@
         {
           "name": "Série 32",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'Actions, autres instruments de capitaux propres et options d’achat d’actions'; indicators: similar structure with minor changes in series; row_count 13 vs 12.",
@@ -108,7 +108,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:16:20.617540+00:00",
+      "review_timestamp": "2026-04-13T20:37:26.672762+00:00",
       "edited_value": "",
       "confidence": 0.92,
       "proof_image_path": "",
@@ -186,7 +186,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:16:18.965494+00:00",
+      "review_timestamp": "2026-04-13T20:37:34.264527+00:00",
       "edited_value": "",
       "confidence": 0.75,
       "proof_image_path": "",
@@ -259,7 +259,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:16:13.764750+00:00",
+      "review_timestamp": "2026-04-13T20:37:36.642558+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -332,7 +332,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:15:39.360760+00:00",
+      "review_timestamp": "2026-04-13T20:37:42.985107+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -397,10 +397,10 @@
       "page_t2": 26,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:16:00.604559+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -410,12 +410,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[4] (4) Les ratios au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires'; indicators: same 7 rows (Ratios des fonds propres, CET1, catégorie 1, total, Ratio de levier, Ratio TLAC, Ratio de levier TLAC); row_count 7 vs 7.",
@@ -468,7 +468,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:15:48.702872+00:00",
+      "review_timestamp": "2026-04-13T20:37:49.968496+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -533,10 +533,10 @@
       "page_t2": 30,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:15:58.897096+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -546,12 +546,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[3] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same structure; row_count 14 vs 14.",
@@ -604,7 +604,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:15:55.309332+00:00",
+      "review_timestamp": "2026-04-13T20:37:58.003672+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -688,7 +688,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:15:28.332756+00:00",
+          "validated_at": "2026-04-13T20:37:16.060908+00:00",
           "validated_by": "analyst"
         },
         {
@@ -706,7 +706,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:15:28.454368+00:00",
+          "validated_at": "2026-04-13T20:38:00.744284+00:00",
           "validated_by": "analyst"
         },
         {
@@ -720,15 +720,15 @@
               "justification": "L'indicateur \"Série 32\" a été retiré du tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cette série pourrait indiquer le rachat ou l'annulation de cette tranche d'actions privilégiées, ce qui peut affecter la composition des fonds propres de la banque. Les actions privilégiées jouent un rôle crucial dans le calcul des ratios de fonds propres de catégorie 1, conformément aux normes de Bâle III. Ce changement pourrait également refléter une réorganisation stratégique du capital.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer la raison de cette suppression et s'assurer que cela est correctement reflété dans les autres sections du rapport financier."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:16:25.409079+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "partial",
       "confidence": 0.9,
       "match_method": "Title identical: 'Actions, autres instruments de capitaux propres et options d’achat d’actions'; indicators: similar structure with minor changes in series; row_count 13 vs 12.",
       "genai_analysis": {
@@ -752,8 +752,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 3,
-        "pending": 0
+        "validated": 2,
+        "pending": 1
       }
     },
     {
@@ -801,7 +801,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:16:20.617540+00:00",
+          "validated_at": "2026-04-13T20:37:26.672762+00:00",
           "validated_by": "analyst"
         },
         {
@@ -913,7 +913,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:16:18.965494+00:00",
+          "validated_at": "2026-04-13T20:37:34.264527+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1007,7 +1007,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:16:13.764750+00:00",
+          "validated_at": "2026-04-13T20:37:36.642558+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1101,7 +1101,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:15:39.360760+00:00",
+          "validated_at": "2026-04-13T20:37:42.985107+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1173,15 +1173,15 @@
             "old_text": "(4) Les ratios au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
             "new_text": ""
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:16:00.604559+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title identical: 'Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires'; indicators: same 7 rows (Ratios des fonds propres, CET1, catégorie 1, total, Ratio de levier, Ratio TLAC, Ratio de levier TLAC); row_count 7 vs 7.",
       "genai_analysis": {
@@ -1205,8 +1205,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1253,7 +1253,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:15:48.702872+00:00",
+          "validated_at": "2026-04-13T20:37:49.968496+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1325,15 +1325,15 @@
             "old_text": "Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
             "new_text": ""
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:15:58.897096+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same structure; row_count 14 vs 14.",
       "genai_analysis": {
@@ -1357,8 +1357,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1397,7 +1397,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:15:55.309332+00:00",
+          "validated_at": "2026-04-13T20:37:58.003672+00:00",
           "validated_by": "analyst"
         }
       ],

@@ -188,8 +188,8 @@ uv run python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-comparis
 # Extraction + Comparaison sémantique par sous-sections (T2 vs T1)
 uv run python run_text_pipeline.py --bank BNS --year 2025 --T2
 
-# Réutiliser l’extraction texte existante
-uv run python run_text_pipeline.py --bank BNS --year 2025 --T2 --skip-extraction
+# Sauter la comparaison (extraction seulement)
+uv run python run_text_pipeline.py --bank BNS --year 2025 --T2 --skip-comparison
 ```
 
 ---
