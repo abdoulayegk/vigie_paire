@@ -3,7 +3,7 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260413_161428",
   "review_items_signature": "427f6246390ef8b61d659c6387356135435c00ae417fd3d61ef1a5f858b0e83a",
-  "saved_at": "2026-04-13T20:38:00+00:00",
+  "saved_at": "2026-04-13T22:09:16+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
@@ -30,7 +30,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:38:00.744284+00:00",
+      "review_timestamp": "2026-04-13T22:09:16.049512+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -107,8 +107,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:37:26.672762+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.92,
       "proof_image_path": "",
@@ -118,12 +118,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Variation des fonds propres réglementaires (1)",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Émission d’actions ordinaires relatives à l'acquisition de CWB",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Options de remplacement relatives à l'acquisition de CWB",
@@ -185,8 +185,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:37:34.264527+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.75,
       "proof_image_path": "",
@@ -196,12 +196,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p031_i01",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Risques émergents – Droits de douane sur les importations",
@@ -258,8 +258,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:37:36.642558+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -269,12 +269,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p042_i01",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[2] Les montants remboursables sur demande sont considérés comme étant sans échéance spécifique.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[1] Les montants remboursables sur demande sont considérés comme -> Le 3 février 2025, la Banque a conclu l’acquisition de CWB. ",
@@ -329,10 +329,10 @@
       "page_t2": 37,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:37:42.985107+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -342,12 +342,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Portefeuille d’actifs liquides (1)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Actifs liquides – Au 31 janvier 2025",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Identical title 'Portefeuille d’actifs liquides (1)'; similar indicators and headers; row count is slightly different but within acceptable range.",
@@ -465,10 +465,10 @@
       "page_t2": 29,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:37:49.968496+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -478,12 +478,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[3] Au cours du deuxième trimestre de 2025, la variation du risque opérationnel est liée à l’inclusion de CWB qui a été calc",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same structure; row_count 20 vs 20.",
@@ -601,10 +601,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-13T20:37:58.003672+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -614,7 +614,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -688,7 +688,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:37:16.060908+00:00",
+          "validated_at": "2026-04-13T22:09:15.914997+00:00",
           "validated_by": "analyst"
         },
         {
@@ -706,7 +706,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:38:00.744284+00:00",
+          "validated_at": "2026-04-13T22:09:16.049512+00:00",
           "validated_by": "analyst"
         },
         {
@@ -797,12 +797,12 @@
               "justification": "L'indicateur \"Émission d’actions ordinaires relatives à l'acquisition de CWB\" a été ajouté dans le tableau de variation des fonds propres réglementaires pour le semestre terminé le 30 avril 2025. Cet ajout n'était pas présent dans le trimestre précédent terminé le 31 janvier 2025.\n\nL'ajout de cet indicateur reflète une transaction spécifique, à savoir l'acquisition de CWB, qui a un impact direct sur les fonds propres de catégorie 1 sous forme d'actions ordinaires. Cela peut avoir des implications sur les ratios de fonds propres réglementaires, notamment ceux liés aux exigences de Bâle III, car l'émission d'actions ordinaires peut affecter le calcul du ratio CET1.\n\nIl s'agit d'une mise à jour structurelle importante qui nécessite une attention particulière pour s'assurer que l'impact de cette acquisition est correctement intégré dans les calculs de fonds propres. L'analyste devrait confirmer que cette émission est correctement reflétée dans les autres sections du rapport financier."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:37:26.672762+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00005",
@@ -840,7 +840,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.92,
       "match_method": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: similar structure with additional rows related to acquisition; row_count 42 vs 40.",
       "genai_analysis": {
@@ -864,8 +864,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 2
+        "validated": 0,
+        "pending": 3
       }
     },
     {
@@ -909,12 +909,12 @@
               "justification": "L'indicateur \"Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux\" a été ajouté dans le tableau de gestion des risques au T2 2025, alors qu'il n'était pas présent au T1 2025.\n\nCet ajout reflète une attention accrue aux risques liés aux politiques commerciales internationales, qui peuvent avoir un impact significatif sur les opérations bancaires, notamment en ce qui concerne le financement du commerce et les expositions transfrontalières. Les incertitudes dans les politiques tarifaires peuvent affecter la stabilité des flux commerciaux et, par conséquent, la qualité des actifs bancaires.\n\nIl s'agit d'une mise à jour structurelle importante qui pourrait indiquer un changement dans l'évaluation des risques par l'institution. L'analyste devrait confirmer que cette nouvelle divulgation est alignée avec les autres sections du rapport sur les risques et évaluer si des mesures d'atténuation spécifiques ont été mises en place."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:37:34.264527+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00008",
@@ -935,7 +935,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.75,
       "match_method": "Both tables share the indicator 'Risques émergents – Droits de douane sur les importations'. The CQ table appears to be a more focused version of the PQ table, specifically on the emerging risk related to tariffs and trade restrictions.",
       "genai_analysis": {
@@ -959,8 +959,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1003,12 +1003,12 @@
             "old_text": "",
             "new_text": "Les montants remboursables sur demande sont considérés comme étant sans échéance spécifique."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:37:36.642558+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00014",
@@ -1028,7 +1028,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.9,
       "match_method": "Similar table summary 'Échéances contractuelles des actifs financiers'; same indicators and headers; footnote count matches.",
       "genai_analysis": {
@@ -1052,8 +1052,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1097,15 +1097,15 @@
               "justification": "L'indicateur \"Actifs liquides – Au 31 janvier 2025\" a été retiré du tableau actuel, alors qu'il était présent dans le tableau précédent. Cet indicateur semble être une référence temporelle spécifique à la date de clôture des actifs liquides pour le 31 janvier 2025.\n\nL'impact de ce retrait est principalement cosmétique, car il s'agit d'une date de référence qui n'affecte pas directement les calculs ou les ratios prudentiels. Les exigences de Bâle III ou du BSIF ne sont pas directement concernées par la présence ou l'absence de cette date dans le tableau, à moins qu'elle ne soit utilisée pour des comparaisons temporelles spécifiques.\n\nIl s'agit probablement d'une mise à jour ordinaire pour refléter la période de rapport actuelle. L'analyste devrait confirmer que les autres dates de référence dans le tableau sont correctes et cohérentes avec les périodes de rapport actuelles."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:37:42.985107+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.9,
       "match_method": "Identical title 'Portefeuille d’actifs liquides (1)'; similar indicators and headers; row count is slightly different but within acceptable range.",
       "genai_analysis": {
@@ -1129,8 +1129,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1249,15 +1249,15 @@
             "old_text": "",
             "new_text": "Au cours du deuxième trimestre de 2025, la variation du risque opérationnel est liée à l’inclusion de CWB qui a été calculé selon l’approche standardisé conformément à l’approche utilisée par la Banque."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:37:49.968496+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same structure; row_count 20 vs 20.",
       "genai_analysis": {
@@ -1281,8 +1281,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1393,15 +1393,15 @@
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T20:37:58.003672+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1421,8 +1421,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     }
   ]

@@ -2,7 +2,7 @@
   "bank_code": "td",
   "year": 2025,
   "quarter": "t2",
-  "created_at": "2026-04-09T10:36:12",
+  "created_at": "2026-04-14T09:41:25",
   "schema_version": 7,
   "tables": [
     {
@@ -11,18 +11,16 @@
       "section": "capital_management",
       "title": "TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE",
       "indicators": [
-        "Région",
-        "Europe",
-        "Royaume-Uni",
-        "Asie",
-        "Autres5",
+        "Région – Europe",
+        "Région – Royaume-Uni",
+        "Région – Asie",
+        "Région – Autres⁵",
         "Région – Total",
-        "Région (bloc 2)",
-        "Europe",
-        "Royaume-Uni",
-        "Asie",
-        "Autres5",
-        "Région (bloc 2) – Total"
+        "Région – Europe (bloc 2)",
+        "Région – Royaume-Uni (bloc 2)",
+        "Région – Asie (bloc 2)",
+        "Région – Autres⁵ (bloc 2)",
+        "Région – Total (bloc 2)"
       ]
     },
     {
@@ -82,7 +80,7 @@
         "Ajustements réglementaires appliqués aux fonds propres de catégorie 2",
         "Instruments de fonds propres de catégorie 2 détenus en propre",
         "Participations non significatives dans les fonds propres de banques, de compagnies d’assurance et d’autres entités financières, déduction faite des positions courtes admissibles (montant supérieur au seuil de 10 %)¹",
-        "Participations non significatives dans les autres instruments admissibles à la TLAC émis par des BISM et des BISI canadiennes, à hauteur de 10 % au plus des actions ordinaires émises de l’entité : montant anciennement assujetti à un seuil de 5 %, mais qui ne satisfaisait plus aux conditions",
+        "Participations non significatives dans les autres instruments admissibles à la TLAC émis par des BISM et des BISI canadiennes, à hauteur de 10 % au plus des actions ordinaires émises de l’entité : montant anciennement destiné au seuil de 5 %, mais qui ne satisfaisait plus aux conditions",
         "Participations significatives dans les fonds propres de banques, de compagnies d’assurance et d’autres entités financières qui sortent du périmètre de consolidation réglementaire, déduction faite des positions courtes admissibles",
         "Total des ajustements réglementaires appliqués aux fonds propres de catégorie 2",
         "Fonds propres de catégorie 2",
@@ -136,7 +134,8 @@
       "indicators": [
         "Expositions de détail",
         "Expositions garanties par l’immobilier résidentiel",
-        "Expositions aux produits de détail renouvelables admissibles",
+        "Expositions aux produits de détail",
+        "renouvelables admissibles",
         "Autres expositions de détail",
         "Total – Risque de crédit de détail",
         "Expositions autres que de détail",
@@ -167,7 +166,7 @@
         "Autres actifs¹",
         "Actifs non exposés au risque de marché",
         "Total de l’actif",
-        "Passifs exposés au risque de marché – Dérivés",
+        "Passifs exposés au risque de marché",
         "Dépôts détenus à des fins de transaction",
         "Dérivés",
         "Passifs de titrisation à la juste valeur",
@@ -194,7 +193,7 @@
         "Risque de change",
         "Risque sur marchandises",
         "Risque idiosyncrasique propre à des titres de créance",
-        "Effet de diversification¹",
+        "Effet de diversification1",
         "Valeur à risque totale (une journée)"
       ]
     },
@@ -252,13 +251,13 @@
       "title": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
       "indicators": [
         "Trésorerie et réserves des banques centrales",
-        "Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement2",
+        "Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement²",
         "Actions",
         "Autres titres de créance",
         "Autres titres",
         "Total (libellé en dollars canadiens)",
         "Trésorerie et réserves des banques centrales (bloc 2)",
-        "Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement2 (bloc 2)",
+        "Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement² (bloc 2)",
         "Actions (bloc 2)",
         "Autres titres de créance (bloc 2)",
         "Autres titres (bloc 2)",
@@ -292,7 +291,7 @@
         "Valeurs mobilières, prêts détenus à des fins de transaction et autres",
         "Dérivés",
         "Prêts, déduction faite de la provision pour pertes sur prêts",
-        "Autres actifs⁵",
+        "Autres actifs5",
         "Total de l’actif",
         "Total de l’actif (bloc 2)"
       ]
@@ -366,8 +365,7 @@
       "indicators": [
         "Total des actifs liquides de haute qualité",
         "Total des sorties nettes de trésorerie",
-        "Ratio de liquidité à court terme",
-        "Ratio de liquidité à long terme (NSFR)"
+        "Ratio de liquidité à court terme"
       ]
     },
     {
@@ -411,10 +409,7 @@
         "Tous les autres actifs non inclus dans les catégories ci-dessus",
         "Éléments hors bilan",
         "Total du financement stable requis",
-        "Ratio de liquidité à long terme",
-        "Total du financement stable disponible (bloc 2)",
-        "Total du financement stable requis (bloc 2)",
-        "Ratio de liquidité à long terme (bloc 2)"
+        "Ratio de liquidité à long terme"
       ]
     },
     {
@@ -481,7 +476,7 @@
         "Dont :",
         "Garantis",
         "Non garantis",
-        "Total"
+        "Dont : – Total"
       ]
     },
     {
@@ -576,10 +571,10 @@
         "Total de l’actif",
         "Passif",
         "Dépôts détenus à des fins de transaction",
-        "Dérivés (bloc 2)",
+        "Dérivés",
         "Passifs de titrisation à la juste valeur",
         "Passifs financiers désignés à la juste valeur par le biais du résultat net",
-        "Dépôts⁴, ⁵",
+        "Dépôts⁴˒⁵",
         "Particuliers",
         "Banques",
         "Entreprises et gouvernements",
@@ -594,7 +589,7 @@
         "Capitaux propres",
         "Total du passif et des capitaux propres",
         "Engagements hors bilan",
-        "Engagements au titre du crédit et des liquidités⁶, ⁷",
+        "Engagements au titre du crédit et des liquidités⁶˒⁷",
         "Autres engagements⁸",
         "Engagements à l’égard d’entités structurées non consolidées",
         "Total des engagements hors bilan"
