@@ -2,7 +2,7 @@
   "bank_code": "td",
   "year": 2025,
   "quarter": "t2",
-  "created_at": "2026-04-09T10:36:12",
+  "created_at": "2026-04-14T09:41:25",
   "schema_version": 7,
   "tables": [
     {
@@ -18,38 +18,36 @@
       ],
       "extraction_status": "rescued",
       "headers": [
-        "Prêts et engagements1",
+        "Prêts et engagements¹",
         "Entreprises",
         "Emprunteurs souverains",
         "Institutions financières",
         "Total",
-        "Dérivés, mises en pension et prêts de valeurs mobilières2",
+        "Dérivés, mises en pension et prêts de valeurs mobilières²",
         "Entreprises",
         "Emprunteurs souverains",
         "Institutions financières",
         "Total",
-        "Portefeuille de négociation et de placement3",
+        "Portefeuille de négociation et de placement³",
         "Entreprises",
         "Emprunteurs souverains",
         "Institutions financières",
         "Total",
-        "Exposition totale4"
+        "Exposition totale⁴"
       ],
       "table_summary": "Exposition nette par région et contrepartie",
-      "row_count": 12,
+      "row_count": 10,
       "indicators": [
-        "Région",
-        "Europe",
-        "Royaume-Uni",
-        "Asie",
-        "Autres5",
+        "Région – Europe",
+        "Région – Royaume-Uni",
+        "Région – Asie",
+        "Région – Autres⁵",
         "Région – Total",
-        "Région (bloc 2)",
-        "Europe",
-        "Royaume-Uni",
-        "Asie",
-        "Autres5",
-        "Région (bloc 2) – Total"
+        "Région – Europe (bloc 2)",
+        "Région – Royaume-Uni (bloc 2)",
+        "Région – Asie (bloc 2)",
+        "Région – Autres⁵ (bloc 2)",
+        "Région – Total (bloc 2)"
       ],
       "footnotes": [
         {
@@ -132,11 +130,11 @@
       ],
       "extraction_status": "rescued",
       "headers": [
-        "Aux 30 avril 2025",
+        "30 avril 2025",
         "31 octobre 2024",
         "30 avril 2024"
       ],
-      "table_summary": "Structure de fonds propres et ratios Bâle III",
+      "table_summary": "Structure de fonds propres réglementaires et ratios Bâle III",
       "row_count": 48,
       "indicators": [
         "Fonds propres de catégorie 1 sous forme d’actions ordinaires",
@@ -176,7 +174,7 @@
         "Ajustements réglementaires appliqués aux fonds propres de catégorie 2",
         "Instruments de fonds propres de catégorie 2 détenus en propre",
         "Participations non significatives dans les fonds propres de banques, de compagnies d’assurance et d’autres entités financières, déduction faite des positions courtes admissibles (montant supérieur au seuil de 10 %)¹",
-        "Participations non significatives dans les autres instruments admissibles à la TLAC émis par des BISM et des BISI canadiennes, à hauteur de 10 % au plus des actions ordinaires émises de l’entité : montant anciennement assujetti à un seuil de 5 %, mais qui ne satisfaisait plus aux conditions",
+        "Participations non significatives dans les autres instruments admissibles à la TLAC émis par des BISM et des BISI canadiennes, à hauteur de 10 % au plus des actions ordinaires émises de l’entité : montant anciennement destiné au seuil de 5 %, mais qui ne satisfaisait plus aux conditions",
         "Participations significatives dans les fonds propres de banques, de compagnies d’assurance et d’autres entités financières qui sortent du périmètre de consolidation réglementaire, déduction faite des positions courtes admissibles",
         "Total des ajustements réglementaires appliqués aux fonds propres de catégorie 2",
         "Fonds propres de catégorie 2",
@@ -216,10 +214,10 @@
         "Nombre d’actions/ de parts",
         "Montant",
         "31 octobre 2024",
-        "Nombre d’actions/ de parts",
+        "Nombre d’actions/ d’actions/ de parts",
         "Montant"
       ],
-      "table_summary": "Actions et autres titres",
+      "table_summary": "Actions ordinaires, privilégiées et autres instruments de capitaux propres",
       "row_count": 25,
       "indicators": [
         "Actions ordinaires",
@@ -251,31 +249,31 @@
       "footnotes": [
         {
           "id": "1",
-          "text": "¹ Pour plus de renseignements, y compris les caractéristiques de conversion et d’échange, et les distributions, se reporter à la note 20 des états financiers consolidés de 2024 de la Banque."
+          "text": "Pour plus de renseignements, y compris les caractéristiques de conversion et d’échange, et les distributions, se reporter à la note 20 des états financiers consolidés de 2024 de la Banque."
         },
         {
           "id": "2",
-          "text": "² Le 31 janvier 2025, la Banque a racheté la totalité de ses 20 millions d’actions privilégiées de premier rang de catégorie A à taux rajusté tous les cinq ans et à dividende non cumulatif comprenant des dispositions relatives aux fonds propres d’urgence en cas de non-viabilité (FPUNV), série 5 (« actions privilégiées de série 5 ») en circulation, à un prix de rachat de 25,00 $ l’action privilégiée de série 5, pour un coût de rachat total d’environ 500 millions de dollars."
+          "text": "Le 31 janvier 2025, la Banque a racheté la totalité de ses 20 millions d’actions privilégiées de premier rang de catégorie A à taux rajusté tous les cinq ans et à dividende non cumulatif comprenant des dispositions relatives aux fonds propres d’urgence en cas de non-viabilité (FPUNV), série 5 (« actions privilégiées de série 5 ») en circulation, à un prix de rachat de 25,00 $ l’action privilégiée de série 5, pour un coût de rachat total d’environ 500 millions de dollars."
         },
         {
           "id": "3",
-          "text": "³ Pour les autres instruments de capitaux propres, le nombre d’actions ou de parts correspond au nombre de billets émis."
+          "text": "Pour les autres instruments de capitaux propres, le nombre d’actions ou de parts correspond au nombre de billets émis."
         },
         {
           "id": "4",
-          "text": "⁴ Pour plus de renseignements, se reporter au tableau « Conditions importantes rattachées aux actions privilégiées et autres instruments de capitaux propres » à la note 20 des états financiers consolidés de 2024 de la Banque."
+          "text": "Pour plus de renseignements, se reporter au tableau « Conditions importantes rattachées aux actions privilégiées et autres instruments de capitaux propres » à la note 20 des états financiers consolidés de 2024 de la Banque."
         },
         {
           "id": "5",
-          "text": "⁵ Pour les BRCRL, série 3 et série 4, le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars américains."
+          "text": "Pour les BRCRL, série 3 et série 4, le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars américains."
         },
         {
           "id": "6",
-          "text": "⁶ Le 18 décembre 2024, la Banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital de 750 millions de dollars à taux fixe rajusté à 5,909 % comprenant des dispositions relatives aux FPUNV, série 5 (les « BRCRL »). Les BRCRL porteront intérêt au taux de 5,909 % par année, payable trimestriellement, pour la période initiale se terminant le 1er janvier 2030, exclusivement. Par la suite, le taux d’intérêt sur les BRCRL sera rajusté tous les cinq ans à un taux correspondant au rendement des obligations du gouvernement du Canada alors en vigueur, majoré de 3,10 %. Les BRCRL viendront à échéance le 1er janvier 2085. Parallèlement à l’émission des BRCRL, la Banque a émis 750 000 actions privilégiées à taux fixe rajusté à 5,909 % et à dividende non cumulatif comprenant des dispositions relatives aux FPUNV, série 32 (« actions privilégiées de série 32 »). Les actions privilégiées de série 32 sont éliminées des états financiers consolidés de la Banque."
+          "text": "Le 18 décembre 2024, la Banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital de 750 millions de dollars à taux fixe rajusté à 5,909 % comprenant des dispositions relatives aux FPUNV, série 5 (les « BRCRL »). Les BRCRL porteront intérêt au taux de 5,909 % par année, payable trimestriellement, pour la période initiale se terminant le 1er janvier 2030, exclusivement. Par la suite, le taux d’intérêt sur les BRCRL sera rajusté tous les cinq ans à un taux correspondant au rendement des obligations du gouvernement du Canada alors en vigueur, majoré de 3,10 %. Les BRCRL viendront à échéance le 1er janvier 2085. Parallèlement à l’émission des BRCRL, la Banque a émis 750 000 actions privilégiées à taux fixe rajusté à 5,909 % et à dividende non cumulatif comprenant des dispositions relatives aux FPUNV, série 32 (« actions privilégiées de série 32 »). Les actions privilégiées de série 32 sont éliminées des états financiers consolidés de la Banque."
         },
         {
           "id": "7",
-          "text": "⁷ Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour."
+          "text": "Pour les billets de fonds propres subordonnés perpétuels (AT1), le montant représente l’équivalent en dollars canadiens du montant notionnel en dollars de Singapour."
         }
       ]
     },
@@ -293,20 +291,21 @@
       "extraction_status": "rescued",
       "headers": [
         "30 avril 2025",
-        "31 octobre 2024",
         "Standard",
         "NI",
         "Total",
+        "31 octobre 2024",
         "Standard",
         "NI",
         "Total"
       ],
-      "table_summary": "Expositions brutes au risque de crédit par approche et portefeuille",
-      "row_count": 11,
+      "table_summary": "Expositions brutes au risque de crédit par approche et catégorie",
+      "row_count": 12,
       "indicators": [
         "Expositions de détail",
         "Expositions garanties par l’immobilier résidentiel",
-        "Expositions aux produits de détail renouvelables admissibles",
+        "Expositions aux produits de détail",
+        "renouvelables admissibles",
         "Autres expositions de détail",
         "Total – Risque de crédit de détail",
         "Expositions autres que de détail",
@@ -346,7 +345,7 @@
         "Autres",
         "Aux"
       ],
-      "table_summary": "Ventilation des actifs et passifs exposés au risque de marché",
+      "table_summary": "Ventilation des actifs et passifs selon le risque de marché",
       "row_count": 27,
       "indicators": [
         "Actifs exposés au risque de marché",
@@ -363,7 +362,7 @@
         "Autres actifs¹",
         "Actifs non exposés au risque de marché",
         "Total de l’actif",
-        "Passifs exposés au risque de marché – Dérivés",
+        "Passifs exposés au risque de marché",
         "Dépôts détenus à des fins de transaction",
         "Dérivés",
         "Passifs de titrisation à la juste valeur",
@@ -380,7 +379,7 @@
       "footnotes": [
         {
           "id": "1",
-          "text": "¹ Se rapportent aux prestations de retraite, aux assurances et aux passifs liés aux entités structurées."
+          "text": "Se rapportent aux prestations de retraite, aux assurances et aux passifs liés aux entités structurées."
         }
       ]
     },
@@ -406,7 +405,7 @@
         "Moyenne",
         "Moyenne"
       ],
-      "table_summary": "Mesures de la VaR du portefeuille de négociation",
+      "table_summary": "Mesures du risque de marché du portefeuille",
       "row_count": 8,
       "indicators": [
         "Risque de taux d’intérêt",
@@ -415,7 +414,7 @@
         "Risque de change",
         "Risque sur marchandises",
         "Risque idiosyncrasique propre à des titres de créance",
-        "Effet de diversification¹",
+        "Effet de diversification1",
         "Valeur à risque totale (une journée)"
       ],
       "footnotes": [
@@ -530,10 +529,11 @@
       ],
       "extraction_status": "rescued",
       "headers": [
+        "Aux",
         "30 avril 2025",
         "31 octobre 2024"
       ],
-      "table_summary": "Sommaire des actifs liquides non grevés détenus par la banque",
+      "table_summary": "Sommaire des actifs liquides non grevés",
       "row_count": 4,
       "indicators": [
         "La Banque Toronto-Dominion (société mère)",
@@ -560,19 +560,19 @@
         "Valeurs mobilières obtenues en garantie au titre de transactions de financement sur valeurs mobilières et sur dérivés",
         "Total des actifs liquides",
         "Actifs liquides grevés",
-        "Actifs liquides non grevés1"
+        "Actifs liquides non grevés¹"
       ],
       "table_summary": "Sommaire des actifs liquides moyens par type et par monnaie",
       "row_count": 16,
       "indicators": [
         "Trésorerie et réserves des banques centrales",
-        "Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement2",
+        "Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement²",
         "Actions",
         "Autres titres de créance",
         "Autres titres",
         "Total (libellé en dollars canadiens)",
         "Trésorerie et réserves des banques centrales (bloc 2)",
-        "Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement2 (bloc 2)",
+        "Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement² (bloc 2)",
         "Actions (bloc 2)",
         "Autres titres de créance (bloc 2)",
         "Autres titres (bloc 2)",
@@ -638,10 +638,10 @@
       "extraction_status": "rescued",
       "headers": [
         "Total de l’actif",
-        "Sûretés données en garantie¹",
-        "Autres²",
-        "Disponibles comme garantie³",
-        "Autres⁴"
+        "Sûretés données en garantie1",
+        "Autres2",
+        "Disponibles comme garantie3",
+        "Autres4"
       ],
       "table_summary": "Actifs grevés et actifs non grevés",
       "row_count": 8,
@@ -651,7 +651,7 @@
         "Valeurs mobilières, prêts détenus à des fins de transaction et autres",
         "Dérivés",
         "Prêts, déduction faite de la provision pour pertes sur prêts",
-        "Autres actifs⁵",
+        "Autres actifs5",
         "Total de l’actif",
         "Total de l’actif (bloc 2)"
       ],
@@ -696,7 +696,7 @@
         "Fitch",
         "DBRS²"
       ],
-      "table_summary": "Notations de crédit par agence",
+      "table_summary": "Notations de crédit",
       "row_count": 11,
       "indicators": [
         "Dépôts/contrepartie³",
@@ -747,11 +747,10 @@
       ],
       "extraction_status": "rescued",
       "headers": [
-        "Moyenne pour les trois mois clos les",
         "30 avril 2025",
         "31 janvier 2025"
       ],
-      "table_summary": "Exigences de sûretés additionnelles pour abaissement des notations",
+      "table_summary": "Exigences de sûretés additionnelles selon l’abaissement des notations",
       "row_count": 3,
       "indicators": [
         "Abaissement de un cran",
@@ -826,13 +825,12 @@
         "30 avril 2025",
         "31 janvier 2025"
       ],
-      "table_summary": "Mesures de liquidité LCR et notes explicatives",
-      "row_count": 4,
+      "table_summary": "Mesures de liquidité réglementaire de la Banque",
+      "row_count": 3,
       "indicators": [
         "Total des actifs liquides de haute qualité",
         "Total des sorties nettes de trésorerie",
-        "Ratio de liquidité à court terme",
-        "Ratio de liquidité à long terme (NSFR)"
+        "Ratio de liquidité à court terme"
       ],
       "footnotes": [
         {
@@ -853,7 +851,7 @@
         },
         {
           "id": "15",
-          "text": "Les attentes de la Banque à l’égard des niveaux de liquidités s’appuient sur les hypothèses de la Banque à l’égard de certains facteurs, notamment la croissance des produits, les plans stratégiques, le rythme des rachats d’actions dans le cadre de l’offre publique de rachat dans le cours normal des activités de la Banque (laquelle est assujettie aux prévisions financières et aux exigences en matière de fonds propres). Les hypothèses de la Banque sont assujetties à des incertitudes inhérentes et peuvent varier en fonction de plusieurs facteurs dépendants et indépendants de la volonté de la Banque, y compris les conditions générales du marché, les perspectives économiques et les enjeux géopolitiques. Se reporter à la section « Facteurs de risque qui pourraient avoir une incidence sur les résultats futurs » du présent document pour plus de renseignements sur les risques et les incertitudes susceptibles"
+          "text": "Les attentes de la Banque à l’égard des niveaux de liquidités s’appuient sur les hypothèses de la Banque à l’égard de certains facteurs, notamment la croissance des produits, les plans stratégiques, le rythme des rachats d’actions dans le cadre de l’offre publique de rachat dans le cours normal des activités de la Banque (laquelle est assujettie aux prévisions financières et aux exigences en matière de fonds propres). Les hypothèses de la Banque sont assujetties à des incertitudes inhérentes et peuvent varier en fonction de plusieurs facteurs dépendants et indépendants de la volonté de la Banque, y compris les conditions générales du marché, les perspectives économiques et les enjeux géopolitiques. Se reporter à la section « Facteurs de risque qui pourraient avoir une incidence sur les résultats futurs » du présent document pour plus de renseignements sur les risques et les incertitudes susceptibles d’influer sur les résultats futurs de la Banque."
         }
       ]
     },
@@ -876,8 +874,8 @@
         "Plus de 1 an",
         "Valeur pondérée³"
       ],
-      "table_summary": "Ratio de liquidité à long terme",
-      "row_count": 39,
+      "table_summary": "Ratio de liquidité à long terme (NSFR)",
+      "row_count": 36,
       "indicators": [
         "Élément du financement stable disponible",
         "Fonds propres",
@@ -914,10 +912,7 @@
         "Tous les autres actifs non inclus dans les catégories ci-dessus",
         "Éléments hors bilan",
         "Total du financement stable requis",
-        "Ratio de liquidité à long terme",
-        "Total du financement stable disponible (bloc 2)",
-        "Total du financement stable requis (bloc 2)",
-        "Ratio de liquidité à long terme (bloc 2)"
+        "Ratio de liquidité à long terme"
       ],
       "footnotes": [
         {
@@ -965,7 +960,7 @@
       "footnotes": [
         {
           "id": "1",
-          "text": "¹ La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine."
+          "text": "La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine."
         }
       ]
     },
@@ -1081,7 +1076,7 @@
         "Dont :",
         "Garantis",
         "Non garantis",
-        "Total"
+        "Dont : – Total"
       ],
       "footnotes": [
         {
@@ -1241,7 +1236,7 @@
         "De 3 à 6 mois",
         "De 6 à 9 mois",
         "De 9 mois à 1 an",
-        "Plus de 1 an à 2 ans",
+        "De Plus de 1 an à 2 ans",
         "Plus de 2 à 5 ans",
         "Plus de 5 ans",
         "Aucune échéance précise",
@@ -1278,10 +1273,10 @@
         "Total de l’actif",
         "Passif",
         "Dépôts détenus à des fins de transaction",
-        "Dérivés (bloc 2)",
+        "Dérivés",
         "Passifs de titrisation à la juste valeur",
         "Passifs financiers désignés à la juste valeur par le biais du résultat net",
-        "Dépôts⁴, ⁵",
+        "Dépôts⁴˒⁵",
         "Particuliers",
         "Banques",
         "Entreprises et gouvernements",
@@ -1296,7 +1291,7 @@
         "Capitaux propres",
         "Total du passif et des capitaux propres",
         "Engagements hors bilan",
-        "Engagements au titre du crédit et des liquidités⁶, ⁷",
+        "Engagements au titre du crédit et des liquidités⁶˒⁷",
         "Autres engagements⁸",
         "Engagements à l’égard d’entités structurées non consolidées",
         "Total des engagements hors bilan"

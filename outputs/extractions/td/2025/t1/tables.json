@@ -2,7 +2,7 @@
   "bank_code": "td",
   "year": 2025,
   "quarter": "t1",
-  "created_at": "2026-04-09T10:44:05",
+  "created_at": "2026-04-14T09:52:22",
   "schema_version": 7,
   "tables": [
     {
@@ -18,17 +18,14 @@
       ],
       "extraction_status": "rescued",
       "headers": [
-        "Prêts et engagements",
         "Entreprises",
         "Emprunteurs souverains",
         "Institutions financières",
         "Total",
-        "Dérivés, mises en pension et prêts de valeurs mobilières",
         "Entreprises",
         "Emprunteurs souverains",
         "Institutions financières",
         "Total",
-        "Portefeuille de négociation et de placement",
         "Entreprises",
         "Emprunteurs souverains",
         "Institutions financières",
@@ -44,12 +41,12 @@
         "Asie",
         "Autres5",
         "Total",
-        "Région",
-        "Europe",
-        "Royaume-Uni",
-        "Asie",
-        "Autres5",
-        "Total"
+        "Région (bloc 2)",
+        "Europe (bloc 2)",
+        "Royaume-Uni (bloc 2)",
+        "Asie (bloc 2)",
+        "Autres5 (bloc 2)",
+        "Total (bloc 2)"
       ],
       "footnotes": [
         {
@@ -94,7 +91,7 @@
         "RSI",
         "Cible réglementaire au titre du Pilier 1 et du Pilier 2"
       ],
-      "table_summary": "Ratios cibles de fonds propres réglementaires et de TLAC",
+      "table_summary": "Cibles minimales de fonds propres réglementaires et de TLAC",
       "row_count": 6,
       "indicators": [
         "Fonds propres de catégorie 1 sous forme d’actions ordinaires",
@@ -170,7 +167,7 @@
       ],
       "extraction_status": "rescued",
       "headers": [
-        "31 janvier 2025",
+        "Aux 31 janvier 2025",
         "31 octobre 2024",
         "31 janvier 2024"
       ],
@@ -212,7 +209,7 @@
         "Fonds propres de catégorie 2 avant ajustements réglementaires",
         "Ajustements réglementaires appliqués aux fonds propres de catégorie 2",
         "Instruments de fonds propres de catégorie 2 détenus en propre",
-        "Participations non significatives dans les fonds propres de banques, de compagnies d’assurance et d’autres entités financières, déduction faite des positions courtes admissibles (montant supérieur au seuil de 10 %)",
+        "Participations non significatives dans les fonds propres de banques, de compagnies d’assurance et d’autres entités financières, déduction faite des positions courtes admissibles (montant supérieur au seuil de 10 %)¹",
         "Participations non significatives dans les autres instruments admissibles à la TLAC émis par des BISM et des BISI canadiennes, à hauteur de 10 % au plus des actions ordinaires émises de l’entité : montant anciennement destiné au seuil de 5 %, mais qui ne satisfait plus aux conditions",
         "Participations significatives dans les fonds propres de banques, de compagnies d’assurance et d’autres entités financières qui sortent du périmètre de consolidation réglementaire, déduction faite des positions courtes admissibles",
         "Total des ajustements réglementaires appliqués aux fonds propres de catégorie 2",
@@ -256,7 +253,7 @@
         "Nombre d’actions/de parts",
         "Montant"
       ],
-      "table_summary": "Actions ordinaires, options, actions privilégiées et autres instruments de capitaux propres",
+      "table_summary": "Actions et autres titres",
       "row_count": 25,
       "indicators": [
         "Actions ordinaires",
@@ -275,7 +272,7 @@
         "Série 18",
         "Série 27",
         "Série 28",
-        "Autres instruments de capitaux propres³˒⁴",
+        "Autres instruments de capitaux propres³, ⁴",
         "Billets avec remboursement de capital à recours limité – Série 1",
         "Billets avec remboursement de capital à recours limité – Série 2",
         "Billets avec remboursement de capital à recours limité – Série 3⁵",
@@ -339,11 +336,12 @@
         "Total"
       ],
       "table_summary": "Expositions brutes au risque de crédit par approche et catégorie",
-      "row_count": 11,
+      "row_count": 12,
       "indicators": [
         "Expositions de détail",
         "Expositions garanties par l’immobilier résidentiel",
-        "Expositions aux produits de détail renouvelables admissibles",
+        "Expositions aux produits de détail",
+        "renouvelables admissibles",
         "Autres expositions de détail",
         "Total – Risque de crédit de détail",
         "Expositions autres que de détail",
@@ -516,7 +514,7 @@
       "footnotes": [
         {
           "id": "1",
-          "text": "¹ Représente l’exposition des produits d’intérêts nets au cours des douze mois suivant un choc immédiat et soutenu des taux d’intérêt."
+          "text": "Représente l’exposition des produits d’intérêts nets au cours des douze mois suivant un choc immédiat et soutenu des taux d’intérêt."
         }
       ]
     },
@@ -537,7 +535,7 @@
         "Valeurs mobilières obtenues en garantie au titre de transactions de financement sur valeurs mobilières et sur dérivés",
         "Total des actifs liquides",
         "Actifs liquides grevés",
-        "Actifs liquides non grevés1"
+        "Actifs liquides non grevés¹"
       ],
       "table_summary": "Sommaire des actifs liquides par type et par monnaie",
       "row_count": 18,
@@ -552,14 +550,14 @@
         "Trésorerie et réserves des banques centrales (bloc 2)",
         "Obligations du gouvernement des États-Unis",
         "Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires",
-        "Obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement",
+        "Obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement (bloc 2)",
         "Obligations de sociétés émettrices (bloc 2)",
         "Actions (bloc 2)",
         "Total (non libellé en dollars canadiens)",
-        "Total",
+        "Total (bloc 2)",
         "Total (libellé en dollars canadiens) (bloc 2)",
         "Total (non libellé en dollars canadiens) (bloc 2)",
-        "Total (bloc 2)"
+        "Total (bloc 3)"
       ],
       "footnotes": [
         {
@@ -585,7 +583,7 @@
         "31 janvier 2025",
         "31 octobre 2024"
       ],
-      "table_summary": "Sommaire des actifs liquides non grevés détenus par la banque",
+      "table_summary": "Sommaire des actifs liquides non grevés détenus par la banque et filiales",
       "row_count": 4,
       "indicators": [
         "La Banque Toronto-Dominion (société mère)",
@@ -612,7 +610,7 @@
         "Valeurs mobilières obtenues en garantie au titre de transactions de financement sur valeurs mobilières et sur dérivés",
         "Total des actifs liquides",
         "Actifs liquides grevés",
-        "Actifs liquides non grevés1"
+        "Actifs liquides non grevés¹"
       ],
       "table_summary": "Sommaire des actifs liquides moyens par type et par monnaie",
       "row_count": 18,
@@ -683,15 +681,12 @@
       "extraction_status": "rescued",
       "headers": [
         "Total de l’actif",
-        "Grevés",
-        "Aux Non grevés",
-        "Total de l’actif",
         "Sûretés données en garantie1",
         "Autres2",
         "Disponibles comme garantie3",
         "Autres4"
       ],
-      "table_summary": "Actifs grevés et non grevés au bilan",
+      "table_summary": "Actifs grevés et actifs non grevés",
       "row_count": 8,
       "indicators": [
         "Trésorerie et montants à recevoir",
@@ -730,7 +725,7 @@
       "table_id": "tbl_p048_i01",
       "page": 48,
       "section": "risk_management",
-      "title": "NOTATIONS DE CRÉDIT1",
+      "title": "NOTATIONS DE CRÉDIT¹",
       "bbox": [
         0.05739531174204708,
         0.14707440077656447,
@@ -747,9 +742,9 @@
       "table_summary": "Notations de crédit par agence",
       "row_count": 11,
       "indicators": [
-        "Dépôts/contrepartie2",
-        "Ancienne dette de premier rang3",
-        "Dette de premier rang4",
+        "Dépôts/contrepartie²",
+        "Ancienne dette de premier rang³",
+        "Dette de premier rang⁴",
         "Obligations sécurisées",
         "Ancienne dette subordonnée – non-FPUNV",
         "Dette subordonnée de catégorie 2 – FPUNV",
@@ -892,6 +887,10 @@
         {
           "id": "4",
           "text": "Sans objet conformément au modèle de divulgation commun du LCR."
+        },
+        {
+          "id": "13",
+          "text": "Les attentes de la Banque à l’égard des niveaux de liquidités s’appuient sur les hypothèses de la Banque à l’égard de certains facteurs, notamment la croissance des produits, les plans stratégiques, le rythme des rachats d’actions dans le cadre de l’offre publique de rachat dans le cours normal des activités de la Banque (laquelle est assujettie à l’approbation des organismes de réglementation, aux prévisions financières et aux exigences en matière de fonds propres). Les hypothèses de la Banque sont assujetties à des incertitudes inhérentes et peuvent varier en fonction de plusieurs facteurs dépendants et indépendants de la volonté de la Banque, y compris les conditions générales du marché, les perspectives économiques et les enjeux géopolitiques. Se reporter à la section « Facteurs de risque qui pourraient avoir une incidence sur les résultats futurs » du présent document pour plus de renseignements sur les principaux facteurs de risque et incertitudes qui peuvent faire en sorte que les résultats réels diffèrent sensiblement des attentes."
         }
       ]
     },
@@ -915,7 +914,7 @@
         "Valeur pondérée³"
       ],
       "table_summary": "Ratio de liquidité à long terme",
-      "row_count": 36,
+      "row_count": 39,
       "indicators": [
         "Élément du financement stable disponible",
         "Fonds propres",
@@ -952,12 +951,15 @@
         "Tous les autres actifs non inclus dans les catégories ci-dessus",
         "Éléments hors bilan",
         "Total du financement stable requis",
+        "Ratio de liquidité à long terme",
+        "Total du financement stable disponible",
+        "Total du financement stable requis",
         "Ratio de liquidité à long terme"
       ],
       "footnotes": [
         {
           "id": "1",
-          "text": "La NSFR est calculé conformément à la ligne directrice Normes de liquidité du BSIF, qui tient compte des exigences en matière de liquidité publiées par le CBCB."
+          "text": "Le NSFR est calculé conformément à la ligne directrice Normes de liquidité du BSIF, qui tient compte des exigences en matière de liquidité publiées par le CBCB."
         },
         {
           "id": "2",
@@ -1000,7 +1002,7 @@
       "footnotes": [
         {
           "id": "1",
-          "text": "¹ Les dépôts personnels et commerciaux aux États-Unis sont présentés selon un équivalent en dollars canadiens, par conséquent les variations d’une période à l’autre reflètent la croissance sous-jacente et la variation du taux de change."
+          "text": "Les dépôts personnels et commerciaux aux États-Unis sont présentés selon un équivalent en dollars canadiens, par conséquent les variations d’une période à l’autre reflètent la croissance sous-jacente et la variation du taux de change."
         }
       ]
     },
@@ -1021,7 +1023,7 @@
         "États-Unis",
         "Europe"
       ],
-      "table_summary": "Programmes de financement à terme et titres de fiducie par région",
+      "table_summary": "Programmes de financement à terme par région",
       "row_count": 3,
       "indicators": [
         "Programme de titres de fiducie de capital (20 milliards de dollars)",
@@ -1056,22 +1058,22 @@
         "Euro",
         "Livre sterling",
         "Autres",
-        "Total",
+        "Financement à long terme par devise – Total",
         "Financement à long terme par type",
         "Billets à moyen terme non garantis de premier rang",
         "Obligations sécurisées",
         "Titrisation de prêts hypothécaires²",
         "Titres adossés à des créances mobilières à terme",
-        "Total (bloc 2)"
+        "Financement à long terme par type – Total"
       ],
       "footnotes": [
         {
           "id": "1",
-          "text": "¹ Le tableau ne comprend que le financement émis à des investisseurs externes."
+          "text": "Le tableau ne comprend que le financement émis à des investisseurs externes."
         },
         {
           "id": "2",
-          "text": "² La titrisation de prêts hypothécaires exclut les activités de négociation de prêts hypothécaires résidentiels."
+          "text": "La titrisation de prêts hypothécaires exclut les activités de négociation de prêts hypothécaires résidentiels."
         }
       ]
     },
@@ -1116,7 +1118,7 @@
         "Dont :",
         "Garantis",
         "Non garantis",
-        "Total"
+        "Dont : Total"
       ],
       "footnotes": [
         {

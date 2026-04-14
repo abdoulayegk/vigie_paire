@@ -117,3 +117,4 @@ session.log
 
 # Project-specific local configs
 pyrightconfig.json
+comparison.review_state.json

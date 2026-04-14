@@ -68,7 +68,7 @@ Rules:
 - If the change could instead be explained by addition, removal, scope change, row split, or row merge, do NOT classify it as renamed.
 - When unsure between rename and add/remove, prefer add/remove.
 - If one previous indicator appears split into multiple current indicators, treat the new rows as additions rather than rename.
-- If multiple previous indicators appear merged into one current indicator, do not classify as rename unless the scope is clearly identical.
+- CONSOLIDATION (N→1) — STRICT RULE: If 2 or more previous indicators could map to a single current indicator (e.g., "Obligations du gouvernement du Canada", "Obligations d'agences fédérales des États-Unis", "Obligations de gouvernements provinciaux" all potentially mapping to a new "Obligations du gouvernement, d'organismes fédéraux, d'entités du secteur public..."), you MUST treat ALL previous indicators as indicators_removed and the new current indicator as indicators_added. Do NOT pick one previous indicator arbitrarily as "renamed" and silently absorb the others. A renamed pair requires a strict 1:1 semantic match — one previous indicator maps to exactly one current indicator with no other previous indicator as a plausible alternative.
 - Be conservative and report only clear semantic differences.
 - For each change (added, removed, renamed), you MUST act as a Senior Risk Analyst and provide an 'analyst_assessment'.
 - The 'analyst_assessment' MUST include:

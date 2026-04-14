@@ -2,7 +2,7 @@
   "bank_code": "td",
   "year": 2025,
   "quarter": "t1",
-  "created_at": "2026-04-09T10:44:05",
+  "created_at": "2026-04-14T09:52:22",
   "schema_version": 7,
   "tables": [
     {
@@ -17,12 +17,12 @@
         "Asie",
         "Autres5",
         "Total",
-        "Région",
-        "Europe",
-        "Royaume-Uni",
-        "Asie",
-        "Autres5",
-        "Total"
+        "Région (bloc 2)",
+        "Europe (bloc 2)",
+        "Royaume-Uni (bloc 2)",
+        "Asie (bloc 2)",
+        "Autres5 (bloc 2)",
+        "Total (bloc 2)"
       ]
     },
     {
@@ -93,7 +93,7 @@
         "Fonds propres de catégorie 2 avant ajustements réglementaires",
         "Ajustements réglementaires appliqués aux fonds propres de catégorie 2",
         "Instruments de fonds propres de catégorie 2 détenus en propre",
-        "Participations non significatives dans les fonds propres de banques, de compagnies d’assurance et d’autres entités financières, déduction faite des positions courtes admissibles (montant supérieur au seuil de 10 %)",
+        "Participations non significatives dans les fonds propres de banques, de compagnies d’assurance et d’autres entités financières, déduction faite des positions courtes admissibles (montant supérieur au seuil de 10 %)¹",
         "Participations non significatives dans les autres instruments admissibles à la TLAC émis par des BISM et des BISI canadiennes, à hauteur de 10 % au plus des actions ordinaires émises de l’entité : montant anciennement destiné au seuil de 5 %, mais qui ne satisfait plus aux conditions",
         "Participations significatives dans les fonds propres de banques, de compagnies d’assurance et d’autres entités financières qui sortent du périmètre de consolidation réglementaire, déduction faite des positions courtes admissibles",
         "Total des ajustements réglementaires appliqués aux fonds propres de catégorie 2",
@@ -129,7 +129,7 @@
         "Série 18",
         "Série 27",
         "Série 28",
-        "Autres instruments de capitaux propres³˒⁴",
+        "Autres instruments de capitaux propres³, ⁴",
         "Billets avec remboursement de capital à recours limité – Série 1",
         "Billets avec remboursement de capital à recours limité – Série 2",
         "Billets avec remboursement de capital à recours limité – Série 3⁵",
@@ -148,7 +148,8 @@
       "indicators": [
         "Expositions de détail",
         "Expositions garanties par l’immobilier résidentiel",
-        "Expositions aux produits de détail renouvelables admissibles",
+        "Expositions aux produits de détail",
+        "renouvelables admissibles",
         "Autres expositions de détail",
         "Total – Risque de crédit de détail",
         "Expositions autres que de détail",
@@ -244,14 +245,14 @@
         "Trésorerie et réserves des banques centrales (bloc 2)",
         "Obligations du gouvernement des États-Unis",
         "Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires",
-        "Obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement",
+        "Obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement (bloc 2)",
         "Obligations de sociétés émettrices (bloc 2)",
         "Actions (bloc 2)",
         "Total (non libellé en dollars canadiens)",
-        "Total",
+        "Total (bloc 2)",
         "Total (libellé en dollars canadiens) (bloc 2)",
         "Total (non libellé en dollars canadiens) (bloc 2)",
-        "Total (bloc 2)"
+        "Total (bloc 3)"
       ]
     },
     {
@@ -324,11 +325,11 @@
       "table_id": "tbl_p048_i01",
       "page": 48,
       "section": "risk_management",
-      "title": "NOTATIONS DE CRÉDIT1",
+      "title": "NOTATIONS DE CRÉDIT¹",
       "indicators": [
-        "Dépôts/contrepartie2",
-        "Ancienne dette de premier rang3",
-        "Dette de premier rang4",
+        "Dépôts/contrepartie²",
+        "Ancienne dette de premier rang³",
+        "Dette de premier rang⁴",
         "Obligations sécurisées",
         "Ancienne dette subordonnée – non-FPUNV",
         "Dette subordonnée de catégorie 2 – FPUNV",
@@ -433,6 +434,9 @@
         "Tous les autres actifs non inclus dans les catégories ci-dessus",
         "Éléments hors bilan",
         "Total du financement stable requis",
+        "Ratio de liquidité à long terme",
+        "Total du financement stable disponible",
+        "Total du financement stable requis",
         "Ratio de liquidité à long terme"
       ]
     },
@@ -470,13 +474,13 @@
         "Euro",
         "Livre sterling",
         "Autres",
-        "Total",
+        "Financement à long terme par devise – Total",
         "Financement à long terme par type",
         "Billets à moyen terme non garantis de premier rang",
         "Obligations sécurisées",
         "Titrisation de prêts hypothécaires²",
         "Titres adossés à des créances mobilières à terme",
-        "Total (bloc 2)"
+        "Financement à long terme par type – Total"
       ]
     },
     {
@@ -500,7 +504,7 @@
         "Dont :",
         "Garantis",
         "Non garantis",
-        "Total"
+        "Dont : Total"
       ]
     },
     {
