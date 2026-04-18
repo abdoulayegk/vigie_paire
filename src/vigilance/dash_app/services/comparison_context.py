@@ -8,6 +8,7 @@ fonctionner.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from vigilance.quarter_utils import build_quarter_context
@@ -41,7 +42,18 @@ def _pdf_paths_from_comparison_meta(
     indicator_meta: dict | None,
     indicator_result: dict | None = None,
 ) -> dict[str, str]:
-    """Resout les chemins PDF (precedent/courant) depuis les metadonnees de comparaison."""
+    """Resout les chemins PDF (precedent/courant) depuis les metadonnees de comparaison.
+
+    Cascade de resolution — le premier chemin qui existe sur le disque gagne :
+    1. Stores Dash (``pdf_paths.pdf_previous`` / ``pdf_current``)
+    2. Voisins archives ``previous_report.pdf`` / ``current_report.pdf`` dans le
+       repertoire du run (portable entre OS, priorise pour la portabilite).
+    3. Chemins absolus stockes (``archived_pdf_*`` puis ``source_pdf_*``).
+    4. Chemins du ``manifest.json`` voisin si present.
+
+    Si aucun candidat n'existe, on retourne le premier non vide afin que le
+    message d'avertissement utilisateur reste coherent.
+    """
     meta: dict[str, object] = {}
     top_level: dict[str, object] = {}
     if isinstance(indicator_result, dict):
@@ -52,67 +64,79 @@ def _pdf_paths_from_comparison_meta(
     if isinstance(indicator_meta, dict):
         meta.update(indicator_meta)
 
-    raw_paths = meta.get("pdf_paths")
-    if isinstance(raw_paths, dict):
-        previous = str(
-            raw_paths.get("pdf_previous")
-            or raw_paths.get("pdf_t1")
-            or meta.get("archived_pdf_previous")
-            or meta.get("source_pdf_previous")
-            or ""
-        ).strip()
-        current = str(
-            raw_paths.get("pdf_current")
-            or raw_paths.get("pdf_t2")
-            or meta.get("archived_pdf_current")
-            or meta.get("source_pdf_current")
-            or ""
-        ).strip()
-    else:
-        previous = str(
-            meta.get("archived_pdf_previous")
-            or top_level.get("archived_pdf_previous")
-            or meta.get("source_pdf_previous")
-            or top_level.get("source_pdf_previous")
-            or ""
-        ).strip()
-        current = str(
-            meta.get("archived_pdf_current")
-            or top_level.get("archived_pdf_current")
-            or meta.get("source_pdf_current")
-            or top_level.get("source_pdf_current")
-            or ""
-        ).strip()
+    raw_paths = meta.get("pdf_paths") if isinstance(meta.get("pdf_paths"), dict) else {}
+    store_previous = str(
+        raw_paths.get("pdf_previous") or raw_paths.get("pdf_t1") or ""
+    ).strip()
+    store_current = str(
+        raw_paths.get("pdf_current") or raw_paths.get("pdf_t2") or ""
+    ).strip()
 
+    archived_previous = str(
+        meta.get("archived_pdf_previous") or top_level.get("archived_pdf_previous") or ""
+    ).strip()
+    archived_current = str(
+        meta.get("archived_pdf_current") or top_level.get("archived_pdf_current") or ""
+    ).strip()
+    source_previous = str(
+        meta.get("source_pdf_previous") or top_level.get("source_pdf_previous") or ""
+    ).strip()
+    source_current = str(
+        meta.get("source_pdf_current") or top_level.get("source_pdf_current") or ""
+    ).strip()
+
+    sibling_previous = ""
+    sibling_current = ""
+    manifest_previous = ""
+    manifest_current = ""
     compare_path_raw = str(
         meta.get("compare_path") or top_level.get("compare_path") or ""
     ).strip()
-    if compare_path_raw and (not previous or not current):
+    if compare_path_raw:
         compare_path = Path(compare_path_raw)
         run_dir = compare_path.parent if compare_path.suffix else compare_path
-        sibling_previous = run_dir / "previous_report.pdf"
-        sibling_current = run_dir / "current_report.pdf"
-        if not previous and sibling_previous.exists():
-            previous = str(sibling_previous)
-        if not current and sibling_current.exists():
-            current = str(sibling_current)
-        # Fallback: read manifest.json in the same directory for PDF paths
-        if not previous or not current:
-            manifest_path = run_dir / "manifest.json"
-            if manifest_path.exists():
-                try:
-                    import json
-                    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                    if not previous:
-                        prev_path = str(manifest.get("previous", {}).get("pdf_path") or "").strip()
-                        if prev_path and Path(prev_path).exists():
-                            previous = prev_path
-                    if not current:
-                        cur_path = str(manifest.get("current", {}).get("pdf_path") or "").strip()
-                        if cur_path and Path(cur_path).exists():
-                            current = cur_path
-                except Exception:
-                    pass
+        sibling_p = run_dir / "previous_report.pdf"
+        sibling_c = run_dir / "current_report.pdf"
+        if sibling_p.exists():
+            sibling_previous = str(sibling_p)
+        if sibling_c.exists():
+            sibling_current = str(sibling_c)
+        manifest_path = run_dir / "manifest.json"
+        if manifest_path.exists():
+            try:
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                manifest_previous = str(
+                    (manifest.get("previous") or {}).get("pdf_path") or ""
+                ).strip()
+                manifest_current = str(
+                    (manifest.get("current") or {}).get("pdf_path") or ""
+                ).strip()
+            except (OSError, ValueError):
+                pass
+
+    def _pick(*candidates: str) -> str:
+        for candidate in candidates:
+            if candidate and Path(candidate).exists():
+                return candidate
+        for candidate in candidates:
+            if candidate:
+                return candidate
+        return ""
+
+    previous = _pick(
+        store_previous,
+        sibling_previous,
+        archived_previous,
+        source_previous,
+        manifest_previous,
+    )
+    current = _pick(
+        store_current,
+        sibling_current,
+        archived_current,
+        source_current,
+        manifest_current,
+    )
 
     return {
         "pdf_t1": previous,
