@@ -31,17 +31,18 @@ Remplacer l'outil Kofax Power par un système intelligent capable de :
 | Outil  | Version minimale |
 | ------ | ---------------- |
 | Python | 3.10+            |
-| uv     | dernière         |
 | Git    | —                |
 
-- Installer **uv** : `pip install uv` ou [docs.astral.sh/uv](https://docs.astral.sh/uv/getting-started/installation/)
+- **uv** est optionnel mais recommandé pour la reproductibilité et les workflows développeur.
+- Installer **uv** si disponible : `pip install uv` ou [docs.astral.sh/uv](https://docs.astral.sh/uv/getting-started/installation/)
+- Si l'installation de **uv** est bloquée par les politiques de sécurité, utilisez l'option `pip` ci-dessous.
 - Clé API OpenAI requise pour l'extraction Vision et la comparaison GPT-4o.
 
 ---
 
 ## Installation
 
-### Linux / macOS
+### Option A — Installation avec `uv` (recommandée)
 
 ```bash
 git clone https://github.com/abdoulayegk/vigie_paire.git
@@ -50,14 +51,42 @@ uv sync --group dev
 cp .env.example .env        # puis renseigner OPENAI_API_KEY
 ```
 
-### Windows (PowerShell)
-
 ```powershell
 git clone https://github.com/abdoulayegk/vigie_paire.git
 cd vigie_paire
 uv sync --group dev
 copy .env.example .env      # puis renseigner OPENAI_API_KEY
 ```
+
+### Option B — Installation avec `pip` (compatible environnements restreints)
+
+#### Linux / macOS
+
+```bash
+git clone https://github.com/abdoulayegk/vigie_paire.git
+cd vigie_paire
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+cp .env.example .env        # puis renseigner OPENAI_API_KEY
+```
+
+#### Windows (PowerShell)
+
+```powershell
+git clone https://github.com/abdoulayegk/vigie_paire.git
+cd vigie_paire
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+copy .env.example .env      # puis renseigner OPENAI_API_KEY
+```
+
+`uv` reste préférable pour la reproductibilité et les workflows dev. `pip` suffit pour exécuter les pipelines applicatifs sans changement de code sur les scripts principaux.
+
+`requirements.txt` couvre les dépendances runtime. Les dépendances de développement comme `pytest` et `reportlab` ne sont pas incluses dans le parcours `pip` standard.
 
 ---
 
@@ -131,21 +160,27 @@ Le trimestre de référence est déduit automatiquement :
 
 ### Commande recommandée — Pipeline complet (indicateurs + texte)
 
-`run_full_pipeline.py` est le point d’entrée principal. Il enchaîne automatiquement le pipeline indicateurs (tableaux chiffrés) puis le pipeline texte (risques, capital, etc.).
+`run_full_pipeline.py` est le point d’entrée principal. Il enchaîne automatiquement le pipeline indicateurs (tableaux chiffrés) puis le pipeline texte (risques, capital, etc.). Depuis le venv activé, vous pouvez lancer les scripts directement avec `python ...`. Si vous utilisez `uv`, préfixez les mêmes commandes avec `uv run`.
 
 ```bash
 # Flux complet : extraction + comparaison indicateurs + comparaison texte
-uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2
+python run_full_pipeline.py --banque BNC --annee 2025 --T2
 
 # Réutiliser les extractions indicateurs existantes (tables.json déjà présents)
 # Le pipeline texte fait toujours son extraction de texte
-uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-extraction
+python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-extraction
 
 # Indicateurs seulement (sauter le pipeline texte)
-uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-texte
+python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-texte
 
 # Texte seulement (sauter le pipeline indicateurs)
-uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-indicateurs
+python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-indicateurs
+```
+
+Avec `uv`, utilisez les mêmes commandes en les préfixant avec `uv run`, par exemple :
+
+```bash
+uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2
 ```
 
 **Options de `run_full_pipeline.py` :**
@@ -173,23 +208,23 @@ Il est aussi possible de lancer chaque pipeline séparément.
 
 ```bash
 # Extraction + Comparaison complètes des tableaux
-uv run python run_pipeline.py --bank TD --year 2026 --quarter T1
+python run_pipeline.py --bank TD --year 2026 --quarter T1
 
 # Réutiliser l’extraction existante (tables.json déjà présent)
-uv run python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
+python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
 
 # Sauter la comparaison (re-triage uniquement)
-uv run python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-comparison
+python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-comparison
 ```
 
 **Pipeline texte uniquement :**
 
 ```bash
 # Extraction + Comparaison sémantique par sous-sections (T2 vs T1)
-uv run python run_text_pipeline.py --bank BNS --year 2025 --T2
+python run_text_pipeline.py --bank BNS --year 2025 --T2
 
 # Sauter la comparaison (extraction seulement)
-uv run python run_text_pipeline.py --bank BNS --year 2025 --T2 --skip-comparison
+python run_text_pipeline.py --bank BNS --year 2025 --T2 --skip-comparison
 ```
 
 ---
@@ -201,13 +236,13 @@ outputs/resultats/{banque}/{annee_q}_vs_{annee_prev_q}/comparison.json
 outputs/resultats/{banque}/{annee_q}_vs_{annee_prev_q}/text_comparison.json
 ```
 
-Les comparaisons indicateurs et texte partagent la même racine `outputs/resultats/`, ce que lit aussi l’interface Dash. Si vous avez d’anciens dossiers sous `outputs/comparisons/` ou `outputs/text_comparisons/`, fusionnez-les vers `outputs/resultats/` (mêmes sous-dossiers `banque/année_q_vs_année_q`). Un script automatise la fusion : `uv run python scripts/migrate_outputs_to_resultats.py` (voir `--dry-run`).
+Les comparaisons indicateurs et texte partagent la même racine `outputs/resultats/`, ce que lit aussi l’interface Dash. Si vous avez d’anciens dossiers sous `outputs/comparisons/` ou `outputs/text_comparisons/`, fusionnez-les vers `outputs/resultats/` (mêmes sous-dossiers `banque/année_q_vs_année_q`). Un script automatise la fusion : `python scripts/migrate_outputs_to_resultats.py --dry-run` ou `uv run python scripts/migrate_outputs_to_resultats.py --dry-run`.
 
 ---
 
 ## Lancer l'interface Dash
 
-Commande de référence, identique sur toutes les plateformes :
+### Option A — Avec `uv`
 
 ```bash
 uv run python -m vigilance.dash_app.app
@@ -216,7 +251,7 @@ uv run python -m vigilance.dash_app.app
 ### Dash — Linux / macOS
 
 ```bash
-# Alternative pratique sous Bash
+# Alternative pratique sous Bash si vous utilisez uv
 bash scripts/run_dash.sh
 ```
 
@@ -225,6 +260,17 @@ bash scripts/run_dash.sh
 ```powershell
 uv run python -m vigilance.dash_app.app
 ```
+
+### Option B — Avec `pip`
+
+Le mode `pip` est officiellement documenté pour les pipelines CLI. Pour Dash, il faut aussi installer le projet localement dans le venv :
+
+```bash
+python -m pip install -e .
+python -m vigilance.dash_app.app
+```
+
+Le script `bash scripts/run_dash.sh` dépend de `uv` et ne convient pas à un environnement `pip` pur.
 
 Ouvrir ensuite : [http://localhost:8050](http://localhost:8050)
 
