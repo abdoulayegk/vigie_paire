@@ -38,11 +38,17 @@ Inputs/
 ## Utilisation
 
 ```bash
-uv run python run_pipeline.py --bank BNC --year 2025 --quarter T2
+python run_pipeline.py --bank BNC --year 2025 --quarter T2
 ```
 
 ```bash
-uv run python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
+python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
+```
+
+Si vous utilisez `uv`, préfixez les mêmes commandes avec `uv run`, par exemple :
+
+```bash
+uv run python run_pipeline.py --bank BNC --year 2025 --quarter T2
 ```
 
 Le pipeline trouvera automatiquement :
