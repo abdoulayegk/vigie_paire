@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t1_vs_2025_t3/comparison.json",
   "comparison_run_id": "20260410_012258",
   "review_items_signature": "069b6c7b70ecad0da271f70e003122c48ee2ba429903cce4b3a9440396c7d047",
-  "saved_at": "2026-04-13T19:58:49+00:00",
+  "saved_at": "2026-04-18T18:04:50+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::risk_management::tbl_p033_i01|",
-    "change_id": "chg_00026"
+    "review_id": "bnc::capital_management::tbl_p032_i01|tbl_p030_i01",
+    "change_id": "chg_00018"
   },
-  "review_current_idx": 11,
-  "current_change_idx": 0,
+  "review_current_idx": 0,
+  "current_change_idx": 11,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -27,10 +27,10 @@
       "page_t2": 30,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/rapport-actionnaire-t1-2026.pdf",
-      "review_status": "pending",
+      "review_status": "rejected",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T19:58:06.091485+00:00",
+      "review_timestamp": "2026-04-18T18:04:50.682519+00:00",
       "edited_value": "",
       "confidence": 0.85,
       "proof_image_path": "",
@@ -45,57 +45,57 @@
         {
           "name": "Activité de paiement (7)",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "rejected"
         },
         {
           "name": "Volume des transactions (8)",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "rejected"
         },
         {
           "name": "Titres à revenu fixe (8)",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "rejected"
         },
         {
           "name": "Titres de participation et autres titres (8)",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "rejected"
         },
         {
           "name": "Substituabilité/infrastructure financière (7)",
           "type": "removed",
-          "review_status": "pending"
+          "review_status": "rejected"
         },
         {
           "name": "[10] Tient compte du degré de complexité et du volume des activités de négociation de la Banque visant les instruments financ",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[3] Les montants au 31 octobre 2024 ont été révisés par rapport  -> Représente le total des expositions au bilan et hors bilan d",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[4] Représente le total des expositions au bilan et hors bilan d -> Incluant les activités d’assurances.",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[5] Incluant les activités d’assurances. -> Représente les transactions avec d’autres institutions finan",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[6] Représente les transactions avec d’autres institutions finan -> Représente la mesure dans laquelle les services de la Banque",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[7] Représente la mesure dans laquelle les services de la Banque -> Pour les exercices terminés les 31 octobre 2025 et 2024.",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[8] Pour les exercices terminés les 31 octobre 2024 et 2023. -> Cet indicateur est composé de deux sous-indicateurs : titres",
@@ -155,10 +155,10 @@
       "page_t2": 45,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/rapport-actionnaire-t1-2026.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T19:58:14.663930+00:00",
+      "review_timestamp": "2026-04-18T18:04:06.288719+00:00",
       "edited_value": "",
       "confidence": 0.85,
       "proof_image_path": "",
@@ -168,7 +168,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p045_i01",
-      "table_status": "partial",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "[10] Ces montants incluent 5 M$ d’engagements contractuels liés à l’immeuble du siège social.",
@@ -178,7 +178,7 @@
         {
           "name": "[8] Ces montants incluent 48,6 G$ révocables sans condition en t -> Ces montants incluent 57,2 G$ révocables sans condition en t",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Similar table_summary and indicators related to liabilities and equity maturities. Footnote count is close (9 vs 10).",
@@ -228,10 +228,10 @@
       "page_t2": 34,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/rapport-actionnaire-t1-2026.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T19:58:24.881752+00:00",
+      "review_timestamp": "2026-04-18T18:03:40.590586+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -241,7 +241,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p034_i01",
-      "table_status": "partial",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "[7] Pour de plus amples renseignements, se reporter aux notes 18 -> Pour de plus amples renseignements, se reporter aux notes 17",
@@ -251,7 +251,7 @@
         {
           "name": "[8] Pour de plus amples renseignements, se reporter à la note 25 -> Pour de plus amples renseignements, se reporter à la note 23",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Indicators: same 20 rows; row_count 20 vs 20; headers identical; footnote_count similar.",
@@ -301,10 +301,10 @@
       "page_t2": 42,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/rapport-actionnaire-t1-2026.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-18T18:01:00.996187+00:00",
       "edited_value": "",
       "confidence": 0.85,
       "proof_image_path": "",
@@ -314,12 +314,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p042_i01",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "[2] Les montants remboursables sur demande sont considérés comme étant sans échéance spécifique.",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Similar table_summary and indicators related to asset maturities. Footnote count is close (1 vs 2).",
@@ -369,10 +369,10 @@
       "page_t2": 27,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/rapport-actionnaire-t1-2026.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-13T19:58:28.536612+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -382,12 +382,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Variation des fonds propres réglementaires (1)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[2] Le rachat des BCRL – Série 1 effectué le 17 novembre 2025 a été pris en compte dans les ratios au 31 octobre 2025.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Highly similar table_summary and indicators; both focus on 'Variation des fonds propres réglementaires'. Row counts are close (40 vs 42).",
@@ -440,7 +440,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T19:58:35.596334+00:00",
+      "review_timestamp": "2026-04-18T18:01:12.767857+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -576,7 +576,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T19:58:40.763768+00:00",
+      "review_timestamp": "2026-04-18T18:01:51.628515+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -709,10 +709,10 @@
       "page_t2": 28,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/rapport-actionnaire-t1-2026.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-13T19:58:46.129744+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -722,12 +722,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[3] Au cours du deuxième trimestre de 2025, la variation du risque opérationnel est liée à l’inclusion de CWB qui a été calc",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same 20 rows; row_count 20 vs 20; headers similar structure.",
@@ -845,10 +845,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/rapport-actionnaire-t1-2026.pdf",
-      "review_status": "approved",
+      "review_status": "rejected",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T19:58:49.689389+00:00",
+      "review_timestamp": "2026-04-18T18:04:17.454250+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -928,11 +928,11 @@
               "justification": "Cet indicateur a été ajouté pour mieux refléter l'activité de paiement, ce qui est crucial pour évaluer l'impact systémique des banques."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "rejected",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "rejected",
           "validation_notes": "",
-          "validated_at": "2026-04-13T19:58:06.091485+00:00",
+          "validated_at": "2026-04-18T18:02:07.843565+00:00",
           "validated_by": "analyst"
         },
         {
@@ -946,12 +946,12 @@
               "justification": "L'ajout de cet indicateur permet de suivre le volume des transactions, ce qui est crucial pour l'analyse de la liquidité."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "rejected",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "rejected",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:02:13.476478+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00004",
@@ -964,12 +964,12 @@
               "justification": "Cet indicateur est important pour évaluer l'exposition aux titres à revenu fixe, influençant la stabilité financière."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "rejected",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "rejected",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:02:14.759591+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00005",
@@ -982,12 +982,12 @@
               "justification": "L'ajout de cet indicateur permet de mieux comprendre l'exposition aux titres de participation, ce qui est crucial pour l'évaluation des risques."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "rejected",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "rejected",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:02:15.487478+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00006",
@@ -1000,12 +1000,12 @@
               "justification": "La suppression de cet indicateur modifie la compréhension de la capacité de substitution et de l'infrastructure financière, ce qui peut affecter l'évaluation des risques systémiques."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "rejected",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "rejected",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:02:16.049629+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00012",
@@ -1017,12 +1017,12 @@
             "old_text": "Tient compte du degré de complexité et du volume des activités de négociation de la Banque visant les instruments financiers dérivés, les titres détenus à des fins de négociation, les titres de placement et les actifs financiers de niveau 3.",
             "new_text": ""
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:02:37.495059+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00013",
@@ -1034,12 +1034,12 @@
             "old_text": "Les montants au 31 octobre 2024 ont été révisés par rapport à ceux présentés précédemment.",
             "new_text": "Représente le total des expositions au bilan et hors bilan de la Banque selon les règles de ratio de levier du BSIF en vertu de l’accord de Bâle III, avant ajustements réglementaires."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:02:39.689195+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00014",
@@ -1051,12 +1051,12 @@
             "old_text": "Représente le total des expositions au bilan et hors bilan de la Banque selon les règles de ratio de levier du BSIF en vertu de l’accord de Bâle III, avant ajustements réglementaires.",
             "new_text": "Incluant les activités d’assurances."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:02:54.530947+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00015",
@@ -1068,12 +1068,12 @@
             "old_text": "Incluant les activités d’assurances.",
             "new_text": "Représente les transactions avec d’autres institutions financières."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:03:16.463376+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00016",
@@ -1085,12 +1085,12 @@
             "old_text": "Représente les transactions avec d’autres institutions financières.",
             "new_text": "Représente la mesure dans laquelle les services de la Banque pourraient être remplacés par ceux d’autres institutions."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:04:01.877645+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00017",
@@ -1102,12 +1102,12 @@
             "old_text": "Représente la mesure dans laquelle les services de la Banque pourraient être remplacés par ceux d’autres institutions.",
             "new_text": "Pour les exercices terminés les 31 octobre 2025 et 2024."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:04:50.682519+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00018",
@@ -1168,8 +1168,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 8,
-        "validated": 1,
-        "pending": 12
+        "validated": 11,
+        "pending": 2
       }
     },
     {
@@ -1216,7 +1216,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T19:58:14.663930+00:00",
+          "validated_at": "2026-04-18T18:04:06.288719+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1229,15 +1229,15 @@
             "old_text": "Ces montants incluent 48,6 G$ révocables sans condition en tout temps à la discrétion de la Banque.",
             "new_text": "Ces montants incluent 57,2 G$ révocables sans condition en tout temps à la discrétion de la Banque."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:03:18.433042+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "partial",
+      "table_status": "completed",
       "confidence": 0.85,
       "match_method": "Similar table_summary and indicators related to liabilities and equity maturities. Footnote count is close (9 vs 10).",
       "genai_analysis": {
@@ -1261,8 +1261,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 2,
+        "pending": 0
       }
     },
     {
@@ -1309,7 +1309,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T19:58:24.881752+00:00",
+          "validated_at": "2026-04-18T18:00:51.765920+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1322,15 +1322,15 @@
             "old_text": "Pour de plus amples renseignements, se reporter à la note 25 afférente aux états financiers annuels consolidés audités de l’exercice terminé le 31 octobre 2024.",
             "new_text": "Pour de plus amples renseignements, se reporter à la note 23 afférente aux états financiers annuels consolidés audités de l’exercice terminé le 31 octobre 2025."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:03:40.590586+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "partial",
+      "table_status": "completed",
       "confidence": 0.9,
       "match_method": "Indicators: same 20 rows; row_count 20 vs 20; headers identical; footnote_count similar.",
       "genai_analysis": {
@@ -1354,8 +1354,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 2,
+        "pending": 0
       }
     },
     {
@@ -1398,15 +1398,15 @@
             "old_text": "Les montants remboursables sur demande sont considérés comme étant sans échéance spécifique.",
             "new_text": ""
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T18:01:00.996187+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 0.85,
       "match_method": "Similar table_summary and indicators related to asset maturities. Footnote count is close (1 vs 2).",
       "genai_analysis": {
@@ -1430,8 +1430,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -1474,15 +1474,15 @@
             "old_text": "",
             "new_text": "Le rachat des BCRL – Série 1 effectué le 17 novembre 2025 a été pris en compte dans les ratios au 31 octobre 2025."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T19:58:28.536612+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.9,
       "match_method": "Highly similar table_summary and indicators; both focus on 'Variation des fonds propres réglementaires'. Row counts are close (40 vs 42).",
       "genai_analysis": {
@@ -1506,8 +1506,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1555,7 +1555,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T19:58:35.596334+00:00",
+          "validated_at": "2026-04-18T18:01:12.767857+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1707,7 +1707,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T19:58:40.763768+00:00",
+          "validated_at": "2026-04-18T18:01:51.628515+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1856,15 +1856,15 @@
             "old_text": "Au cours du deuxième trimestre de 2025, la variation du risque opérationnel est liée à l’inclusion de CWB qui a été calculé selon l’approche standardisée conformément à l’approche utilisée par la Banque.",
             "new_text": ""
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T19:58:46.129744+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same 20 rows; row_count 20 vs 20; headers similar structure.",
       "genai_analysis": {
@@ -1888,8 +1888,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -2000,11 +2000,11 @@
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "rejected",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "rejected",
           "validation_notes": "",
-          "validated_at": "2026-04-13T19:58:49.689389+00:00",
+          "validated_at": "2026-04-18T18:04:17.454250+00:00",
           "validated_by": "analyst"
         }
       ],

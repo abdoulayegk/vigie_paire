@@ -2364,6 +2364,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "Cet ajout reflète l'émission d'une nouvelle série de billets avec remboursement de capital à recours limité, ce qui peut avoir un impact sur la structure du capital et les obligations financières de l'institution."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-06T12:17:52.414039+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2374,6 +2380,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de cette tranche peut indiquer un changement dans la structure de financement ou le remboursement de cette série, ce qui est important pour l'analyse de la gestion du capital."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-06T12:17:52.962372+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2854,5 +2866,11 @@
     "indicator_changes_total": 3,
     "footnote_changes_total": 2,
     "high_priority_items_total": 21
+  },
+  "review_decisions_summary": {
+    "matched": 2,
+    "unmatched": 0,
+    "pending": 4,
+    "updated_at": "2026-04-18T22:53:07+00:00"
   }
 }

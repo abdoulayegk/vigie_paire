@@ -731,6 +731,12 @@
             "analyst_assessment": {
               "relevance_level": 1,
               "justification": "The addition of a new indicator related to crypto-assets suggests a regulatory change or new risk management practice, which is critical for compliance and risk assessment."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:09:11.852867+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -943,6 +949,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The addition of a new series of capital instruments can impact the bank's capital structure and regulatory capital ratios, which are critical for compliance and financial stability."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:07:24.685574+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -953,6 +965,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The removal of a series of preferred shares can affect the bank's equity structure and investor relations, potentially impacting dividend policies and capital adequacy."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:07:36.224563+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -966,6 +984,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The removal of detailed issuance information can affect transparency and investor understanding of the bank's capital structure and financial instruments."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:09:04.945140+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -975,6 +999,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The removal of this footnote could impact the understanding of currency conversion for perpetual subordinated capital notes, which is important for accurate financial reporting and analysis."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:09:11.928472+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -988,6 +1018,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The addition of terms and conditions information is significant for understanding the full scope of financial instruments, impacting compliance and investor relations."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:09:12.321942+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1903,6 +1939,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "L'ajout d'une nouvelle note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:08:29.024930+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2169,6 +2211,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La suppression d'une ancienne note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:09:37.640911+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2345,6 +2393,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The change in wording narrows the scope of the assets considered as collateral, which could impact the bank's risk management and reporting of secured assets."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:08:54.256438+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2511,6 +2565,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The removal of this footnote could indicate a change in the bank's policy or regulatory requirements regarding the conversion of senior debt, which may impact the bank's capital structure and risk management strategy."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:09:09.274937+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2524,6 +2584,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "This change shifts the focus from a specific credit rating review event to a general description of credit ratings, which may affect how stakeholders perceive the bank's creditworthiness and its communication strategy."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:09:20.442659+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -2535,6 +2601,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "This change alters the understanding of what is included in the senior debt category, which is crucial for assessing the bank's liabilities and compliance with regulatory frameworks."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:09:20.590280+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -3250,6 +3322,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La suppression d'une ancienne note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:08:34.008361+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3685,6 +3763,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The removal of the 'Dont : – Total' indicator could impact the clarity of the breakdown of totals within the table, affecting the structural understanding of guaranteed versus non-guaranteed components."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:08:21.346716+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3701,6 +3785,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The change in the financial figures for structured notes excluded from conversion affects the bank's risk exposure and capital adequacy, which is critical for regulatory compliance and financial stability analysis."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:09:31.829097+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -3998,6 +4088,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The change in the distribution and total amount of secured obligations reflects a significant restructuring of financial liabilities, which could impact liquidity management and risk assessment."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:08:51.689245+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -4288,6 +4384,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The removal of 'Participation dans Schwab' could indicate a significant change in the bank's investment portfolio or strategic partnerships, which may affect financial reporting and risk management strategies."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:07:41.005371+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -4304,6 +4406,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "The change in the distribution and total amount of secured obligations reflects a significant restructuring of financial liabilities, which could impact liquidity management and risk assessment."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:09:23.972718+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -4465,5 +4573,11 @@
     "source": "llm",
     "total_changes_analysed": 25,
     "total_relevant": 12
+  },
+  "review_decisions_summary": {
+    "matched": 18,
+    "unmatched": 0,
+    "pending": 11,
+    "updated_at": "2026-04-18T22:53:07+00:00"
   }
 }

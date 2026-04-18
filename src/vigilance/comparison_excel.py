@@ -32,7 +32,32 @@ EXCEL_COLUMNS = [
     "Justification IA",
     "Nouvelle divulgation ?",
     "Commentaire analyste",
+    "Statut validation",
+    "Validé par",
+    "Validé le",
 ]
+
+_VALIDATION_STATUS_FR: dict[str, str] = {
+    "approved": "Validé",
+    "rejected": "Rejeté",
+    "skipped": "Ignoré",
+    "pending": "En attente",
+    "": "En attente",
+}
+
+
+def _review_fields(item: dict[str, Any] | None) -> dict[str, str]:
+    """Extrait les champs de revue analyste a partir d'un item technical_diff."""
+    review = (item or {}).get("_analyst_review") if isinstance(item, dict) else None
+    if not isinstance(review, dict):
+        return {"notes": "", "status": "", "by": "", "at": ""}
+    status_raw = str(review.get("status") or "").strip().lower()
+    return {
+        "notes": str(review.get("notes") or "").strip(),
+        "status": _VALIDATION_STATUS_FR.get(status_raw, status_raw),
+        "by": str(review.get("by") or "").strip(),
+        "at": str(review.get("at") or "").strip(),
+    }
 
 _CHANGE_TYPE_FR: dict[str, str] = {
     "added": "Ajout",
@@ -128,6 +153,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
                 "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "review": _review_fields(ind),
             })
 
         # Indicateurs supprimés
@@ -151,6 +177,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
                 "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "review": _review_fields(ind),
             })
 
         # Indicateurs renommés
@@ -174,6 +201,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
                 "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "review": _review_fields(ind),
             })
 
         # Notes ajoutées
@@ -197,6 +225,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
                 "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "review": _review_fields(fn),
             })
 
         # Notes supprimées
@@ -220,6 +249,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
                 "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "review": _review_fields(fn),
             })
 
         # Notes modifiées (renommées)
@@ -243,6 +273,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
                 "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "review": _review_fields(fn),
             })
 
     # --- Tableaux ajoutés ---
@@ -266,6 +297,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             "justification": justification or "Nouveau tableau détecté dans le trimestre courant.",
             "relevance_level_raw": None,
             "nouvelle_divulgation": _is_nouvelle_divulgation(is_relevant, category),
+            "review": _review_fields(tbl),
         })
 
     # --- Tableaux supprimés ---
@@ -288,6 +320,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             "justification": justification or "Tableau supprimé du trimestre courant.",
             "relevance_level_raw": None,
             "nouvelle_divulgation": _is_nouvelle_divulgation(is_relevant, category),
+            "review": _review_fields(tbl),
         })
 
     # Tri : pertinence critique en premier, puis section, puis tableau
@@ -359,6 +392,7 @@ def generate_comparison_excel(
         fill_hex = _row_fill_color(row)
         fill = PatternFill(start_color=fill_hex, end_color=fill_hex, fill_type="solid") if fill_hex else None
 
+        review = row.get("review") or {}
         row_data = [
             row["section"],
             row["title"],
@@ -370,7 +404,10 @@ def generate_comparison_excel(
             row["label_t2"],
             row["justification"],
             row["nouvelle_divulgation"],
-            "",  # Commentaire analyste
+            review.get("notes", ""),
+            review.get("status", ""),
+            review.get("by", ""),
+            review.get("at", ""),
         ]
         for col_idx, value in enumerate(row_data, 1):
             cell = ws.cell(row=row_num, column=col_idx, value=value)
@@ -394,6 +431,9 @@ def generate_comparison_excel(
         9: 70,   # Justification IA
         10: 22,  # Nouvelle divulgation ?
         11: 30,  # Commentaire analyste
+        12: 16,  # Statut validation
+        13: 18,  # Validé par
+        14: 22,  # Validé le
     }
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width

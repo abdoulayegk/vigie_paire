@@ -3,14 +3,14 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260413_161428",
   "review_items_signature": "427f6246390ef8b61d659c6387356135435c00ae417fd3d61ef1a5f858b0e83a",
-  "saved_at": "2026-04-16T19:18:07+00:00",
+  "saved_at": "2026-04-18T23:00:49+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::risk_management::tbl_p041_i01|tbl_p042_i01",
-    "change_id": "chg_00014"
+    "review_id": "bnc::capital_management::tbl_p024_i01|tbl_p028_i01",
+    "change_id": "chg_00005"
   },
-  "review_current_idx": 3,
+  "review_current_idx": 1,
   "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
@@ -30,7 +30,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-16T19:13:36.134244+00:00",
+      "review_timestamp": "2026-04-18T22:59:49.607733+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -108,7 +108,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-16T19:17:38.448864+00:00",
+      "review_timestamp": "2026-04-18T23:00:49.279499+00:00",
       "edited_value": "",
       "confidence": 0.92,
       "proof_image_path": "",
@@ -183,10 +183,10 @@
       "page_t2": 31,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-18T23:00:43.684353+00:00",
       "edited_value": "",
       "confidence": 0.75,
       "proof_image_path": "",
@@ -196,17 +196,17 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p031_i01",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "Risques émergents – Droits de douane sur les importations",
           "type": "removed",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Both tables share the indicator 'Risques émergents – Droits de douane sur les importations'. The CQ table appears to be a more focused version of the PQ table, specifically on the emerging risk related to tariffs and trade restrictions.",
@@ -256,10 +256,10 @@
       "page_t2": 42,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-16T19:18:07.007180+00:00",
+      "review_timestamp": "2026-04-18T23:00:30.092549+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -269,7 +269,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p042_i01",
-      "table_status": "partial",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "[2] Les montants remboursables sur demande sont considérés comme étant sans échéance spécifique.",
@@ -279,7 +279,7 @@
         {
           "name": "[1] Les montants remboursables sur demande sont considérés comme -> Le 3 février 2025, la Banque a conclu l’acquisition de CWB. ",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Similar table summary 'Échéances contractuelles des actifs financiers'; same indicators and headers; footnote count matches.",
@@ -465,10 +465,10 @@
       "page_t2": 29,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-18T23:00:09.438917+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -478,12 +478,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "[3] Au cours du deuxième trimestre de 2025, la variation du risque opérationnel est liée à l’inclusion de CWB qui a été calc",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same structure; row_count 20 vs 20.",
@@ -601,10 +601,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-18T23:00:14.766149+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -614,7 +614,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -688,7 +688,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-16T19:13:36.134244+00:00",
+          "validated_at": "2026-04-18T22:59:49.607733+00:00",
           "validated_by": "analyst"
         },
         {
@@ -801,7 +801,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-16T19:17:38.448864+00:00",
+          "validated_at": "2026-04-18T23:00:49.279499+00:00",
           "validated_by": "analyst"
         },
         {
@@ -909,12 +909,12 @@
               "justification": "L'indicateur \"Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux\" a été ajouté dans le tableau de gestion des risques au T2 2025, alors qu'il n'était pas présent au T1 2025.\n\nCet ajout reflète une attention accrue aux risques liés aux politiques commerciales internationales, qui peuvent avoir un impact significatif sur les opérations bancaires, notamment en ce qui concerne le financement du commerce et les expositions transfrontalières. Les incertitudes dans les politiques tarifaires peuvent affecter la stabilité des flux commerciaux et, par conséquent, la qualité des actifs bancaires.\n\nIl s'agit d'une mise à jour structurelle importante qui pourrait indiquer un changement dans l'évaluation des risques par l'institution. L'analyste devrait confirmer que cette nouvelle divulgation est alignée avec les autres sections du rapport sur les risques et évaluer si des mesures d'atténuation spécifiques ont été mises en place."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T22:59:57.219754+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00008",
@@ -927,15 +927,15 @@
               "justification": "L'indicateur \"Risques émergents – Droits de douane sur les importations\" a été retiré du tableau de gestion des risques au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait pourrait indiquer une réévaluation ou une redéfinition des risques liés aux droits de douane, potentiellement en réponse à des changements dans l'environnement commercial mondial. La suppression de cet indicateur pourrait également refléter une consolidation des risques sous une nouvelle catégorie plus large, comme le suggère l'ajout d'un nouvel indicateur plus détaillé.\n\nIl est recommandé que l'analyste vérifie si cette suppression est compensée par d'autres divulgations dans le rapport et si elle reflète un changement dans la méthodologie d'évaluation des risques de l'institution."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T23:00:43.684353+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 0.75,
       "match_method": "Both tables share the indicator 'Risques émergents – Droits de douane sur les importations'. The CQ table appears to be a more focused version of the PQ table, specifically on the emerging risk related to tariffs and trade restrictions.",
       "genai_analysis": {
@@ -959,8 +959,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 2
+        "validated": 2,
+        "pending": 0
       }
     },
     {
@@ -1007,7 +1007,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-16T19:18:07.007180+00:00",
+          "validated_at": "2026-04-18T23:00:30.092549+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1020,15 +1020,15 @@
             "old_text": "Les montants remboursables sur demande sont considérés comme étant sans échéance spécifique.",
             "new_text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les soldes au 30 avril 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T23:00:21.135481+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "partial",
+      "table_status": "completed",
       "confidence": 0.9,
       "match_method": "Similar table summary 'Échéances contractuelles des actifs financiers'; same indicators and headers; footnote count matches.",
       "genai_analysis": {
@@ -1052,8 +1052,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 2,
+        "pending": 0
       }
     },
     {
@@ -1249,15 +1249,15 @@
             "old_text": "",
             "new_text": "Au cours du deuxième trimestre de 2025, la variation du risque opérationnel est liée à l’inclusion de CWB qui a été calculé selon l’approche standardisé conformément à l’approche utilisée par la Banque."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T23:00:09.438917+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 0.95,
       "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same structure; row_count 20 vs 20.",
       "genai_analysis": {
@@ -1281,8 +1281,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -1393,15 +1393,15 @@
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-18T23:00:14.766149+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1421,8 +1421,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     }
   ]

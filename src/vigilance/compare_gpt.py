@@ -61,7 +61,7 @@ logger = logging.getLogger(__name__)
 
 MATCH_PROMPT_VERSION = "table_match_v8"
 DIFF_PROMPT_VERSION = "table_diff_v4"
-COMPARISON_SCHEMA_VERSION = 2
+COMPARISON_SCHEMA_VERSION = 3
 
 
 REFERENCE_RESOLUTION_RULE = "t2->t1 meme annee; t3->t2 meme annee; t1->t3 annee precedente; t4->t4 annee precedente"

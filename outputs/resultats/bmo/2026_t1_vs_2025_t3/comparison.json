@@ -2724,5 +2724,11 @@
     "indicator_changes_total": 1,
     "footnote_changes_total": 3,
     "high_priority_items_total": 19
+  },
+  "review_decisions_summary": {
+    "matched": 0,
+    "unmatched": 0,
+    "pending": 0,
+    "updated_at": "2026-04-18T18:44:36+00:00"
   }
 }

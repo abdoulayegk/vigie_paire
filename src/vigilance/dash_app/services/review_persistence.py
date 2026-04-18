@@ -9,6 +9,7 @@ from __future__ import annotations
 from vigilance.dash_app.services.comparison_store import build_file_comparison_store
 from vigilance.dash_app.services.comparison_context import _comparison_path_from_meta
 from vigilance.dash_app.services.export_helpers import _review_items_from_v2_queue
+from vigilance.dash_app.services.review_writeback import write_back_to_disk
 
 
 def _persist_review_state(
@@ -58,6 +59,9 @@ def _persist_review_state(
         source=source,
         comparison_run_id=run_id,
     )
+    # Mandat : propager la decision analyste dans comparison.json + comparison.xlsx
+    # sur disque. Non-fatal — le review_state.json reste la source durable.
+    write_back_to_disk(compare_path, review_queue)
 
 
 def _load_review_state_for_comparison(

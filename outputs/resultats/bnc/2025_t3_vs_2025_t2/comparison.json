@@ -247,7 +247,13 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-04-18T20:27:45.126530+00:00",
+          "by": "analyst"
+        }
       }
     ],
     "tables_removed": [],
@@ -3548,5 +3554,11 @@
     "indicator_changes_total": 0,
     "footnote_changes_total": 0,
     "high_priority_items_total": 1
+  },
+  "review_decisions_summary": {
+    "matched": 1,
+    "unmatched": 0,
+    "pending": 0,
+    "updated_at": "2026-04-18T20:27:45+00:00"
   }
 }

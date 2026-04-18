@@ -224,7 +224,13 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-04-10T00:53:00.956682+00:00",
+          "by": "analyst"
+        }
       },
       {
         "table_id": "tbl_p038_i01",
@@ -312,7 +318,13 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-04-10T00:53:05.051743+00:00",
+          "by": "analyst"
+        }
       },
       {
         "table_id": "tbl_p036_i02",
@@ -361,7 +373,13 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-04-10T00:52:57.310463+00:00",
+          "by": "analyst"
+        }
       },
       {
         "table_id": "tbl_p037_i01",
@@ -426,7 +444,13 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-04-10T00:52:49.152578+00:00",
+          "by": "analyst"
+        }
       },
       {
         "table_id": "tbl_p047_i01",
@@ -509,7 +533,13 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-04-10T00:53:07.068673+00:00",
+          "by": "analyst"
+        }
       }
     ],
     "artifacts_confirmed_previous": [],
@@ -633,6 +663,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La reformulation précise que les montants sont présentés selon l'emplacement géographique, ce qui peut affecter l'interprétation des données géographiques dans le contexte de la gestion des risques."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:51:15.144829+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -808,6 +844,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'augmentation du montant total des marges de crédit sur valeur nette assurées indique un changement significatif dans l'exposition au risque de crédit, ce qui nécessite une attention particulière pour l'analyse des risques."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:51:19.292490+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -939,6 +981,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de l'indicateur 'De 30 à 35 ans' modifie la granularité de l'analyse des périodes d'amortissement, ce qui peut affecter l'évaluation des risques associés aux prêts hypothécaires à plus long terme."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:51:23.493267+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -955,6 +1003,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de la mention des périodes d'amortissement de plus de 30 ans réduit la transparence sur l'impact des taux d'intérêt sur les prêts à taux variables, ce qui peut affecter l'évaluation des risques."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:53:19.642543+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -1134,6 +1188,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "Cette note a été ajoutée pour indiquer que certaines données ne sont pas significatives, ce qui est une clarification mineure sans impact majeur sur l'analyse des risques."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:53:14.727912+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -1382,6 +1442,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La suppression d'une ancienne note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:50:49.513505+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1391,6 +1457,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La suppression d'une ancienne note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:50:49.650774+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -2222,6 +2294,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de cette note pourrait indiquer un changement dans la divulgation des garanties fournies, ce qui peut affecter la transparence des obligations de la banque."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:51:55.615900+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2542,6 +2620,12 @@
             "analyst_assessment": {
               "relevance_level": 1,
               "justification": "La suppression de cette note supprime une divulgation réglementaire requise par le BSIF, ce qui pourrait entraîner des questions de conformité."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:52:01.746040+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2555,6 +2639,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'ajout des avances d'une FHLB et les modifications des montants indiquent un changement structurel dans la composition des passifs, nécessitant une attention particulière pour l'analyse des risques."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:53:17.668997+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2957,6 +3047,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "Cette note a été ajoutée pour clarifier la nature des actifs et passifs interdépendants, ce qui est essentiel pour comprendre l'impact des titres hypothécaires garantis par la Loi nationale sur l’habitation sur le bilan."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:53:13.243057+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3490,6 +3586,12 @@
             "analyst_assessment": {
               "relevance_level": 1,
               "justification": "La mise à jour des valeurs de la réserve de fonds propres anticyclique est cruciale pour l'évaluation de la conformité réglementaire et des exigences de capital."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-10T00:52:26.015228+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -4050,5 +4152,11 @@
     "indicator_changes_total": 1,
     "footnote_changes_total": 15,
     "high_priority_items_total": 11
+  },
+  "review_decisions_summary": {
+    "matched": 17,
+    "unmatched": 1,
+    "pending": 5,
+    "updated_at": "2026-04-18T22:53:07+00:00"
   }
 }
