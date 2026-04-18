@@ -998,5 +998,11 @@
     "indicator_changes_total": 0,
     "footnote_changes_total": 0,
     "high_priority_items_total": 0
+  },
+  "review_decisions_summary": {
+    "matched": 0,
+    "unmatched": 0,
+    "pending": 0,
+    "updated_at": "2026-04-18T22:53:07+00:00"
   }
 }

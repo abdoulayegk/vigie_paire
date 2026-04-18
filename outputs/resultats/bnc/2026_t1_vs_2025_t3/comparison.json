@@ -201,7 +201,13 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "_analyst_review": {
+          "status": "rejected",
+          "notes": "",
+          "at": "2026-04-18T18:04:17.454250+00:00",
+          "by": "analyst"
+        }
       }
     ],
     "artifacts_confirmed_previous": [],
@@ -328,6 +334,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "Cette note a été ajoutée pour indiquer qu'une section ou un élément n'est plus applicable, ce qui est une mise à jour cosmétique sans impact matériel."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:01:51.628515+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -1101,6 +1113,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "Cet indicateur a été ajouté pour mieux refléter l'activité de paiement, ce qui est crucial pour évaluer l'impact systémique des banques."
+            },
+            "_analyst_review": {
+              "status": "rejected",
+              "notes": "",
+              "at": "2026-04-18T18:02:07.843565+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1109,6 +1127,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'ajout de cet indicateur permet de suivre le volume des transactions, ce qui est crucial pour l'analyse de la liquidité."
+            },
+            "_analyst_review": {
+              "status": "rejected",
+              "notes": "",
+              "at": "2026-04-18T18:02:13.476478+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1117,6 +1141,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "Cet indicateur est important pour évaluer l'exposition aux titres à revenu fixe, influençant la stabilité financière."
+            },
+            "_analyst_review": {
+              "status": "rejected",
+              "notes": "",
+              "at": "2026-04-18T18:02:14.759591+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1125,6 +1155,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'ajout de cet indicateur permet de mieux comprendre l'exposition aux titres de participation, ce qui est crucial pour l'évaluation des risques."
+            },
+            "_analyst_review": {
+              "status": "rejected",
+              "notes": "",
+              "at": "2026-04-18T18:02:15.487478+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -1135,6 +1171,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de cet indicateur modifie la compréhension de la capacité de substitution et de l'infrastructure financière, ce qui peut affecter l'évaluation des risques systémiques."
+            },
+            "_analyst_review": {
+              "status": "rejected",
+              "notes": "",
+              "at": "2026-04-18T18:02:16.049629+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -1148,6 +1190,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de cette note supprime une divulgation importante sur la complexité et le volume des activités de négociation, ce qui peut affecter l'évaluation des risques associés aux instruments financiers dérivés."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:02:37.495059+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -1161,6 +1209,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La reformulation de cette note modifie la compréhension des expositions au bilan et hors bilan, ce qui est crucial pour l'évaluation des ratios de levier et de la conformité réglementaire."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:02:39.689195+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1172,6 +1226,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La modification de cette note pour inclure les activités d'assurances change la portée des expositions considérées, ce qui est essentiel pour l'analyse des risques."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:02:54.530947+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1183,6 +1243,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La reformulation de cette note pour se concentrer sur les transactions interbancaires modifie l'analyse des relations financières et des risques de contrepartie."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:03:16.463376+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1194,6 +1260,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La reformulation de cette note pour aborder la substituabilité des services bancaires modifie l'évaluation de la concurrence et des risques de marché."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:04:01.877645+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1205,6 +1277,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "Bien que la note soit maintenant une simple référence temporelle, elle ne fournit plus d'informations sur la substituabilité, ce qui réduit la clarté sur ce point."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:04:50.682519+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1875,6 +1953,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La modification des numéros de notes référencées peut indiquer un changement dans la structure ou le contenu des états financiers, ce qui nécessite une attention particulière pour comprendre l'impact potentiel sur l'analyse financière."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:00:51.765920+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1886,6 +1970,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La modification du numéro de note référencée peut refléter une réorganisation des informations financières, ce qui est crucial pour assurer la conformité et la précision des analyses."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:03:40.590586+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2626,6 +2716,12 @@
             "analyst_assessment": {
               "relevance_level": 1,
               "justification": "Cet indicateur a été ajouté pour répondre aux exigences de divulgation réglementaire concernant la gestion des risques de liquidité."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:01:12.767857+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3208,6 +3304,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de cette note peut affecter la compréhension des échéances des actifs financiers, car elle clarifiait le traitement des montants remboursables sur demande."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:01:00.996187+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3574,6 +3676,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de cette note supprime une divulgation importante concernant les engagements contractuels liés à l'immeuble du siège social, ce qui pourrait affecter la transparence des informations financières."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:04:06.288719+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3587,6 +3695,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'augmentation du montant révocable sans condition de 48,6 G$ à 57,2 G$ indique un changement significatif dans les engagements de la Banque, nécessitant une attention particulière pour l'analyse des risques."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:03:18.433042+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3866,5 +3980,11 @@
     "indicator_changes_total": 7,
     "footnote_changes_total": 18,
     "high_priority_items_total": 9
+  },
+  "review_decisions_summary": {
+    "matched": 19,
+    "unmatched": 0,
+    "pending": 7,
+    "updated_at": "2026-04-18T22:53:07+00:00"
   }
 }

@@ -1570,6 +1570,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Autres titres de créance\" a été ajouté dans le tableau de synthèse des actifs liquides par type et par monnaie au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait refléter une nouvelle catégorie de titres de créance que la banque a commencé à inclure dans ses rapports. Cela peut être lié à une révision de la méthodologie de classification des actifs ou à l'acquisition de nouveaux types de titres qui nécessitent une divulgation distincte. La présence de cet indicateur pourrait également être en réponse à des exigences réglementaires ou à des pratiques de divulgation améliorées.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer que cette nouvelle catégorie est correctement intégrée dans les calculs globaux des actifs liquides et vérifier si des ajustements similaires apparaissent dans d'autres sections du rapport."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-14T18:50:37.027306+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -2301,6 +2307,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n-5 a été ajoutée dans le tableau des notations de crédit au T2 2025.\n\nCette note précise que certains instruments financiers sont assujettis à une conversion dans le cadre du régime de recapitalisation interne des banques. Cela indique une conformité avec les exigences réglementaires de Bâle III et les directives du BSIF concernant la capacité d'absorption des pertes des banques.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cette nouvelle note est cohérente avec les autres divulgations réglementaires du rapport et qu'elle reflète correctement les changements dans la structure de capital de la banque."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-14T18:53:33.241202+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2996,6 +3008,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Dépôts non personnels\" a été ajouté dans le tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer une nouvelle catégorisation des dépôts, potentiellement pour mieux refléter la structure de financement de la banque. Cela peut avoir des implications sur la manière dont la banque gère ses risques de liquidité et de financement, en particulier si cette catégorie est significative en termes de volume ou de conditions associées.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait investiguer pour comprendre la raison de cette nouvelle catégorisation et s'assurer qu'elle est alignée avec les pratiques de gestion des risques de la banque."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-14T18:53:50.786819+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3006,6 +3024,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Dépôts personnels et commerciaux – au Canada\" a été retiré du tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur peut refléter un changement dans la manière dont la banque catégorise ses dépôts, ce qui pourrait avoir des implications sur la transparence et la comparabilité des données financières. Cela pourrait également affecter la manière dont les parties prenantes perçoivent la structure de financement de la banque.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer si cette suppression est due à une nouvelle méthodologie de classification ou à une réorganisation interne des catégories de dépôts."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-14T18:54:40.216310+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -4065,5 +4089,11 @@
     "indicator_changes_total": 16,
     "footnote_changes_total": 18,
     "high_priority_items_total": 10
+  },
+  "review_decisions_summary": {
+    "matched": 4,
+    "unmatched": 0,
+    "pending": 31,
+    "updated_at": "2026-04-18T22:53:07+00:00"
   }
 }

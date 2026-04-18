@@ -200,7 +200,13 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-04-18T18:46:47.668818+00:00",
+          "by": "analyst"
+        }
       }
     ],
     "artifacts_confirmed_previous": [
@@ -1338,6 +1344,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de cette note pourrait indiquer un changement dans la présentation des passifs, ce qui peut affecter l'analyse des obligations financières de la Banque."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:46:48.947679+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -1919,6 +1931,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "L'ajout d'une nouvelle note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:46:43.274644+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1928,6 +1946,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "L'ajout d'une nouvelle note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:47:01.333058+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -2297,6 +2321,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "Cet indicateur semble être un artefact de date ou de période, et non un indicateur métier réel. Il n'affecte pas l'analyse des ratios de liquidité."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:46:57.397830+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -2495,6 +2525,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de cet indicateur modifie la manière dont le financement stable requis est calculé, ce qui peut affecter l'évaluation de la stabilité financière."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:46:51.519431+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3349,6 +3385,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'ajout de cet indicateur pourrait refléter un changement dans la manière dont la banque évalue ou présente son exposition au risque de levier, ce qui est crucial pour la gestion des risques et la conformité réglementaire."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T18:46:49.738712+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3449,5 +3491,11 @@
     "indicator_changes_total": 3,
     "footnote_changes_total": 10,
     "high_priority_items_total": 7
+  },
+  "review_decisions_summary": {
+    "matched": 7,
+    "unmatched": 1,
+    "pending": 6,
+    "updated_at": "2026-04-18T18:47:01+00:00"
   }
 }

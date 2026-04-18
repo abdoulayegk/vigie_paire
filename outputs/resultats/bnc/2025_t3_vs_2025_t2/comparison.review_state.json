@@ -3,7 +3,7 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/comparison.json",
   "comparison_run_id": "20260410_011915",
   "review_items_signature": "3882ffd34df91f063ad10252464a59cda2203a34df671bfc34c756f785a721fc",
-  "saved_at": "2026-04-13T19:57:45+00:00",
+  "saved_at": "2026-04-18T20:27:45+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
@@ -30,7 +30,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T19:57:45.469625+00:00",
+      "review_timestamp": "2026-04-18T20:27:45.126530+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -99,13 +99,13 @@
           "change_type": "table_added",
           "payload": {
             "description": "Tableau entier ajouté",
-            "table_status": "ajoute"
+            "table_status": "completed"
           },
           "validation_status": "approved",
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T19:57:45.469625+00:00",
+          "validated_at": "2026-04-18T20:27:45.126530+00:00",
           "validated_by": "analyst"
         }
       ],

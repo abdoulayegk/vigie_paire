@@ -245,7 +245,13 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-04-18T23:00:14.766149+00:00",
+          "by": "analyst"
+        }
       }
     ],
     "artifacts_confirmed_previous": [],
@@ -497,6 +503,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Série 47\" a été ajouté dans le tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer l'émission d'une nouvelle série d'actions privilégiées, ce qui peut avoir un impact sur la structure du capital de la banque. Les actions privilégiées sont souvent utilisées pour renforcer les fonds propres de catégorie 1, conformément aux exigences de Bâle III. L'ajout de cette série pourrait également refléter une stratégie de financement ou de gestion du capital.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer l'émission de cette nouvelle série et s'assurer que les informations sont cohérentes avec les autres divulgations financières."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T22:59:49.607733+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -693,6 +705,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Émission d’actions ordinaires relatives à l'acquisition de CWB\" a été ajouté dans le tableau de variation des fonds propres réglementaires pour le semestre terminé le 30 avril 2025. Cet ajout n'était pas présent dans le trimestre précédent terminé le 31 janvier 2025.\n\nL'ajout de cet indicateur reflète une transaction spécifique, à savoir l'acquisition de CWB, qui a un impact direct sur les fonds propres de catégorie 1 sous forme d'actions ordinaires. Cela peut avoir des implications sur les ratios de fonds propres réglementaires, notamment ceux liés aux exigences de Bâle III, car l'émission d'actions ordinaires peut affecter le calcul du ratio CET1.\n\nIl s'agit d'une mise à jour structurelle importante qui nécessite une attention particulière pour s'assurer que l'impact de cette acquisition est correctement intégré dans les calculs de fonds propres. L'analyste devrait confirmer que cette émission est correctement reflétée dans les autres sections du rapport financier."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T23:00:49.279499+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -867,6 +885,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°3 a été ajoutée dans le tableau de gestion du capital au T2 2025. Cette note précise que la variation du risque opérationnel est liée à l'inclusion de CWB, calculée selon l'approche standardisée.\n\nCette information est significative car elle indique un changement dans la composition du risque opérationnel de la banque, potentiellement en raison d'une acquisition ou d'une intégration stratégique. L'approche standardisée mentionnée est conforme aux exigences de Bâle III, qui impose des méthodes spécifiques pour le calcul des risques opérationnels.\n\nIl s'agit d'une nouvelle divulgation importante. L'analyste devrait confirmer l'impact de cette inclusion sur les ratios prudentiels et s'assurer que cette approche est cohérente avec les autres sections du rapport. Une investigation plus approfondie pourrait être nécessaire pour comprendre les implications stratégiques de cette inclusion."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T23:00:09.438917+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3097,6 +3121,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La note de bas de page n°2 a été ajoutée dans le tableau des échéances contractuelles des actifs financiers au T2 2025. Cette note indique que les montants remboursables sur demande sont considérés comme étant sans échéance spécifique.\n\nL'impact de cette note est principalement cosmétique, car elle clarifie une pratique comptable déjà implicite dans la gestion des actifs financiers. Elle n'introduit pas de nouvelle méthodologie ni de changement dans les pratiques de divulgation qui pourraient affecter les ratios prudentiels ou les exigences réglementaires telles que Bâle III ou les directives du BSIF.\n\nIl s'agit d'une mise à jour ordinaire visant à améliorer la clarté des informations fournies aux utilisateurs des états financiers. L'analyste peut confirmer cette mise à jour sans nécessiter d'investigation supplémentaire."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T23:00:30.092549+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3111,6 +3141,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°1 a subi une révision significative dans le tableau des échéances contractuelles des actifs financiers. Initialement, elle indiquait que les montants remboursables sur demande étaient considérés comme étant sans échéance spécifique. Désormais, elle informe sur l'acquisition de CWB par la Banque et l'impact de cette acquisition sur les soldes au 30 avril 2025.\n\nCe changement a un impact structurel important car il introduit une nouvelle information concernant une acquisition majeure, ce qui peut affecter la perception des risques et des actifs financiers consolidés. Bien que cela ne modifie pas directement les ratios prudentiels, cela peut influencer l'analyse des risques et la compréhension des résultats financiers consolidés.\n\nIl s'agit d'une divulgation nouvelle et significative. L'analyste devrait investiguer l'impact de cette acquisition sur les autres sections du rapport financier et s'assurer que toutes les implications sont correctement intégrées et divulguées."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T23:00:21.135481+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3599,6 +3635,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux\" a été ajouté dans le tableau de gestion des risques au T2 2025, alors qu'il n'était pas présent au T1 2025.\n\nCet ajout reflète une attention accrue aux risques liés aux politiques commerciales internationales, qui peuvent avoir un impact significatif sur les opérations bancaires, notamment en ce qui concerne le financement du commerce et les expositions transfrontalières. Les incertitudes dans les politiques tarifaires peuvent affecter la stabilité des flux commerciaux et, par conséquent, la qualité des actifs bancaires.\n\nIl s'agit d'une mise à jour structurelle importante qui pourrait indiquer un changement dans l'évaluation des risques par l'institution. L'analyste devrait confirmer que cette nouvelle divulgation est alignée avec les autres sections du rapport sur les risques et évaluer si des mesures d'atténuation spécifiques ont été mises en place."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T22:59:57.219754+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3609,6 +3651,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Risques émergents – Droits de douane sur les importations\" a été retiré du tableau de gestion des risques au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait pourrait indiquer une réévaluation ou une redéfinition des risques liés aux droits de douane, potentiellement en réponse à des changements dans l'environnement commercial mondial. La suppression de cet indicateur pourrait également refléter une consolidation des risques sous une nouvelle catégorie plus large, comme le suggère l'ajout d'un nouvel indicateur plus détaillé.\n\nIl est recommandé que l'analyste vérifie si cette suppression est compensée par d'autres divulgations dans le rapport et si elle reflète un changement dans la méthodologie d'évaluation des risques de l'institution."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-18T23:00:43.684353+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3715,5 +3763,11 @@
     "indicator_changes_total": 8,
     "footnote_changes_total": 6,
     "high_priority_items_total": 7
+  },
+  "review_decisions_summary": {
+    "matched": 8,
+    "unmatched": 0,
+    "pending": 7,
+    "updated_at": "2026-04-18T23:00:49+00:00"
   }
 }
