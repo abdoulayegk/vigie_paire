@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import time
 from datetime import datetime
 from pathlib import Path
@@ -64,6 +65,37 @@ COMPARISON_SCHEMA_VERSION = 2
 
 
 REFERENCE_RESOLUTION_RULE = "t2->t1 meme annee; t3->t2 meme annee; t1->t3 annee precedente; t4->t4 annee precedente"
+
+
+def _archive_source_pdf(source: str | Path | None, target: Path) -> str:
+    """Copier un PDF source dans le repertoire du run pour la portabilite inter-OS.
+
+    Retourne le chemin de la copie archivee en cas de succes ; sinon retourne
+    le chemin source original (ou ``""`` si absent). Les echecs sont logges mais
+    non fatals : la comparaison reste utilisable sur la machine d'origine via le
+    chemin absolu, et Dash sait retomber sur le voisin archive lorsqu'il existe.
+    """
+    raw = str(source or "").strip()
+    if not raw:
+        return ""
+    src_path = Path(raw)
+    if not src_path.exists():
+        logger.warning("PDF source introuvable pour archivage: %s", raw)
+        return raw
+    if target.exists():
+        try:
+            if src_path.samefile(target):
+                return str(target)
+        except OSError:
+            pass
+    try:
+        shutil.copy2(src_path, target)
+        return str(target)
+    except OSError as exc:
+        logger.warning(
+            "Echec de l'archivage du PDF %s -> %s: %s", src_path, target, exc
+        )
+        return raw
 
 
 def _visual_sanity_meta(
@@ -750,9 +782,15 @@ def compare_reports_gpt4o(
     out_dir = out_root_path / bank_code / f"{year_current}_{quarter_current}_vs_{year_previous}_{quarter_previous}"
     out_dir.mkdir(parents=True, exist_ok=True)
     run_id = _make_run_id()
-    # Store PDF source paths as references instead of copying them.
-    archived_pdf_previous = str(source_pdf_previous or "").strip()
-    archived_pdf_current = str(source_pdf_current or "").strip()
+    # Archive PDFs inside the run directory for cross-OS portability: Dash falls
+    # back to previous_report.pdf / current_report.pdf when absolute paths stored
+    # in the JSON become invalid (e.g. run produced on macOS then opened on Windows).
+    archived_pdf_previous = _archive_source_pdf(
+        source_pdf_previous, out_dir / "previous_report.pdf"
+    )
+    archived_pdf_current = _archive_source_pdf(
+        source_pdf_current, out_dir / "current_report.pdf"
+    )
     payload = {
         "schema_version": COMPARISON_SCHEMA_VERSION,
         "artifact_type": "report_comparison",

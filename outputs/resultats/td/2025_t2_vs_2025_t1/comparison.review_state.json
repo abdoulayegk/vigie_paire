@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260414_105249",
   "review_items_signature": "793119c2243934a8fa1adfcd19866dac29000b146a014a7680d92730e68ee1ee",
-  "saved_at": "2026-04-14T15:15:52+00:00",
+  "saved_at": "2026-04-14T18:54:40+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "td::risk_management::tbl_p048_i01|tbl_p050_i01",
-    "change_id": "chg_00023"
+    "review_id": "td::risk_management::tbl_p051_i01|tbl_p053_i01",
+    "change_id": "chg_00016"
   },
-  "review_current_idx": 2,
-  "current_change_idx": 0,
+  "review_current_idx": 3,
+  "current_change_idx": 2,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-14T15:10:41.409865+00:00",
+      "review_timestamp": "2026-04-14T18:50:37.027306+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -50,12 +50,12 @@
         {
           "name": "Autres titres",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Obligations du gouvernement du Canada",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
@@ -127,8 +127,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-14T15:15:52.560043+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -138,22 +138,22 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Autres titres de créance",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Autres titres",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Obligations du gouvernement du Canada",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
@@ -173,7 +173,7 @@
         {
           "name": "[2] Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
@@ -225,8 +225,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-14T18:53:33.241202+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -236,12 +236,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "NOTATIONS DE CRÉDIT¹",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[5] Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[2] Représentent la notation des dépôts à long terme et la notat -> Tient compte de l’abaissement des notations de crédit et de ",
@@ -308,8 +308,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-14T18:54:40.216310+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -319,17 +319,17 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS¹",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Dépôts non personnels",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "Dépôts personnels et commerciaux – au Canada",
           "type": "removed",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "Dépôts personnels et commerciaux – aux États-Unis¹",
@@ -1040,7 +1040,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-14T15:05:57.037502+00:00",
+          "validated_at": "2026-04-14T18:50:37.027306+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1054,12 +1054,12 @@
               "justification": "L'indicateur \"Autres titres\" a été ajouté dans le tableau de synthèse des actifs liquides par type et par monnaie au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer une nouvelle catégorie de titres que la banque a décidé de suivre séparément, potentiellement en raison de changements dans la composition de son portefeuille d'actifs ou de nouvelles exigences de divulgation. Cela pourrait également être lié à une réorganisation interne des catégories d'actifs pour mieux refléter la structure actuelle du portefeuille.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier si cette nouvelle catégorie est alignée avec les autres divulgations du rapport et s'assurer que les valeurs sont correctement intégrées dans les totaux des actifs liquides."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-14T15:06:05.420078+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00004",
@@ -1072,12 +1072,12 @@
               "justification": "L'indicateur \"Obligations du gouvernement du Canada\" a été supprimé du tableau de synthèse des actifs liquides par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression semble être le résultat d'une consolidation des catégories d'obligations dans une nouvelle catégorie plus large, \"Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement\". Cela pourrait refléter un changement dans la manière dont la banque regroupe et rapporte ses actifs, potentiellement pour simplifier la présentation ou pour répondre à de nouvelles normes de divulgation.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer que cette consolidation est cohérente avec les autres sections du rapport et vérifier si elle a un impact sur les ratios de liquidité ou d'autres mesures clés."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-14T15:10:41.409865+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00005",
@@ -1175,8 +1175,8 @@
         "indicators_removed": 4,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 3,
-        "pending": 4
+        "validated": 1,
+        "pending": 6
       }
     },
     {
@@ -1220,12 +1220,12 @@
               "justification": "L'indicateur 'Autres titres de créance' a été ajouté dans le tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer une nouvelle catégorie d'actifs ou une reclassification des actifs existants. Cela peut avoir un impact sur la manière dont les actifs sont évalués et présentés dans le cadre des exigences de divulgation prudentielles, notamment en ce qui concerne la gestion des risques de liquidité et la conformité aux normes Bâle III.\n\nIl s'agit potentiellement d'une mise à jour structurelle importante. L'analyste devrait investiguer pour comprendre la raison de cette nouvelle catégorie et s'assurer qu'elle est correctement intégrée dans les rapports de gestion des risques."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-14T15:06:02.244722+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00009",
@@ -1238,12 +1238,12 @@
               "justification": "L'indicateur 'Autres titres' a été ajouté dans le tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait refléter une nouvelle classification des actifs ou l'inclusion de nouveaux types de titres dans le portefeuille de la banque. Cela peut influencer la gestion des risques et la stratégie d'investissement, en particulier si ces titres présentent des caractéristiques de risque différentes.\n\nIl s'agit d'une mise à jour structurelle qui nécessite une attention particulière. L'analyste devrait confirmer la nature de ces titres et leur impact potentiel sur les ratios de liquidité et de capital."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-14T15:06:46.693040+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00010",
@@ -1256,12 +1256,12 @@
               "justification": "L'indicateur 'Obligations du gouvernement du Canada' a été supprimé du tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait indiquer une consolidation des obligations gouvernementales dans une catégorie plus large, ce qui pourrait affecter la transparence et la granularité des informations fournies aux parties prenantes. Cela peut également avoir des implications sur la gestion des risques et la conformité réglementaire, notamment en ce qui concerne les exigences de divulgation de Bâle III.\n\nIl s'agit d'une modification structurelle importante. L'analyste devrait vérifier si cette consolidation est conforme aux politiques internes de la banque et aux exigences réglementaires."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-14T15:15:43.387630+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00011",
@@ -1327,15 +1327,15 @@
             "old_text": "",
             "new_text": "Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-14T15:15:52.560043+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
       "genai_analysis": {
@@ -1359,8 +1359,8 @@
         "indicators_removed": 4,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 4,
-        "pending": 3
+        "validated": 0,
+        "pending": 7
       }
     },
     {
@@ -1403,12 +1403,12 @@
             "old_text": "",
             "new_text": "Assujettie à une conversion au titre du régime de recapitalisation interne des banques."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-14T18:53:33.241202+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00024",
@@ -1462,7 +1462,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.95,
       "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
       "genai_analysis": {
@@ -1486,8 +1486,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 4,
-        "validated": 0,
-        "pending": 4
+        "validated": 1,
+        "pending": 3
       }
     },
     {
@@ -1531,12 +1531,12 @@
               "justification": "L'indicateur \"Dépôts non personnels\" a été ajouté dans le tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer une nouvelle catégorisation des dépôts, potentiellement pour mieux refléter la structure de financement de la banque. Cela peut avoir des implications sur la manière dont la banque gère ses risques de liquidité et de financement, en particulier si cette catégorie est significative en termes de volume ou de conditions associées.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait investiguer pour comprendre la raison de cette nouvelle catégorisation et s'assurer qu'elle est alignée avec les pratiques de gestion des risques de la banque."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-14T18:53:50.786819+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00015",
@@ -1549,12 +1549,12 @@
               "justification": "L'indicateur \"Dépôts personnels et commerciaux – au Canada\" a été retiré du tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur peut refléter un changement dans la manière dont la banque catégorise ses dépôts, ce qui pourrait avoir des implications sur la transparence et la comparabilité des données financières. Cela pourrait également affecter la manière dont les parties prenantes perçoivent la structure de financement de la banque.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer si cette suppression est due à une nouvelle méthodologie de classification ou à une réorganisation interne des catégories de dépôts."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-14T18:54:40.216310+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00016",
@@ -1592,7 +1592,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.95,
       "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
       "genai_analysis": {
@@ -1616,8 +1616,8 @@
         "indicators_removed": 2,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 4
+        "validated": 2,
+        "pending": 2
       }
     },
     {

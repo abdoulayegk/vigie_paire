@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260413_161428",
   "review_items_signature": "427f6246390ef8b61d659c6387356135435c00ae417fd3d61ef1a5f858b0e83a",
-  "saved_at": "2026-04-13T22:09:16+00:00",
+  "saved_at": "2026-04-16T19:18:07+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::capital_management::tbl_p023_i01|tbl_p027_i01",
-    "change_id": "chg_00003"
+    "review_id": "bnc::risk_management::tbl_p041_i01|tbl_p042_i01",
+    "change_id": "chg_00014"
   },
-  "review_current_idx": 0,
-  "current_change_idx": 2,
+  "review_current_idx": 3,
+  "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-13T22:09:16.049512+00:00",
+      "review_timestamp": "2026-04-16T19:13:36.134244+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -50,7 +50,7 @@
         {
           "name": "Série 49",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Série 32",
@@ -107,8 +107,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-16T19:17:38.448864+00:00",
       "edited_value": "",
       "confidence": 0.92,
       "proof_image_path": "",
@@ -118,12 +118,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Variation des fonds propres réglementaires (1)",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Émission d’actions ordinaires relatives à l'acquisition de CWB",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "Options de remplacement relatives à l'acquisition de CWB",
@@ -258,8 +258,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-16T19:18:07.007180+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -269,12 +269,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p042_i01",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[2] Les montants remboursables sur demande sont considérés comme étant sans échéance spécifique.",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[1] Les montants remboursables sur demande sont considérés comme -> Le 3 février 2025, la Banque a conclu l’acquisition de CWB. ",
@@ -688,7 +688,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-13T22:09:15.914997+00:00",
+          "validated_at": "2026-04-16T19:13:36.134244+00:00",
           "validated_by": "analyst"
         },
         {
@@ -702,12 +702,12 @@
               "justification": "L'indicateur \"Série 49\" a été ajouté dans le tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était absent au T1 2025.\n\nL'ajout de cette série pourrait signaler une nouvelle émission d'actions privilégiées, ce qui est pertinent pour la gestion des fonds propres de la banque. Les actions privilégiées contribuent au renforcement des fonds propres de catégorie 1, en ligne avec les exigences de Bâle III et les lignes directrices du BSIF. Cela peut également indiquer une stratégie de diversification des sources de financement.\n\nIl s'agit d'une mise à jour structurelle significative. L'analyste devrait vérifier l'émission de cette nouvelle série et s'assurer que les valeurs sont correctement intégrées dans les rapports financiers."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-13T22:09:16.049512+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00003",
@@ -752,8 +752,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 2,
-        "pending": 1
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -797,12 +797,12 @@
               "justification": "L'indicateur \"Émission d’actions ordinaires relatives à l'acquisition de CWB\" a été ajouté dans le tableau de variation des fonds propres réglementaires pour le semestre terminé le 30 avril 2025. Cet ajout n'était pas présent dans le trimestre précédent terminé le 31 janvier 2025.\n\nL'ajout de cet indicateur reflète une transaction spécifique, à savoir l'acquisition de CWB, qui a un impact direct sur les fonds propres de catégorie 1 sous forme d'actions ordinaires. Cela peut avoir des implications sur les ratios de fonds propres réglementaires, notamment ceux liés aux exigences de Bâle III, car l'émission d'actions ordinaires peut affecter le calcul du ratio CET1.\n\nIl s'agit d'une mise à jour structurelle importante qui nécessite une attention particulière pour s'assurer que l'impact de cette acquisition est correctement intégré dans les calculs de fonds propres. L'analyste devrait confirmer que cette émission est correctement reflétée dans les autres sections du rapport financier."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-16T19:17:38.448864+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00005",
@@ -840,7 +840,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.92,
       "match_method": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: similar structure with additional rows related to acquisition; row_count 42 vs 40.",
       "genai_analysis": {
@@ -864,8 +864,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 3
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -1003,12 +1003,12 @@
             "old_text": "",
             "new_text": "Les montants remboursables sur demande sont considérés comme étant sans échéance spécifique."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-16T19:18:07.007180+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00014",
@@ -1028,7 +1028,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.9,
       "match_method": "Similar table summary 'Échéances contractuelles des actifs financiers'; same indicators and headers; footnote count matches.",
       "genai_analysis": {
@@ -1052,8 +1052,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 0,
-        "pending": 2
+        "validated": 1,
+        "pending": 1
       }
     },
     {
