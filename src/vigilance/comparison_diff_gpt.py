@@ -306,62 +306,82 @@ def _deterministic_footnote_diff(
     prev_footnotes: list[dict[str, str]],
     curr_footnotes: list[dict[str, str]],
 ) -> dict[str, Any]:
-    """Calcule le diff de notes de bas de page par ensemble avant l'appel GPT."""
-    prev_by_id: dict[str, dict[str, str]] = {}
-    for fn in prev_footnotes:
-        fid = str(fn.get("id", "") or "").strip()
-        if fid:
-            prev_by_id[fid] = fn
+    """Calcule le diff de notes de bas de page par IDENTITE DE CONTENU.
 
-    curr_by_id: dict[str, dict[str, str]] = {}
-    for fn in curr_footnotes:
-        fid = str(fn.get("id", "") or "").strip()
-        if fid:
-            curr_by_id[fid] = fn
+    L'identifiant (1), (2), (3)... n'est pas une identite stable : il change
+    des qu'une note est inseree ou supprimee plus haut dans la liste. On
+    apparie donc d'abord par texte normalise (meme meaning = meme note, meme
+    si le numero a change). L'id ne sert qu'a (a) preferer une paire au meme
+    numero quand le texte est identique a plusieurs endroits, et (b) detecter
+    une revision de wording a numero stable (``det_modified``).
+    """
+    prev_norm = [_normalize_footnote_text(fn.get("text", "")) for fn in prev_footnotes]
+    curr_norm = [_normalize_footnote_text(fn.get("text", "")) for fn in curr_footnotes]
+    prev_ids = [str(fn.get("id", "") or "").strip() for fn in prev_footnotes]
+    curr_ids = [str(fn.get("id", "") or "").strip() for fn in curr_footnotes]
 
-    prev_ids = set(prev_by_id.keys())
-    curr_ids = set(curr_by_id.keys())
+    prev_matched = [False] * len(prev_footnotes)
+    curr_matched = [False] * len(curr_footnotes)
 
-    det_added = [curr_by_id[fid] for fid in sorted(curr_ids - prev_ids)]
-    det_removed = [prev_by_id[fid] for fid in sorted(prev_ids - curr_ids)]
+    # Pass 1: appariement par texte normalise. On prefere un appariement au
+    # meme id pour preserver les notes stables ; a defaut, n'importe quelle
+    # correspondance de texte (cas typique : renumerotation suite a une
+    # insertion/suppression plus haut dans la liste).
+    for pi, p_text in enumerate(prev_norm):
+        if prev_matched[pi] or not p_text:
+            continue
+        same_id_idx = -1
+        any_id_idx = -1
+        for ci, c_text in enumerate(curr_norm):
+            if curr_matched[ci] or c_text != p_text:
+                continue
+            if prev_ids[pi] and curr_ids[ci] == prev_ids[pi]:
+                same_id_idx = ci
+                break
+            if any_id_idx < 0:
+                any_id_idx = ci
+        match_idx = same_id_idx if same_id_idx >= 0 else any_id_idx
+        if match_idx >= 0:
+            prev_matched[pi] = True
+            curr_matched[match_idx] = True
 
-    # For IDs present in both, check if text changed materially
+    det_added: list[dict[str, str]] = [
+        curr_footnotes[ci] for ci in range(len(curr_footnotes)) if not curr_matched[ci]
+    ]
+    det_removed: list[dict[str, str]] = [
+        prev_footnotes[pi] for pi in range(len(prev_footnotes)) if not prev_matched[pi]
+    ]
+
+    # Pass 2: revision de wording a numero stable. Si apres l'appariement par
+    # texte il reste un residu prev et un residu curr partageant le meme id,
+    # on les classe comme modifies (meme position, texte materiellement
+    # different) plutot que added+removed.
     det_modified: list[dict[str, Any]] = []
-    for fid in sorted(prev_ids & curr_ids):
-        prev_text = _normalize_footnote_text(prev_by_id[fid].get("text", ""))
-        curr_text = _normalize_footnote_text(curr_by_id[fid].get("text", ""))
-        if prev_text != curr_text:
+    still_removed: list[dict[str, str]] = []
+    for prev_fn in det_removed:
+        prev_id = str(prev_fn.get("id", "") or "").strip()
+        if not prev_id:
+            still_removed.append(prev_fn)
+            continue
+        match_idx = -1
+        for i, curr_fn in enumerate(det_added):
+            curr_id = str(curr_fn.get("id", "") or "").strip()
+            if curr_id == prev_id:
+                match_idx = i
+                break
+        if match_idx >= 0:
+            curr_fn = det_added.pop(match_idx)
             det_modified.append(
                 {
-                    "previous_id": fid,
-                    "current_id": fid,
-                    "previous_text": prev_by_id[fid].get("text", ""),
-                    "current_text": curr_by_id[fid].get("text", ""),
+                    "previous_id": prev_id,
+                    "current_id": str(curr_fn.get("id", "") or "").strip(),
+                    "previous_text": prev_fn.get("text", ""),
+                    "current_text": curr_fn.get("text", ""),
                 }
             )
-
-    # Cross-match removed/added by text similarity (re-numbered footnotes)
-    unmatched_removed = list(det_removed)
-    unmatched_added = list(det_added)
-    cross_renamed: list[dict[str, Any]] = []
-    still_removed: list[dict[str, str]] = []
-    for rfn in unmatched_removed:
-        r_text = _normalize_footnote_text(rfn.get("text", ""))
-        best_idx = -1
-        best_match = False
-        for idx, afn in enumerate(unmatched_added):
-            a_text = _normalize_footnote_text(afn.get("text", ""))
-            if r_text == a_text:
-                best_idx = idx
-                best_match = True
-                break
-        if best_match:
-            afn = unmatched_added.pop(best_idx)
-            # Same text, different ID → pure renumbering, not a real change
         else:
-            still_removed.append(rfn)
+            still_removed.append(prev_fn)
     det_removed = still_removed
-    det_added = unmatched_added
 
     return {
         "det_added": det_added,

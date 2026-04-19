@@ -1,17 +1,17 @@
 {
   "schema_version": "review_state_v1",
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/comparison.json",
-  "comparison_run_id": "20260413_174504",
-  "review_items_signature": "8f4986426f002d09623b959ae7ad4ba3b2d68a0e557d61c0adee12a0bedbbfeb",
-  "saved_at": "2026-04-18T19:07:36+00:00",
+  "comparison_run_id": "20260418_195141",
+  "review_items_signature": "e6cac4f921c60ecddb367bbafbd3c6993869833eadba527f645d0e89f146a01e",
+  "saved_at": "2026-04-19T00:11:43+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bmo::risk_management::tbl_p050_i02|tbl_p054_i02",
-    "change_id": "chg_00003"
+    "review_id": "bmo::capital_management::tbl_p022_i01|tbl_p025_i01",
+    "change_id": "chg_00006"
   },
-  "review_current_idx": 4,
-  "current_change_idx": 0,
+  "review_current_idx": 0,
+  "current_change_idx": 2,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -25,14 +25,14 @@
       "table_id_t2": "tbl_p025_i01",
       "page_t1": 22,
       "page_t2": 25,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T19:06:38.303790+00:00",
+      "review_timestamp": "2026-04-19T00:11:43.591641+00:00",
       "edited_value": "",
-      "confidence": 0.9,
+      "confidence": 0.95,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -40,7 +40,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TABLEAU 13",
-      "table_status": "partial",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "Série N – première tranche",
@@ -48,22 +48,17 @@
           "review_status": "approved"
         },
         {
-          "name": "[4] Les billets avaient un taux d’intérêt initial de 4,800 %, qui a été ajusté à 6,709 % le 25 août 2024.",
+          "name": "[3] Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actio",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[2] Le nombre d’actions ordinaires est présenté déduction faite  -> Convertible en actions ordinaires. Les billets avec rembours",
           "type": "modified",
-          "review_status": "pending"
-        },
-        {
-          "name": "[3] Convertible en actions ordinaires. Les billets avec rembours -> Les billets avaient un taux d’intérêt initial de 4,800 %, qu",
-          "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
-      "match_method": "Title identical: 'TABLEAU 13'; indicators: similar 24 rows (actions, billets); row_count 25 vs 24; headers identical.",
+      "match_method": "Indicators and headers are nearly identical; row_count 25 vs 24; footnote_count 3 vs 4; title and table_summary match exactly.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -87,43 +82,43 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 3 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
       "match_metadata": {
         "drastic_row_drop": false,
         "theme": "capital",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 3 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
       }
     },
     {
-      "change_id": "bmo::risk_management::tbl_p050_i03|tbl_p054_i03",
+      "change_id": "bmo::risk_management::tbl_p049_i02|tbl_p053_i02",
       "change_type": "removed",
       "indicator": "",
       "section": "risk_management",
-      "table_name": "TABLEAU 42",
+      "table_name": "TABLEAU 39",
       "table_number": "",
-      "table_id_t1": "tbl_p050_i03",
-      "table_id_t2": "tbl_p054_i03",
-      "page_t1": 50,
-      "page_t2": 54,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
-      "review_status": "approved",
+      "table_id_t1": "tbl_p049_i02",
+      "table_id_t2": "tbl_p053_i02",
+      "page_t1": 49,
+      "page_t2": 53,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T19:07:34.344781+00:00",
+      "review_timestamp": "2026-04-19T00:10:35.396521+00:00",
       "edited_value": "",
-      "confidence": 0.9,
+      "confidence": 0.99,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
       "unit_context_t2": "",
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
-      "table_title_raw": "TABLEAU 42",
-      "table_status": "completed",
+      "table_title_raw": "TABLEAU 39",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[1] Les prêts à vue sont inclus dans la colonne Sans échéance. -> Les prêts à vue sont inclus dans la colonne Sans échéance sp",
@@ -133,23 +128,28 @@
         {
           "name": "[2] Les dépôts à vue et à préavis sont inclus dans la colonne Sa -> Les dépôts à vue et à préavis sont inclus dans la colonne Sa",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
+        },
+        {
+          "name": "[3] Des dépôts de 29 063 millions de dollars au 31 janvier 2025  -> Des dépôts de 28 685 millions de dollars au 30 avril 2025 on",
+          "type": "modified",
+          "review_status": "pending"
         }
       ],
-      "match_method": "Title and indicators match: 'Échéances des passifs et capitaux propres'; headers are highly similar; row_count 15 vs 15.",
+      "match_method": "Indicators and headers are identical; row_count 15 vs 15; footnote_count 4 vs 4; title and table_summary match exactly.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
-        0.05585180622663894,
-        0.5488630302723959,
-        0.943163976693927,
-        0.7709395539899773
+        0.05634824285116304,
+        0.5600132037878598,
+        0.9433078598069953,
+        0.7835735355284066
       ],
       "bbox_t2": [
-        0.05623340682705928,
-        0.5558890234575278,
-        0.9428697292464813,
-        0.7881941678030687
+        0.05610247992466628,
+        0.5581170085530279,
+        0.9435374944635414,
+        0.7910717089890087
       ],
       "added_indicators": [],
       "removed_indicators": [],
@@ -160,14 +160,14 @@
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 3 changement(s) de footnote."
       },
       "match_metadata": {
         "drastic_row_drop": false,
         "theme": "financement",
         "review_priority": "prioritaire",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 3 changement(s) de footnote."
       }
     },
     {
@@ -181,14 +181,14 @@
       "table_id_t2": "tbl_p049_i01",
       "page_t1": 45,
       "page_t2": 49,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T19:06:53.369119+00:00",
+      "review_timestamp": "2026-04-19T00:10:36.694576+00:00",
       "edited_value": "",
-      "confidence": 0.95,
+      "confidence": 0.99,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -209,7 +209,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title and table_summary match: 'Échéances du financement de gros'; indicators: same 17 categories; row_count 17 vs 17; headers identical.",
+      "match_method": "Indicators and headers are identical; row_count 17 vs 17; footnote_count 4 vs 4; title and table_summary match exactly.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -244,6 +244,220 @@
       }
     },
     {
+      "change_id": "bmo::risk_management::tbl_p047_i01|tbl_p051_i01",
+      "change_type": "removed",
+      "indicator": "1 retiré(s)",
+      "section": "risk_management",
+      "table_name": "TABLEAU 36",
+      "table_number": "",
+      "table_id_t1": "tbl_p047_i01",
+      "table_id_t2": "tbl_p051_i01",
+      "page_t1": 47,
+      "page_t2": 51,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "approved",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-19T00:10:18.738993+00:00",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 36",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "Pour le trimestre clos le 31 octobre 2024 – Total des sorties nettes de trésorerie",
+          "type": "removed",
+          "review_status": "approved"
+        },
+        {
+          "name": "[2] 2 Les valeurs sont calculées en fonction de la moyenne simpl -> 2 Les valeurs sont calculées en fonction de la moyenne simpl",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Indicators and headers are identical; row_count 29 vs 29; footnote_count 5 vs 5; title and table_summary match exactly.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.0566460300425547,
+        0.05197698425516104,
+        0.9438471971310326,
+        0.4890180330023808
+      ],
+      "bbox_t2": [
+        0.05668109718900458,
+        0.05000901904393665,
+        0.944388030121526,
+        0.48741571759304564
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bmo::risk_management::tbl_p050_i03|tbl_p054_i03",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "TABLEAU 42",
+      "table_number": "",
+      "table_id_t1": "tbl_p050_i03",
+      "table_id_t2": "tbl_p054_i03",
+      "page_t1": 50,
+      "page_t2": 54,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-19T00:10:38.577736+00:00",
+      "edited_value": "",
+      "confidence": 0.99,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 42",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "[1] Les prêts à vue sont inclus dans la colonne Sans échéance. -> Les prêts à vue sont inclus dans la colonne Sans échéance sp",
+          "type": "modified",
+          "review_status": "approved"
+        },
+        {
+          "name": "[2] Les dépôts à vue et à préavis sont inclus dans la colonne Sa -> Les dépôts à vue et à préavis sont inclus dans la colonne Sa",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Indicators and headers are identical; row_count 15 vs 15; footnote_count 4 vs 4; title and table_summary match exactly.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05585180622663894,
+        0.5488630302723959,
+        0.943163976693927,
+        0.7709395539899773
+      ],
+      "bbox_t2": [
+        0.05623340682705928,
+        0.5558890234575278,
+        0.9428697292464813,
+        0.7881941678030687
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "financement",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "financement",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bmo::risk_management::tbl_p041_i02|tbl_p045_i02",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "TABLEAU 27",
+      "table_number": "",
+      "table_id_t1": "tbl_p041_i02",
+      "table_id_t2": "tbl_p045_i02",
+      "page_t1": 41,
+      "page_t2": 45,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.95,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "TABLEAU 27",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[3] Certains chiffres comparatifs ont été reclassés en fonction de la présentation adoptée pour la période à l’étude.",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Indicators and headers are identical; row_count 19 vs 19; footnote_count 3 vs 2; title and table_summary match exactly.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05701916766361145,
+        0.5499250506276191,
+        0.9369844811642747,
+        0.8625411404787174
+      ],
+      "bbox_t2": [
+        0.05705415379479496,
+        0.5497976051028757,
+        0.9370201777370248,
+        0.8624211690869245
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
       "change_id": "bmo::risk_management::tbl_p049_i01|tbl_p053_i01",
       "change_type": "removed",
       "indicator": "1 retiré(s)",
@@ -254,14 +468,14 @@
       "table_id_t2": "tbl_p053_i01",
       "page_t1": 49,
       "page_t2": 53,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T19:07:36.604467+00:00",
+      "review_timestamp": "2026-04-19T00:10:46.154438+00:00",
       "edited_value": "",
-      "confidence": 0.85,
+      "confidence": 0.95,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -277,7 +491,7 @@
           "review_status": "approved"
         }
       ],
-      "match_method": "Title and indicators match: 'Échéances contractuelles des actifs'; headers are highly similar; row_count 19 vs 20.",
+      "match_method": "Indicators and headers are identical; row_count 19 vs 20; footnote_count 0 vs 0; title and table_summary match exactly.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -322,14 +536,14 @@
       "table_id_t2": "tbl_p054_i02",
       "page_t1": 50,
       "page_t2": 54,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
-      "review_status": "approved",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T19:07:02.577910+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
-      "confidence": 0.85,
+      "confidence": 0.95,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -337,15 +551,15 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TABLEAU 41",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Instruments financiers inscrits au bilan",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
-      "match_method": "Title and indicators match: 'Échéances contractuelles des actifs'; headers are highly similar; row_count 19 vs 20.",
+      "match_method": "Indicators and headers are identical; row_count 19 vs 20; footnote_count 3 vs 3; title and table_summary match exactly.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -380,74 +594,6 @@
       }
     },
     {
-      "change_id": "bmo::risk_management::tbl_p049_i02|tbl_p053_i02",
-      "change_type": "removed",
-      "indicator": "",
-      "section": "risk_management",
-      "table_name": "TABLEAU 39",
-      "table_number": "",
-      "table_id_t1": "tbl_p049_i02",
-      "table_id_t2": "tbl_p053_i02",
-      "page_t1": 49,
-      "page_t2": 53,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 0.9,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "TABLEAU 39",
-      "table_status": "pending",
-      "indicators": [
-        {
-          "name": "[3] Des dépôts de 29 063 millions de dollars au 31 janvier 2025  -> Des dépôts de 28 685 millions de dollars au 30 avril 2025 on",
-          "type": "modified",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Title and indicators match: 'Échéances des passifs et capitaux propres'; headers are highly similar; row_count 15 vs 15.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05634824285116304,
-        0.5600132037878598,
-        0.9433078598069953,
-        0.7835735355284066
-      ],
-      "bbox_t2": [
-        0.05610247992466628,
-        0.5581170085530279,
-        0.9435374944635414,
-        0.7910717089890087
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "footnote",
-      "event_type": "footnote_only",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "financement",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      }
-    },
-    {
       "change_id": "bmo::risk_management::tbl_p040_i04|tbl_p044_i04",
       "change_type": "removed",
       "indicator": "",
@@ -458,14 +604,14 @@
       "table_id_t2": "tbl_p044_i04",
       "page_t1": 40,
       "page_t2": 44,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T19:07:11.697494+00:00",
+      "review_timestamp": "2026-04-19T00:10:59.190392+00:00",
       "edited_value": "",
-      "confidence": 0.95,
+      "confidence": 0.99,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -481,7 +627,7 @@
           "review_status": "approved"
         }
       ],
-      "match_method": "Table_summary match: 'Répartition de la période d’amortissement des prêts hypothécaires'; indicators: same 3 categories; row_count 3 vs 3; headers identical.",
+      "match_method": "Indicators and headers are identical; row_count 3 vs 3; footnote_count 4 vs 4; table_summary matches.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -526,14 +672,14 @@
       "table_id_t2": "tbl_p048_i02",
       "page_t1": 44,
       "page_t2": 48,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
       "review_timestamp": "",
       "edited_value": "",
-      "confidence": 0.95,
+      "confidence": 0.99,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -549,7 +695,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Table_summary match: 'Actifs grevés et actifs nets non grevés'; indicators: same 15 categories; row_count 15 vs 15; headers identical.",
+      "match_method": "Indicators and headers are identical; row_count 15 vs 15; footnote_count 5 vs 5; table_summary matches.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -584,74 +730,6 @@
       }
     },
     {
-      "change_id": "bmo::risk_management::tbl_p047_i01|tbl_p051_i01",
-      "change_type": "removed",
-      "indicator": "",
-      "section": "risk_management",
-      "table_name": "TABLEAU 36",
-      "table_number": "",
-      "table_id_t1": "tbl_p047_i01",
-      "table_id_t2": "tbl_p051_i01",
-      "page_t1": 47,
-      "page_t2": 51,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
-      "review_status": "approved",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T19:07:17.439778+00:00",
-      "edited_value": "",
-      "confidence": 0.95,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "TABLEAU 36",
-      "table_status": "completed",
-      "indicators": [
-        {
-          "name": "[2] 2 Les valeurs sont calculées en fonction de la moyenne simpl -> 2 Les valeurs sont calculées en fonction de la moyenne simpl",
-          "type": "modified",
-          "review_status": "approved"
-        }
-      ],
-      "match_method": "Title and table_summary match: 'Ratio de liquidité à court terme'; indicators: same 29 categories; row_count 29 vs 29; headers identical.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.0566460300425547,
-        0.05197698425516104,
-        0.9438471971310326,
-        0.4890180330023808
-      ],
-      "bbox_t2": [
-        0.05668109718900458,
-        0.05000901904393665,
-        0.944388030121526,
-        0.48741571759304564
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "footnote",
-      "event_type": "footnote_only",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "liquidite",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "liquidite",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      }
-    },
-    {
       "change_id": "bmo::regulatory_updates::tbl_p038_i01|",
       "change_type": "table_removed",
       "indicator": "Tableau entier retiré",
@@ -662,12 +740,12 @@
       "table_id_t2": "",
       "page_t1": 38,
       "page_t2": null,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T19:07:26.977810+00:00",
+      "review_timestamp": "2026-04-19T00:11:04.168490+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -733,8 +811,8 @@
         0.6813374428929619,
         0.41517749062381576
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00001",
@@ -744,35 +822,35 @@
             "indicator_name_clean": "série n – première tranche",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Série N – première tranche\" a été ajouté dans le tableau de gestion du capital au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer l'émission de nouveaux titres ou une nouvelle catégorisation des instruments financiers. Cela peut avoir un impact sur la structure du capital de la banque, influençant potentiellement les ratios de fonds propres réglementaires tels que ceux définis par Bâle III. La divulgation de ces informations est cruciale pour assurer la transparence vis-à-vis des investisseurs et des régulateurs.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer la nature de cette nouvelle série et s'assurer que les valeurs associées sont correctement intégrées dans les calculs des ratios de fonds propres."
+              "justification": "L'indicateur 'Série N – première tranche' a été ajouté dans le tableau de gestion du capital au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer l'émission d'une nouvelle série de titres ou d'instruments financiers, ce qui peut avoir un impact sur la structure du capital de la banque. Cela pourrait également refléter une stratégie de financement ou de gestion des risques modifiée, en lien avec les exigences de fonds propres réglementaires telles que définies par Bâle III ou les lignes directrices du BSIF.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer la nature de cet ajout et s'assurer qu'il est correctement intégré dans les calculs de fonds propres et de ratios prudentiels."
             }
           },
           "validation_status": "approved",
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T19:06:38.303790+00:00",
+          "validated_at": "2026-04-19T00:10:15.112415+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00004",
+          "change_id": "chg_00005",
           "change_type": "footnote_removed",
           "payload": {
-            "indicator_name": "[4] Les billets avaient un taux d’intérêt initial de 4,800 %, qui a été ajusté à 6,709 % le 25 août 2024.",
-            "indicator_name_clean": "[4] les billets avaient un taux d’intérêt initial de 4,800 %, qui a été ajusté à 6,709 % le 25 août 2024.",
-            "footnote_ref": "4",
-            "old_text": "Les billets avaient un taux d’intérêt initial de 4,800 %, qui a été ajusté à 6,709 % le 25 août 2024.",
+            "indicator_name": "[3] Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actio",
+            "indicator_name_clean": "[3] convertible en actions ordinaires. les billets avec remboursement de capital à recours limité sont convertibles en actio",
+            "footnote_ref": "3",
+            "old_text": "Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actions ordinaires en vertu du recours aux actions privilégiées, série 49, aux actions privilégiées, série 51, aux actions privilégiées, série 53 et aux actions privilégiées, série 54 au titre des billets avec remboursement de capital à recours limité, série 3, série 4 et série 5, respectivement émises en même temps que les billets avec remboursement de capital à recours limité, qui comprennent actions privilégiées à recours limité.",
             "new_text": ""
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-19T00:11:43.591641+00:00",
+          "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00005",
+          "change_id": "chg_00006",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[2] Le nombre d’actions ordinaires est présenté déduction faite  -> Convertible en actions ordinaires. Les billets avec rembours",
@@ -781,88 +859,71 @@
             "old_text": "Le nombre d’actions ordinaires est présenté déduction faite de 95 889 actions propres.",
             "new_text": "Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actions ordinaires en vertu du recours aux actions privilégiées, série 49, aux actions privilégiées, série 51, aux actions privilégiées, série 53 et aux actions privilégiées, série 54 au titre des billets avec remboursement de capital à recours limité, série 3, série 4 et série 5, respectivement émises en même temps que les billets avec remboursement de capital à recours limité, qui comprennent actuellement une clause de non-viabilité limitée."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00006",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[3] Convertible en actions ordinaires. Les billets avec rembours -> Les billets avaient un taux d’intérêt initial de 4,800 %, qu",
-            "indicator_name_clean": "[3] convertible en actions ordinaires. les billets avec rembours -> les billets avaient un taux d’intérêt initial de 4,800 %, qu",
-            "footnote_ref": "3",
-            "old_text": "Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actions ordinaires en vertu du recours aux actions privilégiées, série 49, aux actions privilégiées, série 51, aux actions privilégiées, série 53 et aux actions privilégiées, série 54 au titre des billets avec remboursement de capital à recours limité, série 3, série 4 et série 5, respectivement émises en même temps que les billets avec remboursement de capital à recours limité, qui comprennent actions privilégiées à recours limité.",
-            "new_text": "Les billets avaient un taux d’intérêt initial de 4,800 %, qui a été ajusté à 6,709 % le 25 août 2024."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-19T00:11:18.100025+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "partial",
-      "confidence": 0.9,
-      "match_method": "Title identical: 'TABLEAU 13'; indicators: similar 24 rows (actions, billets); row_count 25 vs 24; headers identical.",
+      "table_status": "completed",
+      "confidence": 0.95,
+      "match_method": "Indicators and headers are nearly identical; row_count 25 vs 24; footnote_count 3 vs 4; title and table_summary match exactly.",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 3 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
       "match_metadata": {
         "drastic_row_drop": false,
         "theme": "capital",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 3 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
       "relevance": "",
       "risk_level": "",
       "summary": {
-        "total_changes": 4,
+        "total_changes": 3,
         "indicators_added": 1,
         "indicators_removed": 0,
         "indicators_renamed": 0,
-        "footnotes_changed": 3,
-        "validated": 1,
-        "pending": 3
+        "footnotes_changed": 2,
+        "validated": 3,
+        "pending": 0
       }
     },
     {
-      "review_id": "bmo::risk_management::tbl_p050_i03|tbl_p054_i03",
-      "table_key": "bmo::risk_management::tbl_p050_i03|tbl_p054_i03",
-      "table_title": "TABLEAU 42",
+      "review_id": "bmo::risk_management::tbl_p049_i02|tbl_p053_i02",
+      "table_key": "bmo::risk_management::tbl_p049_i02|tbl_p053_i02",
+      "table_title": "TABLEAU 39",
       "view_mode": "change_list",
       "section": "risk_management",
-      "table_name": "TABLEAU 42",
+      "table_name": "TABLEAU 39",
       "table_number": "",
-      "table_id_t1": "tbl_p050_i03",
-      "table_id_t2": "tbl_p054_i03",
-      "page_t1": 50,
-      "page_t2": 54,
+      "table_id_t1": "tbl_p049_i02",
+      "table_id_t2": "tbl_p053_i02",
+      "page_t1": 49,
+      "page_t2": 53,
       "proof_image_t1": "",
       "proof_image_t2": "",
       "proof_image_combined": "",
       "bbox_t1": [
-        0.05585180622663894,
-        0.5488630302723959,
-        0.943163976693927,
-        0.7709395539899773
+        0.05634824285116304,
+        0.5600132037878598,
+        0.9433078598069953,
+        0.7835735355284066
       ],
       "bbox_t2": [
-        0.05623340682705928,
-        0.5558890234575278,
-        0.9428697292464813,
-        0.7881941678030687
+        0.05610247992466628,
+        0.5581170085530279,
+        0.9435374944635414,
+        0.7910717089890087
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00013",
@@ -878,7 +939,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T19:06:51.386666+00:00",
+          "validated_at": "2026-04-19T00:10:35.396521+00:00",
           "validated_by": "analyst"
         },
         {
@@ -891,40 +952,57 @@
             "old_text": "Les dépôts à vue et à préavis sont inclus dans la colonne Sans échéance.",
             "new_text": "Les dépôts à vue et à préavis sont inclus dans la colonne Sans échéance spécifique."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T19:07:34.344781+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00015",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[3] Des dépôts de 29 063 millions de dollars au 31 janvier 2025  -> Des dépôts de 28 685 millions de dollars au 30 avril 2025 on",
+            "indicator_name_clean": "[3] des dépôts de 29 063 millions de dollars au 31 janvier 2025  -> des dépôts de 28 685 millions de dollars au 30 avril 2025 on",
+            "footnote_ref": "3",
+            "old_text": "Des dépôts de 29 063 millions de dollars au 31 janvier 2025 ont une date d’échéance fixe, mais ils peuvent toutefois faire l’objet d’une demande de remboursement anticipé (en totalité ou en partie) par le client sans pénalité. Ils sont classés comme étant exigibles à une date fixe en raison de leur date d’échéance contractuelle déclarée.",
+            "new_text": "Des dépôts de 28 685 millions de dollars au 30 avril 2025 ont une date d’échéance fixe, mais ils peuvent toutefois faire l’objet d’une demande de remboursement anticipé (en totalité ou en partie) par le client sans pénalité. Ils sont classés comme étant exigibles à une date fixe en raison de leur date d’échéance contractuelle déclarée."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
-      "confidence": 0.9,
-      "match_method": "Title and indicators match: 'Échéances des passifs et capitaux propres'; headers are highly similar; row_count 15 vs 15.",
+      "table_status": "partial",
+      "confidence": 0.99,
+      "match_method": "Indicators and headers are identical; row_count 15 vs 15; footnote_count 4 vs 4; title and table_summary match exactly.",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 3 changement(s) de footnote."
       },
       "match_metadata": {
         "drastic_row_drop": false,
         "theme": "financement",
         "review_priority": "prioritaire",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 3 changement(s) de footnote."
       },
       "relevance": "",
       "risk_level": "",
       "summary": {
-        "total_changes": 2,
+        "total_changes": 3,
         "indicators_added": 0,
         "indicators_removed": 0,
         "indicators_renamed": 0,
-        "footnotes_changed": 2,
-        "validated": 2,
-        "pending": 0
+        "footnotes_changed": 3,
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -954,11 +1032,11 @@
         0.9373516174236767,
         0.4947322773282425
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00009",
+          "change_id": "chg_00010",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[3] Comprennent les titrisations de créances de cartes de crédit -> Comprennent les titrisations de créances de cartes de crédit",
@@ -971,11 +1049,11 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T19:06:53.369119+00:00",
+          "validated_at": "2026-04-19T00:10:36.694576+00:00",
           "validated_by": "analyst"
         },
         {
-          "change_id": "chg_00010",
+          "change_id": "chg_00011",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[4] Le total du financement de gros était constitué de 52,3 mill -> Le total du financement de gros était constitué de 53,0 mill",
@@ -993,8 +1071,8 @@
         }
       ],
       "table_status": "partial",
-      "confidence": 0.95,
-      "match_method": "Title and table_summary match: 'Échéances du financement de gros'; indicators: same 17 categories; row_count 17 vs 17; headers identical.",
+      "confidence": 0.99,
+      "match_method": "Indicators and headers are identical; row_count 17 vs 17; footnote_count 4 vs 4; title and table_summary match exactly.",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
@@ -1017,6 +1095,269 @@
         "indicators_renamed": 0,
         "footnotes_changed": 2,
         "validated": 1,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "bmo::risk_management::tbl_p047_i01|tbl_p051_i01",
+      "table_key": "bmo::risk_management::tbl_p047_i01|tbl_p051_i01",
+      "table_title": "TABLEAU 36",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "TABLEAU 36",
+      "table_number": "",
+      "table_id_t1": "tbl_p047_i01",
+      "table_id_t2": "tbl_p051_i01",
+      "page_t1": 47,
+      "page_t2": 51,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.0566460300425547,
+        0.05197698425516104,
+        0.9438471971310326,
+        0.4890180330023808
+      ],
+      "bbox_t2": [
+        0.05668109718900458,
+        0.05000901904393665,
+        0.944388030121526,
+        0.48741571759304564
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00002",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Pour le trimestre clos le 31 octobre 2024 – Total des sorties nettes de trésorerie",
+            "indicator_name_clean": "pour le trimestre clos le 31 octobre 2024 – total des sorties nettes de trésorerie",
+            "analyst_assessment": {
+              "relevance_level": 3,
+              "justification": "L'indicateur \"Pour le trimestre clos le 31 octobre 2024 – Total des sorties nettes de trésorerie\" a été retiré du tableau de gestion des risques au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait semble être une simplification de la présentation des données historiques, probablement pour éviter la redondance avec les nouvelles lignes ajoutées. Cela n'affecte pas directement les exigences réglementaires mais peut influencer la clarté des rapports pour les utilisateurs finaux.\n\nIl s'agit d'une mise à jour cosmétique. L'analyste devrait vérifier que les informations pertinentes sont toujours disponibles ailleurs dans le rapport."
+            }
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-19T00:10:18.738993+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00012",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[2] 2 Les valeurs sont calculées en fonction de la moyenne simpl -> 2 Les valeurs sont calculées en fonction de la moyenne simpl",
+            "indicator_name_clean": "[2] 2 les valeurs sont calculées en fonction de la moyenne simpl -> 2 les valeurs sont calculées en fonction de la moyenne simpl",
+            "footnote_ref": "2",
+            "old_text": "2 Les valeurs sont calculées en fonction de la moyenne simple du RLCT quotidien sur 62 jours ouvrables au premier trimestre de 2025.",
+            "new_text": "2 Les valeurs sont calculées en fonction de la moyenne simple du RLCT quotidien sur 61 jours ouvrables au deuxième trimestre de l’exercice 2025."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.99,
+      "match_method": "Indicators and headers are identical; row_count 29 vs 29; footnote_count 5 vs 5; title and table_summary match exactly.",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 0,
+        "indicators_removed": 1,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 1,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "bmo::risk_management::tbl_p050_i03|tbl_p054_i03",
+      "table_key": "bmo::risk_management::tbl_p050_i03|tbl_p054_i03",
+      "table_title": "TABLEAU 42",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "TABLEAU 42",
+      "table_number": "",
+      "table_id_t1": "tbl_p050_i03",
+      "table_id_t2": "tbl_p054_i03",
+      "page_t1": 50,
+      "page_t2": 54,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05585180622663894,
+        0.5488630302723959,
+        0.943163976693927,
+        0.7709395539899773
+      ],
+      "bbox_t2": [
+        0.05623340682705928,
+        0.5558890234575278,
+        0.9428697292464813,
+        0.7881941678030687
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00016",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Les prêts à vue sont inclus dans la colonne Sans échéance. -> Les prêts à vue sont inclus dans la colonne Sans échéance sp",
+            "indicator_name_clean": "[1] les prêts à vue sont inclus dans la colonne sans échéance. -> les prêts à vue sont inclus dans la colonne sans échéance sp",
+            "footnote_ref": "1",
+            "old_text": "Les prêts à vue sont inclus dans la colonne Sans échéance.",
+            "new_text": "Les prêts à vue sont inclus dans la colonne Sans échéance spécifique."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-19T00:10:38.577736+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00017",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[2] Les dépôts à vue et à préavis sont inclus dans la colonne Sa -> Les dépôts à vue et à préavis sont inclus dans la colonne Sa",
+            "indicator_name_clean": "[2] les dépôts à vue et à préavis sont inclus dans la colonne sa -> les dépôts à vue et à préavis sont inclus dans la colonne sa",
+            "footnote_ref": "2",
+            "old_text": "Les dépôts à vue et à préavis sont inclus dans la colonne Sans échéance.",
+            "new_text": "Les dépôts à vue et à préavis sont inclus dans la colonne Sans échéance spécifique."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.99,
+      "match_method": "Indicators and headers are identical; row_count 15 vs 15; footnote_count 4 vs 4; title and table_summary match exactly.",
+      "genai_analysis": {
+        "theme": "financement",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "financement",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 2,
+        "validated": 1,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "bmo::risk_management::tbl_p041_i02|tbl_p045_i02",
+      "table_key": "bmo::risk_management::tbl_p041_i02|tbl_p045_i02",
+      "table_title": "TABLEAU 27",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "TABLEAU 27",
+      "table_number": "",
+      "table_id_t1": "tbl_p041_i02",
+      "table_id_t2": "tbl_p045_i02",
+      "page_t1": 41,
+      "page_t2": 45,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05701916766361145,
+        0.5499250506276191,
+        0.9369844811642747,
+        0.8625411404787174
+      ],
+      "bbox_t2": [
+        0.05705415379479496,
+        0.5497976051028757,
+        0.9370201777370248,
+        0.8624211690869245
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00008",
+          "change_type": "footnote_added",
+          "payload": {
+            "indicator_name": "[3] Certains chiffres comparatifs ont été reclassés en fonction de la présentation adoptée pour la période à l’étude.",
+            "indicator_name_clean": "[3] certains chiffres comparatifs ont été reclassés en fonction de la présentation adoptée pour la période à l’étude.",
+            "footnote_ref": "3",
+            "old_text": "",
+            "new_text": "Certains chiffres comparatifs ont été reclassés en fonction de la présentation adoptée pour la période à l’étude."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.95,
+      "match_method": "Indicators and headers are identical; row_count 19 vs 19; footnote_count 3 vs 2; title and table_summary match exactly.",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
         "pending": 1
       }
     },
@@ -1047,31 +1388,31 @@
         0.9432558106143261,
         0.533238008601263
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00002",
+          "change_id": "chg_00003",
           "change_type": "indicator_removed",
           "payload": {
             "indicator_name": "Instruments financiers inscrits au bilan",
             "indicator_name_clean": "instruments financiers inscrits au bilan",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Instruments financiers inscrits au bilan\" a été supprimé du tableau des échéances des actifs d’instruments financiers inscrits au bilan au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut indiquer un changement dans la manière dont les actifs financiers sont présentés ou catégorisés dans le rapport. L'indicateur servait probablement de titre ou de catégorie englobante pour les actifs financiers inscrits au bilan, et sa disparition pourrait refléter une simplification ou une réorganisation de la présentation des données. Cela pourrait avoir un impact sur la compréhension des lecteurs quant à la structure des actifs financiers de l'institution.\n\nIl s'agit d'un changement structurel dans la présentation des données. L'analyste devrait vérifier si cette suppression est compensée par une autre forme de présentation ou si elle résulte d'une modification méthodologique. Il est recommandé de confirmer que les informations essentielles sont toujours couvertes ailleurs dans le rapport."
+              "justification": "L'indicateur \"Instruments financiers inscrits au bilan\" a été supprimé du tableau des échéances des actifs d’instruments financiers inscrits au bilan au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut indiquer un changement dans la manière dont les actifs financiers sont présentés ou catégorisés dans le rapport. L'indicateur servait probablement de titre ou de catégorie englobante pour les actifs financiers inscrits au bilan, et son absence pourrait refléter une simplification ou une réorganisation de la présentation des données.\n\nIl s'agit d'un changement structurel qui pourrait affecter la compréhension globale du tableau par les parties prenantes. L'analyste devrait confirmer que cette suppression n'entraîne pas de perte d'information critique et que les autres indicateurs du tableau couvrent adéquatement les informations précédemment englobées par cet indicateur."
             }
           },
           "validation_status": "approved",
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T19:07:36.604467+00:00",
+          "validated_at": "2026-04-19T00:10:46.154438+00:00",
           "validated_by": "analyst"
         }
       ],
       "table_status": "completed",
-      "confidence": 0.85,
-      "match_method": "Title and indicators match: 'Échéances contractuelles des actifs'; headers are highly similar; row_count 19 vs 20.",
+      "confidence": 0.95,
+      "match_method": "Indicators and headers are identical; row_count 19 vs 20; footnote_count 0 vs 0; title and table_summary match exactly.",
       "genai_analysis": {
         "theme": "risque_credit",
         "change_significance": "moyen",
@@ -1124,31 +1465,31 @@
         0.9432131342647813,
         0.5281548276657574
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00003",
+          "change_id": "chg_00004",
           "change_type": "indicator_removed",
           "payload": {
             "indicator_name": "Instruments financiers inscrits au bilan",
             "indicator_name_clean": "instruments financiers inscrits au bilan",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Instruments financiers inscrits au bilan\" a été retiré du tableau des échéances des instruments financiers inscrits au bilan au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait peut indiquer un changement dans la présentation des informations financières, potentiellement lié à une réorganisation des catégories d'actifs ou à une mise à jour des normes de divulgation. Bien que cet indicateur ne soit pas directement lié à une exigence réglementaire spécifique comme Bâle III, il joue un rôle dans la transparence des informations fournies aux parties prenantes.\n\nIl s'agit probablement d'une mise à jour structurelle du tableau. L'analyste devrait vérifier si cette information est désormais intégrée ailleurs dans le rapport ou si elle a été jugée redondante."
+              "justification": "L'indicateur \"Instruments financiers inscrits au bilan\" a été supprimé du tableau actuel des échéances contractuelles des actifs, alors qu'il était présent dans le tableau précédent des échéances des instruments financiers inscrits au bilan.\n\nCette suppression peut indiquer un changement dans la manière dont les actifs sont présentés ou catégorisés dans le rapport. L'indicateur supprimé servait probablement de titre ou de catégorie englobante pour les actifs inscrits au bilan, ce qui pourrait avoir des implications sur la clarté et la structure de la présentation des données financières.\n\nIl s'agit d'un changement structurel qui pourrait affecter la compréhension des données par les parties prenantes. L'analyste devrait vérifier si cette suppression est compensée par une autre forme de présentation ou si elle nécessite une clarification supplémentaire dans le rapport."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T19:07:02.577910+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
-      "confidence": 0.85,
-      "match_method": "Title and indicators match: 'Échéances contractuelles des actifs'; headers are highly similar; row_count 19 vs 20.",
+      "table_status": "pending",
+      "confidence": 0.95,
+      "match_method": "Indicators and headers are identical; row_count 19 vs 20; footnote_count 3 vs 3; title and table_summary match exactly.",
       "genai_analysis": {
         "theme": "risque_credit",
         "change_significance": "moyen",
@@ -1170,82 +1511,6 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
-      }
-    },
-    {
-      "review_id": "bmo::risk_management::tbl_p049_i02|tbl_p053_i02",
-      "table_key": "bmo::risk_management::tbl_p049_i02|tbl_p053_i02",
-      "table_title": "TABLEAU 39",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "TABLEAU 39",
-      "table_number": "",
-      "table_id_t1": "tbl_p049_i02",
-      "table_id_t2": "tbl_p053_i02",
-      "page_t1": 49,
-      "page_t2": 53,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05634824285116304,
-        0.5600132037878598,
-        0.9433078598069953,
-        0.7835735355284066
-      ],
-      "bbox_t2": [
-        0.05610247992466628,
-        0.5581170085530279,
-        0.9435374944635414,
-        0.7910717089890087
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00012",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[3] Des dépôts de 29 063 millions de dollars au 31 janvier 2025  -> Des dépôts de 28 685 millions de dollars au 30 avril 2025 on",
-            "indicator_name_clean": "[3] des dépôts de 29 063 millions de dollars au 31 janvier 2025  -> des dépôts de 28 685 millions de dollars au 30 avril 2025 on",
-            "footnote_ref": "3",
-            "old_text": "Des dépôts de 29 063 millions de dollars au 31 janvier 2025 ont une date d’échéance fixe, mais ils peuvent toutefois faire l’objet d’une demande de remboursement anticipé (en totalité ou en partie) par le client sans pénalité. Ils sont classés comme étant exigibles à une date fixe en raison de leur date d’échéance contractuelle déclarée.",
-            "new_text": "Des dépôts de 28 685 millions de dollars au 30 avril 2025 ont une date d’échéance fixe, mais ils peuvent toutefois faire l’objet d’une demande de remboursement anticipé (en totalité ou en partie) par le client sans pénalité. Ils sont classés comme étant exigibles à une date fixe en raison de leur date d’échéance contractuelle déclarée."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "pending",
-      "confidence": 0.9,
-      "match_method": "Title and indicators match: 'Échéances des passifs et capitaux propres'; headers are highly similar; row_count 15 vs 15.",
-      "genai_analysis": {
-        "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "financement",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "relevance": "",
-      "risk_level": "",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 1,
         "validated": 0,
         "pending": 1
       }
@@ -1277,8 +1542,8 @@
         0.9411131188494457,
         0.7284487999547545
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00007",
@@ -1294,13 +1559,13 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T19:07:11.697494+00:00",
+          "validated_at": "2026-04-19T00:10:59.190392+00:00",
           "validated_by": "analyst"
         }
       ],
       "table_status": "completed",
-      "confidence": 0.95,
-      "match_method": "Table_summary match: 'Répartition de la période d’amortissement des prêts hypothécaires'; indicators: same 3 categories; row_count 3 vs 3; headers identical.",
+      "confidence": 0.99,
+      "match_method": "Indicators and headers are identical; row_count 3 vs 3; footnote_count 4 vs 4; table_summary matches.",
       "genai_analysis": {
         "theme": "risque_marche",
         "change_significance": "moyen",
@@ -1353,11 +1618,11 @@
         0.945791463812749,
         0.4999785022361527
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00008",
+          "change_id": "chg_00009",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[3] Les autres actifs non grevés comprennent certains actifs liq -> Les autres actifs non grevés comprennent certains actifs liq",
@@ -1375,8 +1640,8 @@
         }
       ],
       "table_status": "pending",
-      "confidence": 0.95,
-      "match_method": "Table_summary match: 'Actifs grevés et actifs nets non grevés'; indicators: same 15 categories; row_count 15 vs 15; headers identical.",
+      "confidence": 0.99,
+      "match_method": "Indicators and headers are identical; row_count 15 vs 15; footnote_count 5 vs 5; table_summary matches.",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
@@ -1403,82 +1668,6 @@
       }
     },
     {
-      "review_id": "bmo::risk_management::tbl_p047_i01|tbl_p051_i01",
-      "table_key": "bmo::risk_management::tbl_p047_i01|tbl_p051_i01",
-      "table_title": "TABLEAU 36",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "TABLEAU 36",
-      "table_number": "",
-      "table_id_t1": "tbl_p047_i01",
-      "table_id_t2": "tbl_p051_i01",
-      "page_t1": 47,
-      "page_t2": 51,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.0566460300425547,
-        0.05197698425516104,
-        0.9438471971310326,
-        0.4890180330023808
-      ],
-      "bbox_t2": [
-        0.05668109718900458,
-        0.05000901904393665,
-        0.944388030121526,
-        0.48741571759304564
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00011",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[2] 2 Les valeurs sont calculées en fonction de la moyenne simpl -> 2 Les valeurs sont calculées en fonction de la moyenne simpl",
-            "indicator_name_clean": "[2] 2 les valeurs sont calculées en fonction de la moyenne simpl -> 2 les valeurs sont calculées en fonction de la moyenne simpl",
-            "footnote_ref": "2",
-            "old_text": "2 Les valeurs sont calculées en fonction de la moyenne simple du RLCT quotidien sur 62 jours ouvrables au premier trimestre de 2025.",
-            "new_text": "2 Les valeurs sont calculées en fonction de la moyenne simple du RLCT quotidien sur 61 jours ouvrables au deuxième trimestre de l’exercice 2025."
-          },
-          "validation_status": "approved",
-          "is_required": false,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-18T19:07:17.439778+00:00",
-          "validated_by": "analyst"
-        }
-      ],
-      "table_status": "completed",
-      "confidence": 0.95,
-      "match_method": "Title and table_summary match: 'Ratio de liquidité à court terme'; indicators: same 29 categories; row_count 29 vs 29; headers identical.",
-      "genai_analysis": {
-        "theme": "liquidite",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "liquidite",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "relevance": "",
-      "risk_level": "",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
-      }
-    },
-    {
       "review_id": "bmo::regulatory_updates::tbl_p038_i01|",
       "table_key": "bmo::regulatory_updates::tbl_p038_i01|",
       "table_title": "TABLEAU 21",
@@ -1500,11 +1689,11 @@
         0.47216228361421947
       ],
       "bbox_t2": null,
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00015",
+          "change_id": "chg_00018",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
@@ -1514,7 +1703,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T19:07:26.977810+00:00",
+          "validated_at": "2026-04-19T00:11:04.168490+00:00",
           "validated_by": "analyst"
         }
       ],

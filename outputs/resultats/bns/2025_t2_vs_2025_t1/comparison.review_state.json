@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bns/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260410_112937",
   "review_items_signature": "f92f0374cc5149b3bf365d58af638fd291f7951e8823d2f3ca19b5d0aa8ed783",
-  "saved_at": "2026-04-18T18:47:01+00:00",
+  "saved_at": "2026-04-19T00:08:36+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bns::risk_management::tbl_p039_i02|tbl_p045_i02",
-    "change_id": "chg_00011"
+    "review_id": "bns::capital_management::tbl_p046_i01|tbl_p053_i01",
+    "change_id": "chg_00003"
   },
-  "review_current_idx": 0,
-  "current_change_idx": 2,
+  "review_current_idx": 5,
+  "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T18:47:01.333058+00:00",
+      "review_timestamp": "2026-04-19T00:08:31.167511+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -55,7 +55,7 @@
         {
           "name": "[3] Autres actifs non grevés qui ne peuvent être donnés en garantie dans le cours normal des activités comprennent les prêts",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[4] Comprennent les instruments dérivés, les actifs au titre des transactions de financement de titres et les autres actifs ",
@@ -113,7 +113,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T18:46:59.785377+00:00",
+      "review_timestamp": "2026-04-19T00:08:32.496067+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -185,8 +185,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-19T00:08:33.686821+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -196,12 +196,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T21 Expositions au risque de crédit de la Banque par régions",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[1] Les comptes de correction de valeur pour pertes sur créances -> Les comptes de correction de valeur pour pertes sur créances",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[3] Les transactions de financement sur titres comprennent des t -> Les transactions de financement sur titres comprennent des t",
@@ -256,10 +256,10 @@
       "page_t2": 46,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T18:46:57.397830+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -269,12 +269,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T28 Ratio de liquidité à court terme moyen de la Banque¹)",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Pour le trimestre clos le 31janvier 2025 (en millions de dollars)",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[*] La présentation de cette information n’est pas exigée aux termes de la ligne directrice.",
@@ -332,7 +332,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T18:46:51.519431+00:00",
+      "review_timestamp": "2026-04-19T00:08:36.126494+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -400,7 +400,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T18:46:49.738712+00:00",
+      "review_timestamp": "2026-04-19T00:08:28.104931+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -468,7 +468,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T18:46:48.947679+00:00",
+      "review_timestamp": "2026-04-19T00:08:27.047697+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -533,10 +533,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T1.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T2.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T18:46:47.668818+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -546,7 +546,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "T33 Indicateurs de BISm",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -619,7 +619,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T18:46:43.274644+00:00",
+          "validated_at": "2026-04-19T00:07:59.165786+00:00",
           "validated_by": "analyst"
         },
         {
@@ -636,7 +636,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T18:47:01.333058+00:00",
+          "validated_at": "2026-04-19T00:07:59.323560+00:00",
           "validated_by": "analyst"
         },
         {
@@ -649,12 +649,12 @@
             "old_text": "",
             "new_text": "Autres actifs non grevés qui ne peuvent être donnés en garantie dans le cours normal des activités comprennent les prêts non admissibles à des programmes de banques centrales, les actifs physiques et les autres actifs."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-19T00:08:31.167511+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00012",
@@ -698,8 +698,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 4,
-        "validated": 2,
-        "pending": 2
+        "validated": 3,
+        "pending": 1
       }
     },
     {
@@ -746,7 +746,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T18:46:59.785377+00:00",
+          "validated_at": "2026-04-19T00:08:32.496067+00:00",
           "validated_by": "analyst"
         },
         {
@@ -835,12 +835,12 @@
             "old_text": "Les comptes de correction de valeur pour pertes sur créances s’établissaient à 598 $. Les lettres de crédit et de garanties sont incluses dans les expositions financées puisqu’elles ont été émises. Les prêts et équivalents de prêts comprenaient des lettres de crédit et de garanties d’un montant total de 14 740 $ au 31 janvier 2025 (31 octobre 2024 – 14 446 $).",
             "new_text": "Les comptes de correction de valeur pour pertes sur créances s’établissaient à 581 $. Les lettres de crédit et de garanties sont incluses dans les expositions financées puisqu’elles ont été émises. Les prêts et équivalents de prêts comprenaient des lettres de crédit et de garanties d’un montant total de 14 272 $ au 30 avril 2025 (31 janvier 2025 – 14 740 $; 31 octobre 2024 – 14 446 $)."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-19T00:08:33.686821+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00007",
@@ -860,7 +860,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.99,
       "match_method": "Title identical: 'T21 Expositions au risque de crédit de la Banque par régions'; indicators: identical structure with same 7 rows; row_count 7 vs 7; headers similar structure.",
       "genai_analysis": {
@@ -884,8 +884,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 0,
-        "pending": 2
+        "validated": 1,
+        "pending": 1
       }
     },
     {
@@ -929,12 +929,12 @@
               "justification": "Cet indicateur semble être un artefact de date ou de période, et non un indicateur métier réel. Il n'affecte pas l'analyse des ratios de liquidité."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T18:46:57.397830+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00013",
@@ -954,7 +954,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Title identical: 'T28 Ratio de liquidité à court terme moyen de la Banque¹)'; indicators: identical structure with same 29 rows; row_count 30 vs 29; headers similar structure.",
       "genai_analysis": {
@@ -978,8 +978,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1027,7 +1027,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T18:46:51.519431+00:00",
+          "validated_at": "2026-04-19T00:08:36.126494+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1104,7 +1104,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T18:46:49.738712+00:00",
+          "validated_at": "2026-04-19T00:08:28.104931+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1180,7 +1180,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T18:46:48.947679+00:00",
+          "validated_at": "2026-04-19T00:08:27.047697+00:00",
           "validated_by": "analyst"
         }
       ],
@@ -1244,15 +1244,15 @@
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T18:46:47.668818+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1272,8 +1272,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     }
   ]
