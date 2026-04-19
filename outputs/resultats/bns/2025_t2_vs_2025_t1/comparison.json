@@ -200,13 +200,7 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor",
-        "_analyst_review": {
-          "status": "approved",
-          "notes": "",
-          "at": "2026-04-18T18:46:47.668818+00:00",
-          "by": "analyst"
-        }
+        "visual_sanity_render_status": "skipped_missing_anchor"
       }
     ],
     "artifacts_confirmed_previous": [
@@ -564,6 +558,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "Les montants financiers ont été mis à jour, ce qui peut affecter l'évaluation des risques et la gestion des actifs immobiliers."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-19T00:08:32.496067+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -977,6 +977,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La modification des montants des comptes de correction de valeur et des lettres de crédit peut indiquer un changement dans l'évaluation des risques de crédit, ce qui est crucial pour l'analyse des expositions financières."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-19T00:08:33.686821+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -1348,7 +1354,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-18T18:46:48.947679+00:00",
+              "at": "2026-04-19T00:08:27.047697+00:00",
               "by": "analyst"
             }
           }
@@ -1935,7 +1941,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-18T18:46:43.274644+00:00",
+              "at": "2026-04-19T00:07:59.165786+00:00",
               "by": "analyst"
             }
           },
@@ -1950,7 +1956,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-18T18:47:01.333058+00:00",
+              "at": "2026-04-19T00:07:59.323560+00:00",
               "by": "analyst"
             }
           },
@@ -1961,6 +1967,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "L'ajout d'une nouvelle note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-04-19T00:08:31.167511+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -2321,12 +2333,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "Cet indicateur semble être un artefact de date ou de période, et non un indicateur métier réel. Il n'affecte pas l'analyse des ratios de liquidité."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-18T18:46:57.397830+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -2529,7 +2535,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-18T18:46:51.519431+00:00",
+              "at": "2026-04-19T00:08:36.126494+00:00",
               "by": "analyst"
             }
           }
@@ -3389,7 +3395,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-18T18:46:49.738712+00:00",
+              "at": "2026-04-19T00:08:28.104931+00:00",
               "by": "analyst"
             }
           }
@@ -3493,9 +3499,9 @@
     "high_priority_items_total": 7
   },
   "review_decisions_summary": {
-    "matched": 7,
-    "unmatched": 1,
+    "matched": 8,
+    "unmatched": 0,
     "pending": 6,
-    "updated_at": "2026-04-18T18:47:01+00:00"
+    "updated_at": "2026-04-19T00:08:36+00:00"
   }
 }

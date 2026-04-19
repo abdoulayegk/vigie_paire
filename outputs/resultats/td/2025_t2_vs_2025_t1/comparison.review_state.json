@@ -1,23 +1,23 @@
 {
   "schema_version": "review_state_v1",
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/comparison.json",
-  "comparison_run_id": "20260414_105249",
-  "review_items_signature": "793119c2243934a8fa1adfcd19866dac29000b146a014a7680d92730e68ee1ee",
-  "saved_at": "2026-04-14T18:54:40+00:00",
+  "comparison_run_id": "20260418_195316",
+  "review_items_signature": "4dd1957613947c3314cf60bfd295069f29ee5f9a99e73da99d827999b00b1fd7",
+  "saved_at": "2026-04-19T00:10:06+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "td::risk_management::tbl_p051_i01|tbl_p053_i01",
-    "change_id": "chg_00016"
+    "review_id": "td::risk_management::tbl_p052_i01|tbl_p054_i01",
+    "change_id": "chg_00032"
   },
-  "review_current_idx": 3,
-  "current_change_idx": 2,
+  "review_current_idx": 5,
+  "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
     {
       "change_id": "td::risk_management::tbl_p045_i01|tbl_p047_i01",
       "change_type": "removed",
-      "indicator": "2 ajouté(s), 4 retiré(s)",
+      "indicator": "2 ajouté(s), 8 retiré(s)",
       "section": "risk_management",
       "table_name": "SOMMAIRE DES ACTIFS LIQUIDES PAR TYPE ET PAR MONNAIE",
       "table_number": "",
@@ -25,14 +25,14 @@
       "table_id_t2": "tbl_p047_i01",
       "page_t1": 45,
       "page_t2": 47,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-14T18:50:37.027306+00:00",
+      "review_timestamp": "2026-04-19T00:08:47.750807+00:00",
       "edited_value": "",
-      "confidence": 0.95,
+      "confidence": 0.97,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -58,12 +58,12 @@
           "review_status": "pending"
         },
         {
-          "name": "Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
+          "name": "Titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation",
           "type": "removed",
           "review_status": "pending"
         },
         {
-          "name": "Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires",
+          "name": "Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
           "type": "removed",
           "review_status": "pending"
         },
@@ -73,12 +73,32 @@
           "review_status": "pending"
         },
         {
+          "name": "Obligations du gouvernement des États-Unis",
+          "type": "removed",
+          "review_status": "pending"
+        },
+        {
+          "name": "Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires",
+          "type": "removed",
+          "review_status": "pending"
+        },
+        {
+          "name": "Obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement (bloc 2)",
+          "type": "removed",
+          "review_status": "pending"
+        },
+        {
+          "name": "Obligations de sociétés émettrices (bloc 2)",
+          "type": "removed",
+          "review_status": "pending"
+        },
+        {
           "name": "[2] Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation.",
           "type": "modified",
           "review_status": "pending"
         }
       ],
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title identical: 'SOMMAIRE DES ACTIFS LIQUIDES PAR TYPE ET PAR MONNAIE'; indicators and headers match perfectly; row_count 16 vs 18.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -102,201 +122,20 @@
         "theme": "autre",
         "change_significance": "moyen",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 6 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 10 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "match_metadata": {
         "drastic_row_drop": false,
         "theme": "autre",
         "review_priority": "prioritaire",
         "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 6 changement(s) d'indicateur et 1 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "td::risk_management::tbl_p046_i01|tbl_p048_i01",
-      "change_type": "removed",
-      "indicator": "2 ajouté(s), 4 retiré(s)",
-      "section": "risk_management",
-      "table_name": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
-      "table_number": "",
-      "table_id_t1": "tbl_p046_i01",
-      "table_id_t2": "tbl_p048_i01",
-      "page_t1": 46,
-      "page_t2": 48,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 0.95,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
-      "table_status": "pending",
-      "indicators": [
-        {
-          "name": "Autres titres de créance",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "Autres titres",
-          "type": "added",
-          "review_status": "pending"
-        },
-        {
-          "name": "Obligations du gouvernement du Canada",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "Obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement",
-          "type": "removed",
-          "review_status": "pending"
-        },
-        {
-          "name": "[2] Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation.",
-          "type": "modified",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.056455406488156785,
-        0.0970072698111486,
-        0.9484735626021242,
-        0.4896747319385259
-      ],
-      "bbox_t2": [
-        0.05644032222772736,
-        0.09700737577496153,
-        0.9485201368144914,
-        0.4453725333165641
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "footnote",
-      "event_type": "footnote_only",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "autre",
-        "change_significance": "moyen",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 6 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "autre",
-        "review_priority": "prioritaire",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 6 changement(s) d'indicateur et 1 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "td::risk_management::tbl_p048_i01|tbl_p050_i01",
-      "change_type": "removed",
-      "indicator": "",
-      "section": "risk_management",
-      "table_name": "NOTATIONS DE CRÉDIT¹",
-      "table_number": "",
-      "table_id_t1": "tbl_p048_i01",
-      "table_id_t2": "tbl_p050_i01",
-      "page_t1": 48,
-      "page_t2": 50,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-14T18:53:33.241202+00:00",
-      "edited_value": "",
-      "confidence": 0.95,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "NOTATIONS DE CRÉDIT¹",
-      "table_status": "partial",
-      "indicators": [
-        {
-          "name": "[5] Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
-          "type": "modified",
-          "review_status": "approved"
-        },
-        {
-          "name": "[2] Représentent la notation des dépôts à long terme et la notat -> Tient compte de l’abaissement des notations de crédit et de ",
-          "type": "modified",
-          "review_status": "pending"
-        },
-        {
-          "name": "[3] Comprend a) la dette de premier rang émise avant le 23 septe -> Représentent la notation des dépôts à long terme et la notat",
-          "type": "modified",
-          "review_status": "pending"
-        },
-        {
-          "name": "[4] Assujettie à une conversion au titre du régime de recapitali -> Comprend a) la dette de premier rang émise avant le 23 septe",
-          "type": "modified",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05739531174204708,
-        0.14707440077656447,
-        0.9436154833026961,
-        0.34711910979916355
-      ],
-      "bbox_t2": [
-        0.05697837530397901,
-        0.1483499449912948,
-        0.9456812042036867,
-        0.32616355202414776
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "footnote",
-      "event_type": "footnote_only",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "financement",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 10 changement(s) d'indicateur et 1 changement(s) de footnote."
       }
     },
     {
       "change_id": "td::risk_management::tbl_p051_i01|tbl_p053_i01",
       "change_type": "removed",
-      "indicator": "1 ajouté(s), 2 retiré(s)",
+      "indicator": "2 ajouté(s), 2 retiré(s)",
       "section": "risk_management",
       "table_name": "SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS¹",
       "table_number": "",
@@ -304,12 +143,12 @@
       "table_id_t2": "tbl_p053_i01",
       "page_t1": 51,
       "page_t2": 53,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-14T18:54:40.216310+00:00",
+      "review_timestamp": "2026-04-19T00:09:15.437204+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -322,14 +161,19 @@
       "table_status": "partial",
       "indicators": [
         {
-          "name": "Dépôts non personnels",
+          "name": "Dépôts personnels",
           "type": "added",
           "review_status": "approved"
         },
         {
+          "name": "Dépôts non personnels",
+          "type": "added",
+          "review_status": "pending"
+        },
+        {
           "name": "Dépôts personnels et commerciaux – au Canada",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Dépôts personnels et commerciaux – aux États-Unis¹",
@@ -342,7 +186,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title and table summary identical: 'SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS'; indicators and headers are highly similar; footnote count identical at 1.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -366,14 +210,97 @@
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 4 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "match_metadata": {
         "drastic_row_drop": false,
         "theme": "financement",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 4 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::risk_management::tbl_p046_i01|tbl_p048_i01",
+      "change_type": "removed",
+      "indicator": "3 retiré(s)",
+      "section": "risk_management",
+      "table_name": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
+      "table_number": "",
+      "table_id_t1": "tbl_p046_i01",
+      "table_id_t2": "tbl_p048_i01",
+      "page_t1": 46,
+      "page_t2": 48,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-19T00:09:21.360896+00:00",
+      "edited_value": "",
+      "confidence": 0.97,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "Obligations du gouvernement du Canada",
+          "type": "removed",
+          "review_status": "approved"
+        },
+        {
+          "name": "Titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation",
+          "type": "removed",
+          "review_status": "pending"
+        },
+        {
+          "name": "Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
+          "type": "removed",
+          "review_status": "pending"
+        },
+        {
+          "name": "[2] Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation.",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE'; indicators and headers match perfectly; row_count 16 vs 18.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.056455406488156785,
+        0.0970072698111486,
+        0.9484735626021242,
+        0.4896747319385259
+      ],
+      "bbox_t2": [
+        0.05644032222772736,
+        0.09700737577496153,
+        0.9485201368144914,
+        0.4453725333165641
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "autre",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "autre",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
       }
     },
     {
@@ -387,14 +314,14 @@
       "table_id_t2": "tbl_p051_i02",
       "page_t1": 49,
       "page_t2": 51,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-19T00:10:00.085773+00:00",
       "edited_value": "",
-      "confidence": 0.95,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -402,12 +329,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p051_i02",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[15] Les attentes de la Banque à l’égard des niveaux de liquidités s’appuient sur les hypothèses de la Banque à l’égard de ce",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[13] Les attentes de la Banque à l’égard des niveaux de liquidités s’appuient sur les hypothèses de la Banque à l’égard de ce",
@@ -420,7 +347,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title identical: 'RATIO DE LIQUIDITÉ À COURT TERME MOYEN¹'; indicators and headers match perfectly; row_count 3 vs 3.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -455,6 +382,79 @@
       }
     },
     {
+      "change_id": "td::risk_management::tbl_p047_i01|tbl_p049_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "table_number": "",
+      "table_id_t1": "tbl_p047_i01",
+      "table_id_t2": "tbl_p049_i01",
+      "page_t1": 47,
+      "page_t2": 49,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-19T00:10:03.581509+00:00",
+      "edited_value": "",
+      "confidence": 0.98,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "table_status": "partial",
+      "indicators": [
+        {
+          "name": "[3] Représentent les actifs qui sont disponibles facilement pour -> Représentent les actifs qui sont disponibles facilement pour",
+          "type": "modified",
+          "review_status": "approved"
+        },
+        {
+          "name": "[5] Les autres actifs comprennent la participation dans Schwab,  -> Les autres actifs comprennent le goodwill, les autres immobi",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'ACTIFS GREVÉS ET ACTIFS NON GREVÉS'; indicators and headers match perfectly; row_count 8 vs 8.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.057457387836930024,
+        0.12001247598667339,
+        0.9461577172372856,
+        0.33846074884588073
+      ],
+      "bbox_t2": [
+        0.057728349772933264,
+        0.11969712767938172,
+        0.946064768273846,
+        0.32914741593177876
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      }
+    },
+    {
       "change_id": "td::risk_management::tbl_p052_i01|tbl_p054_i01",
       "change_type": "removed",
       "indicator": "",
@@ -465,14 +465,14 @@
       "table_id_t2": "tbl_p054_i01",
       "page_t1": 52,
       "page_t2": 54,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-04-19T00:10:06.423784+00:00",
       "edited_value": "",
-      "confidence": 0.95,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -480,12 +480,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "FINANCEMENT DE GROS",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[4] Comprennent la dette de premier rang qui est assujettie à un -> Comprennent la dette de premier rang qui est assujettie à un",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[6] Comprend les dépôts à échéance déterminée d’institutions aut -> Comprend les dépôts à échéance déterminée d’institutions aut",
@@ -493,7 +493,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title identical: 'FINANCEMENT DE GROS'; indicators and headers match perfectly; row_count 16 vs 16.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -538,14 +538,14 @@
       "table_id_t2": "tbl_p055_i01",
       "page_t1": 53,
       "page_t2": 55,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
       "review_timestamp": "",
       "edited_value": "",
-      "confidence": 0.95,
+      "confidence": 0.98,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -566,7 +566,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title identical: 'DURÉE CONTRACTUELLE RESTANTE'; indicators and headers match perfectly; row_count 50 vs 50.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -611,14 +611,14 @@
       "table_id_t2": "tbl_p036_i01",
       "page_t1": 33,
       "page_t2": 36,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
       "review_timestamp": "",
       "edited_value": "",
-      "confidence": 0.9,
+      "confidence": 0.95,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -634,7 +634,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title identical: 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE'; indicators: same regions and counterparties; footnotes highly similar.",
+      "match_method": "Title identical: 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE'; indicators and headers are highly similar; footnote count identical at 5.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -669,74 +669,6 @@
       }
     },
     {
-      "change_id": "td::capital_management::tbl_p036_i01|tbl_p038_i01",
-      "change_type": "added",
-      "indicator": "1 ajouté(s)",
-      "section": "capital_management",
-      "table_name": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
-      "table_number": "",
-      "table_id_t1": "tbl_p036_i01",
-      "table_id_t2": "tbl_p038_i01",
-      "page_t1": 36,
-      "page_t2": 38,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
-      "review_status": "pending",
-      "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
-      "edited_value": "",
-      "confidence": 0.92,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
-      "table_status": "pending",
-      "indicators": [
-        {
-          "name": "Ajustements de valorisation prudentiels",
-          "type": "added",
-          "review_status": "pending"
-        }
-      ],
-      "match_method": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators: same core structure; row_count 48 vs 47.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05661490695928437,
-        0.08326667246192393,
-        0.9444360670700572,
-        0.8816558375503079
-      ],
-      "bbox_t2": [
-        0.05631533479378894,
-        0.08355209080859868,
-        0.9442936517054739,
-        0.8935986913815894
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "capital",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "capital",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      }
-    },
-    {
       "change_id": "td::risk_management::tbl_p042_i02|tbl_p045_i02",
       "change_type": "removed",
       "indicator": "",
@@ -747,8 +679,8 @@
       "table_id_t2": "tbl_p045_i02",
       "page_t1": 42,
       "page_t2": 45,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
@@ -770,7 +702,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title and table summary identical: 'SENSIBILITÉ AU RISQUE DE TAUX D’INTÉRÊT STRUCTUREL – MESURES'; indicators and headers are highly similar; footnote count identical at 1.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -815,8 +747,8 @@
       "table_id_t2": "tbl_p048_i02",
       "page_t1": 46,
       "page_t2": 48,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
@@ -838,7 +770,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title and table summary identical: 'SOMMAIRE DES ACTIFS LIQUIDES MOYENS NON GREVÉS DÉTENUS PAR LA BANQUE, LES FILIALES ET LES SUCCURSALES'; indicators and headers are highly similar; row count identical at 4.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -873,53 +805,121 @@
       }
     },
     {
-      "change_id": "td::risk_management::tbl_p047_i01|tbl_p049_i01",
-      "change_type": "removed",
-      "indicator": "",
-      "section": "risk_management",
-      "table_name": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "change_id": "td::capital_management::tbl_p036_i01|tbl_p038_i01",
+      "change_type": "added",
+      "indicator": "1 ajouté(s)",
+      "section": "capital_management",
+      "table_name": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
       "table_number": "",
-      "table_id_t1": "tbl_p047_i01",
-      "table_id_t2": "tbl_p049_i01",
-      "page_t1": 47,
-      "page_t2": 49,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "table_id_t1": "tbl_p036_i01",
+      "table_id_t2": "tbl_p038_i01",
+      "page_t1": 36,
+      "page_t2": 38,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
       "review_timestamp": "",
       "edited_value": "",
-      "confidence": 0.95,
+      "confidence": 0.97,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
       "unit_context_t2": "",
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
-      "table_title_raw": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "table_title_raw": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
       "table_status": "pending",
       "indicators": [
         {
-          "name": "[5] Les autres actifs comprennent la participation dans Schwab,  -> Les autres actifs comprennent le goodwill, les autres immobi",
+          "name": "Ajustements de valorisation prudentiels",
+          "type": "added",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers match perfectly; row_count 48 vs 47.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05661490695928437,
+        0.08326667246192393,
+        0.9444360670700572,
+        0.8816558375503079
+      ],
+      "bbox_t2": [
+        0.05631533479378894,
+        0.08355209080859868,
+        0.9442936517054739,
+        0.8935986913815894
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "matched_pair",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "td::risk_management::tbl_p048_i01|tbl_p050_i01",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "NOTATIONS DE CRÉDIT¹",
+      "table_number": "",
+      "table_id_t1": "tbl_p048_i01",
+      "table_id_t2": "tbl_p050_i01",
+      "page_t1": 48,
+      "page_t2": 50,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.98,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "NOTATIONS DE CRÉDIT¹",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[2] Tient compte de l’abaissement des notations de crédit et de la modification des perspectives par DBRS après la fin du tr",
           "type": "modified",
           "review_status": "pending"
         }
       ],
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title identical: 'NOTATIONS DE CRÉDIT¹'; indicators and headers match perfectly; row_count 11 vs 11.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
-        0.057457387836930024,
-        0.12001247598667339,
-        0.9461577172372856,
-        0.33846074884588073
+        0.05739531174204708,
+        0.14707440077656447,
+        0.9436154833026961,
+        0.34711910979916355
       ],
       "bbox_t2": [
-        0.057728349772933264,
-        0.11969712767938172,
-        0.946064768273846,
-        0.32914741593177876
+        0.05697837530397901,
+        0.1483499449912948,
+        0.9456812042036867,
+        0.32616355202414776
       ],
       "added_indicators": [],
       "removed_indicators": [],
@@ -927,17 +927,17 @@
       "event_type": "footnote_only",
       "footnote_changes": [],
       "genai_analysis": {
-        "theme": "risque_credit",
-        "change_significance": "moyen",
-        "review_priority": "normale",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "theme": "financement",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "match_metadata": {
         "drastic_row_drop": false,
-        "theme": "risque_credit",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "theme": "financement",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       }
     },
     {
@@ -951,8 +951,8 @@
       "table_id_t2": "",
       "page_t1": 35,
       "page_t2": null,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
@@ -1022,8 +1022,8 @@
         0.9478646072686887,
         0.5079757613365097
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00002",
@@ -1033,14 +1033,14 @@
             "indicator_name_clean": "autres titres de créance",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Autres titres de créance\" a été ajouté dans le tableau de synthèse des actifs liquides par type et par monnaie au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait refléter une nouvelle catégorie de titres de créance que la banque a commencé à inclure dans ses rapports. Cela peut être lié à une révision de la méthodologie de classification des actifs ou à l'acquisition de nouveaux types de titres qui nécessitent une divulgation distincte. La présence de cet indicateur pourrait également être en réponse à des exigences réglementaires ou à des pratiques de divulgation améliorées.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer que cette nouvelle catégorie est correctement intégrée dans les calculs globaux des actifs liquides et vérifier si des ajustements similaires apparaissent dans d'autres sections du rapport."
+              "justification": "L'indicateur \"Autres titres de créance\" a été ajouté dans le tableau de synthèse des actifs liquides au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait refléter une nouvelle catégorie de titres de créance que la banque a commencé à inclure dans ses rapports. Cela peut avoir des implications sur la manière dont la banque gère et rapporte ses actifs liquides, potentiellement en réponse à des changements réglementaires ou à une réévaluation interne de la classification des actifs.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer que cette nouvelle catégorie est correctement intégrée dans les calculs globaux des actifs liquides et vérifier si des explications supplémentaires sont fournies dans le rapport pour justifier cette inclusion."
             }
           },
           "validation_status": "approved",
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-14T18:50:37.027306+00:00",
+          "validated_at": "2026-04-19T00:08:47.750807+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1051,7 +1051,7 @@
             "indicator_name_clean": "autres titres",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Autres titres\" a été ajouté dans le tableau de synthèse des actifs liquides par type et par monnaie au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer une nouvelle catégorie de titres que la banque a décidé de suivre séparément, potentiellement en raison de changements dans la composition de son portefeuille d'actifs ou de nouvelles exigences de divulgation. Cela pourrait également être lié à une réorganisation interne des catégories d'actifs pour mieux refléter la structure actuelle du portefeuille.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier si cette nouvelle catégorie est alignée avec les autres divulgations du rapport et s'assurer que les valeurs sont correctement intégrées dans les totaux des actifs liquides."
+              "justification": "L'indicateur \"Autres titres\" a été ajouté dans le tableau de synthèse des actifs liquides au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer une nouvelle classification ou une réorganisation des actifs liquides de la banque. Cela peut être dû à des changements dans la stratégie d'investissement ou à des ajustements pour se conformer à de nouvelles normes comptables ou réglementaires.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait examiner si cette nouvelle catégorie est alignée avec les autres sections du rapport et s'assurer que les définitions et les méthodologies de calcul sont cohérentes."
             }
           },
           "validation_status": "pending",
@@ -1069,7 +1069,7 @@
             "indicator_name_clean": "obligations du gouvernement du canada",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Obligations du gouvernement du Canada\" a été supprimé du tableau de synthèse des actifs liquides par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression semble être le résultat d'une consolidation des catégories d'obligations dans une nouvelle catégorie plus large, \"Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement\". Cela pourrait refléter un changement dans la manière dont la banque regroupe et rapporte ses actifs, potentiellement pour simplifier la présentation ou pour répondre à de nouvelles normes de divulgation.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer que cette consolidation est cohérente avec les autres sections du rapport et vérifier si elle a un impact sur les ratios de liquidité ou d'autres mesures clés."
+              "justification": "L'indicateur \"Obligations du gouvernement du Canada\" a été retiré du tableau de synthèse des actifs liquides au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression semble être le résultat d'une consolidation des catégories d'obligations dans une nouvelle catégorie plus large, \"Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement\". Cela peut refléter un changement dans la manière dont la banque regroupe et rapporte ses actifs, potentiellement pour simplifier la présentation ou pour se conformer à de nouvelles exigences réglementaires.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier que cette consolidation est correctement expliquée dans le rapport et que les impacts sur les ratios de liquidité sont bien compris."
             }
           },
           "validation_status": "pending",
@@ -1083,11 +1083,11 @@
           "change_id": "chg_00005",
           "change_type": "indicator_removed",
           "payload": {
-            "indicator_name": "Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
-            "indicator_name_clean": "obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
+            "indicator_name": "Titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation",
+            "indicator_name_clean": "titres adossés à des créances hypothécaires en vertu de la loi nationale sur l’habitation",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement\" a été supprimé du tableau de synthèse des actifs liquides par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression semble être due à une consolidation des catégories d'obligations dans une nouvelle catégorie plus large, \"Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement\". Cela pourrait indiquer un changement dans la manière dont la banque regroupe ses actifs pour simplifier la présentation ou pour se conformer à de nouvelles normes de divulgation.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait s'assurer que cette consolidation est cohérente avec les autres sections du rapport et vérifier si elle affecte les ratios de liquidité ou d'autres mesures clés."
+              "justification": "L'indicateur \"Titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation\" a été retiré du tableau de synthèse des actifs liquides au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait indiquer un changement dans la manière dont ces titres sont classifiés ou rapportés. Cela peut être dû à une réévaluation de leur importance relative dans le portefeuille d'actifs liquides de la banque ou à des ajustements pour se conformer à de nouvelles normes comptables ou réglementaires.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer que cette suppression n'affecte pas négativement la transparence des rapports et vérifier si des explications supplémentaires sont fournies dans le rapport pour justifier cette exclusion."
             }
           },
           "validation_status": "pending",
@@ -1101,11 +1101,11 @@
           "change_id": "chg_00006",
           "change_type": "indicator_removed",
           "payload": {
-            "indicator_name": "Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires",
-            "indicator_name_clean": "obligations d’agences fédérales des états-unis, y compris leurs obligations adossées à des créances hypothécaires",
+            "indicator_name": "Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
+            "indicator_name_clean": "obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires\" a été supprimé du tableau de synthèse des actifs liquides par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression semble être le résultat d'une consolidation des catégories d'obligations dans une nouvelle catégorie plus large, \"Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement\". Cela pourrait refléter un changement dans la manière dont la banque regroupe et rapporte ses actifs, potentiellement pour simplifier la présentation ou pour répondre à de nouvelles normes de divulgation.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer que cette consolidation est cohérente avec les autres sections du rapport et vérifier si elle a un impact sur les ratios de liquidité ou d'autres mesures clés."
+              "justification": "L'indicateur \"Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement\" a été retiré du tableau de synthèse des actifs liquides au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression semble être le résultat d'une consolidation des catégories d'obligations dans une nouvelle catégorie plus large, \"Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement\". Cela peut refléter un changement dans la manière dont la banque regroupe et rapporte ses actifs, potentiellement pour simplifier la présentation ou pour se conformer à de nouvelles exigences réglementaires.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier que cette consolidation est correctement expliquée dans le rapport et que les impacts sur les ratios de liquidité sont bien compris."
             }
           },
           "validation_status": "pending",
@@ -1123,7 +1123,7 @@
             "indicator_name_clean": "obligations de sociétés émettrices",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Obligations de sociétés émettrices\" a été supprimé du tableau de synthèse des actifs liquides par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression semble être due à une réorganisation des catégories d'actifs, où les obligations de sociétés émettrices pourraient avoir été intégrées dans une nouvelle catégorie plus large ou reclassifiées sous \"Autres titres de créance\". Cela pourrait indiquer un changement dans la manière dont la banque regroupe ses actifs pour simplifier la présentation ou pour se conformer à de nouvelles normes de divulgation.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait s'assurer que cette reclassification est cohérente avec les autres sections du rapport et vérifier si elle affecte les ratios de liquidité ou d'autres mesures clés."
+              "justification": "L'indicateur \"Obligations de sociétés émettrices\" a été retiré du tableau de synthèse des actifs liquides au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait être due à une réorganisation des catégories d'actifs, où ces obligations sont maintenant incluses dans une catégorie plus large ou différente. Cela peut refléter un changement dans la stratégie de gestion des actifs ou une réponse à des exigences réglementaires.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait s'assurer que cette modification est bien documentée et que les impacts sur les rapports financiers sont correctement évalués."
             }
           },
           "validation_status": "pending",
@@ -1134,90 +1134,14 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00019",
-          "change_type": "footnote_added",
-          "payload": {
-            "indicator_name": "[2] Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation.",
-            "indicator_name_clean": "[2] comprennent les titres adossés à des créances hypothécaires en vertu de la loi nationale sur l’habitation.",
-            "footnote_ref": "2",
-            "old_text": "",
-            "new_text": "Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "partial",
-      "confidence": 0.95,
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
-      "genai_analysis": {
-        "theme": "autre",
-        "change_significance": "moyen",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 6 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "autre",
-        "review_priority": "prioritaire",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 6 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "relevance": "",
-      "risk_level": "",
-      "summary": {
-        "total_changes": 7,
-        "indicators_added": 2,
-        "indicators_removed": 4,
-        "indicators_renamed": 0,
-        "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 6
-      }
-    },
-    {
-      "review_id": "td::risk_management::tbl_p046_i01|tbl_p048_i01",
-      "table_key": "td::risk_management::tbl_p046_i01|tbl_p048_i01",
-      "table_title": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
-      "table_number": "",
-      "table_id_t1": "tbl_p046_i01",
-      "table_id_t2": "tbl_p048_i01",
-      "page_t1": 46,
-      "page_t2": 48,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.056455406488156785,
-        0.0970072698111486,
-        0.9484735626021242,
-        0.4896747319385259
-      ],
-      "bbox_t2": [
-        0.05644032222772736,
-        0.09700737577496153,
-        0.9485201368144914,
-        0.4453725333165641
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
-      "changes": [
-        {
           "change_id": "chg_00008",
-          "change_type": "indicator_added",
+          "change_type": "indicator_removed",
           "payload": {
-            "indicator_name": "Autres titres de créance",
-            "indicator_name_clean": "autres titres de créance",
+            "indicator_name": "Obligations du gouvernement des États-Unis",
+            "indicator_name_clean": "obligations du gouvernement des états-unis",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur 'Autres titres de créance' a été ajouté dans le tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer une nouvelle catégorie d'actifs ou une reclassification des actifs existants. Cela peut avoir un impact sur la manière dont les actifs sont évalués et présentés dans le cadre des exigences de divulgation prudentielles, notamment en ce qui concerne la gestion des risques de liquidité et la conformité aux normes Bâle III.\n\nIl s'agit potentiellement d'une mise à jour structurelle importante. L'analyste devrait investiguer pour comprendre la raison de cette nouvelle catégorie et s'assurer qu'elle est correctement intégrée dans les rapports de gestion des risques."
+              "justification": "L'indicateur \"Obligations du gouvernement des États-Unis\" a été retiré du tableau de synthèse des actifs liquides au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression semble être le résultat d'une consolidation des catégories d'obligations dans une nouvelle catégorie plus large, \"Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement\". Cela peut refléter un changement dans la manière dont la banque regroupe et rapporte ses actifs, potentiellement pour simplifier la présentation ou pour se conformer à de nouvelles exigences réglementaires.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier que cette consolidation est correctement expliquée dans le rapport et que les impacts sur les ratios de liquidité sont bien compris."
             }
           },
           "validation_status": "pending",
@@ -1229,13 +1153,13 @@
         },
         {
           "change_id": "chg_00009",
-          "change_type": "indicator_added",
+          "change_type": "indicator_removed",
           "payload": {
-            "indicator_name": "Autres titres",
-            "indicator_name_clean": "autres titres",
+            "indicator_name": "Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires",
+            "indicator_name_clean": "obligations d’agences fédérales des états-unis, y compris leurs obligations adossées à des créances hypothécaires",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur 'Autres titres' a été ajouté dans le tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait refléter une nouvelle classification des actifs ou l'inclusion de nouveaux types de titres dans le portefeuille de la banque. Cela peut influencer la gestion des risques et la stratégie d'investissement, en particulier si ces titres présentent des caractéristiques de risque différentes.\n\nIl s'agit d'une mise à jour structurelle qui nécessite une attention particulière. L'analyste devrait confirmer la nature de ces titres et leur impact potentiel sur les ratios de liquidité et de capital."
+              "justification": "L'indicateur \"Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires\" a été retiré du tableau de synthèse des actifs liquides au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression semble être le résultat d'une consolidation des catégories d'obligations dans une nouvelle catégorie plus large, \"Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement\". Cela peut refléter un changement dans la manière dont la banque regroupe et rapporte ses actifs, potentiellement pour simplifier la présentation ou pour se conformer à de nouvelles exigences réglementaires.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier que cette consolidation est correctement expliquée dans le rapport et que les impacts sur les ratios de liquidité sont bien compris."
             }
           },
           "validation_status": "pending",
@@ -1249,11 +1173,11 @@
           "change_id": "chg_00010",
           "change_type": "indicator_removed",
           "payload": {
-            "indicator_name": "Obligations du gouvernement du Canada",
-            "indicator_name_clean": "obligations du gouvernement du canada",
+            "indicator_name": "Obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement (bloc 2)",
+            "indicator_name_clean": "obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement (bloc 2)",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur 'Obligations du gouvernement du Canada' a été supprimé du tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait indiquer une consolidation des obligations gouvernementales dans une catégorie plus large, ce qui pourrait affecter la transparence et la granularité des informations fournies aux parties prenantes. Cela peut également avoir des implications sur la gestion des risques et la conformité réglementaire, notamment en ce qui concerne les exigences de divulgation de Bâle III.\n\nIl s'agit d'une modification structurelle importante. L'analyste devrait vérifier si cette consolidation est conforme aux politiques internes de la banque et aux exigences réglementaires."
+              "justification": "L'indicateur \"Obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement (bloc 2)\" a été retiré du tableau de synthèse des actifs liquides au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression semble être le résultat d'une consolidation des catégories d'obligations dans une nouvelle catégorie plus large, \"Obligations du gouvernement, d’organismes fédéraux, d’entités du secteur public et de banques multilatérales de développement\". Cela peut refléter un changement dans la manière dont la banque regroupe et rapporte ses actifs, potentiellement pour simplifier la présentation ou pour se conformer à de nouvelles exigences réglementaires.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier que cette consolidation est correctement expliquée dans le rapport et que les impacts sur les ratios de liquidité sont bien compris."
             }
           },
           "validation_status": "pending",
@@ -1267,11 +1191,11 @@
           "change_id": "chg_00011",
           "change_type": "indicator_removed",
           "payload": {
-            "indicator_name": "Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
-            "indicator_name_clean": "obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
+            "indicator_name": "Obligations de sociétés émettrices (bloc 2)",
+            "indicator_name_clean": "obligations de sociétés émettrices (bloc 2)",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur 'Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement' a été supprimé du tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait refléter une consolidation des obligations dans une catégorie plus large, ce qui pourrait réduire la visibilité sur la composition des actifs liquides. Cela peut avoir des implications sur la gestion des risques et la conformité aux normes de divulgation prudentielles.\n\nIl s'agit d'une modification structurelle significative. L'analyste devrait s'assurer que cette consolidation est justifiée et qu'elle ne compromet pas la transparence des rapports financiers."
+              "justification": "L'indicateur \"Obligations de sociétés émettrices (bloc 2)\" a été retiré du tableau de synthèse des actifs liquides au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait être due à une réorganisation des catégories d'actifs, où ces obligations sont maintenant incluses dans une catégorie plus large ou différente. Cela peut refléter un changement dans la stratégie de gestion des actifs ou une réponse à des exigences réglementaires.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait s'assurer que cette modification est bien documentée et que les impacts sur les rapports financiers sont correctement évalués."
             }
           },
           "validation_status": "pending",
@@ -1282,43 +1206,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00012",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires",
-            "indicator_name_clean": "obligations d’agences fédérales des états-unis, y compris leurs obligations adossées à des créances hypothécaires",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "L'indicateur 'Obligations d’agences fédérales des États-Unis, y compris leurs obligations adossées à des créances hypothécaires' a été supprimé du tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait indiquer une consolidation des obligations fédérales américaines dans une catégorie plus large, ce qui pourrait affecter la précision des informations sur les actifs détenus. Cela peut avoir des implications sur la gestion des risques de crédit et de liquidité, ainsi que sur la conformité aux exigences de divulgation réglementaires.\n\nIl s'agit d'une modification structurelle importante. L'analyste devrait vérifier si cette consolidation est conforme aux pratiques de gestion des risques de la banque et aux exigences réglementaires."
-            }
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00013",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement",
-            "indicator_name_clean": "obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "L'indicateur 'Obligations d’autres entités souveraines, d’entités du secteur public et de banques multilatérales de développement' a été supprimé du tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait refléter une consolidation des obligations souveraines et publiques dans une catégorie plus large, ce qui pourrait réduire la transparence des informations fournies sur les actifs liquides. Cela peut avoir des implications sur la gestion des risques et la conformité aux normes de divulgation prudentielles.\n\nIl s'agit d'une modification structurelle significative. L'analyste devrait s'assurer que cette consolidation est justifiée et qu'elle ne compromet pas la transparence des rapports financiers."
-            }
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00020",
+          "change_id": "chg_00021",
           "change_type": "footnote_added",
           "payload": {
             "indicator_name": "[2] Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation.",
@@ -1335,159 +1223,32 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
-      "confidence": 0.95,
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "table_status": "partial",
+      "confidence": 0.97,
+      "match_method": "Title identical: 'SOMMAIRE DES ACTIFS LIQUIDES PAR TYPE ET PAR MONNAIE'; indicators and headers match perfectly; row_count 16 vs 18.",
       "genai_analysis": {
         "theme": "autre",
         "change_significance": "moyen",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 6 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 10 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "match_metadata": {
         "drastic_row_drop": false,
         "theme": "autre",
         "review_priority": "prioritaire",
         "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 6 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 10 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "relevance": "",
       "risk_level": "",
       "summary": {
-        "total_changes": 7,
+        "total_changes": 11,
         "indicators_added": 2,
-        "indicators_removed": 4,
+        "indicators_removed": 8,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 7
-      }
-    },
-    {
-      "review_id": "td::risk_management::tbl_p048_i01|tbl_p050_i01",
-      "table_key": "td::risk_management::tbl_p048_i01|tbl_p050_i01",
-      "table_title": "NOTATIONS DE CRÉDIT¹",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "NOTATIONS DE CRÉDIT¹",
-      "table_number": "",
-      "table_id_t1": "tbl_p048_i01",
-      "table_id_t2": "tbl_p050_i01",
-      "page_t1": 48,
-      "page_t2": 50,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05739531174204708,
-        0.14707440077656447,
-        0.9436154833026961,
-        0.34711910979916355
-      ],
-      "bbox_t2": [
-        0.05697837530397901,
-        0.1483499449912948,
-        0.9456812042036867,
-        0.32616355202414776
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00023",
-          "change_type": "footnote_added",
-          "payload": {
-            "indicator_name": "[5] Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
-            "indicator_name_clean": "[5] assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
-            "footnote_ref": "5",
-            "old_text": "",
-            "new_text": "Assujettie à une conversion au titre du régime de recapitalisation interne des banques."
-          },
-          "validation_status": "approved",
-          "is_required": false,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-14T18:53:33.241202+00:00",
-          "validated_by": "analyst"
-        },
-        {
-          "change_id": "chg_00024",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[2] Représentent la notation des dépôts à long terme et la notat -> Tient compte de l’abaissement des notations de crédit et de ",
-            "indicator_name_clean": "[2] représentent la notation des dépôts à long terme et la notat -> tient compte de l’abaissement des notations de crédit et de",
-            "footnote_ref": "2",
-            "old_text": "Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody’s, la notation de crédit d’émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d’émetteur à long terme attribuée par DBRS.",
-            "new_text": "Tient compte de l’abaissement des notations de crédit et de la modification des perspectives par DBRS après la fin du trimestre, le 2 mai 2025."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00025",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[3] Comprend a) la dette de premier rang émise avant le 23 septe -> Représentent la notation des dépôts à long terme et la notat",
-            "indicator_name_clean": "[3] comprend a) la dette de premier rang émise avant le 23 septe -> représentent la notation des dépôts à long terme et la notat",
-            "footnote_ref": "3",
-            "old_text": "Comprend a) la dette de premier rang émise avant le 23 septembre 2018; et b) la dette de premier rang émise à partir du 23 septembre 2018, qui est exclue du régime de recapitalisation interne des banques.",
-            "new_text": "Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody’s, la notation de crédit d’émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d’émetteur à long terme attribuée par DBRS."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        },
-        {
-          "change_id": "chg_00026",
-          "change_type": "footnote_modified",
-          "payload": {
-            "indicator_name": "[4] Assujettie à une conversion au titre du régime de recapitali -> Comprend a) la dette de premier rang émise avant le 23 septe",
-            "indicator_name_clean": "[4] assujettie à une conversion au titre du régime de recapitali -> comprend a) la dette de premier rang émise avant le 23 septe",
-            "footnote_ref": "4",
-            "old_text": "Assujettie à une conversion au titre du régime de recapitalisation interne des banques.",
-            "new_text": "Comprend a) la dette de premier rang émise avant le 23 septembre 2018; et b) la dette de premier rang émise à partir du 23 septembre 2018, qui est exclue du régime de recapitalisation interne des banques."
-          },
-          "validation_status": "pending",
-          "is_required": false,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "partial",
-      "confidence": 0.95,
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
-      "genai_analysis": {
-        "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "financement",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 4 changement(s) de footnote."
-      },
-      "relevance": "",
-      "risk_level": "",
-      "summary": {
-        "total_changes": 4,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 4,
         "validated": 1,
-        "pending": 3
+        "pending": 10
       }
     },
     {
@@ -1517,54 +1278,72 @@
         0.9455278184678819,
         0.2621667072026417
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00014",
+          "change_id": "chg_00015",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Dépôts personnels",
+            "indicator_name_clean": "dépôts personnels",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Dépôts personnels\" a été ajouté dans le tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout semble indiquer une nouvelle catégorisation des dépôts, séparant les dépôts personnels des dépôts non personnels. Cela pourrait refléter un changement dans la manière dont la banque souhaite présenter ses sources de financement, potentiellement pour mieux aligner ses rapports avec les exigences réglementaires ou pour améliorer la transparence envers les parties prenantes.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer que cette nouvelle catégorisation est cohérente avec d'autres sections du rapport et qu'elle ne modifie pas les ratios prudentiels ou les exigences de divulgation."
+            }
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-19T00:09:15.437204+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00016",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Dépôts non personnels",
             "indicator_name_clean": "dépôts non personnels",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Dépôts non personnels\" a été ajouté dans le tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer une nouvelle catégorisation des dépôts, potentiellement pour mieux refléter la structure de financement de la banque. Cela peut avoir des implications sur la manière dont la banque gère ses risques de liquidité et de financement, en particulier si cette catégorie est significative en termes de volume ou de conditions associées.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait investiguer pour comprendre la raison de cette nouvelle catégorisation et s'assurer qu'elle est alignée avec les pratiques de gestion des risques de la banque."
+              "justification": "L'indicateur \"Dépôts non personnels\" a été ajouté dans le tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout indique une nouvelle approche dans la présentation des dépôts, séparant les dépôts non personnels des dépôts personnels. Cela pourrait être motivé par un besoin de conformité réglementaire ou par une volonté d'améliorer la clarté des informations fournies aux investisseurs et aux régulateurs.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier que cette nouvelle présentation est alignée avec les autres sections du rapport et qu'elle respecte les normes de divulgation en vigueur."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-14T18:53:50.786819+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
-          "change_id": "chg_00015",
+          "change_id": "chg_00017",
           "change_type": "indicator_removed",
           "payload": {
             "indicator_name": "Dépôts personnels et commerciaux – au Canada",
             "indicator_name_clean": "dépôts personnels et commerciaux – au canada",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Dépôts personnels et commerciaux – au Canada\" a été retiré du tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur peut refléter un changement dans la manière dont la banque catégorise ses dépôts, ce qui pourrait avoir des implications sur la transparence et la comparabilité des données financières. Cela pourrait également affecter la manière dont les parties prenantes perçoivent la structure de financement de la banque.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer si cette suppression est due à une nouvelle méthodologie de classification ou à une réorganisation interne des catégories de dépôts."
+              "justification": "L'indicateur \"Dépôts personnels et commerciaux – au Canada\" a été supprimé du tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression suggère une réorganisation des catégories de dépôts, potentiellement pour mieux distinguer les dépôts personnels des dépôts non personnels. Cela pourrait être lié à une révision des pratiques de divulgation pour se conformer aux nouvelles normes ou pour améliorer la transparence des rapports financiers.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait s'assurer que cette suppression n'affecte pas la compréhension globale des sources de financement et qu'elle est cohérente avec les autres sections du rapport."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-14T18:54:40.216310+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
-          "change_id": "chg_00016",
+          "change_id": "chg_00018",
           "change_type": "indicator_removed",
           "payload": {
             "indicator_name": "Dépôts personnels et commerciaux – aux États-Unis¹",
             "indicator_name_clean": "dépôts personnels et commerciaux – aux états-unis¹",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Dépôts personnels et commerciaux – aux États-Unis¹\" a été retiré du tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur pourrait indiquer un changement dans la manière dont la banque segmente ses dépôts, ce qui peut avoir des implications sur la gestion des risques et la communication financière. Cela pourrait également influencer la perception des investisseurs et des régulateurs quant à la diversification géographique des dépôts de la banque.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier si cette suppression est liée à une nouvelle approche de segmentation ou à une consolidation des catégories de dépôts."
+              "justification": "L'indicateur \"Dépôts personnels et commerciaux – aux États-Unis¹\" a été supprimé du tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait indiquer une révision de la manière dont les dépôts sont catégorisés, potentiellement pour mieux aligner les rapports avec les exigences réglementaires ou pour clarifier la présentation des données financières. Cela pourrait également refléter un changement dans la stratégie de financement de la banque.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier que cette suppression est cohérente avec les autres sections du rapport et qu'elle ne compromet pas la transparence des informations fournies aux parties prenantes."
             }
           },
           "validation_status": "pending",
@@ -1594,30 +1373,160 @@
       ],
       "table_status": "partial",
       "confidence": 0.95,
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title and table summary identical: 'SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS'; indicators and headers are highly similar; footnote count identical at 1.",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 4 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "match_metadata": {
         "drastic_row_drop": false,
         "theme": "financement",
         "review_priority": "critique",
         "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 4 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 5,
+        "indicators_added": 2,
+        "indicators_removed": 2,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 1,
+        "pending": 4
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p046_i01|tbl_p048_i01",
+      "table_key": "td::risk_management::tbl_p046_i01|tbl_p048_i01",
+      "table_title": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
+      "table_number": "",
+      "table_id_t1": "tbl_p046_i01",
+      "table_id_t2": "tbl_p048_i01",
+      "page_t1": 46,
+      "page_t2": 48,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.056455406488156785,
+        0.0970072698111486,
+        0.9484735626021242,
+        0.4896747319385259
+      ],
+      "bbox_t2": [
+        0.05644032222772736,
+        0.09700737577496153,
+        0.9485201368144914,
+        0.4453725333165641
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00012",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Obligations du gouvernement du Canada",
+            "indicator_name_clean": "obligations du gouvernement du canada",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Obligations du gouvernement du Canada\" a été retiré du tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait indiquer un changement dans la manière dont la banque classe ou gère ses obligations gouvernementales. Cela peut avoir des implications sur la gestion des risques de liquidité et de taux d'intérêt, car les obligations gouvernementales sont souvent considérées comme des actifs liquides sûrs. La suppression de cet indicateur pourrait également affecter la transparence des rapports financiers et la conformité aux exigences de divulgation réglementaires.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait enquêter pour comprendre la raison de cette suppression et s'assurer que les obligations gouvernementales sont toujours correctement prises en compte dans les calculs de liquidité et de capital."
+            }
+          },
+          "validation_status": "approved",
+          "is_required": true,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-19T00:09:21.360896+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00013",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation",
+            "indicator_name_clean": "titres adossés à des créances hypothécaires en vertu de la loi nationale sur l’habitation",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation\" a été retiré du tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait refléter un changement dans la composition des actifs liquides de la banque, potentiellement en raison de modifications réglementaires ou de stratégies de gestion des risques. Les titres adossés à des créances hypothécaires sont souvent utilisés pour gérer les risques de liquidité et de crédit, et leur absence pourrait indiquer un changement significatif dans la stratégie de gestion des actifs de la banque.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait confirmer que cette suppression est conforme aux politiques internes de gestion des risques et aux exigences réglementaires, et évaluer l'impact potentiel sur les ratios de liquidité et de capital."
+            }
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00014",
+          "change_type": "indicator_removed",
+          "payload": {
+            "indicator_name": "Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
+            "indicator_name_clean": "obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Obligations de gouvernements provinciaux, d’entités du secteur public et de banques multilatérales de développement\" a été retiré du tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression pourrait indiquer une réorganisation des catégories d'actifs liquides, potentiellement pour simplifier la présentation ou en réponse à des changements dans la composition des actifs. Les obligations de gouvernements provinciaux et d'entités publiques sont souvent considérées comme des actifs liquides importants, et leur retrait pourrait avoir des implications sur la gestion des risques de liquidité et de crédit.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier que cette suppression est justifiée par des changements dans la stratégie de gestion des actifs ou par des exigences réglementaires, et s'assurer que les obligations concernées sont toujours correctement prises en compte dans les rapports financiers."
+            }
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00022",
+          "change_type": "footnote_added",
+          "payload": {
+            "indicator_name": "[2] Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation.",
+            "indicator_name_clean": "[2] comprennent les titres adossés à des créances hypothécaires en vertu de la loi nationale sur l’habitation.",
+            "footnote_ref": "2",
+            "old_text": "",
+            "new_text": "Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.97,
+      "match_method": "Title identical: 'SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE'; indicators and headers match perfectly; row_count 16 vs 18.",
+      "genai_analysis": {
+        "theme": "autre",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "autre",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 3 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "relevance": "",
       "risk_level": "",
       "summary": {
         "total_changes": 4,
-        "indicators_added": 1,
-        "indicators_removed": 2,
+        "indicators_added": 0,
+        "indicators_removed": 3,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 2,
-        "pending": 2
+        "validated": 1,
+        "pending": 3
       }
     },
     {
@@ -1647,8 +1556,8 @@
         0.9431014715456495,
         0.5361916898476957
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00027",
@@ -1660,12 +1569,12 @@
             "old_text": "",
             "new_text": "Les attentes de la Banque à l’égard des niveaux de liquidités s’appuient sur les hypothèses de la Banque à l’égard de certains facteurs, notamment la croissance des produits, les plans stratégiques, le rythme des rachats d’actions dans le cadre de l’offre publique de rachat dans le cours normal des activités de la Banque (laquelle est assujettie aux prévisions financières et aux exigences en matière de fonds propres). Les hypothèses de la Banque sont assujetties à des incertitudes inhérentes et peuvent varier en fonction de plusieurs facteurs dépendants et indépendants de la volonté de la Banque, y compris les conditions générales du marché, les perspectives économiques et les enjeux géopolitiques. Se reporter à la section « Facteurs de risque qui pourraient avoir une incidence sur les résultats futurs » du présent document pour plus de renseignements sur les risques et les incertitudes susceptibles d’influer sur les résultats futurs de la Banque."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-19T00:10:00.085773+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00028",
@@ -1702,9 +1611,9 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
-      "confidence": 0.95,
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "table_status": "partial",
+      "confidence": 0.98,
+      "match_method": "Title identical: 'RATIO DE LIQUIDITÉ À COURT TERME MOYEN¹'; indicators and headers match perfectly; row_count 3 vs 3.",
       "genai_analysis": {
         "theme": "liquidite",
         "change_significance": "eleve",
@@ -1726,8 +1635,101 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 3,
-        "validated": 0,
-        "pending": 3
+        "validated": 1,
+        "pending": 2
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p047_i01|tbl_p049_i01",
+      "table_key": "td::risk_management::tbl_p047_i01|tbl_p049_i01",
+      "table_title": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "table_number": "",
+      "table_id_t1": "tbl_p047_i01",
+      "table_id_t2": "tbl_p049_i01",
+      "page_t1": 47,
+      "page_t2": 49,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.057457387836930024,
+        0.12001247598667339,
+        0.9461577172372856,
+        0.33846074884588073
+      ],
+      "bbox_t2": [
+        0.057728349772933264,
+        0.11969712767938172,
+        0.946064768273846,
+        0.32914741593177876
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00024",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[3] Représentent les actifs qui sont disponibles facilement pour -> Représentent les actifs qui sont disponibles facilement pour",
+            "indicator_name_clean": "[3] représentent les actifs qui sont disponibles facilement pour -> représentent les actifs qui sont disponibles facilement pour",
+            "footnote_ref": "3",
+            "old_text": "Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d’obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la FHLB.",
+            "new_text": "Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d’obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la Federal Home Loan Bank (FHLB)."
+          },
+          "validation_status": "approved",
+          "is_required": false,
+          "validation_decision": "approved",
+          "validation_notes": "",
+          "validated_at": "2026-04-19T00:10:03.581509+00:00",
+          "validated_by": "analyst"
+        },
+        {
+          "change_id": "chg_00025",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[5] Les autres actifs comprennent la participation dans Schwab,  -> Les autres actifs comprennent le goodwill, les autres immobi",
+            "indicator_name_clean": "[5] les autres actifs comprennent la participation dans schwab,  -> les autres actifs comprennent le goodwill, les autres immobi",
+            "footnote_ref": "5",
+            "old_text": "Les autres actifs comprennent la participation dans Schwab, le goodwill, les autres immobilisations incorporelles, les terrains, bâtiments, matériel et mobilier, autres actifs amortissables et actifs au titre de droits d’utilisation, les actifs d’impôt différé, les montants à recevoir des courtiers et des clients et les autres actifs du bilan qui ne sont pas présentés dans les catégories ci-dessus.",
+            "new_text": "Les autres actifs comprennent le goodwill, les autres immobilisations incorporelles, les terrains, bâtiments, matériel et mobilier, autres actifs amortissables et actifs au titre de droits d’utilisation, les actifs d’impôt différé, les montants à recevoir des courtiers et des clients et les autres actifs du bilan qui ne sont pas présentés dans les catégories ci-dessus."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "partial",
+      "confidence": 0.98,
+      "match_method": "Title identical: 'ACTIFS GREVÉS ET ACTIFS NON GREVÉS'; indicators and headers match perfectly; row_count 8 vs 8.",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "prioritaire",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 2 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 2,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 2,
+        "validated": 1,
+        "pending": 1
       }
     },
     {
@@ -1757,8 +1759,8 @@
         0.9436365264693117,
         0.3711082766754459
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00031",
@@ -1770,12 +1772,12 @@
             "old_text": "Comprennent la dette de premier rang qui est assujettie à une conversion au titre du régime de recapitalisation interne des banques. Excluent des billets structurés d’un montant de 4,0 milliards de dollars qui sont assujettis à une conversion au titre du régime de recapitalisation interne des banques (4,4 milliards de dollars au 31 octobre 2024).",
             "new_text": "Comprennent la dette de premier rang qui est assujettie à une conversion au titre du régime de recapitalisation interne des banques. Excluent des billets structurés d’un montant de 3,7 milliards de dollars qui sont assujettis à une conversion au titre du régime de recapitalisation interne des banques (4,4 milliards de dollars au 31 octobre 2024)."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-04-19T00:10:06.423784+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00032",
@@ -1795,9 +1797,9 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
-      "confidence": 0.95,
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "table_status": "partial",
+      "confidence": 0.98,
+      "match_method": "Title identical: 'FINANCEMENT DE GROS'; indicators and headers match perfectly; row_count 16 vs 16.",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
@@ -1819,8 +1821,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 0,
-        "pending": 2
+        "validated": 1,
+        "pending": 1
       }
     },
     {
@@ -1850,8 +1852,8 @@
         0.9436846963720384,
         0.7363677361998896
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00033",
@@ -1889,8 +1891,8 @@
         }
       ],
       "table_status": "pending",
-      "confidence": 0.95,
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "confidence": 0.98,
+      "match_method": "Title identical: 'DURÉE CONTRACTUELLE RESTANTE'; indicators and headers match perfectly; row_count 50 vs 50.",
       "genai_analysis": {
         "theme": "liquidite",
         "change_significance": "eleve",
@@ -1943,11 +1945,11 @@
         0.9420013427734375,
         0.34378598916410197
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00017",
+          "change_id": "chg_00019",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[4] En plus des expositions présentées ci-dessus, la Banque a ég -> En plus des expositions présentées ci-dessus, la Banque a ég",
@@ -1965,8 +1967,8 @@
         }
       ],
       "table_status": "pending",
-      "confidence": 0.9,
-      "match_method": "Title identical: 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE'; indicators: same regions and counterparties; footnotes highly similar.",
+      "confidence": 0.95,
+      "match_method": "Title identical: 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE'; indicators and headers are highly similar; footnote count identical at 5.",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
@@ -1988,83 +1990,6 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 1
-      }
-    },
-    {
-      "review_id": "td::capital_management::tbl_p036_i01|tbl_p038_i01",
-      "table_key": "td::capital_management::tbl_p036_i01|tbl_p038_i01",
-      "table_title": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
-      "view_mode": "change_list",
-      "section": "capital_management",
-      "table_name": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
-      "table_number": "",
-      "table_id_t1": "tbl_p036_i01",
-      "table_id_t2": "tbl_p038_i01",
-      "page_t1": 36,
-      "page_t2": 38,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05661490695928437,
-        0.08326667246192393,
-        0.9444360670700572,
-        0.8816558375503079
-      ],
-      "bbox_t2": [
-        0.05631533479378894,
-        0.08355209080859868,
-        0.9442936517054739,
-        0.8935986913815894
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00001",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Ajustements de valorisation prudentiels",
-            "indicator_name_clean": "ajustements de valorisation prudentiels",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "L'indicateur \"Ajustements de valorisation prudentiels\" a été ajouté dans le tableau de gestion du capital au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait refléter une nouvelle exigence de divulgation ou une mise à jour méthodologique concernant la manière dont les ajustements de valorisation sont pris en compte dans le calcul des fonds propres. Les ajustements de valorisation prudentiels sont cruciaux pour s'assurer que les actifs sont évalués de manière conservatrice, ce qui est essentiel pour le respect des exigences de fonds propres sous Bâle III.\n\nIl s'agit probablement d'une mise à jour structurelle importante. L'analyste devrait confirmer que cet ajout est conforme aux nouvelles directives réglementaires ou méthodologiques et vérifier son impact sur les ratios de fonds propres divulgués."
-            }
-          },
-          "validation_status": "pending",
-          "is_required": true,
-          "validation_decision": "",
-          "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
-        }
-      ],
-      "table_status": "pending",
-      "confidence": 0.92,
-      "match_method": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators: same core structure; row_count 48 vs 47.",
-      "genai_analysis": {
-        "theme": "capital",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "capital",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "",
-      "risk_level": "",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 1,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 0,
         "validated": 0,
         "pending": 1
       }
@@ -2096,11 +2021,11 @@
         0.9458950267118567,
         0.8551534787572996
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00018",
+          "change_id": "chg_00020",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[1] Représente l’exposition des produits d’intérêts nets au cour -> Représente l’exposition des produits d’intérêts nets au cour",
@@ -2119,7 +2044,7 @@
       ],
       "table_status": "pending",
       "confidence": 0.95,
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title and table summary identical: 'SENSIBILITÉ AU RISQUE DE TAUX D’INTÉRÊT STRUCTUREL – MESURES'; indicators and headers are highly similar; footnote count identical at 1.",
       "genai_analysis": {
         "theme": "risque_credit",
         "change_significance": "moyen",
@@ -2172,11 +2097,11 @@
         0.9431120429942811,
         0.6319591252490728
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00021",
+          "change_id": "chg_00023",
           "change_type": "footnote_added",
           "payload": {
             "indicator_name": "[2] Comprennent les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation.",
@@ -2195,7 +2120,7 @@
       ],
       "table_status": "pending",
       "confidence": 0.95,
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "match_method": "Title and table summary identical: 'SOMMAIRE DES ACTIFS LIQUIDES MOYENS NON GREVÉS DÉTENUS PAR LA BANQUE, LES FILIALES ET LES SUCCURSALES'; indicators and headers are highly similar; row count identical at 4.",
       "genai_analysis": {
         "theme": "autre",
         "change_significance": "faible",
@@ -2222,44 +2147,121 @@
       }
     },
     {
-      "review_id": "td::risk_management::tbl_p047_i01|tbl_p049_i01",
-      "table_key": "td::risk_management::tbl_p047_i01|tbl_p049_i01",
-      "table_title": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "review_id": "td::capital_management::tbl_p036_i01|tbl_p038_i01",
+      "table_key": "td::capital_management::tbl_p036_i01|tbl_p038_i01",
+      "table_title": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
       "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
+      "section": "capital_management",
+      "table_name": "STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III",
       "table_number": "",
-      "table_id_t1": "tbl_p047_i01",
-      "table_id_t2": "tbl_p049_i01",
-      "page_t1": 47,
-      "page_t2": 49,
+      "table_id_t1": "tbl_p036_i01",
+      "table_id_t2": "tbl_p038_i01",
+      "page_t1": 36,
+      "page_t2": 38,
       "proof_image_t1": "",
       "proof_image_t2": "",
       "proof_image_combined": "",
       "bbox_t1": [
-        0.057457387836930024,
-        0.12001247598667339,
-        0.9461577172372856,
-        0.33846074884588073
+        0.05661490695928437,
+        0.08326667246192393,
+        0.9444360670700572,
+        0.8816558375503079
       ],
       "bbox_t2": [
-        0.057728349772933264,
-        0.11969712767938172,
-        0.946064768273846,
-        0.32914741593177876
+        0.05631533479378894,
+        0.08355209080859868,
+        0.9442936517054739,
+        0.8935986913815894
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00022",
-          "change_type": "footnote_modified",
+          "change_id": "chg_00001",
+          "change_type": "indicator_added",
           "payload": {
-            "indicator_name": "[5] Les autres actifs comprennent la participation dans Schwab,  -> Les autres actifs comprennent le goodwill, les autres immobi",
-            "indicator_name_clean": "[5] les autres actifs comprennent la participation dans schwab,  -> les autres actifs comprennent le goodwill, les autres immobi",
-            "footnote_ref": "5",
-            "old_text": "Les autres actifs comprennent la participation dans Schwab, le goodwill, les autres immobilisations incorporelles, les terrains, bâtiments, matériel et mobilier, autres actifs amortissables et actifs au titre de droits d’utilisation, les actifs d’impôt différé, les montants à recevoir des courtiers et des clients et les autres actifs du bilan qui ne sont pas présentés dans les catégories ci-dessus.",
-            "new_text": "Les autres actifs comprennent le goodwill, les autres immobilisations incorporelles, les terrains, bâtiments, matériel et mobilier, autres actifs amortissables et actifs au titre de droits d’utilisation, les actifs d’impôt différé, les montants à recevoir des courtiers et des clients et les autres actifs du bilan qui ne sont pas présentés dans les catégories ci-dessus."
+            "indicator_name": "Ajustements de valorisation prudentiels",
+            "indicator_name_clean": "ajustements de valorisation prudentiels",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Ajustements de valorisation prudentiels\" a été ajouté dans le tableau de gestion du capital au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout peut refléter une nouvelle exigence de divulgation ou une mise à jour des pratiques comptables en matière de valorisation des actifs. Les ajustements de valorisation prudentiels sont cruciaux pour s'assurer que les actifs sont évalués de manière conservatrice, ce qui est essentiel pour le calcul des fonds propres réglementaires selon les normes de Bâle III.\n\nIl s'agit probablement d'une mise à jour méthodologique ou d'une nouvelle divulgation structurelle. L'analyste devrait confirmer que cet ajout est conforme aux nouvelles directives réglementaires ou aux pratiques de l'industrie."
+            }
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.97,
+      "match_method": "Title identical: 'STRUCTURE DE FONDS PROPRES ET RATIOS – Bâle III'; indicators and headers match perfectly; row_count 48 vs 47.",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 1,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 0,
+        "validated": 0,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "td::risk_management::tbl_p048_i01|tbl_p050_i01",
+      "table_key": "td::risk_management::tbl_p048_i01|tbl_p050_i01",
+      "table_title": "NOTATIONS DE CRÉDIT¹",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "NOTATIONS DE CRÉDIT¹",
+      "table_number": "",
+      "table_id_t1": "tbl_p048_i01",
+      "table_id_t2": "tbl_p050_i01",
+      "page_t1": 48,
+      "page_t2": 50,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05739531174204708,
+        0.14707440077656447,
+        0.9436154833026961,
+        0.34711910979916355
+      ],
+      "bbox_t2": [
+        0.05697837530397901,
+        0.1483499449912948,
+        0.9456812042036867,
+        0.32616355202414776
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00026",
+          "change_type": "footnote_added",
+          "payload": {
+            "indicator_name": "[2] Tient compte de l’abaissement des notations de crédit et de la modification des perspectives par DBRS après la fin du tr",
+            "indicator_name_clean": "[2] tient compte de l’abaissement des notations de crédit et de la modification des perspectives par dbrs après la fin du tr",
+            "footnote_ref": "2",
+            "old_text": "",
+            "new_text": "Tient compte de l’abaissement des notations de crédit et de la modification des perspectives par DBRS après la fin du trimestre, le 2 mai 2025."
           },
           "validation_status": "pending",
           "is_required": false,
@@ -2270,20 +2272,20 @@
         }
       ],
       "table_status": "pending",
-      "confidence": 0.95,
-      "match_method": "Title and table_summary identical; indicators and headers match exactly; row_count identical.",
+      "confidence": 0.98,
+      "match_method": "Title identical: 'NOTATIONS DE CRÉDIT¹'; indicators and headers match perfectly; row_count 11 vs 11.",
       "genai_analysis": {
-        "theme": "risque_credit",
-        "change_significance": "moyen",
-        "review_priority": "normale",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "theme": "financement",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "match_metadata": {
         "drastic_row_drop": false,
-        "theme": "risque_credit",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "theme": "financement",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme financement: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "relevance": "",
       "risk_level": "",
@@ -2319,8 +2321,8 @@
         0.4059773840085425
       ],
       "bbox_t2": null,
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00035",

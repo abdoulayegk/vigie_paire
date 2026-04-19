@@ -1,17 +1,17 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "artifact_type": "report_comparison",
-  "run_id": "20260410_011221",
+  "run_id": "20260418_194850",
   "bank_code": "bmo",
   "year_previous": 2025,
   "quarter_previous": "t3",
   "year_current": 2026,
   "quarter_current": "t1",
-  "created_at": "2026-04-10T01:12:21",
+  "created_at": "2026-04-18T19:48:50",
   "source_pdf_previous": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
   "source_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2026/BMO_2026_T1.pdf",
-  "archived_pdf_previous": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
-  "archived_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2026/BMO_2026_T1.pdf",
+  "archived_pdf_previous": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2026_t1_vs_2025_t3/previous_report.pdf",
+  "archived_pdf_current": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2026_t1_vs_2025_t3/current_report.pdf",
   "model_version": "gpt-4o",
   "prompt_version_match": "table_match_v8",
   "prompt_version_diff": "table_diff_v4",
@@ -26,44 +26,44 @@
       {
         "previous_table_id": "tbl_p024_i01",
         "current_table_id": "tbl_p021_i01",
-        "match_confidence": 0.95,
-        "reason": "Title identical: 'TABLEAU 11'; indicators: same 6 rows; row_count 6 vs 6; headers similar structure."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers are identical; row_count 6 vs 6; footnote_count 3 vs 3; title and table_summary match."
       },
       {
         "previous_table_id": "tbl_p024_i02",
         "current_table_id": "tbl_p021_i02",
-        "match_confidence": 0.95,
-        "reason": "Title identical: 'TABLEAU 12'; indicators: same 24 rows; row_count 24 vs 24; headers similar structure."
+        "match_confidence": 0.99,
+        "reason": "Indicators and headers are identical; row_count 24 vs 24; footnote_count 5 vs 5; title and table_summary match."
       },
       {
         "previous_table_id": "tbl_p025_i01",
         "current_table_id": "tbl_p022_i01",
-        "match_confidence": 0.9,
-        "reason": "Title identical: 'TABLEAU 13'; indicators: similar structure with minor differences; row_count 23 vs 25; headers identical."
+        "match_confidence": 0.95,
+        "reason": "Indicators and headers are nearly identical; row_count 23 vs 25; footnote_count 3 vs 3; title and table_summary match."
       },
       {
         "previous_table_id": "tbl_p044_i01",
         "current_table_id": "tbl_p038_i01",
         "match_confidence": 0.95,
-        "reason": "Headers and indicators match exactly with PQ table 'tbl_p044_i01'. Both have identical headers and indicators related to 'Prêts garantis par un bien immobilier au Canada'."
+        "reason": "Table summary and headers match exactly with PQ table 'tbl_p044_i01'. Both have identical headers and row count of 2."
       },
       {
         "previous_table_id": "tbl_p044_i02",
         "current_table_id": "tbl_p039_i01",
         "match_confidence": 0.95,
-        "reason": "Indicators and headers match exactly with PQ table 'tbl_p044_i02'. Both tables cover 'Prêts hypothécaires résidentiels par région' with identical regional indicators."
+        "reason": "Indicators and headers match exactly with PQ table 'tbl_p044_i02'. Both have identical headers and row count of 10."
       },
       {
         "previous_table_id": "tbl_p044_i03",
         "current_table_id": "tbl_p039_i02",
         "match_confidence": 0.95,
-        "reason": "Indicators and headers match exactly with PQ table 'tbl_p044_i03'. Both tables cover 'Marges de crédit sur valeur domiciliaire par région' with identical regional indicators."
+        "reason": "Indicators and headers match exactly with PQ table 'tbl_p044_i03'. Both have identical headers and row count of 9."
       }
     ],
     "tables_added": [
       {
         "table_id": "tbl_p039_i03",
-        "reason": "No previous table with similar indicators or headers. Unique focus on 'Répartition des prêts hypothécaires à l’habitation par période d’amortissement restante'.",
+        "reason": "No previous table has a similar table summary or indicator structure. Unique focus on amortization periods.",
         "title": "TABLEAU 24",
         "table_summary": "Répartition des prêts hypothécaires à l’habitation par période d’amortissement restante",
         "extraction_status": "rescued",
@@ -110,7 +110,7 @@
       },
       {
         "table_id": "tbl_p039_i04",
-        "reason": "Continuation of 'tbl_p039_i03' with similar headers and indicators. No match with previous tables.",
+        "reason": "Continuation of amortization period table with no matching previous table. Unique focus on amortization periods.",
         "title": "",
         "table_summary": "Suite: période d’amortissement des prêts hypothécaires",
         "extraction_status": "rescued",
@@ -174,7 +174,7 @@
       },
       {
         "table_id": "tbl_p040_i01",
-        "reason": "Unique indicators related to 'Expositions par région'. No similar previous table.",
+        "reason": "Unique indicators and headers related to regional exposures. No similar previous table.",
         "title": "TABLEAU 25",
         "table_summary": "Expositions par région",
         "extraction_status": "rescued",
@@ -237,7 +237,7 @@
       },
       {
         "table_id": "tbl_p041_i01",
-        "reason": "Unique focus on 'Éléments du bilan exposés au risque de marché'. No similar previous table.",
+        "reason": "Unique focus on market risk exposure elements. No similar previous table.",
         "title": "TABLEAU 26",
         "table_summary": "Éléments du bilan exposés au risque de marché",
         "extraction_status": "rescued",
@@ -310,7 +310,7 @@
       },
       {
         "table_id": "tbl_p041_i02",
-        "reason": "Unique focus on 'Sommaire du total de la valeur à risque liée aux activités de négociation'. No similar previous table.",
+        "reason": "Unique focus on trading value at risk. No similar previous table.",
         "title": "TABLEAU 27",
         "table_summary": "Sommaire du total de la valeur à risque liée aux activités de négociation",
         "extraction_status": "rescued",
@@ -367,7 +367,7 @@
       },
       {
         "table_id": "tbl_p042_i01",
-        "reason": "Unique focus on 'Sensibilité au risque structurel de taux d’intérêt'. No similar previous table.",
+        "reason": "Unique focus on interest rate risk sensitivity. No similar previous table.",
         "title": "TABLEAU 28",
         "table_summary": "Sensibilité au risque structurel de taux d’intérêt",
         "extraction_status": "rescued",
@@ -428,7 +428,7 @@
       },
       {
         "table_id": "tbl_p043_i01",
-        "reason": "Unique focus on 'Expositions par région'. No similar previous table.",
+        "reason": "Unique focus on liquid assets. No similar previous table.",
         "title": "TABLEAU 29",
         "table_summary": "Actifs liquides",
         "extraction_status": "rescued",
@@ -493,7 +493,7 @@
       },
       {
         "table_id": "tbl_p043_i02",
-        "reason": "Unique focus on 'Actifs grevés'. No similar previous table.",
+        "reason": "Unique focus on encumbered assets. No similar previous table.",
         "title": "TABLEAU 30",
         "table_summary": "Actifs grevés",
         "extraction_status": "rescued",
@@ -549,7 +549,7 @@
       },
       {
         "table_id": "tbl_p043_i03",
-        "reason": "Unique focus on 'Actifs bruts, grevés et nets non grevés'. No similar previous table.",
+        "reason": "Unique focus on gross, encumbered, and net unencumbered assets. No similar previous table.",
         "title": "",
         "table_summary": "Actifs bruts, grevés et nets non grevés",
         "extraction_status": "rescued",
@@ -626,7 +626,7 @@
       },
       {
         "table_id": "tbl_p044_i01",
-        "reason": "Unique focus on 'Actifs nets liquides non grevés par entité juridique'. No similar previous table.",
+        "reason": "Unique focus on unencumbered net assets by legal entity. No similar previous table.",
         "title": "TABLEAU 31",
         "table_summary": "Actifs nets liquides non grevés par entité juridique",
         "extraction_status": "rescued",
@@ -668,7 +668,7 @@
       },
       {
         "table_id": "tbl_p044_i02",
-        "reason": "Unique focus on 'Échéances du financement de gros'. No similar previous table.",
+        "reason": "Unique focus on wholesale funding maturities. No similar previous table.",
         "title": "TABLEAU 32",
         "table_summary": "Échéances du financement de gros",
         "extraction_status": "rescued",
@@ -748,7 +748,7 @@
       },
       {
         "table_id": "tbl_p045_i01",
-        "reason": "Unique focus on 'Cotes de crédit des titres d’emprunt de BMO'. No similar previous table.",
+        "reason": "Unique focus on credit ratings of BMO's debt securities. No similar previous table.",
         "title": "TABLEAU 33",
         "table_summary": "Cotes de crédit des titres d’emprunt de BMO",
         "extraction_status": "rescued",
@@ -807,7 +807,7 @@
       },
       {
         "table_id": "tbl_p046_i01",
-        "reason": "Unique focus on 'Actifs liquides de haute qualité et ratio de liquidité à court terme'. No similar previous table.",
+        "reason": "Unique focus on high-quality liquid assets and short-term liquidity ratio. No similar previous table.",
         "title": "TABLEAU 34",
         "table_summary": "Actifs liquides de haute qualité et ratio de liquidité à court terme",
         "extraction_status": "rescued",
@@ -893,7 +893,7 @@
       },
       {
         "table_id": "tbl_p047_i01",
-        "reason": "Unique focus on 'Ratio structurel de liquidité à long terme'. No similar previous table.",
+        "reason": "Unique focus on long-term structural liquidity ratio. No similar previous table.",
         "title": "TABLEAU 35",
         "table_summary": "Ratio structurel de liquidité à long terme",
         "extraction_status": "rescued",
@@ -988,7 +988,7 @@
       },
       {
         "table_id": "tbl_p048_i02",
-        "reason": "Unique focus on 'Échéances des passifs et capitaux propres'. No similar previous table.",
+        "reason": "Unique focus on liabilities and equity maturities. No similar previous table.",
         "title": "TABLEAU 37",
         "table_summary": "Échéances des passifs et capitaux propres",
         "extraction_status": "rescued",
@@ -1066,7 +1066,7 @@
       },
       {
         "table_id": "tbl_p049_i01",
-        "reason": "Unique focus on 'Échéances des engagements hors bilan'. No similar previous table.",
+        "reason": "Unique focus on off-balance sheet commitments maturities. No similar previous table.",
         "title": "TABLEAU 38",
         "table_summary": "Échéances des engagements hors bilan",
         "extraction_status": "rescued",
@@ -1130,7 +1130,7 @@
       },
       {
         "table_id": "tbl_p049_i02",
-        "reason": "Unique focus on 'Échéances contractuelles des actifs'. No similar previous table.",
+        "reason": "Unique focus on contractual maturities of assets. No similar previous table.",
         "title": "TABLEAU 39",
         "table_summary": "Échéances contractuelles des actifs",
         "extraction_status": "rescued",
@@ -1195,7 +1195,7 @@
       },
       {
         "table_id": "tbl_p049_i03",
-        "reason": "Unique focus on 'Échéances des passifs et capitaux propres'. No similar previous table.",
+        "reason": "Unique focus on liabilities and equity maturities. No similar previous table.",
         "title": "TABLEAU 40",
         "table_summary": "Échéances des passifs et capitaux propres",
         "extraction_status": "rescued",
@@ -1273,7 +1273,7 @@
       },
       {
         "table_id": "tbl_p050_i01",
-        "reason": "Unique focus on 'Échéances des engagements hors bilan'. No similar previous table.",
+        "reason": "Unique focus on off-balance sheet commitments maturities. No similar previous table.",
         "title": "TABLEAU 41",
         "table_summary": "Échéances des engagements hors bilan",
         "extraction_status": "rescued",
@@ -1820,8 +1820,8 @@
     {
       "previous_table_id": "tbl_p024_i01",
       "current_table_id": "tbl_p021_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Title identical: 'TABLEAU 11'; indicators: same 6 rows; row_count 6 vs 6; headers similar structure.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers are identical; row_count 6 vs 6; footnote_count 3 vs 3; title and table_summary match.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p024_i01",
@@ -1929,7 +1929,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les indicateurs des deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et des positions identiques, indiquant qu'il n'y a pas eu d'ajouts, de suppressions ou de renommages pertinents.",
+      "reason": "Aucune différence sémantique significative n'a été détectée entre les indicateurs des deux tableaux comparés. Tous les indicateurs présents dans le tableau précédent sont également présents dans le tableau actuel, avec des noms et des positions identiques. Les variations mineures dans les en-têtes et les résumés de tableau ne constituent pas des changements d'indicateurs selon les règles établies.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -1943,8 +1943,8 @@
     {
       "previous_table_id": "tbl_p024_i02",
       "current_table_id": "tbl_p021_i02",
-      "match_confidence": 0.95,
-      "match_reason": "Title identical: 'TABLEAU 12'; indicators: same 24 rows; row_count 24 vs 24; headers similar structure.",
+      "match_confidence": 0.99,
+      "match_reason": "Indicators and headers are identical; row_count 24 vs 24; footnote_count 5 vs 5; title and table_summary match.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p024_i02",
@@ -2097,7 +2097,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et positions correspondants, et aucune modification de nom n'est jugée pertinente au niveau sémantique.",
+      "reason": "Aucune différence sémantique significative n'a été détectée entre les indicateurs des deux tableaux comparés. Tous les indicateurs présents dans le tableau précédent se retrouvent dans le tableau actuel avec des noms et des positions structurelles identiques ou équivalentes, en tenant compte des règles d'alignement et de normalisation des indicateurs. Les variations mineures telles que les marques de notes de bas de page ou les différences de ponctuation ont été correctement ignorées conformément aux directives.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2111,8 +2111,8 @@
     {
       "previous_table_id": "tbl_p025_i01",
       "current_table_id": "tbl_p022_i01",
-      "match_confidence": 0.9,
-      "match_reason": "Title identical: 'TABLEAU 13'; indicators: similar structure with minor differences; row_count 23 vs 25; headers identical.",
+      "match_confidence": 0.95,
+      "match_reason": "Indicators and headers are nearly identical; row_count 23 vs 25; footnote_count 3 vs 3; title and table_summary match.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p025_i01",
@@ -2236,11 +2236,11 @@
         "indicators_added": [],
         "indicators_removed": [
           {
-            "value": "Billets avec remboursement de capital à recours limité, série 1 à 4,300 %",
-            "reason": "Cet indicateur était présent dans le tableau précédent mais est absent dans le tableau actuel.",
+            "value": "Série 33",
+            "reason": "L'indicateur 'Série 33' était présent dans le tableau précédent mais est absent dans le tableau actuel.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "La suppression de cette série de billets peut refléter un changement dans la stratégie de financement ou dans les conditions de marché affectant les instruments de dette."
+              "justification": "L'indicateur 'Série 33' a été retiré du tableau de gestion du capital au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur peut signaler le rachat ou l'annulation de cette série d'actions privilégiées, ce qui pourrait affecter la composition du capital et les ratios de fonds propres. Les actions privilégiées sont souvent utilisées pour renforcer les fonds propres de catégorie 1, et leur retrait peut avoir des implications sur la conformité aux exigences de Bâle III.\n\nIl s'agit d'une mise à jour structurelle significative. L'analyste devrait vérifier les raisons de cette suppression et évaluer l'impact potentiel sur les ratios de fonds propres."
             }
           }
         ],
@@ -2255,8 +2255,8 @@
             "current_text": "Des détails sur les billets à moyen terme sont présentés à la note 16 des états financiers consolidés audités du Rapport annuel de BMO pour 2025. La note 16 des états financiers consolidés annuels audités du Rapport annuel de BMO pour 2025, traitent en détail du capital social et des autres instruments convertibles en actions ordinaires.",
             "reason": "Same note with materially revised wording.",
             "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "La modification de cette note clarifie que les instruments sont convertibles en actions ordinaires, ce qui peut avoir un impact sur la compréhension des investisseurs quant à la structure du capital."
+              "relevance_level": 3,
+              "justification": "La note de bas de page n°1 a subi une modification textuelle dans le tableau des actions en circulation et des titres convertibles en actions ordinaires. Le texte a été mis à jour pour refléter l'année 2025 au lieu de 2024 et pour préciser que les instruments sont désormais décrits comme convertibles en actions ordinaires.\n\nCette modification n'a pas d'impact réglementaire direct, car elle semble être une mise à jour de routine pour refléter les informations les plus récentes disponibles dans les états financiers consolidés. Les références aux notes des états financiers sont courantes et nécessaires pour assurer la transparence et la conformité avec les normes de divulgation financière.\n\nIl s'agit d'une mise à jour ordinaire qui ne nécessite pas d'action immédiate. L'analyste peut confirmer que cette mise à jour est conforme aux pratiques de divulgation standard et qu'elle ne modifie pas la méthodologie ou les calculs sous-jacents."
             }
           },
           {
@@ -2267,7 +2267,7 @@
             "reason": "Same note with materially revised wording.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "La reformulation de cette note précise les séries d'actions privilégiées concernées, ce qui est crucial pour la compréhension des droits de conversion des investisseurs."
+              "justification": "La note de bas de page n°2 a été modifiée pour inclure la série 55 dans la liste des actions privilégiées convertibles en actions ordinaires. Cette modification est significative car elle élargit le champ des instruments financiers concernés par la conversion en actions ordinaires.\n\nL'ajout de la série 55 peut avoir des implications sur la structure du capital de la banque, notamment en ce qui concerne les fonds propres de catégorie 1. Les actions privilégiées convertibles sont souvent utilisées pour renforcer les fonds propres réglementaires, et leur inclusion ou exclusion peut affecter les ratios de fonds propres, tels que le ratio CET1, qui est crucial pour la conformité avec les exigences de Bâle III.\n\nIl s'agit d'un changement structurel important. L'analyste devrait confirmer l'impact de cette modification sur les calculs de fonds propres et s'assurer que toutes les implications réglementaires sont correctement adressées."
             }
           }
         ],
@@ -2279,7 +2279,7 @@
         "review_priority": "prioritaire",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 1 changement(s) d'indicateur et 2 changement(s) de footnote."
       },
-      "reason": "Les changements identifiés reflètent des modifications dans la structure des instruments financiers, ce qui peut avoir des implications sur la gestion du capital et la stratégie de financement de l'institution. The changes identified involve material revisions to the wording of existing footnotes, impacting the understanding of capital structure and conversion rights.",
+      "reason": "Les changements observés entre les deux tableaux concernent principalement l'ajout et la suppression d'indicateurs spécifiques, sans modification sémantique des noms existants. The footnotes have undergone semantic changes that warrant classification as renamed due to material wording revisions.",
       "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 1,
       "visual_sanity_scope": [
@@ -2294,7 +2294,7 @@
       "previous_table_id": "tbl_p044_i01",
       "current_table_id": "tbl_p038_i01",
       "match_confidence": 0.95,
-      "match_reason": "Headers and indicators match exactly with PQ table 'tbl_p044_i01'. Both have identical headers and indicators related to 'Prêts garantis par un bien immobilier au Canada'.",
+      "match_reason": "Table summary and headers match exactly with PQ table 'tbl_p044_i01'. Both have identical headers and row count of 2.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p044_i01",
@@ -2365,7 +2365,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "Les deux tableaux comparés ne contiennent aucun indicateur à analyser. Par conséquent, il n'y a pas de changements sémantiques significatifs à signaler entre les deux trimestres.",
+      "reason": "Both tables have no indicators to compare, hence no semantic changes can be reported.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2380,7 +2380,7 @@
       "previous_table_id": "tbl_p044_i02",
       "current_table_id": "tbl_p039_i01",
       "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match exactly with PQ table 'tbl_p044_i02'. Both tables cover 'Prêts hypothécaires résidentiels par région' with identical regional indicators.",
+      "match_reason": "Indicators and headers match exactly with PQ table 'tbl_p044_i02'. Both have identical headers and row count of 10.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p044_i02",
@@ -2501,10 +2501,10 @@
           {
             "id": "4",
             "text": "Le ratio prêt/valeur (RPV) est fonction de l’encours initial des prêts hypothécaires et des montants autorisés pouvant être prélevés sur les marges de crédit sur valeur domiciliaire, divisés par la valeur de la garantie au moment du montage.",
-            "reason": "This footnote is present only in the current table and was not in the previous version.",
+            "reason": "New footnote added in the current table.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "Cette note a été ajoutée pour clarifier le calcul du ratio prêt/valeur, ce qui est essentiel pour l'évaluation des risques liés aux prêts hypothécaires."
+              "justification": "La note de bas de page n-4 a été ajoutée dans le tableau des prêts hypothécaires à l’habitation par région au T1 2026.\n\nCette note précise la méthodologie de calcul du ratio prêt/valeur (RPV), qui est un indicateur clé pour évaluer le risque associé aux prêts hypothécaires. Le RPV est calculé en fonction de l’encours initial des prêts et des montants autorisés sur les marges de crédit, divisés par la valeur de la garantie. Cette précision méthodologique est cruciale pour assurer la transparence et la conformité avec les normes de divulgation financière, notamment celles liées aux exigences de Bâle III et aux lignes directrices du BSIF.\n\nIl s'agit d'une nouvelle divulgation méthodologique qui pourrait avoir un impact sur l'évaluation des risques de crédit. L'analyste devrait confirmer que cette nouvelle méthodologie est cohérente avec les autres tableaux de risque de crédit du rapport et s'assurer que les parties prenantes comprennent bien cette nouvelle approche de calcul."
             }
           }
         ],
@@ -2518,7 +2518,7 @@
         "review_priority": "normale",
         "analyst_summary": "Changements semantiques detectes sur le theme autre: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "The analysis identified a new footnote added in the current table, which provides important clarification on the calculation of the loan-to-value ratio, impacting risk assessment.",
+      "reason": "The analysis identified a new footnote added in the current table, which provides a methodological clarification on the calculation of the loan-to-value ratio (LTV). No footnotes were removed or renamed.",
       "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2533,7 +2533,7 @@
       "previous_table_id": "tbl_p044_i03",
       "current_table_id": "tbl_p039_i02",
       "match_confidence": 0.95,
-      "match_reason": "Indicators and headers match exactly with PQ table 'tbl_p044_i03'. Both tables cover 'Marges de crédit sur valeur domiciliaire par région' with identical regional indicators.",
+      "match_reason": "Indicators and headers match exactly with PQ table 'tbl_p044_i03'. Both have identical headers and row count of 9.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p044_i03",
@@ -2640,7 +2640,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Les indicateurs sont identiques en termes de position et de nom, et les différences de titre de tableau ou de section ne sont pas pertinentes pour l'analyse des indicateurs eux-mêmes.",
+      "reason": "Les indicateurs des deux tableaux sont identiques en termes de position et de nom, sans changements sémantiques significatifs à signaler. Les différences de titre de tableau et de section ne sont pas pertinentes pour l'analyse des indicateurs eux-mêmes.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2654,12 +2654,12 @@
   ],
   "run_metrics": {
     "runtime_extraction_sec": 0.0,
-    "runtime_comparison_sec": 78.569,
+    "runtime_comparison_sec": 77.948,
     "vision_calls_total": 0,
     "vision_rescue_total": 0,
-    "comparison_calls_total": 25,
+    "comparison_calls_total": 22,
     "matching_passes_total": 2,
-    "inspector_passes_total": 6,
+    "inspector_passes_total": 3,
     "audit_passes_total": 0,
     "matching_output_retries_total": 0,
     "matching_validation_failures_total": 0,
@@ -2671,12 +2671,12 @@
     "unmatched_after_rescue_total": 20,
     "matching_pairs_llm_duplicates_total": 0,
     "matching_pairs_llm_deduped_total": 0,
-    "inspector_rejected_total": 3,
+    "inspector_rejected_total": 0,
     "inspector_confirmed_total": 3,
-    "prompt_tokens_total": 93676,
-    "completion_tokens_total": 6620,
-    "total_tokens_total": 100296,
-    "estimated_cost_usd": 0.30039,
+    "prompt_tokens_total": 94304,
+    "completion_tokens_total": 7690,
+    "total_tokens_total": 101994,
+    "estimated_cost_usd": 0.31266,
     "extraction": {
       "runtime_extraction_sec": 0.0,
       "vision_calls_total": 0,
@@ -2690,13 +2690,13 @@
       "current": {}
     },
     "comparison": {
-      "prompt_tokens_total": 93676,
-      "completion_tokens_total": 6620,
-      "total_tokens_total": 100296,
-      "comparison_calls_total": 25,
-      "runtime_comparison_sec": 78.569,
+      "prompt_tokens_total": 94304,
+      "completion_tokens_total": 7690,
+      "total_tokens_total": 101994,
+      "comparison_calls_total": 22,
+      "runtime_comparison_sec": 77.948,
       "matching_passes_total": 2,
-      "inspector_passes_total": 6,
+      "inspector_passes_total": 3,
       "audit_passes_total": 0,
       "matching_output_retries_total": 0,
       "matching_validation_failures_total": 0,
@@ -2708,9 +2708,9 @@
       "unmatched_after_rescue_total": 20,
       "matching_pairs_llm_duplicates_total": 0,
       "matching_pairs_llm_deduped_total": 0,
-      "inspector_rejected_total": 3,
+      "inspector_rejected_total": 0,
       "inspector_confirmed_total": 3,
-      "estimated_cost_usd": 0.30039
+      "estimated_cost_usd": 0.31266
     }
   },
   "summary": {
@@ -2724,11 +2724,5 @@
     "indicator_changes_total": 1,
     "footnote_changes_total": 3,
     "high_priority_items_total": 19
-  },
-  "review_decisions_summary": {
-    "matched": 0,
-    "unmatched": 0,
-    "pending": 0,
-    "updated_at": "2026-04-18T18:44:36+00:00"
   }
 }

@@ -1,17 +1,17 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "artifact_type": "report_comparison",
-  "run_id": "20260410_011018",
+  "run_id": "20260418_194843",
   "bank_code": "bmo",
   "year_previous": 2025,
   "quarter_previous": "t2",
   "year_current": 2025,
   "quarter_current": "t3",
-  "created_at": "2026-04-10T01:10:18",
+  "created_at": "2026-04-18T19:48:43",
   "source_pdf_previous": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
   "source_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
-  "archived_pdf_previous": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
-  "archived_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
+  "archived_pdf_previous": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t3_vs_2025_t2/previous_report.pdf",
+  "archived_pdf_current": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t3_vs_2025_t2/current_report.pdf",
   "model_version": "gpt-4o",
   "prompt_version_match": "table_match_v8",
   "prompt_version_diff": "table_diff_v4",
@@ -26,44 +26,44 @@
       {
         "previous_table_id": "tbl_p024_i01",
         "current_table_id": "tbl_p024_i01",
-        "match_confidence": 0.95,
-        "reason": "Title identical: 'TABLEAU 11'; indicators: same 6 rows; headers similar structure; row_count 6 vs 6; footnote_count 3 vs 4."
+        "match_confidence": 0.98,
+        "reason": "Title identical: 'TABLEAU 11'; indicators: same 6 rows; row_count 6 vs 6; headers and section match."
       },
       {
         "previous_table_id": "tbl_p024_i02",
         "current_table_id": "tbl_p024_i02",
-        "match_confidence": 0.95,
-        "reason": "Title identical: 'TABLEAU 12'; indicators: same 24 rows; headers similar structure; row_count 24 vs 24; footnote_count 5 vs 5."
+        "match_confidence": 0.98,
+        "reason": "Title identical: 'TABLEAU 12'; indicators: same 24 rows; row_count 24 vs 24; headers and section match."
       },
       {
         "previous_table_id": "tbl_p025_i01",
         "current_table_id": "tbl_p025_i01",
-        "match_confidence": 0.95,
-        "reason": "Title identical: 'TABLEAU 13'; indicators: same 25 rows; headers identical; row_count 25 vs 25; footnote_count 3 vs 3."
+        "match_confidence": 0.98,
+        "reason": "Title identical: 'TABLEAU 13'; indicators: same 25 rows; row_count 25 vs 25; headers and section match."
       },
       {
         "previous_table_id": "tbl_p043_i01",
         "current_table_id": "tbl_p044_i01",
-        "match_confidence": 0.95,
-        "reason": "Title identical: 'TABLEAU 22'; indicators: same 2 rows; headers identical; row_count 2 vs 2; footnote_count 0 vs 0."
+        "match_confidence": 0.98,
+        "reason": "Title identical: 'TABLEAU 22'; indicators: same 2 rows; row_count 2 vs 2; headers and section match."
       },
       {
         "previous_table_id": "tbl_p044_i01",
         "current_table_id": "tbl_p044_i02",
-        "match_confidence": 0.9,
-        "reason": "Title and table_summary are highly similar: 'Prêts hypothécaires résidentiels par région' vs 'Prêts hypothécaires à l’habitation par région'; identical indicators and headers; row_count 10 vs 9."
+        "match_confidence": 0.98,
+        "reason": "Title identical: 'TABLEAU 23'; indicators: same 9 rows; row_count 9 vs 9; headers and section match."
       },
       {
         "previous_table_id": "tbl_p044_i02",
         "current_table_id": "tbl_p044_i03",
-        "match_confidence": 0.95,
-        "reason": "Title and table_summary are identical: 'Marges de crédit sur valeur domiciliaire par région'; identical indicators and headers; row_count 9 vs 9."
+        "match_confidence": 0.98,
+        "reason": "Title identical: 'TABLEAU 24'; indicators: same 9 rows; row_count 9 vs 9; headers and section match."
       }
     ],
     "tables_added": [
       {
         "table_id": "tbl_p043_i01",
-        "reason": "Indicators are unique to regulatory updates; no previous table shares similar indicators or section.",
+        "reason": "The table 'Obligations redditionnelles des banques d’importance systémique mondiale' has unique indicators related to global systemically important banks, which do not match any remaining previous table in terms of title, indicators, or table summary. No credible match exists.",
         "title": "TABLEAU 21",
         "table_summary": "Obligations redditionnelles des banques d’importance systémique mondiale",
         "extraction_status": "rescued",
@@ -1939,8 +1939,8 @@
     {
       "previous_table_id": "tbl_p024_i01",
       "current_table_id": "tbl_p024_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Title identical: 'TABLEAU 11'; indicators: same 6 rows; headers similar structure; row_count 6 vs 6; footnote_count 3 vs 4.",
+      "match_confidence": 0.98,
+      "match_reason": "Title identical: 'TABLEAU 11'; indicators: same 6 rows; row_count 6 vs 6; headers and section match.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p024_i01",
@@ -2051,7 +2051,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "The only change is the removal of a non-substantive 's. o.' footnote, which does not affect the table's semantic content.",
+      "reason": "The analysis identified a footnote removed from the previous quarter, which was marked as 's. o.' indicating 'sans objet'. This removal is classified as footnotes_removed due to its absence in the current quarter.",
       "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 1,
       "visual_sanity_scope": [
@@ -2065,8 +2065,8 @@
     {
       "previous_table_id": "tbl_p024_i02",
       "current_table_id": "tbl_p024_i02",
-      "match_confidence": 0.95,
-      "match_reason": "Title identical: 'TABLEAU 12'; indicators: same 24 rows; headers similar structure; row_count 24 vs 24; footnote_count 5 vs 5.",
+      "match_confidence": 0.98,
+      "match_reason": "Title identical: 'TABLEAU 12'; indicators: same 24 rows; row_count 24 vs 24; headers and section match.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p024_i02",
@@ -2219,7 +2219,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Tous les indicateurs sont présents dans les deux versions avec des noms et positions correspondants, et aucune modification de nom n'est jugée pertinente au niveau sémantique.",
+      "reason": "Aucune différence sémantique significative n'a été détectée entre les indicateurs des deux tableaux comparés. Tous les indicateurs présents dans le tableau précédent se retrouvent dans le tableau actuel avec des noms et des positions identiques ou équivalents après normalisation. Les variations mineures telles que les marques de notes de bas de page ou les différences de formatage ont été ignorées conformément aux règles établies.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2233,8 +2233,8 @@
     {
       "previous_table_id": "tbl_p025_i01",
       "current_table_id": "tbl_p025_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Title identical: 'TABLEAU 13'; indicators: same 25 rows; headers identical; row_count 25 vs 25; footnote_count 3 vs 3.",
+      "match_confidence": 0.98,
+      "match_reason": "Title identical: 'TABLEAU 13'; indicators: same 25 rows; row_count 25 vs 25; headers and section match.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p025_i01",
@@ -2360,32 +2360,20 @@
         "indicators_added": [
           {
             "value": "Billets avec remboursement de capital à recours limité, série 6 à 6,875 %",
-            "reason": "Cet indicateur est présent dans le tableau actuel mais pas dans le tableau précédent, indiquant un ajout.",
+            "reason": "A new series of limited recourse capital notes has been introduced in the current quarter.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "Cet ajout reflète l'émission d'une nouvelle série de billets avec remboursement de capital à recours limité, ce qui peut avoir un impact sur la structure du capital et les obligations financières de l'institution."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-06T12:17:52.414039+00:00",
-              "by": "analyst"
+              "justification": "L'indicateur \"Billets avec remboursement de capital à recours limité, série 6 à 6,875 %\" a été ajouté dans le tableau de gestion du capital au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout reflète l'émission d'une nouvelle série de billets à recours limité, ce qui peut indiquer une stratégie de financement ou de gestion du capital modifiée. Les billets à recours limité sont souvent utilisés pour optimiser la structure du capital tout en respectant les exigences réglementaires en matière de fonds propres. Cela peut avoir un impact sur les ratios de fonds propres réglementaires, tels que ceux définis par Bâle III.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cette nouvelle émission est correctement intégrée dans les calculs de fonds propres et vérifier sa conformité avec les exigences réglementaires en vigueur."
             }
           }
         ],
         "indicators_removed": [
           {
             "value": "Série J – deuxième tranche",
-            "reason": "Cet indicateur est présent dans le tableau précédent mais pas dans le tableau actuel, indiquant une suppression.",
+            "reason": "This series of securities is no longer present in the current quarter's table.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "La suppression de cette tranche peut indiquer un changement dans la structure de financement ou le remboursement de cette série, ce qui est important pour l'analyse de la gestion du capital."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-06T12:17:52.962372+00:00",
-              "by": "analyst"
+              "justification": "L'indicateur \"Série J – deuxième tranche\" a été retiré du tableau de gestion du capital au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cette tranche peut indiquer que ces titres ont été rachetés, convertis ou autrement retirés du marché. Cela peut affecter la composition du capital de l'institution et potentiellement ses ratios de fonds propres, qui sont surveillés de près par les régulateurs financiers. Les changements dans la structure du capital doivent être analysés pour comprendre leur impact sur la solidité financière de l'institution.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait enquêter sur la raison de cette suppression et s'assurer que les ajustements nécessaires ont été effectués dans les rapports financiers et réglementaires."
             }
           }
         ],
@@ -2401,7 +2389,7 @@
             "reason": "Same note with materially revised wording.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'ajout des séries 1, 2 et 6 dans la note indique une extension des instruments convertibles, ce qui peut affecter la structure du capital et les droits des actionnaires."
+              "justification": "La note de bas de page n°2 a été modifiée dans le tableau des actions en circulation et titres convertibles en actions ordinaires. Le texte a été élargi pour inclure des séries supplémentaires de billets à recours limité, notamment les séries 1, 2 et 6, qui n'étaient pas mentionnées précédemment.\n\nCette modification a un impact significatif sur la compréhension des instruments financiers convertibles en actions ordinaires. L'ajout de nouvelles séries de billets à recours limité peut indiquer une stratégie de financement élargie ou une révision des conditions de conversion, ce qui pourrait affecter les ratios de fonds propres réglementaires. Les exigences de Bâle III en matière de fonds propres pourraient être influencées par ces changements, nécessitant une attention particulière pour s'assurer que les nouvelles séries sont correctement intégrées dans les calculs de fonds propres.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que ces nouvelles séries sont correctement intégrées dans les rapports financiers et vérifier leur conformité avec les exigences réglementaires en vigueur. Une investigation plus approfondie est recommandée pour comprendre l'impact complet de ces ajouts sur la structure du capital."
             }
           }
         ],
@@ -2413,9 +2401,9 @@
         "review_priority": "critique",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "Les changements identifiés reflètent des modifications dans la structure des instruments financiers de l'institution, ce qui est crucial pour comprendre l'évolution de sa gestion du capital. The analysis identified a material semantic change in footnote 2, reflecting an expansion of convertible instruments.",
+      "reason": "The analysis identified one new indicator added and one removed, reflecting changes in the capital structure. No renames were detected as all other indicators matched by normalized names or positions. Footnotes with materially revised wording have been identified and classified as renamed.",
       "visual_sanity_applied": true,
-      "visual_sanity_rejected_count": 0,
+      "visual_sanity_rejected_count": 1,
       "visual_sanity_scope": [
         "indicators",
         "footnotes",
@@ -2427,8 +2415,8 @@
     {
       "previous_table_id": "tbl_p043_i01",
       "current_table_id": "tbl_p044_i01",
-      "match_confidence": 0.95,
-      "match_reason": "Title identical: 'TABLEAU 22'; indicators: same 2 rows; headers identical; row_count 2 vs 2; footnote_count 0 vs 0.",
+      "match_confidence": 0.98,
+      "match_reason": "Title identical: 'TABLEAU 22'; indicators: same 2 rows; row_count 2 vs 2; headers and section match.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p043_i01",
@@ -2513,8 +2501,8 @@
     {
       "previous_table_id": "tbl_p044_i01",
       "current_table_id": "tbl_p044_i02",
-      "match_confidence": 0.9,
-      "match_reason": "Title and table_summary are highly similar: 'Prêts hypothécaires résidentiels par région' vs 'Prêts hypothécaires à l’habitation par région'; identical indicators and headers; row_count 10 vs 9.",
+      "match_confidence": 0.98,
+      "match_reason": "Title identical: 'TABLEAU 23'; indicators: same 9 rows; row_count 9 vs 9; headers and section match.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p044_i01",
@@ -2627,16 +2615,7 @@
         ]
       },
       "technical_diff": {
-        "indicators_added": [
-          {
-            "value": "Région²",
-            "reason": "Un nouvel indicateur 'Région²' a été ajouté au début du tableau actuel.",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "Cet ajout structurel modifie la présentation des données, ce qui peut influencer l'interprétation des résultats régionaux."
-            }
-          }
-        ],
+        "indicators_added": [],
         "indicators_removed": [],
         "indicators_renamed": [],
         "footnotes_added": [],
@@ -2644,10 +2623,10 @@
           {
             "id": "4",
             "text": "Le ratio prêt/valeur (RPV) est fonction de l’encours initial des prêts hypothécaires et des montants autorisés pouvant être prélevés sur les marges de crédit sur valeur domiciliaire, divisés par la valeur de la garantie au moment du montage.",
-            "reason": "Footnote removed from the current table.",
+            "reason": "This footnote was present in the previous quarter but is absent in the current quarter.",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "La suppression de cette note supprime une explication importante sur le calcul du ratio prêt/valeur, ce qui peut affecter la compréhension des risques associés aux prêts hypothécaires."
+              "justification": "La note de bas de page n°4 a été supprimée du tableau des prêts hypothécaires résidentiels par région au T2 2025. Cette note expliquait le calcul du ratio prêt/valeur (RPV), un indicateur clé pour évaluer le risque de crédit associé aux prêts hypothécaires. Le RPV est calculé en fonction de l’encours initial des prêts et des montants autorisés sur les marges de crédit, divisés par la valeur de la garantie au moment du montage.\n\nL'absence de cette note pourrait avoir un impact significatif sur la compréhension des méthodes de calcul des ratios de risque par les analystes et les régulateurs. Le RPV est un indicateur crucial pour évaluer la solidité financière de la banque et sa conformité aux exigences de Bâle III en matière de gestion des risques. La suppression de cette note pourrait indiquer un changement dans la méthodologie de calcul ou une simplification des divulgations, ce qui nécessite une attention particulière pour s'assurer que les pratiques restent conformes aux normes réglementaires.\n\nIl s'agit d'une mise à jour structurelle potentiellement significative. L'analyste devrait investiguer les raisons de cette suppression et vérifier si le calcul du RPV est toujours conforme aux pratiques de divulgation et aux exigences réglementaires actuelles. Une escalade pourrait être nécessaire si cette suppression entraîne des incohérences dans la présentation des risques de crédit."
             }
           }
         ],
@@ -2656,11 +2635,11 @@
       },
       "analyst_assessment": {
         "theme": "autre",
-        "change_significance": "moyen",
+        "change_significance": "faible",
         "review_priority": "normale",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "reason": "Un nouvel indicateur 'Région²' a été ajouté dans le tableau actuel, modifiant la structure sans supprimer d'indicateurs existants. The analysis identified a footnote removed from the current table, which impacts the understanding of mortgage risk calculations.",
+      "reason": "The analysis identified a footnote removal that may impact the understanding of risk metrics.",
       "visual_sanity_applied": true,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2674,8 +2653,8 @@
     {
       "previous_table_id": "tbl_p044_i02",
       "current_table_id": "tbl_p044_i03",
-      "match_confidence": 0.95,
-      "match_reason": "Title and table_summary are identical: 'Marges de crédit sur valeur domiciliaire par région'; identical indicators and headers; row_count 9 vs 9.",
+      "match_confidence": 0.98,
+      "match_reason": "Title identical: 'TABLEAU 24'; indicators: same 9 rows; row_count 9 vs 9; headers and section match.",
       "diff_mode": "gpt",
       "previous_table": {
         "table_id": "tbl_p044_i02",
@@ -2782,7 +2761,7 @@
         "review_priority": "normale",
         "analyst_summary": "Aucun changement semantique detecte sur le theme autre."
       },
-      "reason": "Aucun changement sémantique significatif n'a été détecté entre les deux tableaux. Les indicateurs sont identiques en termes de position et de nom, et il n'y a pas de différences de structure ou de contenu qui justifieraient une classification en tant qu'ajout, suppression ou renommage.",
+      "reason": "Aucune différence sémantique significative n'a été détectée entre les indicateurs des deux tableaux comparés. Les indicateurs présents dans les deux tableaux sont identiques en termes de nom et de position, ce qui indique qu'il n'y a eu ni ajout, ni suppression, ni renommage d'indicateurs entre les deux périodes considérées.",
       "visual_sanity_applied": false,
       "visual_sanity_rejected_count": 0,
       "visual_sanity_scope": [
@@ -2796,29 +2775,29 @@
   ],
   "run_metrics": {
     "runtime_extraction_sec": 0.0,
-    "runtime_comparison_sec": 59.514,
+    "runtime_comparison_sec": 72.288,
     "vision_calls_total": 0,
     "vision_rescue_total": 0,
-    "comparison_calls_total": 23,
+    "comparison_calls_total": 25,
     "matching_passes_total": 2,
-    "inspector_passes_total": 4,
+    "inspector_passes_total": 6,
     "audit_passes_total": 0,
     "matching_output_retries_total": 0,
     "matching_validation_failures_total": 0,
     "stage1_validation_retries_total": 0,
     "stage2_validation_retries_total": 0,
-    "unresolved_after_stage1_total": 3,
-    "matched_in_stage2_total": 2,
-    "unmatched_after_primary_total": 26,
+    "unresolved_after_stage1_total": 1,
+    "matched_in_stage2_total": 0,
+    "unmatched_after_primary_total": 22,
     "unmatched_after_rescue_total": 22,
     "matching_pairs_llm_duplicates_total": 0,
     "matching_pairs_llm_deduped_total": 0,
     "inspector_rejected_total": 0,
-    "inspector_confirmed_total": 4,
-    "prompt_tokens_total": 91874,
-    "completion_tokens_total": 3947,
-    "total_tokens_total": 95821,
-    "estimated_cost_usd": 0.269155,
+    "inspector_confirmed_total": 6,
+    "prompt_tokens_total": 99485,
+    "completion_tokens_total": 5591,
+    "total_tokens_total": 105076,
+    "estimated_cost_usd": 0.304623,
     "extraction": {
       "runtime_extraction_sec": 0.0,
       "vision_calls_total": 0,
@@ -2832,27 +2811,27 @@
       "current": {}
     },
     "comparison": {
-      "prompt_tokens_total": 91874,
-      "completion_tokens_total": 3947,
-      "total_tokens_total": 95821,
-      "comparison_calls_total": 23,
-      "runtime_comparison_sec": 59.514,
+      "prompt_tokens_total": 99485,
+      "completion_tokens_total": 5591,
+      "total_tokens_total": 105076,
+      "comparison_calls_total": 25,
+      "runtime_comparison_sec": 72.288,
       "matching_passes_total": 2,
-      "inspector_passes_total": 4,
+      "inspector_passes_total": 6,
       "audit_passes_total": 0,
       "matching_output_retries_total": 0,
       "matching_validation_failures_total": 0,
       "stage1_validation_retries_total": 0,
       "stage2_validation_retries_total": 0,
-      "unresolved_after_stage1_total": 3,
-      "matched_in_stage2_total": 2,
-      "unmatched_after_primary_total": 26,
+      "unresolved_after_stage1_total": 1,
+      "matched_in_stage2_total": 0,
+      "unmatched_after_primary_total": 22,
       "unmatched_after_rescue_total": 22,
       "matching_pairs_llm_duplicates_total": 0,
       "matching_pairs_llm_deduped_total": 0,
       "inspector_rejected_total": 0,
-      "inspector_confirmed_total": 4,
-      "estimated_cost_usd": 0.269155
+      "inspector_confirmed_total": 6,
+      "estimated_cost_usd": 0.304623
     }
   },
   "summary": {
@@ -2863,14 +2842,8 @@
     "artifacts_confirmed_current_total": 21,
     "extraction_suspects_previous_total": 0,
     "extraction_suspects_current_total": 0,
-    "indicator_changes_total": 3,
+    "indicator_changes_total": 2,
     "footnote_changes_total": 2,
     "high_priority_items_total": 21
-  },
-  "review_decisions_summary": {
-    "matched": 2,
-    "unmatched": 0,
-    "pending": 4,
-    "updated_at": "2026-04-18T22:53:07+00:00"
   }
 }
