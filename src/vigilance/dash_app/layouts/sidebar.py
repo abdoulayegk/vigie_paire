@@ -5,6 +5,7 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from vigilance.dash_app import reader_config
 from vigilance.i18n import t
 from vigilance.ui_config import AVAILABLE_BANKS
 
@@ -32,6 +33,10 @@ def build_sidebar() -> dbc.Col:
         {"label": "T2", "value": "T2"},
         {"label": "T3", "value": "T3"},
     ]
+
+    reader_mode = reader_config.is_reader_mode()
+    hide_in_reader = {"display": "none"} if reader_mode else None
+    analyst_value = reader_config.current_username() if reader_mode else None
 
     return dbc.Col(
         [
@@ -65,6 +70,8 @@ def build_sidebar() -> dbc.Col:
                         id="analyst-name",
                         placeholder="ex: Jean Dupont",
                         className="mb-3",
+                        value=analyst_value,
+                        readonly=reader_mode,
                     ),
                     # 2. Bank & Year
                     dbc.Row(
@@ -123,19 +130,25 @@ def build_sidebar() -> dbc.Col:
                         className="small text-muted mb-3",
                     ),
                     html.Hr(),
-                    # 4. Source Selection
-                    html.Label("Source des données", className="fw-bold small mt-2"),
-                    dbc.RadioItems(
-                        id="data-source-type",
-                        options=[
-                            {
-                                "label": "Analyses enregistrées",
-                                "value": "saved",
-                            },
-                            {"label": "Téléverser les PDF", "value": "upload"},
+                    # 4. Source Selection (cachee en mode reader: source = "saved" forcee)
+                    html.Div(
+                        [
+                            html.Label("Source des données", className="fw-bold small mt-2"),
+                            dbc.RadioItems(
+                                id="data-source-type",
+                                options=[
+                                    {
+                                        "label": "Analyses enregistrées",
+                                        "value": "saved",
+                                    },
+                                    {"label": "Téléverser les PDF", "value": "upload"},
+                                ],
+                                value="saved",
+                                className="mb-3 small",
+                            ),
                         ],
-                        value="saved",
-                        className="mb-3 small",
+                        id="data-source-wrapper",
+                        style=hide_in_reader,
                     ),
                     # 4b. Saved analyses selector (hidden by default)
                     html.Div(
@@ -245,55 +258,61 @@ def build_sidebar() -> dbc.Col:
                         id="upload-source-container",
                         style={"display": "none"},
                     ),
-                    # 7. Options (Collapsed)
-                    dbc.Button(
-                        "Options avancées",
-                        id="btn-toggle-options",
-                        color="link",
-                        size="sm",
-                        className="p-0 mb-2 text-decoration-none",
-                    ),
-                    dbc.Collapse(
+                    # 7. Options (Collapsed) - cachees en mode reader (pipeline only)
+                    html.Div(
                         [
-                            dbc.Checklist(
-                                id="option-footnotes",
-                                options=[
-                                    {
-                                        "label": "Notes de bas de tableau",
-                                        "value": "footnotes",
-                                    }
-                                ],
-                                value=["footnotes"],
-                                switch=True,
-                                className="small mb-1",
+                            dbc.Button(
+                                "Options avancées",
+                                id="btn-toggle-options",
+                                color="link",
+                                size="sm",
+                                className="p-0 mb-2 text-decoration-none",
                             ),
-                            dbc.Checklist(
-                                id="option-genai-classification",
-                                options=[
-                                    {
-                                        "label": "Classer les changements avec l'IA générative (GPT-4o)",
-                                        "value": "classify",
-                                    }
+                            dbc.Collapse(
+                                [
+                                    dbc.Checklist(
+                                        id="option-footnotes",
+                                        options=[
+                                            {
+                                                "label": "Notes de bas de tableau",
+                                                "value": "footnotes",
+                                            }
+                                        ],
+                                        value=["footnotes"],
+                                        switch=True,
+                                        className="small mb-1",
+                                    ),
+                                    dbc.Checklist(
+                                        id="option-genai-classification",
+                                        options=[
+                                            {
+                                                "label": "Classer les changements avec l'IA générative (GPT-4o)",
+                                                "value": "classify",
+                                            }
+                                        ],
+                                        value=["classify"],
+                                        switch=True,
+                                        className="small mb-1",
+                                    ),
+                                    dbc.Checklist(
+                                        id="option-force-reextract",
+                                        options=[
+                                            {
+                                                "label": t("option_force_reextract"),
+                                                "value": "reextract",
+                                            }
+                                        ],
+                                        value=[],
+                                        switch=True,
+                                        className="small mb-1",
+                                    ),
                                 ],
-                                value=["classify"],
-                                switch=True,
-                                className="small mb-1",
-                            ),
-                            dbc.Checklist(
-                                id="option-force-reextract",
-                                options=[
-                                    {
-                                        "label": t("option_force_reextract"),
-                                        "value": "reextract",
-                                    }
-                                ],
-                                value=[],
-                                switch=True,
-                                className="small mb-1",
+                                id="collapse-options",
+                                is_open=False,
                             ),
                         ],
-                        id="collapse-options",
-                        is_open=False,
+                        id="advanced-options-wrapper",
+                        style=hide_in_reader,
                     ),
                 ],
                 id="analysis-sidebar-body",

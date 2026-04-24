@@ -93,28 +93,45 @@ def is_review_state_compatible(
     return True
 
 
-def get_review_state_path(compare_path: str | Path | None) -> Path | None:
-    """Retourne le chemin du fichier sidecar d'etat de revue pour un JSON de comparaison."""
+def get_review_state_path(
+    compare_path: str | Path | None,
+    *,
+    username: str | None = None,
+) -> Path | None:
+    """Retourne le chemin du fichier sidecar d'etat de revue pour un JSON de comparaison.
+
+    Si ``username`` est fourni, le chemin est suffixe ``<stem>.review_state.<username>.json``
+    pour la strategie multi-analystes (mode reader). Sans username, on conserve le
+    nom historique ``<stem>.review_state.json`` (compatibilite pipeline complet).
+    """
     if not compare_path:
         return None
     target = Path(compare_path)
+    suffix = f".{username}" if username else ""
     if target.suffix.lower() == ".json":
-        filename = f"{target.stem}.review_state.json"
+        filename = f"{target.stem}.review_state{suffix}.json"
     else:
-        filename = f"{target.name}.review_state.json"
+        filename = f"{target.name}.review_state{suffix}.json"
     return target.with_name(filename)
 
 
-def load_review_state(compare_path: str | Path | None) -> dict[str, Any] | None:
+def load_review_state(
+    compare_path: str | Path | None,
+    *,
+    username: str | None = None,
+) -> dict[str, Any] | None:
     """Charge l'etat de revue persiste s'il est present et valide.
 
     Args:
         compare_path: Chemin du fichier JSON de comparaison.
+        username: Identifiant analyste pour la strategie multi-utilisateurs.
+            Si fourni, lit ``<stem>.review_state.<username>.json``. Si absent,
+            tombe sur le sidecar partage historique.
 
     Returns:
         Dictionnaire d'etat ou ``None`` si absent/invalide.
     """
-    state_path = get_review_state_path(compare_path)
+    state_path = get_review_state_path(compare_path, username=username)
     if state_path is None or not state_path.exists():
         return None
     try:
@@ -152,6 +169,7 @@ def save_review_state(
     preferred_store: str = "review_queue",
     source: str = "dash",
     comparison_run_id: str = "",
+    username: str | None = None,
 ) -> Path | None:
     """Persiste l'etat de revue analyste courant a cote du JSON de comparaison.
 
@@ -166,11 +184,14 @@ def save_review_state(
         preferred_store: Nom du store prefere (``review_queue`` par defaut).
         source: Source de la sauvegarde (``dash`` par defaut).
         comparison_run_id: Identifiant du run de comparaison.
+        username: Identifiant analyste pour la strategie multi-utilisateurs.
+            Si fourni, ecrit dans ``<stem>.review_state.<username>.json`` au lieu
+            du sidecar partage historique (mode reader uniquement).
 
     Returns:
         Chemin du fichier d'etat sauvegarde, ou ``None`` si impossible.
     """
-    state_path = get_review_state_path(compare_path)
+    state_path = get_review_state_path(compare_path, username=username)
     if state_path is None:
         return None
 
@@ -187,6 +208,8 @@ def save_review_state(
         "current_change_idx": int(current_change_idx or 0),
         "current_indicator_idx": int(current_indicator_idx or 0),
     }
+    if username:
+        payload["username"] = str(username)
     if review_items is not None:
         payload["review_items"] = list(review_items)
     if review_queue is not None:
