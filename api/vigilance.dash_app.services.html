@@ -219,7 +219,7 @@ backend base de donnees puisse le remplacer sans reecrire chaque callback.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonStore.load_review_state">
-<span class="sig-name descname"><span class="pre">load_review_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonStore.load_review_state" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">load_review_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonStore.load_review_state" title="Lien vers cette définition"></a></dt>
 <dd><p>Charger l’etat de revue associe a une comparaison.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
@@ -305,11 +305,14 @@ chemins PDF resolus, ou <code class="docutils literal notranslate"><span class="
 
 <dl class="py method">
 <dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.FileComparisonStore.load_review_state">
-<span class="sig-name descname"><span class="pre">load_review_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore.load_review_state" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">load_review_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compare_path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore.load_review_state" title="Lien vers cette définition"></a></dt>
 <dd><p>Charge l’etat de revue persiste pour une comparaison donnee.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>compare_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Chemin vers le fichier de comparaison.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>compare_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Chemin vers le fichier de comparaison.</p></li>
+<li><p><strong>username</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Identifiant analyste pour la strategie multi-utilisateurs.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
