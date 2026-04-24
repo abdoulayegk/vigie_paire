@@ -184,6 +184,9 @@ def save_review_state(
         preferred_store: Nom du store prefere (``review_queue`` par defaut).
         source: Source de la sauvegarde (``dash`` par defaut).
         comparison_run_id: Identifiant du run de comparaison.
+        username: Identifiant analyste pour la strategie multi-utilisateurs.
+            Si fourni, ecrit dans ``<stem>.review_state.<username>.json`` au lieu
+            du sidecar partage historique (mode reader uniquement).
 
     Returns:
         Chemin du fichier d'etat sauvegarde, ou ``None`` si impossible.

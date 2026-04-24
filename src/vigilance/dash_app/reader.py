@@ -1,4 +1,4 @@
-"""Point d'entree VigieRegDesjardins (.exe Windows en lecture seule).
+r"""Point d'entree VigieRegDesjardins (.exe Windows en lecture seule).
 
 Demarre l'application Dash en mode "reader" :
 

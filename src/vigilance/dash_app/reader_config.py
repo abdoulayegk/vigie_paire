@@ -22,15 +22,18 @@ _USERNAME: str | None = None
 
 
 def set_reader_mode(enabled: bool) -> None:
+    """Active ou desactive le mode reader (.exe). Appele par ``reader.py``."""
     global _READER_MODE
     _READER_MODE = bool(enabled)
 
 
 def is_reader_mode() -> bool:
+    """Retourne ``True`` si le serveur Dash tourne en mode reader (lecture seule)."""
     return _READER_MODE
 
 
 def set_username(username: str | None) -> None:
+    """Force l'identifiant analyste (sinon ``current_username`` derive depuis ``getpass``)."""
     global _USERNAME
     _USERNAME = _sanitize_username(username) if username else None
 
