@@ -4,7 +4,9 @@ on:
   push:
     tags:
       - "reader-v*"
-  workflow_dispatch:  # autorise un build manuel depuis l'UI Actions
+    branches:
+      - "feat/exe-dash-windows"  # build automatique sur cette branche pendant le dev
+  workflow_dispatch:  # autorise un build manuel depuis l'UI Actions (uniquement apres merge sur main)
 
 permissions:
   contents: write  # necessaire pour creer une release sur tag
