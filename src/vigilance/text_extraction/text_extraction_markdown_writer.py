@@ -4,11 +4,36 @@ from __future__ import annotations
 
 from pathlib import Path
 
+CANONICAL_TEXT_EXTRACTIONS_DIR = "text_extractions"
+
 
 def get_text_extraction_markdown_path(out_dir: Path, quarter_label: str) -> Path:
     """Retourne le chemin du fichier markdown d'extraction pour un trimestre donné."""
     out_dir.mkdir(parents=True, exist_ok=True)
     return out_dir / f"text_extraction_{quarter_label.lower()}.md"
+
+
+def get_canonical_text_extraction_md_path(
+    project_root: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+) -> Path:
+    """Retourne le chemin canonique du .md d'extraction pour une période.
+
+    Le .md vit dans ``outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md``
+    et est réutilisé par les runs suivants pour éviter de relancer Docling.
+    Pour forcer une ré-extraction, supprimer ce fichier.
+    """
+    return (
+        project_root
+        / "outputs"
+        / CANONICAL_TEXT_EXTRACTIONS_DIR
+        / bank_code.lower()
+        / str(year)
+        / quarter.lower()
+        / "text_extraction.md"
+    )
 
 
 def write_text_extraction_markdown(content: str, out_path: Path) -> Path:

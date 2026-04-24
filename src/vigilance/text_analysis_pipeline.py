@@ -31,6 +31,7 @@ from vigilance.text_comparison.text_comparison_writer import (
     write_text_comparison,
 )
 from vigilance.text_extraction.text_extraction_markdown_writer import (
+    get_canonical_text_extraction_md_path,
     get_text_extraction_markdown_path,
     write_text_extraction_markdown,
 )
@@ -946,16 +947,19 @@ def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
     Chaque section devient un bloc ``## Titre``. Les sous-titres détectés deviennent
     des blocs ``### Sous-titre`` positionnés juste avant le premier paragraphe qui
     les suit. Les doublons de titres et les titres identiques à la section parente
-    sont supprimés. Le markdown produit est la seule entrée des appels GPT de
-    comparaison ; il est aussi sauvegardé comme artefact d'audit lisible.
+    sont supprimés. Chaque bloc (titre, sous-titre, paragraphe) est précédé d'un
+    marqueur ``[p.N]`` indiquant sa page d'origine ; ces marqueurs sont strippés
+    avant tout appel GPT (cf ``_extract_section_text_from_markdown``) et servent
+    à reconstruire l'index page→texte lors de la réutilisation du .md.
     """
     lines: list[str] = []
     for section in section_audits:
+        lines.append(f"[p.{section.start_page}]")
         lines.append(f"## {section.section_title}")
         lines.append("")
         seen_heading_norms: set[str] = set()
         section_title_norm = _normalized_block_text(section.section_title)
-        pending_heading: str | None = None
+        pending_heading: tuple[str, int] | None = None
         for block in _markdown_blocks_for_section(section):
             text = str(block.text or "").strip()
             if not text:
@@ -964,13 +968,16 @@ def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
             if block.source_label in {"title", "section_header"}:
                 if not norm or norm == section_title_norm or norm in seen_heading_norms:
                     continue
-                pending_heading = text
+                pending_heading = (text, int(block.page))
                 seen_heading_norms.add(norm)
                 continue
             if pending_heading is not None:
-                lines.append(f"### {pending_heading}")
+                heading_text, heading_page = pending_heading
+                lines.append(f"[p.{heading_page}]")
+                lines.append(f"### {heading_text}")
                 lines.append("")
                 pending_heading = None
+            lines.append(f"[p.{int(block.page)}]")
             lines.append(text)
             lines.append("")
     return "\n".join(lines).strip() + "\n"
@@ -1276,11 +1283,27 @@ def _extract_audits_for_pdf(
     return audits
 
 
+_PAGE_MARKER_RE = re.compile(r"^\[p\.(\d+)\]\s*$")
+
+
+def _strip_page_markers(text: str) -> str:
+    """Supprime les marqueurs ``[p.N]`` (une ligne entière) d'un bloc de texte.
+
+    Utilisé exclusivement avant tout appel GPT : les marqueurs servent à
+    l'audit humain et à la reconstruction de l'index page→texte, mais ne
+    doivent jamais entrer dans les prompts pour éviter de biaiser la
+    comparaison sémantique.
+    """
+    return re.sub(r"^\[p\.\d+\]\s*\n?", "", text, flags=re.MULTILINE)
+
+
 def _extract_section_text_from_markdown(md_content: str, section_key: str) -> str:
     """Extrait le texte d'une section depuis le markdown auditable.
 
     Le markdown ecrit sur disque est la source de verite fonctionnelle du flux
     texte; ce helper redecoupe exactement ce meme contenu avant comparaison.
+    Les marqueurs ``[p.N]`` sont strippés avant retour — c'est l'unique
+    gatekeeper vers les appels GPT du flux texte.
     """
     title = _SECTION_LABELS.get(section_key, section_key)
     lines = md_content.splitlines()
@@ -1290,12 +1313,90 @@ def _extract_section_text_from_markdown(md_content: str, section_key: str) -> st
         if line.startswith("## "):
             if in_section:
                 break
-            if line.strip() == f"## {title}":
+            # Skip leading page marker if present before the section header
+            stripped = line.strip()
+            if stripped == f"## {title}":
                 in_section = True
                 continue
         if in_section:
             section_lines.append(line)
-    return "\n".join(section_lines).strip()
+    joined = "\n".join(section_lines).strip()
+    return _strip_page_markers(joined).strip()
+
+
+def _parse_page_index_from_markdown(
+    md_content: str,
+) -> tuple[dict[str, list[tuple[int, str]]], dict[str, int]]:
+    """Reconstruit l'index page→texte et les start_pages par section depuis le .md.
+
+    Remplace ``_build_block_page_index`` quand on réutilise un .md existant
+    plutôt que de relancer Docling. Retourne un tuple ``(index, section_start_pages)``:
+
+    - ``index[section_key] = [(page, text), …]`` — même forme qu'attendue par
+      ``_find_page_for_fragment``. Titres/sous-titres ``##``/``###`` exclus,
+      comme dans la version basée sur ``SectionAudit``.
+    - ``section_start_pages[section_key] = N`` — le ``[p.N]`` qui précède
+      immédiatement ``## Title``. Reproduit fidèlement ``ResolvedSection.start_page``
+      même quand la page du header diffère de la première page narrative.
+    """
+    title_to_key: dict[str, str] = {v: k for k, v in _SECTION_LABELS.items()}
+
+    index: dict[str, list[tuple[int, str]]] = {}
+    section_start_pages: dict[str, int] = {}
+    current_section_key: str | None = None
+    current_page: int | None = None
+
+    lines = md_content.splitlines()
+    for raw in lines:
+        line = raw.rstrip()
+        if not line.strip():
+            continue
+        page_match = _PAGE_MARKER_RE.match(line)
+        if page_match:
+            current_page = int(page_match.group(1))
+            continue
+        if line.startswith("## "):
+            title = line[3:].strip()
+            current_section_key = title_to_key.get(title)
+            if current_section_key is not None:
+                if current_section_key not in index:
+                    index[current_section_key] = []
+                if current_page is not None and current_section_key not in section_start_pages:
+                    section_start_pages[current_section_key] = current_page
+            continue
+        if line.startswith("### "):
+            # Sub-heading: ignored in the index (matches _build_block_page_index).
+            continue
+        if current_section_key is None:
+            continue
+        if current_page is None:
+            continue
+        index[current_section_key].append((current_page, line.strip()))
+    return index, section_start_pages
+
+
+def _section_page_range_from_index(
+    page_index: list[tuple[int, str]],
+    *,
+    start_page_hint: int | None = None,
+) -> tuple[int | None, int | None]:
+    """Déduit ``(start_page, end_page)`` d'une section à partir de son index.
+
+    Si ``start_page_hint`` est fourni (ex: extrait du ``[p.N]`` précédant
+    le header ``## Title`` dans le .md), il prime sur le min des pages des
+    blocs pour rester cohérent avec ``ResolvedSection.start_page``.
+    """
+    if not page_index:
+        if start_page_hint is not None:
+            return start_page_hint, start_page_hint
+        return None, None
+    pages = [p for p, _ in page_index if isinstance(p, int) and p > 0]
+    if not pages:
+        if start_page_hint is not None:
+            return start_page_hint, start_page_hint
+        return None, None
+    start = start_page_hint if start_page_hint is not None else min(pages)
+    return start, max(pages)
 
 
 def _normalize_heading(heading: str) -> str:
@@ -1571,6 +1672,13 @@ def _compare_section_texts(
     sans appel GPT. Si le texte ne contient aucune sous-section, un seul appel
     GPT est lancé sur le texte entier (comportement précédent).
     """
+    # Safety: the .md canonique contient des marqueurs ``[p.N]`` pour la
+    # reconstruction de l'index page→texte. Ils DOIVENT avoir été strippés
+    # avant d'arriver ici par ``_extract_section_text_from_markdown``.
+    if "[p." in text_t1 or "[p." in text_t2:
+        raise TextAnalysisQualityError(
+            "Fuite de marqueurs de page vers le prompt GPT — strip manquant ?"
+        )
     if not text_t1.strip() and not text_t2.strip():
         return []
 
@@ -1887,6 +1995,70 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
     }
 
 
+def _prepare_period_extraction(
+    *,
+    pdf_path: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    project_root: Path,
+    allowed_section_keys: set[str] | None,
+) -> tuple[str, dict[str, list[tuple[int, str]]], dict[str, tuple[int | None, int | None]], set[str]]:
+    """Retourne (md, page_idx_by_key, section_range_by_key, available_keys).
+
+    Si le .md canonique existe et est parsable, il est relu et Docling est sauté.
+    Sinon, Docling s'exécute, construit le .md et l'écrit au chemin canonique
+    ``outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md``.
+
+    Pour forcer une ré-extraction, supprimer ce fichier.
+    """
+    md_path = get_canonical_text_extraction_md_path(project_root, bank_code, year, quarter)
+
+    if md_path.exists():
+        try:
+            md = md_path.read_text(encoding="utf-8")
+            page_idx_by_key, section_start_pages = _parse_page_index_from_markdown(md)
+            if any(page_idx_by_key.values()):
+                section_range_by_key = {
+                    key: _section_page_range_from_index(
+                        idx, start_page_hint=section_start_pages.get(key)
+                    )
+                    for key, idx in page_idx_by_key.items()
+                }
+                available_keys = set(page_idx_by_key.keys())
+                if allowed_section_keys is not None:
+                    available_keys &= allowed_section_keys
+                    page_idx_by_key = {k: v for k, v in page_idx_by_key.items() if k in available_keys}
+                    section_range_by_key = {k: v for k, v in section_range_by_key.items() if k in available_keys}
+                logger.info("Réutilisation du .md canonique: %s", md_path)
+                return md, page_idx_by_key, section_range_by_key, available_keys
+            logger.warning(".md canonique vide — ré-extraction: %s", md_path)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                ".md canonique illisible (%s) — ré-extraction: %s", exc, md_path
+            )
+
+    sections = _resolve_sections(pdf_path, bank_code)
+    filtered_sections = (
+        {k: v for k, v in sections.items() if k in allowed_section_keys}
+        if allowed_section_keys is not None
+        else sections
+    )
+    audits = _extract_audits_for_pdf(pdf_path=pdf_path, sections=filtered_sections)
+    md = _build_text_extraction_markdown(audits)
+
+    md_path.parent.mkdir(parents=True, exist_ok=True)
+    md_path.write_text(md, encoding="utf-8")
+    logger.info("Écriture du .md canonique: %s", md_path)
+
+    page_idx_by_key = {a.section_key: _build_block_page_index(a) for a in audits}
+    section_range_by_key = {
+        a.section_key: (a.start_page, a.end_page) for a in audits
+    }
+    available_keys = {a.section_key for a in audits}
+    return md, page_idx_by_key, section_range_by_key, available_keys
+
+
 def run_text_analysis_pipeline(
     *,
     bank_code: str,
@@ -1897,18 +2069,22 @@ def run_text_analysis_pipeline(
     out_root: Path,
     model: str = "gpt-4o",
     allowed_section_keys: set[str] | None = None,
+    project_root: Path | None = None,
 ) -> tuple[dict[str, Any], Path]:
     """Execute le pipeline texte complet avec le markdown comme source de verite.
 
     Flow:
-    1. Locate sections in both PDFs.
-    2. Extract narrative blocks via Docling + heuristics → build .md (source of truth).
-    3. Feed .md sections directly to GPT-4o for comparison (added/modified/removed).
-    4. Triage and retain non-cosmetic changes sorted by business impact.
+    1. Pour chaque période : si le .md canonique existe → relecture + parse.
+       Sinon → Docling + construction du .md + écriture canonique pour réutilisation.
+    2. Feed .md sections directly to GPT-4o for comparison (added/modified/removed).
+    3. Triage and retain non-cosmetic changes sorted by business impact.
 
     Notes:
-    - les fichiers ``text_extraction_*.md`` ecrits en sortie sont exactement les
-      artefacts relus par le flux GPT de comparaison;
+    - le .md canonique vit dans ``outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md``
+      et sert d'artefact d'audit ET d'entrée réutilisable pour les runs suivants;
+    - supprimer ce .md force une ré-extraction Docling au prochain run;
+    - les marqueurs ``[p.N]`` présents dans le .md sont strippés avant tout
+      appel GPT (unique gatekeeper : ``_extract_section_text_from_markdown``);
     - les appels GPT du flux texte n'envoient pas de limite de completion
       explicite par defaut, afin de privilegier l'arret naturel du modele.
     """
@@ -1916,27 +2092,42 @@ def run_text_analysis_pipeline(
     year_previous, quarter_previous = resolve_previous_quarter(year_current, quarter_current)
     bank_code = bank_code.lower()
 
-    sections_previous = _resolve_sections(pdf_previous, bank_code)
-    sections_current = _resolve_sections(pdf_current, bank_code)
-    section_keys = sorted(set(sections_previous) | set(sections_current))
-    if allowed_section_keys is not None:
-        section_keys = [key for key in section_keys if key in allowed_section_keys]
+    if project_root is None:
+        # Layouts supportés :
+        #   <project>/outputs/resultats  → project = parent.parent  (standard)
+        #   <project>/outputs            → project = parent         (tests)
+        #   autre                        → project = parent         (sûr par défaut)
+        if out_root.name == "resultats" and out_root.parent.name == "outputs":
+            project_root = out_root.parent.parent
+        elif out_root.name == "outputs":
+            project_root = out_root.parent
+        else:
+            project_root = out_root.parent
+
+    effective_allowed: set[str] | None = allowed_section_keys
+    if effective_allowed is None:
+        effective_allowed = _allowed_target_sections(bank_code) or None
+
+    md_previous, page_idx_prev, range_prev, keys_prev = _prepare_period_extraction(
+        pdf_path=pdf_previous,
+        bank_code=bank_code,
+        year=year_previous,
+        quarter=quarter_previous,
+        project_root=project_root,
+        allowed_section_keys=effective_allowed,
+    )
+    md_current, page_idx_curr, range_curr, keys_curr = _prepare_period_extraction(
+        pdf_path=pdf_current,
+        bank_code=bank_code,
+        year=year_current,
+        quarter=quarter_current,
+        project_root=project_root,
+        allowed_section_keys=effective_allowed,
+    )
+
+    section_keys = sorted(keys_prev | keys_curr)
     if not section_keys:
         raise TextAnalysisQualityError("Aucune section texte ciblée localisée dans les rapports.")
-
-    # Step 1: Docling extraction + heuristic classification → audits
-    audits_previous = _extract_audits_for_pdf(
-        pdf_path=pdf_previous,
-        sections={key: sections_previous[key] for key in section_keys if key in sections_previous},
-    )
-    audits_current = _extract_audits_for_pdf(
-        pdf_path=pdf_current,
-        sections={key: sections_current[key] for key in section_keys if key in sections_current},
-    )
-
-    # Step 2: Build .md — source of truth (human-auditable + GPT input)
-    md_previous = _build_text_extraction_markdown(audits_previous)
-    md_current = _build_text_extraction_markdown(audits_current)
 
     # Validate: at least one period must have content per section
     for section_key in section_keys:
@@ -1947,10 +2138,8 @@ def run_text_analysis_pipeline(
                 f"Section vide dans les deux rapports: {section_key}"
             )
 
-    # Step 3: GPT comparison on .md sections
+    # GPT comparison on .md sections
     client = _build_openai_client()
-    audit_by_key_prev: dict[str, SectionAudit] = {a.section_key: a for a in audits_previous}
-    audit_by_key_curr: dict[str, SectionAudit] = {a.section_key: a for a in audits_current}
     section_comparisons: list[dict[str, Any]] = []
     for section_key in section_keys:
         text_t1 = _extract_section_text_from_markdown(md_previous, section_key)
@@ -1962,14 +2151,12 @@ def run_text_analysis_pipeline(
             text_t1=text_t1,
             text_t2=text_t2,
         )
-        # Inject exact page numbers by matching GPT text fragments back to PDFBlocks.
+        # Inject exact page numbers by matching GPT text fragments back to block index.
         # Falls back to section start_page if no block match is found.
-        _audit_prev = audit_by_key_prev.get(section_key)
-        _audit_curr = audit_by_key_curr.get(section_key)
-        _block_idx_t1 = _build_block_page_index(_audit_prev) if _audit_prev else []
-        _block_idx_t2 = _build_block_page_index(_audit_curr) if _audit_curr else []
-        _fallback_t1 = _audit_prev.start_page if _audit_prev else None
-        _fallback_t2 = _audit_curr.start_page if _audit_curr else None
+        _block_idx_t1 = page_idx_prev.get(section_key, [])
+        _block_idx_t2 = page_idx_curr.get(section_key, [])
+        _fallback_t1 = range_prev.get(section_key, (None, None))[0]
+        _fallback_t2 = range_curr.get(section_key, (None, None))[0]
         for _ch in changes:
             _dt = _ch.get("diff_type", "")
             _txt_t1 = _ch.get("source_text_t1") or ""
@@ -2002,6 +2189,8 @@ def run_text_analysis_pipeline(
         all_changes.sort(key=_retained_change_sort_key)
         retained = [change for change in enriched if _is_non_cosmetic_change(change["genai_triage"])]
         retained.sort(key=_retained_change_sort_key)
+        _prev_start, _prev_end = range_prev.get(section_key, (None, None))
+        _curr_start, _curr_end = range_curr.get(section_key, (None, None))
         section_comparisons.append(
             {
                 "section_key": section_key,
@@ -2011,10 +2200,8 @@ def run_text_analysis_pipeline(
                 "summary": {
                     "retained_changes": len(retained),
                     "all_changes": len(all_changes),
-                    "pages_previous": [s.start_page for s in [sections_previous.get(section_key)] if s]
-                    + [s.end_page for s in [sections_previous.get(section_key)] if s],
-                    "pages_current": [s.start_page for s in [sections_current.get(section_key)] if s]
-                    + [s.end_page for s in [sections_current.get(section_key)] if s],
+                    "pages_previous": [p for p in (_prev_start, _prev_end) if p is not None],
+                    "pages_current": [p for p in (_curr_start, _curr_end) if p is not None],
                 },
             }
         )

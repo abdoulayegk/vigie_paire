@@ -7,7 +7,7 @@
   "quarter_previous": "2025_t1",
   "year_current": 2025,
   "quarter_current": "2025_t2",
-  "generated_at": "2026-04-14T14:58:53.010344+00:00",
+  "generated_at": "2026-04-23T09:30:15.458813+00:00",
   "extraction_artifact_t1": "text_extraction_2025_t1.md",
   "extraction_artifact_t2": "text_extraction_2025_t2.md",
   "section_comparisons": [
@@ -44,7 +44,7 @@
             ],
             "snippet": "Au 30 avril 2025, le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres de la Banque étaient respectivement de 14,9 %, 16,6 %, et 18,5 %. Le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires de la Banque a augmenté par rapport au ratio de 13,1 % au 31 octobre 2024, ce qui est "
           },
-          "change_summary": "Ajout d'informations détaillées sur les ratios de fonds propres de la Banque au avril",
+          "change_summary": "Ajout d'informations détaillées sur les ratios de fonds propres au avril",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -52,8 +52,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les ratios de fonds propres de la Banque ont été mis à jour pour avril, montrant une augmentation par rapport à octobre. Ce changement est substantiel car il reflète une amélioration de la position de capital de la Banque, influencée par des transactions stratégiques et des ajustements internes. Cela implique une surveillance continue pour s'assurer que ces niveaux de capital sont maintenus ou améliorés",
-            "impact_description": "Amélioration de la position de capital de la Banque, renforçant sa capacité à absorber les pertes",
+            "explanation": "Les ratios de fonds propres de la Banque ont été mis à jour avec des chiffres précis pour avril, montrant une augmentation par rapport à octobre. Ce changement est substantiel car il indique une amélioration de la position de capital de la Banque, influencée par des transactions stratégiques et des ajustements de bilan. Cela nécessite une confirmation pour s'assurer que ces chiffres reflètent fidèlement la situation financière actuelle",
+            "impact_description": "Amélioration de la solidité financière de la Banque, ce qui peut renforcer la confiance des investisseurs",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -97,7 +97,7 @@
             ],
             "snippet": "Au 30 avril 2025, le ratio de levier de la Banque était de 4,7 %. Le ratio de levier de la Banque a augmenté par rapport au ratio de 4,2 % au 31 octobre 2024, ce qui est principalement attribuable à la vente des actions de Schwab et à la génération interne de capitaux, contrebalancées par le rachat d'actions ordinaires aux fins d'annulation, l'augmentation de l'exposition dans plusieurs secteurs e"
           },
-          "change_summary": "Ajout d'informations détaillées sur le ratio de levier de la Banque au avril",
+          "change_summary": "Ajout d'informations détaillées sur le ratio de levier au avril",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -105,8 +105,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio de levier de la Banque a augmenté à en avril, par rapport à en octobre. Ce changement est substantiel car il indique une amélioration de la capacité de la Banque à gérer ses actifs et passifs, influencée par des transactions stratégiques. Cela nécessite une surveillance pour s'assurer que le ratio de levier reste dans les limites réglementaires",
-            "impact_description": "Augmentation du ratio de levier, améliorant la capacité de la Banque à gérer ses actifs et passifs",
+            "explanation": "Le ratio de levier de la Banque a été mis à jour pour avril, montrant une augmentation par rapport à octobre. Ce changement est substantiel car il reflète une gestion proactive du capital et des ajustements stratégiques, tels que la vente d'actions et la restructuration du bilan. Cela nécessite une confirmation pour garantir que ces ajustements sont correctement intégrés dans les rapports financiers",
+            "impact_description": "Renforcement de la capacité de la Banque à absorber les chocs financiers, améliorant ainsi sa résilience",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -158,8 +158,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La section sur les banques d'importance systémique mondiale a été supprimée, y compris les détails sur les exigences de fonds propres supplémentaires. Ce changement est substantiel car il affecte la transparence et la compréhension des obligations réglementaires de la Banque. Cela nécessite une escalade pour clarifier les implications de cette suppression sur la conformité réglementaire",
-            "impact_description": "Suppression d'informations critiques sur les obligations réglementaires des banques d'importance systémique",
+            "explanation": "La section détaillant les obligations des banques d'importance systémique mondiale a été entièrement supprimée. Ce changement est substantiel car il retire des informations essentielles sur les exigences de divulgation et de conformité pour ces banques, ce qui pourrait entraîner des lacunes réglementaires. Cela nécessite une escalade pour rétablir ces informations et assurer la conformité continue",
+            "impact_description": "Risque de non conformité aux obligations de divulgation pour les banques d'importance systémique, pouvant entraîner des sanctions",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -207,7 +207,7 @@
             ],
             "snippet": "Le BSIF a mis en œuvre les réformes de Bâle III et certains ajustements afin de les adapter à leur mise en œuvre au Canada. Ces réformes ont une incidence sur le calcul du risque de crédit, du risque de marché et du risque opérationnel pour les banques canadiennes, et modifient la ligne directrice Exigences de levier pour inclure une exigence selon laquelle les banques d'importance systémique inté"
           },
-          "change_summary": "Suppression des détails sur la mise en œuvre des réformes de en février et novembre, et sur le calcul des actifs pondérés en fonction des risques",
+          "change_summary": "Suppression de la date de mise en œuvre initiale et des détails sur la deuxième phase des réformes de et le plancher réglementaire des fonds propres",
           "genai_triage": {
             "is_relevant": true,
             "category": "REGLEMENTAIRE",
@@ -215,8 +215,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les détails sur la mise en œuvre des réformes de en février et novembre ont été supprimés, affectant le calcul des actifs pondérés en fonction des risques. Ce changement est substantiel car il modifie la compréhension des exigences de fonds propres et de levier pour les banques canadiennes. Cela nécessite une réévaluation des stratégies de gestion des risques et de capital pour s'assurer de la conformité continue",
-            "impact_description": "Modification des exigences de fonds propres et de levier, impactant potentiellement la stratégie de capital des banques",
+            "explanation": "Les détails sur la mise en œuvre des réformes de et le plancher réglementaire des fonds propres ont été supprimés. Ce changement est substantiel car il omet des informations cruciales sur les exigences de fonds propres et les phases de mise en œuvre, ce qui peut affecter la conformité réglementaire. Cela nécessite une escalade pour clarifier les attentes réglementaires et éviter des pénalités potentielles",
+            "impact_description": "Risque accru de non conformité aux exigences de fonds propres, pouvant entraîner des sanctions réglementaires",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -224,7 +224,7 @@
             "source": "gpt4o_triage",
             "signals": {
               "regulatory_reference_added": false,
-              "methodology_change": true,
+              "methodology_change": false,
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
@@ -264,7 +264,7 @@
             ],
             "snippet": "La réserve pour stabilité intérieure (RSI) a été augmentée pour passer de 3 % à 3,5 % au 1 er novembre 2023 et est demeurée stable depuis. La fourchette de la RSI peut actuellement s'étendre de 0 à 4 %, le niveau effectif étant modifié par le BSIF selon l'évolution du système financier canadien et de l'économie dans son ensemble."
           },
-          "change_summary": "Suppression de l'explication sur la raison de l'augmentation de la RSI et ajout de l'information que la RSI est demeurée stable depuis",
+          "change_summary": "Suppression de l'explication sur la hausse de pdb et ajout de l'information que la RSI est demeurée stable depuis",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -272,8 +272,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La réserve pour stabilité intérieure (RSI) a été augmentée de à au novembre et est restée stable depuis. Ce changement est substantiel car il reflète une décision stratégique pour renforcer la résilience des grandes banques canadiennes face aux risques systémiques. Cela implique une surveillance accrue des niveaux de capital pour s'assurer que les banques maintiennent cette résilience face aux évolutions économiques",
-            "impact_description": "Augmentation du niveau de capital requis pour les grandes banques, impactant leur capacité à absorber les chocs économiques",
+            "explanation": "La réserve pour stabilité intérieure (RSI) a été augmentée de à au novembre et est demeurée stable depuis. Ce changement est substantiel car il reflète une décision stratégique pour renforcer la résilience des grandes banques canadiennes face aux risques systémiques. Cela implique une surveillance accrue des niveaux de capital pour s'assurer que les banques maintiennent cette résilience",
+            "impact_description": "Augmentation du niveau de capital requis pour les banques, ce qui pourrait affecter leur capacité à prêter ou investir",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -285,6 +285,59 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
+            }
+          }
+        },
+        {
+          "change_id": "gestion_capital_évolution_future_des_fonds_propres_régle_change_016",
+          "section_key": "gestion_capital",
+          "subsection_heading": "Évolution future des fonds propres réglementaires",
+          "diff_type": "removed",
+          "semantic_text_t1": "La banque offre un plan de réinvestissement des dividendes à ses actionnaires ordinaires. La participation à ce plan est facultative et, en vertu des conditions du plan, les dividendes en espèces sur les actions ordinaires servent à acheter des actions ordinaires additionnelles. Au gré de la Banque, les actions ordinaires peuvent être émises sur le capital autorisé, au cours moyen des cinq derniers jours de négociation précédant la date de versement des dividendes, moins un escompte variant entre et, au gré de la Banque, ou achetées sur le marché libre, au cours du marché",
+          "semantic_text_t2": "",
+          "source_text_t1": "La Banque offre un plan de réinvestissement des dividendes à ses actionnaires ordinaires. La participation à ce plan est facultative et, en vertu des conditions du plan, les dividendes en espèces sur les actions ordinaires servent à acheter des actions ordinaires additionnelles. Au gré de la Banque, les actions ordinaires peuvent être émises sur le capital autorisé, au cours moyen des cinq derniers jours de négociation précédant la date de versement des dividendes, moins un escompte variant entre 0 % et 5 %, au gré de la Banque, ou achetées sur le marché libre, au cours du marché.",
+          "source_text_t2": "",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            37
+          ],
+          "pages_t2": [],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              37
+            ],
+            "snippet": "La Banque offre un plan de réinvestissement des dividendes à ses actionnaires ordinaires. La participation à ce plan est facultative et, en vertu des conditions du plan, les dividendes en espèces sur les actions ordinaires servent à acheter des actions ordinaires additionnelles. Au gré de la Banque, les actions ordinaires peuvent être émises sur le capital autorisé, au cours moyen des cinq dernier"
+          },
+          "evidence_t2": {
+            "pages": [],
+            "snippet": ""
+          },
+          "change_summary": "Le paragraphe sur le plan de réinvestissement des dividendes a été supprimé",
+          "genai_triage": {
+            "is_relevant": true,
+            "category": "STRUCTURE",
+            "impact_level": "MODERE",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "Le paragraphe sur le plan de réinvestissement des dividendes a été supprimé. Ce changement est substantiel car il modifie les options disponibles pour les actionnaires concernant le réinvestissement des dividendes, ce qui peut affecter leur stratégie d'investissement. Cela nécessite une communication claire aux actionnaires pour éviter toute confusion",
+            "impact_description": "Modification des options d'investissement pour les actionnaires, pouvant influencer leur décision de réinvestissement",
+            "action_requise": "information",
+            "reference_reglementaire": "",
+            "nouvelle_idee": false,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
             }
           }
         }
@@ -319,7 +372,7 @@
             ],
             "snippet": "Au 30 avril 2025, le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres de la Banque étaient respectivement de 14,9 %, 16,6 %, et 18,5 %. Le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires de la Banque a augmenté par rapport au ratio de 13,1 % au 31 octobre 2024, ce qui est "
           },
-          "change_summary": "Ajout d'informations détaillées sur les ratios de fonds propres de la Banque au avril",
+          "change_summary": "Ajout d'informations détaillées sur les ratios de fonds propres au avril",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -327,8 +380,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les ratios de fonds propres de la Banque ont été mis à jour pour avril, montrant une augmentation par rapport à octobre. Ce changement est substantiel car il reflète une amélioration de la position de capital de la Banque, influencée par des transactions stratégiques et des ajustements internes. Cela implique une surveillance continue pour s'assurer que ces niveaux de capital sont maintenus ou améliorés",
-            "impact_description": "Amélioration de la position de capital de la Banque, renforçant sa capacité à absorber les pertes",
+            "explanation": "Les ratios de fonds propres de la Banque ont été mis à jour avec des chiffres précis pour avril, montrant une augmentation par rapport à octobre. Ce changement est substantiel car il indique une amélioration de la position de capital de la Banque, influencée par des transactions stratégiques et des ajustements de bilan. Cela nécessite une confirmation pour s'assurer que ces chiffres reflètent fidèlement la situation financière actuelle",
+            "impact_description": "Amélioration de la solidité financière de la Banque, ce qui peut renforcer la confiance des investisseurs",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -372,7 +425,7 @@
             ],
             "snippet": "Au 30 avril 2025, le ratio de levier de la Banque était de 4,7 %. Le ratio de levier de la Banque a augmenté par rapport au ratio de 4,2 % au 31 octobre 2024, ce qui est principalement attribuable à la vente des actions de Schwab et à la génération interne de capitaux, contrebalancées par le rachat d'actions ordinaires aux fins d'annulation, l'augmentation de l'exposition dans plusieurs secteurs e"
           },
-          "change_summary": "Ajout d'informations détaillées sur le ratio de levier de la Banque au avril",
+          "change_summary": "Ajout d'informations détaillées sur le ratio de levier au avril",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -380,8 +433,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio de levier de la Banque a augmenté à en avril, par rapport à en octobre. Ce changement est substantiel car il indique une amélioration de la capacité de la Banque à gérer ses actifs et passifs, influencée par des transactions stratégiques. Cela nécessite une surveillance pour s'assurer que le ratio de levier reste dans les limites réglementaires",
-            "impact_description": "Augmentation du ratio de levier, améliorant la capacité de la Banque à gérer ses actifs et passifs",
+            "explanation": "Le ratio de levier de la Banque a été mis à jour pour avril, montrant une augmentation par rapport à octobre. Ce changement est substantiel car il reflète une gestion proactive du capital et des ajustements stratégiques, tels que la vente d'actions et la restructuration du bilan. Cela nécessite une confirmation pour garantir que ces ajustements sont correctement intégrés dans les rapports financiers",
+            "impact_description": "Renforcement de la capacité de la Banque à absorber les chocs financiers, améliorant ainsi sa résilience",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -433,8 +486,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La section sur les banques d'importance systémique mondiale a été supprimée, y compris les détails sur les exigences de fonds propres supplémentaires. Ce changement est substantiel car il affecte la transparence et la compréhension des obligations réglementaires de la Banque. Cela nécessite une escalade pour clarifier les implications de cette suppression sur la conformité réglementaire",
-            "impact_description": "Suppression d'informations critiques sur les obligations réglementaires des banques d'importance systémique",
+            "explanation": "La section détaillant les obligations des banques d'importance systémique mondiale a été entièrement supprimée. Ce changement est substantiel car il retire des informations essentielles sur les exigences de divulgation et de conformité pour ces banques, ce qui pourrait entraîner des lacunes réglementaires. Cela nécessite une escalade pour rétablir ces informations et assurer la conformité continue",
+            "impact_description": "Risque de non conformité aux obligations de divulgation pour les banques d'importance systémique, pouvant entraîner des sanctions",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -482,7 +535,7 @@
             ],
             "snippet": "Le BSIF a mis en œuvre les réformes de Bâle III et certains ajustements afin de les adapter à leur mise en œuvre au Canada. Ces réformes ont une incidence sur le calcul du risque de crédit, du risque de marché et du risque opérationnel pour les banques canadiennes, et modifient la ligne directrice Exigences de levier pour inclure une exigence selon laquelle les banques d'importance systémique inté"
           },
-          "change_summary": "Suppression des détails sur la mise en œuvre des réformes de en février et novembre, et sur le calcul des actifs pondérés en fonction des risques",
+          "change_summary": "Suppression de la date de mise en œuvre initiale et des détails sur la deuxième phase des réformes de et le plancher réglementaire des fonds propres",
           "genai_triage": {
             "is_relevant": true,
             "category": "REGLEMENTAIRE",
@@ -490,8 +543,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les détails sur la mise en œuvre des réformes de en février et novembre ont été supprimés, affectant le calcul des actifs pondérés en fonction des risques. Ce changement est substantiel car il modifie la compréhension des exigences de fonds propres et de levier pour les banques canadiennes. Cela nécessite une réévaluation des stratégies de gestion des risques et de capital pour s'assurer de la conformité continue",
-            "impact_description": "Modification des exigences de fonds propres et de levier, impactant potentiellement la stratégie de capital des banques",
+            "explanation": "Les détails sur la mise en œuvre des réformes de et le plancher réglementaire des fonds propres ont été supprimés. Ce changement est substantiel car il omet des informations cruciales sur les exigences de fonds propres et les phases de mise en œuvre, ce qui peut affecter la conformité réglementaire. Cela nécessite une escalade pour clarifier les attentes réglementaires et éviter des pénalités potentielles",
+            "impact_description": "Risque accru de non conformité aux exigences de fonds propres, pouvant entraîner des sanctions réglementaires",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -499,7 +552,7 @@
             "source": "gpt4o_triage",
             "signals": {
               "regulatory_reference_added": false,
-              "methodology_change": true,
+              "methodology_change": false,
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
@@ -539,7 +592,7 @@
             ],
             "snippet": "La réserve pour stabilité intérieure (RSI) a été augmentée pour passer de 3 % à 3,5 % au 1 er novembre 2023 et est demeurée stable depuis. La fourchette de la RSI peut actuellement s'étendre de 0 à 4 %, le niveau effectif étant modifié par le BSIF selon l'évolution du système financier canadien et de l'économie dans son ensemble."
           },
-          "change_summary": "Suppression de l'explication sur la raison de l'augmentation de la RSI et ajout de l'information que la RSI est demeurée stable depuis",
+          "change_summary": "Suppression de l'explication sur la hausse de pdb et ajout de l'information que la RSI est demeurée stable depuis",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -547,8 +600,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La réserve pour stabilité intérieure (RSI) a été augmentée de à au novembre et est restée stable depuis. Ce changement est substantiel car il reflète une décision stratégique pour renforcer la résilience des grandes banques canadiennes face aux risques systémiques. Cela implique une surveillance accrue des niveaux de capital pour s'assurer que les banques maintiennent cette résilience face aux évolutions économiques",
-            "impact_description": "Augmentation du niveau de capital requis pour les grandes banques, impactant leur capacité à absorber les chocs économiques",
+            "explanation": "La réserve pour stabilité intérieure (RSI) a été augmentée de à au novembre et est demeurée stable depuis. Ce changement est substantiel car il reflète une décision stratégique pour renforcer la résilience des grandes banques canadiennes face aux risques systémiques. Cela implique une surveillance accrue des niveaux de capital pour s'assurer que les banques maintiennent cette résilience",
+            "impact_description": "Augmentation du niveau de capital requis pour les banques, ce qui pourrait affecter leur capacité à prêter ou investir",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -560,6 +613,59 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
+            }
+          }
+        },
+        {
+          "change_id": "gestion_capital_évolution_future_des_fonds_propres_régle_change_016",
+          "section_key": "gestion_capital",
+          "subsection_heading": "Évolution future des fonds propres réglementaires",
+          "diff_type": "removed",
+          "semantic_text_t1": "La banque offre un plan de réinvestissement des dividendes à ses actionnaires ordinaires. La participation à ce plan est facultative et, en vertu des conditions du plan, les dividendes en espèces sur les actions ordinaires servent à acheter des actions ordinaires additionnelles. Au gré de la Banque, les actions ordinaires peuvent être émises sur le capital autorisé, au cours moyen des cinq derniers jours de négociation précédant la date de versement des dividendes, moins un escompte variant entre et, au gré de la Banque, ou achetées sur le marché libre, au cours du marché",
+          "semantic_text_t2": "",
+          "source_text_t1": "La Banque offre un plan de réinvestissement des dividendes à ses actionnaires ordinaires. La participation à ce plan est facultative et, en vertu des conditions du plan, les dividendes en espèces sur les actions ordinaires servent à acheter des actions ordinaires additionnelles. Au gré de la Banque, les actions ordinaires peuvent être émises sur le capital autorisé, au cours moyen des cinq derniers jours de négociation précédant la date de versement des dividendes, moins un escompte variant entre 0 % et 5 %, au gré de la Banque, ou achetées sur le marché libre, au cours du marché.",
+          "source_text_t2": "",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            37
+          ],
+          "pages_t2": [],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              37
+            ],
+            "snippet": "La Banque offre un plan de réinvestissement des dividendes à ses actionnaires ordinaires. La participation à ce plan est facultative et, en vertu des conditions du plan, les dividendes en espèces sur les actions ordinaires servent à acheter des actions ordinaires additionnelles. Au gré de la Banque, les actions ordinaires peuvent être émises sur le capital autorisé, au cours moyen des cinq dernier"
+          },
+          "evidence_t2": {
+            "pages": [],
+            "snippet": ""
+          },
+          "change_summary": "Le paragraphe sur le plan de réinvestissement des dividendes a été supprimé",
+          "genai_triage": {
+            "is_relevant": true,
+            "category": "STRUCTURE",
+            "impact_level": "MODERE",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "Le paragraphe sur le plan de réinvestissement des dividendes a été supprimé. Ce changement est substantiel car il modifie les options disponibles pour les actionnaires concernant le réinvestissement des dividendes, ce qui peut affecter leur stratégie d'investissement. Cela nécessite une communication claire aux actionnaires pour éviter toute confusion",
+            "impact_description": "Modification des options d'investissement pour les actionnaires, pouvant influencer leur décision de réinvestissement",
+            "action_requise": "information",
+            "reference_reglementaire": "",
+            "nouvelle_idee": false,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
             }
           }
         },
@@ -596,7 +702,7 @@
             ],
             "snippet": "La Banque a mis en œuvre le Cadre de capacité totale d'absorption des pertes par établissement des sociétés mères de banques d'importance systémique intérieure du BSIF. Ce cadre, qui établit une mesure fondée sur le risque, veille à ce qu'une BISI non viable dispose d'une capacité d'absorption des pertes suffisante par établissement (entité juridique distincte) afin d'assurer sa résolution. La Ban"
           },
-          "change_summary": "Suppression de la date précise de mise en œuvre du cadre",
+          "change_summary": "Suppression de la date de mise en œuvre du cadre",
           "genai_triage": {
             "is_relevant": false,
             "category": "COSMETIQUE",
@@ -653,7 +759,7 @@
             ],
             "snippet": "Le tableau ci-dessous présente les cibles minimales de fonds propres réglementaires publiées par le BSIF en vigueur au 30 avril 2025."
           },
-          "change_summary": "Changement de la date de référence pour les cibles minimales de fonds propres réglementaires de janvier à avril",
+          "change_summary": "Modification de la date de référence pour les cibles minimales de fonds propres réglementaires",
           "genai_triage": {
             "is_relevant": false,
             "category": "COSMETIQUE",
@@ -763,7 +869,7 @@
             ],
             "snippet": "Le 21 mai 2025, le conseil d'administration a approuvé un dividende de un dollar et cinq cents (1,05 $) par action ordinaire entièrement libérée du capital social de la Banque pour le trimestre se terminant le 31 juillet 2025. Ce dividende sera payable à compter du 31 juillet 2025 aux actionnaires inscrits à la fermeture des bureaux le 10 juillet 2025."
           },
-          "change_summary": "Les dates de l'approbation du dividende, de la fin du trimestre, de la date de paiement et de la date de clôture des registres ont été modifiées",
+          "change_summary": "Les dates du dividende ont été mises à jour pour le trimestre suivant",
           "genai_triage": {
             "is_relevant": false,
             "category": "COSMETIQUE",
@@ -789,8 +895,8 @@
         }
       ],
       "summary": {
-        "retained_changes": 5,
-        "all_changes": 9,
+        "retained_changes": 6,
+        "all_changes": 10,
         "pages_previous": [
           33,
           37
@@ -806,7 +912,7 @@
       "section_title": "Gestion des risques",
       "block_comparisons": [
         {
-          "change_id": "gestion_risques_facteurs_de_risque_qui_pourraient_avoir_change_035",
+          "change_id": "gestion_risques_facteurs_de_risque_qui_pourraient_avoir_change_068",
           "section_key": "gestion_risques",
           "subsection_heading": "Facteurs de risque qui pourraient avoir une incidence sur les résultats futurs",
           "diff_type": "added",
@@ -842,8 +948,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Une nouvelle sous section sur les facteurs de risque a été ajoutée, soulignant des risques potentiels qui pourraient affecter les résultats futurs de la banque. Ce changement est substantiel car il introduit de nouveaux éléments de risque qui nécessitent une attention particulière. Cela implique que la banque doit évaluer ces risques et ajuster ses stratégies de gestion des risques en conséquence",
-            "impact_description": "L'ajout de nouveaux facteurs de risque pourrait indiquer une exposition accrue à des incertitudes externes, nécessitant une surveillance renforcée",
+            "explanation": "Une nouvelle sous section sur les facteurs de risque a été ajoutée, décrivant des risques potentiels qui pourraient affecter les résultats futurs de la banque. Ce changement est substantiel car il introduit de nouveaux éléments de risque qui nécessitent une attention particulière. Cela implique que la banque doit escalader ces informations pour évaluer leur impact potentiel sur sa stratégie de gestion des risques",
+            "impact_description": "L'ajout de nouveaux facteurs de risque peut indiquer une exposition accrue à des incertitudes externes, nécessitant une réévaluation des stratégies de gestion des risques",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -859,7 +965,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_risques_géopolitiques_change_036",
+          "change_id": "gestion_risques_risques_géopolitiques_change_069",
           "section_key": "gestion_risques",
           "subsection_heading": "Risques géopolitiques",
           "diff_type": "added",
@@ -895,8 +1001,8 @@
             "risk_type": "marche",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Une nouvelle sous section sur les risques géopolitiques a été ajoutée, détaillant les impacts potentiels des tensions commerciales et politiques. Ce changement est substantiel car il met en lumière des risques externes qui pourraient affecter la banque. Cela implique que la banque doit surveiller ces développements et ajuster ses stratégies en conséquence",
-            "impact_description": "Les risques géopolitiques peuvent entraîner une volatilité accrue des marchés et affecter la stabilité financière de la banque",
+            "explanation": "Une nouvelle sous section sur les risques géopolitiques a été ajoutée, décrivant des risques liés aux politiques commerciales et fiscales. Ce changement est substantiel car il introduit de nouveaux éléments de risque qui nécessitent une attention particulière. Cela implique que la banque doit escalader ces informations pour évaluer leur impact potentiel sur sa stratégie de gestion des risques",
+            "impact_description": "L'ajout de nouveaux risques géopolitiques peut indiquer une exposition accrue à des incertitudes externes, nécessitant une réévaluation des stratégies de gestion des risques",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -912,7 +1018,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_surveillance_réglementaire_et_risque_de_change_037",
+          "change_id": "gestion_risques_surveillance_réglementaire_et_risque_de_change_070",
           "section_key": "gestion_risques",
           "subsection_heading": "Surveillance réglementaire et risque de conformité",
           "diff_type": "added",
@@ -948,8 +1054,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Une nouvelle sous section sur la surveillance réglementaire et le risque de conformité a été ajoutée, soulignant les conséquences potentielles d'une non conformité. Ce changement est substantiel car il met en évidence des risques de conformité qui pourraient avoir des impacts significatifs. Cela implique que la banque doit renforcer ses contrôles de conformité pour éviter des sanctions potentielles",
-            "impact_description": "Les risques de non conformité peuvent entraîner des amendes et nuire à la réputation de la banque, affectant sa stabilité à long terme",
+            "explanation": "Une nouvelle sous section sur la surveillance réglementaire et le risque de conformité a été ajoutée, décrivant des risques liés à la conformité réglementaire. Ce changement est substantiel car il introduit de nouveaux éléments de risque qui nécessitent une attention particulière. Cela implique que la banque doit escalader ces informations pour évaluer leur impact potentiel sur sa stratégie de gestion des risques",
+            "impact_description": "L'ajout de nouveaux risques de conformité peut indiquer une exposition accrue à des incertitudes réglementaires, nécessitant une réévaluation des stratégies de gestion des risques",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -957,9 +1063,62 @@
             "source": "gpt4o_triage",
             "signals": {
               "regulatory_reference_added": true,
-              "methodology_change": true,
+              "methodology_change": false,
               "tone_changed": true,
               "forward_looking": true,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_actifs_liquides_change_056",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Actifs liquides",
+          "diff_type": "added",
+          "semantic_text_t1": "",
+          "semantic_text_t2": "La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine",
+          "source_text_t1": "",
+          "source_text_t2": "La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [],
+          "pages_t2": [
+            53
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [],
+            "snippet": ""
+          },
+          "evidence_t2": {
+            "pages": [
+              53
+            ],
+            "snippet": "La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine."
+          },
+          "change_summary": "Ajout d'une explication sur la modification de la méthode de calcul du financement",
+          "genai_triage": {
+            "is_relevant": true,
+            "category": "STRUCTURE",
+            "impact_level": "MODERE",
+            "risk_type": "capital",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "Une nouvelle méthode de calcul a été introduite pour le financement provenant des dépôts. Ce changement est substantiel car il modifie la manière dont la banque évalue ses sources de financement. Cela implique que la banque doit enquêter sur l'impact de cette nouvelle méthode sur ses rapports financiers",
+            "impact_description": "L'introduction d'une nouvelle méthode de calcul peut affecter la transparence et la comparabilité des données financières de la banque",
+            "action_requise": "investigation",
+            "reference_reglementaire": "",
+            "nouvelle_idee": true,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": true,
+              "tone_changed": false,
+              "forward_looking": false,
               "quantitative_changed": false
             }
           }
@@ -1001,8 +1160,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La section sur la gestion des risques a été entièrement supprimée entre le premier et le deuxième trimestre. Ce changement est substantiel car il retire des informations cruciales sur la manière dont la banque gère et perçoit ses risques. Cela implique une nécessité urgente de comprendre pourquoi cette information a été retirée et d'évaluer les impacts potentiels sur la surveillance des risques de la banque",
-            "impact_description": "La suppression de cette section pourrait indiquer un changement significatif dans la stratégie de gestion des risques de la banque, ce qui pourrait affecter sa stabilité financière",
+            "explanation": "La section sur la gestion des risques a été entièrement supprimée entre le premier et le deuxième trimestre. Cette suppression est substantielle car elle enlève des informations cruciales sur la manière dont la banque gère et évalue ses risques. Cela implique une surveillance accrue pour comprendre pourquoi ces informations ont été retirées et comment cela affecte la transparence et la gestion des risques de la banque",
+            "impact_description": "La suppression de cette section pourrait indiquer un changement significatif dans la stratégie de gestion des risques de la banque, ce qui pourrait affecter sa stabilité financière et sa conformité réglementaire",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1050,7 +1209,7 @@
             ],
             "snippet": "La VaR moyenne a augmenté par rapport à celle du trimestre précédent en raison de la volatilité des marchés ayant influé sur certains facteurs de risque, notamment les écarts de taux et les marchandises."
           },
-          "change_summary": "Changement de la tendance de la la mesure de risque de marché moyenne: diminution à augmentation, avec des raisons différentes (variations des positions et resserrement des écarts de taux à volatilité des marchés et influence sur les facteurs de risque)",
+          "change_summary": "Changement de tendance de la la mesure de risque de marché moyenne: diminution à augmentation, avec des raisons différentes (variations des positions vs volatilité des marchés)",
           "genai_triage": {
             "is_relevant": true,
             "category": "RISQUE",
@@ -1059,7 +1218,7 @@
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
             "explanation": "La tendance de la mesure de risque de marché moyenne a changé de diminution à augmentation entre les trimestres. Ce changement est substantiel car il reflète une augmentation de la volatilité des marchés, influençant les facteurs de risque. Cela implique que la banque doit ajuster ses stratégies de gestion des risques pour s'adapter à cette nouvelle volatilité",
-            "impact_description": "L'augmentation de la mesure de risque de marché moyenne pourrait indiquer une exposition accrue aux fluctuations du marché, nécessitant une surveillance renforcée",
+            "impact_description": "L'augmentation de la mesure de risque de marché moyenne pourrait indiquer une exposition accrue aux fluctuations du marché, nécessitant une réévaluation des stratégies de couverture et de gestion des risques",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1115,8 +1274,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les chiffres concernant l'impact des variations des taux d'intérêt sur la valeur économique des capitaux propres et les produits d'intérêts nets ont été mis à jour. Ce changement est substantiel car il reflète une modification des sensibilités financières de la banque. Cela implique que la banque doit confirmer ces chiffres pour s'assurer qu'ils reflètent correctement sa position actuelle",
-            "impact_description": "Les nouvelles données indiquent une sensibilité accrue aux variations des taux d'intérêt, ce qui pourrait affecter la rentabilité future",
+            "explanation": "Les chiffres concernant l'impact des variations des taux d'intérêt sur la valeur économique des capitaux propres et les produits d'intérêts nets ont été mis à jour. Ce changement est substantiel car il reflète une modification des sensibilités aux taux d'intérêt, influençant la gestion du capital. Cela implique que la banque doit confirmer ces chiffres pour s'assurer de la précision de ses prévisions financières",
+            "impact_description": "Les variations des sensibilités aux taux d'intérêt peuvent affecter la rentabilité et la stabilité financière de la banque, nécessitant une gestion prudente du capital",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1132,7 +1291,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_025",
+          "change_id": "gestion_risques_actifs_liquides_change_028",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -1164,7 +1323,7 @@
             ],
             "snippet": "Le total des actifs liquides non grevés a augmenté de 17 milliards de dollars par rapport à celui au 31 octobre 2024, principalement en raison du produit tiré de la vente de la participation en actions dans Schwab."
           },
-          "change_summary": "Augmentation des actifs liquides non grevés de à milliards de dollars, avec une nouvelle raison principale liée à la vente de la participation en actions dans Schwab",
+          "change_summary": "Augmentation des actifs liquides non grevés de milliards de dollars au lieu de milliards, avec une cause différente (vente de Schwab au lieu de financement de gros)",
           "genai_triage": {
             "is_relevant": true,
             "category": "LIQUIDITE",
@@ -1172,8 +1331,8 @@
             "risk_type": "liquidite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "L'augmentation des actifs liquides non grevés a été attribuée à la vente de la participation en actions dans Schwab. Ce changement est substantiel car il modifie la source principale de liquidité de la banque. Cela implique que la banque doit évaluer l'impact de cette vente sur sa stratégie de liquidité à long terme",
-            "impact_description": "La vente de la participation en actions dans Schwab a amélioré la liquidité, mais pourrait réduire les revenus futurs",
+            "explanation": "L'augmentation des actifs liquides non grevés a été révisée à la hausse avec une cause différente identifiée. Ce changement est substantiel car il modifie la compréhension des sources de liquidité de la banque. Cela implique que la banque doit enquêter sur l'impact de la vente de Schwab sur sa position de liquidité",
+            "impact_description": "Une augmentation significative des actifs liquides peut améliorer la capacité de la banque à répondre à ses besoins de liquidité, mais nécessite une vérification de la durabilité de cette source",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1189,7 +1348,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_027",
+          "change_id": "gestion_risques_actifs_liquides_change_036",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -1221,16 +1380,16 @@
             ],
             "snippet": "5 Les autres actifs comprennent le goodwill, les autres immobilisations incorporelles, les terrains, bâtiments, matériel et mobilier, autres actifs amortissables et actifs au titre de droits d'utilisation, les actifs d'impôt différé, les montants à recevoir des courtiers et des clients et les autres actifs du bilan qui ne sont pas présentés dans les catégories ci-dessus."
           },
-          "change_summary": "Suppression de la mention de la participation dans Schwab dans la liste des autres actifs",
+          "change_summary": "Suppression de la mention de la participation dans Schwab",
           "genai_triage": {
             "is_relevant": true,
-            "category": "STRUCTURE",
+            "category": "CAPITAL",
             "impact_level": "MODERE",
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La mention de la participation dans Schwab a été supprimée de la liste des autres actifs. Ce changement est substantiel car il indique une modification de la composition des actifs de la banque. Cela implique que la banque doit clarifier la raison de cette suppression et son impact sur le bilan",
-            "impact_description": "La suppression de la participation dans Schwab pourrait indiquer une vente ou une réévaluation de cet actif, affectant potentiellement la structure du bilan",
+            "explanation": "La mention de la participation dans Schwab a été supprimée des autres actifs. Ce changement est substantiel car il modifie la composition des actifs de la banque, affectant potentiellement sa valorisation. Cela implique que la banque doit clarifier l'impact de cette suppression sur ses états financiers",
+            "impact_description": "La suppression de la participation dans Schwab pourrait indiquer une vente ou une réévaluation de cet actif, affectant la structure du capital de la banque",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1246,64 +1405,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_029",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Actifs liquides",
-          "diff_type": "modified",
-          "semantic_text_t1": "La moyenne des HQLA de la Banque pour le trimestre clos le janvier a été de milliards de dollars ( milliards de dollars pour le trimestre clos octobre ), les actifs du niveau représentant ( pour le trimestre clos le octobre )",
-          "semantic_text_t2": "La moyenne des HQLA de la Banque pour le trimestre clos le avril a été de milliards de dollars ( milliards de dollars pour le trimestre clos le janvier ), les actifs du niveau représentant ( pour le trimestre clos le janvier )",
-          "source_text_t1": "La moyenne des HQLA de la Banque pour le trimestre clos le 31 janvier 2025 a été de 382 milliards de dollars (361 milliards de dollars pour le trimestre clos 31 octobre 2024), les actifs du niveau 1 représentant 86 % (86 % pour le trimestre clos le 31 octobre 2024).",
-          "source_text_t2": "La moyenne des HQLA de la Banque pour le trimestre clos le 30 avril 2025 a été de 383 milliards de dollars (382 milliards de dollars pour le trimestre clos le 31 janvier 2025), les actifs du niveau 1 représentant 86 % (86 % pour le trimestre clos le 31 janvier 2025).",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            49
-          ],
-          "pages_t2": [
-            51
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              49
-            ],
-            "snippet": "La moyenne des HQLA de la Banque pour le trimestre clos le 31 janvier 2025 a été de 382 milliards de dollars (361 milliards de dollars pour le trimestre clos 31 octobre 2024), les actifs du niveau 1 représentant 86 % (86 % pour le trimestre clos le 31 octobre 2024)."
-          },
-          "evidence_t2": {
-            "pages": [
-              51
-            ],
-            "snippet": "La moyenne des HQLA de la Banque pour le trimestre clos le 30 avril 2025 a été de 383 milliards de dollars (382 milliards de dollars pour le trimestre clos le 31 janvier 2025), les actifs du niveau 1 représentant 86 % (86 % pour le trimestre clos le 31 janvier 2025)."
-          },
-          "change_summary": "Mise à jour des montants des HQLA et des dates des trimestres",
-          "genai_triage": {
-            "is_relevant": true,
-            "category": "LIQUIDITE",
-            "impact_level": "MODERE",
-            "risk_type": "liquidite",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "explanation": "Les montants des actifs liquides de haute qualité (HQLA) ont été mis à jour pour le trimestre. Ce changement est substantiel car il affecte le calcul des ratios de liquidité réglementaires. Cela implique que la banque doit confirmer ces chiffres pour s'assurer qu'ils sont conformes aux des exigences prudentielles",
-            "impact_description": "Les nouvelles valeurs des HQLA influencent directement la capacité de la banque à répondre aux exigences de liquidité en période de stress",
-            "action_requise": "confirmation",
-            "reference_reglementaire": "",
-            "nouvelle_idee": false,
-            "confidence": 0.0,
-            "source": "gpt4o_triage",
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": true
-            }
-          }
-        },
-        {
-          "change_id": "gestion_risques_actifs_liquides_change_030",
+          "change_id": "gestion_risques_actifs_liquides_change_053",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -1335,7 +1437,7 @@
             ],
             "snippet": "Le NSFR de la Banque au 30 avril 2025 était de 119 % (116 % au 31 octobre 2024), correspondant à un montant excédentaire de 183 milliards de dollars, ce qui respecte les exigences réglementaires. L'augmentation du NSFR est principalement attribuable au produit tiré de la vente de la participation en actions dans Schwab."
           },
-          "change_summary": "Augmentation du de à et du montant excédentaire de à milliards de dollars, avec une nouvelle explication liée à la vente de la participation en actions dans Schwab",
+          "change_summary": "Augmentation du à et du montant excédentaire à milliards de dollars, avec une explication différente pour l'augmentation",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1343,8 +1445,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio de financement stable net () a augmenté, principalement en raison de la vente de la participation en actions dans Schwab. Ce changement est substantiel car il améliore la position de financement à long terme de la banque. Cela implique que la banque doit confirmer l'impact de cette vente sur sa stratégie de financement",
-            "impact_description": "L'augmentation du renforce la stabilité financière de la banque, mais la dépendance à une vente unique pourrait poser des risques futurs",
+            "explanation": "Le ratio de financement stable net () a augmenté, avec une explication différente pour cette augmentation. Ce changement est substantiel car il affecte la capacité de la banque à maintenir un financement stable à long terme. Cela implique que la banque doit confirmer l'exactitude de ces chiffres pour assurer sa conformité aux des exigences prudentielles",
+            "impact_description": "Une augmentation du améliore la résilience de la banque face aux chocs de liquidité, mais nécessite une vérification pour garantir la durabilité de cette amélioration",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1360,7 +1462,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_031",
+          "change_id": "gestion_risques_actifs_liquides_change_055",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -1392,7 +1494,7 @@
             ],
             "snippet": "L'approche principale de financement de la Banque consiste à maximiser l'utilisation des dépôts mobilisés par l'entremise des services bancaires personnels et commerciaux et de ses activités de gestion de patrimoine, lesquels ont compté pour environ 64 % (63 % au 31 octobre 2024) du financement total de la Banque. Le financement provenant des dépôts non personnels présenté ci-dessous ne tient pas "
           },
-          "change_summary": "Changement dans l'approche de financement, avec une réduction du pourcentage des dépôts personnels et commerciaux de à et une nouvelle exclusion des dépôts du secteur Services bancaires de gros",
+          "change_summary": "Changement dans le pourcentage de financement provenant des dépôts personnels et commerciaux, et exclusion des dépôts du secteur Services bancaires de gros",
           "genai_triage": {
             "is_relevant": true,
             "category": "STRUCTURE",
@@ -1400,8 +1502,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "L'approche de financement de la banque a été modifiée pour inclure les activités de gestion de patrimoine et exclure certains dépôts. Ce changement est substantiel car il modifie la structure de financement de la banque. Cela implique que la banque doit évaluer l'impact de ces changements sur sa stratégie de financement globale",
-            "impact_description": "La modification de l'approche de financement pourrait affecter la stabilité et la flexibilité financière de la banque",
+            "explanation": "Le pourcentage de financement provenant des dépôts personnels et commerciaux a changé, et les dépôts du secteur Services bancaires de gros ont été exclus. Ce changement est substantiel car il modifie la structure de financement de la banque. Cela implique que la banque doit enquêter sur l'impact de cette exclusion sur sa stratégie de financement",
+            "impact_description": "Un changement dans la structure de financement peut affecter la stabilité financière de la banque, nécessitant une réévaluation de ses sources de financement",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1412,12 +1514,12 @@
               "methodology_change": true,
               "tone_changed": false,
               "forward_looking": false,
-              "quantitative_changed": false
+              "quantitative_changed": true
             }
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_032",
+          "change_id": "gestion_risques_actifs_liquides_change_059",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -1449,7 +1551,7 @@
             ],
             "snippet": "Le tableau ci-après présente la ventilation de la dette à terme de la Banque par monnaie et type de financement. Le financement à terme au 30 avril 2025 s'élevait à 185,6 milliards de dollars (184,5 milliards de dollars au 31 octobre 2024)."
           },
-          "change_summary": "Mise à jour du montant du financement à terme de milliards de dollars à milliards de dollars et de la date",
+          "change_summary": "Mise à jour du montant de financement à terme et de la date de référence",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1457,8 +1559,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le montant du financement à terme a été mis à jour, avec une légère diminution par rapport au trimestre précédent. Ce changement est substantiel car il affecte la capacité de la banque à gérer ses obligations à long terme. Cela implique que la banque doit confirmer ces chiffres pour s'assurer qu'ils reflètent correctement sa position de financement",
-            "impact_description": "La diminution du financement à terme pourrait indiquer une réduction de la capacité de la banque à lever des fonds à long terme",
+            "explanation": "Le montant de financement à terme a été mis à jour avec une nouvelle date de référence. Ce changement est substantiel car il affecte la compréhension de la dette à long terme de la banque. Cela implique que la banque doit confirmer ces chiffres pour assurer la précision de ses rapports financiers",
+            "impact_description": "Une mise à jour du financement à terme peut influencer la perception de la stabilité financière de la banque, nécessitant une vérification des données",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1474,7 +1576,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_033",
+          "change_id": "gestion_risques_actifs_liquides_change_064",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -1506,7 +1608,7 @@
             ],
             "snippet": "4 Comprennent la dette de premier rang qui est assujettie à une conversion au titre du régime de recapitalisation interne des banques. Excluent des billets structurés d'un montant de 3,7 milliards de dollars qui sont assujettis à une conversion au titre du régime de recapitalisation des banques (4,4 milliards de dollars au 31 octobre 2024)."
           },
-          "change_summary": "Réduction du montant des billets structurés exclus de milliards de dollars à milliards de dollars",
+          "change_summary": "Mise à jour du montant des billets structurés exclus",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1514,8 +1616,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le montant des billets structurés exclus a été réduit, ce qui affecte la composition du capital de la banque. Ce changement est substantiel car il modifie la structure de capital de la banque. Cela implique que la banque doit confirmer l'impact de cette réduction sur sa stratégie de capitalisation",
-            "impact_description": "La réduction des billets structurés pourrait affecter la flexibilité financière de la banque en cas de besoin de recapitalisation",
+            "explanation": "Le montant des billets structurés exclus a été mis à jour. Ce changement est substantiel car il affecte la compréhension de la dette de la banque. Cela implique que la banque doit confirmer ces chiffres pour assurer la précision de ses rapports financiers",
+            "impact_description": "Une mise à jour des billets structurés peut influencer la perception de la stabilité financière de la banque, nécessitant une vérification des données",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1531,7 +1633,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_034",
+          "change_id": "gestion_risques_actifs_liquides_change_065",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -1563,7 +1665,7 @@
             ],
             "snippet": "À l'exclusion des activités de négociation de prêts hypothécaires résidentiels du secteur Services bancaires de gros, la Banque a émis à l'intention d'investisseurs externes des titres adossés à des créances hypothécaires s'élevant respectivement à 1,3 milliard de dollars et 2,3 milliards de dollars pour les trois mois et six mois clos le 30 avril 2025 (respectivement 0,7 milliard de dollars et 0,"
           },
-          "change_summary": "Mise à jour des montants et des périodes pour les titres adossés à des créances hypothécaires et les billets à moyen terme non garantis",
+          "change_summary": "Mise à jour des montants et des périodes pour les émissions de titres adossés à des créances hypothécaires et autres actifs",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -1571,8 +1673,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les montants et les périodes pour les titres adossés à des créances hypothécaires et les billets à moyen terme non garantis ont été mis à jour. Ce changement est substantiel car il affecte la stratégie de financement de la banque. Cela implique que la banque doit confirmer ces chiffres pour s'assurer qu'ils reflètent correctement sa position de financement",
-            "impact_description": "Les nouvelles émissions de titres et de billets affectent la capacité de la banque à lever des fonds sur les marchés financiers",
+            "explanation": "Les montants et les périodes pour les émissions de titres adossés à des créances hypothécaires et autres actifs ont été mis à jour. Ce changement est substantiel car il affecte la compréhension des activités de financement de la banque. Cela implique que la banque doit confirmer ces chiffres pour assurer la précision de ses rapports financiers",
+            "impact_description": "Une mise à jour des émissions de titres peut influencer la perception de la stabilité financière de la banque, nécessitant une vérification des données",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1590,7 +1692,7 @@
       ],
       "all_block_comparisons": [
         {
-          "change_id": "gestion_risques_facteurs_de_risque_qui_pourraient_avoir_change_035",
+          "change_id": "gestion_risques_facteurs_de_risque_qui_pourraient_avoir_change_068",
           "section_key": "gestion_risques",
           "subsection_heading": "Facteurs de risque qui pourraient avoir une incidence sur les résultats futurs",
           "diff_type": "added",
@@ -1626,8 +1728,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Une nouvelle sous section sur les facteurs de risque a été ajoutée, soulignant des risques potentiels qui pourraient affecter les résultats futurs de la banque. Ce changement est substantiel car il introduit de nouveaux éléments de risque qui nécessitent une attention particulière. Cela implique que la banque doit évaluer ces risques et ajuster ses stratégies de gestion des risques en conséquence",
-            "impact_description": "L'ajout de nouveaux facteurs de risque pourrait indiquer une exposition accrue à des incertitudes externes, nécessitant une surveillance renforcée",
+            "explanation": "Une nouvelle sous section sur les facteurs de risque a été ajoutée, décrivant des risques potentiels qui pourraient affecter les résultats futurs de la banque. Ce changement est substantiel car il introduit de nouveaux éléments de risque qui nécessitent une attention particulière. Cela implique que la banque doit escalader ces informations pour évaluer leur impact potentiel sur sa stratégie de gestion des risques",
+            "impact_description": "L'ajout de nouveaux facteurs de risque peut indiquer une exposition accrue à des incertitudes externes, nécessitant une réévaluation des stratégies de gestion des risques",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -1643,7 +1745,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_risques_géopolitiques_change_036",
+          "change_id": "gestion_risques_risques_géopolitiques_change_069",
           "section_key": "gestion_risques",
           "subsection_heading": "Risques géopolitiques",
           "diff_type": "added",
@@ -1679,8 +1781,8 @@
             "risk_type": "marche",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Une nouvelle sous section sur les risques géopolitiques a été ajoutée, détaillant les impacts potentiels des tensions commerciales et politiques. Ce changement est substantiel car il met en lumière des risques externes qui pourraient affecter la banque. Cela implique que la banque doit surveiller ces développements et ajuster ses stratégies en conséquence",
-            "impact_description": "Les risques géopolitiques peuvent entraîner une volatilité accrue des marchés et affecter la stabilité financière de la banque",
+            "explanation": "Une nouvelle sous section sur les risques géopolitiques a été ajoutée, décrivant des risques liés aux politiques commerciales et fiscales. Ce changement est substantiel car il introduit de nouveaux éléments de risque qui nécessitent une attention particulière. Cela implique que la banque doit escalader ces informations pour évaluer leur impact potentiel sur sa stratégie de gestion des risques",
+            "impact_description": "L'ajout de nouveaux risques géopolitiques peut indiquer une exposition accrue à des incertitudes externes, nécessitant une réévaluation des stratégies de gestion des risques",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -1696,7 +1798,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_surveillance_réglementaire_et_risque_de_change_037",
+          "change_id": "gestion_risques_surveillance_réglementaire_et_risque_de_change_070",
           "section_key": "gestion_risques",
           "subsection_heading": "Surveillance réglementaire et risque de conformité",
           "diff_type": "added",
@@ -1732,8 +1834,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Une nouvelle sous section sur la surveillance réglementaire et le risque de conformité a été ajoutée, soulignant les conséquences potentielles d'une non conformité. Ce changement est substantiel car il met en évidence des risques de conformité qui pourraient avoir des impacts significatifs. Cela implique que la banque doit renforcer ses contrôles de conformité pour éviter des sanctions potentielles",
-            "impact_description": "Les risques de non conformité peuvent entraîner des amendes et nuire à la réputation de la banque, affectant sa stabilité à long terme",
+            "explanation": "Une nouvelle sous section sur la surveillance réglementaire et le risque de conformité a été ajoutée, décrivant des risques liés à la conformité réglementaire. Ce changement est substantiel car il introduit de nouveaux éléments de risque qui nécessitent une attention particulière. Cela implique que la banque doit escalader ces informations pour évaluer leur impact potentiel sur sa stratégie de gestion des risques",
+            "impact_description": "L'ajout de nouveaux risques de conformité peut indiquer une exposition accrue à des incertitudes réglementaires, nécessitant une réévaluation des stratégies de gestion des risques",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": true,
@@ -1741,9 +1843,62 @@
             "source": "gpt4o_triage",
             "signals": {
               "regulatory_reference_added": true,
-              "methodology_change": true,
+              "methodology_change": false,
               "tone_changed": true,
               "forward_looking": true,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_actifs_liquides_change_056",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Actifs liquides",
+          "diff_type": "added",
+          "semantic_text_t1": "",
+          "semantic_text_t2": "La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine",
+          "source_text_t1": "",
+          "source_text_t2": "La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [],
+          "pages_t2": [
+            53
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [],
+            "snippet": ""
+          },
+          "evidence_t2": {
+            "pages": [
+              53
+            ],
+            "snippet": "La méthode de calcul a été modifiée pour tenir compte du financement provenant des dépôts généré par les services bancaires personnels et commerciaux et les activités de gestion de patrimoine."
+          },
+          "change_summary": "Ajout d'une explication sur la modification de la méthode de calcul du financement",
+          "genai_triage": {
+            "is_relevant": true,
+            "category": "STRUCTURE",
+            "impact_level": "MODERE",
+            "risk_type": "capital",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "Une nouvelle méthode de calcul a été introduite pour le financement provenant des dépôts. Ce changement est substantiel car il modifie la manière dont la banque évalue ses sources de financement. Cela implique que la banque doit enquêter sur l'impact de cette nouvelle méthode sur ses rapports financiers",
+            "impact_description": "L'introduction d'une nouvelle méthode de calcul peut affecter la transparence et la comparabilité des données financières de la banque",
+            "action_requise": "investigation",
+            "reference_reglementaire": "",
+            "nouvelle_idee": true,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": true,
+              "tone_changed": false,
+              "forward_looking": false,
               "quantitative_changed": false
             }
           }
@@ -1785,8 +1940,8 @@
             "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La section sur la gestion des risques a été entièrement supprimée entre le premier et le deuxième trimestre. Ce changement est substantiel car il retire des informations cruciales sur la manière dont la banque gère et perçoit ses risques. Cela implique une nécessité urgente de comprendre pourquoi cette information a été retirée et d'évaluer les impacts potentiels sur la surveillance des risques de la banque",
-            "impact_description": "La suppression de cette section pourrait indiquer un changement significatif dans la stratégie de gestion des risques de la banque, ce qui pourrait affecter sa stabilité financière",
+            "explanation": "La section sur la gestion des risques a été entièrement supprimée entre le premier et le deuxième trimestre. Cette suppression est substantielle car elle enlève des informations cruciales sur la manière dont la banque gère et évalue ses risques. Cela implique une surveillance accrue pour comprendre pourquoi ces informations ont été retirées et comment cela affecte la transparence et la gestion des risques de la banque",
+            "impact_description": "La suppression de cette section pourrait indiquer un changement significatif dans la stratégie de gestion des risques de la banque, ce qui pourrait affecter sa stabilité financière et sa conformité réglementaire",
             "action_requise": "escalade",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1834,7 +1989,7 @@
             ],
             "snippet": "La VaR moyenne a augmenté par rapport à celle du trimestre précédent en raison de la volatilité des marchés ayant influé sur certains facteurs de risque, notamment les écarts de taux et les marchandises."
           },
-          "change_summary": "Changement de la tendance de la la mesure de risque de marché moyenne: diminution à augmentation, avec des raisons différentes (variations des positions et resserrement des écarts de taux à volatilité des marchés et influence sur les facteurs de risque)",
+          "change_summary": "Changement de tendance de la la mesure de risque de marché moyenne: diminution à augmentation, avec des raisons différentes (variations des positions vs volatilité des marchés)",
           "genai_triage": {
             "is_relevant": true,
             "category": "RISQUE",
@@ -1843,7 +1998,7 @@
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
             "explanation": "La tendance de la mesure de risque de marché moyenne a changé de diminution à augmentation entre les trimestres. Ce changement est substantiel car il reflète une augmentation de la volatilité des marchés, influençant les facteurs de risque. Cela implique que la banque doit ajuster ses stratégies de gestion des risques pour s'adapter à cette nouvelle volatilité",
-            "impact_description": "L'augmentation de la mesure de risque de marché moyenne pourrait indiquer une exposition accrue aux fluctuations du marché, nécessitant une surveillance renforcée",
+            "impact_description": "L'augmentation de la mesure de risque de marché moyenne pourrait indiquer une exposition accrue aux fluctuations du marché, nécessitant une réévaluation des stratégies de couverture et de gestion des risques",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1899,8 +2054,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les chiffres concernant l'impact des variations des taux d'intérêt sur la valeur économique des capitaux propres et les produits d'intérêts nets ont été mis à jour. Ce changement est substantiel car il reflète une modification des sensibilités financières de la banque. Cela implique que la banque doit confirmer ces chiffres pour s'assurer qu'ils reflètent correctement sa position actuelle",
-            "impact_description": "Les nouvelles données indiquent une sensibilité accrue aux variations des taux d'intérêt, ce qui pourrait affecter la rentabilité future",
+            "explanation": "Les chiffres concernant l'impact des variations des taux d'intérêt sur la valeur économique des capitaux propres et les produits d'intérêts nets ont été mis à jour. Ce changement est substantiel car il reflète une modification des sensibilités aux taux d'intérêt, influençant la gestion du capital. Cela implique que la banque doit confirmer ces chiffres pour s'assurer de la précision de ses prévisions financières",
+            "impact_description": "Les variations des sensibilités aux taux d'intérêt peuvent affecter la rentabilité et la stabilité financière de la banque, nécessitant une gestion prudente du capital",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1916,7 +2071,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_025",
+          "change_id": "gestion_risques_actifs_liquides_change_028",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -1948,7 +2103,7 @@
             ],
             "snippet": "Le total des actifs liquides non grevés a augmenté de 17 milliards de dollars par rapport à celui au 31 octobre 2024, principalement en raison du produit tiré de la vente de la participation en actions dans Schwab."
           },
-          "change_summary": "Augmentation des actifs liquides non grevés de à milliards de dollars, avec une nouvelle raison principale liée à la vente de la participation en actions dans Schwab",
+          "change_summary": "Augmentation des actifs liquides non grevés de milliards de dollars au lieu de milliards, avec une cause différente (vente de Schwab au lieu de financement de gros)",
           "genai_triage": {
             "is_relevant": true,
             "category": "LIQUIDITE",
@@ -1956,8 +2111,8 @@
             "risk_type": "liquidite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "L'augmentation des actifs liquides non grevés a été attribuée à la vente de la participation en actions dans Schwab. Ce changement est substantiel car il modifie la source principale de liquidité de la banque. Cela implique que la banque doit évaluer l'impact de cette vente sur sa stratégie de liquidité à long terme",
-            "impact_description": "La vente de la participation en actions dans Schwab a amélioré la liquidité, mais pourrait réduire les revenus futurs",
+            "explanation": "L'augmentation des actifs liquides non grevés a été révisée à la hausse avec une cause différente identifiée. Ce changement est substantiel car il modifie la compréhension des sources de liquidité de la banque. Cela implique que la banque doit enquêter sur l'impact de la vente de Schwab sur sa position de liquidité",
+            "impact_description": "Une augmentation significative des actifs liquides peut améliorer la capacité de la banque à répondre à ses besoins de liquidité, mais nécessite une vérification de la durabilité de cette source",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -1973,7 +2128,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_027",
+          "change_id": "gestion_risques_actifs_liquides_change_036",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -2005,16 +2160,16 @@
             ],
             "snippet": "5 Les autres actifs comprennent le goodwill, les autres immobilisations incorporelles, les terrains, bâtiments, matériel et mobilier, autres actifs amortissables et actifs au titre de droits d'utilisation, les actifs d'impôt différé, les montants à recevoir des courtiers et des clients et les autres actifs du bilan qui ne sont pas présentés dans les catégories ci-dessus."
           },
-          "change_summary": "Suppression de la mention de la participation dans Schwab dans la liste des autres actifs",
+          "change_summary": "Suppression de la mention de la participation dans Schwab",
           "genai_triage": {
             "is_relevant": true,
-            "category": "STRUCTURE",
+            "category": "CAPITAL",
             "impact_level": "MODERE",
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "La mention de la participation dans Schwab a été supprimée de la liste des autres actifs. Ce changement est substantiel car il indique une modification de la composition des actifs de la banque. Cela implique que la banque doit clarifier la raison de cette suppression et son impact sur le bilan",
-            "impact_description": "La suppression de la participation dans Schwab pourrait indiquer une vente ou une réévaluation de cet actif, affectant potentiellement la structure du bilan",
+            "explanation": "La mention de la participation dans Schwab a été supprimée des autres actifs. Ce changement est substantiel car il modifie la composition des actifs de la banque, affectant potentiellement sa valorisation. Cela implique que la banque doit clarifier l'impact de cette suppression sur ses états financiers",
+            "impact_description": "La suppression de la participation dans Schwab pourrait indiquer une vente ou une réévaluation de cet actif, affectant la structure du capital de la banque",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2030,64 +2185,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_029",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Actifs liquides",
-          "diff_type": "modified",
-          "semantic_text_t1": "La moyenne des HQLA de la Banque pour le trimestre clos le janvier a été de milliards de dollars ( milliards de dollars pour le trimestre clos octobre ), les actifs du niveau représentant ( pour le trimestre clos le octobre )",
-          "semantic_text_t2": "La moyenne des HQLA de la Banque pour le trimestre clos le avril a été de milliards de dollars ( milliards de dollars pour le trimestre clos le janvier ), les actifs du niveau représentant ( pour le trimestre clos le janvier )",
-          "source_text_t1": "La moyenne des HQLA de la Banque pour le trimestre clos le 31 janvier 2025 a été de 382 milliards de dollars (361 milliards de dollars pour le trimestre clos 31 octobre 2024), les actifs du niveau 1 représentant 86 % (86 % pour le trimestre clos le 31 octobre 2024).",
-          "source_text_t2": "La moyenne des HQLA de la Banque pour le trimestre clos le 30 avril 2025 a été de 383 milliards de dollars (382 milliards de dollars pour le trimestre clos le 31 janvier 2025), les actifs du niveau 1 représentant 86 % (86 % pour le trimestre clos le 31 janvier 2025).",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            49
-          ],
-          "pages_t2": [
-            51
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              49
-            ],
-            "snippet": "La moyenne des HQLA de la Banque pour le trimestre clos le 31 janvier 2025 a été de 382 milliards de dollars (361 milliards de dollars pour le trimestre clos 31 octobre 2024), les actifs du niveau 1 représentant 86 % (86 % pour le trimestre clos le 31 octobre 2024)."
-          },
-          "evidence_t2": {
-            "pages": [
-              51
-            ],
-            "snippet": "La moyenne des HQLA de la Banque pour le trimestre clos le 30 avril 2025 a été de 383 milliards de dollars (382 milliards de dollars pour le trimestre clos le 31 janvier 2025), les actifs du niveau 1 représentant 86 % (86 % pour le trimestre clos le 31 janvier 2025)."
-          },
-          "change_summary": "Mise à jour des montants des HQLA et des dates des trimestres",
-          "genai_triage": {
-            "is_relevant": true,
-            "category": "LIQUIDITE",
-            "impact_level": "MODERE",
-            "risk_type": "liquidite",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "explanation": "Les montants des actifs liquides de haute qualité (HQLA) ont été mis à jour pour le trimestre. Ce changement est substantiel car il affecte le calcul des ratios de liquidité réglementaires. Cela implique que la banque doit confirmer ces chiffres pour s'assurer qu'ils sont conformes aux des exigences prudentielles",
-            "impact_description": "Les nouvelles valeurs des HQLA influencent directement la capacité de la banque à répondre aux exigences de liquidité en période de stress",
-            "action_requise": "confirmation",
-            "reference_reglementaire": "",
-            "nouvelle_idee": false,
-            "confidence": 0.0,
-            "source": "gpt4o_triage",
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": true
-            }
-          }
-        },
-        {
-          "change_id": "gestion_risques_actifs_liquides_change_030",
+          "change_id": "gestion_risques_actifs_liquides_change_053",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -2119,7 +2217,7 @@
             ],
             "snippet": "Le NSFR de la Banque au 30 avril 2025 était de 119 % (116 % au 31 octobre 2024), correspondant à un montant excédentaire de 183 milliards de dollars, ce qui respecte les exigences réglementaires. L'augmentation du NSFR est principalement attribuable au produit tiré de la vente de la participation en actions dans Schwab."
           },
-          "change_summary": "Augmentation du de à et du montant excédentaire de à milliards de dollars, avec une nouvelle explication liée à la vente de la participation en actions dans Schwab",
+          "change_summary": "Augmentation du à et du montant excédentaire à milliards de dollars, avec une explication différente pour l'augmentation",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -2127,8 +2225,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le ratio de financement stable net () a augmenté, principalement en raison de la vente de la participation en actions dans Schwab. Ce changement est substantiel car il améliore la position de financement à long terme de la banque. Cela implique que la banque doit confirmer l'impact de cette vente sur sa stratégie de financement",
-            "impact_description": "L'augmentation du renforce la stabilité financière de la banque, mais la dépendance à une vente unique pourrait poser des risques futurs",
+            "explanation": "Le ratio de financement stable net () a augmenté, avec une explication différente pour cette augmentation. Ce changement est substantiel car il affecte la capacité de la banque à maintenir un financement stable à long terme. Cela implique que la banque doit confirmer l'exactitude de ces chiffres pour assurer sa conformité aux des exigences prudentielles",
+            "impact_description": "Une augmentation du améliore la résilience de la banque face aux chocs de liquidité, mais nécessite une vérification pour garantir la durabilité de cette amélioration",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2144,7 +2242,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_031",
+          "change_id": "gestion_risques_actifs_liquides_change_055",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -2176,7 +2274,7 @@
             ],
             "snippet": "L'approche principale de financement de la Banque consiste à maximiser l'utilisation des dépôts mobilisés par l'entremise des services bancaires personnels et commerciaux et de ses activités de gestion de patrimoine, lesquels ont compté pour environ 64 % (63 % au 31 octobre 2024) du financement total de la Banque. Le financement provenant des dépôts non personnels présenté ci-dessous ne tient pas "
           },
-          "change_summary": "Changement dans l'approche de financement, avec une réduction du pourcentage des dépôts personnels et commerciaux de à et une nouvelle exclusion des dépôts du secteur Services bancaires de gros",
+          "change_summary": "Changement dans le pourcentage de financement provenant des dépôts personnels et commerciaux, et exclusion des dépôts du secteur Services bancaires de gros",
           "genai_triage": {
             "is_relevant": true,
             "category": "STRUCTURE",
@@ -2184,8 +2282,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "L'approche de financement de la banque a été modifiée pour inclure les activités de gestion de patrimoine et exclure certains dépôts. Ce changement est substantiel car il modifie la structure de financement de la banque. Cela implique que la banque doit évaluer l'impact de ces changements sur sa stratégie de financement globale",
-            "impact_description": "La modification de l'approche de financement pourrait affecter la stabilité et la flexibilité financière de la banque",
+            "explanation": "Le pourcentage de financement provenant des dépôts personnels et commerciaux a changé, et les dépôts du secteur Services bancaires de gros ont été exclus. Ce changement est substantiel car il modifie la structure de financement de la banque. Cela implique que la banque doit enquêter sur l'impact de cette exclusion sur sa stratégie de financement",
+            "impact_description": "Un changement dans la structure de financement peut affecter la stabilité financière de la banque, nécessitant une réévaluation de ses sources de financement",
             "action_requise": "investigation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2196,12 +2294,12 @@
               "methodology_change": true,
               "tone_changed": false,
               "forward_looking": false,
-              "quantitative_changed": false
+              "quantitative_changed": true
             }
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_032",
+          "change_id": "gestion_risques_actifs_liquides_change_059",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -2233,7 +2331,7 @@
             ],
             "snippet": "Le tableau ci-après présente la ventilation de la dette à terme de la Banque par monnaie et type de financement. Le financement à terme au 30 avril 2025 s'élevait à 185,6 milliards de dollars (184,5 milliards de dollars au 31 octobre 2024)."
           },
-          "change_summary": "Mise à jour du montant du financement à terme de milliards de dollars à milliards de dollars et de la date",
+          "change_summary": "Mise à jour du montant de financement à terme et de la date de référence",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -2241,8 +2339,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le montant du financement à terme a été mis à jour, avec une légère diminution par rapport au trimestre précédent. Ce changement est substantiel car il affecte la capacité de la banque à gérer ses obligations à long terme. Cela implique que la banque doit confirmer ces chiffres pour s'assurer qu'ils reflètent correctement sa position de financement",
-            "impact_description": "La diminution du financement à terme pourrait indiquer une réduction de la capacité de la banque à lever des fonds à long terme",
+            "explanation": "Le montant de financement à terme a été mis à jour avec une nouvelle date de référence. Ce changement est substantiel car il affecte la compréhension de la dette à long terme de la banque. Cela implique que la banque doit confirmer ces chiffres pour assurer la précision de ses rapports financiers",
+            "impact_description": "Une mise à jour du financement à terme peut influencer la perception de la stabilité financière de la banque, nécessitant une vérification des données",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2258,7 +2356,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_033",
+          "change_id": "gestion_risques_actifs_liquides_change_064",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -2290,7 +2388,7 @@
             ],
             "snippet": "4 Comprennent la dette de premier rang qui est assujettie à une conversion au titre du régime de recapitalisation interne des banques. Excluent des billets structurés d'un montant de 3,7 milliards de dollars qui sont assujettis à une conversion au titre du régime de recapitalisation des banques (4,4 milliards de dollars au 31 octobre 2024)."
           },
-          "change_summary": "Réduction du montant des billets structurés exclus de milliards de dollars à milliards de dollars",
+          "change_summary": "Mise à jour du montant des billets structurés exclus",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -2298,8 +2396,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Le montant des billets structurés exclus a été réduit, ce qui affecte la composition du capital de la banque. Ce changement est substantiel car il modifie la structure de capital de la banque. Cela implique que la banque doit confirmer l'impact de cette réduction sur sa stratégie de capitalisation",
-            "impact_description": "La réduction des billets structurés pourrait affecter la flexibilité financière de la banque en cas de besoin de recapitalisation",
+            "explanation": "Le montant des billets structurés exclus a été mis à jour. Ce changement est substantiel car il affecte la compréhension de la dette de la banque. Cela implique que la banque doit confirmer ces chiffres pour assurer la précision de ses rapports financiers",
+            "impact_description": "Une mise à jour des billets structurés peut influencer la perception de la stabilité financière de la banque, nécessitant une vérification des données",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2315,7 +2413,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_034",
+          "change_id": "gestion_risques_actifs_liquides_change_065",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -2347,7 +2445,7 @@
             ],
             "snippet": "À l'exclusion des activités de négociation de prêts hypothécaires résidentiels du secteur Services bancaires de gros, la Banque a émis à l'intention d'investisseurs externes des titres adossés à des créances hypothécaires s'élevant respectivement à 1,3 milliard de dollars et 2,3 milliards de dollars pour les trois mois et six mois clos le 30 avril 2025 (respectivement 0,7 milliard de dollars et 0,"
           },
-          "change_summary": "Mise à jour des montants et des périodes pour les titres adossés à des créances hypothécaires et les billets à moyen terme non garantis",
+          "change_summary": "Mise à jour des montants et des périodes pour les émissions de titres adossés à des créances hypothécaires et autres actifs",
           "genai_triage": {
             "is_relevant": true,
             "category": "CAPITAL",
@@ -2355,8 +2453,8 @@
             "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
-            "explanation": "Les montants et les périodes pour les titres adossés à des créances hypothécaires et les billets à moyen terme non garantis ont été mis à jour. Ce changement est substantiel car il affecte la stratégie de financement de la banque. Cela implique que la banque doit confirmer ces chiffres pour s'assurer qu'ils reflètent correctement sa position de financement",
-            "impact_description": "Les nouvelles émissions de titres et de billets affectent la capacité de la banque à lever des fonds sur les marchés financiers",
+            "explanation": "Les montants et les périodes pour les émissions de titres adossés à des créances hypothécaires et autres actifs ont été mis à jour. Ce changement est substantiel car il affecte la compréhension des activités de financement de la banque. Cela implique que la banque doit confirmer ces chiffres pour assurer la précision de ses rapports financiers",
+            "impact_description": "Une mise à jour des émissions de titres peut influencer la perception de la stabilité financière de la banque, nécessitant une vérification des données",
             "action_requise": "confirmation",
             "reference_reglementaire": "",
             "nouvelle_idee": false,
@@ -2404,7 +2502,7 @@
             ],
             "snippet": "Le graphique ci-après présente, à une date particulière, l'utilisation de la VaR quotidienne et les produits de négociation nets, présentés en équivalence fiscale, dans le secteur Services bancaires de gros. Les produits de négociation nets comprennent les produits de négociation et les produits d'intérêts nets liés aux positions des portefeuilles de négociation de la Banque utilisés pour la gesti"
           },
-          "change_summary": "Les données du trimestre ont été mises à jour: passage du premier au deuxième trimestre, augmentation des jours de pertes de négociation de à, et diminution des jours positifs de à",
+          "change_summary": "Mise à jour des données trimestrielles: passage du premier au deuxième trimestre, augmentation des jours de pertes de négociation de à, et diminution des jours positifs de à",
           "genai_triage": {
             "is_relevant": false,
             "category": "COSMETIQUE",
@@ -2424,7 +2522,7 @@
               "methodology_change": false,
               "tone_changed": false,
               "forward_looking": false,
-              "quantitative_changed": true
+              "quantitative_changed": false
             }
           }
         },
@@ -2461,7 +2559,7 @@
             ],
             "snippet": "Le tableau qui suit présente le calcul de la VaR de la TD à la date de clôture du trimestre, la moyenne de la période et les extrêmes (haut et bas).\n\nNégligeable. Il n'est pas important de calculer un effet de diversification, du fait que le haut et le bas peuvent survenir à différents jours pour différents types de risque."
           },
-          "change_summary": "Ajout d'une note sur l'effet de diversification, précisant qu'il n'est pas important de le calculer",
+          "change_summary": "Ajout d'une note sur l'importance négligeable de calculer un effet de diversification",
           "genai_triage": {
             "is_relevant": false,
             "category": "COSMETIQUE",
@@ -2486,64 +2584,7 @@
           }
         },
         {
-          "change_id": "gestion_risques_risque_de_taux_d_intérêt_autre_que_de_né_change_018",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Risque de taux d'intérêt (autre que de négociation) structurel",
-          "diff_type": "modified",
-          "semantic_text_t1": "Le tableau suivant présente l'incidence potentielle avant impôt d'une augmentation ou diminution immédiate et soutenue de pdb des taux d'intérêt sur les mesures de la sensibilité de la valeur économique des capitaux propres attribuables aux actionnaires et de la sensibilité des produits d'intérêts nets",
-          "semantic_text_t2": "Le tableau suivant présente l'incidence potentielle avant impôt d'une augmentation ou diminution immédiate et soutenue de pdb des taux d'intérêt sur les mesures de la sensibilité de la valeur économique des capitaux propres attribuables aux actionnaires et de la sensibilité des produits d'intérêts nets",
-          "source_text_t1": "Le tableau suivant présente l'incidence potentielle avant impôt d'une augmentation ou diminution immédiate et soutenue de 100 pdb des taux d'intérêt sur les mesures de la sensibilité de la valeur économique des capitaux propres attribuables aux actionnaires et de la sensibilité des produits d'intérêts nets.",
-          "source_text_t2": "Le tableau suivant présente l'incidence potentielle avant impôt d'une augmentation ou diminution immédiate et soutenue de 100 pdb des taux d'intérêt sur les mesures de la sensibilité de la valeur économique des capitaux propres attribuables aux actionnaires et de la sensibilité des produits d'intérêts nets.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            42
-          ],
-          "pages_t2": [
-            45
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              42
-            ],
-            "snippet": "Le tableau suivant présente l'incidence potentielle avant impôt d'une augmentation ou diminution immédiate et soutenue de 100 pdb des taux d'intérêt sur les mesures de la sensibilité de la valeur économique des capitaux propres attribuables aux actionnaires et de la sensibilité des produits d'intérêts nets."
-          },
-          "evidence_t2": {
-            "pages": [
-              45
-            ],
-            "snippet": "Le tableau suivant présente l'incidence potentielle avant impôt d'une augmentation ou diminution immédiate et soutenue de 100 pdb des taux d'intérêt sur les mesures de la sensibilité de la valeur économique des capitaux propres attribuables aux actionnaires et de la sensibilité des produits d'intérêts nets."
-          },
-          "change_summary": "Aucune modification du contenu",
-          "genai_triage": {
-            "is_relevant": false,
-            "category": "COSMETIQUE",
-            "impact_level": "MINEUR",
-            "risk_type": "autre",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "explanation": "",
-            "impact_description": "",
-            "action_requise": "aucune",
-            "reference_reglementaire": "",
-            "nouvelle_idee": false,
-            "confidence": 0.0,
-            "source": "gpt4o_triage",
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            }
-          }
-        },
-        {
-          "change_id": "gestion_risques_actifs_liquides_change_026",
+          "change_id": "gestion_risques_actifs_liquides_change_030",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -2575,7 +2616,7 @@
             ],
             "snippet": "La moyenne mensuelle des actifs liquides (compte non tenu de ceux détenus par les filiales d'assurances) de la Banque pour les trimestres clos les 30 avril 2025 et 31 janvier 2025 est présentée dans le tableau ci-après."
           },
-          "change_summary": "Mise à jour des dates des trimestres pour la moyenne mensuelle des actifs liquides",
+          "change_summary": "Les dates des trimestres ont changé pour inclure le avril au lieu du octobre",
           "genai_triage": {
             "is_relevant": false,
             "category": "COSMETIQUE",
@@ -2600,7 +2641,178 @@
           }
         },
         {
-          "change_id": "gestion_risques_actifs_liquides_change_028",
+          "change_id": "gestion_risques_actifs_liquides_change_035",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Actifs liquides",
+          "diff_type": "modified",
+          "semantic_text_t1": "Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d'obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la FHLB",
+          "semantic_text_t2": "Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d'obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la Federal Home Loan Bank (FHLB)",
+          "source_text_t1": "3 Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d'obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la FHLB.",
+          "source_text_t2": "3 Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d'obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la Federal Home Loan Bank (FHLB).",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            47
+          ],
+          "pages_t2": [
+            49
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              47
+            ],
+            "snippet": "3 Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d'obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la FHLB."
+          },
+          "evidence_t2": {
+            "pages": [
+              49
+            ],
+            "snippet": "3 Représentent les actifs qui sont disponibles facilement pour être utilisés en tant que sûreté afin d'obtenir du financement ou de satisfaire aux exigences en matière de garantie. Cette catégorie comprend les prêts non grevés adossés à des biens immobiliers qui sont admissibles à titre de garantie à la Federal Home Loan Bank (FHLB)."
+          },
+          "change_summary": "Clarification de l'acronyme FHLB en Federal Home Loan Bank",
+          "genai_triage": {
+            "is_relevant": false,
+            "category": "COSMETIQUE",
+            "impact_level": "MINEUR",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "",
+            "impact_description": "",
+            "action_requise": "aucune",
+            "reference_reglementaire": "",
+            "nouvelle_idee": false,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_actifs_liquides_change_041",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Actifs liquides",
+          "diff_type": "modified",
+          "semantic_text_t1": "Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody's, la notation de crédit d'émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d'émetteur à long terme attribuée par DBRS",
+          "semantic_text_t2": "Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody's, la notation de crédit d'émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d'émetteur à long terme attribuée par DBRS",
+          "source_text_t1": "2 Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody's, la notation de crédit d'émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d'émetteur à long terme attribuée par DBRS.",
+          "source_text_t2": "3 Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody's, la notation de crédit d'émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d'émetteur à long terme attribuée par DBRS.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            48
+          ],
+          "pages_t2": [
+            50
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              48
+            ],
+            "snippet": "2 Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody's, la notation de crédit d'émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d'émetteur à long terme attribuée par DBRS."
+          },
+          "evidence_t2": {
+            "pages": [
+              50
+            ],
+            "snippet": "3 Représentent la notation des dépôts à long terme et la notation du risque de contrepartie attribuées par Moody's, la notation de crédit d'émetteur attribuée par S&P, la notation des dépôts à long terme de Fitch et la notation d'émetteur à long terme attribuée par DBRS."
+          },
+          "change_summary": "Changement de numérotation de à",
+          "genai_triage": {
+            "is_relevant": false,
+            "category": "COSMETIQUE",
+            "impact_level": "MINEUR",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "",
+            "impact_description": "",
+            "action_requise": "aucune",
+            "reference_reglementaire": "",
+            "nouvelle_idee": false,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_actifs_liquides_change_043",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Actifs liquides",
+          "diff_type": "modified",
+          "semantic_text_t1": "Les exigences de sûretés ci dessus sont fondées sur l'annexe de soutien au crédit pour chaque contrepartie figurant au contrat de gré à gré et sur les notations de crédit de la Banque attribuées par les agences de notation pertinentes",
+          "semantic_text_t2": "Ces exigences de sûretés sont fondées sur l'annexe de soutien au crédit pour chaque contrepartie figurant au contrat de gré à gré et sur les notations de crédit de la Banque attribuées par les agences de notation pertinentes",
+          "source_text_t1": "1 Les exigences de sûretés ci-dessus sont fondées sur l'annexe de soutien au crédit pour chaque contrepartie figurant au contrat de gré à gré et sur les notations de crédit de la Banque attribuées par les agences de notation pertinentes.",
+          "source_text_t2": "1 Ces exigences de sûretés sont fondées sur l'annexe de soutien au crédit pour chaque contrepartie figurant au contrat de gré à gré et sur les notations de crédit de la Banque attribuées par les agences de notation pertinentes.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            48
+          ],
+          "pages_t2": [
+            50
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              48
+            ],
+            "snippet": "1 Les exigences de sûretés ci-dessus sont fondées sur l'annexe de soutien au crédit pour chaque contrepartie figurant au contrat de gré à gré et sur les notations de crédit de la Banque attribuées par les agences de notation pertinentes."
+          },
+          "evidence_t2": {
+            "pages": [
+              50
+            ],
+            "snippet": "1 Ces exigences de sûretés sont fondées sur l'annexe de soutien au crédit pour chaque contrepartie figurant au contrat de gré à gré et sur les notations de crédit de la Banque attribuées par les agences de notation pertinentes."
+          },
+          "change_summary": "Légère reformulation sans changement de sens",
+          "genai_triage": {
+            "is_relevant": false,
+            "category": "COSMETIQUE",
+            "impact_level": "MINEUR",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "",
+            "impact_description": "",
+            "action_requise": "aucune",
+            "reference_reglementaire": "",
+            "nouvelle_idee": false,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_actifs_liquides_change_047",
           "section_key": "gestion_risques",
           "subsection_heading": "Actifs liquides",
           "diff_type": "modified",
@@ -2632,7 +2844,235 @@
             ],
             "snippet": "1 Le LCR est calculé conformément à la ligne directrice Normes de liquidité du BSIF, qui tient compte des exigences en matière de liquidité publiées par le CBCB. Le LCR pour le trimestre clos le 30 avril 2025 représente la moyenne des 61 données quotidiennes du trimestre."
           },
-          "change_summary": "Mise à jour de la date du trimestre et du nombre de données quotidiennes pour le calcul du",
+          "change_summary": "Changement de date de trimestre et nombre de données quotidiennes ( à )",
+          "genai_triage": {
+            "is_relevant": false,
+            "category": "COSMETIQUE",
+            "impact_level": "MINEUR",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "",
+            "impact_description": "",
+            "action_requise": "aucune",
+            "reference_reglementaire": "",
+            "nouvelle_idee": false,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_actifs_liquides_change_050",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Actifs liquides",
+          "diff_type": "modified",
+          "semantic_text_t1": "La banque détient une variété d'actifs liquides en proportion de ses besoins de liquidités. La majorité de ces actifs liquides sont également admissibles à titre de HQLA selon la ligne directrice Normes de liquidité du. Le devrait revenir à la normale à mesure que la Banque ciblera des niveaux de plus habituels. Cependant, la Banque prévoit que le demeurera élevé à court terme en raison du produit de la vente de la participation en actions dans Schwab. La moyenne des HQLA de la Banque pour le trimestre clos le janvier a été de milliards de dollars ( milliards de dollars pour le trimestre clos octobre ), les actifs du niveau représentant ( pour le trimestre clos le octobre ). Les HQLA comme présentés de la Banque ne tiennent pas compte des HQLA excédentaires des Services de détail aux États Unis, conformément aux exigences de la ligne directrice Normes de liquidité du, afin de refléter les motifs de transfert de liquidités entre les Services de détail aux États Unis et leurs sociétés affiliées en conformité avec les règlements de la Réserve fédérale des États Unis. En excluant les HQLA excédentaires, le des Services de détail aux États Unis se trouve effectivement plafonné à avant la consolidation totale de la Banque",
+          "semantic_text_t2": "La banque détient une variété d'actifs liquides en proportion de ses besoins de liquidités. La majorité de ces actifs liquides sont également admissibles à titre de HQLA selon la ligne directrice Normes de liquidité du. Le devrait revenir à la normale à mesure que la Banque ciblera des niveaux de plus habituels, mais demeurera élevé à court terme en raison du produit tiré de la vente de la participation en actions dans Schwab. La moyenne des HQLA de la Banque pour le trimestre clos le avril a été de milliards de dollars ( milliards de dollars pour le trimestre clos le janvier ), les actifs du niveau représentant ( pour le trimestre clos le janvier ). Les HQLA comme présentés de la Banque ne tiennent pas compte des HQLA excédentaires des Services de détail aux États Unis, conformément aux exigences de la ligne directrice Normes de liquidité du, afin de refléter les motifs de transfert de liquidités entre les Services de détail aux États Unis et leurs sociétés affiliées en conformité avec les règlements de la Réserve fédérale des États Unis. En excluant les HQLA excédentaires, le des Services de détail aux États Unis se trouve effectivement plafonné à avant la consolidation totale de la Banque",
+          "source_text_t1": "La Banque détient une variété d'actifs liquides en proportion de ses besoins de liquidités. La majorité de ces actifs liquides sont également admissibles à titre de HQLA selon la ligne directrice Normes de liquidité du BSIF. Le LCR devrait revenir à la normale à mesure que la Banque ciblera des niveaux de LCR plus habituels. Cependant, la Banque prévoit que le LCR demeurera élevé à court terme en raison du produit de la vente de la participation en actions dans Schwab 13 . La moyenne des HQLA de la Banque pour le trimestre clos le 31 janvier 2025 a été de 382 milliards de dollars (361 milliards de dollars pour le trimestre clos 31 octobre 2024), les actifs du niveau 1 représentant 86 % (86 % pour le trimestre clos le 31 octobre 2024). Les HQLA comme présentés de la Banque ne tiennent pas compte des HQLA excédentaires des Services de détail aux États-Unis, conformément aux exigences de la ligne directrice Normes de liquidité du BSIF, afin de refléter les motifs de transfert de liquidités entre les Services de détail aux États-Unis et leurs sociétés affiliées en conformité avec les règlements de la Réserve fédérale des États-Unis. En excluant les HQLA excédentaires, le LCR des Services de détail aux États-Unis se trouve effectivement plafonné à 100 % avant la consolidation totale de la Banque.",
+          "source_text_t2": "La Banque détient une variété d'actifs liquides en proportion de ses besoins de liquidités. La majorité de ces actifs liquides sont également admissibles à titre de HQLA selon la ligne directrice Normes de liquidité du BSIF. Le LCR devrait revenir à la normale à mesure que la Banque ciblera des niveaux de LCR plus habituels, mais demeurera élevé à court terme en raison du produit tiré de la vente de la participation en actions dans Schwab 15 . La moyenne des HQLA de la Banque pour le trimestre clos le 30 avril 2025 a été de 383 milliards de dollars (382 milliards de dollars pour le trimestre clos le 31 janvier 2025), les actifs du niveau 1 représentant 86 % (86 % pour le trimestre clos le 31 janvier 2025). Les HQLA comme présentés de la Banque ne tiennent pas compte des HQLA excédentaires des Services de détail aux États-Unis, conformément aux exigences de la ligne directrice Normes de liquidité du BSIF, afin de refléter les motifs de transfert de liquidités entre les Services de détail aux États-Unis et leurs sociétés affiliées en conformité avec les règlements de la Réserve fédérale des États-Unis. En excluant les HQLA excédentaires, le LCR des Services de détail aux États-Unis se trouve effectivement plafonné à 100 % avant la consolidation totale de la Banque.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            49
+          ],
+          "pages_t2": [
+            51
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              49
+            ],
+            "snippet": "La Banque détient une variété d'actifs liquides en proportion de ses besoins de liquidités. La majorité de ces actifs liquides sont également admissibles à titre de HQLA selon la ligne directrice Normes de liquidité du BSIF. Le LCR devrait revenir à la normale à mesure que la Banque ciblera des niveaux de LCR plus habituels. Cependant, la Banque prévoit que le LCR demeurera élevé à court terme en "
+          },
+          "evidence_t2": {
+            "pages": [
+              51
+            ],
+            "snippet": "La Banque détient une variété d'actifs liquides en proportion de ses besoins de liquidités. La majorité de ces actifs liquides sont également admissibles à titre de HQLA selon la ligne directrice Normes de liquidité du BSIF. Le LCR devrait revenir à la normale à mesure que la Banque ciblera des niveaux de LCR plus habituels, mais demeurera élevé à court terme en raison du produit tiré de la vente "
+          },
+          "change_summary": "Mise à jour des chiffres et des dates pour refléter les nouvelles données trimestrielles",
+          "genai_triage": {
+            "is_relevant": false,
+            "category": "COSMETIQUE",
+            "impact_level": "MINEUR",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "",
+            "impact_description": "",
+            "action_requise": "aucune",
+            "reference_reglementaire": "",
+            "nouvelle_idee": false,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_actifs_liquides_change_058",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Actifs liquides",
+          "diff_type": "modified",
+          "semantic_text_t1": "Le tableau suivant présente les programmes de financement à terme et de titres de fiducie de capital inscrits de la Banque par région ainsi que le montant de financement de chacun au janvier",
+          "semantic_text_t2": "Le tableau suivant présente les programmes de financement à terme et de titres de fiducie de capital inscrits de la Banque par région ainsi que le montant de financement de chacun au avril",
+          "source_text_t1": "Le tableau suivant présente les programmes de financement à terme et de titres de fiducie de capital inscrits de la Banque par région ainsi que le montant de financement de chacun au 31 janvier 2025.",
+          "source_text_t2": "Le tableau suivant présente les programmes de financement à terme et de titres de fiducie de capital inscrits de la Banque par région ainsi que le montant de financement de chacun au 30 avril 2025.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            51
+          ],
+          "pages_t2": [
+            53
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              51
+            ],
+            "snippet": "Le tableau suivant présente les programmes de financement à terme et de titres de fiducie de capital inscrits de la Banque par région ainsi que le montant de financement de chacun au 31 janvier 2025."
+          },
+          "evidence_t2": {
+            "pages": [
+              53
+            ],
+            "snippet": "Le tableau suivant présente les programmes de financement à terme et de titres de fiducie de capital inscrits de la Banque par région ainsi que le montant de financement de chacun au 30 avril 2025."
+          },
+          "change_summary": "Changement de date de référence pour le tableau",
+          "genai_triage": {
+            "is_relevant": false,
+            "category": "COSMETIQUE",
+            "impact_level": "MINEUR",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "",
+            "impact_description": "",
+            "action_requise": "aucune",
+            "reference_reglementaire": "",
+            "nouvelle_idee": false,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_actifs_liquides_change_060",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Actifs liquides",
+          "diff_type": "modified",
+          "semantic_text_t1": "Il est à noter que le tableau: Financement à long terme et le tableau: Financement de gros ne présentent aucun financement obtenu par voie d'opération de rachat ou de financement sur valeurs mobilières",
+          "semantic_text_t2": "Il est à noter que le tableau: Financement à long terme et le tableau: Financement de gros ne présentent aucun financement obtenu par voie d'opération de rachat ou de financement sur valeurs mobilières",
+          "source_text_t1": "Il est à noter que le tableau 42 : Financement à long terme et le tableau 43 : Financement de gros ne présentent aucun financement obtenu par voie d'opération de rachat ou de financement sur valeurs mobilières.",
+          "source_text_t2": "Il est à noter que le tableau 41 : Financement à long terme et le tableau 42 : Financement de gros ne présentent aucun financement obtenu par voie d'opération de rachat ou de financement sur valeurs mobilières.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            51
+          ],
+          "pages_t2": [
+            53
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              51
+            ],
+            "snippet": "Il est à noter que le tableau 42 : Financement à long terme et le tableau 43 : Financement de gros ne présentent aucun financement obtenu par voie d'opération de rachat ou de financement sur valeurs mobilières."
+          },
+          "evidence_t2": {
+            "pages": [
+              53
+            ],
+            "snippet": "Il est à noter que le tableau 41 : Financement à long terme et le tableau 42 : Financement de gros ne présentent aucun financement obtenu par voie d'opération de rachat ou de financement sur valeurs mobilières."
+          },
+          "change_summary": "Changement de numérotation des tableaux",
+          "genai_triage": {
+            "is_relevant": false,
+            "category": "COSMETIQUE",
+            "impact_level": "MINEUR",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "explanation": "",
+            "impact_description": "",
+            "action_requise": "aucune",
+            "reference_reglementaire": "",
+            "nouvelle_idee": false,
+            "confidence": 0.0,
+            "source": "gpt4o_triage",
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
+            }
+          }
+        },
+        {
+          "change_id": "gestion_risques_actifs_liquides_change_062",
+          "section_key": "gestion_risques",
+          "subsection_heading": "Actifs liquides",
+          "diff_type": "modified",
+          "semantic_text_t1": "Le tableau ci dessous présente la durée restante des diverses sources du financement en cours respectivement aux janvier et octobre",
+          "semantic_text_t2": "Le tableau ci dessous présente la durée restante des diverses sources du financement en cours respectivement aux avril et octobre",
+          "source_text_t1": "Le tableau ci-dessous présente la durée restante des diverses sources du financement en cours respectivement aux 31 janvier 2025 et 31 octobre 2024.",
+          "source_text_t2": "Le tableau ci-dessous présente la durée restante des diverses sources du financement en cours respectivement aux 30 avril 2025 et 31 octobre 2024.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            52
+          ],
+          "pages_t2": [
+            54
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              52
+            ],
+            "snippet": "Le tableau ci-dessous présente la durée restante des diverses sources du financement en cours respectivement aux 31 janvier 2025 et 31 octobre 2024."
+          },
+          "evidence_t2": {
+            "pages": [
+              54
+            ],
+            "snippet": "Le tableau ci-dessous présente la durée restante des diverses sources du financement en cours respectivement aux 30 avril 2025 et 31 octobre 2024."
+          },
+          "change_summary": "Changement de date de référence pour le tableau",
           "genai_triage": {
             "is_relevant": false,
             "category": "COSMETIQUE",
@@ -2659,7 +3099,7 @@
       ],
       "summary": {
         "retained_changes": 14,
-        "all_changes": 19,
+        "all_changes": 25,
         "pages_previous": [
           38,
           54
@@ -2672,67 +3112,69 @@
     }
   ],
   "global_summary": {
-    "executive_overview": "19 changement(s) textuel(s) non cosmétique(s) retenu(s) pour revue experte.",
+    "executive_overview": "20 changement(s) textuel(s) non cosmétique(s) retenu(s) pour revue experte.",
     "key_highlights": [
-      "Ajout d'informations détaillées sur les ratios de fonds propres de la Banque au avril",
-      "Ajout d'informations détaillées sur le ratio de levier de la Banque au avril",
+      "Ajout d'informations détaillées sur les ratios de fonds propres au avril",
+      "Ajout d'informations détaillées sur le ratio de levier au avril",
       "Sous-section supprimée: Informations communiquées par les banques d'importance systémique mondiale",
-      "Suppression des détails sur la mise en œuvre des réformes de en février et novembre, et sur le calcul des actifs pondérés en fonction des risques",
-      "Suppression de l'explication sur la raison de l'augmentation de la RSI et ajout de l'information que la RSI est demeurée stable depuis"
+      "Suppression de la date de mise en œuvre initiale et des détails sur la deuxième phase des réformes de et le plancher réglementaire des fonds propres",
+      "Suppression de l'explication sur la hausse de pdb et ajout de l'information que la RSI est demeurée stable depuis"
     ],
     "pertinence_globale": "ELEVEE",
     "counts": {
-      "total": 19,
-      "total_relevant": 19,
+      "total": 20,
+      "total_relevant": 20,
       "by_impact": {
-        "MODERE": 13,
+        "MODERE": 14,
         "MAJEUR": 6
       },
       "by_category": {
-        "CAPITAL": 8,
+        "CAPITAL": 9,
         "REGLEMENTAIRE": 2,
+        "STRUCTURE": 3,
         "RISQUE": 5,
-        "LIQUIDITE": 2,
-        "STRUCTURE": 2
+        "LIQUIDITE": 1
       },
       "by_action": {
-        "confirmation": 8,
+        "confirmation": 7,
         "escalade": 6,
-        "investigation": 5
+        "investigation": 6,
+        "information": 1
       }
     }
   },
   "all_changes_summary": {
-    "executive_overview": "28 changement(s) textuel(s) non cosmétique(s) retenu(s) pour revue experte.",
+    "executive_overview": "35 changement(s) textuel(s) non cosmétique(s) retenu(s) pour revue experte.",
     "key_highlights": [
-      "Ajout d'informations détaillées sur les ratios de fonds propres de la Banque au avril",
-      "Ajout d'informations détaillées sur le ratio de levier de la Banque au avril",
+      "Ajout d'informations détaillées sur les ratios de fonds propres au avril",
+      "Ajout d'informations détaillées sur le ratio de levier au avril",
       "Sous-section supprimée: Informations communiquées par les banques d'importance systémique mondiale",
-      "Suppression des détails sur la mise en œuvre des réformes de en février et novembre, et sur le calcul des actifs pondérés en fonction des risques",
-      "Suppression de l'explication sur la raison de l'augmentation de la RSI et ajout de l'information que la RSI est demeurée stable depuis"
+      "Suppression de la date de mise en œuvre initiale et des détails sur la deuxième phase des réformes de et le plancher réglementaire des fonds propres",
+      "Suppression de l'explication sur la hausse de pdb et ajout de l'information que la RSI est demeurée stable depuis"
     ],
     "pertinence_globale": "ELEVEE",
     "counts": {
-      "total": 28,
-      "total_relevant": 28,
+      "total": 35,
+      "total_relevant": 35,
       "by_impact": {
-        "MODERE": 13,
+        "MODERE": 14,
         "MAJEUR": 6,
-        "MINEUR": 9
+        "MINEUR": 15
       },
       "by_category": {
-        "CAPITAL": 8,
+        "CAPITAL": 9,
         "REGLEMENTAIRE": 2,
-        "COSMETIQUE": 9,
+        "STRUCTURE": 3,
+        "COSMETIQUE": 15,
         "RISQUE": 5,
-        "LIQUIDITE": 2,
-        "STRUCTURE": 2
+        "LIQUIDITE": 1
       },
       "by_action": {
-        "confirmation": 8,
+        "confirmation": 7,
         "escalade": 6,
-        "investigation": 5,
-        "aucune": 9
+        "investigation": 6,
+        "information": 1,
+        "aucune": 15
       }
     }
   }
