@@ -2,7 +2,7 @@
   "bank_code": "td",
   "year": 2025,
   "quarter": "t1",
-  "created_at": "2026-04-14T09:52:22",
+  "created_at": "2026-04-23T05:15:19",
   "schema_version": 7,
   "tables": [
     {
@@ -108,7 +108,7 @@
         },
         {
           "id": "6",
-          "text": "Le 18 décembre 2024, la Banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital de 750 millions de dollars canadiens à taux fixe rajusté à 5,909 % comprenant des dispositions relatives aux FPUNV, série 5 (les « BRCRL »). Les BRCRL porteront intérêt au taux de 5,909 % par année, payable trimestriellement, pour la période initiale se terminant le 1er janvier 2030, exclusivement. Par la suite, le taux d’intérêt sur les BRCRL sera rajusté tous les cinq ans à un taux correspondant au rendement des obligations du gouvernement du Canada alors en vigueur, majoré de 3,10 %. Les BRCRL viendront à échéance le 1er janvier 2085. Parallèlement à l’émission des BRCRL, la Banque a émis 750 000 actions privilégiées à taux fixe rajusté à 5,909 % et à dividende non cumulatif comprenant des dispositions relatives aux FPUNV, série 32 (« actions privilégiées de série 32 »). Les actions privilégiées de série 32 sont éliminées des états financiers consolidés de la Banque."
+          "text": "Le 18 décembre 2024, la Banque a émis des billets avec remboursement de capital à recours limité d’un montant en capital de 750 millions de dollars canadiens à taux fixe rajusté à 5,909 % comprenant des dispositions relatives aux FPUNV, série 5 (« les « BRCRL »). Les BRCRL porteront intérêt au taux de 5,909 % par année, payable trimestriellement, pour la période initiale se terminant le 1er janvier 2030, exclusivement. Par la suite, le taux d’intérêt sur les BRCRL sera rajusté tous les cinq ans à un taux correspondant au rendement des obligations du gouvernement du Canada alors en vigueur, majoré de 3,10 %. Les BRCRL viendront à échéance le 1er janvier 2085. Parallèlement à l’émission des BRCRL, la Banque a émis 750 000 actions privilégiées à taux fixe rajusté à 5,909 % et à dividende non cumulatif comprenant des dispositions relatives aux FPUNV, série 32 (« actions privilégiées de série 32 »). Les actions privilégiées de série 32 sont éliminées des états financiers consolidés de la Banque."
         },
         {
           "id": "7",
@@ -294,7 +294,7 @@
         },
         {
           "id": "13",
-          "text": "Les attentes de la Banque à l’égard des niveaux de liquidités s’appuient sur les hypothèses de la Banque à l’égard de certains facteurs, notamment la croissance des produits, les plans stratégiques, le rythme des rachats d’actions dans le cadre de l’offre publique de rachat dans le cours normal des activités de la Banque (laquelle est assujettie à l’approbation des organismes de réglementation, aux prévisions financières et aux exigences en matière de fonds propres). Les hypothèses de la Banque sont assujetties à des incertitudes inhérentes et peuvent varier en fonction de plusieurs facteurs dépendants et indépendants de la volonté de la Banque, y compris les conditions générales du marché, les perspectives économiques et les enjeux géopolitiques. Se reporter à la section « Facteurs de risque qui pourraient avoir une incidence sur les résultats futurs » du présent document pour plus de renseignements sur les principaux facteurs de risque et incertitudes qui peuvent faire en sorte que les résultats réels diffèrent sensiblement des attentes."
+          "text": "Les attentes de la Banque à l’égard des niveaux de liquidités s’appuient sur les hypothèses de la Banque à l’égard de certains facteurs, notamment la croissance des produits, les plans stratégiques, le rythme des rachats d’actions dans le cadre de l’offre publique de rachat dans le cours normal des activités de la Banque (laquelle est assujettie à l’approbation des organismes de réglementation, aux prévisions financières et aux exigences en matière de fonds propres). Les hypothèses de la Banque sont assujetties à des incertitudes inhérentes et peuvent varier en fonction de plusieurs facteurs dépendants et indépendants de la volonté de la Banque, y compris les conditions générales du marché, les perspectives économiques et les enjeux géopolitiques. Se reporter à la section « Facteurs de risque qui pourraient avoir une incidence sur les résultats futurs » du présent document pour plus de renseignements sur certains facteurs sous-jacents aux attentes de la Banque."
         }
       ]
     },
@@ -345,11 +345,11 @@
       "footnotes": [
         {
           "id": "1",
-          "text": "Le tableau ne comprend que le financement émis à des investisseurs externes."
+          "text": "¹ Le tableau ne comprend que le financement émis à des investisseurs externes."
         },
         {
           "id": "2",
-          "text": "La titrisation de prêts hypothécaires exclut les activités de négociation de prêts hypothécaires résidentiels."
+          "text": "² La titrisation de prêts hypothécaires exclut les activités de négociation de prêts hypothécaires résidentiels."
         }
       ]
     },
@@ -446,7 +446,7 @@
         },
         {
           "id": "5",
-          "text": "Comprennent 75 milliards de dollars d’obligations sécurisées dont une tranche de 2 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 18 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 37 milliards de dollars comporte une durée contractuelle restante de « plus de 2 ans à 5 ans et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans »."
+          "text": "Comprennent 75 milliards de dollars d’obligations sécurisées dont une tranche de 2 milliards de dollars comporte une durée contractuelle restante de « plus de 3 à 6 mois », une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 6 à 9 mois », une tranche de 18 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 37 milliards de dollars comporte une durée contractuelle restante de « plus de 2 ans à 5 ans » et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans »."
         },
         {
           "id": "6",
