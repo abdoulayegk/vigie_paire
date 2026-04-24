@@ -1,0 +1,81 @@
+name: Build VigieRegDesjardins (Windows reader .exe)
+
+on:
+  push:
+    tags:
+      - "reader-v*"
+  workflow_dispatch:  # autorise un build manuel depuis l'UI Actions
+
+permissions:
+  contents: write  # necessaire pour creer une release sur tag
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Setup Python
+        run: uv python install 3.11
+
+      - name: Install runtime + PyInstaller
+        # On installe uniquement les deps reellement utilisees par le reader
+        # (dash, pymupdf, openpyxl...) et PyInstaller. Les groupes dev/docs
+        # restent en dehors pour limiter la taille du bundle.
+        run: |
+          uv sync
+          uv pip install pyinstaller
+
+      - name: Build .exe (PyInstaller)
+        run: |
+          uv run pyinstaller packaging/vigie_reader.spec --clean --noconfirm
+
+      - name: Smoke test (executable launches and exits)
+        # On lance le .exe avec --version-like via un import rapide pour
+        # detecter une erreur de bundling immediate. Vrai test = manuel.
+        shell: pwsh
+        run: |
+          if (-Not (Test-Path "dist/VigieRegDesjardins/VigieRegDesjardins.exe")) {
+            Write-Error "EXE manquant dans dist/VigieRegDesjardins/"
+            exit 1
+          }
+          Get-Item dist/VigieRegDesjardins/VigieRegDesjardins.exe | Format-List Name, Length
+
+      - name: Zip distribution
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist/VigieRegDesjardins/*" -DestinationPath "dist/VigieRegDesjardins-${{ github.ref_name }}.zip"
+
+      - name: Upload artifact (toujours)
+        uses: actions/upload-artifact@v4
+        with:
+          name: VigieRegDesjardins-${{ github.ref_name }}
+          path: dist/VigieRegDesjardins-${{ github.ref_name }}.zip
+          retention-days: 30
+
+      - name: Create GitHub Release (sur tag uniquement)
+        if: startsWith(github.ref, 'refs/tags/reader-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: VigieRegDesjardins ${{ github.ref_name }}
+          body: |
+            Build automatique du reader Windows.
+
+            **Installation :**
+            1. Telecharger `VigieRegDesjardins-${{ github.ref_name }}.zip`
+            2. Decompresser dans un dossier (ex. `C:\Vigie\`)
+            3. Double-cliquer sur `VigieRegDesjardins.exe`
+            4. Au premier lancement, selectionner le dossier `resultats`
+               synchronise depuis SharePoint via OneDrive.
+
+            **Notes :**
+            - Mode lecture seule (aucun appel LLM).
+            - Annotations sauvegardees dans `comparison.review_state.<username>.json`
+              pour eviter les conflits multi-analystes.
+          files: dist/VigieRegDesjardins-${{ github.ref_name }}.zip
+          draft: false
+          prerelease: false

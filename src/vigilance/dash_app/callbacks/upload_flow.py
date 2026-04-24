@@ -22,7 +22,9 @@ from vigilance.comparison_canonical import (
     is_canonical_comparison,
     to_canonical_payload,
 )
-from vigilance.comparison_runner import run_comparison_with_sections
+# Import paresseux de ``comparison_runner`` plus bas (dans le callback qui le
+# declenche). Cela permet d'importer ``upload_flow`` dans le .exe reader sans
+# entrainer ``docling``/``openai`` (exclus du bundle PyInstaller).
 from vigilance.dash_app.components.pdf_preview import pdf_images_from_base64
 from vigilance.dash_app.layouts import (
     build_page_results,
@@ -708,6 +710,7 @@ def on_analyze(
     use_stored_extraction = not bool(force_reextract_opt and "reextract" in (force_reextract_opt or []))
 
     try:
+        from vigilance.comparison_runner import run_comparison_with_sections
         result = run_comparison_with_sections(
             pdf_path_previous=path_t1,
             pdf_path_current=path_t2,

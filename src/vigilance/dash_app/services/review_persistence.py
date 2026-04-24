@@ -6,6 +6,7 @@ module afin que les monkey-patches existants continuent de fonctionner.
 
 from __future__ import annotations
 
+from vigilance.dash_app import reader_config
 from vigilance.dash_app.services.comparison_store import build_file_comparison_store
 from vigilance.dash_app.services.comparison_context import _comparison_path_from_meta
 from vigilance.dash_app.services.export_helpers import _review_items_from_v2_queue
@@ -46,6 +47,7 @@ def _persist_review_state(
     run_id = ""
     if indicator_meta:
         run_id = str(indicator_meta.get("run_id", ""))
+    username = reader_config.current_username()
     store = build_file_comparison_store()
     store.save_review_state(
         compare_path,
@@ -58,10 +60,15 @@ def _persist_review_state(
         preferred_store=preferred_store,
         source=source,
         comparison_run_id=run_id,
+        username=username,
     )
     # Mandat : propager la decision analyste dans comparison.json + comparison.xlsx
     # sur disque. Non-fatal — le review_state.json reste la source durable.
-    write_back_to_disk(compare_path, review_queue)
+    # En mode reader (multi-analystes sur SharePoint), on saute la propagation
+    # pour eviter des conflits d'ecriture sur les fichiers partages : la
+    # consolidation se fera plus tard cote pipeline.
+    if not reader_config.is_reader_mode():
+        write_back_to_disk(compare_path, review_queue)
 
 
 def _load_review_state_for_comparison(
@@ -82,6 +89,11 @@ def _load_review_state_for_comparison(
     if not compare_path:
         return None
     store = build_file_comparison_store()
+    username = reader_config.current_username()
+    if username:
+        per_user_state = store.load_review_state(compare_path, username=username)
+        if per_user_state is not None:
+            return per_user_state
     return store.load_review_state(compare_path)
 
 

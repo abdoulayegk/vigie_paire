@@ -65,7 +65,12 @@ class ComparisonStore(Protocol):
         """Charger le payload de comparaison depuis un artefact cible."""
         ...
 
-    def load_review_state(self, compare_path: str | Path | None) -> dict[str, Any] | None:
+    def load_review_state(
+        self,
+        compare_path: str | Path | None,
+        *,
+        username: str | None = None,
+    ) -> dict[str, Any] | None:
         """Charger l'etat de revue associe a une comparaison."""
         ...
 
@@ -271,16 +276,22 @@ class FileComparisonStore:
             "warning": warning,
         }
 
-    def load_review_state(self, compare_path: str | Path | None) -> dict[str, Any] | None:
+    def load_review_state(
+        self,
+        compare_path: str | Path | None,
+        *,
+        username: str | None = None,
+    ) -> dict[str, Any] | None:
         """Charge l'etat de revue persiste pour une comparaison donnee.
 
         Args:
             compare_path: Chemin vers le fichier de comparaison.
+            username: Identifiant analyste pour la strategie multi-utilisateurs.
 
         Returns:
             Dictionnaire d'etat de revue ou ``None`` si introuvable.
         """
-        return load_review_state(compare_path)
+        return load_review_state(compare_path, username=username)
 
     def save_review_state(
         self,
