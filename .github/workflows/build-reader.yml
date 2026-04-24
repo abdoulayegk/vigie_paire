@@ -3,7 +3,7 @@ name: Build VigieRegDesjardins (Windows reader .exe)
 on:
   push:
     tags:
-      - "reader-v*"
+      - "v*"
     branches:
       - "feat/exe-dash-windows"  # build automatique sur cette branche pendant le dev
   workflow_dispatch:  # autorise un build manuel depuis l'UI Actions (uniquement apres merge sur main)
@@ -70,7 +70,7 @@ jobs:
           retention-days: 30
 
       - name: Create GitHub Release (sur tag uniquement)
-        if: startsWith(github.ref, 'refs/tags/reader-v')
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           name: VigieRegDesjardins ${{ github.ref_name }}

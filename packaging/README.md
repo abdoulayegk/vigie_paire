@@ -20,7 +20,7 @@ sur SharePoint.
 | Fichier | Role |
 |---|---|
 | `vigie_reader.spec` | Spec PyInstaller : entry point, hidden imports, excludes (docling, openai, scipy...) |
-| `../.github/workflows/build-reader.yml` | Build automatique Windows + release sur tag `reader-v*` |
+| `../.github/workflows/build-reader.yml` | Build automatique Windows + release sur tag `v*` |
 
 ## Build local (test)
 
@@ -40,13 +40,13 @@ uv run pyinstaller packaging/vigie_reader.spec --clean --noconfirm
 Pour produire un release :
 
 ```bash
-git tag reader-v0.1.0
-git push origin reader-v0.1.0
+git tag v0.1.0
+git push origin v0.1.0
 ```
 
 Le workflow `build-reader.yml` :
 1. Build sur `windows-latest`.
-2. Zippe `dist/VigieRegDesjardins/` -> `VigieRegDesjardins-reader-v0.1.0.zip`.
+2. Zippe `dist/VigieRegDesjardins/` -> `VigieRegDesjardins-v0.1.0.zip`.
 3. Cree une GitHub Release avec le zip attache.
 
 Pour un test sans release (build a la demande) :
@@ -55,7 +55,7 @@ Pour un test sans release (build a la demande) :
 
 ## Distribution sur SharePoint
 
-1. Telecharger `VigieRegDesjardins-reader-vX.Y.Z.zip` depuis la release.
+1. Telecharger `VigieRegDesjardins-vX.Y.Z.zip` depuis la release.
 2. Uploader sur SharePoint dans un dossier dedie (ex. `Outils/VigieRegDesjardins/`).
 3. L'analyste : telecharger le zip localement, decompresser, double-cliquer
    sur `VigieRegDesjardins.exe`.
