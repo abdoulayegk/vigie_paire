@@ -128,27 +128,27 @@ def test_generate_validation_excel_generates_expert_workbook() -> None:
     assert ws_review.max_row == 4
 
     row_2 = [ws_review.cell(row=2, column=i).value for i in range(1, ws_review.max_column + 1)]
-    assert row_2[0] == "BNC"
-    assert row_2[1] == "Q2-2025 vs Q1-2025"
-    assert row_2[2] == "Gestion du capital"
-    assert row_2[3] == "Structure des fonds propres"
-    assert row_2[8] == "12,4 %"
-    assert row_2[9] == "12,8 %"
-    assert row_2[11] == "Oui"
-    assert row_2[12] == "Validé"
+    assert row_2[0] == "Gestion du capital"
+    assert row_2[1] == "Structure des fonds propres"
+    assert row_2[4] == "33"
+    assert row_2[5] == "38"
+    assert row_2[6] == "12,4 % → 12,8 %"
+    assert row_2[8] == "Non"
+    assert row_2[9] == "Validé"
+    assert row_2[10] == "Variation cohérente"
 
     row_3 = [ws_review.cell(row=3, column=i).value for i in range(1, ws_review.max_column + 1)]
-    assert row_3[4] == "Note"
-    assert row_3[11] == "Non"
-    assert row_3[12] == "En attente"
+    assert row_3[2] == "Note"
+    assert row_3[8] == "Non"
+    assert row_3[9] == "En attente"
 
     row_4 = [ws_review.cell(row=4, column=i).value for i in range(1, ws_review.max_column + 1)]
-    assert row_4[5] == "retiré"
-    assert row_4[6] == "41"
-    assert row_4[7] is None
-    assert row_4[8] == "Tableau entier retiré"
-    assert row_4[9] is None
-    assert row_4[12] == "Rejeté"
+    assert row_4[3] == "retiré"
+    assert row_4[4] == "41"
+    assert row_4[5] is None
+    assert row_4[6] == "Tableau entier retiré"
+    assert row_4[8] == "Non"
+    assert row_4[9] == "Rejeté"
 
     ws_summary = wb[EXPERT_EXCEL_SHEET_SUMMARY]
     summary_pairs = {
@@ -217,7 +217,7 @@ def test_generate_validation_txt_generates_readable_report() -> None:
     assert "Trimestre comparé : Q2-2025 vs Q1-2025" in txt
     assert "SECTION : Gestion du capital" in txt
     assert "Tableau : Structure des fonds propres" in txt
-    assert "Nouvelle idée : Oui" in txt
+    assert "Nouvelle idée : Non" in txt
     assert "Validation expert : Validé" in txt
     assert "Commentaire expert : Variation cohérente" in txt
     assert "change_id" not in txt

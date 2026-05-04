@@ -53,7 +53,7 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
     assert response["filename"] == "veille_textuelle_TD_2026t1.xlsx"
 
 
-def test_filter_text_cards_excludes_cosmetic_and_sorts_new_idea_first() -> None:
+def test_filter_text_cards_sorts_new_idea_first_and_keeps_minor_cosmetic() -> None:
     text_data = {
         "section_comparisons": [
             {
@@ -106,9 +106,11 @@ def test_filter_text_cards_excludes_cosmetic_and_sorts_new_idea_first() -> None:
 
     cards, count_text = filter_text_cards(text_data, None, None, None)
 
-    assert count_text == "2 changement(s) affiché(s)"
-    assert len(cards) == 2
+    assert count_text == "3 changement(s) affiché(s)"
+    assert len(cards) == 3
     first_phrase = cards[0].children.children[2].children
     second_phrase = cards[1].children.children[2].children
+    third_phrase = cards[2].children.children[2].children
     assert first_phrase == "Nouvelle idée"
     assert second_phrase == "Majeur existant"
+    assert third_phrase == "Cosmétique"

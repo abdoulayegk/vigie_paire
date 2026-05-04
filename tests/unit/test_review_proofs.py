@@ -43,7 +43,7 @@ def test_build_proofs_section_shows_heading_and_visual_context() -> None:
     assert "Preuves visuelles T1/T2" in text
     assert "Page 10" in text
     assert "Page 12" in text
-    assert "Mode page complète + bbox" in text
+    assert "Mode page complète encadrée" in text
 
 
 def test_build_proofs_section_shows_full_without_bbox_label() -> None:
@@ -61,7 +61,7 @@ def test_build_proofs_section_shows_full_without_bbox_label() -> None:
     )
 
     text = _flatten_text(section)
-    assert "Mode page complète sans bbox" in text
+    assert "Mode page complète" in text
 
 
 def test_build_proofs_section_table_added_shows_previous_placeholder() -> None:
@@ -78,7 +78,7 @@ def test_build_proofs_section_table_added_shows_previous_placeholder() -> None:
 
     text = _flatten_text(section)
     assert "Aucun tableau dans le trimestre précédent" in text
-    assert "Mode focus tableau" in text
+    assert "Mode zoom tableau" in text
 
 
 def test_build_proofs_section_shows_crop_bbox_missing_message() -> None:
@@ -96,7 +96,7 @@ def test_build_proofs_section_shows_crop_bbox_missing_message() -> None:
     )
 
     text = _flatten_text(section)
-    assert "Crop indisponible: bbox absente pour ce tableau." in text
+    assert "Zoom indisponible: zone de tableau non détectée." in text
 
 
 def test_build_proofs_section_shows_footnote_bbox_missing_message() -> None:
@@ -114,7 +114,7 @@ def test_build_proofs_section_shows_footnote_bbox_missing_message() -> None:
     )
 
     text = _flatten_text(section)
-    assert "Zone footnote indisponible: bbox absente pour ce tableau." in text
+    assert "Zone footnote indisponible: zone de tableau non détectée." in text
 
 
 def test_update_review_proofs_returns_non_empty_panel_with_fallback_images(
@@ -257,7 +257,7 @@ def test_update_review_proofs_table_removed_without_bbox_falls_back_to_full(
 
     text = _flatten_text(result)
     assert seen_modes == ["full", "full"]
-    assert "Mode page complète + bbox" in text
+    assert "Mode page complète encadrée" in text
 
 
 def test_update_review_proofs_table_added_without_bbox_falls_back_to_full(
@@ -306,7 +306,7 @@ def test_update_review_proofs_table_added_without_bbox_falls_back_to_full(
 
     text = _flatten_text(result)
     assert seen_modes == ["full", "full"]
-    assert "Mode page complète + bbox" in text
+    assert "Mode page complète encadrée" in text
 
 
 def test_v2_meta_and_proofs_resolve_same_review_selection(monkeypatch) -> None:

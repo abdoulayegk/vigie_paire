@@ -7,7 +7,7 @@ from openpyxl import load_workbook
 from vigilance.text_comparison.text_comparison_excel import generate_text_comparison_excel
 
 
-def test_generate_text_comparison_excel_creates_synthese_and_all_changes_sheets() -> None:
+def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
     payload = {
         "section_comparisons": [
             {
@@ -94,24 +94,22 @@ def test_generate_text_comparison_excel_creates_synthese_and_all_changes_sheets(
     raw = generate_text_comparison_excel(payload, output_path=None)
     workbook = load_workbook(io.BytesIO(raw))
 
-    assert workbook.sheetnames == ["Synthese", "Tous_les_changements"]
-    assert workbook["Synthese"].max_row == 4
-    assert workbook["Tous_les_changements"].max_row == 5
-    assert workbook["Synthese"]["D2"].value == "Paragraphe exact T1"
-    assert workbook["Synthese"]["E2"].value == "Paragraphe exact T2"
-    assert workbook["Synthese"]["D3"].value == "Paragraphe modéré T1"
-    assert workbook["Synthese"]["E3"].value == "Paragraphe modéré T2"
-    assert workbook["Synthese"]["D4"].value is None
-    assert workbook["Synthese"]["E4"].value == "Paragraphe exact ajouté"
-    assert workbook["Tous_les_changements"]["B2"].value == "10"
-    assert workbook["Tous_les_changements"]["C2"].value == "12"
-    assert workbook["Tous_les_changements"]["D2"].value == "Paragraphe exact T1"
-    assert workbook["Tous_les_changements"]["E2"].value == "Paragraphe exact T2"
-    assert workbook["Tous_les_changements"]["F2"].value == "modified"
-    assert workbook["Tous_les_changements"]["H2"].value.startswith("Priorité: MAJEUR")
-    assert workbook["Tous_les_changements"]["D3"].value == "Paragraphe modéré T1"
-    assert workbook["Tous_les_changements"]["E3"].value == "Paragraphe modéré T2"
-    assert workbook["Tous_les_changements"]["D4"].value is None
-    assert workbook["Tous_les_changements"]["E4"].value == "Paragraphe exact ajouté"
-    assert workbook["Tous_les_changements"]["D5"].value == "Paragraphe cosmétique T1"
-    assert workbook["Tous_les_changements"]["E5"].value == "Paragraphe cosmétique T2"
+    assert workbook.sheetnames == ["Analyse complète"]
+    ws = workbook["Analyse complète"]
+    assert ws.max_row == 5
+    assert ws["A2"].value == "Gestion des risques"
+    assert ws["C2"].value == "10"
+    assert ws["D2"].value == "12"
+    assert ws["E2"].value == "Modification"
+    assert ws["F2"].value == "Paragraphe exact T1"
+    assert ws["G2"].value == "Paragraphe exact T2"
+    assert ws["H2"].value == "Oui"
+    assert ws["I2"].value == "Explication majeure"
+    assert ws["F3"].value == "Paragraphe modéré T1"
+    assert ws["G3"].value == "Paragraphe modéré T2"
+    assert ws["C4"].value is None
+    assert ws["D4"].value == "13"
+    assert ws["F4"].value is None
+    assert ws["G4"].value == "Paragraphe exact ajouté"
+    assert ws["F5"].value == "Paragraphe cosmétique T1"
+    assert ws["G5"].value == "Paragraphe cosmétique T2"
