@@ -25,16 +25,25 @@ git checkout -b feat/nom-de-la-fonctionnalite
 
 ## Hooks pre-commit
 
-Installer les hooks après `uv sync --group dev` :
+Option `uv` :
 
 ```bash
+uv sync --group dev
 uv run pre-commit install
+```
+
+Option `pip` :
+
+```bash
+python -m pip install -r requirements.txt
+python -m pip install pre-commit ruff "bandit[toml]"
+pre-commit install
 ```
 
 Lancer tous les hooks localement avant une PR :
 
 ```bash
-uv run pre-commit run --all-files
+pre-commit run --all-files
 ```
 
 Les hooks couvrent les contrôles de fichiers de base, `ruff check src/` et le scan sécurité statique `bandit`.

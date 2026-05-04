@@ -16,5 +16,8 @@ openpyxl==3.1.5
 pydantic==2.12.5
 
 # Optional dev dependencies:
+# bandit[toml]==1.9.4
+# pre-commit==4.6.0
 # pytest==9.0.2
 # reportlab==4.4.10
+# ruff==0.14.10
