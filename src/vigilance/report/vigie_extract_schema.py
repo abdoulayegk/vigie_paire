@@ -326,7 +326,10 @@ def compute_features(first_column: list[FirstColumnEntry]) -> TableFeatures:
     """
     norms = sorted(entry["text_norm"] for entry in first_column if entry["text_norm"])
     hash_input = "|".join(norms)
-    indicator_hash = "sha1:" + hashlib.sha1(hash_input.encode("utf-8")).hexdigest()
+    indicator_hash = "sha1:" + hashlib.sha1(
+        hash_input.encode("utf-8"),
+        usedforsecurity=False,
+    ).hexdigest()
     return TableFeatures(
         n_indicators=len(first_column),
         indicator_set_hash=indicator_hash,

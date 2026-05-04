@@ -1,0 +1,41 @@
+name: Quality and Security
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Setup Python
+        run: uv python install 3.11
+
+      - name: Install project dependencies
+        run: uv sync --group dev
+
+      - name: Duplicate code report (Pylint similarities)
+        continue-on-error: true
+        run: |
+          uv run --with pylint pylint src \
+            --disable=all \
+            --enable=duplicate-code \
+            --min-similarity-lines=10 \
+            --reports=no \
+            --score=no
+
+      - name: Static security scan (Bandit)
+        run: uv run --with "bandit[toml]" bandit -r src -ll -ii
+
+      - name: Dependency vulnerability audit (pip-audit)
+        continue-on-error: true
+        run: uv run --with pip-audit pip-audit
