@@ -61,6 +61,10 @@ def test_on_load_comparison_falls_back_to_run_archived_pdfs(
 
     monkeypatch.setattr(load_mod, "INDICATOR_COMPARISON_DIR", tmp_path)
     monkeypatch.setattr(load_mod, "build_page_results", lambda: "results-page")
+    monkeypatch.setattr(
+        "vigilance.dash_app.services.text_comparison_store.resolve_text_comparison_from_payload",
+        lambda _payload: None,
+    )
 
     result = load_mod.on_load_comparison(1, relative)
 
@@ -73,6 +77,7 @@ def test_on_load_comparison_falls_back_to_run_archived_pdfs(
         page,
         notification,
         show_results,
+        text_comparison,
     ) = result
 
     assert indicator_meta["pdf_paths"]["pdf_previous"] == str(previous_pdf)
@@ -84,3 +89,4 @@ def test_on_load_comparison_falls_back_to_run_archived_pdfs(
     assert isinstance(notification, dbc.Alert)
     assert notification.color == "success"
     assert show_results is True
+    assert text_comparison is None
