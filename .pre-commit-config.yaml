@@ -1,0 +1,31 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=5000"]
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: ruff-check-src
+        name: ruff check src
+        entry: uv run ruff check src/
+        language: system
+        pass_filenames: false
+        files: ^src/.*\.py$
+
+      - id: bandit-src
+        name: bandit security scan src
+        entry: uv run --with bandit[toml] bandit -r src -ll -ii
+        language: system
+        pass_filenames: false
+        files: ^src/.*\.py$

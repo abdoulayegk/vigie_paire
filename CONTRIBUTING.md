@@ -23,6 +23,24 @@ git checkout -b feat/nom-de-la-fonctionnalite
 
 ---
 
+## Hooks pre-commit
+
+Installer les hooks après `uv sync --group dev` :
+
+```bash
+uv run pre-commit install
+```
+
+Lancer tous les hooks localement avant une PR :
+
+```bash
+uv run pre-commit run --all-files
+```
+
+Les hooks couvrent les contrôles de fichiers de base, `ruff check src/` et le scan sécurité statique `bandit`.
+
+---
+
 ## Convention de commits
 
 Format : `type: description courte en français`
