@@ -88,7 +88,7 @@ def compute_dynamic_extensions(
         # There is a table below: extend down to just before the next table's top
         next_table_top = page_tables[current_pos + 1][1][1]  # next bbox's t
         available_gap = max(0.0, next_table_top - b)
-        
+
         if available_gap < 0.03:
             logger.warning(
                 "Table %s on page %s is very close to the next table (gap %.1f%%). "
@@ -97,7 +97,7 @@ def compute_dynamic_extensions(
                 page_num,
                 available_gap * 100,
             )
-            
+
         # Leave a small safety margin so we don't bleed into the next table
         bottom_ext = max(0.0, available_gap - min_gap_for_footnotes)
     else:

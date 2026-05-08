@@ -155,4 +155,3 @@ def test_plan_examples_same_key_across_variants() -> None:
     base3 = "Variation de l'actif net des régimes de retraite à prestations définies (déduction faite des passifs d'impôt)"
     key3 = normalize_indicator_for_comparison(base3)
     assert key3 == key1
-
