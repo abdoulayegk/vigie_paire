@@ -61,7 +61,7 @@ class VisionTableInspector:
         """
         self.model = model
         self.api_key = get_openai_api_key()
-        
+
     def _build_qa_prompt(self, extracted_json: str) -> str:
         """Construire le prompt systeme pour l'audit QA."""
         return f"""You are an intransigent, highly meticulous financial data auditor.
@@ -104,12 +104,12 @@ Respond STRICTLY using the required JSON schema format."""
         """
         # Convert JSON structure to a clean string for the prompt
         json_str = json.dumps(extracted_json, ensure_ascii=False, indent=2)
-        
+
         system_prompt = self._build_qa_prompt(json_str)
-        
+
         import base64
         base64_img = base64.b64encode(image_bytes).decode("utf-8")
-        
+
         messages = [
             {
                 "role": "system",
@@ -129,7 +129,7 @@ Respond STRICTLY using the required JSON schema format."""
                 ],
             },
         ]
-        
+
         logger.debug("Executing Deep QA Inspector on table crop using model %s", self.model)
 
         from openai import OpenAI

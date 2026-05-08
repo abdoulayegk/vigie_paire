@@ -25,4 +25,3 @@ def test_detect_sections_core_returns_fallback_for_missing_path() -> None:
     assert result["total_pages"] == 1
     assert isinstance(result["sections"], list)
     assert result["sections"]
-
