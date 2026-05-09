@@ -77,10 +77,20 @@ class TestHasMeaningfulDiff:
 # ---------------------------------------------------------------------------
 
 
+def _valid_justification_oui() -> str:
+    return (
+        "OUI - le ratio TLAC est ajoute au TABLEAU 11 absent du t1. "
+        "Ce changement croise les themes AMF DIVULGATION_AJOUT et RATIOS_REGLEMENTAIRES."
+    )
+
+
 class TestValidateTriageResponse:
     def test_valid_response(self):
         data = {
             "is_relevant": True,
+            "themes_amf": ["DIVULGATION_AJOUT", "RATIOS_REGLEMENTAIRES"],
+            "nouvelle_idee": True,
+            "nouvelle_idee_justification": _valid_justification_oui(),
             "category": "REGLEMENTAIRE",
             "relevance_score": "ELEVEE",
             "risk_level": "ELEVE",
@@ -94,6 +104,9 @@ class TestValidateTriageResponse:
         }
         result = _validate_triage_response(data)
         assert result["is_relevant"] is True
+        assert result["themes_amf"] == ["DIVULGATION_AJOUT", "RATIOS_REGLEMENTAIRES"]
+        assert result["nouvelle_idee"] is True
+        assert result["nouvelle_idee_justification"].startswith("OUI")
         assert result["category"] == "REGLEMENTAIRE"
         assert result["relevance_score"] == "ELEVEE"
         assert result["risk_level"] == "ELEVE"
@@ -109,9 +122,13 @@ class TestValidateTriageResponse:
         result = _validate_triage_response(None)
         assert result["is_relevant"] is False
         assert result["source"] == "heuristic"
+        assert result["themes_amf"] == []
+        assert result["nouvelle_idee"] is False
+        assert result["nouvelle_idee_justification"] == ""
+        assert result["category"] == "NON_PERTINENT"
         assert result["risk_level"] == "FAIBLE"
         assert result["confidence"] == 0.0
-        assert result["impact_type"] == "cosmetique"
+        assert result["impact_type"] == "non_substantif"
         assert result["project_phase"] == "autre"
         assert result["action_requise"] == "aucune"
         assert result["reference_reglementaire"] == ""
@@ -137,7 +154,7 @@ class TestValidateTriageResponse:
 
     def test_invalid_impact_type_defaults(self):
         result = _validate_triage_response({"impact_type": "FAKE"})
-        assert result["impact_type"] == "cosmetique"
+        assert result["impact_type"] == "non_substantif"
 
     def test_invalid_project_phase_defaults(self):
         result = _validate_triage_response({"project_phase": "FAKE"})
@@ -146,6 +163,68 @@ class TestValidateTriageResponse:
     def test_invalid_action_defaults(self):
         result = _validate_triage_response({"action_requise": "FAKE"})
         assert result["action_requise"] == "aucune"
+
+    def test_invalid_theme_codes_filtered_out(self):
+        result = _validate_triage_response(
+            {
+                "is_relevant": True,
+                "themes_amf": ["DIVULGATION_AJOUT", "FAKE_THEME", "RISQUE_EMERGENT"],
+                "nouvelle_idee": True,
+                "nouvelle_idee_justification": _valid_justification_oui(),
+                "category": "RISQUE",
+                "relevance_score": "ELEVEE",
+                "risk_level": "ELEVE",
+                "confidence": 0.8,
+                "action_requise": "escalade",
+            }
+        )
+        assert result["themes_amf"] == ["DIVULGATION_AJOUT", "RISQUE_EMERGENT"]
+
+    def test_relevant_without_themes_falls_back_to_skeleton(self):
+        """Invariant : is_relevant=True sans themes_amf → forcé en NON_PERTINENT."""
+        result = _validate_triage_response(
+            {
+                "is_relevant": True,
+                "themes_amf": [],
+                "nouvelle_idee": True,
+                "nouvelle_idee_justification": _valid_justification_oui(),
+                "action_requise": "escalade",
+            }
+        )
+        assert result["is_relevant"] is False
+        assert result["source"] == "invariant_violation"
+        assert result["category"] == "NON_PERTINENT"
+
+    def test_short_justification_falls_back_to_skeleton(self):
+        """Invariant : justification < 2 phrases substantives → forcé en NON_PERTINENT."""
+        result = _validate_triage_response(
+            {
+                "is_relevant": True,
+                "themes_amf": ["DIVULGATION_AJOUT"],
+                "nouvelle_idee": True,
+                "nouvelle_idee_justification": "OUI ratio TLAC ajoute.",
+                "action_requise": "escalade",
+            }
+        )
+        assert result["is_relevant"] is False
+        assert result["source"] == "invariant_violation"
+
+    def test_justification_wrong_prefix_falls_back_to_skeleton(self):
+        """Invariant : nouvelle_idee=True mais justification commence par NON → forcé en skeleton."""
+        result = _validate_triage_response(
+            {
+                "is_relevant": True,
+                "themes_amf": ["DIVULGATION_AJOUT"],
+                "nouvelle_idee": True,
+                "nouvelle_idee_justification": (
+                    "NON le ratio CET1 existait deja au t1 et seule sa valeur a change. "
+                    "Variation chiffree propre a la banque."
+                ),
+                "action_requise": "escalade",
+            }
+        )
+        assert result["is_relevant"] is False
+        assert result["source"] == "invariant_violation"
 
 
 # ---------------------------------------------------------------------------
@@ -235,29 +314,39 @@ class TestBuildChangePrompt:
 
 class TestFallbackEnrich:
     def test_enriches_all_entries(self):
+        """Mode hors-ligne : tous les triages reçoivent le squelette neutre.
+
+        Sans clé API, on ne peut pas réellement classifier — on affiche un
+        squelette honnête (is_relevant=False, NON_PERTINENT) plutôt que de
+        deviner au risque d'induire l'analyste en erreur.
+        """
         comparison = _make_comparison(
             pairs=[_make_pair(added=[{"value": "X"}])],
             added=[{"title": "New", "section": "risque"}],
             removed=[{"title": "Old", "section": "capital"}],
         )
         result = _fallback_enrich(comparison)
+
         pair_triage = result["pair_comparisons"][0]["genai_triage"]
         assert pair_triage["source"] == "heuristic"
-        assert pair_triage["risk_level"] == "MODERE"
-        assert pair_triage["confidence"] == 0.0
-        assert pair_triage["impact_type"] == "cosmetique"
+        assert pair_triage["is_relevant"] is False
+        assert pair_triage["category"] == "NON_PERTINENT"
+        assert pair_triage["themes_amf"] == []
+        assert pair_triage["nouvelle_idee"] is False
+        assert pair_triage["nouvelle_idee_justification"] == ""
+        assert pair_triage["impact_type"] == "non_substantif"
         assert pair_triage["action_requise"] == "aucune"
-        assert pair_triage["reference_reglementaire"] == ""
+        assert pair_triage["confidence"] == 0.0
 
         added_triage = result["matching"]["tables_added"][0]["genai_triage"]
-        assert added_triage["is_relevant"] is True
-        assert added_triage["impact_type"] == "structurel"
-        assert added_triage["action_requise"] == "investigation"
+        assert added_triage["source"] == "heuristic"
+        assert added_triage["is_relevant"] is False
+        assert added_triage["category"] == "NON_PERTINENT"
 
         removed_triage = result["matching"]["tables_removed"][0]["genai_triage"]
-        assert removed_triage["is_relevant"] is True
-        assert removed_triage["impact_type"] == "structurel"
-        assert removed_triage["action_requise"] == "investigation"
+        assert removed_triage["source"] == "heuristic"
+        assert removed_triage["is_relevant"] is False
+        assert removed_triage["category"] == "NON_PERTINENT"
 
         assert result["global_summary"]["source"] == "heuristic"
         assert result["global_summary"]["par_phase"] == {}

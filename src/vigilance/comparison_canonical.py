@@ -32,7 +32,7 @@ _CATEGORY_TO_RELEVANCE: dict[str, str] = {
     "RISQUE": "Risque",
     "CAPITAL": "Capital",
     "STRUCTURE": "Structure",
-    "COSMETIQUE": "Cosmétique",
+    "NON_PERTINENT": "Non pertinent",
     "INCONNU": "Inconnu",
 }
 

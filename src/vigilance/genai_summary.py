@@ -23,7 +23,7 @@ _GENAI_SCHEMA = {
     "tableaux": [
         {
             "table_uid": "string",
-            "label_pertinence": "REGLEMENTAIRE|RISQUE|CAPITAL|STRUCTURE|COSMETIQUE|INCONNU",
+            "label_pertinence": "REGLEMENTAIRE|RISQUE|CAPITAL|STRUCTURE|NON_PERTINENT|INCONNU",
             "raison": "string",
             "changements_cles": ["string"],
         }
@@ -36,7 +36,7 @@ _VALID_RELEVANCE_LABELS = frozenset(
         "RISQUE",
         "CAPITAL",
         "STRUCTURE",
-        "COSMETIQUE",
+        "NON_PERTINENT",
         "INCONNU",
     }
 )
@@ -44,7 +44,8 @@ _VALID_RELEVANCE_LABELS = frozenset(
 _EN_TO_FR_RELEVANCE_LABELS: dict[str, str] = {
     "REGULATORY": "REGLEMENTAIRE",
     "RISK": "RISQUE",
-    "COSMETIC": "COSMETIQUE",
+    "NON_SUBSTANTIVE": "NON_PERTINENT",
+    "NOT_RELEVANT": "NON_PERTINENT",
     "UNKNOWN": "INCONNU",
 }
 
@@ -202,8 +203,8 @@ tableau modifie par pertinence.
 
 Regles :
 - Se concentrer sur les changements REGLEMENTAIRES, de RISQUE, de CAPITAL \
-  (pas les renommages cosmetiques ou la mise en forme).
-- Ignorer les changements purement numeriques.
+  (pas les renommages non substantifs ou la mise en forme).
+- Ignorer les changements purement numeriques propres a la banque.
 - Les changements de notes de bas de page peuvent signaler des mises a jour \
   methodologiques ou reglementaires -- les signaler.
 - Retourner UNIQUEMENT du JSON valide correspondant au schema ci-dessous. \
@@ -219,7 +220,7 @@ Schema :
   "tableaux": [
     {
       "table_uid": <string>,
-      "label_pertinence": "REGLEMENTAIRE" | "RISQUE" | "CAPITAL" | "STRUCTURE" | "COSMETIQUE" | "INCONNU",
+      "label_pertinence": "REGLEMENTAIRE" | "RISQUE" | "CAPITAL" | "STRUCTURE" | "NON_PERTINENT" | "INCONNU",
       "raison": <string en francais, 1 phrase>,
       "changements_cles": [<string en francais, 1-3 elements>]
     }

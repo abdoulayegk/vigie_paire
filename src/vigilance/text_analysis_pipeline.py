@@ -21,8 +21,18 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
+from pydantic import BaseModel, ValidationError
+
+from vigilance.amf_taxonomy import (
+    TRIAGE_SOURCE_VERSION,
+    TriageAMFBatch,
+    TriageValidationError,
+    empty_triage_skeleton,
+    format_exclusion_reasons_for_prompt,
+    format_themes_for_prompt,
+)
 from vigilance.cli.quarter_logic import normalize_quarter, resolve_previous_quarter
 from vigilance.extraction.section_locator import locate_sections_in_pdf
 from vigilance.extraction.section_taxonomy import canonicalize_section
@@ -453,12 +463,23 @@ def _infer_table_footnote_bboxes(
     return footnote_bboxes_by_page
 
 
+_STRONG_AMF_THEMES_FOR_MODERE_RETENTION: frozenset[str] = frozenset(
+    {
+        "MODIFICATION_METHODOLOGIE",
+        "NOUVELLE_MENTION_REGLEMENTAIRE",
+        "EXIGENCES_REGLEMENTAIRES",
+        "FACTEUR_RISQUE_CHANGEMENT",
+        "RISQUE_EMERGENT",
+    }
+)
+
+
 def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
     """Retourne True si le triage indique un changement majeur ou un changement modéré significatif.
 
     Un changement modéré est retenu uniquement s'il introduit une nouvelle idée
-    ou s'il contient un signal réglementaire ou méthodologique fort.
-    Utilisée pour filtrer les changements à escalader en priorité.
+    ou s'il porte un thème AMF méthodologique/réglementaire fort. Utilisée pour
+    filtrer les changements à escalader en priorité.
     """
     if not triage.get("is_relevant", False):
         return False
@@ -469,34 +490,22 @@ def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
         return False
     if triage.get("nouvelle_idee", False):
         return True
-    signals = triage.get("signals") or {}
-    return bool(signals.get("regulatory_reference_added") or signals.get("methodology_change"))
-
-
-def _compute_conservative_new_idea(change: dict[str, Any], triage: dict[str, Any]) -> bool:
-    """Détermine de façon conservatrice si un changement constitue une nouvelle idée.
-
-    Une nouvelle idée est retenue uniquement si le triage la juge pertinente ET
-    que le diff_type est ``added`` avec un texte T2 non vide. Cela évite de
-    qualifier comme nouvelles idées les simples reformulations ou suppressions.
-    """
-    if not triage.get("is_relevant", False):
-        return False
-
-    diff_type = str(change.get("diff_type") or "").lower()
-    return diff_type == "added" and bool(change.get("semantic_text_t2"))
+    themes = set(triage.get("themes_amf") or [])
+    return bool(themes & _STRONG_AMF_THEMES_FOR_MODERE_RETENTION)
 
 
 def _is_non_cosmetic_change(triage: dict[str, Any]) -> bool:
-    """Retourne True si le changement n'est pas classé COSMETIQUE par le triage GPT."""
-    return str(triage.get("category") or "").upper() != "COSMETIQUE"
+    """Retourne True si le triage retient le changement (pertinent et thématisé AMF)."""
+    return bool(triage.get("is_relevant")) and bool(triage.get("themes_amf"))
 
 
-def _retained_change_sort_key(change: dict[str, Any]) -> tuple[int, int, str, str, str]:
+def _retained_change_sort_key(change: dict[str, Any]) -> tuple[int, int, int, str, str, str]:
     """Clé de tri pour ordonner les changements retenus dans le rapport final.
 
     Ordre de priorité : nouvelles idées en premier, puis impact décroissant
-    (MAJEUR → MODERE → MINEUR), puis section, puis page, puis type de diff.
+    (MAJEUR → MODERE → MINEUR), puis nombre de thèmes AMF décroissant (un
+    changement multi-label étant a priori plus structurant), puis section,
+    puis page, puis type de diff.
     """
     triage = change.get("genai_triage") or {}
     impact = str(triage.get("impact_level") or "MINEUR").upper()
@@ -509,9 +518,11 @@ def _retained_change_sort_key(change: dict[str, Any]) -> tuple[int, int, str, st
         except (TypeError, ValueError):
             first_page = str(pages[0])
     impact_order = {"MAJEUR": 0, "MODERE": 1, "MINEUR": 2}.get(impact, 99)
+    themes_count = len(triage.get("themes_amf") or [])
     return (
         0 if triage.get("nouvelle_idee", False) else 1,
         impact_order,
+        -themes_count,
         str(change.get("section_key") or ""),
         first_page,
         diff_type,
@@ -1220,6 +1231,132 @@ def _call_json_completion(
         ) from exc
 
 
+_T_StructuredModel = TypeVar("_T_StructuredModel", bound=BaseModel)
+
+
+def _call_structured_completion(
+    client: Any,
+    *,
+    model: str,
+    messages: list[dict[str, Any]],
+    response_format: type[_T_StructuredModel],
+    max_tokens: int | None = None,
+) -> _T_StructuredModel:
+    """Appel OpenAI à sortie structurée garantie par schéma Pydantic.
+
+    Utilise ``client.beta.chat.completions.parse()`` qui fournit la sortie
+    GPT-4o conforme au schéma JSON dérivé du modèle Pydantic passé en
+    ``response_format``. La désérialisation et les ``model_validator`` de
+    Pydantic s'exécutent côté SDK : si un invariant transversal du modèle
+    est violé, ``parse()`` lève directement.
+
+    Aucun fallback silencieux : tout refus, troncature ou réponse vide est
+    converti en ``RuntimeError`` explicite avec contexte d'audit. Les
+    erreurs de validation Pydantic remontent en ``pydantic.ValidationError``
+    (à attraper par l'appelant qui souhaite faire un retry correctif).
+    """
+    request_kwargs: dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+        "response_format": response_format,
+        "temperature": 0.0,
+    }
+    if max_tokens is not None:
+        request_kwargs["max_completion_tokens"] = int(max_tokens)
+
+    response = client.beta.chat.completions.parse(**request_kwargs)
+    choice = response.choices[0]
+    message = choice.message
+
+    refusal = getattr(message, "refusal", None)
+    if refusal:
+        raise RuntimeError(
+            f"OpenAI structured completion refused by model: {refusal}"
+        )
+
+    finish_reason = getattr(choice, "finish_reason", None)
+    if finish_reason == "length":
+        raise RuntimeError(
+            "OpenAI structured completion truncated "
+            f"(finish_reason=length, max_completion_tokens={max_tokens})"
+        )
+
+    parsed = getattr(message, "parsed", None)
+    if parsed is None:
+        raise RuntimeError(
+            "OpenAI structured completion returned no parsed payload "
+            f"(finish_reason={finish_reason or 'unknown'})"
+        )
+
+    return parsed
+
+
+def _call_structured_completion_with_correction(
+    client: Any,
+    *,
+    model: str,
+    messages: list[dict[str, Any]],
+    response_format: type[_T_StructuredModel],
+    max_tokens: int | None = None,
+    max_retries: int = 1,
+) -> _T_StructuredModel:
+    """Appel structuré avec retry correctif borné sur ``ValidationError``.
+
+    Sémantique :
+    - Une ``ValidationError`` Pydantic signifie que GPT a respecté le schéma
+      JSON mais violé un invariant transversal (ex : ``escalade`` sans
+      ``MAJEUR``). Ce type d'erreur est potentiellement corrigeable par
+      re-prompt, donc on retry jusqu'à ``max_retries`` fois en injectant le
+      détail de l'erreur dans la conversation pour permettre l'auto-correction.
+    - Une ``RuntimeError`` (refus du modèle, réponse tronquée, payload vide)
+      n'est pas corrigeable par re-prompt — propagation immédiate, pas de retry.
+
+    Au-delà de ``max_retries``, la dernière ``ValidationError`` est propagée.
+    """
+    current_messages = list(messages)
+    for attempt in range(max_retries + 1):
+        try:
+            return _call_structured_completion(
+                client,
+                model=model,
+                messages=current_messages,
+                response_format=response_format,
+                max_tokens=max_tokens,
+            )
+        except ValidationError as exc:
+            if attempt >= max_retries:
+                raise
+            logger.warning(
+                "Triage validation failed on attempt %d/%d, retrying with correction. "
+                "Error: %s",
+                attempt + 1,
+                max_retries + 1,
+                exc,
+            )
+            current_messages = current_messages + [
+                {
+                    "role": "user",
+                    "content": (
+                        "Ta réponse précédente a échoué la validation du schéma "
+                        "ou des invariants AMF. Détail de l'erreur :\n"
+                        f"{exc}\n\n"
+                        "Corrige TOUS les invariants violés et renvoie le batch "
+                        "COMPLET (tous les change_index) en respectant strictement "
+                        "le schéma. Rappel des invariants stricts : is_relevant=true "
+                        "exige themes_amf non vide + explanation ≥ 50 caractères + "
+                        "nouvelle_idee_justification ≥ 2 phrases complètes commençant "
+                        "par 'OUI' ou 'NON' selon nouvelle_idee ; is_relevant=false "
+                        "exige themes_amf=[] + exclusion_reason renseigné + "
+                        "nouvelle_idee=false + impact_level=MINEUR + "
+                        "action_requise='aucune' + explanation vide + "
+                        "nouvelle_idee_justification vide ; "
+                        "action_requise='escalade' exige impact_level='MAJEUR'."
+                    ),
+                }
+            ]
+    raise RuntimeError("unreachable: retry loop exited without return or raise")
+
+
 def _resolve_sections(pdf_path: Path, bank_code: str) -> dict[str, ResolvedSection]:
     """Localise et normalise les sections textuelles cibles d'un PDF.
 
@@ -1589,7 +1726,7 @@ def _compare_texts_single_call(
                     "content": (
                         "Tu compares deux versions d'une section de rapport bancaire. "
                         "Identifie les changements réels paragraphe par paragraphe. "
-                        "Ignore les reformulations purement cosmétiques ou rédactionnelles."
+                        "Ignore les reformulations sans changement de fond."
                     ),
                 },
                 {
@@ -1792,31 +1929,141 @@ def _compare_section_texts(
 
 
 def _default_triage() -> dict[str, Any]:
-    """Retourne un triage par défaut conservateur (non pertinent, cosmétique, mineur).
+    """Retourne un triage par défaut conservateur (non pertinent).
 
-    Utilisé comme valeur de repli quand le modèle ne retourne pas de triage pour
-    un changement donné, ou quand l'appel GPT de triage échoue partiellement.
+    Schéma cible AMF v2 (``themes_amf``, ``exclusion_reason``) **plus** les
+    champs hérités (``category``, ``signals``, ``confidence``, ...) maintenus
+    avec valeurs par défaut pour préserver la compatibilité avec les
+    consommateurs aval (review_export, review_models_v2, review_queue_normalizer)
+    non encore migrés.
     """
+    triage = empty_triage_skeleton()
+    triage["source"] = TRIAGE_SOURCE_VERSION
+    triage.update(
+        {
+            "category": "NON_PERTINENT",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "impact_description": "",
+            "reference_reglementaire": "",
+            "confidence": 0.0,
+            "signals": {
+                "regulatory_reference_added": False,
+                "methodology_change": False,
+                "tone_changed": False,
+                "forward_looking": False,
+                "quantitative_changed": False,
+            },
+        }
+    )
+    return triage
+
+
+_FEW_SHOT_TRIAGE_AMF = """\
+Exemples (à imiter strictement, en particulier le format de nouvelle_idee_justification : OUI/NON + 2 phrases complètes citant l'élément réel du rapport ET les thèmes AMF concernés) :
+
+Exemple 1 — Modification méthodologique multi-label (MAJEUR)
+Input : diff_type="modified", t1="Le risque de crédit est évalué selon une approche standardisée.", t2="Le risque de crédit est évalué selon une approche par modèles internes avancés (AIRB) approuvée par le BSIF."
+Output : {"is_relevant": true, "themes_amf": ["MODIFICATION_METHODOLOGIE", "EXIGENCES_REGLEMENTAIRES"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "escalade", "exclusion_reason": null, "explanation": "Au t2, la banque introduit un nouveau modèle interne avancé (AIRB) pour l'évaluation du risque de crédit. Ce changement relève d'une modification méthodologique substantielle alignée sur les exigences réglementaires du BSIF, et non d'une simple reformulation. Cela implique une revue de la base de comparaison avec le rapport précédent pour la surveillance du risque de crédit.", "nouvelle_idee_justification": "OUI — la banque passe d'une approche standardisée à un modèle interne avancé AIRB approuvé par le BSIF, ce qui constitue une nouvelle méthodologie absente au t1. Ce changement croise les thèmes AMF MODIFICATION_METHODOLOGIE et EXIGENCES_REGLEMENTAIRES."}
+
+Exemple 2 — Risque émergent IA (added, MAJEUR)
+Input : diff_type="added", t1="", t2="La Banque a établi un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans ses activités."
+Output : {"is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "escalade", "exclusion_reason": null, "explanation": "Au t2, la banque introduit un cadre formel de gouvernance pour l'IA générative, absent au t1. Ce changement relève des risques émergents et de la gouvernance des risques selon les attentes AMF. Cela implique une surveillance accrue des modèles tiers et de leur supervision pour la comparabilité avec les pairs.", "nouvelle_idee_justification": "OUI — un cadre de gouvernance pour l'IA générative est mentionné pour la première fois au t2 et n'apparaissait pas au t1. Cette divulgation cible un risque émergent prioritaire (thèmes AMF RISQUE_EMERGENT, GOUVERNANCE_RISQUES, DIVULGATION_AJOUT)."}
+
+Exemple 3 — Variation chiffrée propre à la banque (EXCLU)
+Input : diff_type="modified", t1="Notre portefeuille de prêts hypothécaires s'élève à 287 G$.", t2="Notre portefeuille de prêts hypothécaires s'élève à 294 G$."
+Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nouvelle_idee": false, "action_requise": "aucune", "exclusion_reason": "variation_numerique_propre_banque", "explanation": "", "nouvelle_idee_justification": ""}
+
+Exemple 4 — Retrait de facteur de risque cyber (removed, MAJEUR)
+Input : diff_type="removed", t1="Les risques liés aux cybermenaces incluent les attaques par déni de service et les ransomwares.", t2=""
+Output : {"is_relevant": true, "themes_amf": ["FACTEUR_RISQUE_CHANGEMENT", "RISQUE_EMERGENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "escalade", "exclusion_reason": null, "explanation": "Au t1, la banque listait explicitement les cybermenaces (DDoS, ransomwares) comme facteur de risque, mais ce listing disparaît au t2. Ce retrait croise un changement de facteur de risque, un risque émergent prioritaire et un retrait de divulgation selon les attentes AMF. Cela soulève une question de transparence sur la posture cyber et nécessite une investigation.", "nouvelle_idee_justification": "OUI — la mention explicite des cybermenaces (DDoS, ransomwares) présente au t1 disparaît au t2, retirant un facteur de risque émergent. Ce retrait croise les thèmes AMF FACTEUR_RISQUE_CHANGEMENT, RISQUE_EMERGENT et DIVULGATION_RETRAIT et soulève une question de transparence."}
+
+Exemple 5 — Nouvelle mention BSIF climatique (added, MAJEUR)
+Input : diff_type="added", t1="", t2="Conformément aux nouvelles attentes du BSIF en matière de risques climatiques (Ligne directrice B-15), nous avons mis en place un comité dédié."
+Output : {"is_relevant": true, "themes_amf": ["NOUVELLE_MENTION_REGLEMENTAIRE", "ESG_CLIMATIQUE", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "escalade", "exclusion_reason": null, "explanation": "Au t2, la banque mentionne pour la première fois la Ligne directrice B-15 du BSIF et la création d'un comité ESG/climatique. Ce changement croise nouvelle mention réglementaire, divulgation ESG et gouvernance des risques. Cela aligne la banque sur les attentes prudentielles climatiques et doit être suivi pour la comparabilité inter-pairs.", "nouvelle_idee_justification": "OUI — la Ligne directrice B-15 du BSIF et le comité ESG dédié sont introduits au t2 et n'existaient pas au t1. Cette nouveauté croise NOUVELLE_MENTION_REGLEMENTAIRE, ESG_CLIMATIQUE et GOUVERNANCE_RISQUES."}
+
+Exemple 6 — Reformulation pure (EXCLU)
+Input : diff_type="modified", t1="La gestion du risque de crédit est encadrée par notre politique interne.", t2="Notre politique interne encadre la gestion du risque de crédit."
+Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nouvelle_idee": false, "action_requise": "aucune", "exclusion_reason": "reformulation_mineure", "explanation": "", "nouvelle_idee_justification": ""}
+
+Exemple 7 — Montant réglementaire (seuil prudentiel)
+Input : diff_type="modified", t1="Le seuil prudentiel CET1 minimal applicable est de 4,5 %.", t2="Le seuil prudentiel CET1 minimal applicable est de 5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF."
+Output : {"is_relevant": true, "themes_amf": ["RATIOS_REGLEMENTAIRES", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE", "NOUVELLE_MENTION_REGLEMENTAIRE"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "escalade", "exclusion_reason": null, "explanation": "Au t2, le seuil prudentiel CET1 minimal applicable passe de 4,5 % à 5,0 % en lien avec les nouvelles exigences pilier 2 du BSIF. Ce changement est un MONTANT RÉGLEMENTAIRE explicite (pas une variation propre à la banque) qui modifie les ratios applicables. Cela impose un suivi de l'écart entre la position actuelle de la banque et la nouvelle exigence prudentielle.", "nouvelle_idee_justification": "OUI — le seuil prudentiel CET1 minimal passe de 4,5 % à 5,0 % et c'est un MONTANT_REGLEMENTAIRE qui change effectivement, pas une variation propre à la banque. Le changement croise RATIOS_REGLEMENTAIRES, EXIGENCES_REGLEMENTAIRES et NOUVELLE_MENTION_REGLEMENTAIRE."}
+"""
+
+
+def _derive_legacy_fields(triage_amf: dict[str, Any]) -> dict[str, Any]:
+    """Dérive les champs hérités (category, signals, ...) depuis le schéma AMF v2.
+
+    Permet aux consommateurs aval (review_export, review_models_v2, ...) qui
+    lisent encore l'ancien schéma de continuer à fonctionner sans modification.
+    À retirer une fois ces consommateurs migrés vers ``themes_amf``.
+    """
+    if not triage_amf.get("is_relevant"):
+        return {
+            "category": "NON_PERTINENT",
+            "risk_type": "autre",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "impact_description": "",
+            "reference_reglementaire": "",
+            "confidence": 0.0,
+            "signals": {
+                "regulatory_reference_added": False,
+                "methodology_change": False,
+                "tone_changed": False,
+                "forward_looking": False,
+                "quantitative_changed": False,
+            },
+        }
+
+    themes = set(triage_amf.get("themes_amf") or [])
+    impact = str(triage_amf.get("impact_level") or "MINEUR").upper()
+
+    if themes & {"CAPITAL_REGLEMENTAIRE", "FONDS_PROPRES_REGLEMENTAIRES", "RATIOS_REGLEMENTAIRES"}:
+        category = "CAPITAL"
+        risk_type = "capital"
+    elif "LIQUIDITE" in themes:
+        category = "REGLEMENTAIRE"
+        risk_type = "liquidite"
+    elif themes & {"EXIGENCES_REGLEMENTAIRES", "NOUVELLE_MENTION_REGLEMENTAIRE"}:
+        category = "REGLEMENTAIRE"
+        risk_type = "conformite"
+    elif themes & {"MODIFICATION_TEXTE_RISQUE", "FACTEUR_RISQUE_CHANGEMENT", "HYPOTHESES_EXPLICATIONS_RISQUES"}:
+        category = "RISQUE"
+        risk_type = "credit"
+    elif "RISQUE_EMERGENT" in themes:
+        category = "RISQUE"
+        risk_type = "autre"
+    elif "ESG_CLIMATIQUE" in themes:
+        category = "RISQUE"
+        risk_type = "autre"
+    elif themes & {"GOUVERNANCE_RISQUES", "CONTROLE_CONFORMITE"}:
+        category = "STRUCTURE"
+        risk_type = "conformite"
+    elif "STRUCTURE_RAPPORT" in themes:
+        category = "STRUCTURE"
+        risk_type = "autre"
+    else:
+        category = "STRUCTURE"
+        risk_type = "autre"
+
+    severity_map = {"MAJEUR": "ELEVEE", "MODERE": "MOYENNE", "MINEUR": "FAIBLE"}
     return {
-        "is_relevant": False,
-        "category": "COSMETIQUE",
-        "impact_level": "MINEUR",
-        "risk_type": "autre",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
-        "explanation": "",
+        "category": category,
+        "risk_type": risk_type,
+        "relevance_score": severity_map.get(impact, "FAIBLE"),
+        "risk_level": severity_map.get(impact, "FAIBLE"),
         "impact_description": "",
-        "action_requise": "aucune",
         "reference_reglementaire": "",
-        "nouvelle_idee": False,
-        "confidence": 0.0,
-        "source": "gpt4o_triage",
+        "confidence": 0.85,
         "signals": {
-            "regulatory_reference_added": False,
-            "methodology_change": False,
+            "regulatory_reference_added": "NOUVELLE_MENTION_REGLEMENTAIRE" in themes,
+            "methodology_change": "MODIFICATION_METHODOLOGIE" in themes,
             "tone_changed": False,
             "forward_looking": False,
-            "quantitative_changed": False,
+            "quantitative_changed": "MONTANT_REGLEMENTAIRE" in themes,
         },
     }
 
@@ -1833,6 +2080,11 @@ def _triage_section_changes(
     Le triage ne recalcule pas la diff textuelle: il prend les changements deja
     identifies, demande une qualification selective au modele, puis rattache le
     resultat a chaque changement pour la retention finale et le resume global.
+
+    Aligne sur la taxonomie AMF (vigie bancaire canadienne). Le modèle produit
+    le schéma AMF v2 (themes_amf multi-label, exclusion_reason, ...) ; les
+    champs hérités (category, signals, ...) sont dérivés localement pour
+    préserver la compatibilité aval.
     """
     if not changes:
         return []
@@ -1849,90 +2101,164 @@ def _triage_section_changes(
                 "change_summary": change.get("change_summary", ""),
             }
         )
+
+    system_prompt = (
+        "Tu es un analyste senior en gestion intégrée des risques, spécialisé "
+        "dans la vigie de pairs des banques canadiennes alignée sur les "
+        "attentes de l'AMF (Autorité des marchés financiers du Québec) et "
+        "du BSIF.\n\n"
+        "Tu analyses chaque changement détecté entre deux rapports d'une "
+        "même banque comparés pair-à-pair :\n"
+        "- t1 = rapport PRÉCÉDENT dans la paire\n"
+        "- t2 = rapport COURANT dans la paire\n"
+        "Les paires possibles sont : T2 vs T1, T3 vs T2, T1 N+1 vs T3 N "
+        "(passage d'année), T4 N+1 vs T4 N (rapports annuels). Le suffixe "
+        "t1/t2 ne désigne PAS forcément un trimestre.\n\n"
+        "Tu utilises uniquement la taxonomie AMF fournie ci-dessous, en "
+        "multi-label si plusieurs thèmes s'appliquent."
+    )
+
+    user_prompt = (
+        "Pour chaque changement de la liste ci-dessous, produis un triage AMF "
+        "dans le batch de sortie en réutilisant le même change_index. Le "
+        "schéma de sortie est imposé par l'API ; tu ne dois pas en dévier.\n\n"
+        "Taxonomie AMF (utilise UNIQUEMENT ces codes pour themes_amf, "
+        "multi-label autorisé et encouragé) :\n"
+        f"{format_themes_for_prompt()}\n\n"
+        "Raisons d'exclusion (à utiliser quand is_relevant=false) :\n"
+        f"{format_exclusion_reasons_for_prompt()}\n\n"
+        "Règles métier :\n"
+        "1. MULTI-LABEL : un changement peut combiner plusieurs thèmes "
+        "(ex : modification méthodologique qui touche la gouvernance → "
+        '["MODIFICATION_METHODOLOGIE", "GOUVERNANCE_RISQUES"]).\n\n'
+        "2. EXCLUSIONS DURES — mettre is_relevant=false avec exclusion_reason :\n"
+        "   - Variations chiffrées PROPRES à la banque (taille du portefeuille, "
+        "exposition, profits, montants d'actifs, ratios chiffrés de la banque) "
+        "→ 'variation_numerique_propre_banque'.\n"
+        "   - Reformulation sans nouveau fond (synonymes, ordre des mots, "
+        "tournure équivalente) → 'reformulation_mineure'.\n"
+        "   - Texte déplacé sans modification → 'deplacement_texte'.\n"
+        "   - Formatage visuel (gras, italique, ponctuation, casse, espacement) "
+        "→ 'formatage_visuel'.\n\n"
+        "3. INCLUSION EXPLICITE — les MONTANTS RÉGLEMENTAIRES (seuils "
+        "prudentiels, planchers Bâle, exigences pilier 2, lignes directrices "
+        "BSIF chiffrées) sont EN scope. Ajouter le marqueur 'MONTANT_REGLEMENTAIRE' "
+        "aux thèmes principaux quand la divulgation porte sur un seuil "
+        "réglementaire chiffré (PAS un chiffre propre à la banque).\n\n"
+        "4. RISQUE_EMERGENT (cyberrisque, IA, IA générative, fraude numérique, "
+        "ransomware, modèles tiers) est PRIORITAIRE : impact_level minimum MODERE.\n\n"
+        "5. nouvelle_idee = true SI ET SEULEMENT SI les 3 conditions cumulatives sont vraies :\n"
+        "   (a) SUBSTANTIELLE : modifie la SUBSTANCE de la divulgation (concept, "
+        "facteur de risque, mention réglementaire, méthodologie, indicateur "
+        "prudentiel) — PAS une variation chiffrée propre à la banque ni une "
+        "reformulation.\n"
+        "   (b) NOUVEAUTÉ INFORMATIONNELLE : ajoute un élément absent au t1, OU "
+        "retire un élément présent au t1, OU modifie substantiellement la "
+        "posture de la banque sur un thème AMF.\n"
+        "   (c) ADOSSÉE À UN THÈME AMF : au moins un code dans themes_amf "
+        "(sinon hors scope vigie).\n"
+        "   Si UNE des 3 conditions est violée → nouvelle_idee = false.\n\n"
+        "6. impact_level :\n"
+        "   - MAJEUR : modification méthodologique substantielle, retrait/ajout "
+        "significatif de divulgation, nouvelle exigence réglementaire, risque "
+        "émergent introduit ou retiré.\n"
+        "   - MODERE : modification de posture, croisement multi-thèmes notable.\n"
+        "   - MINEUR : changement modeste mais substantif.\n\n"
+        "7. action_requise : 'escalade' UNIQUEMENT pour les changements MAJEUR "
+        "(invariant strict — escalade exige impact_level=MAJEUR) ; 'investigation' "
+        "pour MODERE ou MAJEUR sans escalade ; 'confirmation' à valider avec "
+        "source ; 'information' pertinent non actionnable ; 'aucune' uniquement "
+        "si is_relevant=false.\n\n"
+        "8. INVARIANTS STRICTS (toute violation rejette la réponse) :\n"
+        "   - is_relevant=true → themes_amf NON VIDE, exclusion_reason=null, "
+        "explanation ≥ 50 caractères (3 phrases pleines), nouvelle_idee_justification "
+        "≥ 2 phrases complètes commençant par 'OUI' ou 'NON' selon nouvelle_idee.\n"
+        "   - is_relevant=false → themes_amf=[], exclusion_reason renseigné, "
+        "nouvelle_idee=false, impact_level=MINEUR, action_requise='aucune', "
+        "explanation vide, nouvelle_idee_justification vide.\n\n"
+        "Exigence pour `explanation` (3 phrases obligatoires si is_relevant=true, "
+        "chaîne vide sinon) :\n"
+        "1. Ce qui a changé concrètement entre t1 (précédent) et t2 (courant).\n"
+        "2. Pourquoi ce changement relève des thèmes AMF identifiés (et non "
+        "d'une simple reformulation ou variation chiffrée propre à la banque).\n"
+        "3. Ce que cela implique pour la surveillance de cette banque.\n\n"
+        "Exigence pour `nouvelle_idee_justification` (obligatoire si is_relevant=true, "
+        "vide sinon) :\n"
+        "- Format STRICT : commencer par 'OUI' (si nouvelle_idee=true) ou 'NON' "
+        "(si nouvelle_idee=false), suivi d'un tiret '—' ou '-'.\n"
+        "- Au moins 2 phrases complètes (ponctuation finale, longueur substantielle).\n"
+        "- Citer l'élément SPÉCIFIQUE du rapport : nom exact d'un indicateur, "
+        "fragment de phrase, libellé de footnote, titre de tableau — adossé au "
+        "contenu réel des rapports aux actionnaires traités.\n"
+        "- Mentionner explicitement le ou les thèmes AMF concernés.\n"
+        "- Adossé aux règles AMF appliquées sur le contenu réel (pas de "
+        "généralités).\n\n"
+        f"{_FEW_SHOT_TRIAGE_AMF}\n"
+        f"Section: {section_key}\n"
+        f"Changements à trier:\n{_json_dumps(triage_inputs)}"
+    )
+
     try:
-        raw = _call_json_completion(
+        batch = _call_structured_completion_with_correction(
             client,
             model=model,
             messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Tu es un analyste senior spécialisé dans la surveillance des rapports bancaires réglementaires. "
-                        "Tu classifies et qualifies les changements détectés entre deux trimestres. "
-                        "Tu as accès au texte source complet (avec les chiffres réels) pour chaque changement."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": (
-                        "Retourne uniquement du JSON.\n"
-                        'Format: {"triages":[{"change_index":1,"is_relevant":true,'
-                        ' "category":"REGLEMENTAIRE|RISQUE|CAPITAL|STRUCTURE|COSMETIQUE",'
-                        ' "impact_level":"MAJEUR|MODERE|MINEUR",'
-                        ' "action_requise":"escalade|investigation|confirmation|information|aucune",'
-                        ' "nouvelle_idee":true, "explanation":"...", "impact_description":"...",'
-                        ' "risk_type":"credit|marche|liquidite|capital|conformite|autre",'
-                        ' "signals":{"regulatory_reference_added":false,"methodology_change":false,'
-                        ' "tone_changed":false,"forward_looking":false,"quantitative_changed":false}}]}.\n\n'
-                        "Règles de classification:\n"
-                        "- COSMETIQUE uniquement pour: mises à jour de dates pures (janvier → avril), "
-                        "reformulations strictement identiques sans nouvel élément, références de pages.\n"
-                        "- REGLEMENTAIRE ou CAPITAL pour tout changement de montant ou ratio lié à la "
-                        "réglementation prudentielle (fonds propres, ratios, expositions, provisions, "
-                        "seuils réglementaires) — même si le changement est purement quantitatif.\n"
-                        "- RISQUE pour toute évolution de tendance, d'exposition ou de posture face à un risque.\n"
-                        "- Une inversion de tendance ('diminué au lieu d'augmenté', 'baisse → hausse') "
-                        "est au minimum MODERE.\n"
-                        "- N'utilise pas d'acronymes prudentiels dans l'explication; reformule en langage "
-                        "métier générique.\n\n"
-                        "Exigence pour `explanation` (obligatoire si is_relevant=true):\n"
-                        "Rédige exactement 3 phrases complètes en français:\n"
-                        "1. Ce qui a changé concrètement entre T1 et T2 (faits précis, chiffres si pertinents).\n"
-                        "2. Pourquoi ce changement est substantiel et non cosmétique.\n"
-                        "3. Ce que cela implique pour la surveillance de cette banque.\n\n"
-                        f"Section: {section_key}\n{_json_dumps(triage_inputs)}"
-                    ),
-                },
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
             ],
+            response_format=TriageAMFBatch,
+            max_retries=1,
         )
+    except ValidationError as exc:
+        raise TriageValidationError(
+            section_key=section_key,
+            change_index=None,
+            raw_payload=None,
+            validation_error=exc,
+        ) from exc
+    except RuntimeError:
+        raise
     except Exception as exc:
-        raise RuntimeError(f"Section triage failed for {section_key}: {exc}") from exc
+        raise RuntimeError(
+            f"Section triage failed for {section_key}: {exc}"
+        ) from exc
 
     triage_map: dict[int, dict[str, Any]] = {}
-    for item in raw.get("triages") or []:
-        try:
-            idx = int(item.get("change_index"))
-        except (TypeError, ValueError):
-            continue
-        triage = _default_triage()
-        triage.update(
-            {
-                "is_relevant": bool(item.get("is_relevant", False)),
-                "category": str(item.get("category") or "COSMETIQUE").upper(),
-                "impact_level": str(item.get("impact_level") or "MINEUR").upper(),
-                "risk_type": str(item.get("risk_type") or "autre").lower(),
-                "explanation": _sanitize_explanation(str(item.get("explanation") or "")),
-                "impact_description": _sanitize_explanation(str(item.get("impact_description") or "")),
-                "action_requise": str(item.get("action_requise") or "aucune").lower(),
-                "nouvelle_idee": bool(item.get("nouvelle_idee", False)),
-                "source": "gpt4o_triage",
-                "signals": {
-                    "regulatory_reference_added": bool(
-                        (item.get("signals") or {}).get("regulatory_reference_added", False)
-                    ),
-                    "methodology_change": bool((item.get("signals") or {}).get("methodology_change", False)),
-                    "tone_changed": bool((item.get("signals") or {}).get("tone_changed", False)),
-                    "forward_looking": bool((item.get("signals") or {}).get("forward_looking", False)),
-                    "quantitative_changed": bool((item.get("signals") or {}).get("quantitative_changed", False)),
-                },
-            }
+    relevant_count = 0
+    nouvelle_idee_count = 0
+    for triage_obj in batch.triages:
+        triage_dict = triage_obj.model_dump(exclude={"change_index"})
+        triage_dict["explanation"] = _sanitize_explanation(triage_dict["explanation"])
+        legacy_fields = _derive_legacy_fields(triage_dict)
+        triage = {**triage_dict, **legacy_fields, "source": TRIAGE_SOURCE_VERSION}
+        triage_map[triage_obj.change_index] = triage
+        if triage_obj.is_relevant:
+            relevant_count += 1
+        if triage_obj.nouvelle_idee:
+            nouvelle_idee_count += 1
+        logger.info(
+            "triage validated section=%s change_index=%d is_relevant=%s "
+            "themes=%s impact=%s nouvelle_idee=%s action=%s",
+            section_key,
+            triage_obj.change_index,
+            triage_obj.is_relevant,
+            triage_obj.themes_amf,
+            triage_obj.impact_level,
+            triage_obj.nouvelle_idee,
+            triage_obj.action_requise,
         )
-        triage_map[idx] = triage
+
+    logger.info(
+        "triage section summary section=%s total=%d relevant=%d nouvelles_idees=%d",
+        section_key,
+        len(batch.triages),
+        relevant_count,
+        nouvelle_idee_count,
+    )
 
     enriched: list[dict[str, Any]] = []
     for idx, change in enumerate(changes, start=1):
         triage = triage_map.get(idx, _default_triage())
-        triage["nouvelle_idee"] = _compute_conservative_new_idea(change, triage)
         enriched_change = dict(change)
         enriched_change["genai_triage"] = triage
         enriched.append(enriched_change)
@@ -1971,9 +2297,9 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
             highlights.append(summary)
 
     overview = (
-        "Aucun changement textuel non cosmétique retenu."
+        "Aucun changement textuel substantiel retenu."
         if not all_changes
-        else f"{len(all_changes)} changement(s) textuel(s) non cosmétique(s) retenu(s) pour revue experte."
+        else f"{len(all_changes)} changement(s) textuel(s) substantiel(s) retenu(s) pour revue experte."
     )
     pertinence = "FAIBLE"
     if by_impact.get("MAJEUR", 0) >= 3:

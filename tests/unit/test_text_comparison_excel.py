@@ -8,6 +8,15 @@ from vigilance.text_comparison.text_comparison_excel import generate_text_compar
 
 
 def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
+    justification_oui = (
+        "OUI - le nouveau modele AIRB est introduit au t2 absent du t1. "
+        "Cela aligne la divulgation sur les exigences BSIF (themes AMF MODIFICATION_METHODOLOGIE)."
+    )
+    justification_non = (
+        "NON - la valeur du ratio change mais l'indicateur existait au t1. "
+        "Variation chiffree propre a la banque sans dimension reglementaire."
+    )
+
     payload = {
         "section_comparisons": [
             {
@@ -28,9 +37,8 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
                             "category": "RISQUE",
                             "impact_level": "MAJEUR",
                             "action_requise": "escalade",
-                            "explanation": "Explication majeure",
-                            "impact_description": "",
                             "nouvelle_idee": True,
+                            "nouvelle_idee_justification": justification_oui,
                         },
                     },
                     {
@@ -42,48 +50,45 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
                         "evidence_t2": {"pages": [13], "snippet": "preuve moderee"},
                         "genai_triage": {
                             "is_relevant": False,
-                            "category": "STRUCTURE",
+                            "category": "NON_PERTINENT",
                             "impact_level": "MINEUR",
                             "action_requise": "aucune",
-                            "explanation": "Explication mineure",
-                            "impact_description": "",
                             "nouvelle_idee": False,
+                            "nouvelle_idee_justification": "",
                         },
                     },
                     {
                         "diff_type": "modified",
                         "semantic_text_t1": "Texte modéré",
-                        "semantic_text_t2": "Texte modéré non cosmétique",
+                        "semantic_text_t2": "Texte modéré substantif",
                         "source_text_t1": "Paragraphe modéré T1",
                         "source_text_t2": "Paragraphe modéré T2",
                         "evidence_t1": {"pages": [14], "snippet": "preuve moderee t1"},
                         "evidence_t2": {"pages": [15], "snippet": "preuve moderee t2"},
                         "genai_triage": {
                             "is_relevant": False,
-                            "category": "STRUCTURE",
+                            "category": "NON_PERTINENT",
                             "impact_level": "MODERE",
                             "action_requise": "information",
-                            "explanation": "Explication modérée",
-                            "impact_description": "",
                             "nouvelle_idee": False,
+                            "nouvelle_idee_justification": "",
                         },
                     },
                     {
                         "diff_type": "modified",
-                        "semantic_text_t1": "Texte cosmétique T1",
-                        "semantic_text_t2": "Texte cosmétique T2",
-                        "source_text_t1": "Paragraphe cosmétique T1",
-                        "source_text_t2": "Paragraphe cosmétique T2",
-                        "evidence_t1": {"pages": [16], "snippet": "preuve cosmetique t1"},
-                        "evidence_t2": {"pages": [17], "snippet": "preuve cosmetique t2"},
+                        "semantic_text_t1": "Texte non substantif T1",
+                        "semantic_text_t2": "Texte non substantif T2",
+                        "source_text_t1": "Paragraphe non substantif T1",
+                        "source_text_t2": "Paragraphe non substantif T2",
+                        "evidence_t1": {"pages": [16], "snippet": "preuve non substantif t1"},
+                        "evidence_t2": {"pages": [17], "snippet": "preuve non substantif t2"},
                         "genai_triage": {
                             "is_relevant": False,
-                            "category": "COSMETIQUE",
+                            "category": "NON_PERTINENT",
                             "impact_level": "MINEUR",
                             "action_requise": "aucune",
-                            "explanation": "Explication cosmétique",
-                            "impact_description": "",
                             "nouvelle_idee": False,
+                            "nouvelle_idee_justification": "",
                         },
                     },
                 ],
@@ -104,12 +109,13 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
     assert ws["F2"].value == "Paragraphe exact T1"
     assert ws["G2"].value == "Paragraphe exact T2"
     assert ws["H2"].value == "Oui"
-    assert ws["I2"].value == "Explication majeure"
+    # La colonne 9 contient maintenant nouvelle_idee_justification
+    assert ws["I2"].value == justification_oui
     assert ws["F3"].value == "Paragraphe modéré T1"
     assert ws["G3"].value == "Paragraphe modéré T2"
     assert ws["C4"].value is None
     assert ws["D4"].value == "13"
     assert ws["F4"].value is None
     assert ws["G4"].value == "Paragraphe exact ajouté"
-    assert ws["F5"].value == "Paragraphe cosmétique T1"
-    assert ws["G5"].value == "Paragraphe cosmétique T2"
+    assert ws["F5"].value == "Paragraphe non substantif T1"
+    assert ws["G5"].value == "Paragraphe non substantif T2"
