@@ -14,4 +14,5 @@ def register_all_callbacks() -> None:  # noqa: D401
         text_flow,
         upload_flow,
         utility_flow,
+        vigie_dashboard_flow,
     )

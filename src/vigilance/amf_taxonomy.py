@@ -106,6 +106,27 @@ THEMES_AMF_DESCRIPTIONS: dict[str, str] = {
     ),
 }
 
+THEMES_AMF_ANALYST_SUBJECTS: dict[str, str] = {
+    "DIVULGATION_AJOUT": "Information ajoutée",
+    "DIVULGATION_RETRAIT": "Information retirée",
+    "MODIFICATION_TEXTE_RISQUE": "Texte de risque modifié",
+    "MODIFICATION_METHODOLOGIE": "Méthode de calcul ou approche modifiée",
+    "FACTEUR_RISQUE_CHANGEMENT": "Facteur de risque modifié",
+    "CAPITAL_REGLEMENTAIRE": "Capital réglementaire",
+    "LIQUIDITE": "Liquidité",
+    "FONDS_PROPRES_REGLEMENTAIRES": "Fonds propres réglementaires",
+    "EXIGENCES_REGLEMENTAIRES": "Exigences réglementaires ou conformité",
+    "RATIOS_REGLEMENTAIRES": "Ratio ou seuil prudentiel",
+    "STRUCTURE_RAPPORT": "Structure du rapport",
+    "HYPOTHESES_EXPLICATIONS_RISQUES": "Hypothèses ou explications de risque",
+    "ESG_CLIMATIQUE": "Risque climatique / ESG",
+    "RISQUE_EMERGENT": "Risque émergent : IA, cybersécurité, fraude, cryptoactifs ou modèles tiers",
+    "GOUVERNANCE_RISQUES": "Gouvernance des risques",
+    "CONTROLE_CONFORMITE": "Contrôle interne ou conformité",
+    "NOUVELLE_MENTION_REGLEMENTAIRE": "Nouvelle mention réglementaire",
+    "MONTANT_REGLEMENTAIRE": "Montant ou seuil réglementaire",
+}
+
 THEMES_AMF_PIPELINE_2: list[str] = list(THEMES_AMF_DESCRIPTIONS.keys())
 
 ThemeAMF = Literal[
@@ -161,7 +182,7 @@ ExclusionReason = Literal[
 ImpactLevel = Literal["MAJEUR", "MODERE", "MINEUR"]
 
 ActionRequise = Literal[
-    "escalade",
+    "revue_prioritaire",
     "investigation",
     "confirmation",
     "information",
@@ -216,6 +237,13 @@ _JUSTIFICATION_MIN_SENTENCES = 3
 _JUSTIFICATION_MIN_SENTENCE_LENGTH = 20
 _JUSTIFICATION_MIN_TOTAL_LENGTH = 200
 _SENTENCE_BOUNDARY_RE = re.compile(r"[.!?]+")
+_REQUIRED_JUSTIFICATION_SECTIONS = (
+    "Nouvel élément à surveiller :",
+    "Sujet détecté :",
+    "Ce qui change :",
+    "Pertinence métier :",
+    "Lecture de vigie :",
+)
 
 
 def _count_substantive_sentences(text: str) -> int:
@@ -235,6 +263,15 @@ def _count_substantive_sentences(text: str) -> int:
     )
 
 
+def _missing_justification_sections(text: str) -> list[str]:
+    """Retourne les rubriques obligatoires absentes de la justification."""
+    return [
+        section
+        for section in _REQUIRED_JUSTIFICATION_SECTIONS
+        if section not in text
+    ]
+
+
 class TriageAMFResult(BaseModel):
     """Sortie validée d'un triage GPT-4o pour un changement.
 
@@ -243,14 +280,14 @@ class TriageAMFResult(BaseModel):
     Cohérence pertinent / non pertinent :
     - ``is_relevant=True`` ⟹ ``themes_amf`` non vide, ``exclusion_reason=None``,
       ``explanation`` ≥ 50 caractères (3 phrases attendues),
-      ``nouvelle_idee_justification`` ≥ 2 phrases complètes commençant par
+      ``nouvelle_idee_justification`` ≥ 3 phrases complètes commençant par
       ``OUI`` ou ``NON`` selon ``nouvelle_idee``.
     - ``is_relevant=False`` ⟹ ``themes_amf=[]``, ``exclusion_reason`` renseigné,
       ``nouvelle_idee=False``, ``impact_level="MINEUR"``, ``action_requise="aucune"``,
-      ``explanation=""``, ``nouvelle_idee_justification=""``.
+      ``explanation=""``, ``nouvelle_idee_justification`` détaillée.
 
     Cohérence sémantique :
-    - ``action_requise="escalade"`` ⟹ ``impact_level="MAJEUR"``.
+    - ``action_requise="revue_prioritaire"`` ⟹ ``impact_level="MAJEUR"``.
 
     Pas de fallback silencieux : un triage invalide doit remonter en exception
     et être traité explicitement par l'appelant.
@@ -300,6 +337,12 @@ class TriageAMFResult(BaseModel):
                 "nouvelle_idee_justification doit commencer par "
                 f"'{expected_prefix}' quand nouvelle_idee={self.nouvelle_idee}"
             )
+        missing_sections = _missing_justification_sections(justification)
+        if missing_sections:
+            raise ValueError(
+                "nouvelle_idee_justification doit contenir les rubriques "
+                f"obligatoires : {', '.join(missing_sections)}"
+            )
 
         # ---------- Cohérence pertinent / non pertinent ----------
         if self.is_relevant:
@@ -346,9 +389,9 @@ class TriageAMFResult(BaseModel):
                     "is_relevant=False exige change_segments vide"
                 )
 
-        if self.action_requise == "escalade" and self.impact_level != "MAJEUR":
+        if self.action_requise == "revue_prioritaire" and self.impact_level != "MAJEUR":
             raise ValueError(
-                "action_requise='escalade' exige impact_level='MAJEUR'"
+                "action_requise='revue_prioritaire' exige impact_level='MAJEUR'"
             )
 
         return self
@@ -372,7 +415,7 @@ class TriageAMFBatch(BaseModel):
     Schéma racine passé à ``client.beta.chat.completions.parse()`` comme
     ``response_format`` ; OpenAI garantit alors que la sortie respecte les
     types et énumérations du schéma. Les invariants logiques transversaux
-    (cohérence is_relevant, escalade↔MAJEUR, ...) restent vérifiés par
+    (cohérence is_relevant, revue_prioritaire↔MAJEUR, ...) restent vérifiés par
     Pydantic après désérialisation.
     """
 
@@ -384,6 +427,14 @@ def format_themes_for_prompt() -> str:
     return "\n".join(
         f"- {code} : {description}"
         for code, description in THEMES_AMF_DESCRIPTIONS.items()
+    )
+
+
+def format_theme_subjects_for_prompt() -> str:
+    """Formate les libellés analyste associés aux codes AMF."""
+    return "\n".join(
+        f"- {code} -> {subject}"
+        for code, subject in THEMES_AMF_ANALYST_SUBJECTS.items()
     )
 
 
@@ -411,11 +462,18 @@ def empty_triage_skeleton() -> dict:
         nouvelle_idee=False,
         explanation="",
         nouvelle_idee_justification=(
-            "NON — aucun triage AMF n'a été produit par GPT-4o pour ce "
-            "changement. L'analyste doit considérer cet élément comme non "
-            "classifié et le marquer manuellement si pertinent. Aucune "
-            "décision automatisée n'est disponible (cas rare : défaut "
-            "structurel ou erreur en amont)."
+            "NON — Nouvel élément à surveiller : Non.\n\n"
+            "Sujet détecté : Élément non classifié par l'analyse automatisée.\n\n"
+            "Ce qui change : Aucun triage AMF exploitable n'a été produit par "
+            "GPT-4o pour ce changement. Le système ne dispose donc pas d'une "
+            "lecture fiable du contenu T1/T2 pour qualifier cette ligne.\n\n"
+            "Pertinence métier : Ce cas ne constitue pas une nouvelle idée "
+            "métier détectée par la vigie, car aucun thème AMF, risque, "
+            "méthode, conformité ou divulgation substantielle n'a pu être "
+            "rattaché au changement de façon fiable.\n\n"
+            "Lecture de vigie : Le point à retenir est que la ligne reste non "
+            "classifiée par l'automatisation et ne porte pas de signal métier "
+            "utilisable dans le résumé de surveillance."
         ),
         action_requise="aucune",
         exclusion_reason="non_pertinent_autre",

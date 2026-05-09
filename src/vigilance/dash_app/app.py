@@ -145,6 +145,7 @@ app.layout = html.Div(
         dcc.Download(id="download-review-excel"),
         dcc.Download(id="download-review-txt"),
         dcc.Download(id="download-text-excel"),
+        dcc.Download(id="download-vigie-dashboard-pdf"),
     ],
 )
 

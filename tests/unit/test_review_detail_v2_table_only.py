@@ -155,7 +155,7 @@ def test_table_with_relevant_triage_shows_nouvelle_idee_and_themes() -> None:
             "nouvelle_idee_justification": justification,
             "themes_amf": ["DIVULGATION_AJOUT", "RATIOS_REGLEMENTAIRES"],
             "impact_level": "MAJEUR",
-            "action_requise": "escalade",
+            "action_requise": "revue_prioritaire",
             "exclusion_reason": None,
         },
     }
@@ -166,7 +166,7 @@ def test_table_with_relevant_triage_shows_nouvelle_idee_and_themes() -> None:
     assert "Ajout de divulgation" in text
     assert "Ratios régl." in text
     assert "OUI" in text
-    assert "Escalade" in text
+    assert "Revue prioritaire" in text
 
 
 def test_detail_view_translates_english_section_label() -> None:

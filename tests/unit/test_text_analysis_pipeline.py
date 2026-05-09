@@ -206,9 +206,10 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
 def test_triage_few_shots_request_analyst_style_justification() -> None:
     """Le prompt doit guider GPT vers une vraie note d'analyste, pas une liste de tags."""
     assert "note d'analyste" in _FEW_SHOT_TRIAGE_AMF.lower()
-    assert "pourquoi c'est pertinent" in _FEW_SHOT_TRIAGE_AMF
-    assert "simple liste de codes AMF" in _FEW_SHOT_TRIAGE_AMF
-    assert "\\n\\n" in _FEW_SHOT_TRIAGE_AMF
+    assert "Pertinence métier" in _FEW_SHOT_TRIAGE_AMF
+    assert "Sujet détecté" in _FEW_SHOT_TRIAGE_AMF
+    assert "codes AMF servent à choisir les sujets" in _FEW_SHOT_TRIAGE_AMF
+    assert "\n\n" in _FEW_SHOT_TRIAGE_AMF
 
 
 def test_derive_legacy_fields_maps_methodology_theme() -> None:
@@ -419,7 +420,7 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
                     "impact_level": "MAJEUR",
                     "nouvelle_idee": False,
                     "explanation": "",
-                    "action_requise": "escalade",
+                    "action_requise": "revue_prioritaire",
                     "exclusion_reason": None,
                     "category": "RISQUE",
                     "signals": {"regulatory_reference_added": False, "methodology_change": False},
@@ -1133,7 +1134,7 @@ def test_gpt_match_orphan_headings_enforces_1_to_1(monkeypatch) -> None:
 
 
 def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
-    """Une sous-section renommée T1→T2 est comparée (appel GPT) avec heading_label 'T1 → T2'."""
+    """Une sous-section renommée T1→T2 est exposée puis comparée."""
     single_call_slugs: list[str] = []
     single_call_labels: list[str] = []
 
@@ -1153,7 +1154,7 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
     md_t1 = "### Risque de marché\n\nCorps T1.\n\n### Incidence des tarifs\n\nTexte T1.\n"
     md_t2 = "### Risque de marché\n\nCorps T2.\n\n### Incidence des tarifs douaniers\n\nTexte T2.\n"
 
-    _compare_section_texts(
+    changes = _compare_section_texts(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
@@ -1167,6 +1168,11 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
     renamed_labels = [lbl for lbl in single_call_labels if "→" in lbl]
     assert len(renamed_labels) == 1
     assert renamed_labels[0] == "Incidence des tarifs → Incidence des tarifs douaniers"
+    renamed_changes = [change for change in changes if change["diff_type"] == "renamed"]
+    assert len(renamed_changes) == 1
+    assert renamed_changes[0]["source_text_t1"] == "Incidence des tarifs"
+    assert renamed_changes[0]["source_text_t2"] == "Incidence des tarifs douaniers"
+    assert "Sous-section renommée" in renamed_changes[0]["change_summary"]
 
 
 # ---------------------------------------------------------------------------
@@ -1200,24 +1206,37 @@ def _valid_explanation() -> str:
 
 def _valid_justification_oui() -> str:
     return (
-        "OUI - le nouveau modele interne avance pour le risque de credit est "
-        "ajoute au T2 et n'apparaissait pas au T1. Ce changement aligne la "
-        "divulgation sur les attentes prudentielles BSIF et touche directement "
-        "les exigences reglementaires (themes AMF MODIFICATION_METHODOLOGIE et "
-        "EXIGENCES_REGLEMENTAIRES). L'analyste doit comparer la nouvelle base "
-        "methodologique avec celle du trimestre precedent pour evaluer l'impact "
-        "sur la comparabilite inter-pairs."
+        "OUI - Nouvel élément à surveiller : Oui.\n\n"
+        "Sujet détecté : Méthode de calcul modifiée, exigence réglementaire, "
+        "risque de crédit.\n\n"
+        "Ce qui change : Le nouveau modèle interne avancé pour le risque de "
+        "crédit est ajouté au T2 et n'apparaissait pas au T1. La divulgation "
+        "ne présente donc plus la même approche de mesure du risque.\n\n"
+        "Pertinence métier : Ce changement est pertinent pour la vigie bancaire "
+        "parce qu'il touche une méthodologie prudentielle et les exigences "
+        "réglementaires. Une méthode interne avancée peut modifier la lecture "
+        "des actifs pondérés, du capital requis et de la comparabilité "
+        "inter-pairs.\n\n"
+        "Lecture de vigie : Le point à retenir est que la banque présente une "
+        "base méthodologique différente pour le risque de crédit, ce qui change "
+        "la lecture métier de la divulgation."
     )
 
 
 def _valid_justification_non() -> str:
     return (
-        "NON - le ratio CET1 existait deja au T1 et seule sa valeur chiffree a "
-        "change entre les deux trimestres (variation chiffree propre a la banque). "
-        "Cette evolution numerique reflete l'activite normale et ne touche aucun "
-        "seuil reglementaire ni methodologie de calcul. L'analyste peut considerer "
-        "cette ligne comme une mise a jour quantitative attendue, sans dimension "
-        "de nouveaute pour la vigie AMF."
+        "NON - Nouvel élément à surveiller : Non.\n\n"
+        "Sujet détecté : Mise à jour quantitative propre à la banque.\n\n"
+        "Ce qui change : Le ratio CET1 existait déjà au T1 et seule sa valeur "
+        "chiffrée change entre les deux trimestres. Aucun nouveau seuil ou "
+        "nouvelle méthode n'est introduit dans la divulgation.\n\n"
+        "Pertinence métier : Cette évolution numérique reflète l'activité "
+        "normale de la banque et ne touche aucun seuil réglementaire ni "
+        "méthodologie de calcul. Elle ne modifie pas la lecture prudentielle "
+        "du rapport ni la comparabilité métier.\n\n"
+        "Lecture de vigie : Le point à retenir est que la substance de la "
+        "divulgation demeure stable. Le changement correspond à une mise à "
+        "jour quantitative plutôt qu'à un nouveau signal de surveillance."
     )
 
 
@@ -1274,14 +1293,14 @@ def test_invariant_irrelevant_without_exclusion_reason_raises() -> None:
         )
 
 
-def test_invariant_escalade_without_majeur_raises() -> None:
-    with pytest.raises(_PydValidationError, match="escalade"):
+def test_invariant_revue_prioritaire_without_majeur_raises() -> None:
+    with pytest.raises(_PydValidationError, match="revue_prioritaire"):
         TriageAMFResult(
             is_relevant=True,
             themes_amf=["MODIFICATION_METHODOLOGIE"],
             impact_level="MODERE",
             nouvelle_idee=True,
-            action_requise="escalade",
+            action_requise="revue_prioritaire",
             explanation=_valid_explanation(),
             nouvelle_idee_justification=_valid_justification_oui(),
         )

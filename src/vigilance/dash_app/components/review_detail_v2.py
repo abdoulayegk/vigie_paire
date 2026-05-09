@@ -254,7 +254,7 @@ _IMPACT_LEVEL_COLORS: dict[str, str] = {
 }
 
 _ACTION_REQUISE_DISPLAY: dict[str, str] = {
-    "escalade": "Escalade",
+    "revue_prioritaire": "Revue prioritaire",
     "investigation": "Investigation",
     "confirmation": "À confirmer",
     "information": "Pour information",

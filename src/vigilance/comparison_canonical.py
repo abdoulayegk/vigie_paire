@@ -52,7 +52,7 @@ def _map_genai_triage_to_ui(triage: dict[str, Any]) -> dict[str, Any]:
     - ``impact_level`` (str) — MAJEUR / MODERE / MINEUR
     - ``nouvelle_idee`` (bool) — décision OUI/NON IA
     - ``nouvelle_idee_justification`` (str) — 2 phrases ancrées sur le rapport
-    - ``action_requise`` (str) — escalade / investigation / ...
+    - ``action_requise`` (str) — revue_prioritaire / investigation / ...
     - ``exclusion_reason`` (str | None) — si is_relevant=False
     - ``category`` (str) — REGLEMENTAIRE / RISQUE / CAPITAL / STRUCTURE / NON_PERTINENT
       (présent dans le triage brut, propagé tel quel)

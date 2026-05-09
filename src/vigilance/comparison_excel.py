@@ -136,9 +136,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(ind, dict):
                 continue
             assessment = ind.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -160,9 +158,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(ind, dict):
                 continue
             assessment = ind.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -184,9 +180,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(ind, dict):
                 continue
             assessment = ind.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -208,9 +202,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(fn, dict):
                 continue
             assessment = fn.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -232,9 +224,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(fn, dict):
                 continue
             assessment = fn.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -256,9 +246,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(fn, dict):
                 continue
             assessment = fn.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -336,6 +324,17 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
 def _is_nouvelle_idee_label(triage: dict[str, Any]) -> str:
     """Retourne 'Oui' / 'Non' selon la décision GPT (champ ``nouvelle_idee``)."""
     return "Oui" if bool(triage.get("nouvelle_idee", False)) else "Non"
+
+
+def _best_analyst_justification(
+    assessment: dict[str, Any],
+    table_justification: str,
+) -> str:
+    """Privilégie la justification AMF enrichie, puis le fallback technique."""
+    amf_justification = table_justification.strip()
+    if amf_justification:
+        return amf_justification
+    return str(assessment.get("justification") or "").strip()
 
 
 # ---------------------------------------------------------------------------

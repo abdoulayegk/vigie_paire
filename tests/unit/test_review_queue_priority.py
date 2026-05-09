@@ -33,7 +33,7 @@ def test_sort_review_items_by_priority_orders_by_category_then_impact() -> None:
         {
             "change_id": "reg_high",
             "genai_analysis": {
-                "action_requise": "escalade",
+                "action_requise": "revue_prioritaire",
                 "category": "REGLEMENTAIRE",
                 "impact_level": "MAJEUR",
             },
@@ -42,7 +42,7 @@ def test_sort_review_items_by_priority_orders_by_category_then_impact() -> None:
 
     ordered = sort_review_items_by_priority(items)
     ordered_ids = [str(item.get("change_id")) for item in ordered]
-    # escalade > investigation > aucune ; puis REGLEMENTAIRE > STRUCTURE > NON_PERTINENT
+    # revue_prioritaire > investigation > aucune ; puis REGLEMENTAIRE > STRUCTURE > NON_PERTINENT
     assert ordered_ids == ["reg_high", "reg_mod", "structure", "non_pertinent"]
 
 
@@ -53,7 +53,7 @@ def test_sort_review_items_by_priority_falls_back_when_no_genai() -> None:
         {
             "change_id": "regle_majeur",
             "genai_analysis": {
-                "action_requise": "escalade",
+                "action_requise": "revue_prioritaire",
                 "category": "REGLEMENTAIRE",
                 "impact_level": "MAJEUR",
             },

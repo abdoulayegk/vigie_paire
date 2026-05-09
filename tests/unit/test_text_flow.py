@@ -10,9 +10,7 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
         "bank_code": "td",
         "quarter_current": "2026_t1",
         "quarter_previous": "2025_t3",
-        "section_comparisons": [
-            {"block_comparisons": [{"change_id": "strict"}], "all_block_comparisons": []}
-        ],
+        "section_comparisons": [{"block_comparisons": [{"change_id": "strict"}], "all_block_comparisons": []}],
     }
     latest_payload = {
         "bank_code": "td",
@@ -53,10 +51,12 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
     assert response["filename"] == "veille_textuelle_TD_2026t1.xlsx"
 
 
-def test_filter_text_cards_sorts_new_idea_first_and_filters_non_pertinent() -> None:
-    """Le filtrage Dash ne montre que les changements pertinents (alignement
-    avec la préférence Excel minimal). Tri : nouvelle idée d'abord, puis
-    impact décroissant. Les is_relevant=False sont masqués."""
+def test_filter_text_cards_sorts_new_idea_first_and_keeps_non_pertinent() -> None:
+    """Le filtrage Dash garde les changements non pertinents pour revue humaine.
+
+    Tri : nouvelle idée d'abord, puis impact décroissant. Les is_relevant=False
+    restent visibles afin que l'analyste puisse contester le triage.
+    """
     text_data = {
         "section_comparisons": [
             {
@@ -73,7 +73,7 @@ def test_filter_text_cards_sorts_new_idea_first_and_filters_non_pertinent() -> N
                             "is_relevant": True,
                             "themes_amf": ["MODIFICATION_TEXTE_RISQUE"],
                             "impact_level": "MAJEUR",
-                            "action_requise": "escalade",
+                            "action_requise": "revue_prioritaire",
                             "nouvelle_idee": False,
                             "nouvelle_idee_justification": (
                                 "NON le concept existait deja au T1. "
@@ -121,9 +121,8 @@ def test_filter_text_cards_sorts_new_idea_first_and_filters_non_pertinent() -> N
 
     cards, count_text = filter_text_cards(text_data, None, None, None)
 
-    # Seuls les 2 changements pertinents (major + new_moderate) sont affichés
-    assert count_text == "2 changement(s) affiché(s)"
-    assert len(cards) == 2
+    assert count_text == "3 changement(s) affiché(s)"
+    assert len(cards) == 3
     # La structure de la carte est : badge_row, themes_row?, meta, side_by_side, ...
     # Le side-by-side rend les textes T1/T2 dans des spans imbriqués.
     # On aplatit tous les enfants pour vérifier la présence des phrases.
@@ -142,6 +141,9 @@ def test_filter_text_cards_sorts_new_idea_first_and_filters_non_pertinent() -> N
 
     first_text = _flat_text(cards[0])
     second_text = _flat_text(cards[1])
+    third_text = _flat_text(cards[2])
     # Tri : nouvelle idée d'abord, puis impact décroissant
     assert "Nouvelle idée" in first_text  # phrase added present in T2 column
     assert "Majeur existant" in second_text  # phrase modified present in T2 column
+    assert "Variation chiffree" in third_text
+    assert "Non pertinent" in third_text

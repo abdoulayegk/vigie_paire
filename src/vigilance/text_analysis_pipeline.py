@@ -31,6 +31,7 @@ from vigilance.amf_taxonomy import (
     TriageValidationError,
     empty_triage_skeleton,
     format_exclusion_reasons_for_prompt,
+    format_theme_subjects_for_prompt,
     format_themes_for_prompt,
 )
 from vigilance.cli.quarter_logic import normalize_quarter, resolve_previous_quarter
@@ -479,7 +480,7 @@ def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
 
     Un changement modéré est retenu uniquement s'il introduit une nouvelle idée
     ou s'il porte un thème AMF méthodologique/réglementaire fort. Utilisée pour
-    filtrer les changements à escalader en priorité.
+    filtrer les changements à prioriser pour revue.
     """
     if not triage.get("is_relevant", False):
         return False
@@ -1304,7 +1305,7 @@ def _call_structured_completion_with_correction(
 
     Sémantique :
     - Une ``ValidationError`` Pydantic signifie que GPT a respecté le schéma
-      JSON mais violé un invariant transversal (ex : ``escalade`` sans
+      JSON mais violé un invariant transversal (ex : ``revue_prioritaire`` sans
       ``MAJEUR``). Ce type d'erreur est potentiellement corrigeable par
       re-prompt, donc on retry jusqu'à ``max_retries`` fois en injectant le
       détail de l'erreur dans la conversation pour permettre l'auto-correction.
@@ -1345,9 +1346,10 @@ def _call_structured_completion_with_correction(
                         "le schéma. Rappel des invariants stricts : "
                         "nouvelle_idee_justification est TOUJOURS obligatoire, "
                         "≥ 3 phrases complètes ET ≥ 200 caractères au total, "
-                        "rédigée comme une note d'analyste en 3 paragraphes "
-                        "séparés par \\n\\n (ce qui est nouveau, pourquoi c'est "
-                        "pertinent pour la vigie, quoi surveiller), "
+                        "rédigée comme une note d'analyste avec les rubriques "
+                        "exactes séparées par \\n\\n : Nouvel élément à surveiller, "
+                        "Sujet détecté, Ce qui change, Pertinence métier, "
+                        "Lecture de vigie, "
                         "commençant par 'OUI' ou 'NON' selon nouvelle_idee ; "
                         "is_relevant=true exige themes_amf non vide + explanation "
                         "≥ 50 caractères ; is_relevant=false exige themes_amf=[] + "
@@ -1355,7 +1357,7 @@ def _call_structured_completion_with_correction(
                         "impact_level=MINEUR + action_requise='aucune' + "
                         "explanation vide (mais justification OBLIGATOIRE expliquant "
                         "pourquoi le changement n'est pas une nouvelle idée) ; "
-                        "action_requise='escalade' exige impact_level='MAJEUR'."
+                        "action_requise='revue_prioritaire' exige impact_level='MAJEUR'."
                     ),
                 }
             ]
@@ -1705,6 +1707,42 @@ def _synthetic_subsection_change(
     }
 
 
+def _synthetic_subsection_rename_change(
+    *,
+    section_key: str,
+    heading_t1: str,
+    heading_t2: str,
+    idx: int,
+) -> dict[str, Any]:
+    """Crée un changement explicite pour une sous-section renommée."""
+    slug_source = f"{heading_t1}_{heading_t2}"
+    slug = re.sub(r"[^\w]+", "_", _normalize_heading(slug_source))[:40].strip("_")
+    summary = f"Sous-section renommée: {heading_t1} -> {heading_t2}"
+    return {
+        "change_id": f"{section_key}_{slug}_change_{idx:03d}",
+        "section_key": section_key,
+        "subsection_heading": f"{heading_t1} → {heading_t2}",
+        "previous_subsection_heading": heading_t1,
+        "current_subsection_heading": heading_t2,
+        "diff_type": "renamed",
+        "semantic_text_t1": _sanitize_semantic_text(heading_t1),
+        "semantic_text_t2": _sanitize_semantic_text(heading_t2),
+        "source_text_t1": heading_t1,
+        "source_text_t2": heading_t2,
+        "source_block_ids_t1": [],
+        "source_block_ids_t2": [],
+        "source_refs_t1": [],
+        "source_refs_t2": [],
+        "pages_t1": [],
+        "pages_t2": [],
+        "source_resolution_t1": "markdown_heading",
+        "source_resolution_t2": "markdown_heading",
+        "evidence_t1": {"pages": [], "snippet": heading_t1},
+        "evidence_t2": {"pages": [], "snippet": heading_t2},
+        "change_summary": summary,
+    }
+
+
 def _compare_texts_single_call(
     *,
     client: Any,
@@ -1880,6 +1918,18 @@ def _compare_section_texts(
         heading_slug = re.sub(r"[^\w]+", "_", _normalize_heading(heading_label))[:40].strip("_")
 
         # For renamed pairs, display as "T1 heading → T2 heading"
+        is_renamed_pair = h1 is not None and h2 is not None and (h1, h2) in renamed_pairs
+        if is_renamed_pair:
+            all_changes.append(
+                _synthetic_subsection_rename_change(
+                    section_key=section_key,
+                    heading_t1=h1,
+                    heading_t2=h2,
+                    idx=global_idx,
+                )
+            )
+            global_idx += 1
+
         if h1 is not None and h2 is not None and (h1, h2) in renamed_pairs:
             heading_label = f"{h1} → {h2}"
             heading_slug = re.sub(r"[^\w]+", "_", _normalize_heading(h1))[:40].strip("_")
@@ -1966,35 +2016,27 @@ def _default_triage() -> dict[str, Any]:
 
 
 _FEW_SHOT_TRIAGE_AMF = """\
-Exemples (à imiter strictement, en particulier le format de nouvelle_idee_justification : une note d'analyste en français, préfixée OUI/NON, en 3 paragraphes séparés par \\n\\n. La justification doit expliquer ce qui est nouveau, pourquoi c'est pertinent pour la vigie AMF/BSIF, et ce que l'analyste doit surveiller. Ne jamais remplacer l'analyse par une simple liste de codes AMF.) :
+Exemples à imiter strictement. Le champ nouvelle_idee_justification doit être une note d'analyste en français, préfixée OUI/NON, avec les rubriques exactes : Nouvel élément à surveiller, Sujet détecté, Ce qui change, Pertinence métier, Lecture de vigie. Les codes AMF servent à choisir les sujets, mais la justification doit expliquer la pertinence métier de vigie bancaire.
 
-Exemple 1 — Modification méthodologique multi-label (MAJEUR)
-Input : diff_type="modified", T1="Le risque de crédit est évalué selon une approche standardisée.", T2="Le risque de crédit est évalué selon une approche par modèles internes avancés (AIRB) approuvée par le BSIF."
-Output : {"is_relevant": true, "themes_amf": ["MODIFICATION_METHODOLOGIE", "EXIGENCES_REGLEMENTAIRES"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "escalade", "exclusion_reason": null, "explanation": "Au T2, la banque introduit un nouveau modèle interne avancé (AIRB) pour l'évaluation du risque de crédit. Ce changement relève d'une modification méthodologique substantielle alignée sur les exigences réglementaires du BSIF, et non d'une simple reformulation. Cela implique une revue de la base de comparaison avec le rapport précédent pour la surveillance du risque de crédit.", "nouvelle_idee_justification": "OUI — le texte T2 remplace l'approche standardisée par une approche par modèles internes avancés (AIRB) approuvée par le BSIF. Cette méthode n'était pas présente au T1 et change la façon dont la banque décrit l'évaluation du risque de crédit.\n\nCette nouveauté est pertinente pour la vigie parce qu'elle touche une méthodologie prudentielle et une exigence réglementaire, pas seulement un choix rédactionnel. Elle peut affecter la comparabilité des mesures de risque de crédit, la lecture des exigences de fonds propres et l'analyse inter-pairs.\n\nL'analyste devrait vérifier si l'approbation BSIF est documentée ailleurs dans le rapport, confirmer le périmètre des portefeuilles couverts par AIRB et surveiller si d'autres banques introduisent la même méthode dans leurs divulgations.", "change_segments": [{"kind": "modified", "text_t1": "approche standardisée", "text_t2": "approche par modèles internes avancés (AIRB) approuvée par le BSIF"}]}
-
-Exemple 2 — Risque émergent IA (added, MAJEUR)
+Exemple 1 — Risque émergent IA (added, MAJEUR)
 Input : diff_type="added", T1="", T2="La Banque a établi un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans ses activités."
-Output : {"is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "escalade", "exclusion_reason": null, "explanation": "Au T2, la banque introduit un cadre formel de gouvernance pour l'IA générative, absent au T1. Ce changement relève des risques émergents et de la gouvernance des risques selon les attentes AMF. Cela implique une surveillance accrue des modèles tiers et de leur supervision pour la comparabilité avec les pairs.", "nouvelle_idee_justification": "OUI — le T2 ajoute un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans les activités de la banque. Cet élément était absent du T1 et introduit un risque émergent explicite dans la divulgation.\n\nCette nouveauté est pertinente parce qu'elle touche à la fois la gouvernance des risques et la surveillance des technologies émergentes. Pour la vigie AMF, l'enjeu n'est pas seulement l'existence de l'IA, mais la manière dont la banque encadre les modèles, les contrôles, les tiers et les responsabilités internes.\n\nL'analyste devrait suivre si la banque précise les mécanismes de contrôle, les limites d'utilisation et la supervision des fournisseurs technologiques. Il devrait aussi comparer cette divulgation avec les pairs pour détecter une évolution sectorielle des attentes de gouvernance IA.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "La Banque a établi un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans ses activités."}]}
+Output : {"is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque introduit un cadre formel de gouvernance pour l'IA générative, absent au T1. Ce changement relève des risques émergents et de la gouvernance des risques selon les attentes AMF. Il ajoute une information substantielle sur les contrôles et responsabilités associés à une technologie émergente.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Intelligence artificielle, risque émergent, gouvernance des risques, information ajoutée.\n\nCe qui change : Le T2 ajoute un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans les activités de la banque. Cette information était absente du T1 et introduit un sujet de risque technologique explicite dans la divulgation.\n\nPertinence métier : Ce changement est pertinent pour la vigie bancaire parce que l'IA générative peut toucher la gestion des modèles, les fournisseurs technologiques, les contrôles internes, la conformité, la protection des données et la gouvernance des risques. La mention d'un cadre de gouvernance ne décrit pas seulement l'utilisation d'un outil; elle rend visible la manière dont la banque encadre un risque émergent qui devient comparable entre pairs.\n\nLecture de vigie : Le point à retenir est que la banque rend plus visible son encadrement de l'IA. Cette information aide à suivre la maturité de gouvernance IA dans le secteur bancaire canadien et l'évolution des pratiques de divulgation sur les risques technologiques.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "La Banque a établi un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans ses activités."}]}
 
-Exemple 3 — Variation chiffrée propre à la banque (EXCLU)
-Input : diff_type="modified", T1="Notre portefeuille de prêts hypothécaires s'élève à 287 G$.", T2="Notre portefeuille de prêts hypothécaires s'élève à 294 G$."
-Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nouvelle_idee": false, "action_requise": "aucune", "exclusion_reason": "variation_numerique_propre_banque", "explanation": "", "nouvelle_idee_justification": "NON — le seul changement observé est le passage du portefeuille de prêts hypothécaires de 287 G$ à 294 G$. L'indicateur existait déjà au T1 et le T2 ne crée ni nouveau concept, ni nouvelle méthodologie, ni nouvelle obligation de divulgation.\n\nCette variation n'est pas une nouvelle idée pour la vigie AMF parce qu'elle reflète l'évolution normale d'un montant propre à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF et aucune posture de risque qui exigerait une lecture réglementaire.\n\nL'analyste peut donc traiter cette ligne comme une mise à jour quantitative attendue. Une revue séparée ne serait pertinente que si l'ampleur du mouvement déclenchait un seuil interne ou si le rapport associait explicitement cette hausse à un changement de stratégie ou de risque.", "change_segments": []}
-
-Exemple 4 — Retrait de facteur de risque cyber (removed, MAJEUR)
+Exemple 2 — Retrait de facteur de risque cyber (removed, MAJEUR)
 Input : diff_type="removed", T1="Les risques liés aux cybermenaces incluent les attaques par déni de service et les ransomwares.", T2=""
-Output : {"is_relevant": true, "themes_amf": ["FACTEUR_RISQUE_CHANGEMENT", "RISQUE_EMERGENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "escalade", "exclusion_reason": null, "explanation": "Au T1, la banque listait explicitement les cybermenaces (DDoS, ransomwares) comme facteur de risque, mais ce listing disparaît au T2. Ce retrait croise un changement de facteur de risque, un risque émergent prioritaire et un retrait de divulgation selon les attentes AMF. Cela soulève une question de transparence sur la posture cyber et nécessite une investigation.", "nouvelle_idee_justification": "OUI — le T2 retire la mention selon laquelle les cybermenaces incluent les attaques par déni de service et les ransomwares. Cette information était présente au T1 et sa disparition modifie la divulgation d'un facteur de risque émergent.\n\nCette nouveauté est pertinente pour la vigie parce qu'un retrait de divulgation peut être aussi important qu'un ajout. La suppression réduit la transparence sur des cyberrisques précis et touche les thèmes de facteur de risque, de risque émergent et de retrait d'information.\n\nL'analyste devrait vérifier si ces cybermenaces sont décrites ailleurs dans le rapport ou si elles ont réellement disparu de la posture publique de la banque. Si aucune divulgation équivalente n'existe, le changement mérite une investigation sur la cohérence de la communication cyber.", "change_segments": [{"kind": "removed", "text_t1": "Les risques liés aux cybermenaces incluent les attaques par déni de service et les ransomwares.", "text_t2": ""}]}
+Output : {"is_relevant": true, "themes_amf": ["FACTEUR_RISQUE_CHANGEMENT", "RISQUE_EMERGENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque listait explicitement les attaques par déni de service et les ransomwares comme cybermenaces, mais cette mention disparaît au T2. Ce retrait touche un facteur de risque et un risque émergent prioritaire. Il modifie le niveau de détail de la divulgation cyber.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Cybersécurité, risque émergent, facteur de risque modifié, information retirée.\n\nCe qui change : Le T2 retire la mention explicite des attaques par déni de service et des ransomwares comme cybermenaces. Ces risques étaient nommés directement au T1 et ne sont plus présentés avec le même niveau de précision dans le passage comparé.\n\nPertinence métier : Ce changement est important pour la vigie parce qu'il touche la précision de la divulgation sur les cyberrisques. Dans un rapport bancaire, l'ajout ou le retrait de menaces cyber précises peut modifier la lecture de l'exposition au risque, de la transparence et de la comparabilité avec les pairs, surtout lorsque les cybermenaces sont un sujet de surveillance prioritaire.\n\nLecture de vigie : Le point à retenir est que la banque ne présente plus le cyberrisque avec le même niveau de détail. Cela peut signaler une évolution dans la façon dont elle communique ses risques technologiques émergents.", "change_segments": [{"kind": "removed", "text_t1": "Les risques liés aux cybermenaces incluent les attaques par déni de service et les ransomwares.", "text_t2": ""}]}
 
-Exemple 5 — Nouvelle mention BSIF climatique (added, MAJEUR)
+Exemple 3 — Nouvelle mention BSIF climatique (added, MAJEUR)
 Input : diff_type="added", T1="", T2="Conformément aux nouvelles attentes du BSIF en matière de risques climatiques (Ligne directrice B-15), nous avons mis en place un comité dédié."
-Output : {"is_relevant": true, "themes_amf": ["NOUVELLE_MENTION_REGLEMENTAIRE", "ESG_CLIMATIQUE", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "escalade", "exclusion_reason": null, "explanation": "Au T2, la banque mentionne pour la première fois la Ligne directrice B-15 du BSIF et la création d'un comité ESG/climatique. Ce changement croise nouvelle mention réglementaire, divulgation ESG et gouvernance des risques. Cela aligne la banque sur les attentes prudentielles climatiques et doit être suivi pour la comparabilité inter-pairs.", "nouvelle_idee_justification": "OUI — le T2 ajoute une référence explicite aux attentes du BSIF en matière de risques climatiques, soit la Ligne directrice B-15, ainsi qu'un comité dédié. Cette mention n'apparaissait pas au T1 et introduit une nouvelle articulation entre réglementation climatique et gouvernance interne.\n\nCette nouveauté est pertinente pour la vigie parce qu'elle touche directement les divulgations ESG, la gestion des risques climatiques et les attentes prudentielles du BSIF. Elle peut modifier la lecture de la gouvernance climatique de la banque et la comparabilité avec les autres institutions canadiennes.\n\nL'analyste devrait suivre si le rapport détaille le mandat du comité, les responsabilités de supervision et les impacts sur les pratiques de divulgation climatique. Il devrait aussi vérifier si la banque ajuste ses contrôles, ses métriques ou ses échéanciers de conformité liés à B-15.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "Conformément aux nouvelles attentes du BSIF en matière de risques climatiques (Ligne directrice B-15), nous avons mis en place un comité dédié."}]}
+Output : {"is_relevant": true, "themes_amf": ["NOUVELLE_MENTION_REGLEMENTAIRE", "ESG_CLIMATIQUE", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque mentionne pour la première fois la Ligne directrice B-15 du BSIF et la création d'un comité ESG ou climatique. Ce changement croise nouvelle mention réglementaire, divulgation ESG et gouvernance des risques. Il rend plus explicite l'arrimage de la banque aux attentes prudentielles climatiques.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, nouvelle mention réglementaire, gouvernance des risques.\n\nCe qui change : Le T2 ajoute une référence aux attentes du BSIF en matière de risques climatiques, soit la Ligne directrice B-15, ainsi qu'un comité dédié. Cette mention n'apparaissait pas au T1 et introduit une articulation plus explicite entre réglementation climatique et gouvernance interne.\n\nPertinence métier : Ce changement est pertinent parce qu'il relie directement la divulgation de la banque aux attentes prudentielles climatiques. Dans une vigie bancaire, ce type de mention permet de suivre comment les institutions intègrent le risque climatique dans leur gouvernance, leurs contrôles et leurs obligations de divulgation, en particulier lorsque B-15 devient un point de comparaison entre banques canadiennes.\n\nLecture de vigie : Le point à retenir est que la banque rend plus explicite son positionnement face aux exigences climatiques du BSIF. Cette information peut devenir un élément de comparaison important entre pairs sur la gouvernance climatique.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "Conformément aux nouvelles attentes du BSIF en matière de risques climatiques (Ligne directrice B-15), nous avons mis en place un comité dédié."}]}
 
-Exemple 6 — Reformulation pure (EXCLU)
-Input : diff_type="modified", T1="La gestion du risque de crédit est encadrée par notre politique interne.", T2="Notre politique interne encadre la gestion du risque de crédit."
-Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nouvelle_idee": false, "action_requise": "aucune", "exclusion_reason": "reformulation_mineure", "explanation": "", "nouvelle_idee_justification": "NON — le T2 reformule la même information que le T1 : la gestion du risque de crédit demeure encadrée par une politique interne. Le changement porte sur l'ordre des mots et non sur le contenu de la divulgation.\n\nCe n'est pas une nouvelle idée pour la vigie AMF parce qu'aucun facteur de risque, mécanisme de gouvernance, seuil réglementaire ou changement méthodologique n'est ajouté ou retiré. La substance est stable entre les deux rapports.\n\nL'analyste peut écarter cette ligne comme ajustement rédactionnel. Aucune action n'est requise, sauf si un autre passage du rapport indique que la politique interne elle-même a changé de portée, de gouvernance ou d'exigence applicable.", "change_segments": []}
+Exemple 4 — Variation chiffrée propre à la banque (EXCLU)
+Input : diff_type="modified", T1="Notre portefeuille de prêts hypothécaires s'élève à 287 G$.", T2="Notre portefeuille de prêts hypothécaires s'élève à 294 G$."
+Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nouvelle_idee": false, "action_requise": "aucune", "exclusion_reason": "variation_numerique_propre_banque", "explanation": "", "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour le montant du portefeuille de prêts hypothécaires, qui passe de 287 G$ à 294 G$. L'indicateur existait déjà au T1 et le changement porte uniquement sur la valeur publiée.\n\nPertinence métier : Cette variation n'est pas une nouvelle idée de vigie parce qu'elle reflète l'évolution normale d'un chiffre propre à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nLecture de vigie : Le point à retenir est que la substance de la divulgation demeure stable. La ligne décrit une mise à jour quantitative attendue plutôt qu'un nouveau sujet de risque, de conformité, de gouvernance ou de méthode.", "change_segments": []}
 
-Exemple 7 — Montant réglementaire (seuil prudentiel)
+Exemple 5 — Montant réglementaire (seuil prudentiel)
 Input : diff_type="modified", T1="Le seuil prudentiel CET1 minimal applicable est de 4,5 %.", T2="Le seuil prudentiel CET1 minimal applicable est de 5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF."
-Output : {"is_relevant": true, "themes_amf": ["RATIOS_REGLEMENTAIRES", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE", "NOUVELLE_MENTION_REGLEMENTAIRE"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "escalade", "exclusion_reason": null, "explanation": "Au T2, le seuil prudentiel CET1 minimal applicable passe de 4,5 % à 5,0 % en lien avec les nouvelles exigences pilier 2 du BSIF. Ce changement est un MONTANT RÉGLEMENTAIRE explicite (pas une variation propre à la banque) qui modifie les ratios applicables. Cela impose un suivi de l'écart entre la position actuelle de la banque et la nouvelle exigence prudentielle.", "nouvelle_idee_justification": "OUI — le T2 modifie le seuil prudentiel CET1 minimal applicable, qui passe de 4,5 % à 5,0 %, et rattache ce changement aux nouvelles exigences pilier 2 du BSIF. Il s'agit d'un seuil réglementaire, pas d'une variation de performance propre à la banque.\n\nCette nouveauté est pertinente pour la vigie parce qu'elle touche directement les ratios réglementaires, les exigences de capital et l'information prudentielle communiquée aux parties prenantes. Un changement de seuil peut modifier l'interprétation de la marge de gestion du capital et la comparaison avec les pairs.\n\nL'analyste devrait vérifier l'écart entre le ratio CET1 publié et le nouveau seuil, confirmer la date d'application de l'exigence et surveiller si la banque présente des mesures de gestion du capital pour maintenir une marge suffisante.", "change_segments": [{"kind": "modified", "text_t1": "4,5 %", "text_t2": "5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF"}]}
+Output : {"is_relevant": true, "themes_amf": ["RATIOS_REGLEMENTAIRES", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE", "NOUVELLE_MENTION_REGLEMENTAIRE"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, le seuil prudentiel CET1 minimal applicable passe de 4,5 % à 5,0 % en lien avec les nouvelles exigences pilier 2 du BSIF. Ce changement porte sur un seuil réglementaire, pas sur une variation propre à la banque. Il modifie la lecture du cadre de capital applicable.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Ratio prudentiel, seuil réglementaire, exigence réglementaire, capital.\n\nCe qui change : Le T2 modifie le seuil prudentiel CET1 minimal applicable, qui passe de 4,5 % à 5,0 %, et rattache ce changement aux nouvelles exigences pilier 2 du BSIF. Il s'agit d'un seuil réglementaire, pas d'une simple variation du ratio publié par la banque.\n\nPertinence métier : Ce changement est pertinent pour la vigie parce qu'il touche directement les ratios réglementaires, les exigences de capital et l'information prudentielle communiquée aux parties prenantes. Un changement de seuil peut modifier l'interprétation de la marge de gestion du capital, la comparaison entre banques et la lecture du niveau de contrainte réglementaire applicable.\n\nLecture de vigie : Le point à retenir est que la variation observée ne doit pas être lue uniquement comme un mouvement de chiffre. Elle reflète une évolution du cadre prudentiel présenté par la banque.", "change_segments": [{"kind": "modified", "text_t1": "4,5 %", "text_t2": "5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF"}]}
 """
 
 
@@ -2134,12 +2176,22 @@ def _triage_section_changes(
         "Taxonomie AMF (utilise UNIQUEMENT ces codes pour themes_amf, "
         "multi-label autorisé et encouragé) :\n"
         f"{format_themes_for_prompt()}\n\n"
+        "Libellés analyste à utiliser dans `Sujet détecté` et dans "
+        "`nouvelle_idee_justification` (ne pas laisser seulement les codes "
+        "AMF techniques) :\n"
+        f"{format_theme_subjects_for_prompt()}\n\n"
         "Raisons d'exclusion (à utiliser quand is_relevant=false) :\n"
         f"{format_exclusion_reasons_for_prompt()}\n\n"
         "Règles métier :\n"
         "1. MULTI-LABEL : un changement peut combiner plusieurs thèmes "
         "(ex : modification méthodologique qui touche la gouvernance → "
         '["MODIFICATION_METHODOLOGIE", "GOUVERNANCE_RISQUES"]).\n\n'
+        "1b. RENOMMAGE NARRATIF : si diff_type='renamed', il s'agit d'un "
+        "titre ou d'une sous-section renommée entre T1 et T2. Classer avec "
+        "'STRUCTURE_RAPPORT' et, si le nouveau libellé change la lecture du "
+        "risque, ajouter les thèmes métier applicables. Ne pas assimiler un "
+        "renommage à une simple reformulation lorsque le libellé oriente "
+        "différemment l'analyse de vigie.\n\n"
         "2. EXCLUSIONS DURES — mettre is_relevant=false avec exclusion_reason :\n"
         "   - Variations chiffrées PROPRES à la banque (taille du portefeuille, "
         "exposition, profits, montants d'actifs, ratios chiffrés de la banque) "
@@ -2173,22 +2225,24 @@ def _triage_section_changes(
         "émergent introduit ou retiré.\n"
         "   - MODERE : modification de posture, croisement multi-thèmes notable.\n"
         "   - MINEUR : changement modeste mais substantif.\n\n"
-        "7. action_requise : 'escalade' UNIQUEMENT pour les changements MAJEUR "
-        "(invariant strict — escalade exige impact_level=MAJEUR) ; 'investigation' "
-        "pour MODERE ou MAJEUR sans escalade ; 'confirmation' à valider avec "
+        "7. action_requise : 'revue_prioritaire' UNIQUEMENT pour les changements MAJEUR "
+        "(invariant strict — revue_prioritaire exige impact_level=MAJEUR) ; 'investigation' "
+        "pour MODERE ou MAJEUR sans revue_prioritaire ; 'confirmation' à valider avec "
         "source ; 'information' pertinent non actionnable ; 'aucune' uniquement "
         "si is_relevant=false.\n\n"
         "8. INVARIANTS STRICTS (toute violation rejette la réponse) :\n"
         "   - is_relevant=true → themes_amf NON VIDE, exclusion_reason=null, "
         "explanation ≥ 50 caractères (3 phrases pleines), nouvelle_idee_justification "
-        "≥ 3 phrases complètes ET ≥ 200 caractères au total, commençant par 'OUI'.\n"
+        "≥ 3 phrases complètes ET ≥ 200 caractères au total, commençant par 'OUI' "
+        "et contenant les rubriques exactes : Nouvel élément à surveiller, "
+        "Sujet détecté, Ce qui change, Pertinence métier, Lecture de vigie.\n"
         "   - is_relevant=false → themes_amf=[], exclusion_reason renseigné, "
         "nouvelle_idee=false, impact_level=MINEUR, action_requise='aucune', "
         "explanation vide, change_segments=[]. nouvelle_idee_justification "
         "OBLIGATOIRE : ≥ 3 phrases complètes ET ≥ 200 caractères, commençant "
-        "par 'NON', expliquant clairement à l'analyste POURQUOI ce changement "
-        "n'est pas une nouvelle idée AMF (citer la raison d'exclusion en langage "
-        "métier, pas seulement le code).\n\n"
+        "par 'NON', contenant les mêmes rubriques exactes, et expliquant "
+        "clairement POURQUOI ce changement n'est pas une nouvelle idée AMF "
+        "(citer la raison d'exclusion en langage métier, pas seulement le code).\n\n"
         "9. CHANGE_SEGMENTS — détection sémantique fine (pour highlight UI) :\n"
         "   Si is_relevant=true, identifie les SEGMENTS précis qui changent. "
         "Format : liste d'objets `{\"kind\":\"added|removed|modified\", "
@@ -2209,20 +2263,28 @@ def _triage_section_changes(
         "y compris pour les is_relevant=false) :\n"
         "- Format STRICT : commencer par 'OUI' (si nouvelle_idee=true) ou 'NON' "
         "(si nouvelle_idee=false), suivi d'un tiret '—' ou '-'.\n"
-        "- Rédiger une NOTE D'ANALYSTE en 3 paragraphes séparés par \\n\\n :\n"
-        "  Paragraphe 1 : ce qui est nouveau ou retiré entre T1 et T2, en citant "
-        "l'élément exact du rapport.\n"
-        "  Paragraphe 2 : pourquoi ce changement est pertinent ou non pertinent "
-        "pour la vigie AMF/BSIF.\n"
-        "  Paragraphe 3 : ce que l'analyste doit surveiller, confirmer ou écarter.\n"
+        "- Rédiger une NOTE D'ANALYSTE avec ces rubriques EXACTES, dans cet "
+        "ordre, séparées par \\n\\n :\n"
+        "  1) 'OUI — Nouvel élément à surveiller : Oui' ou "
+        "'NON — Nouvel élément à surveiller : Non'.\n"
+        "  2) 'Sujet détecté : ...' avec des mots simples liés aux codes AMF "
+        "(IA, cybersécurité, risque climatique, conformité, capital, liquidité, "
+        "méthode de calcul, information ajoutée ou retirée).\n"
+        "  3) 'Ce qui change : ...' avec l'élément exact ajouté, retiré ou "
+        "modifié entre T1 et T2.\n"
+        "  4) 'Pertinence métier : ...' avec une explication longue, concrète "
+        "et spécifique à la vigie bancaire. Relier le changement au sujet "
+        "détecté et à son importance pour une banque.\n"
+        "  5) 'Lecture de vigie : ...' avec le point de surveillance à retenir, "
+        "sans demander à l'analyste de vérifier, accepter ou rejeter le changement.\n"
         "- Au moins 3 phrases complètes (ponctuation finale, ≥ 20 chars chacune) "
         "et ≥ 200 caractères au total — l'analyste doit avoir une explication "
         "détaillée et claire, pas un résumé.\n"
         "- Citer l'élément SPÉCIFIQUE du rapport : nom exact d'un indicateur, "
         "fragment de phrase, libellé de footnote, titre de tableau — adossé au "
         "contenu réel des rapports aux actionnaires traités.\n"
-        "- Si is_relevant=true : mentionner explicitement le ou les thèmes AMF "
-        "concernés en langage naturel et expliquer en quoi le changement "
+        "- Si is_relevant=true : mentionner explicitement le ou les sujets AMF "
+        "concernés en langage naturel dans 'Sujet détecté' et expliquer en quoi le changement "
         "constitue une nouveauté.\n"
         "- Si is_relevant=false : expliquer en LANGAGE MÉTIER pourquoi ce "
         "changement n'est PAS une nouvelle idée AMF (variation chiffrée propre "
@@ -2232,6 +2294,9 @@ def _triage_section_changes(
         "- Ne pas produire une justification de type gabarit qui se contente de "
         "dire 'ce changement affecte les thèmes AMF ...'. Les codes AMF peuvent "
         "être mentionnés, mais ils ne remplacent jamais l'explication métier.\n"
+        "- Ne pas utiliser de formules de tâche comme 'vérifier si', 'accepter', "
+        "'rejeter' ou 'à confirmer par l'analyste' : Dash affiche déjà la "
+        "preuve et l'analyste prend la décision finale.\n"
         "- Adossé aux règles AMF appliquées sur le contenu réel (pas de "
         "généralités, pas de paraphrase de la règle abstraite).\n\n"
         f"{_FEW_SHOT_TRIAGE_AMF}\n"
@@ -2528,12 +2593,12 @@ def run_text_analysis_pipeline(
             _dt = _ch.get("diff_type", "")
             _txt_t1 = _ch.get("source_text_t1") or ""
             _txt_t2 = _ch.get("source_text_t2") or ""
-            if _dt in {"modified", "removed", "unchanged"} and _txt_t1:
+            if _dt in {"modified", "removed", "unchanged", "renamed"} and _txt_t1:
                 _pg = _find_page_for_fragment(_txt_t1, _block_idx_t1)
                 _p_t1: list[int] = [_pg] if _pg else ([_fallback_t1] if _fallback_t1 else [])
             else:
                 _p_t1 = []
-            if _dt in {"modified", "added", "unchanged"} and _txt_t2:
+            if _dt in {"modified", "added", "unchanged", "renamed"} and _txt_t2:
                 _pg = _find_page_for_fragment(_txt_t2, _block_idx_t2)
                 _p_t2: list[int] = [_pg] if _pg else ([_fallback_t2] if _fallback_t2 else [])
             else:

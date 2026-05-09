@@ -105,7 +105,7 @@ def _empty_state():
 
     return [
         html.Div(
-            "Aucun changement pertinent correspondant aux filtres sélectionnés.",
+            "Aucun changement détecté correspondant aux filtres sélectionnés.",
             className="text-muted text-center py-4",
         )
     ]

@@ -1,7 +1,7 @@
 """Utilitaires de priorite pour le tri de la file de revue.
 
 Aligne sur la taxonomie AMF v2 unifiée :
-- ``action_requise`` (escalade > investigation > confirmation > information > aucune)
+- ``action_requise`` (revue_prioritaire > investigation > confirmation > information > aucune)
 - ``category`` (REGLEMENTAIRE > RISQUE > CAPITAL > STRUCTURE > NON_PERTINENT > INCONNU)
 - ``impact_level`` (MAJEUR > MODERE > MINEUR)
 
@@ -15,7 +15,7 @@ from __future__ import annotations
 # action_requise is the primary sort key — it reflects the analyst action needed,
 # which is the most direct signal of urgency.
 _ACTION_PRIORITY = {
-    "escalade": 0,
+    "revue_prioritaire": 0,
     "investigation": 1,
     "confirmation": 2,
     "information": 3,
@@ -62,7 +62,7 @@ def get_priority_signals(item: dict) -> tuple[str, str, str]:
 def sort_review_items_by_priority(items: list[dict]) -> list[dict]:
     """Trie les elements de la file de revue par urgence analyste.
 
-    Cle primaire : action_requise (escalade > investigation > confirmation > information > aucune).
+    Cle primaire : action_requise (revue_prioritaire > investigation > confirmation > information > aucune).
     Secondaire   : pertinence (REGLEMENTAIRE > ... > NON_SIGNIFICATIF).
     Tertiaire    : niveau de risque (ELEVE > MODERE > FAIBLE).
     Quaternaire  : confiance (descendant).

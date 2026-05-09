@@ -48,7 +48,7 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
                             "is_relevant": True,
                             "category": "RISQUE",
                             "impact_level": "MAJEUR",
-                            "action_requise": "escalade",
+                            "action_requise": "revue_prioritaire",
                             "nouvelle_idee": True,
                             "nouvelle_idee_justification": justification_oui,
                         },
@@ -132,3 +132,75 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
     assert ws["G4"].value == "Paragraphe exact ajouté"
     assert ws["F5"].value == "Paragraphe non substantif T1"
     assert ws["G5"].value == "Paragraphe non substantif T2"
+
+
+def test_generate_text_comparison_excel_strips_control_characters() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "modified",
+                        "source_text_t1": "Texte\x00 T1",
+                        "source_text_t2": "Texte T2",
+                        "evidence_t1": {"pages": [1]},
+                        "evidence_t2": {"pages": [2]},
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "category": "RISQUE",
+                            "impact_level": "MAJEUR",
+                            "action_requise": "revue_prioritaire",
+                            "nouvelle_idee": True,
+                            "nouvelle_idee_justification": "OUI - note\x00 analyste utile.",
+                        },
+                    }
+                ],
+            }
+        ]
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+
+    assert ws["F2"].value == "Texte T1"
+    assert ws["I2"].value == "OUI - note analyste utile."
+
+
+def test_generate_text_comparison_excel_labels_text_renames() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "renamed",
+                        "subsection_heading": "Ancien titre → Nouveau titre",
+                        "source_text_t1": "Ancien titre",
+                        "source_text_t2": "Nouveau titre",
+                        "evidence_t1": {"pages": [4]},
+                        "evidence_t2": {"pages": [5]},
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "category": "STRUCTURE",
+                            "impact_level": "MODERE",
+                            "nouvelle_idee": False,
+                            "nouvelle_idee_justification": "Renommage de sous-section.",
+                        },
+                    }
+                ],
+            }
+        ]
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+
+    assert ws["B2"].value == "Ancien titre → Nouveau titre"
+    assert ws["E2"].value == "Renommage"
+    assert ws["F2"].value == "Ancien titre"
+    assert ws["G2"].value == "Nouveau titre"

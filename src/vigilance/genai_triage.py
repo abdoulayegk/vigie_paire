@@ -21,6 +21,7 @@ from typing import Any
 
 from vigilance.amf_taxonomy import (
     THEMES_AMF_PIPELINE_2,
+    format_theme_subjects_for_prompt,
     format_themes_for_prompt,
 )
 
@@ -49,7 +50,7 @@ VALID_IMPACT_TYPES = frozenset({"structurel", "contenu", "methodologique", "non_
 
 VALID_PROJECT_PHASES = frozenset({"rapport_gestion", "pilier_3", "ifc", "autre"})
 
-VALID_ACTIONS = frozenset({"escalade", "investigation", "confirmation", "information", "aucune"})
+VALID_ACTIONS = frozenset({"revue_prioritaire", "investigation", "confirmation", "information", "aucune"})
 
 # Réutilise la taxonomie AMF unifiée définie dans amf_taxonomy.py (mêmes 18 codes
 # que Pipeline 2, partagés pour permettre des filtres transverses).
@@ -61,6 +62,13 @@ _JUSTIFICATION_MIN_SENTENCES = 3
 _JUSTIFICATION_MIN_SENTENCE_LENGTH = 20
 _JUSTIFICATION_MIN_TOTAL_LENGTH = 200
 _SENTENCE_BOUNDARY_RE = re.compile(r"[.!?]+")
+_REQUIRED_JUSTIFICATION_SECTIONS = (
+    "Nouvel élément à surveiller :",
+    "Sujet détecté :",
+    "Ce qui change :",
+    "Pertinence métier :",
+    "Lecture de vigie :",
+)
 
 
 def _count_substantive_sentences(text: str) -> int:
@@ -71,6 +79,14 @@ def _count_substantive_sentences(text: str) -> int:
     return sum(
         1 for part in parts if len(part.strip()) >= _JUSTIFICATION_MIN_SENTENCE_LENGTH
     )
+
+
+def _missing_justification_sections(text: str) -> list[str]:
+    return [
+        section
+        for section in _REQUIRED_JUSTIFICATION_SECTIONS
+        if section not in text
+    ]
 
 # ---------------------------------------------------------------------------
 # System Prompts
@@ -110,6 +126,9 @@ _TRIAGE_SYSTEM_PROMPT = (
     "TAXONOMIE AMF (utilise UNIQUEMENT ces codes dans themes_amf, multi-label "
     "autorisé et encouragé) :\n"
     f"{format_themes_for_prompt()}\n\n"
+    "LIBELLÉS ANALYSTE À UTILISER dans `Sujet détecté` et la justification "
+    "(ne pas laisser seulement les codes AMF techniques) :\n"
+    f"{format_theme_subjects_for_prompt()}\n\n"
     "DÉFINITION DE `nouvelle_idee` — 3 conditions cumulatives :\n"
     "(a) SUBSTANTIELLE : modifie la SUBSTANCE de la divulgation (concept, "
     "indicateur, mention réglementaire, méthodologie) — PAS une variation "
@@ -123,10 +142,21 @@ _TRIAGE_SYSTEM_PROMPT = (
     "y compris pour les changements jugés non pertinents) :\n"
     "- Commencer par 'OUI' (si nouvelle_idee=true) ou 'NON' (sinon), suivi "
     "d'un tiret ou d'une virgule.\n"
-    "- Rédiger une NOTE D'ANALYSTE en 3 paragraphes séparés par \\n\\n : "
-    "1) ce qui est nouveau ou retiré entre T1 et T2, avec l'élément exact du "
-    "rapport ; 2) pourquoi c'est pertinent ou non pertinent pour la vigie "
-    "AMF/BSIF ; 3) ce que l'analyste doit surveiller, confirmer ou écarter.\n"
+    "- Rédiger une NOTE D'ANALYSTE structurée avec ces rubriques EXACTES, "
+    "dans cet ordre, séparées par \\n\\n :\n"
+    "  1) 'OUI — Nouvel élément à surveiller : Oui' ou "
+    "'NON — Nouvel élément à surveiller : Non'.\n"
+    "  2) 'Sujet détecté : ...' avec des mots simples tirés des libellés "
+    "analyste ci-dessus (ex : IA, cybersécurité, risque climatique, "
+    "conformité, capital, liquidité, méthode de calcul).\n"
+    "  3) 'Ce qui change : ...' avec l'élément exact ajouté, retiré ou "
+    "modifié entre T1 et T2.\n"
+    "  4) 'Pertinence métier : ...' avec une explication longue, concrète et "
+    "spécifique à la vigie bancaire. Relier le changement au sujet détecté "
+    "(IA, cyber, climat, conformité, capital, méthode, divulgation) et à son "
+    "importance pour une banque.\n"
+    "  5) 'Lecture de vigie : ...' avec le point de surveillance à retenir, "
+    "sans demander à l'analyste de vérifier, accepter ou rejeter le changement.\n"
     "- Au moins 3 phrases complètes (≥ 20 caractères chacune, ponctuation "
     "finale) ET ≥ 200 caractères au total — l'analyste doit avoir une "
     "explication détaillée et claire, pas un résumé.\n"
@@ -134,7 +164,8 @@ _TRIAGE_SYSTEM_PROMPT = (
     "titre du tableau, libellé de footnote — adossé au contenu réel des "
     "rapports aux actionnaires traités.\n"
     "- Si is_relevant=true : mentionner les thèmes AMF concernés en langage "
-    "naturel et expliquer pourquoi c'est une nouveauté pour la banque.\n"
+    "naturel dans 'Sujet détecté' et expliquer pourquoi c'est une nouveauté "
+    "métier pour la banque.\n"
     "- Si is_relevant=false : expliquer en LANGAGE MÉTIER pourquoi ce "
     "changement n'est PAS une nouvelle idée AMF (variation chiffrée propre, "
     "reformulation sans nouveau fond, formatage, déplacement). L'analyste "
@@ -143,13 +174,16 @@ _TRIAGE_SYSTEM_PROMPT = (
     "Ne jamais remplacer l'analyse par une simple liste de codes AMF ou par "
     "une phrase générique du type 'ce changement affecte les thèmes AMF'. Les "
     "codes peuvent apparaître, mais la justification doit expliquer le "
-    "raisonnement métier.\n\n"
+    "raisonnement métier. Ne pas utiliser de formules de tâche comme "
+    "'vérifier si', 'accepter', 'rejeter', 'à confirmer par l'analyste' dans "
+    "la justification : Dash affiche déjà la preuve et l'analyste prend la "
+    "décision finale.\n\n"
     "RÉPONDRE UNIQUEMENT en JSON valide, sans markdown, selon ce schéma exact :\n"
     "{\n"
     '  "is_relevant": true | false,\n'
     '  "themes_amf": ["<code AMF>", ...],   // multi-label, vide si is_relevant=false\n'
     '  "nouvelle_idee": true | false,\n'
-    '  "nouvelle_idee_justification": "<OUI/NON — 3+ phrases complètes, ≥ 200 chars, OBLIGATOIRE même si non pertinent>",\n'
+    '  "nouvelle_idee_justification": "<OUI/NON — rubriques obligatoires : Nouvel élément à surveiller, Sujet détecté, Ce qui change, Pertinence métier, Lecture de vigie>",\n'
     '  "category": "REGLEMENTAIRE" | "RISQUE" | "CAPITAL" | "STRUCTURE" | "NON_PERTINENT" | "INCONNU",\n'
     '  "relevance_score": "ELEVEE" | "MOYENNE" | "FAIBLE",\n'
     '  "risk_level": "ELEVE" | "MODERE" | "FAIBLE",\n'
@@ -157,7 +191,7 @@ _TRIAGE_SYSTEM_PROMPT = (
     '  "explanation": "<3 paragraphes français séparés par \\n\\n>",\n'
     '  "impact_type": "structurel" | "contenu" | "methodologique" | "non_substantif",\n'
     '  "project_phase": "rapport_gestion" | "pilier_3" | "ifc" | "autre",\n'
-    '  "action_requise": "escalade" | "investigation" | "confirmation" | "information" | "aucune",\n'
+    '  "action_requise": "revue_prioritaire" | "investigation" | "confirmation" | "information" | "aucune",\n'
     '  "reference_reglementaire": "<référence si applicable, ex: Bâle III — CET1, sinon chaîne vide>",\n'
     '  "impact_description": "<1 phrase décrivant l\'impact concret>"\n'
     "}\n\n"
@@ -176,7 +210,7 @@ _TRIAGE_SYSTEM_PROMPT = (
     "- ifc : rapports intermédiaires/condensés.\n"
     "- autre : si la section ne correspond à aucune phase ci-dessus.\n\n"
     "GUIDE pour `action_requise` :\n"
-    "- escalade : changement critique MAJEUR nécessitant une revue immédiate par un senior.\n"
+    "- revue_prioritaire : changement critique MAJEUR nécessitant une revue immédiate par un senior.\n"
     "- investigation : anomalie ou surprise nécessitant une analyse approfondie.\n"
     "- confirmation : changement attendu à confirmer comme normal.\n"
     "- information : changement mineur, pour information seulement.\n"
@@ -184,7 +218,8 @@ _TRIAGE_SYSTEM_PROMPT = (
     "INVARIANTS STRICTS (toute violation rejette la réponse) :\n"
     "- nouvelle_idee_justification est TOUJOURS OBLIGATOIRE (≥ 3 phrases, "
     "≥ 200 chars), commençant par 'OUI' ou 'NON' selon nouvelle_idee, "
-    "rédigée en 3 paragraphes séparés par \\n\\n.\n"
+    "et contenant les rubriques exactes : Nouvel élément à surveiller, "
+    "Sujet détecté, Ce qui change, Pertinence métier, Lecture de vigie.\n"
     "- is_relevant=true → themes_amf NON VIDE.\n"
     "- is_relevant=false → themes_amf=[], category='NON_PERTINENT', "
     "nouvelle_idee=false, action_requise='aucune'. La justification reste "
@@ -211,7 +246,7 @@ RÉPONDRE UNIQUEMENT en JSON valide, sans markdown :
     "autre": {"count": N, "resume": "<1 phrase>"}
   },
   "par_action": {
-    "escalade": N,
+    "revue_prioritaire": N,
     "investigation": N,
     "confirmation": N,
     "information": N,
@@ -513,11 +548,18 @@ def _empty_triage_skeleton(*, source: str = "heuristic") -> dict[str, Any]:
         "themes_amf": [],
         "nouvelle_idee": False,
         "nouvelle_idee_justification": (
-            "NON — aucun triage AMF n'a été produit par GPT-4o pour ce "
-            "changement (cas rare : défaut structurel ou erreur en amont). "
-            "L'analyste doit considérer cet élément comme non classifié et "
-            "le marquer manuellement si pertinent. Aucune décision automatisée "
-            "n'est disponible pour ce changement."
+            "NON — Nouvel élément à surveiller : Non.\n\n"
+            "Sujet détecté : Élément non classifié par l'analyse automatisée.\n\n"
+            "Ce qui change : Aucun triage AMF exploitable n'a été produit par "
+            "GPT-4o pour ce changement. Le système ne dispose donc pas d'une "
+            "lecture fiable du contenu T1/T2 pour qualifier cette ligne.\n\n"
+            "Pertinence métier : Ce cas ne constitue pas une nouvelle idée "
+            "métier détectée par la vigie, car aucun thème AMF, risque, "
+            "méthode, conformité ou divulgation substantielle n'a pu être "
+            "rattaché au changement de façon fiable.\n\n"
+            "Lecture de vigie : Le point à retenir est que la ligne reste non "
+            "classifiée par l'automatisation et ne porte pas de signal métier "
+            "utilisable dans le résumé de surveillance."
         ),
         "impact_level": "MINEUR",
         "category": "NON_PERTINENT",
@@ -569,6 +611,12 @@ def _validate_amf_invariants(
         return (
             f"nouvelle_idee_justification doit commencer par '{expected_prefix}' "
             f"quand nouvelle_idee={nouvelle_idee}"
+        )
+    missing_sections = _missing_justification_sections(justification)
+    if missing_sections:
+        return (
+            "nouvelle_idee_justification doit contenir les rubriques "
+            f"obligatoires : {', '.join(missing_sections)}"
         )
 
     if is_relevant:
@@ -638,7 +686,7 @@ def _validate_summary_response(data: dict[str, Any] | None) -> dict[str, Any]:
     par_action: dict[str, int] = {}
     if isinstance(par_action_raw, dict):
         for action in (
-            "escalade",
+            "revue_prioritaire",
             "investigation",
             "confirmation",
             "information",

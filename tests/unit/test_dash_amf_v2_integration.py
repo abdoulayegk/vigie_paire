@@ -4,7 +4,7 @@ Vérifie que :
 - ``review_queue_v2._build_genai_summary_row`` filtre les items non pertinents
 - ``review_detail_v2._build_themes_amf_chips`` rend correctement l'overflow ``+N``
 - ``page_text_analysis._build_change_card`` affiche les nouveaux champs AMF
-  et masque les changements ``is_relevant=False``
+  et garde les changements ``is_relevant=False`` visibles pour revue humaine
 """
 
 from __future__ import annotations
@@ -56,13 +56,10 @@ def test_queue_summary_row_renders_relevant_with_amf_fields() -> None:
         "genai_analysis": {
             "is_relevant": True,
             "nouvelle_idee": True,
-            "nouvelle_idee_justification": (
-                "OUI nouveau ratio TLAC ajoute. "
-                "Cela aligne sur les exigences BSIF."
-            ),
+            "nouvelle_idee_justification": ("OUI nouveau ratio TLAC ajoute. Cela aligne sur les exigences BSIF."),
             "themes_amf": ["DIVULGATION_AJOUT", "RATIOS_REGLEMENTAIRES"],
             "impact_level": "MAJEUR",
-            "action_requise": "escalade",
+            "action_requise": "revue_prioritaire",
         }
     }
     row = _build_genai_summary_row(table)
@@ -70,7 +67,7 @@ def test_queue_summary_row_renders_relevant_with_amf_fields() -> None:
     text = _flatten_text(row)
     assert "Nouvelle idée" in text
     assert "MAJEUR" in text
-    assert "Escalade" in text
+    assert "Revue prioritaire" in text
 
 
 # --- Overflow des chips themes_amf (review_detail_v2) ---
@@ -117,10 +114,9 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
             "impact_level": "MAJEUR",
             "nouvelle_idee": True,
             "nouvelle_idee_justification": (
-                "OUI - methodologie modifiee au T2. "
-                "Cela touche les exigences BSIF (MODIFICATION_METHODOLOGIE)."
+                "OUI - methodologie modifiee au T2. Cela touche les exigences BSIF (MODIFICATION_METHODOLOGIE)."
             ),
-            "action_requise": "escalade",
+            "action_requise": "revue_prioritaire",
         },
     }
     card = _build_change_card(change, "Gestion des risques")
@@ -130,11 +126,11 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
     assert "Majeur" in text  # libellé impact (capitalized) pour la page texte
     assert "Modif. méthodologie" in text
     assert "OUI" in text
-    assert "Escalade" in text
+    assert "Revue prioritaire" in text
 
 
-def test_text_analysis_change_card_filters_non_pertinent() -> None:
-    """Une carte avec is_relevant=False est cachée (cohérent avec Excel minimal)."""
+def test_text_analysis_change_card_keeps_non_pertinent() -> None:
+    """Une carte avec is_relevant=False reste visible pour revue humaine."""
     change = {
         "diff_type": "modified",
         "source_text_t2": "Variation chiffrée",
@@ -148,7 +144,10 @@ def test_text_analysis_change_card_filters_non_pertinent() -> None:
         },
     }
     card = _build_change_card(change, "Gestion des risques")
-    assert card is None
+    assert card is not None
+    text = _flatten_text(card)
+    assert "Non pertinent" in text
+    assert "Variation chiffrée" in text
 
 
 # --- Side-by-side avec highlights AMF v2 ---
@@ -213,9 +212,7 @@ def test_side_by_side_modified_renders_two_columns() -> None:
         text_t2="Le seuil est de 5,0 %.",
         page_t1="22",
         page_t2="25",
-        change_segments=[
-            {"kind": "modified", "text_t1": "4,5 %", "text_t2": "5,0 %"}
-        ],
+        change_segments=[{"kind": "modified", "text_t1": "4,5 %", "text_t2": "5,0 %"}],
         diff_type="modified",
     )
     text = _flatten_text(sbs)
@@ -232,9 +229,7 @@ def test_side_by_side_added_renders_only_t2() -> None:
         text_t2="Nouveau cadre IA générative.",
         page_t1="",
         page_t2="30",
-        change_segments=[
-            {"kind": "added", "text_t1": "", "text_t2": "Nouveau cadre IA générative."}
-        ],
+        change_segments=[{"kind": "added", "text_t1": "", "text_t2": "Nouveau cadre IA générative."}],
         diff_type="added",
     )
     text = _flatten_text(sbs)

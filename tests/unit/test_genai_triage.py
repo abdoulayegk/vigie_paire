@@ -80,29 +80,44 @@ class TestHasMeaningfulDiff:
 
 def _valid_justification_oui() -> str:
     return (
-        "OUI - le ratio TLAC est ajoute au TABLEAU 11 et n'apparaissait pas au "
-        "trimestre precedent. Ce changement croise les themes AMF "
-        "DIVULGATION_AJOUT et RATIOS_REGLEMENTAIRES, signalant une nouvelle "
-        "exigence prudentielle BSIF substantielle. L'analyste doit comparer "
-        "cette divulgation avec les pairs canadiens pour valider la conformite "
-        "et la coherence du calcul TLAC."
+        "OUI - Nouvel élément à surveiller : Oui.\n\n"
+        "Sujet détecté : Ratio prudentiel, exigence réglementaire, information ajoutée.\n\n"
+        "Ce qui change : Le ratio TLAC est ajouté au TABLEAU 11 et n'apparaissait "
+        "pas au trimestre précédent. Le changement introduit une nouvelle "
+        "information prudentielle dans la divulgation.\n\n"
+        "Pertinence métier : Ce changement est pertinent pour la vigie bancaire "
+        "parce qu'il touche les exigences réglementaires et la présentation des "
+        "ratios prudentiels. Une nouvelle divulgation TLAC peut modifier la "
+        "lecture de la capacité d'absorption des pertes et la comparabilité "
+        "entre banques canadiennes.\n\n"
+        "Lecture de vigie : Le point à retenir est que la banque rend visible "
+        "un indicateur réglementaire supplémentaire, ce qui enrichit la lecture "
+        "du capital et du cadre prudentiel."
     )
 
 
 def _valid_justification_non() -> str:
     return (
-        "NON - le changement observe est une simple mise a jour de date entre "
-        "les deux trimestres, sans modification de fond. Aucun thème AMF n'est "
-        "touche et aucun seuil reglementaire ne change. L'analyste peut "
-        "considerer cette ligne comme une mise a jour rédactionnelle attendue, "
-        "sans implication metier sur la divulgation prudentielle."
+        "NON - Nouvel élément à surveiller : Non.\n\n"
+        "Sujet détecté : Mise à jour rédactionnelle sans changement de fond.\n\n"
+        "Ce qui change : Le changement observé est une simple mise à jour de "
+        "date entre les deux trimestres. Le contenu de la divulgation demeure "
+        "stable et aucun nouveau sujet réglementaire n'est ajouté.\n\n"
+        "Pertinence métier : Ce changement n'est pas une nouvelle idée pour la "
+        "vigie bancaire parce qu'il ne touche aucun risque, seuil prudentiel, "
+        "méthode de calcul, gouvernance ou exigence de conformité. Il ne "
+        "modifie pas la lecture métier du rapport.\n\n"
+        "Lecture de vigie : Le point à retenir est que la substance de la "
+        "divulgation demeure inchangée; la ligne reflète une mise à jour "
+        "rédactionnelle attendue plutôt qu'un nouveau signal de surveillance."
     )
 
 
 class TestValidateTriageResponse:
     def test_system_prompt_requests_analyst_style_justification(self):
         assert "NOTE D'ANALYSTE" in _TRIAGE_SYSTEM_PROMPT
-        assert "vigie AMF/BSIF" in _TRIAGE_SYSTEM_PROMPT
+        assert "Pertinence métier" in _TRIAGE_SYSTEM_PROMPT
+        assert "Sujet détecté" in _TRIAGE_SYSTEM_PROMPT
         assert "simple liste de codes AMF" in _TRIAGE_SYSTEM_PROMPT
 
     def test_valid_response(self):
@@ -118,7 +133,7 @@ class TestValidateTriageResponse:
             "explanation": "Ajout lié à Bâle III.",
             "impact_type": "contenu",
             "project_phase": "pilier_3",
-            "action_requise": "escalade",
+            "action_requise": "revue_prioritaire",
             "reference_reglementaire": "Bâle III — CET1",
             "impact_description": "Nouveau ratio prudentiel ajouté.",
         }
@@ -133,7 +148,7 @@ class TestValidateTriageResponse:
         assert result["confidence"] == 0.92
         assert result["impact_type"] == "contenu"
         assert result["project_phase"] == "pilier_3"
-        assert result["action_requise"] == "escalade"
+        assert result["action_requise"] == "revue_prioritaire"
         assert result["reference_reglementaire"] == "Bâle III — CET1"
         assert result["impact_description"] == "Nouveau ratio prudentiel ajouté."
         assert result["source"] == "llm"
@@ -226,7 +241,7 @@ class TestValidateTriageResponse:
                 "relevance_score": "ELEVEE",
                 "risk_level": "ELEVE",
                 "confidence": 0.8,
-                "action_requise": "escalade",
+                "action_requise": "revue_prioritaire",
             }
         )
         assert result["themes_amf"] == ["DIVULGATION_AJOUT", "RISQUE_EMERGENT"]
@@ -239,7 +254,7 @@ class TestValidateTriageResponse:
                 "themes_amf": [],
                 "nouvelle_idee": True,
                 "nouvelle_idee_justification": _valid_justification_oui(),
-                "action_requise": "escalade",
+                "action_requise": "revue_prioritaire",
             }
         )
         assert result["is_relevant"] is False
@@ -254,7 +269,7 @@ class TestValidateTriageResponse:
                 "themes_amf": ["DIVULGATION_AJOUT"],
                 "nouvelle_idee": True,
                 "nouvelle_idee_justification": "OUI ratio TLAC ajoute.",
-                "action_requise": "escalade",
+                "action_requise": "revue_prioritaire",
             }
         )
         assert result["is_relevant"] is False
@@ -271,7 +286,7 @@ class TestValidateTriageResponse:
                     "NON le ratio CET1 existait deja au T1 et seule sa valeur a change. "
                     "Variation chiffree propre a la banque."
                 ),
-                "action_requise": "escalade",
+                "action_requise": "revue_prioritaire",
             }
         )
         assert result["is_relevant"] is False
@@ -296,7 +311,7 @@ class TestValidateSummaryResponse:
                 "autre": {"count": 0, "resume": ""},
             },
             "par_action": {
-                "escalade": 1,
+                "revue_prioritaire": 1,
                 "investigation": 2,
                 "confirmation": 1,
                 "information": 0,
@@ -308,7 +323,7 @@ class TestValidateSummaryResponse:
         assert len(result["key_highlights"]) == 2
         assert result["source"] == "llm"
         assert result["par_phase"]["rapport_gestion"]["count"] == 3
-        assert result["par_action"]["escalade"] == 1
+        assert result["par_action"]["revue_prioritaire"] == 1
 
     def test_none_returns_defaults(self):
         result = _validate_summary_response(None)
@@ -323,11 +338,11 @@ class TestValidateSummaryResponse:
             "executive_overview": "Test",
             "pertinence_globale": "MOYENNE",
             "par_phase": "not_a_dict",
-            "par_action": {"escalade": "not_int"},
+            "par_action": {"revue_prioritaire": "not_int"},
         }
         result = _validate_summary_response(data)
         assert result["par_phase"] == {}
-        assert result["par_action"]["escalade"] == 0
+        assert result["par_action"]["revue_prioritaire"] == 0
 
 
 # ---------------------------------------------------------------------------

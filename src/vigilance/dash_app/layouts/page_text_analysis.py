@@ -33,6 +33,7 @@ _DIFF_LABELS: dict[str, str] = {
     "added": "Ajouté",
     "removed": "Supprimé",
     "modified": "Modifié",
+    "renamed": "Renommé",
 }
 
 _THEMES_AMF_SHORT: dict[str, str] = {
@@ -57,7 +58,7 @@ _THEMES_AMF_SHORT: dict[str, str] = {
 }
 
 _ACTION_BADGE: dict[str, tuple[str, str]] = {
-    "escalade": ("Escalade", "danger"),
+    "revue_prioritaire": ("Revue prioritaire", "danger"),
     "investigation": ("Investigation", "warning"),
     "confirmation": ("Confirmation", "success"),
     "information": ("Information", "info"),
@@ -163,10 +164,10 @@ def _build_side_by_side(
 
     - ``added``  : segment surligné en VERT dans la colonne T2.
     - ``removed``: segment surligné en ROUGE dans la colonne T1.
-    - ``modified``: les deux côtés surlignés (text_t1 rouge, text_t2 vert).
+    - ``modified`` ou ``renamed``: les deux côtés sont affichés côte à côte.
 
     Pour ``diff_type=added`` seul T2 est affiché ; pour ``removed`` seul T1.
-    Pour ``modified`` les deux colonnes sont visibles côte à côte.
+    Pour ``modified`` et ``renamed`` les deux colonnes sont visibles côte à côte.
     """
     highlights_t1 = [
         seg.get("text_t1", "")
@@ -232,7 +233,7 @@ def _build_side_by_side(
 
 
 def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
-    """Carte analytique pour un changement pertinent.
+    """Carte analytique pour un changement détecté.
 
     Args:
         change: Dict bloc issu de text_comparison.json.
@@ -246,16 +247,12 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
 
     if diff_type == "unchanged" or triage.get("source") == "skip":
         return None  # type: ignore[return-value]
-    # Filtrer les changements explicitement non pertinents (exclusion AMF)
-    if not bool(triage.get("is_relevant", False)):
-        return None  # type: ignore[return-value]
 
+    is_relevant = bool(triage.get("is_relevant", False))
     impact_level = (triage.get("impact_level") or "MINEUR").upper()
     action = (triage.get("action_requise") or "aucune").lower()
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
-    nouvelle_idee_justification = (
-        triage.get("nouvelle_idee_justification") or ""
-    ).strip()
+    nouvelle_idee_justification = (triage.get("nouvelle_idee_justification") or "").strip()
     themes_amf = list(triage.get("themes_amf") or [])
 
     evidence_t1 = change.get("evidence_t1") or {}
@@ -283,11 +280,13 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
     if nouvelle_idee:
         badge_children.append(
             dbc.Badge(
-                "✨ Nouvelle idée",
+                "Nouvelle idée",
                 color="primary",
                 className="me-1",
             )
         )
+    if not is_relevant:
+        badge_children.append(_badge("Non pertinent", "secondary"))
     badge_children.append(_badge(impact_lbl, impact_color))
     if action and action != "aucune":
         badge_children.append(_badge(action_lbl, action_color))
@@ -320,15 +319,13 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
                 title=tooltip,
             )
         )
-    themes_row = (
-        html.Div(themes_chips, className="mb-2 d-flex flex-wrap")
-        if themes_chips
-        else None
-    )
+    themes_row = html.Div(themes_chips, className="mb-2 d-flex flex-wrap") if themes_chips else None
 
     # Ligne 2 — meta
     diff_label = _DIFF_LABELS.get(diff_type, diff_type.capitalize())
-    meta_text = f"{section_title} · pages {page_label} · {diff_label}" if page_label else f"{section_title} · {diff_label}"
+    meta_text = (
+        f"{section_title} · pages {page_label} · {diff_label}" if page_label else f"{section_title} · {diff_label}"
+    )
     meta = html.Small(meta_text, className="text-muted d-block mb-2")
 
     text_block = _build_side_by_side(
@@ -344,7 +341,7 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
     # source affiché dans le side-by-side avec les highlights AMF v2.
     evidence_block = None
 
-    # Justification IA (champ AMF v2 — note d'analyste en 3 paragraphes)
+    # Justification de triage (champ AMF v2 — note d'analyste structurée)
     ia_block: html.Div | None = None
     if nouvelle_idee_justification:
         ia_block = html.Div(
@@ -353,7 +350,7 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
                     className="border-start border-primary border-3 ps-2 mb-2",
                     children=[
                         html.Span(
-                            "Justification IA",
+                            "Justification de triage",
                             className="fw-semibold small text-primary",
                         ),
                     ],
@@ -366,11 +363,7 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
             ]
         )
 
-    card_children = [
-        c
-        for c in [badge_row, themes_row, meta, text_block, evidence_block, ia_block]
-        if c is not None
-    ]
+    card_children = [c for c in [badge_row, themes_row, meta, text_block, evidence_block, ia_block] if c is not None]
 
     return dbc.Card(
         dbc.CardBody(card_children, className="p-3"),
@@ -482,7 +475,7 @@ def _build_filter_bar(section_options: list[dict]) -> html.Div:
                     dcc.Dropdown(
                         id="text-filter-action",
                         options=[
-                            {"label": "Escalade", "value": "escalade"},
+                            {"label": "Revue prioritaire", "value": "revue_prioritaire"},
                             {"label": "Investigation", "value": "investigation"},
                             {"label": "Confirmation", "value": "confirmation"},
                             {"label": "Information", "value": "information"},

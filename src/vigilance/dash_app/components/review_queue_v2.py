@@ -71,7 +71,7 @@ _PRIORITY_DISPLAY = {
 }
 
 _ACTION_DISPLAY = {
-    "escalade": ("Escalade", "danger"),
+    "revue_prioritaire": ("Revue prioritaire", "danger"),
     "investigation": ("Investigation", "warning"),
     "confirmation": ("Confirmation", "info"),
     "information": ("Information", "secondary"),
@@ -699,7 +699,7 @@ def _build_genai_summary_row(table: dict) -> html.Div | None:
     Aligné sur la taxonomie AMF unifiée :
     - ✨ Nouvelle idée (si ``nouvelle_idee=True``)
     - Badge impact_level coloré (MAJEUR/MODÉRÉ/MINEUR)
-    - Badge action_requise si escalade/investigation
+    - Badge action_requise si revue prioritaire/investigation
     - Justification AMF tronquée (≤ 90 chars)
 
     Cartes filtrées : si is_relevant=False ou genai_analysis absent → None
@@ -736,7 +736,7 @@ def _build_genai_summary_row(table: dict) -> html.Div | None:
             )
         )
     action_info = _ACTION_DISPLAY.get(action)
-    if action_info and action in {"escalade", "investigation"}:
+    if action_info and action in {"revue_prioritaire", "investigation"}:
         a_label, a_color = action_info
         chips.append(
             dbc.Badge(

@@ -44,6 +44,7 @@ _DIFF_TYPE_FR: dict[str, str] = {
     "added": "Ajout",
     "removed": "Suppression",
     "modified": "Modification",
+    "renamed": "Renommage",
     "unchanged": "Inchangé",
 }
 
@@ -67,6 +68,15 @@ _REFORMULATION_RE = re.compile(
     r"\bmême (idée|information|sens|contenu).{0,30}(reformul|formulat différente)\b",
     flags=re.IGNORECASE,
 )
+
+_CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
+def _excel_safe(value: Any) -> Any:
+    """Nettoie les chaînes avant écriture dans openpyxl."""
+    if isinstance(value, str):
+        return _CONTROL_CHAR_RE.sub("", value)
+    return value
 
 
 def _is_pure_date_update(change: dict[str, Any]) -> bool:
@@ -268,7 +278,7 @@ def generate_text_comparison_excel(
             "",  # Commentaire analyste
         ]
         for col_idx, value in enumerate(row_data, 1):
-            cell = ws.cell(row=row_num, column=col_idx, value=value)
+            cell = ws.cell(row=row_num, column=col_idx, value=_excel_safe(value))
             cell.alignment = cell_align
             cell.border = thin_border
             if fill:
