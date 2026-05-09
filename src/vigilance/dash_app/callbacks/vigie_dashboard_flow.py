@@ -23,13 +23,15 @@ from vigilance.dash_app.services.review_navigation import _table_decision_bucket
 from vigilance.quarter_utils import get_payload_quarter_context
 from vigilance.text_comparison.text_comparison_excel import _should_exclude
 
-_PLOT_LAYOUT = {
-    "paper_bgcolor": "rgba(0,0,0,0)",
-    "plot_bgcolor": "rgba(0,0,0,0)",
-    "font": {"color": "#d7dee9", "size": 11},
-    "margin": {"l": 36, "r": 18, "t": 8, "b": 28},
-    "legend": {"font": {"color": "#c8d2e0", "size": 11}},
-}
+def _plot_layout(theme: str) -> dict[str, Any]:
+    is_light = theme == "light"
+    return {
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor": "rgba(0,0,0,0)",
+        "font": {"color": "#243145" if is_light else "#d7dee9", "size": 11},
+        "margin": {"l": 36, "r": 18, "t": 8, "b": 28},
+        "legend": {"font": {"color": "#475569" if is_light else "#c8d2e0", "size": 11}},
+    }
 
 _PDF_NAVY = colors.HexColor("#0b1725")
 _PDF_PANEL = colors.HexColor("#101f31")
@@ -414,8 +416,8 @@ def _kpi(icon: str, label: str, value: int | str, helper: str, tone: str = "neut
     )
 
 
-def _chart_card(title: str, figure: go.Figure) -> html.Div:
-    figure.update_layout(**_PLOT_LAYOUT)
+def _chart_card(title: str, figure: go.Figure, *, theme: str) -> html.Div:
+    figure.update_layout(**_plot_layout(theme))
     return html.Div(
         [
             html.Div(title, className="vigie-cockpit-panel-title"),
@@ -425,10 +427,13 @@ def _chart_card(title: str, figure: go.Figure) -> html.Div:
     )
 
 
-def _donut_chart(text_total: int, indicator_total: int) -> html.Div:
+def _donut_chart(text_total: int, indicator_total: int, *, theme: str) -> html.Div:
     total = text_total + indicator_total
     if total <= 0:
         return html.Div("Aucun changement disponible", className="vigie-cockpit-empty")
+    is_light = theme == "light"
+    main_color = "#172033" if is_light else "#f4f7fb"
+    muted_color = "#64748b" if is_light else "#c8d2e0"
     fig = go.Figure(
         go.Pie(
             labels=["Changements textuels", "Changements indicateurs"],
@@ -438,14 +443,15 @@ def _donut_chart(text_total: int, indicator_total: int) -> html.Div:
             textinfo="none",
         )
     )
-    fig.add_annotation(text=str(total), x=0.5, y=0.55, showarrow=False, font={"size": 28, "color": "#f4f7fb"})
+    fig.add_annotation(text=str(total), x=0.5, y=0.55, showarrow=False, font={"size": 28, "color": main_color})
     fig.add_annotation(
-        text="Total des<br>changements", x=0.5, y=0.42, showarrow=False, font={"size": 11, "color": "#c8d2e0"}
+        text="Total des<br>changements", x=0.5, y=0.42, showarrow=False, font={"size": 11, "color": muted_color}
     )
-    return _chart_card("APERÇU COMBINÉ", fig)
+    return _chart_card("APERÇU COMBINÉ", fig, theme=theme)
 
 
-def _bar_chart(values: dict[str, int]) -> html.Div:
+def _bar_chart(values: dict[str, int], *, theme: str) -> html.Div:
+    grid_color = "#d8e0ea" if theme == "light" else "#223248"
     fig = go.Figure(
         go.Bar(
             x=list(values.values()),
@@ -457,11 +463,13 @@ def _bar_chart(values: dict[str, int]) -> html.Div:
             cliponaxis=False,
         )
     )
-    fig.update_layout(xaxis={"gridcolor": "#223248"}, yaxis={"gridcolor": "rgba(0,0,0,0)"})
-    return _chart_card("RÉPARTITION PAR NATURE", fig)
+    fig.update_layout(xaxis={"gridcolor": grid_color}, yaxis={"gridcolor": "rgba(0,0,0,0)"})
+    return _chart_card("RÉPARTITION PAR NATURE", fig, theme=theme)
 
 
-def _global_evolution_chart(values: dict[str, int]) -> html.Div:
+def _global_evolution_chart(values: dict[str, int], *, theme: str) -> html.Div:
+    grid_color = "#d8e0ea" if theme == "light" else "#223248"
+    axis_color = "#475569" if theme == "light" else "#c8d2e0"
     fig = go.Figure(
         go.Bar(
             x=list(values.keys()),
@@ -474,13 +482,13 @@ def _global_evolution_chart(values: dict[str, int]) -> html.Div:
     )
     fig.update_layout(
         yaxis={
-            "title": {"text": "Nombre de changements", "font": {"color": "#c8d2e0", "size": 11}},
-            "gridcolor": "#223248",
+            "title": {"text": "Nombre de changements", "font": {"color": axis_color, "size": 11}},
+            "gridcolor": grid_color,
             "rangemode": "tozero",
         },
         xaxis={"gridcolor": "rgba(0,0,0,0)"},
     )
-    return _chart_card("ÉVOLUTION GLOBALE", fig)
+    return _chart_card("ÉVOLUTION GLOBALE", fig, theme=theme)
 
 
 def _top_text(text_metrics: dict[str, Any]) -> html.Div:
@@ -1159,10 +1167,20 @@ def _build_pdf_report(
     Input("store-review-items", "data"),
     Input("store-review-queue", "data"),
     Input("store-show-results-page", "data"),
+    Input("store-vigie-dashboard-theme", "data"),
     State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
-def render_vigie_cockpit(indicator, comparison, text_data, review_items, review_queue, show_results, indicator_meta):
+def render_vigie_cockpit(
+    indicator,
+    comparison,
+    text_data,
+    review_items,
+    review_queue,
+    show_results,
+    dashboard_theme,
+    indicator_meta,
+):
     """Rendre le dashboard sans modifier les onglets existants."""
     if not show_results:
         raise PreventUpdate
@@ -1177,6 +1195,7 @@ def render_vigie_cockpit(indicator, comparison, text_data, review_items, review_
     text_metrics = _text_metrics(text_data)
     indicator_metrics = _indicator_metrics(payload)
     counts = _review_counts(review_queue, review_items, payload)
+    theme = "light" if dashboard_theme == "light" else "dark"
     review_total = counts["total"]
     text_total = text_metrics["total"]
     indicator_total = indicator_metrics["total_changes"]
@@ -1221,6 +1240,24 @@ def render_vigie_cockpit(indicator, comparison, text_data, review_items, review_
                     html.Div(
                         [
                             html.Span("Pipeline Texte & Indicateurs", className="vigie-cockpit-pipeline"),
+                            html.Div(
+                                [
+                                    dbc.Button(
+                                        [
+                                            html.I(
+                                                className=f"bi {'bi-sun' if theme == 'dark' else 'bi-moon'} me-2"
+                                            ),
+                                            "Mode clair" if theme == "dark" else "Mode sombre",
+                                        ],
+                                        id="btn-vigie-dashboard-theme",
+                                        color="outline-light" if theme == "dark" else "outline-secondary",
+                                        size="sm",
+                                        className="vigie-cockpit-theme-toggle",
+                                        n_clicks=0,
+                                    ),
+                                ],
+                                className="vigie-cockpit-theme-control",
+                            ),
                             dbc.Button(
                                 [html.I(className="bi bi-file-earmark-pdf me-2"), "Télécharger rapport PDF"],
                                 id="btn-download-vigie-dashboard-pdf",
@@ -1393,16 +1430,29 @@ def render_vigie_cockpit(indicator, comparison, text_data, review_items, review_
             ),
             html.Div(
                 [
-                    _donut_chart(text_total, indicator_total),
-                    _bar_chart(bars),
-                    _global_evolution_chart(evolution_bars),
+                    _donut_chart(text_total, indicator_total, theme=theme),
+                    _bar_chart(bars, theme=theme),
+                    _global_evolution_chart(evolution_bars, theme=theme),
                 ],
                 className="vigie-cockpit-chart-grid",
             ),
             _priority_table(indicator_metrics, review_queue),
         ],
-        className="vigie-cockpit",
+        className=f"vigie-cockpit is-{theme}",
     )
+
+
+@callback(
+    Output("store-vigie-dashboard-theme", "data"),
+    Input("btn-vigie-dashboard-theme", "n_clicks"),
+    State("store-vigie-dashboard-theme", "data"),
+    prevent_initial_call=True,
+)
+def update_vigie_dashboard_theme(n_clicks, current_theme):
+    """Memoriser le mode de luminosite du dashboard."""
+    if not n_clicks:
+        raise PreventUpdate
+    return "dark" if current_theme == "light" else "light"
 
 
 @callback(

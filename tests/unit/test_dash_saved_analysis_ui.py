@@ -35,8 +35,7 @@ def test_sidebar_defaults_to_saved_analyses() -> None:
 
     assert radio.value == "saved"
     labels = [option["label"] for option in radio.options]
-    assert labels[0] == "Analyses enregistrées"
-    assert "Téléverser les PDF" in labels
+    assert labels == ["Analyses enregistrées"]
 
     saved_container = next(
         component
@@ -50,6 +49,13 @@ def test_sidebar_defaults_to_saved_analyses() -> None:
     )
     assert saved_container.style == {"display": "block"}
     assert upload_container.style == {"display": "none"}
+
+    source_wrapper = next(
+        component
+        for component in components
+        if getattr(component, "id", None) == "data-source-wrapper"
+    )
+    assert source_wrapper.style == {"display": "none"}
 
 
 def test_file_comparison_store_loads_saved_analysis_with_local_pdf_context(

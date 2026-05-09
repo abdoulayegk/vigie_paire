@@ -914,6 +914,16 @@
     font-weight: 850;
 }
 
+.vigie-cockpit-theme-control {
+    display: inline-flex;
+}
+
+.vigie-cockpit-theme-toggle {
+    border-color: var(--cockpit-border);
+    font-weight: 800;
+    min-width: 118px;
+}
+
 .vigie-cockpit-pipeline-layout {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
@@ -1212,6 +1222,112 @@
 
 .vigie-cockpit > .vigie-cockpit-panel {
     margin-top: 0.65rem;
+}
+
+.vigie-cockpit.is-light {
+    --cockpit-bg: #f7f9fc;
+    --cockpit-panel: #ffffff;
+    --cockpit-border: #d7e0ea;
+    --cockpit-text: #172033;
+    --cockpit-muted: #5f6b7a;
+    color: var(--cockpit-text);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(247, 249, 252, 0.96)),
+        var(--cockpit-bg);
+    border: 1px solid #dbe3ee;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-title {
+    color: #101828;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-subtitle,
+.vigie-cockpit.is-light .vigie-cockpit-updated {
+    color: #475569;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-pipeline {
+    color: #2447a8;
+    background: rgba(75, 116, 242, 0.1);
+    border-color: rgba(75, 116, 242, 0.24);
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-pipeline-panel,
+.vigie-cockpit.is-light .vigie-cockpit-panel {
+    background: #ffffff;
+    border-color: #d7e0ea;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-pipeline-panel.is-text {
+    background: linear-gradient(180deg, #fff8f7, #ffffff);
+    border-color: rgba(228, 81, 66, 0.28);
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-section-title,
+.vigie-cockpit.is-light .vigie-cockpit-panel-title,
+.vigie-cockpit.is-light .vigie-cockpit-subpanel-title {
+    color: #172033;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-kpi-card,
+.vigie-cockpit.is-light .vigie-cockpit-review-strip {
+    background: #f8fafc;
+    border-color: #d7e0ea;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-kpi-label,
+.vigie-cockpit.is-light .vigie-cockpit-review-label {
+    color: #334155;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-kpi-helper,
+.vigie-cockpit.is-light .vigie-cockpit-change-meta {
+    color: #64748b;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-change-title,
+.vigie-cockpit.is-light .vigie-cockpit-review-value {
+    color: #172033;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-review-strip > div {
+    border-color: #d7e0ea;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-empty {
+    color: #64748b;
+    background: #ffffff;
+    border-color: #d7e0ea;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-table {
+    --bs-table-color: #172033;
+    --bs-table-border-color: #d7e0ea;
+    color: #172033 !important;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-table tr:nth-child(even) td {
+    background: #f8fafc !important;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-table tr:nth-child(odd) td {
+    background: #ffffff !important;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-table th {
+    color: #334155 !important;
+    background: #eef3f8 !important;
+    border-bottom-color: #d7e0ea !important;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-table td {
+    color: #172033 !important;
+    border-bottom-color: #d7e0ea !important;
+}
+
+.vigie-cockpit.is-light .vigie-cockpit-table-name {
+    color: #101828 !important;
 }
 
 @media (max-width: 1199.98px) {
