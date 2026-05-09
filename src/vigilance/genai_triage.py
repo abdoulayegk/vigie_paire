@@ -57,8 +57,9 @@ VALID_THEMES_AMF = frozenset(THEMES_AMF_PIPELINE_2)
 
 # Format strict pour la justification GPT : commence par OUI ou NON suivi
 # d'un séparateur (tiret ou virgule), au moins 2 phrases substantives.
-_JUSTIFICATION_MIN_SENTENCES = 2
-_JUSTIFICATION_MIN_SENTENCE_LENGTH = 15
+_JUSTIFICATION_MIN_SENTENCES = 3
+_JUSTIFICATION_MIN_SENTENCE_LENGTH = 20
+_JUSTIFICATION_MIN_TOTAL_LENGTH = 200
 _SENTENCE_BOUNDARY_RE = re.compile(r"[.!?]+")
 
 
@@ -118,22 +119,29 @@ _TRIAGE_SYSTEM_PROMPT = (
     "un thème AMF.\n"
     "(c) ADOSSÉE À UN THÈME AMF : au moins un code dans themes_amf.\n"
     "Si UNE des 3 conditions est violée → nouvelle_idee=false.\n\n"
-    "FORMAT STRICT pour `nouvelle_idee_justification` (obligatoire si "
-    "is_relevant=true, vide sinon) :\n"
+    "FORMAT STRICT pour `nouvelle_idee_justification` (TOUJOURS obligatoire, "
+    "y compris pour les changements jugés non pertinents) :\n"
     "- Commencer par 'OUI' (si nouvelle_idee=true) ou 'NON' (sinon), suivi "
     "d'un tiret ou d'une virgule.\n"
-    "- Au moins 2 phrases complètes (15+ caractères chacune, ponctuation "
-    "finale).\n"
+    "- Au moins 3 phrases complètes (≥ 20 caractères chacune, ponctuation "
+    "finale) ET ≥ 200 caractères au total — l'analyste doit avoir une "
+    "explication détaillée et claire, pas un résumé.\n"
     "- Citer l'ÉLÉMENT SPÉCIFIQUE du rapport : nom exact d'un indicateur, "
     "titre du tableau, libellé de footnote — adossé au contenu réel des "
     "rapports aux actionnaires traités.\n"
-    "- Mentionner explicitement le ou les thèmes AMF concernés.\n\n"
+    "- Si is_relevant=true : mentionner explicitement les thèmes AMF "
+    "concernés et expliquer pourquoi c'est une nouveauté pour la banque.\n"
+    "- Si is_relevant=false : expliquer en LANGAGE MÉTIER pourquoi ce "
+    "changement n'est PAS une nouvelle idée AMF (variation chiffrée propre, "
+    "reformulation sans nouveau fond, formatage, déplacement). L'analyste "
+    "doit comprendre la raison de l'exclusion sans avoir à interpréter le "
+    "code d'exclusion.\n\n"
     "RÉPONDRE UNIQUEMENT en JSON valide, sans markdown, selon ce schéma exact :\n"
     "{\n"
     '  "is_relevant": true | false,\n'
     '  "themes_amf": ["<code AMF>", ...],   // multi-label, vide si is_relevant=false\n'
     '  "nouvelle_idee": true | false,\n'
-    '  "nouvelle_idee_justification": "<OUI/NON — 2 phrases complètes>",\n'
+    '  "nouvelle_idee_justification": "<OUI/NON — 3+ phrases complètes, ≥ 200 chars, OBLIGATOIRE même si non pertinent>",\n'
     '  "category": "REGLEMENTAIRE" | "RISQUE" | "CAPITAL" | "STRUCTURE" | "NON_PERTINENT" | "INCONNU",\n'
     '  "relevance_score": "ELEVEE" | "MOYENNE" | "FAIBLE",\n'
     '  "risk_level": "ELEVE" | "MODERE" | "FAIBLE",\n'
@@ -166,11 +174,13 @@ _TRIAGE_SYSTEM_PROMPT = (
     "- information : changement mineur, pour information seulement.\n"
     "- aucune : non pertinent, aucune action.\n\n"
     "INVARIANTS STRICTS (toute violation rejette la réponse) :\n"
-    "- is_relevant=true → themes_amf NON VIDE, "
-    "nouvelle_idee_justification ≥ 2 phrases commençant par OUI ou NON.\n"
+    "- nouvelle_idee_justification est TOUJOURS OBLIGATOIRE (≥ 3 phrases, "
+    "≥ 200 chars), commençant par 'OUI' ou 'NON' selon nouvelle_idee.\n"
+    "- is_relevant=true → themes_amf NON VIDE.\n"
     "- is_relevant=false → themes_amf=[], category='NON_PERTINENT', "
-    "nouvelle_idee=false, nouvelle_idee_justification vide, "
-    "action_requise='aucune'.\n"
+    "nouvelle_idee=false, action_requise='aucune'. La justification reste "
+    "obligatoire pour expliquer à l'analyste pourquoi le changement n'est "
+    "pas une nouvelle idée AMF.\n"
 )
 
 _SUMMARY_SYSTEM_PROMPT = """\
@@ -419,6 +429,12 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
     if risk_level not in VALID_RISK_LEVELS:
         risk_level = "FAIBLE"
 
+    # Dérivation du champ AMF v2 ``impact_level`` (MAJEUR/MODERE/MINEUR)
+    # à partir du ``risk_level`` legacy (ELEVE/MODERE/FAIBLE) — assure la
+    # cohérence avec Pipeline 2 et l'affichage UI Dash.
+    _RISK_TO_IMPACT = {"ELEVE": "MAJEUR", "MODERE": "MODERE", "FAIBLE": "MINEUR"}
+    impact_level = _RISK_TO_IMPACT.get(risk_level, "MINEUR")
+
     try:
         confidence = max(0.0, min(1.0, float(data.get("confidence", 0.5))))
     except (TypeError, ValueError):
@@ -461,6 +477,7 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
         "themes_amf": themes_amf,
         "nouvelle_idee": nouvelle_idee,
         "nouvelle_idee_justification": nouvelle_idee_justification,
+        "impact_level": impact_level,
         "category": category,
         "relevance_score": relevance,
         "risk_level": risk_level,
@@ -486,7 +503,14 @@ def _empty_triage_skeleton(*, source: str = "heuristic") -> dict[str, Any]:
         "is_relevant": False,
         "themes_amf": [],
         "nouvelle_idee": False,
-        "nouvelle_idee_justification": "",
+        "nouvelle_idee_justification": (
+            "NON — aucun triage AMF n'a été produit par GPT-4o pour ce "
+            "changement (cas rare : défaut structurel ou erreur en amont). "
+            "L'analyste doit considérer cet élément comme non classifié et "
+            "le marquer manuellement si pertinent. Aucune décision automatisée "
+            "n'est disponible pour ce changement."
+        ),
+        "impact_level": "MINEUR",
         "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
@@ -512,31 +536,40 @@ def _validate_amf_invariants(
 ) -> str | None:
     """Vérifie les invariants AMF transversaux (mêmes règles que Pipeline 2).
 
+    La ``nouvelle_idee_justification`` est OBLIGATOIRE et SUBSTANTIELLE quel
+    que soit ``is_relevant`` — l'analyste doit toujours comprendre la décision
+    GPT (≥ 3 phrases complètes, ≥ 200 caractères, préfixée par OUI ou NON).
+
     Returns:
         ``None`` si tous les invariants sont satisfaits, sinon un message
         décrivant la première violation détectée.
     """
+    justification = nouvelle_idee_justification.strip()
+    if _count_substantive_sentences(justification) < _JUSTIFICATION_MIN_SENTENCES:
+        return (
+            f"nouvelle_idee_justification exige ≥ {_JUSTIFICATION_MIN_SENTENCES} "
+            f"phrases complètes (≥ {_JUSTIFICATION_MIN_SENTENCE_LENGTH} chars chacune)"
+        )
+    if len(justification) < _JUSTIFICATION_MIN_TOTAL_LENGTH:
+        return (
+            f"nouvelle_idee_justification exige ≥ {_JUSTIFICATION_MIN_TOTAL_LENGTH} "
+            "caractères au total"
+        )
+    expected_prefix = "OUI" if nouvelle_idee else "NON"
+    if not justification.upper().startswith(expected_prefix):
+        return (
+            f"nouvelle_idee_justification doit commencer par '{expected_prefix}' "
+            f"quand nouvelle_idee={nouvelle_idee}"
+        )
+
     if is_relevant:
         if not themes_amf:
             return "is_relevant=True exige themes_amf non vide"
-        if _count_substantive_sentences(nouvelle_idee_justification) < _JUSTIFICATION_MIN_SENTENCES:
-            return (
-                "is_relevant=True exige nouvelle_idee_justification d'au "
-                f"moins {_JUSTIFICATION_MIN_SENTENCES} phrases complètes"
-            )
-        expected_prefix = "OUI" if nouvelle_idee else "NON"
-        if not nouvelle_idee_justification.upper().startswith(expected_prefix):
-            return (
-                f"nouvelle_idee_justification doit commencer par '{expected_prefix}' "
-                f"quand nouvelle_idee={nouvelle_idee}"
-            )
     else:
         if themes_amf:
             return "is_relevant=False interdit themes_amf non vide"
         if nouvelle_idee:
             return "is_relevant=False interdit nouvelle_idee=True"
-        if nouvelle_idee_justification.strip():
-            return "is_relevant=False exige nouvelle_idee_justification vide"
         if action_requise != "aucune":
             return "is_relevant=False exige action_requise='aucune'"
     return None

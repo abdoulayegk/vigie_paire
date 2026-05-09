@@ -1191,17 +1191,24 @@ def _valid_explanation() -> str:
 
 def _valid_justification_oui() -> str:
     return (
-        "OUI - le nouveau modele interne pour le risque de credit est ajoute "
-        "au t2 et n'apparaissait pas au t1. Ce changement aligne la divulgation "
-        "sur les attentes prudentielles BSIF (themes AMF MODIFICATION_METHODOLOGIE)."
+        "OUI - le nouveau modele interne avance pour le risque de credit est "
+        "ajoute au t2 et n'apparaissait pas au t1. Ce changement aligne la "
+        "divulgation sur les attentes prudentielles BSIF et touche directement "
+        "les exigences reglementaires (themes AMF MODIFICATION_METHODOLOGIE et "
+        "EXIGENCES_REGLEMENTAIRES). L'analyste doit comparer la nouvelle base "
+        "methodologique avec celle du trimestre precedent pour evaluer l'impact "
+        "sur la comparabilite inter-pairs."
     )
 
 
 def _valid_justification_non() -> str:
     return (
         "NON - le ratio CET1 existait deja au t1 et seule sa valeur chiffree a "
-        "change. C'est une variation propre a la banque sans dimension "
-        "reglementaire ni nouveau theme AMF substantif."
+        "change entre les deux trimestres (variation chiffree propre a la banque). "
+        "Cette evolution numerique reflete l'activite normale et ne touche aucun "
+        "seuil reglementaire ni methodologie de calcul. L'analyste peut considerer "
+        "cette ligne comme une mise a jour quantitative attendue, sans dimension "
+        "de nouveaute pour la vigie AMF."
     )
 
 
@@ -1213,6 +1220,7 @@ def test_invariant_relevant_without_themes_raises() -> None:
         TriageAMFResult(
             is_relevant=True,
             themes_amf=[],
+            nouvelle_idee=True,
             explanation=_valid_explanation(),
             nouvelle_idee_justification=_valid_justification_oui(),
         )
@@ -1223,6 +1231,7 @@ def test_invariant_relevant_with_short_explanation_raises() -> None:
         TriageAMFResult(
             is_relevant=True,
             themes_amf=["DIVULGATION_AJOUT"],
+            nouvelle_idee=True,
             explanation="trop court",
             nouvelle_idee_justification=_valid_justification_oui(),
         )
@@ -1234,6 +1243,7 @@ def test_invariant_irrelevant_with_nouvelle_idee_raises() -> None:
             is_relevant=False,
             nouvelle_idee=True,
             exclusion_reason="reformulation_mineure",
+            nouvelle_idee_justification=_valid_justification_oui(),
         )
 
 
@@ -1243,12 +1253,16 @@ def test_invariant_irrelevant_with_majeur_impact_raises() -> None:
             is_relevant=False,
             impact_level="MAJEUR",
             exclusion_reason="reformulation_mineure",
+            nouvelle_idee_justification=_valid_justification_non(),
         )
 
 
 def test_invariant_irrelevant_without_exclusion_reason_raises() -> None:
     with pytest.raises(_PydValidationError, match="exclusion_reason"):
-        TriageAMFResult(is_relevant=False)
+        TriageAMFResult(
+            is_relevant=False,
+            nouvelle_idee_justification=_valid_justification_non(),
+        )
 
 
 def test_invariant_escalade_without_majeur_raises() -> None:
@@ -1277,7 +1291,7 @@ def test_invariant_relevant_without_justification_raises() -> None:
 
 
 def test_invariant_justification_with_single_sentence_raises() -> None:
-    with pytest.raises(_PydValidationError, match="phrases"):
+    with pytest.raises(_PydValidationError, match="phrases|caractères"):
         TriageAMFResult(
             is_relevant=True,
             themes_amf=["DIVULGATION_AJOUT"],
@@ -1289,6 +1303,15 @@ def test_invariant_justification_with_single_sentence_raises() -> None:
 
 
 def test_invariant_justification_must_start_with_oui_when_nouvelle_idee() -> None:
+    # On utilise un texte ≥ 3 phrases ≥ 200 chars sans préfixe pour tester la
+    # règle préfixe (sans déclencher la règle longueur en premier).
+    bad_prefix_long = (
+        "Le ratio TLAC est ajoute au TABLEAU 11 absent du t1, ce qui constitue "
+        "une nouveaute structurelle pour la divulgation. Cela aligne BMO sur "
+        "les attentes BSIF prudentielles selon la ligne directrice canadienne. "
+        "L'analyste doit considerer cette ligne comme une nouvelle exigence "
+        "qui touche les ratios prudentiels (themes AMF DIVULGATION_AJOUT)."
+    )
     with pytest.raises(_PydValidationError, match="OUI"):
         TriageAMFResult(
             is_relevant=True,
@@ -1296,10 +1319,7 @@ def test_invariant_justification_must_start_with_oui_when_nouvelle_idee() -> Non
             impact_level="MINEUR",
             nouvelle_idee=True,
             explanation=_valid_explanation(),
-            nouvelle_idee_justification=(
-                "Le ratio TLAC est ajoute au TABLEAU 11 absent du t1. "
-                "Cela aligne BMO sur les attentes BSIF prudentielles."
-            ),
+            nouvelle_idee_justification=bad_prefix_long,
         )
 
 
@@ -1315,13 +1335,24 @@ def test_invariant_justification_must_start_with_non_when_not_nouvelle_idee() ->
         )
 
 
-def test_invariant_irrelevant_with_justification_raises() -> None:
-    with pytest.raises(_PydValidationError, match="nouvelle_idee_justification"):
+def test_invariant_irrelevant_now_requires_substantial_justification() -> None:
+    """is_relevant=False exige désormais une justification détaillée (≥ 3 phrases, 200+ chars)."""
+    # Justification trop courte → rejet
+    with pytest.raises(_PydValidationError, match="phrases|caractères"):
         TriageAMFResult(
             is_relevant=False,
             exclusion_reason="reformulation_mineure",
-            nouvelle_idee_justification="NON c'est une reformulation. Pas substantif.",
+            nouvelle_idee_justification="NON c'est une reformulation. Pas substantif. Trop court.",
         )
+
+    # Justification complète et bien préfixée → accepté
+    ok = TriageAMFResult(
+        is_relevant=False,
+        exclusion_reason="reformulation_mineure",
+        nouvelle_idee_justification=_valid_justification_non(),
+    )
+    assert ok.is_relevant is False
+    assert ok.nouvelle_idee_justification.startswith("NON")
 
 
 def test_invariant_change_index_must_be_at_least_one() -> None:
@@ -1330,6 +1361,7 @@ def test_invariant_change_index_must_be_at_least_one() -> None:
             change_index=0,
             is_relevant=False,
             exclusion_reason="reformulation_mineure",
+            nouvelle_idee_justification=_valid_justification_non(),
         )
 
 

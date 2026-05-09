@@ -256,20 +256,25 @@
         "visual_sanity_render_status": "skipped_missing_anchor",
         "genai_triage": {
           "is_relevant": true,
-          "category": "CAPITAL",
+          "themes_amf": [
+            "STRUCTURE_RAPPORT"
+          ],
+          "nouvelle_idee": true,
+          "nouvelle_idee_justification": "OUI, la suppression du tableau 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE' modifie la structure du rapport. Cela affecte la visibilité sur la répartition géographique des expositions, ce qui est pertinent pour l'analyse des risques régionaux.",
+          "category": "STRUCTURE",
           "relevance_score": "ELEVEE",
           "risk_level": "MODERE",
           "confidence": 0.9,
-          "explanation": "Le changement constaté concerne la suppression d'un tableau intitulé 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE' dans la section de gestion du capital. Ce tableau fournissait des informations détaillées sur l'exposition nette de la banque par région, incluant des régions spécifiques comme l'Europe, le Royaume-Uni, l'Asie, et d'autres. La suppression de ce tableau peut indiquer un changement dans la manière dont la banque divulgue ses expositions géographiques, ce qui pourrait avoir des implications sur la transparence et la gestion des risques géographiques.\n\nD'un point de vue réglementaire, la divulgation de l'exposition par région est souvent requise pour évaluer la concentration des risques et la diversification géographique, ce qui est crucial pour la gestion du capital et le respect des exigences de Bâle III. La suppression de ce tableau pourrait signifier un changement dans la stratégie de divulgation ou une révision des méthodes de calcul des expositions, ce qui nécessite une attention particulière pour s'assurer que la banque reste conforme aux exigences de divulgation réglementaire.\n\nIl est recommandé d'investiguer ce changement pour comprendre les raisons der",
+          "explanation": "La suppression d'un tableau entier, surtout un tableau aussi détaillé que 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE', représente un changement significatif dans la structure du rapport. Ce tableau fournissait des informations cruciales sur la répartition géographique des expositions, ce qui est essentiel pour évaluer les risques régionaux et la diversification géographique de la banque.\n\nL'absence de ce tableau pourrait indiquer un changement dans la manière dont la banque souhaite présenter ses expositions ou une révision de sa stratégie de communication des risques. Cela pourrait également refléter un changement dans la méthodologie de calcul ou de présentation des données, bien que cela ne soit pas explicitement mentionné ici.\n\nCe changement nécessite une attention particulière pour comprendre les raisons derrière cette suppression et son impact potentiel sur l'évaluation des risques par les parties prenantes.",
           "impact_type": "structurel",
           "project_phase": "rapport_gestion",
           "action_requise": "investigation",
-          "reference_reglementaire": "Bâle III — Exigences de divulgation",
-          "impact_description": "La suppression du tableau affecte la transparence de l'exposition géographique de la banque.",
+          "reference_reglementaire": "",
+          "impact_description": "La suppression du tableau réduit la transparence sur la répartition géographique des expositions.",
           "source": "llm"
         },
         "genai_analysis": {
-          "resume_metier": "Le changement constaté concerne la suppression d'un tableau intitulé 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE' dans la section de gestion du capital. Ce tableau fournissait des informations détaillées sur l'exposition nette de la banque par région, incluant des régions spécifiques comme l'Europe, le Royaume-Uni, l'Asie, et d'autres. La suppression de ce tableau peut indiquer un changement dans la manière dont la banque divulgue ses expositions géographiques, ce qui pourrait avoir des implications sur la transparence et la gestion des risques géographiques.\n\nD'un point de vue réglementaire, la divulgation de l'exposition par région est souvent requise pour évaluer la concentration des risques et la diversification géographique, ce qui est crucial pour la gestion du capital et le respect des exigences de Bâle III. La suppression de ce tableau pourrait signifier un changement dans la stratégie de divulgation ou une révision des méthodes de calcul des expositions, ce qui nécessite une attention particulière pour s'assurer que la banque reste conforme aux exigences de divulgation réglementaire.\n\nIl est recommandé d'investiguer ce changement pour comprendre les raisons der"
+          "resume_metier": "La suppression d'un tableau entier, surtout un tableau aussi détaillé que 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE', représente un changement significatif dans la structure du rapport. Ce tableau fournissait des informations cruciales sur la répartition géographique des expositions, ce qui est essentiel pour évaluer les risques régionaux et la diversification géographique de la banque.\n\nL'absence de ce tableau pourrait indiquer un changement dans la manière dont la banque souhaite présenter ses expositions ou une révision de sa stratégie de communication des risques. Cela pourrait également refléter un changement dans la méthodologie de calcul ou de présentation des données, bien que cela ne soit pas explicitement mentionné ici.\n\nCe changement nécessite une attention particulière pour comprendre les raisons derrière cette suppression et son impact potentiel sur l'évaluation des risques par les parties prenantes."
         }
       }
     ],
@@ -414,20 +419,26 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
+        "themes_amf": [
+          "FONDS_PROPRES_REGLEMENTAIRES",
+          "EXIGENCES_REGLEMENTAIRES"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la modification de la note indique un changement dans l'application des suppléments pour les BISI et BISM. Cela affecte directement les exigences réglementaires en matière de fonds propres. Les thèmes AMF concernés sont FONDS_PROPRES_REGLEMENTAIRES et EXIGENCES_REGLEMENTAIRES.",
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
-        "risk_level": "MODERE",
+        "risk_level": "ELEVE",
         "confidence": 0.9,
-        "explanation": "Le changement constaté concerne une modification dans les notes du tableau des ratios cibles de fonds propres réglementaires et de TLAC. Précisément, la note a été modifiée pour indiquer que le supplément le plus élevé s'applique désormais aux BISM (banques d'importance systémique mondiale) en plus des BISI (banques d'importance systémique intérieure). Ce changement est significatif car il élargit potentiellement l'application des exigences de fonds propres supplémentaires à un groupe plus large de banques, ce qui pourrait avoir un impact sur la gestion du capital de ces institutions.\n\nL'impact réglementaire de ce changement est notable. Les BISM sont soumises à des exigences de fonds propres plus strictes en raison de leur importance systémique mondiale, et l'application de ces suppléments aux fonds propres pourrait affecter leur capacité à maintenir des ratios de capital conformes aux exigences de Bâle III. Cela pourrait également influencer la stratégie de gestion du capital de ces banques, nécessitant potentiellement des ajustements pour répondre aux nouvelles exigences.\n\nCe changement représente une mise à jour méthodologique dans la manière dont les suppléments de fonds propr",
-        "impact_type": "methodologique",
+        "explanation": "La modification de la note dans le tableau 'RATIOS CIBLES DE FONDS PROPRES RÉGLEMENTAIRES ET DE TLAC' indique un changement dans l'application des suppléments pour les banques d'importance systémique intérieure (BISI) et mondiale (BISM). Ce changement peut avoir un impact significatif sur les exigences de fonds propres réglementaires de la banque.\n\nLes suppléments pour les BISI et BISM sont des exigences supplémentaires imposées aux banques pour renforcer leur résilience financière. Un changement dans leur application peut affecter les ratios de fonds propres réglementaires et les exigences de capital de la banque.\n\nCe changement est pertinent car il touche directement aux exigences réglementaires et aux fonds propres, ce qui est crucial pour la gestion du capital de la banque.",
+        "impact_type": "contenu",
         "project_phase": "rapport_gestion",
-        "action_requise": "confirmation",
+        "action_requise": "escalade",
         "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "Le changement élargit l'application des suppléments de fonds propres aux BISM, influençant potentiellement leur gestion du capital.",
+        "impact_description": "Changement dans l'application des suppléments pour les BISI et BISM affectant les exigences de fonds propres.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement constaté concerne une modification dans les notes du tableau des ratios cibles de fonds propres réglementaires et de TLAC. Précisément, la note a été modifiée pour indiquer que le supplément le plus élevé s'applique désormais aux BISM (banques d'importance systémique mondiale) en plus des BISI (banques d'importance systémique intérieure). Ce changement est significatif car il élargit potentiellement l'application des exigences de fonds propres supplémentaires à un groupe plus large de banques, ce qui pourrait avoir un impact sur la gestion du capital de ces institutions.\n\nL'impact réglementaire de ce changement est notable. Les BISM sont soumises à des exigences de fonds propres plus strictes en raison de leur importance systémique mondiale, et l'application de ces suppléments aux fonds propres pourrait affecter leur capacité à maintenir des ratios de capital conformes aux exigences de Bâle III. Cela pourrait également influencer la stratégie de gestion du capital de ces banques, nécessitant potentiellement des ajustements pour répondre aux nouvelles exigences.\n\nCe changement représente une mise à jour méthodologique dans la manière dont les suppléments de fonds propr"
+        "resume_metier": "La modification de la note dans le tableau 'RATIOS CIBLES DE FONDS PROPRES RÉGLEMENTAIRES ET DE TLAC' indique un changement dans l'application des suppléments pour les banques d'importance systémique intérieure (BISI) et mondiale (BISM). Ce changement peut avoir un impact significatif sur les exigences de fonds propres réglementaires de la banque.\n\nLes suppléments pour les BISI et BISM sont des exigences supplémentaires imposées aux banques pour renforcer leur résilience financière. Un changement dans leur application peut affecter les ratios de fonds propres réglementaires et les exigences de capital de la banque.\n\nCe changement est pertinent car il touche directement aux exigences réglementaires et aux fonds propres, ce qui est crucial pour la gestion du capital de la banque."
       }
     },
     {
@@ -539,12 +550,15 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
-        "explanation": "Aucun changement sémantique détecté.",
-        "impact_type": "cosmetique",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
@@ -759,20 +773,27 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
+        "themes_amf": [
+          "FONDS_PROPRES_REGLEMENTAIRES",
+          "EXIGENCES_REGLEMENTAIRES",
+          "NOUVELLE_MENTION_REGLEMENTAIRE"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout de l'indicateur 'Déduction des expositions sur crypto-actifs' est une nouvelle idée substantielle. Cela reflète une nouvelle exigence réglementaire concernant les fonds propres et les expositions sur crypto-actifs.",
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "ELEVE",
         "confidence": 0.95,
-        "explanation": "Le changement constaté concerne l'ajout d'un nouvel indicateur dans le tableau de la structure de fonds propres et ratios sous Bâle III, spécifiquement la déduction des expositions sur crypto-actifs. Ce changement est significatif car il reflète une adaptation aux récentes orientations réglementaires concernant le traitement des crypto-actifs dans le calcul des fonds propres. Les régulateurs, y compris le Comité de Bâle, ont exprimé des préoccupations quant à la volatilité et aux risques associés aux crypto-actifs, ce qui a conduit à des exigences de déduction spécifiques pour ces expositions dans le calcul des ratios de fonds propres.\n\nL'impact réglementaire de cet ajout est direct et important. En intégrant cette déduction, la banque doit ajuster ses calculs de fonds propres pour refléter les risques accrus associés aux crypto-actifs. Cela pourrait potentiellement réduire le ratio de fonds propres de base (CET1) si la banque a des expositions significatives à ces actifs. Cette modification est en ligne avec les recommandations du Comité de Bâle sur le traitement prudentiel des crypto-actifs, qui visent à garantir que les banques maintiennent des niveaux de capital adéquats pour c",
-        "impact_type": "structurel",
+        "explanation": "L'ajout de l'indicateur 'Déduction des expositions sur crypto-actifs' dans le tableau de la structure de fonds propres et ratios sous Bâle III est significatif. Cela indique une nouvelle exigence réglementaire qui impacte directement la gestion des fonds propres de la banque.\n\nCette modification est alignée avec les attentes réglementaires croissantes concernant les actifs numériques, qui sont de plus en plus surveillés par les régulateurs. L'inclusion de cette déduction montre que la banque doit ajuster ses fonds propres pour tenir compte des risques associés aux crypto-actifs.\n\nCela pourrait avoir un impact direct sur les ratios de fonds propres réglementaires, nécessitant une attention particulière pour s'assurer que la banque reste conforme aux nouvelles exigences.",
+        "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "escalade",
-        "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "L'ajout de la déduction des expositions sur crypto-actifs impacte directement le calcul des fonds propres réglementaires.",
+        "reference_reglementaire": "Bâle III — Déduction des expositions sur crypto-actifs",
+        "impact_description": "L'ajout de cet indicateur pourrait affecter les ratios de fonds propres réglementaires en raison des nouvelles déductions exigées pour les expositions sur crypto-actifs.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement constaté concerne l'ajout d'un nouvel indicateur dans le tableau de la structure de fonds propres et ratios sous Bâle III, spécifiquement la déduction des expositions sur crypto-actifs. Ce changement est significatif car il reflète une adaptation aux récentes orientations réglementaires concernant le traitement des crypto-actifs dans le calcul des fonds propres. Les régulateurs, y compris le Comité de Bâle, ont exprimé des préoccupations quant à la volatilité et aux risques associés aux crypto-actifs, ce qui a conduit à des exigences de déduction spécifiques pour ces expositions dans le calcul des ratios de fonds propres.\n\nL'impact réglementaire de cet ajout est direct et important. En intégrant cette déduction, la banque doit ajuster ses calculs de fonds propres pour refléter les risques accrus associés aux crypto-actifs. Cela pourrait potentiellement réduire le ratio de fonds propres de base (CET1) si la banque a des expositions significatives à ces actifs. Cette modification est en ligne avec les recommandations du Comité de Bâle sur le traitement prudentiel des crypto-actifs, qui visent à garantir que les banques maintiennent des niveaux de capital adéquats pour c"
+        "resume_metier": "L'ajout de l'indicateur 'Déduction des expositions sur crypto-actifs' dans le tableau de la structure de fonds propres et ratios sous Bâle III est significatif. Cela indique une nouvelle exigence réglementaire qui impacte directement la gestion des fonds propres de la banque.\n\nCette modification est alignée avec les attentes réglementaires croissantes concernant les actifs numériques, qui sont de plus en plus surveillés par les régulateurs. L'inclusion de cette déduction montre que la banque doit ajuster ses fonds propres pour tenir compte des risques associés aux crypto-actifs.\n\nCela pourrait avoir un impact direct sur les ratios de fonds propres réglementaires, nécessitant une attention particulière pour s'assurer que la banque reste conforme aux nouvelles exigences."
       }
     },
     {
@@ -1069,20 +1090,26 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
+        "themes_amf": [
+          "CAPITAL_REGLEMENTAIRE",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout de l'indicateur 'Billets avec remboursement de capital à recours limité – Série 6' modifie la structure du tableau et la composition des instruments de capital. Cela impacte les thèmes CAPITAL_REGLEMENTAIRE et STRUCTURE_RAPPORT.",
         "category": "CAPITAL",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Le tableau 'ACTIONS ET AUTRES TITRES' dans la section gestion du capital a subi plusieurs modifications notables. Un nouvel indicateur, 'Billets avec remboursement de capital à recours limité – Série 6', a été ajouté, tandis que les indicateurs 'Série 5' et 'Série 7' ont été supprimés. Ces changements indiquent une réorganisation des séries de titres, ce qui pourrait refléter une stratégie de gestion du capital modifiée ou une réponse à des exigences réglementaires spécifiques.\n\nL'ajout de notes concernant les BRCRL (Billets avec remboursement de capital à recours limité) pour la série 6, ainsi que la suppression de notes antérieures, suggère une mise à jour des informations sur les instruments de capital. Ces modifications peuvent avoir des implications sur la manière dont la banque gère ses fonds propres, notamment en ce qui concerne les exigences de fonds propres réglementaires sous Bâle III. Les BRCRL sont souvent utilisés pour renforcer le capital de niveau 1, et leur gestion est cruciale pour maintenir les ratios prudentiels requis.\n\nCes changements semblent indiquer une mise à jour méthodologique ou une révision de la stratégie de capital de la banque. Il est recommandé de c",
+        "explanation": "Le tableau 'ACTIONS ET AUTRES TITRES' a été modifié avec l'ajout d'un nouvel indicateur 'Billets avec remboursement de capital à recours limité – Série 6'. Cela indique un changement dans la composition des instruments de capital de la banque, ce qui est pertinent pour le capital réglementaire.\n\nLes suppressions des séries 5 et 7, ainsi que les modifications des notes, indiquent une réorganisation significative du tableau. Cela affecte la structure du rapport et la manière dont les informations sur le capital sont présentées.\n\nCes changements peuvent avoir des implications sur la gestion du capital et la conformité aux exigences réglementaires, nécessitant une attention particulière pour s'assurer que les nouvelles structures respectent les normes en vigueur.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "confirmation",
         "reference_reglementaire": "Bâle III — CET1",
-        "impact_description": "Réorganisation des séries de titres et mise à jour des informations sur les instruments de capital, impactant potentiellement la gestion des fonds propres.",
+        "impact_description": "Modification de la structure du tableau et des instruments de capital réglementaire.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le tableau 'ACTIONS ET AUTRES TITRES' dans la section gestion du capital a subi plusieurs modifications notables. Un nouvel indicateur, 'Billets avec remboursement de capital à recours limité – Série 6', a été ajouté, tandis que les indicateurs 'Série 5' et 'Série 7' ont été supprimés. Ces changements indiquent une réorganisation des séries de titres, ce qui pourrait refléter une stratégie de gestion du capital modifiée ou une réponse à des exigences réglementaires spécifiques.\n\nL'ajout de notes concernant les BRCRL (Billets avec remboursement de capital à recours limité) pour la série 6, ainsi que la suppression de notes antérieures, suggère une mise à jour des informations sur les instruments de capital. Ces modifications peuvent avoir des implications sur la manière dont la banque gère ses fonds propres, notamment en ce qui concerne les exigences de fonds propres réglementaires sous Bâle III. Les BRCRL sont souvent utilisés pour renforcer le capital de niveau 1, et leur gestion est cruciale pour maintenir les ratios prudentiels requis.\n\nCes changements semblent indiquer une mise à jour méthodologique ou une révision de la stratégie de capital de la banque. Il est recommandé de c"
+        "resume_metier": "Le tableau 'ACTIONS ET AUTRES TITRES' a été modifié avec l'ajout d'un nouvel indicateur 'Billets avec remboursement de capital à recours limité – Série 6'. Cela indique un changement dans la composition des instruments de capital de la banque, ce qui est pertinent pour le capital réglementaire.\n\nLes suppressions des séries 5 et 7, ainsi que les modifications des notes, indiquent une réorganisation significative du tableau. Cela affecte la structure du rapport et la manière dont les informations sur le capital sont présentées.\n\nCes changements peuvent avoir des implications sur la gestion du capital et la conformité aux exigences réglementaires, nécessitant une attention particulière pour s'assurer que les nouvelles structures respectent les normes en vigueur."
       }
     },
     {
@@ -1204,12 +1231,15 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
-        "explanation": "Aucun changement sémantique détecté.",
-        "impact_type": "cosmetique",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
@@ -1383,20 +1413,26 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
+        "themes_amf": [
+          "FACTEUR_RISQUE_CHANGEMENT",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la suppression de l'indicateur 'Participation dans Schwab' modifie la substance de la divulgation sur le risque de marché. Cela indique un changement dans la posture de la banque concernant ses expositions au marché. Les thèmes AMF concernés sont FACTEUR_RISQUE_CHANGEMENT et STRUCTURE_RAPPORT.",
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Le changement constaté concerne la suppression de l'indicateur 'Participation dans Schwab' dans le tableau intitulé 'LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN'. Ce tableau fait partie de la section de gestion des risques, ce qui indique que l'indicateur supprimé était utilisé pour évaluer ou illustrer l'exposition de la banque au risque de marché en relation avec ses participations dans Schwab.\n\nL'impact réglementaire ou métier de cette suppression peut être significatif, car elle pourrait refléter un changement dans la manière dont la banque évalue ou divulgue son exposition au risque de marché. Cela pourrait être dû à une modification de la stratégie d'investissement, à une vente de la participation, ou à un changement dans la manière dont ces participations sont considérées dans le cadre des exigences de divulgation réglementaire. Les références réglementaires applicables pourraient inclure les exigences de Bâle III en matière de gestion du risque de marché, bien que cela dépende de la raison sous-jacente à la suppression.\n\nIl s'agit probablement d'une mise à jour ordinaire si la participation a été vendue ou si elle n'est plus considérée comme significative pour le risque de ",
+        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' du tableau 'LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN' signale un changement potentiel dans l'exposition de la banque à ce risque spécifique. Cela pourrait refléter une vente ou une réévaluation de l'importance de cette participation dans le cadre de la gestion des risques de marché.\n\nCe changement est pertinent car il modifie la structure du tableau et peut indiquer une réorientation stratégique ou une modification de l'exposition au risque de marché. La suppression d'un indicateur lié à une participation spécifique est un indicateur de changement dans la gestion des risques.\n\nLa pertinence de ce changement est élevée car elle touche directement à la gestion des risques de marché, un aspect crucial pour la stabilité financière de la banque.",
         "impact_type": "structurel",
         "project_phase": "rapport_gestion",
-        "action_requise": "confirmation",
-        "reference_reglementaire": "Bâle III — Gestion du risque de marché",
-        "impact_description": "La suppression de l'indicateur 'Participation dans Schwab' modifie l'évaluation du risque de marché lié au bilan.",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression de l'indicateur modifie la perception de l'exposition au risque de marché.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement constaté concerne la suppression de l'indicateur 'Participation dans Schwab' dans le tableau intitulé 'LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN'. Ce tableau fait partie de la section de gestion des risques, ce qui indique que l'indicateur supprimé était utilisé pour évaluer ou illustrer l'exposition de la banque au risque de marché en relation avec ses participations dans Schwab.\n\nL'impact réglementaire ou métier de cette suppression peut être significatif, car elle pourrait refléter un changement dans la manière dont la banque évalue ou divulgue son exposition au risque de marché. Cela pourrait être dû à une modification de la stratégie d'investissement, à une vente de la participation, ou à un changement dans la manière dont ces participations sont considérées dans le cadre des exigences de divulgation réglementaire. Les références réglementaires applicables pourraient inclure les exigences de Bâle III en matière de gestion du risque de marché, bien que cela dépende de la raison sous-jacente à la suppression.\n\nIl s'agit probablement d'une mise à jour ordinaire si la participation a été vendue ou si elle n'est plus considérée comme significative pour le risque de "
+        "resume_metier": "La suppression de l'indicateur 'Participation dans Schwab' du tableau 'LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN' signale un changement potentiel dans l'exposition de la banque à ce risque spécifique. Cela pourrait refléter une vente ou une réévaluation de l'importance de cette participation dans le cadre de la gestion des risques de marché.\n\nCe changement est pertinent car il modifie la structure du tableau et peut indiquer une réorientation stratégique ou une modification de l'exposition au risque de marché. La suppression d'un indicateur lié à une participation spécifique est un indicateur de changement dans la gestion des risques.\n\nLa pertinence de ce changement est élevée car elle touche directement à la gestion des risques de marché, un aspect crucial pour la stabilité financière de la banque."
       }
     },
     {
@@ -1522,12 +1558,15 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
-        "explanation": "Aucun changement sémantique détecté.",
-        "impact_type": "cosmetique",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
@@ -1684,20 +1723,26 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
+        "themes_amf": [
+          "MODIFICATION_TEXTE_RISQUE",
+          "HYPOTHESES_EXPLICATIONS_RISQUES"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la note modifiée change la compréhension des expositions incluses dans les mesures de sensibilité. L'exclusion des expositions du secteur Services bancaires de gros est une information nouvelle et substantielle.",
         "category": "RISQUE",
-        "relevance_score": "ELEVEE",
+        "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Le changement constaté dans le tableau de la section gestion des risques concerne une modification des notes explicatives associées aux mesures de sensibilité au risque de taux d'intérêt structurel. Précédemment, les mesures de sensibilité étaient présentées par devise, mais la nouvelle note indique que les expositions du secteur Services bancaires de gros ne sont pas incluses. Cela représente un changement significatif dans la manière dont les expositions au risque de taux d'intérêt sont rapportées, ce qui pourrait affecter l'interprétation des données par les régulateurs et les parties prenantes.\n\nL'impact réglementaire de ce changement est notable, car il modifie la portée des expositions incluses dans les mesures de sensibilité. Les régulateurs, tels que le BSIF, s'attendent à une divulgation complète et précise des risques financiers, et toute exclusion de secteurs spécifiques doit être clairement justifiée et conforme aux exigences réglementaires. Ce changement pourrait également influencer la perception du profil de risque de la banque, en particulier si le secteur des Services bancaires de gros représente une part significative des expositions au risque de taux d'intérêt.\n\n",
-        "impact_type": "methodologique",
+        "explanation": "La modification de la note dans le tableau sur la sensibilité au risque de taux d'intérêt structurel indique un changement dans les hypothèses sous-jacentes. L'exclusion des expositions du secteur Services bancaires de gros peut affecter l'évaluation globale du risque de taux d'intérêt.\n\nCe changement est pertinent car il modifie la portée des mesures de sensibilité présentées, ce qui peut avoir un impact sur l'analyse des risques de taux d'intérêt. La note précédente mentionnait la présentation par devise, tandis que la nouvelle note précise une exclusion spécifique.\n\nCela pourrait indiquer un ajustement méthodologique ou une clarification importante dans la gestion des risques de taux d'intérêt, nécessitant une attention particulière pour comprendre l'impact sur l'évaluation des risques.",
+        "impact_type": "contenu",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
-        "reference_reglementaire": "Bâle III — Gestion des risques",
-        "impact_description": "La modification des notes sur les mesures de sensibilité au risque de taux d'intérêt exclut désormais les expositions du secteur Services bancaires de gros, ce qui change la portée des données rapportées.",
+        "reference_reglementaire": "",
+        "impact_description": "L'exclusion des expositions du secteur Services bancaires de gros modifie l'évaluation des risques de taux d'intérêt.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement constaté dans le tableau de la section gestion des risques concerne une modification des notes explicatives associées aux mesures de sensibilité au risque de taux d'intérêt structurel. Précédemment, les mesures de sensibilité étaient présentées par devise, mais la nouvelle note indique que les expositions du secteur Services bancaires de gros ne sont pas incluses. Cela représente un changement significatif dans la manière dont les expositions au risque de taux d'intérêt sont rapportées, ce qui pourrait affecter l'interprétation des données par les régulateurs et les parties prenantes.\n\nL'impact réglementaire de ce changement est notable, car il modifie la portée des expositions incluses dans les mesures de sensibilité. Les régulateurs, tels que le BSIF, s'attendent à une divulgation complète et précise des risques financiers, et toute exclusion de secteurs spécifiques doit être clairement justifiée et conforme aux exigences réglementaires. Ce changement pourrait également influencer la perception du profil de risque de la banque, en particulier si le secteur des Services bancaires de gros représente une part significative des expositions au risque de taux d'intérêt.\n\n"
+        "resume_metier": "La modification de la note dans le tableau sur la sensibilité au risque de taux d'intérêt structurel indique un changement dans les hypothèses sous-jacentes. L'exclusion des expositions du secteur Services bancaires de gros peut affecter l'évaluation globale du risque de taux d'intérêt.\n\nCe changement est pertinent car il modifie la portée des mesures de sensibilité présentées, ce qui peut avoir un impact sur l'analyse des risques de taux d'intérêt. La note précédente mentionnait la présentation par devise, tandis que la nouvelle note précise une exclusion spécifique.\n\nCela pourrait indiquer un ajustement méthodologique ou une clarification importante dans la gestion des risques de taux d'intérêt, nécessitant une attention particulière pour comprendre l'impact sur l'évaluation des risques."
       }
     },
     {
@@ -1833,12 +1878,15 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
-        "explanation": "Aucun changement sémantique détecté.",
-        "impact_type": "cosmetique",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
@@ -1951,20 +1999,26 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
+        "themes_amf": [
+          "LIQUIDITE",
+          "DIVULGATION_AJOUT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout de notes concernant les titres adossés à des créances hypothécaires est une nouvelle divulgation. Cela modifie la compréhension des actifs liquides non grevés détenus par la banque.",
         "category": "RISQUE",
-        "relevance_score": "ELEVEE",
+        "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Le changement constaté concerne le tableau intitulé 'SOMMAIRE DES ACTIFS LIQUIDES NON GREVÉS DÉTENUS PAR LA BANQUE, LES FILIALES ET LES SUCCURSALES', où une note a été ajoutée pour préciser que les actifs incluent désormais les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation. Ce type de titre est généralement considéré comme un actif liquide de haute qualité, ce qui peut influencer le calcul des ratios de liquidité tels que le LCR (Liquidity Coverage Ratio) et le NSFR (Net Stable Funding Ratio), qui sont des exigences réglementaires sous Bâle III.\n\nL'ajout de cette note indique un changement dans la composition des actifs liquides non grevés, ce qui peut avoir un impact sur la gestion des risques de liquidité de la banque. Les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation sont souvent utilisés pour améliorer la liquidité d'une institution financière, car ils sont généralement acceptés comme collatéral de haute qualité. Cela pourrait potentiellement améliorer les ratios de liquidité de la banque, mais nécessite une surveillance pour s'assurer que les critères réglementaires sont toujours respectés.",
-        "impact_type": "methodologique",
+        "explanation": "L'ajout de notes sur les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation est pertinent car il précise la composition des actifs liquides non grevés. Cela peut influencer l'évaluation de la liquidité de la banque.\n\nCe changement est classé sous le thème LIQUIDITE car il concerne la gestion des actifs liquides. La note ajoutée constitue une nouvelle divulgation, ce qui est pertinent pour les attentes de transparence réglementaire.\n\nL'impact est modéré car il s'agit d'une clarification importante mais qui ne modifie pas directement les ratios de liquidité réglementaires. Cependant, cela peut affecter la perception des actifs liquides disponibles.",
+        "impact_type": "contenu",
         "project_phase": "rapport_gestion",
-        "action_requise": "confirmation",
-        "reference_reglementaire": "Bâle III — LCR, NSFR",
-        "impact_description": "L'inclusion des titres adossés à des créances hypothécaires pourrait améliorer les ratios de liquidité réglementaires de la banque.",
+        "action_requise": "information",
+        "reference_reglementaire": "",
+        "impact_description": "Clarification sur la composition des actifs liquides non grevés influençant la perception de la liquidité.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement constaté concerne le tableau intitulé 'SOMMAIRE DES ACTIFS LIQUIDES NON GREVÉS DÉTENUS PAR LA BANQUE, LES FILIALES ET LES SUCCURSALES', où une note a été ajoutée pour préciser que les actifs incluent désormais les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation. Ce type de titre est généralement considéré comme un actif liquide de haute qualité, ce qui peut influencer le calcul des ratios de liquidité tels que le LCR (Liquidity Coverage Ratio) et le NSFR (Net Stable Funding Ratio), qui sont des exigences réglementaires sous Bâle III.\n\nL'ajout de cette note indique un changement dans la composition des actifs liquides non grevés, ce qui peut avoir un impact sur la gestion des risques de liquidité de la banque. Les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation sont souvent utilisés pour améliorer la liquidité d'une institution financière, car ils sont généralement acceptés comme collatéral de haute qualité. Cela pourrait potentiellement améliorer les ratios de liquidité de la banque, mais nécessite une surveillance pour s'assurer que les critères réglementaires sont toujours respectés."
+        "resume_metier": "L'ajout de notes sur les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation est pertinent car il précise la composition des actifs liquides non grevés. Cela peut influencer l'évaluation de la liquidité de la banque.\n\nCe changement est classé sous le thème LIQUIDITE car il concerne la gestion des actifs liquides. La note ajoutée constitue une nouvelle divulgation, ce qui est pertinent pour les attentes de transparence réglementaire.\n\nL'impact est modéré car il s'agit d'une clarification importante mais qui ne modifie pas directement les ratios de liquidité réglementaires. Cependant, cela peut affecter la perception des actifs liquides disponibles."
       }
     },
     {
@@ -2100,12 +2154,15 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
-        "explanation": "Aucun changement sémantique détecté.",
-        "impact_type": "cosmetique",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
@@ -2216,20 +2273,26 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
+        "themes_amf": [
+          "LIQUIDITE",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la suppression de la note modifie la compréhension des actifs liquides moyens non grevés. Cela peut indiquer un changement dans la composition des actifs liquides ou dans la méthodologie de calcul. Les thèmes AMF concernés sont LIQUIDITE et STRUCTURE_RAPPORT.",
         "category": "RISQUE",
-        "relevance_score": "ELEVEE",
+        "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Le changement constaté concerne la suppression de notes dans le tableau intitulé 'SOMMAIRE DES ACTIFS LIQUIDES MOYENS NON GREVÉS DÉTENUS PAR LA BANQUE, LES FILIALES ET LES SUCCURSALES'. Plus précisément, la note supprimée faisait référence à l'inclusion des titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation. Ce type de titres est souvent considéré dans le calcul des actifs liquides de haute qualité (HQLA) pour le ratio de liquidité à court terme (LCR), un élément clé des exigences de Bâle III en matière de gestion des risques de liquidité.\n\nL'impact réglementaire de cette suppression pourrait être significatif, car elle pourrait indiquer un changement dans la manière dont la banque évalue ou rapporte ses actifs liquides. Les titres adossés à des créances hypothécaires sont généralement considérés comme des actifs liquides de haute qualité, et leur exclusion pourrait affecter le calcul du LCR, qui est un ratio prudentiel essentiel pour assurer que les banques maintiennent un niveau suffisant d'actifs liquides pour faire face à des sorties de trésorerie sur une période de 30 jours. La suppression de cette note pourrait également refléter un chan",
-        "impact_type": "contenu",
+        "explanation": "La suppression de la note concernant les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation peut signaler un changement dans la composition des actifs liquides moyens non grevés. Cela pourrait affecter la manière dont la banque gère ses actifs liquides et sa conformité aux exigences de liquidité.\n\nCe changement est pertinent car il touche à la structure du rapport et à la divulgation des actifs liquides, ce qui est crucial pour l'évaluation de la liquidité de la banque. La note supprimée fournissait des détails importants sur les actifs inclus dans le calcul des actifs liquides moyens non grevés.\n\nL'impact de ce changement doit être surveillé pour comprendre s'il reflète une modification de la stratégie de gestion des actifs liquides ou une simple réorganisation des informations divulguées.",
+        "impact_type": "structurel",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
-        "reference_reglementaire": "Bâle III — LCR",
-        "impact_description": "La suppression de la note pourrait affecter le calcul du ratio de liquidité à court terme (LCR) de la banque.",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression de la note peut affecter la transparence sur la composition des actifs liquides moyens non grevés.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement constaté concerne la suppression de notes dans le tableau intitulé 'SOMMAIRE DES ACTIFS LIQUIDES MOYENS NON GREVÉS DÉTENUS PAR LA BANQUE, LES FILIALES ET LES SUCCURSALES'. Plus précisément, la note supprimée faisait référence à l'inclusion des titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation. Ce type de titres est souvent considéré dans le calcul des actifs liquides de haute qualité (HQLA) pour le ratio de liquidité à court terme (LCR), un élément clé des exigences de Bâle III en matière de gestion des risques de liquidité.\n\nL'impact réglementaire de cette suppression pourrait être significatif, car elle pourrait indiquer un changement dans la manière dont la banque évalue ou rapporte ses actifs liquides. Les titres adossés à des créances hypothécaires sont généralement considérés comme des actifs liquides de haute qualité, et leur exclusion pourrait affecter le calcul du LCR, qui est un ratio prudentiel essentiel pour assurer que les banques maintiennent un niveau suffisant d'actifs liquides pour faire face à des sorties de trésorerie sur une période de 30 jours. La suppression de cette note pourrait également refléter un chan"
+        "resume_metier": "La suppression de la note concernant les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l’habitation peut signaler un changement dans la composition des actifs liquides moyens non grevés. Cela pourrait affecter la manière dont la banque gère ses actifs liquides et sa conformité aux exigences de liquidité.\n\nCe changement est pertinent car il touche à la structure du rapport et à la divulgation des actifs liquides, ce qui est crucial pour l'évaluation de la liquidité de la banque. La note supprimée fournissait des détails importants sur les actifs inclus dans le calcul des actifs liquides moyens non grevés.\n\nL'impact de ce changement doit être surveillé pour comprendre s'il reflète une modification de la stratégie de gestion des actifs liquides ou une simple réorganisation des informations divulguées."
       }
     },
     {
@@ -2390,21 +2453,24 @@
       "visual_sanity_render_mode": "full",
       "visual_sanity_render_status": "ok",
       "genai_triage": {
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "MOYENNE",
-        "risk_level": "MODERE",
-        "confidence": 0.9,
-        "explanation": "Le changement constaté concerne une modification dans les notes explicatives du tableau sur les actifs grevés et non grevés dans la section de gestion des risques. Précisément, la note a été modifiée pour clarifier que les sûretés données en garantie correspondent désormais à une portion des actifs donnés en garantie, plutôt qu'à l'ensemble des actifs. Ce changement de formulation peut indiquer une révision de la méthodologie ou de la manière dont les actifs grevés sont comptabilisés ou présentés.\n\nL'impact réglementaire de ce changement pourrait être significatif, car il touche à la manière dont les actifs grevés sont évalués et rapportés. Les actifs grevés sont souvent utilisés pour garantir des obligations financières, et une modification dans leur présentation peut affecter la perception du risque de liquidité et de solvabilité de la banque. Cela pourrait également avoir des implications sur les ratios de levier et de liquidité, qui sont des éléments clés sous Bâle III et les directives du BSIF.\n\nIl s'agit probablement d'un changement méthodologique visant à améliorer la précision et la transparence des rapports. Il est recommandé de confirmer cette modification avec l'équipe d",
-        "impact_type": "methodologique",
+        "is_relevant": false,
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.95,
+        "explanation": "La modification de la note de bas de tableau concerne une reformulation mineure sans impact substantiel sur le contenu ou la méthodologie. Le changement de 'Les sûretés données en garanties correspondent aux actifs donnés en garanties da' à 'Les sûretés données en garantie correspondent à la portion des actifs donnés en' ne modifie pas la compréhension ou l'application des concepts de gestion des risques.\n\nIl n'y a pas de nouvelle information réglementaire ou de changement méthodologique associé à cette reformulation. La phrase modifiée ne fait pas référence à une nouvelle ligne directrice ou à un changement dans les exigences réglementaires.\n\nCe type de changement est considéré comme non substantif et n'affecte pas les indicateurs de risque ou les exigences de divulgation réglementaire. Par conséquent, il est classé comme non pertinent pour l'analyse des risques réglementaires.",
+        "impact_type": "non_substantif",
         "project_phase": "rapport_gestion",
-        "action_requise": "confirmation",
-        "reference_reglementaire": "Bâle III — LCR",
-        "impact_description": "La modification de la note sur les actifs grevés pourrait affecter la perception du risque de liquidité et de solvabilité.",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement constaté concerne une modification dans les notes explicatives du tableau sur les actifs grevés et non grevés dans la section de gestion des risques. Précisément, la note a été modifiée pour clarifier que les sûretés données en garantie correspondent désormais à une portion des actifs donnés en garantie, plutôt qu'à l'ensemble des actifs. Ce changement de formulation peut indiquer une révision de la méthodologie ou de la manière dont les actifs grevés sont comptabilisés ou présentés.\n\nL'impact réglementaire de ce changement pourrait être significatif, car il touche à la manière dont les actifs grevés sont évalués et rapportés. Les actifs grevés sont souvent utilisés pour garantir des obligations financières, et une modification dans leur présentation peut affecter la perception du risque de liquidité et de solvabilité de la banque. Cela pourrait également avoir des implications sur les ratios de levier et de liquidité, qui sont des éléments clés sous Bâle III et les directives du BSIF.\n\nIl s'agit probablement d'un changement méthodologique visant à améliorer la précision et la transparence des rapports. Il est recommandé de confirmer cette modification avec l'équipe d"
+        "resume_metier": "La modification de la note de bas de tableau concerne une reformulation mineure sans impact substantiel sur le contenu ou la méthodologie. Le changement de 'Les sûretés données en garanties correspondent aux actifs donnés en garanties da' à 'Les sûretés données en garantie correspondent à la portion des actifs donnés en' ne modifie pas la compréhension ou l'application des concepts de gestion des risques.\n\nIl n'y a pas de nouvelle information réglementaire ou de changement méthodologique associé à cette reformulation. La phrase modifiée ne fait pas référence à une nouvelle ligne directrice ou à un changement dans les exigences réglementaires.\n\nCe type de changement est considéré comme non substantif et n'affecte pas les indicateurs de risque ou les exigences de divulgation réglementaire. Par conséquent, il est classé comme non pertinent pour l'analyse des risques réglementaires."
       }
     },
     {
@@ -2558,20 +2624,25 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
+        "themes_amf": [
+          "DIVULGATION_RETRAIT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la suppression de la note concernant la révision de la notation par Moody's est substantielle. Cela modifie l'information disponible sur les notations de crédit, ce qui est pertinent pour la divulgation des risques.",
         "category": "RISQUE",
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Le changement constaté concerne la suppression d'une note dans le tableau des notations de crédit, spécifiquement une mention relative à une révision par Moody's des notations de dépôts et de contrepartie. Ce type de modification est pertinent car il touche à la gestion des risques de crédit, un aspect crucial pour les banques qui doit être surveillé de près. Les notations de crédit influencent directement la perception du risque par les investisseurs et les contreparties, et peuvent avoir un impact sur les conditions de financement et les exigences de fonds propres.\n\nLa suppression de cette note pourrait indiquer que la révision par Moody's n'a pas eu lieu comme prévu, ou que ses résultats n'ont pas été jugés suffisamment significatifs pour être mentionnés. Cela pourrait également refléter un changement dans la manière dont la banque souhaite communiquer sur ses notations de crédit, ce qui pourrait avoir des implications sur la transparence et la gestion des attentes des parties prenantes. Selon les normes de divulgation du Pilier 3, les banques doivent fournir des informations complètes et à jour sur leurs expositions au risque de crédit, ce qui inclut les notations de crédit.\n\nI",
-        "impact_type": "contenu",
+        "explanation": "La suppression d'une note de bas de tableau concernant une révision de notation par Moody's peut affecter la perception du risque de crédit. Les notations de crédit sont essentielles pour évaluer la qualité de crédit et la stabilité financière de la banque.\n\nCette modification pourrait indiquer un changement dans la manière dont la banque souhaite communiquer sur ses notations de crédit, ce qui peut avoir des implications sur la transparence et la gestion des risques perçus par les investisseurs.\n\nIl est important de surveiller si cette suppression est compensée par d'autres informations ailleurs dans le rapport, ou si elle représente un retrait net d'information.",
+        "impact_type": "structurel",
         "project_phase": "rapport_gestion",
-        "action_requise": "confirmation",
-        "reference_reglementaire": "Bâle III — Pilier 3",
-        "impact_description": "La suppression d'une note sur la révision de notation de crédit par Moody's pourrait affecter la transparence des informations sur le risque de crédit.",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression de la note modifie la transparence sur les notations de crédit.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement constaté concerne la suppression d'une note dans le tableau des notations de crédit, spécifiquement une mention relative à une révision par Moody's des notations de dépôts et de contrepartie. Ce type de modification est pertinent car il touche à la gestion des risques de crédit, un aspect crucial pour les banques qui doit être surveillé de près. Les notations de crédit influencent directement la perception du risque par les investisseurs et les contreparties, et peuvent avoir un impact sur les conditions de financement et les exigences de fonds propres.\n\nLa suppression de cette note pourrait indiquer que la révision par Moody's n'a pas eu lieu comme prévu, ou que ses résultats n'ont pas été jugés suffisamment significatifs pour être mentionnés. Cela pourrait également refléter un changement dans la manière dont la banque souhaite communiquer sur ses notations de crédit, ce qui pourrait avoir des implications sur la transparence et la gestion des attentes des parties prenantes. Selon les normes de divulgation du Pilier 3, les banques doivent fournir des informations complètes et à jour sur leurs expositions au risque de crédit, ce qui inclut les notations de crédit.\n\nI"
+        "resume_metier": "La suppression d'une note de bas de tableau concernant une révision de notation par Moody's peut affecter la perception du risque de crédit. Les notations de crédit sont essentielles pour évaluer la qualité de crédit et la stabilité financière de la banque.\n\nCette modification pourrait indiquer un changement dans la manière dont la banque souhaite communiquer sur ses notations de crédit, ce qui peut avoir des implications sur la transparence et la gestion des risques perçus par les investisseurs.\n\nIl est important de surveiller si cette suppression est compensée par d'autres informations ailleurs dans le rapport, ou si elle représente un retrait net d'information."
       }
     },
     {
@@ -2667,12 +2738,15 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
-        "explanation": "Aucun changement sémantique détecté.",
-        "impact_type": "cosmetique",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
@@ -2806,12 +2880,15 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
-        "explanation": "Aucun changement sémantique détecté.",
-        "impact_type": "cosmetique",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
@@ -2951,20 +3028,23 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 0.9,
-        "explanation": "Le changement constaté concerne une note de bas de tableau dans la section de gestion des risques, où la phrase 'Le LCR est calculé conformément à la ligne directrice Normes de liquidité du BSI' est restée inchangée. Il semble qu'il n'y ait pas eu de modification réelle du texte, ce qui indique que le changement est purement cosmétique ou une erreur de signalement.\n\nL'impact réglementaire ou métier de ce changement est inexistant, car il n'y a pas de modification du contenu ou de la méthodologie de calcul du LCR (Liquidity Coverage Ratio). Le LCR est une exigence réglementaire importante sous Bâle III, mais dans ce cas précis, il n'y a pas de changement à signaler qui affecterait la conformité ou les ratios prudentiels.\n\nEn conclusion, il s'agit d'une mise à jour ordinaire sans impact réel sur la divulgation ou la méthodologie. Aucune action n'est requise, et ce changement peut être classé comme non pertinent pour la veille réglementaire.",
-        "impact_type": "cosmetique",
+        "confidence": 1.0,
+        "explanation": "La note modifiée ne présente aucune différence substantielle entre les deux versions. Il s'agit d'une reformulation identique sans impact sur le contenu ou la méthodologie. Aucune nouvelle information n'est ajoutée ou retirée, et il n'y a pas de changement dans la posture réglementaire ou méthodologique.\n\nLa mention de la ligne directrice Normes de liquidité du BSI reste inchangée, ce qui signifie qu'il n'y a pas de nouvelle attente réglementaire ou de modification de la méthodologie de calcul du LCR.\n\nEn l'absence de changement substantiel, ce cas est classé comme non pertinent et ne nécessite aucune action supplémentaire.",
+        "impact_type": "non_substantif",
         "project_phase": "rapport_gestion",
         "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "Aucun impact concret du changement, car il n'y a pas de modification réelle du texte.",
+        "impact_description": "Aucun impact concret détecté.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement constaté concerne une note de bas de tableau dans la section de gestion des risques, où la phrase 'Le LCR est calculé conformément à la ligne directrice Normes de liquidité du BSI' est restée inchangée. Il semble qu'il n'y ait pas eu de modification réelle du texte, ce qui indique que le changement est purement cosmétique ou une erreur de signalement.\n\nL'impact réglementaire ou métier de ce changement est inexistant, car il n'y a pas de modification du contenu ou de la méthodologie de calcul du LCR (Liquidity Coverage Ratio). Le LCR est une exigence réglementaire importante sous Bâle III, mais dans ce cas précis, il n'y a pas de changement à signaler qui affecterait la conformité ou les ratios prudentiels.\n\nEn conclusion, il s'agit d'une mise à jour ordinaire sans impact réel sur la divulgation ou la méthodologie. Aucune action n'est requise, et ce changement peut être classé comme non pertinent pour la veille réglementaire."
+        "resume_metier": "La note modifiée ne présente aucune différence substantielle entre les deux versions. Il s'agit d'une reformulation identique sans impact sur le contenu ou la méthodologie. Aucune nouvelle information n'est ajoutée ou retirée, et il n'y a pas de changement dans la posture réglementaire ou méthodologique.\n\nLa mention de la ligne directrice Normes de liquidité du BSI reste inchangée, ce qui signifie qu'il n'y a pas de nouvelle attente réglementaire ou de modification de la méthodologie de calcul du LCR.\n\nEn l'absence de changement substantiel, ce cas est classé comme non pertinent et ne nécessite aucune action supplémentaire."
       }
     },
     {
@@ -3159,12 +3239,15 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
-        "explanation": "Aucun changement sémantique détecté.",
-        "impact_type": "cosmetique",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
@@ -3275,20 +3358,26 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
+        "themes_amf": [
+          "MODIFICATION_METHODOLOGIE",
+          "LIQUIDITE"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la suppression de la note indique un changement dans la méthode de calcul du financement provenant des dépôts. Cela modifie la substance de la divulgation en matière de liquidité. Les thèmes AMF concernés sont MODIFICATION_METHODOLOGIE et LIQUIDITE.",
         "category": "RISQUE",
         "relevance_score": "ELEVEE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Le changement constaté concerne la suppression d'une note de bas de tableau dans la section de gestion des risques, plus précisément dans le tableau intitulé 'SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS'. Cette note indiquait que la méthode de calcul avait été modifiée pour inclure le financement provenant des dépôts généré par les services bancaires. La suppression de cette note peut indiquer un retour à une méthode de calcul antérieure ou une autre modification non documentée dans le rapport actuel.\n\nL'impact réglementaire ou métier de ce changement est significatif car il touche à la manière dont le financement provenant des dépôts est calculé et présenté. Cela pourrait affecter la transparence et la comparabilité des informations financières divulguées, ce qui est crucial pour les parties prenantes et les régulateurs. Les méthodes de calcul des financements sont souvent encadrées par des normes réglementaires, et tout changement doit être clairement documenté pour assurer la conformité avec les exigences de divulgation, telles que celles définies par le BSIF ou les normes internationales comme Bâle III.\n\nIl s'agit d'un changement méthodologique qui nécessite une investigation ",
+        "explanation": "La suppression de la note ¹ dans le tableau 'SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS' indique un changement dans la méthodologie de calcul. Cela peut affecter la manière dont la banque évalue et rapporte son financement provenant des dépôts, ce qui est crucial pour la gestion de la liquidité.\n\nCe changement méthodologique est pertinent car il peut influencer la perception des risques de liquidité par les parties prenantes et les régulateurs. La méthode de calcul des dépôts est un élément clé dans l'évaluation de la stabilité financière de la banque.\n\nLa modification de la méthodologie sans explication supplémentaire pourrait nécessiter une clarification pour s'assurer que les parties prenantes comprennent l'impact de ce changement sur les rapports financiers.",
         "impact_type": "methodologique",
         "project_phase": "rapport_gestion",
         "action_requise": "investigation",
-        "reference_reglementaire": "Bâle III — LCR",
-        "impact_description": "La suppression de la note de méthode de calcul peut affecter la transparence et la conformité réglementaire.",
+        "reference_reglementaire": "",
+        "impact_description": "Changement méthodologique dans le calcul du financement des dépôts, impactant la gestion de la liquidité.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le changement constaté concerne la suppression d'une note de bas de tableau dans la section de gestion des risques, plus précisément dans le tableau intitulé 'SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS'. Cette note indiquait que la méthode de calcul avait été modifiée pour inclure le financement provenant des dépôts généré par les services bancaires. La suppression de cette note peut indiquer un retour à une méthode de calcul antérieure ou une autre modification non documentée dans le rapport actuel.\n\nL'impact réglementaire ou métier de ce changement est significatif car il touche à la manière dont le financement provenant des dépôts est calculé et présenté. Cela pourrait affecter la transparence et la comparabilité des informations financières divulguées, ce qui est crucial pour les parties prenantes et les régulateurs. Les méthodes de calcul des financements sont souvent encadrées par des normes réglementaires, et tout changement doit être clairement documenté pour assurer la conformité avec les exigences de divulgation, telles que celles définies par le BSIF ou les normes internationales comme Bâle III.\n\nIl s'agit d'un changement méthodologique qui nécessite une investigation "
+        "resume_metier": "La suppression de la note ¹ dans le tableau 'SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS' indique un changement dans la méthodologie de calcul. Cela peut affecter la manière dont la banque évalue et rapporte son financement provenant des dépôts, ce qui est crucial pour la gestion de la liquidité.\n\nCe changement méthodologique est pertinent car il peut influencer la perception des risques de liquidité par les parties prenantes et les régulateurs. La méthode de calcul des dépôts est un élément clé dans l'évaluation de la stabilité financière de la banque.\n\nLa modification de la méthodologie sans explication supplémentaire pourrait nécessiter une clarification pour s'assurer que les parties prenantes comprennent l'impact de ce changement sur les rapports financiers."
       }
     },
     {
@@ -3376,12 +3465,15 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
-        "explanation": "Aucun changement sémantique détecté.",
-        "impact_type": "cosmetique",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
@@ -3515,12 +3607,15 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": false,
-        "category": "COSMETIQUE",
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",
-        "confidence": 1.0,
-        "explanation": "Aucun changement sémantique détecté.",
-        "impact_type": "cosmetique",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
         "project_phase": "autre",
         "action_requise": "aucune",
         "reference_reglementaire": "",
@@ -3735,21 +3830,24 @@
       "visual_sanity_render_mode": "full",
       "visual_sanity_render_status": "ok",
       "genai_triage": {
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "MOYENNE",
-        "risk_level": "MODERE",
+        "is_relevant": false,
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
         "confidence": 0.9,
-        "explanation": "Le tableau 'FINANCEMENT DE GROS' dans la section de gestion des risques a été modifié avec la suppression de l'indicateur 'Total'. Cette suppression peut affecter la manière dont les risques liés au financement de gros sont évalués et présentés, car le total permet habituellement de donner une vue d'ensemble consolidée des engagements financiers. Bien que les notes de bas de tableau n'aient pas subi de modifications de fond, la suppression de l'indicateur 'Total' pourrait indiquer un changement dans la manière de présenter ou de calculer les risques associés au financement de gros.\n\nL'impact réglementaire de cette modification pourrait être lié à la transparence et à la clarté des informations fournies dans le cadre des exigences de divulgation de Bâle III, notamment en ce qui concerne la gestion des risques de liquidité et de financement. La suppression de l'indicateur 'Total' pourrait rendre plus difficile l'évaluation rapide de la situation globale de financement de gros, ce qui est crucial pour les parties prenantes internes et externes.\n\nIl est recommandé de confirmer si cette suppression est conforme aux attentes réglementaires et si elle a été compensée par d'autres indicate",
-        "impact_type": "structurel",
+        "explanation": "Les modifications détectées dans le tableau 'FINANCEMENT DE GROS' concernent la suppression d'un indicateur 'Dont : – Total' et des reformulations mineures dans les notes de bas de tableau. Ces changements n'introduisent pas de nouvelle information substantielle ni de changement méthodologique. \n\nLa suppression de l'indicateur 'Dont : – Total' ne semble pas affecter la compréhension globale du tableau, et les notes modifiées ne présentent pas de contenu nouveau ou modifié de manière significative. \n\nAinsi, ces changements ne relèvent pas des critères d'inclusion selon la taxonomie AMF, car ils ne modifient pas la substance des divulgations réglementaires ou de gestion des risques.",
+        "impact_type": "non_substantif",
         "project_phase": "rapport_gestion",
-        "action_requise": "confirmation",
-        "reference_reglementaire": "Bâle III — gestion des risques de liquidité",
-        "impact_description": "La suppression de l'indicateur 'Total' dans le tableau de financement de gros pourrait affecter l'évaluation globale des risques de financement.",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucun impact concret sur la divulgation réglementaire ou la gestion des risques.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le tableau 'FINANCEMENT DE GROS' dans la section de gestion des risques a été modifié avec la suppression de l'indicateur 'Total'. Cette suppression peut affecter la manière dont les risques liés au financement de gros sont évalués et présentés, car le total permet habituellement de donner une vue d'ensemble consolidée des engagements financiers. Bien que les notes de bas de tableau n'aient pas subi de modifications de fond, la suppression de l'indicateur 'Total' pourrait indiquer un changement dans la manière de présenter ou de calculer les risques associés au financement de gros.\n\nL'impact réglementaire de cette modification pourrait être lié à la transparence et à la clarté des informations fournies dans le cadre des exigences de divulgation de Bâle III, notamment en ce qui concerne la gestion des risques de liquidité et de financement. La suppression de l'indicateur 'Total' pourrait rendre plus difficile l'évaluation rapide de la situation globale de financement de gros, ce qui est crucial pour les parties prenantes internes et externes.\n\nIl est recommandé de confirmer si cette suppression est conforme aux attentes réglementaires et si elle a été compensée par d'autres indicate"
+        "resume_metier": "Les modifications détectées dans le tableau 'FINANCEMENT DE GROS' concernent la suppression d'un indicateur 'Dont : – Total' et des reformulations mineures dans les notes de bas de tableau. Ces changements n'introduisent pas de nouvelle information substantielle ni de changement méthodologique. \n\nLa suppression de l'indicateur 'Dont : – Total' ne semble pas affecter la compréhension globale du tableau, et les notes modifiées ne présentent pas de contenu nouveau ou modifié de manière significative. \n\nAinsi, ces changements ne relèvent pas des critères d'inclusion selon la taxonomie AMF, car ils ne modifient pas la substance des divulgations réglementaires ou de gestion des risques."
       }
     },
     {
@@ -4041,21 +4139,24 @@
       "visual_sanity_render_mode": "full",
       "visual_sanity_render_status": "ok",
       "genai_triage": {
-        "is_relevant": true,
-        "category": "RISQUE",
-        "relevance_score": "MOYENNE",
-        "risk_level": "MODERE",
+        "is_relevant": false,
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "category": "NON_PERTINENT",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
         "confidence": 0.9,
-        "explanation": "Le tableau de la section gestion des risques intitulé 'DURÉE CONTRACTUELLE RESTANTE' a subi des modifications notables. Un indicateur important, la 'Participation dans Schwab', a été supprimé. Cette suppression pourrait indiquer un changement dans l'exposition de la banque à cet actif particulier, ce qui pourrait avoir des implications sur le profil de risque global de la banque. La participation dans des entités comme Schwab peut influencer la liquidité et la diversification des actifs de la banque, et sa suppression nécessite une attention particulière pour comprendre les raisons sous-jacentes.\n\nDe plus, les notes associées au tableau ont été modifiées, avec une augmentation des obligations sécurisées de 65 milliards à 73 milliards de dollars, et une diminution des engagements de crédit à l'égard de placements de 627 millions à 531 millions de dollars. Ces changements dans les montants indiquent une réévaluation des engagements financiers de la banque, ce qui pourrait refléter une stratégie de gestion des risques ajustée ou une réponse à des conditions de marché changeantes. Les obligations sécurisées sont souvent utilisées pour améliorer la liquidité et la stabilité financière, ",
-        "impact_type": "structurel",
+        "explanation": "Les modifications détectées dans le tableau 'DURÉE CONTRACTUELLE RESTANTE' concernent principalement des variations chiffrées propres à la banque, telles que les montants d'obligations sécurisées et d'engagements de crédit. Ces changements ne relèvent pas de seuils réglementaires ou de nouvelles méthodologies. \n\nLa suppression de l'indicateur 'Participation dans Schwab' n'est pas associée à un changement de méthodologie ou à une nouvelle exigence réglementaire. Il s'agit d'une modification de contenu spécifique à la banque sans impact sur les exigences réglementaires ou les risques émergents. \n\nLes notes modifiées ne font que refléter des ajustements chiffrés sans introduire de nouvelles idées ou concepts réglementaires. Par conséquent, ces changements ne sont pas pertinents selon les critères de la taxonomie AMF.",
+        "impact_type": "non_substantif",
         "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
+        "action_requise": "aucune",
         "reference_reglementaire": "",
-        "impact_description": "La suppression de la participation dans Schwab et les modifications des obligations sécurisées et des engagements de crédit indiquent un ajustement potentiel dans la gestion des risques de la banque.",
+        "impact_description": "Aucun impact réglementaire ou méthodologique significatif détecté.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le tableau de la section gestion des risques intitulé 'DURÉE CONTRACTUELLE RESTANTE' a subi des modifications notables. Un indicateur important, la 'Participation dans Schwab', a été supprimé. Cette suppression pourrait indiquer un changement dans l'exposition de la banque à cet actif particulier, ce qui pourrait avoir des implications sur le profil de risque global de la banque. La participation dans des entités comme Schwab peut influencer la liquidité et la diversification des actifs de la banque, et sa suppression nécessite une attention particulière pour comprendre les raisons sous-jacentes.\n\nDe plus, les notes associées au tableau ont été modifiées, avec une augmentation des obligations sécurisées de 65 milliards à 73 milliards de dollars, et une diminution des engagements de crédit à l'égard de placements de 627 millions à 531 millions de dollars. Ces changements dans les montants indiquent une réévaluation des engagements financiers de la banque, ce qui pourrait refléter une stratégie de gestion des risques ajustée ou une réponse à des conditions de marché changeantes. Les obligations sécurisées sont souvent utilisées pour améliorer la liquidité et la stabilité financière, "
+        "resume_metier": "Les modifications détectées dans le tableau 'DURÉE CONTRACTUELLE RESTANTE' concernent principalement des variations chiffrées propres à la banque, telles que les montants d'obligations sécurisées et d'engagements de crédit. Ces changements ne relèvent pas de seuils réglementaires ou de nouvelles méthodologies. \n\nLa suppression de l'indicateur 'Participation dans Schwab' n'est pas associée à un changement de méthodologie ou à une nouvelle exigence réglementaire. Il s'agit d'une modification de contenu spécifique à la banque sans impact sur les exigences réglementaires ou les risques émergents. \n\nLes notes modifiées ne font que refléter des ajustements chiffrés sans introduire de nouvelles idées ou concepts réglementaires. Par conséquent, ces changements ne sont pas pertinents selon les critères de la taxonomie AMF."
       }
     },
     {
@@ -4348,20 +4449,25 @@
       "visual_sanity_render_status": "ok",
       "genai_triage": {
         "is_relevant": true,
-        "category": "RISQUE",
+        "themes_amf": [
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la suppression de l'indicateur 'Participation dans Schwab' modifie la structure du tableau. Cela affecte la divulgation des actifs et engagements de la banque, ce qui est pertinent pour la gestion des risques.",
+        "category": "STRUCTURE",
         "relevance_score": "MOYENNE",
         "risk_level": "MODERE",
         "confidence": 0.9,
-        "explanation": "Le tableau de la section gestion des risques a été modifié, avec la suppression de l'indicateur 'Participation dans Schwab'. Cela pourrait indiquer un changement dans la stratégie d'investissement ou une réévaluation des actifs considérés comme pertinents pour la gestion des risques. La suppression de cet indicateur pourrait avoir des implications sur la manière dont la banque évalue et gère ses expositions aux risques liés à ses participations.\n\nDe plus, les notes de bas de tableau ont été modifiées, avec une réduction du montant des obligations sécurisées de 75 milliards à 70 milliards de dollars, et une augmentation des engagements de crédit de 609 millions à 623 millions de dollars. Ces ajustements peuvent refléter des changements dans la composition du portefeuille de la banque ou des ajustements dans la manière dont ces éléments sont comptabilisés. Ces modifications peuvent avoir un impact sur la perception du risque de crédit et de liquidité de la banque.\n\nCes changements indiquent une mise à jour potentiellement méthodologique ou stratégique dans la gestion des risques. Il serait prudent de confirmer si ces modifications sont le résultat d'une révision interne des politique",
-        "impact_type": "contenu",
+        "explanation": "La suppression de l'indicateur 'Participation dans Schwab' dans le tableau 'DURÉE CONTRACTUELLE RESTANTE (suite)' constitue un changement structurel. Cela peut indiquer un changement dans la stratégie d'investissement ou de gestion des actifs de la banque.\n\nLes modifications des notes concernant les montants des obligations sécurisées et des engagements de crédit ne sont pas considérées comme des variations chiffrées propres à la banque, car elles ne concernent pas des seuils réglementaires. Cependant, elles accompagnent le changement structurel du tableau.\n\nCe changement est pertinent car il modifie la présentation des actifs et engagements, ce qui peut avoir un impact sur la perception des risques par les parties prenantes.",
+        "impact_type": "structurel",
         "project_phase": "rapport_gestion",
-        "action_requise": "investigation",
+        "action_requise": "confirmation",
         "reference_reglementaire": "",
-        "impact_description": "Modification des indicateurs et des notes dans le tableau de gestion des risques, impactant l'évaluation des expositions aux risques.",
+        "impact_description": "La suppression de l'indicateur modifie la présentation des actifs et engagements dans le tableau.",
         "source": "llm"
       },
       "genai_analysis": {
-        "resume_metier": "Le tableau de la section gestion des risques a été modifié, avec la suppression de l'indicateur 'Participation dans Schwab'. Cela pourrait indiquer un changement dans la stratégie d'investissement ou une réévaluation des actifs considérés comme pertinents pour la gestion des risques. La suppression de cet indicateur pourrait avoir des implications sur la manière dont la banque évalue et gère ses expositions aux risques liés à ses participations.\n\nDe plus, les notes de bas de tableau ont été modifiées, avec une réduction du montant des obligations sécurisées de 75 milliards à 70 milliards de dollars, et une augmentation des engagements de crédit de 609 millions à 623 millions de dollars. Ces ajustements peuvent refléter des changements dans la composition du portefeuille de la banque ou des ajustements dans la manière dont ces éléments sont comptabilisés. Ces modifications peuvent avoir un impact sur la perception du risque de crédit et de liquidité de la banque.\n\nCes changements indiquent une mise à jour potentiellement méthodologique ou stratégique dans la gestion des risques. Il serait prudent de confirmer si ces modifications sont le résultat d'une révision interne des politique"
+        "resume_metier": "La suppression de l'indicateur 'Participation dans Schwab' dans le tableau 'DURÉE CONTRACTUELLE RESTANTE (suite)' constitue un changement structurel. Cela peut indiquer un changement dans la stratégie d'investissement ou de gestion des actifs de la banque.\n\nLes modifications des notes concernant les montants des obligations sécurisées et des engagements de crédit ne sont pas considérées comme des variations chiffrées propres à la banque, car elles ne concernent pas des seuils réglementaires. Cependant, elles accompagnent le changement structurel du tableau.\n\nCe changement est pertinent car il modifie la présentation des actifs et engagements, ce qui peut avoir un impact sur la perception des risques par les parties prenantes."
       }
     }
   ],
@@ -4439,18 +4545,18 @@
     "high_priority_items_total": 10
   },
   "global_summary": {
-    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été observés dans les rapports bancaires, touchant principalement la gestion du capital et des risques. Les ajustements incluent des modifications méthodologiques et stratégiques, notamment dans le traitement des crypto-actifs et la gestion des expositions au risque de marché. Ces évolutions reflètent une adaptation continue aux exigences réglementaires internationales, telles que Bâle III, et nécessitent une attention particulière pour garantir la conformité et la transparence.",
+    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été observés dans le rapport bancaire, principalement dans la gestion du capital et la gestion des risques. Les modifications incluent des ajustements dans les ratios de fonds propres, des changements dans la gestion des actifs liquides, et des suppressions de tableaux clés. Ces évolutions reflètent une adaptation aux nouvelles exigences réglementaires et une réévaluation des stratégies de gestion des risques.",
     "key_highlights": [
-      "Modification des ratios cibles de fonds propres pour inclure les BISM.",
-      "Introduction de déductions pour les expositions sur crypto-actifs.",
-      "Changements dans la présentation des actifs liquides et grevés.",
-      "Suppression de plusieurs indicateurs clés dans les tableaux de gestion des risques."
+      "Modification des ratios de fonds propres réglementaires pour les banques d'importance systémique.",
+      "Introduction de déductions pour les expositions sur crypto-actifs sous Bâle III.",
+      "Changements dans la composition des actifs liquides non grevés.",
+      "Suppression de tableaux clés affectant la présentation des expositions régionales."
     ],
     "pertinence_globale": "ELEVEE",
     "par_phase": {
       "rapport_gestion": {
-        "count": 14,
-        "resume": "Tous les changements ont été observés dans la phase de rapport de gestion, indiquant une révision complète des méthodologies et stratégies de gestion du capital et des risques."
+        "count": 11,
+        "resume": "Tous les changements ont été observés dans la phase de rapport de gestion, indiquant une révision complète des pratiques de gestion du capital et des risques."
       },
       "pilier_3": {
         "count": 0,
@@ -4466,14 +4572,14 @@
       }
     },
     "par_action": {
-      "escalade": 1,
-      "investigation": 5,
-      "confirmation": 8,
-      "information": 0,
+      "escalade": 2,
+      "investigation": 6,
+      "confirmation": 2,
+      "information": 1,
       "aucune": 0
     },
     "source": "llm",
     "total_changes_analysed": 25,
-    "total_relevant": 14
+    "total_relevant": 11
   }
 }

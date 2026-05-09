@@ -1,16 +1,16 @@
 {
   "schema_version": "review_state_v1",
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/comparison.json",
-  "comparison_run_id": "20260421_110132",
-  "review_items_signature": "e30fb8b1c62590bdacd7b03e7f7d334d5d59a766ce18ee734914fb6b0f040a8c",
-  "saved_at": "2026-04-23T18:59:06+00:00",
+  "comparison_run_id": "20260508_220201",
+  "review_items_signature": "1624e48fc71b0de285b863285947b71e64fb52210f0563d89886b7ef637cc8eb",
+  "saved_at": "2026-05-09T03:01:23+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::capital_management::tbl_p027_i01|",
-    "change_id": "chg_00015"
+    "review_id": "bnc::capital_management::tbl_p024_i01|tbl_p028_i01",
+    "change_id": "chg_00004"
   },
-  "review_current_idx": 8,
+  "review_current_idx": 1,
   "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
@@ -27,10 +27,10 @@
       "page_t2": 27,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-23T18:57:41.194006+00:00",
+      "review_timestamp": "2026-05-09T03:01:23.831410+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -40,7 +40,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Actions, autres instruments de capitaux propres et options d’achat d’actions",
-      "table_status": "partial",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "Série 47",
@@ -50,15 +50,15 @@
         {
           "name": "Série 49",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "Série 32",
           "type": "removed",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
-      "match_method": "Title identical: 'Actions, autres instruments de capitaux propres et options d’achat d’actions'; indicators: highly similar with minor series additions; row_count 13 vs 12.",
+      "match_method": "Title identical: 'Actions, autres instruments de capitaux propres et options d’achat d’actions'; indicators: similar with minor additions (Série 47, Série 49); row_count 13 vs 12.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -82,7 +82,27 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "CAPITAL_REGLEMENTAIRE",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout des indicateurs Série 47 et Série 49 et la suppression de la Série 32 modifient la structure du tableau. Cela reflète un changement dans la composition des instruments de capitaux propres, ce qui est pertinent pour le thème CAPITAL_REGLEMENTAIRE.",
+        "impact_level": "MODERE",
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le tableau 'Actions, autres instruments de capitaux propres et options d’achat d’actions' a été modifié avec l'ajout des indicateurs Série 47 et Série 49, et la suppression de la Série 32. Cela indique un changement dans la composition des instruments de capitaux propres de la banque.\n\nCes modifications peuvent avoir un impact sur la manière dont la banque gère son capital réglementaire, en particulier si ces séries représentent des instruments de capital reconnus ou des ajustements prudentiels.\n\nLa modification de la structure du tableau est significative car elle peut refléter une révision de la stratégie de capitalisation de la banque, ce qui est crucial pour les investisseurs et les régulateurs.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "confirmation",
+        "reference_reglementaire": "",
+        "impact_description": "Changement dans la composition des instruments de capitaux propres, impactant potentiellement la gestion du capital réglementaire.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -107,8 +127,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T18:58:52.570557+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.92,
       "proof_image_path": "",
@@ -118,12 +138,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Variation des fonds propres réglementaires (1)",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Émission d’actions ordinaires relatives à l'acquisition de CWB",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Options de remplacement relatives à l'acquisition de CWB",
@@ -133,7 +153,7 @@
         {
           "name": "[2] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: same core structure with minor additions; row_count 42 vs 40.",
@@ -160,7 +180,27 @@
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 1 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "FONDS_PROPRES_REGLEMENTAIRES",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout des indicateurs liés à l'acquisition de CWB modifie la substance de la divulgation sur les fonds propres. Cela reflète un changement dans la structure du capital de la banque. Les thèmes AMF concernés sont FONDS_PROPRES_REGLEMENTAIRES et STRUCTURE_RAPPORT.",
+        "impact_level": "MODERE",
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "L'ajout des indicateurs 'Émission d’actions ordinaires relatives à l'acquisition de CWB' et 'Options de remplacement relatives à l'acquisition de CWB' indique une modification dans la composition des fonds propres réglementaires de la banque. Cela peut avoir un impact sur la manière dont la banque gère son capital et ses exigences réglementaires.\n\nLa suppression de la note concernant le rachat d'actions privilégiées série 32 pourrait indiquer que cet événement n'est plus pertinent pour la période actuelle ou a été remplacé par des événements plus récents, comme l'acquisition de CWB.\n\nCes changements sont significatifs car ils affectent la structure du rapport et la divulgation des fonds propres réglementaires, ce qui est crucial pour l'évaluation de la solidité financière de la banque.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "confirmation",
+        "reference_reglementaire": "",
+        "impact_description": "Modification de la structure des fonds propres réglementaires suite à l'acquisition de CWB.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -209,7 +249,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Both tables are in the 'risk_management' section and share a similar theme regarding emerging risks related to tariffs and trade. The CQ table appears to be a more focused, truncated version of the PQ table, specifically highlighting the risk of tariffs and trade restrictions.",
+      "match_method": "Both tables are in the 'risk_management' section and share a similar indicator related to emerging risks and trade tariffs. The CQ table appears to be a more focused version of the PQ table, specifically on the risk of tariffs and trade restrictions.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -233,7 +273,27 @@
         "theme": "autre",
         "change_significance": "moyen",
         "review_priority": "normale",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "FACTEUR_RISQUE_CHANGEMENT",
+          "RISQUE_EMERGENT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout de l'indicateur 'Risques émergents – Hausse et incertitude des droits de douane et des restrictions' modifie la substance de la divulgation. Cela reflète une nouvelle posture sur les risques émergents liés aux politiques commerciales, ce qui est pertinent pour le thème AMF FACTEUR_RISQUE_CHANGEMENT.",
+        "impact_level": "MODERE",
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le changement dans le tableau de gestion des risques indique une évolution dans la perception des risques liés aux politiques commerciales. L'ajout de 'Hausse et incertitude des droits de douane et des restrictions' montre une reconnaissance accrue des incertitudes économiques globales.\n\nLa suppression de l'indicateur précédent 'Droits de douane sur les importations' et son remplacement par un indicateur plus large et incertain souligne un ajustement dans l'évaluation des risques. Cela pourrait avoir des implications sur la stratégie de gestion des risques de la banque.\n\nCe changement est pertinent car il reflète une adaptation aux conditions économiques mondiales changeantes, ce qui est crucial pour la gestion proactive des risques émergents.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "L'impact concret est une mise à jour de la stratégie de gestion des risques face aux incertitudes commerciales mondiales.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -282,7 +342,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same structure; row_count 20 vs 20.",
+      "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same 20 rows; row_count 20 vs 20.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -306,7 +366,27 @@
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "FACTEUR_RISQUE_CHANGEMENT",
+          "MODIFICATION_METHODOLOGIE"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout de l'indicateur 'Risque de marché – Acquisitions et cessions' constitue une nouvelle divulgation substantielle. La note sur l'inclusion de CWB modifie la méthodologie de calcul du risque opérationnel.",
+        "impact_level": "MODERE",
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le tableau modifié inclut un nouvel indicateur 'Risque de marché – Acquisitions et cessions', ce qui représente un changement dans la manière dont la banque évalue et divulgue ses risques de marché. Cela peut indiquer une nouvelle approche ou un changement dans la gestion des risques liés aux acquisitions et cessions.\n\nLa note ajoutée précise que la variation du risque opérationnel est due à l'inclusion de CWB, ce qui suggère un changement méthodologique dans le calcul de ce risque. Cela pourrait avoir des implications sur la manière dont la banque évalue ses risques opérationnels à l'avenir.\n\nCes changements sont pertinents car ils affectent la compréhension des risques par les parties prenantes et peuvent influencer la perception de la stabilité financière de la banque.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "L'ajout d'un nouvel indicateur et la modification méthodologique influencent la gestion et la divulgation des risques.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -314,74 +394,6 @@
         "review_priority": "prioritaire",
         "change_significance": "moyen",
         "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "bnc::risk_management::tbl_p034_i01|tbl_p037_i01",
-      "change_type": "removed",
-      "indicator": "1 retiré(s)",
-      "section": "risk_management",
-      "table_name": "Portefeuille d’actifs liquides (1)",
-      "table_number": "",
-      "table_id_t1": "tbl_p034_i01",
-      "table_id_t2": "tbl_p037_i01",
-      "page_t1": 34,
-      "page_t2": 37,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T18:58:56.509411+00:00",
-      "edited_value": "",
-      "confidence": 0.9,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "Portefeuille d’actifs liquides (1)",
-      "table_status": "completed",
-      "indicators": [
-        {
-          "name": "Actifs liquides – Au 31 janvier 2025",
-          "type": "removed",
-          "review_status": "approved"
-        }
-      ],
-      "match_method": "Title identical: 'Portefeuille d’actifs liquides (1)'; indicators: same structure; row_count 16 vs 20.",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05406829734253728,
-        0.11164431138472125,
-        0.9406256582222733,
-        0.5144713045370699
-      ],
-      "bbox_t2": [
-        0.054107666015625,
-        0.11211926046043937,
-        0.9404452454810049,
-        0.5201454162597656
-      ],
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "matched_pair",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "financement",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
       }
     },
     {
@@ -418,7 +430,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title identical: 'Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires'; indicators: same 7 rows (Ratios des fonds propres, CET1, catégorie 1, total, Ratio de levier, Ratio TLAC, Ratio de levier TLAC); row_count 7 vs 7.",
+      "match_method": "Title identical: 'Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires'; indicators: same 7 rows; row_count 7 vs 7; headers similar structure.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -442,7 +454,26 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la suppression de la note (4) modifie la compréhension des ratios présentés. Cette note fournissait un contexte important sur le rachat d'actions privilégiées série 32. Le thème AMF concerné est STRUCTURE_RAPPORT.",
+        "impact_level": "MODERE",
+        "category": "STRUCTURE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression de la note (4) dans le tableau des exigences réglementaires modifie la structure du rapport. Cette note expliquait l'impact d'un événement spécifique sur les ratios de fonds propres, ce qui est crucial pour l'analyse des investisseurs.\n\nSans cette note, les lecteurs pourraient ne pas comprendre pleinement les variations des ratios au 31 janvier 2025. Cela peut affecter la transparence et la clarté des informations fournies dans le rapport.\n\nLa suppression de cette note est considérée comme un changement structurel, car elle altère la manière dont les informations sont présentées et interprétées.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression de la note modifie la compréhension des ratios de fonds propres au 31 janvier 2025.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -465,10 +496,10 @@
       "page_t2": 30,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T18:59:00.240659+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -478,12 +509,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Capital réglementaire (1), ratio de levier (1) et TLAC (2)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[3] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same 14 rows; row_count 14 vs 14.",
@@ -510,7 +541,27 @@
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "CAPITAL_REGLEMENTAIRE",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la suppression de la note concernant le rachat d'actions privilégiées série 32 modifie la compréhension du capital réglementaire. Cela affecte potentiellement la structure du capital et les ratios associés, ce qui est pertinent pour les thèmes CAPITAL_REGLEMENTAIRE et STRUCTURE_RAPPORT.",
+        "impact_level": "MODERE",
+        "category": "CAPITAL",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression de la note sur le rachat d'actions privilégiées série 32 peut indiquer un changement dans la structure du capital réglementaire de la banque. Cela pourrait affecter les ratios de capital, notamment si le rachat a un impact sur les fonds propres de catégorie 1 ou sur le ratio de levier.\n\nLa note supprimée était une information contextuelle importante pour comprendre les chiffres présentés dans le tableau de capital réglementaire. Son absence dans le rapport courant pourrait modifier la perception des investisseurs et des régulateurs sur la solidité financière de la banque.\n\nCe changement est pertinent car il touche à la fois à la structure du rapport et à la divulgation du capital réglementaire, ce qui est crucial pour l'évaluation de la conformité aux exigences prudentielles.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "confirmation",
+        "reference_reglementaire": "Bâle III — CET1",
+        "impact_description": "La suppression de la note pourrait modifier la perception des ratios de capital réglementaire.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -518,6 +569,79 @@
         "review_priority": "prioritaire",
         "change_significance": "eleve",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "bnc::capital_management::tbl_p027_i01|",
+      "change_type": "table_removed",
+      "indicator": "Tableau entier retiré",
+      "section": "capital_management",
+      "table_name": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
+      "table_number": "",
+      "table_id_t1": "tbl_p027_i01",
+      "table_id_t2": "",
+      "page_t1": 27,
+      "page_t2": null,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 1.0,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
+      "table_status": "pending",
+      "indicators": [],
+      "match_method": "",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05418464560913884,
+        0.12026377398558338,
+        0.940802081737643,
+        0.331821210456617
+      ],
+      "bbox_t2": null,
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "indicator",
+      "event_type": "table_removed",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Tableau supprime sur le theme capital a confirmer par l'analyste.",
+        "is_relevant": true,
+        "themes_amf": [
+          "DIVULGATION_RETRAIT",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, le retrait du tableau 'Indicateurs – Banques d’importance systémique mondiale (BISM)' modifie la substance de la divulgation. Cela affecte la visibilité sur les indicateurs clés liés à l'importance systémique mondiale de la banque.",
+        "impact_level": "MODERE",
+        "category": "STRUCTURE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le tableau supprimé contenait des indicateurs cruciaux pour évaluer l'importance systémique mondiale de la banque. Ces indicateurs incluent l'activité transfrontière, la taille, l'interdépendance, la substituabilité/infrastructure financière, et la complexité.\n\nLa suppression de ce tableau peut réduire la transparence et la compréhension des risques systémiques associés à la banque. Cela pourrait également affecter la manière dont la banque est perçue par les régulateurs et les investisseurs.\n\nCe changement est pertinent car il modifie la structure du rapport et retire des informations essentielles pour évaluer la position systémique de la banque.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression du tableau réduit la transparence sur les indicateurs de risque systémique mondial.",
+        "source": "llm",
+        "exclusion_reason": null
+      },
+      "match_metadata": {
+        "semantic_judge": "No current business table was matched to this previous table."
       }
     },
     {
@@ -554,7 +678,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Title identical: 'Échéances contractuelles des actifs financiers au 30 avril 2025'; indicators: same structure; row_count 19 vs 19.",
+      "match_method": "Title identical: 'Échéances contractuelles des actifs financiers'; indicators: same 19 rows; row_count 19 vs 19.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -578,7 +702,24 @@
         "theme": "risque_credit",
         "change_significance": "moyen",
         "review_priority": "normale",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote.",
+        "is_relevant": false,
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "impact_level": "MINEUR",
+        "category": "NON_PERTINENT",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.95,
+        "explanation": "L'ajout d'une note concernant l'acquisition de CWB par la Banque et la consolidation de ses résultats ne relève pas d'une exigence réglementaire ou d'un changement substantiel dans la gestion des risques. Il s'agit d'une information factuelle sur une transaction spécifique à la banque.\n\nCette information ne modifie pas la substance des divulgations réglementaires ou des méthodologies de gestion des risques. Elle ne correspond pas non plus à un changement de facteur de risque ou à une nouvelle exigence réglementaire.\n\nPar conséquent, cette modification est considérée comme non pertinente dans le contexte des attentes de l'AMF et du BSIF, car elle ne touche pas aux thèmes de la taxonomie AMF.",
+        "impact_type": "non_substantif",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucune impact réglementaire ou méthodologique direct.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -586,59 +727,6 @@
         "review_priority": "normale",
         "change_significance": "moyen",
         "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      }
-    },
-    {
-      "change_id": "bnc::capital_management::tbl_p027_i01|",
-      "change_type": "table_removed",
-      "indicator": "Tableau entier retiré",
-      "section": "capital_management",
-      "table_name": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
-      "table_number": "",
-      "table_id_t1": "tbl_p027_i01",
-      "table_id_t2": "",
-      "page_t1": 27,
-      "page_t2": null,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
-      "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T18:59:06.366153+00:00",
-      "edited_value": "",
-      "confidence": 1.0,
-      "proof_image_path": "",
-      "proof_mode": "",
-      "unit_context_t1": "",
-      "unit_context_t2": "",
-      "title_resolution_method_t1": "",
-      "title_resolution_method_t2": "",
-      "table_title_raw": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
-      "table_status": "completed",
-      "indicators": [],
-      "match_method": "",
-      "all_indicators_t1": [],
-      "all_indicators_t2": [],
-      "bbox_t1": [
-        0.05418464560913884,
-        0.12026377398558338,
-        0.940802081737643,
-        0.331821210456617
-      ],
-      "bbox_t2": null,
-      "added_indicators": [],
-      "removed_indicators": [],
-      "item_type": "indicator",
-      "event_type": "table_removed",
-      "footnote_changes": [],
-      "genai_analysis": {
-        "theme": "capital",
-        "change_significance": "eleve",
-        "review_priority": "critique",
-        "analyst_summary": "Tableau supprime sur le theme capital a confirmer par l'analyste."
-      },
-      "match_metadata": {
-        "semantic_judge": "No current business table was matched to this previous table."
       }
     }
   ],
@@ -681,14 +769,14 @@
             "indicator_name_clean": "série 47",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Série 47\" a été ajouté dans le tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer l'émission d'une nouvelle série d'actions privilégiées, ce qui peut avoir un impact sur la structure du capital de la banque. Les actions privilégiées sont souvent utilisées pour renforcer les fonds propres de catégorie 1, conformément aux exigences de Bâle III et aux lignes directrices du BSIF.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer l'émission de cette nouvelle série et s'assurer que les informations sont cohérentes avec les autres divulgations financières."
+              "justification": "L'indicateur \"Série 47\" a été ajouté dans le tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout indique l'émission d'une nouvelle série d'actions privilégiées, ce qui peut avoir un impact sur la structure du capital de la banque. Les actions privilégiées sont souvent utilisées pour renforcer les fonds propres de catégorie 1, conformément aux exigences de Bâle III et aux lignes directrices du BSIF. L'introduction de cette nouvelle série pourrait refléter une stratégie de gestion du capital visant à optimiser le ratio de fonds propres.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cette nouvelle série est correctement intégrée dans les calculs de fonds propres et vérifier son impact sur les ratios prudentiels."
             }
           },
           "validation_status": "approved",
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-23T18:57:41.194006+00:00",
+          "validated_at": "2026-05-09T02:40:53.020124+00:00",
           "validated_by": "analyst"
         },
         {
@@ -699,15 +787,15 @@
             "indicator_name_clean": "série 49",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Série 49\" a été ajouté dans le tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était absent au T1 2025.\n\nL'ajout de cette série suggère une nouvelle émission d'actions privilégiées, ce qui peut influencer la composition des fonds propres de la banque. Les actions privilégiées jouent un rôle clé dans le renforcement des ratios de fonds propres, en ligne avec les exigences réglementaires de Bâle III.\n\nIl s'agit d'une mise à jour structurelle significative. L'analyste devrait vérifier l'exactitude de cette nouvelle émission et son impact sur les ratios de fonds propres."
+              "justification": "L'indicateur \"Série 49\" a été ajouté dans le tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était absent au T1 2025.\n\nL'ajout de cette série suggère une nouvelle émission d'actions privilégiées, ce qui peut influencer la composition des fonds propres de la banque. Les actions privilégiées jouent un rôle clé dans le renforcement des fonds propres de catégorie 1, en ligne avec les normes de Bâle III et les directives du BSIF. Cette nouvelle émission pourrait être une réponse à des besoins de financement ou à une stratégie de gestion du capital visant à améliorer les ratios de fonds propres.\n\nIl s'agit d'une mise à jour structurelle significative. L'analyste devrait vérifier l'intégration de cette série dans les rapports de fonds propres et évaluer son impact sur les ratios réglementaires."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-05-09T02:40:53.156443+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00003",
@@ -717,25 +805,45 @@
             "indicator_name_clean": "série 32",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Série 32\" a été retiré du tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cette série peut indiquer le rachat ou l'annulation de cette émission d'actions privilégiées, ce qui pourrait affecter la structure du capital de la banque. Les actions privilégiées sont essentielles pour maintenir les ratios de fonds propres requis par Bâle III.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer la raison de cette suppression et évaluer son impact sur les ratios de fonds propres et la conformité réglementaire."
+              "justification": "L'indicateur \"Série 32\" a été retiré du tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cette série peut indiquer le rachat ou l'annulation de cette émission d'actions privilégiées. Cela peut avoir des implications sur la structure du capital de la banque, notamment en ce qui concerne le ratio de fonds propres de catégorie 1. Les actions privilégiées sont essentielles pour répondre aux exigences de Bâle III et aux lignes directrices du BSIF, et leur retrait peut signaler un ajustement stratégique dans la gestion du capital.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer la raison de ce retrait et évaluer son impact sur les ratios de fonds propres et la stratégie de capitalisation de la banque."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-05-09T03:01:23.831410+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "partial",
+      "table_status": "completed",
       "confidence": 0.9,
-      "match_method": "Title identical: 'Actions, autres instruments de capitaux propres et options d’achat d’actions'; indicators: highly similar with minor series additions; row_count 13 vs 12.",
+      "match_method": "Title identical: 'Actions, autres instruments de capitaux propres et options d’achat d’actions'; indicators: similar with minor additions (Série 47, Série 49); row_count 13 vs 12.",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "CAPITAL_REGLEMENTAIRE",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout des indicateurs Série 47 et Série 49 et la suppression de la Série 32 modifient la structure du tableau. Cela reflète un changement dans la composition des instruments de capitaux propres, ce qui est pertinent pour le thème CAPITAL_REGLEMENTAIRE.",
+        "impact_level": "MODERE",
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le tableau 'Actions, autres instruments de capitaux propres et options d’achat d’actions' a été modifié avec l'ajout des indicateurs Série 47 et Série 49, et la suppression de la Série 32. Cela indique un changement dans la composition des instruments de capitaux propres de la banque.\n\nCes modifications peuvent avoir un impact sur la manière dont la banque gère son capital réglementaire, en particulier si ces séries représentent des instruments de capital reconnus ou des ajustements prudentiels.\n\nLa modification de la structure du tableau est significative car elle peut refléter une révision de la stratégie de capitalisation de la banque, ce qui est crucial pour les investisseurs et les régulateurs.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "confirmation",
+        "reference_reglementaire": "",
+        "impact_description": "Changement dans la composition des instruments de capitaux propres, impactant potentiellement la gestion du capital réglementaire.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -744,16 +852,16 @@
         "change_significance": "eleve",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote."
       },
-      "relevance": "",
-      "risk_level": "",
+      "relevance": "CAPITAL",
+      "risk_level": "MODERE",
       "summary": {
         "total_changes": 3,
         "indicators_added": 2,
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 2
+        "validated": 3,
+        "pending": 0
       }
     },
     {
@@ -794,25 +902,7 @@
             "indicator_name_clean": "émission d’actions ordinaires relatives à l'acquisition de cwb",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Émission d’actions ordinaires relatives à l'acquisition de CWB\" a été ajouté dans le tableau de variation des fonds propres réglementaires pour le semestre terminé le 30 avril 2025. Cet indicateur n'était pas présent dans le trimestre précédent terminé le 31 janvier 2025.\n\nCet ajout reflète une opération spécifique d'acquisition, ce qui peut avoir un impact significatif sur la structure du capital de la banque. Les émissions d'actions ordinaires dans le cadre d'acquisitions peuvent affecter les ratios de fonds propres, qui sont des éléments clés pour le respect des exigences réglementaires telles que Bâle III. Cela peut également influencer la perception des investisseurs et des régulateurs quant à la stratégie de croissance de la banque.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cette émission est correctement intégrée dans les calculs des fonds propres et que les impacts sur les ratios réglementaires sont bien documentés."
-            }
-          },
-          "validation_status": "approved",
-          "is_required": true,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-23T18:58:47.043611+00:00",
-          "validated_by": "analyst"
-        },
-        {
-          "change_id": "chg_00005",
-          "change_type": "indicator_added",
-          "payload": {
-            "indicator_name": "Options de remplacement relatives à l'acquisition de CWB",
-            "indicator_name_clean": "options de remplacement relatives à l'acquisition de cwb",
-            "analyst_assessment": {
-              "relevance_level": 2,
-              "justification": "L'indicateur \"Options de remplacement relatives à l'acquisition de CWB\" a été ajouté dans le tableau de variation des fonds propres réglementaires pour le semestre terminé le 30 avril 2025. Cet indicateur n'était pas présent dans le trimestre précédent terminé le 31 janvier 2025.\n\nCet ajout est lié à l'acquisition de CWB et concerne les options de remplacement, ce qui peut avoir des implications sur la valorisation des actions et les droits des actionnaires. Les options de remplacement peuvent modifier la structure du capital et influencer les calculs des fonds propres réglementaires, ce qui est crucial pour le respect des normes de Bâle III et des directives du BSIF.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait vérifier que ces options sont correctement évaluées et intégrées dans les rapports financiers, et que leur impact sur les ratios de fonds propres est bien compris."
+              "justification": "L'indicateur \"Émission d’actions ordinaires relatives à l'acquisition de CWB\" a été ajouté dans le tableau de variation des fonds propres réglementaires pour le semestre terminé le 30 avril 2025. Cet indicateur n'était pas présent dans le trimestre précédent terminé le 31 janvier 2025.\n\nCet ajout reflète une opération spécifique d'émission d'actions ordinaires liée à l'acquisition de CWB. Cela peut avoir un impact significatif sur la structure du capital de la banque, influençant potentiellement les ratios de fonds propres réglementaires tels que le CET1. Les exigences de Bâle III et les lignes directrices du BSIF sur la divulgation des événements significatifs de capital doivent être prises en compte.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cette émission est correctement intégrée dans les calculs des fonds propres et vérifier la cohérence avec les autres divulgations financières."
             }
           },
           "validation_status": "pending",
@@ -823,7 +913,25 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00011",
+          "change_id": "chg_00005",
+          "change_type": "indicator_added",
+          "payload": {
+            "indicator_name": "Options de remplacement relatives à l'acquisition de CWB",
+            "indicator_name_clean": "options de remplacement relatives à l'acquisition de cwb",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Options de remplacement relatives à l'acquisition de CWB\" a été ajouté dans le tableau de variation des fonds propres réglementaires pour le semestre terminé le 30 avril 2025. Cet indicateur n'était pas présent dans le trimestre précédent terminé le 31 janvier 2025.\n\nCet ajout indique l'existence d'options de remplacement émises dans le cadre de l'acquisition de CWB. Cela peut affecter la valorisation des actions et les droits des actionnaires, influençant ainsi les calculs des fonds propres réglementaires. Les implications sur les ratios de fonds propres doivent être évaluées conformément aux normes de Bâle III et aux directives du BSIF.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait vérifier l'impact de ces options sur les fonds propres et s'assurer que toutes les implications réglementaires sont correctement adressées."
+            }
+          },
+          "validation_status": "pending",
+          "is_required": true,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        },
+        {
+          "change_id": "chg_00010",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[2] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
@@ -832,22 +940,42 @@
             "old_text": "Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
             "new_text": ""
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T18:58:52.570557+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.92,
       "match_method": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: same core structure with minor additions; row_count 42 vs 40.",
       "genai_analysis": {
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 1 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "FONDS_PROPRES_REGLEMENTAIRES",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout des indicateurs liés à l'acquisition de CWB modifie la substance de la divulgation sur les fonds propres. Cela reflète un changement dans la structure du capital de la banque. Les thèmes AMF concernés sont FONDS_PROPRES_REGLEMENTAIRES et STRUCTURE_RAPPORT.",
+        "impact_level": "MODERE",
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "L'ajout des indicateurs 'Émission d’actions ordinaires relatives à l'acquisition de CWB' et 'Options de remplacement relatives à l'acquisition de CWB' indique une modification dans la composition des fonds propres réglementaires de la banque. Cela peut avoir un impact sur la manière dont la banque gère son capital et ses exigences réglementaires.\n\nLa suppression de la note concernant le rachat d'actions privilégiées série 32 pourrait indiquer que cet événement n'est plus pertinent pour la période actuelle ou a été remplacé par des événements plus récents, comme l'acquisition de CWB.\n\nCes changements sont significatifs car ils affectent la structure du rapport et la divulgation des fonds propres réglementaires, ce qui est crucial pour l'évaluation de la solidité financière de la banque.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "confirmation",
+        "reference_reglementaire": "",
+        "impact_description": "Modification de la structure des fonds propres réglementaires suite à l'acquisition de CWB.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -856,16 +984,16 @@
         "change_significance": "moyen",
         "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 2 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "relevance": "",
-      "risk_level": "",
+      "relevance": "CAPITAL",
+      "risk_level": "MODERE",
       "summary": {
         "total_changes": 3,
         "indicators_added": 2,
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 2,
-        "pending": 1
+        "validated": 0,
+        "pending": 3
       }
     },
     {
@@ -899,14 +1027,14 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00008",
+          "change_id": "chg_00007",
           "change_type": "indicator_added",
           "payload": {
             "indicator_name": "Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux",
             "indicator_name_clean": "risques émergents – hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux\" a été ajouté dans le tableau de gestion des risques au T2 2025, alors qu'il n'était pas présent au T1 2025.\n\nCet ajout reflète une attention accrue aux risques liés aux fluctuations des droits de douane et aux restrictions commerciales, qui peuvent avoir un impact significatif sur les opérations bancaires internationales et la gestion des risques de crédit. Les institutions financières doivent surveiller ces évolutions pour ajuster leurs stratégies de couverture et de gestion des risques, conformément aux lignes directrices prudentielles.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cet ajout est aligné avec les autres sections du rapport sur les risques émergents et évaluer l'impact potentiel sur les stratégies de gestion des risques de l'institution."
+              "justification": "L'indicateur \"Risques émergents – Hausse et incertitude des droits de douane et des restrictions sur les échanges commerciaux\" a été ajouté dans le tableau de gestion des risques au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout reflète une attention accrue aux risques liés aux politiques commerciales internationales, qui peuvent avoir un impact significatif sur les opérations bancaires, notamment en ce qui concerne le financement du commerce et les expositions transfrontalières. Les incertitudes et les hausses potentielles des droits de douane peuvent affecter la rentabilité des entreprises clientes et, par conséquent, le risque de crédit pour la banque.\n\nIl s'agit d'une mise à jour structurelle importante qui nécessite une surveillance continue. L'analyste devrait confirmer que cette nouvelle divulgation est alignée avec les autres sections du rapport sur les risques émergents et évaluer l'impact potentiel sur les portefeuilles de crédit."
             }
           },
           "validation_status": "pending",
@@ -917,14 +1045,14 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00009",
+          "change_id": "chg_00008",
           "change_type": "indicator_removed",
           "payload": {
             "indicator_name": "Risques émergents – Droits de douane sur les importations",
             "indicator_name_clean": "risques émergents – droits de douane sur les importations",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Risques émergents – Droits de douane sur les importations\" a été retiré du tableau de gestion des risques au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait peut indiquer un changement dans la focalisation des risques émergents, passant d'une attention spécifique aux droits de douane sur les importations à une perspective plus large incluant les incertitudes et restrictions commerciales. Cela peut refléter une réévaluation des priorités en matière de gestion des risques, en réponse à des évolutions économiques ou politiques récentes.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait vérifier si ce retrait est compensé par d'autres indicateurs ou sections du rapport, et évaluer l'impact sur la stratégie globale de gestion des risques de l'institution."
+              "justification": "L'indicateur \"Risques émergents – Droits de douane sur les importations\" a été retiré du tableau de gestion des risques au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait peut indiquer une réévaluation ou une reformulation des risques liés aux droits de douane, potentiellement pour inclure une perspective plus large sur les échanges commerciaux. Cela pourrait refléter un changement dans la manière dont la banque évalue et communique ses expositions aux risques commerciaux, ce qui est crucial pour la gestion des risques et la conformité réglementaire.\n\nIl est recommandé que l'analyste examine les raisons de ce retrait et s'assure que les risques sont toujours correctement couverts dans le rapport. Une vérification de la cohérence avec les autres sections sur les risques commerciaux est également conseillée."
             }
           },
           "validation_status": "pending",
@@ -937,12 +1065,32 @@
       ],
       "table_status": "pending",
       "confidence": 0.75,
-      "match_method": "Both tables are in the 'risk_management' section and share a similar theme regarding emerging risks related to tariffs and trade. The CQ table appears to be a more focused, truncated version of the PQ table, specifically highlighting the risk of tariffs and trade restrictions.",
+      "match_method": "Both tables are in the 'risk_management' section and share a similar indicator related to emerging risks and trade tariffs. The CQ table appears to be a more focused version of the PQ table, specifically on the risk of tariffs and trade restrictions.",
       "genai_analysis": {
         "theme": "autre",
         "change_significance": "moyen",
         "review_priority": "normale",
-        "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "FACTEUR_RISQUE_CHANGEMENT",
+          "RISQUE_EMERGENT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout de l'indicateur 'Risques émergents – Hausse et incertitude des droits de douane et des restrictions' modifie la substance de la divulgation. Cela reflète une nouvelle posture sur les risques émergents liés aux politiques commerciales, ce qui est pertinent pour le thème AMF FACTEUR_RISQUE_CHANGEMENT.",
+        "impact_level": "MODERE",
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le changement dans le tableau de gestion des risques indique une évolution dans la perception des risques liés aux politiques commerciales. L'ajout de 'Hausse et incertitude des droits de douane et des restrictions' montre une reconnaissance accrue des incertitudes économiques globales.\n\nLa suppression de l'indicateur précédent 'Droits de douane sur les importations' et son remplacement par un indicateur plus large et incertain souligne un ajustement dans l'évaluation des risques. Cela pourrait avoir des implications sur la stratégie de gestion des risques de la banque.\n\nCe changement est pertinent car il reflète une adaptation aux conditions économiques mondiales changeantes, ce qui est crucial pour la gestion proactive des risques émergents.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "L'impact concret est une mise à jour de la stratégie de gestion des risques face aux incertitudes commerciales mondiales.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -951,8 +1099,8 @@
         "change_significance": "moyen",
         "analyst_summary": "Changements semantiques detectes sur le theme autre: 2 changement(s) d'indicateur et 0 changement(s) de footnote."
       },
-      "relevance": "",
-      "risk_level": "",
+      "relevance": "RISQUE",
+      "risk_level": "MODERE",
       "summary": {
         "total_changes": 2,
         "indicators_added": 1,
@@ -1001,7 +1149,7 @@
             "indicator_name_clean": "risque de marché – acquisitions et cessions",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "L'indicateur \"Risque de marché – Acquisitions et cessions\" a été ajouté dans le tableau de gestion du capital au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout permet de mieux isoler l'impact des acquisitions et cessions sur le risque de marché, ce qui est crucial pour l'évaluation des risques et la planification stratégique. Cela pourrait être lié à des changements dans la structure de l'entreprise ou à des exigences de divulgation accrues.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait s'assurer que cette nouvelle catégorie est justifiée par des changements dans les opérations ou les exigences réglementaires."
+              "justification": "L'indicateur \"Risque de marché – Acquisitions et cessions\" a été ajouté dans le tableau de gestion du capital au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout indique une attention particulière aux impacts des acquisitions et cessions sur le risque de marché. Cela peut refléter des changements dans la structure du portefeuille ou des ajustements stratégiques qui influencent le profil de risque global de l'institution. Les acquisitions et cessions peuvent avoir des implications significatives sur les exigences en capital et la gestion des risques, conformément aux normes de Bâle III.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cette nouvelle ligne est alignée avec les autres indicateurs de risque de marché et évaluer l'impact potentiel sur les exigences en capital."
             }
           },
           "validation_status": "pending",
@@ -1012,7 +1160,7 @@
           "validated_by": ""
         },
         {
-          "change_id": "chg_00012",
+          "change_id": "chg_00011",
           "change_type": "footnote_added",
           "payload": {
             "indicator_name": "[3] Au cours du deuxième trimestre de 2025, la variation du risque opérationnel est liée à l’inclusion de CWB qui a été calc",
@@ -1031,12 +1179,32 @@
       ],
       "table_status": "pending",
       "confidence": 0.95,
-      "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same structure; row_count 20 vs 20.",
+      "match_method": "Title identical: 'Variation de l’actif pondéré en fonction des risques selon les principaux facteurs (1)'; indicators: same 20 rows; row_count 20 vs 20.",
       "genai_analysis": {
         "theme": "risque_marche",
         "change_significance": "moyen",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "FACTEUR_RISQUE_CHANGEMENT",
+          "MODIFICATION_METHODOLOGIE"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, l'ajout de l'indicateur 'Risque de marché – Acquisitions et cessions' constitue une nouvelle divulgation substantielle. La note sur l'inclusion de CWB modifie la méthodologie de calcul du risque opérationnel.",
+        "impact_level": "MODERE",
+        "category": "RISQUE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le tableau modifié inclut un nouvel indicateur 'Risque de marché – Acquisitions et cessions', ce qui représente un changement dans la manière dont la banque évalue et divulgue ses risques de marché. Cela peut indiquer une nouvelle approche ou un changement dans la gestion des risques liés aux acquisitions et cessions.\n\nLa note ajoutée précise que la variation du risque opérationnel est due à l'inclusion de CWB, ce qui suggère un changement méthodologique dans le calcul de ce risque. Cela pourrait avoir des implications sur la manière dont la banque évalue ses risques opérationnels à l'avenir.\n\nCes changements sont pertinents car ils affectent la compréhension des risques par les parties prenantes et peuvent influencer la perception de la stabilité financière de la banque.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "L'ajout d'un nouvel indicateur et la modification méthodologique influencent la gestion et la divulgation des risques.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -1045,8 +1213,8 @@
         "change_significance": "moyen",
         "analyst_summary": "Changements semantiques detectes sur le theme risque_marche: 1 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "relevance": "",
-      "risk_level": "",
+      "relevance": "RISQUE",
+      "risk_level": "MODERE",
       "summary": {
         "total_changes": 2,
         "indicators_added": 1,
@@ -1055,83 +1223,6 @@
         "footnotes_changed": 1,
         "validated": 0,
         "pending": 2
-      }
-    },
-    {
-      "review_id": "bnc::risk_management::tbl_p034_i01|tbl_p037_i01",
-      "table_key": "bnc::risk_management::tbl_p034_i01|tbl_p037_i01",
-      "table_title": "Portefeuille d’actifs liquides (1)",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "Portefeuille d’actifs liquides (1)",
-      "table_number": "",
-      "table_id_t1": "tbl_p034_i01",
-      "table_id_t2": "tbl_p037_i01",
-      "page_t1": 34,
-      "page_t2": 37,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05406829734253728,
-        0.11164431138472125,
-        0.9406256582222733,
-        0.5144713045370699
-      ],
-      "bbox_t2": [
-        0.054107666015625,
-        0.11211926046043937,
-        0.9404452454810049,
-        0.5201454162597656
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00007",
-          "change_type": "indicator_removed",
-          "payload": {
-            "indicator_name": "Actifs liquides – Au 31 janvier 2025",
-            "indicator_name_clean": "actifs liquides – au 31 janvier 2025",
-            "analyst_assessment": {
-              "relevance_level": 3,
-              "justification": "L'indicateur \"Actifs liquides – Au 31 janvier 2025\" a été retiré du tableau actuel, alors qu'il était présent dans le tableau précédent. Cet indicateur servait à fournir une référence temporelle spécifique pour les actifs liquides à une date antérieure, ce qui est une pratique courante pour contextualiser les données financières dans le temps.\n\nL'impact de cette suppression est principalement cosmétique, car elle ne modifie pas la méthodologie de calcul ou la présentation des actifs liquides eux-mêmes. Cependant, elle peut affecter la comparaison temporelle directe des données si les utilisateurs du rapport s'appuient sur ces dates pour suivre les tendances historiques. Dans le cadre des exigences réglementaires, cette suppression n'a pas d'incidence directe, car les dates de référence ne sont pas des éléments obligatoires de divulgation selon Bâle III ou les lignes directrices du BSIF.\n\nIl s'agit d'une mise à jour ordinaire visant probablement à simplifier la présentation du tableau. L'analyste devrait confirmer que les autres dates de référence pertinentes sont toujours présentes et que les utilisateurs du rapport ont accès à toutes les informations nécessaires pour une analyse temporelle complète."
-            }
-          },
-          "validation_status": "approved",
-          "is_required": true,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-23T18:58:56.509411+00:00",
-          "validated_by": "analyst"
-        }
-      ],
-      "table_status": "completed",
-      "confidence": 0.9,
-      "match_method": "Title identical: 'Portefeuille d’actifs liquides (1)'; indicators: same structure; row_count 16 vs 20.",
-      "genai_analysis": {
-        "theme": "financement",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "financement",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme financement: 1 changement(s) d'indicateur et 0 changement(s) de footnote."
-      },
-      "relevance": "",
-      "risk_level": "",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 0,
-        "indicators_removed": 1,
-        "indicators_renamed": 0,
-        "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
       }
     },
     {
@@ -1165,7 +1256,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00010",
+          "change_id": "chg_00009",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[4] (4) Les ratios au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
@@ -1184,12 +1275,31 @@
       ],
       "table_status": "pending",
       "confidence": 0.95,
-      "match_method": "Title identical: 'Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires'; indicators: same 7 rows (Ratios des fonds propres, CET1, catégorie 1, total, Ratio de levier, Ratio TLAC, Ratio de levier TLAC); row_count 7 vs 7.",
+      "match_method": "Title identical: 'Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires'; indicators: same 7 rows; row_count 7 vs 7; headers similar structure.",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la suppression de la note (4) modifie la compréhension des ratios présentés. Cette note fournissait un contexte important sur le rachat d'actions privilégiées série 32. Le thème AMF concerné est STRUCTURE_RAPPORT.",
+        "impact_level": "MODERE",
+        "category": "STRUCTURE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression de la note (4) dans le tableau des exigences réglementaires modifie la structure du rapport. Cette note expliquait l'impact d'un événement spécifique sur les ratios de fonds propres, ce qui est crucial pour l'analyse des investisseurs.\n\nSans cette note, les lecteurs pourraient ne pas comprendre pleinement les variations des ratios au 31 janvier 2025. Cela peut affecter la transparence et la clarté des informations fournies dans le rapport.\n\nLa suppression de cette note est considérée comme un changement structurel, car elle altère la manière dont les informations sont présentées et interprétées.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression de la note modifie la compréhension des ratios de fonds propres au 31 janvier 2025.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
@@ -1198,8 +1308,8 @@
         "change_significance": "eleve",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "relevance": "",
-      "risk_level": "",
+      "relevance": "STRUCTURE",
+      "risk_level": "MODERE",
       "summary": {
         "total_changes": 1,
         "indicators_added": 0,
@@ -1241,7 +1351,7 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00013",
+          "change_id": "chg_00012",
           "change_type": "footnote_removed",
           "payload": {
             "indicator_name": "[3] Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
@@ -1249,82 +1359,6 @@
             "footnote_ref": "3",
             "old_text": "Les données au 31 janvier 2025 tiennent compte du rachat d’actions privilégiées série 32 effectué le 17 février 2025.",
             "new_text": ""
-          },
-          "validation_status": "approved",
-          "is_required": false,
-          "validation_decision": "approved",
-          "validation_notes": "",
-          "validated_at": "2026-04-23T18:59:00.240659+00:00",
-          "validated_by": "analyst"
-        }
-      ],
-      "table_status": "completed",
-      "confidence": 0.95,
-      "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same 14 rows; row_count 14 vs 14.",
-      "genai_analysis": {
-        "theme": "capital",
-        "change_significance": "eleve",
-        "review_priority": "prioritaire",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "match_metadata": {
-        "drastic_row_drop": false,
-        "theme": "capital",
-        "review_priority": "prioritaire",
-        "change_significance": "eleve",
-        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
-      },
-      "relevance": "",
-      "risk_level": "",
-      "summary": {
-        "total_changes": 1,
-        "indicators_added": 0,
-        "indicators_removed": 0,
-        "indicators_renamed": 0,
-        "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
-      }
-    },
-    {
-      "review_id": "bnc::risk_management::tbl_p039_i01|tbl_p042_i01",
-      "table_key": "bnc::risk_management::tbl_p039_i01|tbl_p042_i01",
-      "table_title": "tbl_p042_i01",
-      "view_mode": "change_list",
-      "section": "risk_management",
-      "table_name": "tbl_p042_i01",
-      "table_number": "",
-      "table_id_t1": "tbl_p039_i01",
-      "table_id_t2": "tbl_p042_i01",
-      "page_t1": 39,
-      "page_t2": 42,
-      "proof_image_t1": "",
-      "proof_image_t2": "",
-      "proof_image_combined": "",
-      "bbox_t1": [
-        0.05432230506847108,
-        0.28410501191110327,
-        0.9408292084737541,
-        0.7069258256392046
-      ],
-      "bbox_t2": [
-        0.05424151077769161,
-        0.2837324046125316,
-        0.940988179125817,
-        0.7068941520922112
-      ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
-      "changes": [
-        {
-          "change_id": "chg_00014",
-          "change_type": "footnote_added",
-          "payload": {
-            "indicator_name": "[1] Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date ",
-            "indicator_name_clean": "[1] le 3 février 2025, la banque a conclu l’acquisition de cwb. les résultats de cwb ont été consolidés à partir de la date",
-            "footnote_ref": "1",
-            "old_text": "",
-            "new_text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les soldes au 30 avril 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB."
           },
           "validation_status": "pending",
           "is_required": false,
@@ -1336,22 +1370,42 @@
       ],
       "table_status": "pending",
       "confidence": 0.95,
-      "match_method": "Title identical: 'Échéances contractuelles des actifs financiers au 30 avril 2025'; indicators: same structure; row_count 19 vs 19.",
+      "match_method": "Title identical: 'Capital réglementaire (1), ratio de levier (1) et TLAC (2)'; indicators: same 14 rows; row_count 14 vs 14.",
       "genai_analysis": {
-        "theme": "risque_credit",
-        "change_significance": "moyen",
-        "review_priority": "normale",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote.",
+        "is_relevant": true,
+        "themes_amf": [
+          "CAPITAL_REGLEMENTAIRE",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, la suppression de la note concernant le rachat d'actions privilégiées série 32 modifie la compréhension du capital réglementaire. Cela affecte potentiellement la structure du capital et les ratios associés, ce qui est pertinent pour les thèmes CAPITAL_REGLEMENTAIRE et STRUCTURE_RAPPORT.",
+        "impact_level": "MODERE",
+        "category": "CAPITAL",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La suppression de la note sur le rachat d'actions privilégiées série 32 peut indiquer un changement dans la structure du capital réglementaire de la banque. Cela pourrait affecter les ratios de capital, notamment si le rachat a un impact sur les fonds propres de catégorie 1 ou sur le ratio de levier.\n\nLa note supprimée était une information contextuelle importante pour comprendre les chiffres présentés dans le tableau de capital réglementaire. Son absence dans le rapport courant pourrait modifier la perception des investisseurs et des régulateurs sur la solidité financière de la banque.\n\nCe changement est pertinent car il touche à la fois à la structure du rapport et à la divulgation du capital réglementaire, ce qui est crucial pour l'évaluation de la conformité aux exigences prudentielles.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "confirmation",
+        "reference_reglementaire": "Bâle III — CET1",
+        "impact_description": "La suppression de la note pourrait modifier la perception des ratios de capital réglementaire.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "drastic_row_drop": false,
-        "theme": "risque_credit",
-        "review_priority": "normale",
-        "change_significance": "moyen",
-        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
-      "relevance": "",
-      "risk_level": "",
+      "relevance": "CAPITAL",
+      "risk_level": "MODERE",
       "summary": {
         "total_changes": 1,
         "indicators_added": 0,
@@ -1388,42 +1442,155 @@
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00015",
+          "change_id": "chg_00014",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T18:59:06.366153+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
         "review_priority": "critique",
-        "analyst_summary": "Tableau supprime sur le theme capital a confirmer par l'analyste."
+        "analyst_summary": "Tableau supprime sur le theme capital a confirmer par l'analyste.",
+        "is_relevant": true,
+        "themes_amf": [
+          "DIVULGATION_RETRAIT",
+          "STRUCTURE_RAPPORT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI, le retrait du tableau 'Indicateurs – Banques d’importance systémique mondiale (BISM)' modifie la substance de la divulgation. Cela affecte la visibilité sur les indicateurs clés liés à l'importance systémique mondiale de la banque.",
+        "impact_level": "MODERE",
+        "category": "STRUCTURE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le tableau supprimé contenait des indicateurs cruciaux pour évaluer l'importance systémique mondiale de la banque. Ces indicateurs incluent l'activité transfrontière, la taille, l'interdépendance, la substituabilité/infrastructure financière, et la complexité.\n\nLa suppression de ce tableau peut réduire la transparence et la compréhension des risques systémiques associés à la banque. Cela pourrait également affecter la manière dont la banque est perçue par les régulateurs et les investisseurs.\n\nCe changement est pertinent car il modifie la structure du rapport et retire des informations essentielles pour évaluer la position systémique de la banque.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "investigation",
+        "reference_reglementaire": "",
+        "impact_description": "La suppression du tableau réduit la transparence sur les indicateurs de risque systémique mondial.",
+        "source": "llm",
+        "exclusion_reason": null
       },
       "match_metadata": {
         "semantic_judge": "No current business table was matched to this previous table."
       },
-      "relevance": "",
-      "risk_level": "",
+      "relevance": "STRUCTURE",
+      "risk_level": "MODERE",
       "summary": {
         "total_changes": 1,
         "indicators_added": 0,
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "bnc::risk_management::tbl_p039_i01|tbl_p042_i01",
+      "table_key": "bnc::risk_management::tbl_p039_i01|tbl_p042_i01",
+      "table_title": "tbl_p042_i01",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "tbl_p042_i01",
+      "table_number": "",
+      "table_id_t1": "tbl_p039_i01",
+      "table_id_t2": "tbl_p042_i01",
+      "page_t1": 39,
+      "page_t2": 42,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05432230506847108,
+        0.28410501191110327,
+        0.9408292084737541,
+        0.7069258256392046
+      ],
+      "bbox_t2": [
+        0.05424151077769161,
+        0.2837324046125316,
+        0.940988179125817,
+        0.7068941520922112
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00013",
+          "change_type": "footnote_added",
+          "payload": {
+            "indicator_name": "[1] Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date ",
+            "indicator_name_clean": "[1] le 3 février 2025, la banque a conclu l’acquisition de cwb. les résultats de cwb ont été consolidés à partir de la date",
+            "footnote_ref": "1",
+            "old_text": "",
+            "new_text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les soldes au 30 avril 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.95,
+      "match_method": "Title identical: 'Échéances contractuelles des actifs financiers'; indicators: same 19 rows; row_count 19 vs 19.",
+      "genai_analysis": {
+        "theme": "risque_credit",
+        "change_significance": "moyen",
+        "review_priority": "normale",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote.",
+        "is_relevant": false,
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "",
+        "impact_level": "MINEUR",
+        "category": "NON_PERTINENT",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.95,
+        "explanation": "L'ajout d'une note concernant l'acquisition de CWB par la Banque et la consolidation de ses résultats ne relève pas d'une exigence réglementaire ou d'un changement substantiel dans la gestion des risques. Il s'agit d'une information factuelle sur une transaction spécifique à la banque.\n\nCette information ne modifie pas la substance des divulgations réglementaires ou des méthodologies de gestion des risques. Elle ne correspond pas non plus à un changement de facteur de risque ou à une nouvelle exigence réglementaire.\n\nPar conséquent, cette modification est considérée comme non pertinente dans le contexte des attentes de l'AMF et du BSIF, car elle ne touche pas aux thèmes de la taxonomie AMF.",
+        "impact_type": "non_substantif",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "Aucune impact réglementaire ou méthodologique direct.",
+        "source": "llm",
+        "exclusion_reason": null
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "risque_credit",
+        "review_priority": "normale",
+        "change_significance": "moyen",
+        "analyst_summary": "Changements semantiques detectes sur le theme risque_credit: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "NON_PERTINENT",
+      "risk_level": "MINEUR",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
+        "pending": 1
       }
     }
   ]

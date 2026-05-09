@@ -1,4 +1,14 @@
-"""Utilitaires de priorite pour le tri de la file de revue et la normalisation des signaux GenAI."""
+"""Utilitaires de priorite pour le tri de la file de revue.
+
+Aligne sur la taxonomie AMF v2 unifiée :
+- ``action_requise`` (escalade > investigation > confirmation > information > aucune)
+- ``category`` (REGLEMENTAIRE > RISQUE > CAPITAL > STRUCTURE > NON_PERTINENT > INCONNU)
+- ``impact_level`` (MAJEUR > MODERE > MINEUR)
+
+Plus de traduction anglais→français (les sorties GPT sont natives en français
+via la taxonomie AMF). Plus de fallback sur les anciens champs ``relevance`` /
+``risk_level`` translated.
+"""
 
 from __future__ import annotations
 
@@ -12,95 +22,41 @@ _ACTION_PRIORITY = {
     "aucune": 4,
 }
 
-_RELEVANCE_PRIORITY = {
+# Categorie AMF (lecture directe depuis ``genai_analysis.category``).
+_CATEGORY_PRIORITY = {
     "REGLEMENTAIRE": 0,
-    "NOUVELLE_DIVULGATION": 1,
-    "STRUCTUREL": 2,
-    "NON_CLASSIFIE": 3,
-    "NON_SIGNIFICATIF": 4,
+    "RISQUE": 1,
+    "CAPITAL": 2,
+    "STRUCTURE": 3,
+    "NON_PERTINENT": 4,
+    "INCONNU": 5,
 }
 
-_RISK_PRIORITY = {
-    "ELEVE": 0,
+# Niveau d'impact AMF v2 (lecture directe depuis ``genai_analysis.impact_level``).
+_IMPACT_PRIORITY = {
+    "MAJEUR": 0,
     "MODERE": 1,
-    "FAIBLE": 2,
+    "MINEUR": 2,
 }
 
 
-def normalize_relevance(value: str) -> str:
-    """Normalise un code de pertinence anglais vers la terminologie francaise.
-
-    Args:
-        value: Code de pertinence brut (ex. ``"REGULATORY"``, ``"NEW_DISCLOSURE"``).
-
-    Returns:
-        Code normalise en francais (ex. ``"REGLEMENTAIRE"``).
-    """
-    raw = str(value or "").strip().upper()
-    if raw == "REGULATORY":
-        return "REGLEMENTAIRE"
-    if raw == "NON_MATERIAL":
-        return "NON_SIGNIFICATIF"
-    if raw == "STRUCTURAL":
-        return "STRUCTUREL"
-    if raw == "NEW_DISCLOSURE":
-        return "NOUVELLE_DIVULGATION"
-    if raw == "UNKNOWN":
-        return "NON_CLASSIFIE"
-    return raw
-
-
-def normalize_risk(value: str) -> str:
-    """Normalise un code de niveau de risque anglais vers le francais.
-
-    Args:
-        value: Code de risque brut (ex. ``"HIGH"``, ``"MODERATE"``).
-
-    Returns:
-        Code normalise en francais (ex. ``"ELEVE"``).
-    """
-    raw = str(value or "").strip().upper()
-    if raw == "HIGH":
-        return "ELEVE"
-    if raw == "MODERATE":
-        return "MODERE"
-    if raw == "LOW":
-        return "FAIBLE"
-    return raw
-
-
-def get_priority_signals(item: dict) -> tuple[str, str, str, float]:
+def get_priority_signals(item: dict) -> tuple[str, str, str]:
     """Extrait les signaux de priorite d'un element de la file de revue.
 
     Args:
         item: Dictionnaire representant un element de revue.
 
     Returns:
-        Tuple ``(action_requise, relevance, risk, confidence)``.
+        Tuple ``(action_requise, category, impact_level)`` aux valeurs AMF v2.
     """
     ga = item.get("genai_analysis")
     if not isinstance(ga, dict):
         ga = {}
 
     action = str(ga.get("action_requise", "") or "").strip().lower()
-
-    relevance = normalize_relevance(str(ga.get("relevance", "") or ga.get("category", "")))
-    if not relevance:
-        if str(item.get("table_status", "")).strip().lower() == "structure_change":
-            relevance = "STRUCTUREL"
-        elif str(item.get("change_type", "")).strip().lower() == "structure_change":
-            relevance = "STRUCTUREL"
-
-    risk = normalize_risk(str(ga.get("risk_level", "")))
-
-    confidence = ga.get("confidence", None)
-    try:
-        conf_f = float(confidence)
-        conf_f = max(0.0, min(1.0, conf_f))
-    except (TypeError, ValueError):
-        conf_f = -1.0
-
-    return action, relevance, risk, conf_f
+    category = str(ga.get("category", "") or "").strip().upper()
+    impact = str(ga.get("impact_level", "") or "").strip().upper()
+    return action, category, impact
 
 
 def sort_review_items_by_priority(items: list[dict]) -> list[dict]:
@@ -120,15 +76,14 @@ def sort_review_items_by_priority(items: list[dict]) -> list[dict]:
     """
     indexed: list[tuple[int, dict]] = list(enumerate(items))
 
-    def _priority_key(entry: tuple[int, dict]) -> tuple[int, int, int, float, int]:
+    def _priority_key(entry: tuple[int, dict]) -> tuple[int, int, int, int]:
         """Calcule la cle de tri composite pour un element indexe."""
         idx, item = entry
-        action, relevance, risk, confidence = get_priority_signals(item)
+        action, category, impact = get_priority_signals(item)
         action_rank = _ACTION_PRIORITY.get(action, 5)
-        relevance_rank = _RELEVANCE_PRIORITY.get(relevance, 5)
-        risk_rank = _RISK_PRIORITY.get(risk, 3)
-        conf_rank = -confidence if confidence >= 0 else 1.0
-        return (action_rank, relevance_rank, risk_rank, conf_rank, idx)
+        category_rank = _CATEGORY_PRIORITY.get(category, 6)
+        impact_rank = _IMPACT_PRIORITY.get(impact, 3)
+        return (action_rank, category_rank, impact_rank, idx)
 
     ordered = sorted(indexed, key=_priority_key)
     return [item for _, item in ordered]

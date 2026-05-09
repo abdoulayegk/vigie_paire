@@ -301,14 +301,9 @@ def _to_validation_finale(review_status: str) -> str:
 
 
 def _to_nouvelle_idee(genai_analysis: dict[str, Any] | None) -> str:
-    """Retourne 'Oui' si le changement est pertinent et de categorie reglementaire/risque/capital."""
+    """Retourne 'Oui' / 'Non' selon la décision GPT-4o (champ AMF v2 ``nouvelle_idee``)."""
     ga = genai_analysis or {}
-    is_relevant = bool(ga.get("is_relevant", False))
-    category = str(ga.get("category", "") or "").upper()
-    high_relevance = str(ga.get("relevance_score", "") or "").upper() == "ELEVEE"
-    if is_relevant and (category in ("REGLEMENTAIRE", "RISQUE", "CAPITAL") or high_relevance):
-        return "Oui"
-    return "Non"
+    return "Oui" if bool(ga.get("nouvelle_idee", False)) else "Non"
 
 
 def _build_libelle(precedent: str, courant: str, ind_type: str) -> str:
@@ -705,19 +700,17 @@ def _iter_validation_rows(
 
         item_type = str(base.get("item_type", "indicator"))
         ga = base.get("genai_analysis") or {}
-        pertinence_genai = _sanitize_cell(ga.get("relevance", ""))
-        niveau_risque_genai = _sanitize_cell(ga.get("risk_level", ""))
+        # Lecture directe AMF v2 — plus de champs legacy translated.
+        pertinence_genai = _sanitize_cell(ga.get("category", ""))
+        niveau_risque_genai = _sanitize_cell(ga.get("impact_level", ""))
         impact_type_genai = _sanitize_cell(ga.get("impact_type", ""))
         phase_genai = _sanitize_cell(ga.get("project_phase", ""))
         action_genai = _sanitize_cell(ga.get("action_requise", ""))
         ref_regl_genai = _sanitize_cell(ga.get("reference_reglementaire", ""))
 
-        is_relevant = bool(ga.get("is_relevant", False))
-        category_genai = str(ga.get("category", "") or "").upper()
-        high_relevance = str(ga.get("relevance_score", "") or "").upper() == "ELEVEE"
         if not ga:
             nouvelle_divulgation = "Non analysé"
-        elif is_relevant and (category_genai in ("REGLEMENTAIRE", "RISQUE", "CAPITAL") or high_relevance):
+        elif bool(ga.get("nouvelle_idee", False)):
             nouvelle_divulgation = "Oui"
         else:
             nouvelle_divulgation = "Non"

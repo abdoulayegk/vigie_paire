@@ -53,7 +53,10 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
     assert response["filename"] == "veille_textuelle_TD_2026t1.xlsx"
 
 
-def test_filter_text_cards_sorts_new_idea_first_and_keeps_minor_cosmetic() -> None:
+def test_filter_text_cards_sorts_new_idea_first_and_filters_non_pertinent() -> None:
+    """Le filtrage Dash ne montre que les changements pertinents (alignement
+    avec la préférence Excel minimal). Tri : nouvelle idée d'abord, puis
+    impact décroissant. Les is_relevant=False sont masqués."""
     text_data = {
         "section_comparisons": [
             {
@@ -67,10 +70,15 @@ def test_filter_text_cards_sorts_new_idea_first_and_keeps_minor_cosmetic() -> No
                         "pages_t2": [5],
                         "evidence_t2": {"pages": [5], "snippet": "preuve 1"},
                         "genai_triage": {
-                            "category": "RISQUE",
+                            "is_relevant": True,
+                            "themes_amf": ["MODIFICATION_TEXTE_RISQUE"],
                             "impact_level": "MAJEUR",
                             "action_requise": "escalade",
                             "nouvelle_idee": False,
+                            "nouvelle_idee_justification": (
+                                "NON le concept existait deja au t1. "
+                                "Seule la formulation a evolue de maniere substantive."
+                            ),
                         },
                     },
                     {
@@ -80,23 +88,30 @@ def test_filter_text_cards_sorts_new_idea_first_and_keeps_minor_cosmetic() -> No
                         "pages_t2": [9],
                         "evidence_t2": {"pages": [9], "snippet": "preuve 2"},
                         "genai_triage": {
-                            "category": "STRUCTURE",
+                            "is_relevant": True,
+                            "themes_amf": ["DIVULGATION_AJOUT", "STRUCTURE_RAPPORT"],
                             "impact_level": "MODERE",
                             "action_requise": "information",
                             "nouvelle_idee": True,
+                            "nouvelle_idee_justification": (
+                                "OUI nouvelle divulgation absente au t1. "
+                                "Cela introduit un sujet nouveau dans le rapport."
+                            ),
                         },
                     },
                     {
-                        "change_id": "cosmetic",
+                        "change_id": "non_pertinent",
                         "diff_type": "modified",
-                        "semantic_text_t2": "Cosmétique",
+                        "semantic_text_t2": "Variation chiffree",
                         "pages_t2": [2],
                         "evidence_t2": {"pages": [2], "snippet": "preuve 3"},
                         "genai_triage": {
-                            "category": "COSMETIQUE",
+                            "is_relevant": False,
+                            "themes_amf": [],
                             "impact_level": "MINEUR",
                             "action_requise": "aucune",
                             "nouvelle_idee": False,
+                            "exclusion_reason": "variation_numerique_propre_banque",
                         },
                     },
                 ],
@@ -106,11 +121,27 @@ def test_filter_text_cards_sorts_new_idea_first_and_keeps_minor_cosmetic() -> No
 
     cards, count_text = filter_text_cards(text_data, None, None, None)
 
-    assert count_text == "3 changement(s) affiché(s)"
-    assert len(cards) == 3
-    first_phrase = cards[0].children.children[2].children
-    second_phrase = cards[1].children.children[2].children
-    third_phrase = cards[2].children.children[2].children
-    assert first_phrase == "Nouvelle idée"
-    assert second_phrase == "Majeur existant"
-    assert third_phrase == "Cosmétique"
+    # Seuls les 2 changements pertinents (major + new_moderate) sont affichés
+    assert count_text == "2 changement(s) affiché(s)"
+    assert len(cards) == 2
+    # La structure de la carte est : badge_row, themes_row?, meta, side_by_side, ...
+    # Le side-by-side rend les textes T1/T2 dans des spans imbriqués.
+    # On aplatit tous les enfants pour vérifier la présence des phrases.
+    from dash.development.base_component import Component as _DashComponent
+
+    def _flat_text(node) -> str:
+        if node is None:
+            return ""
+        if isinstance(node, str):
+            return node
+        if isinstance(node, list):
+            return " ".join(_flat_text(c) for c in node)
+        if isinstance(node, _DashComponent):
+            return _flat_text(getattr(node, "children", None))
+        return ""
+
+    first_text = _flat_text(cards[0])
+    second_text = _flat_text(cards[1])
+    # Tri : nouvelle idée d'abord, puis impact décroissant
+    assert "Nouvelle idée" in first_text  # phrase added present in T2 column
+    assert "Majeur existant" in second_text  # phrase modified present in T2 column

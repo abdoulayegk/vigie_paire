@@ -70,7 +70,9 @@ def test_change_list_view_shows_changes_heading() -> None:
     assert "Changements (1)" in text
 
 
-def test_table_removed_without_genai_shows_fallback_explanation() -> None:
+def test_table_removed_without_genai_shows_no_classification_message() -> None:
+    """Sans triage IA disponible (genai_analysis vide), on affiche un message
+    court et neutre — pas de fallback heuristique (alignement principe 100% GPT)."""
     table = {
         "table_name": "Table supprimée",
         "section": "capital_management",
@@ -91,9 +93,80 @@ def test_table_removed_without_genai_shows_fallback_explanation() -> None:
     }
     view = build_review_detail_v2(table=table, current_change_idx=0, show_proofs=False)
     text = _flatten_text(view)
-    assert "Aucune explication GenAI disponible." not in text
-    assert "Explication automatique" in text
-    assert "absent au trimestre courant" in text
+    assert "Aucune classification IA disponible" in text
+
+
+def test_table_with_non_relevant_triage_shows_exclusion_reason() -> None:
+    """Quand GPT a explicitement classé en non pertinent, on affiche la raison."""
+    table = {
+        "table_name": "Table reformulée",
+        "section": "capital_management",
+        "page_t1": 33,
+        "page_t2": 35,
+        "table_status": "pending",
+        "summary": {"total_changes": 1, "validated": 0, "pending": 1},
+        "changes": [
+            {
+                "change_id": "chg_1",
+                "change_type": "indicator_renamed",
+                "payload": {},
+                "validation_status": "pending",
+                "is_required": True,
+            }
+        ],
+        "genai_analysis": {
+            "is_relevant": False,
+            "exclusion_reason": "reformulation_mineure",
+            "themes_amf": [],
+            "nouvelle_idee": False,
+        },
+    }
+    view = build_review_detail_v2(table=table, current_change_idx=0, show_proofs=False)
+    text = _flatten_text(view)
+    assert "Non pertinent" in text
+    assert "Reformulation sans nouveau fond" in text
+
+
+def test_table_with_relevant_triage_shows_nouvelle_idee_and_themes() -> None:
+    """Cas pertinent : badge nouvelle idée + impact + chips thèmes AMF + justification."""
+    justification = (
+        "OUI - le ratio TLAC est ajoute au TABLEAU 11 absent du t1. "
+        "Cela aligne la divulgation BMO sur les attentes BSIF (DIVULGATION_AJOUT, RATIOS_REGLEMENTAIRES)."
+    )
+    table = {
+        "table_name": "Tableau 11",
+        "section": "capital_management",
+        "page_t1": 23,
+        "page_t2": 25,
+        "table_status": "pending",
+        "summary": {"total_changes": 1, "validated": 0, "pending": 1},
+        "changes": [
+            {
+                "change_id": "chg_1",
+                "change_type": "indicator_added",
+                "payload": {"indicator_name": "Ratio TLAC"},
+                "validation_status": "pending",
+                "is_required": True,
+            }
+        ],
+        "genai_analysis": {
+            "is_relevant": True,
+            "nouvelle_idee": True,
+            "nouvelle_idee_justification": justification,
+            "themes_amf": ["DIVULGATION_AJOUT", "RATIOS_REGLEMENTAIRES"],
+            "impact_level": "MAJEUR",
+            "action_requise": "escalade",
+            "exclusion_reason": None,
+        },
+    }
+    view = build_review_detail_v2(table=table, current_change_idx=0, show_proofs=False)
+    text = _flatten_text(view)
+    assert "Nouvelle idée" in text
+    assert "MAJEUR" in text
+    assert "Ajout de divulgation" in text
+    assert "Ratios régl." in text
+    assert "OUI" in text
+    assert "Escalade" in text
 
 
 def test_detail_view_translates_english_section_label() -> None:

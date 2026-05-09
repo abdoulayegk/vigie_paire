@@ -44,35 +44,39 @@ _RELEVANCE_TO_PRIORITY: dict[str, str] = {
 
 
 def _map_genai_triage_to_ui(triage: dict[str, Any]) -> dict[str, Any]:
-    """Mappe les champs genai_triage vers les cles attendues par les composants Dash.
+    """Expose le triage AMF v2 unifié pour la consommation UI / export.
 
-    Les composants Dash lisent : relevance, risk_level, confidence,
-    justification, review_priority, analyst_summary, impact_type,
-    project_phase, action_requise, reference_reglementaire,
-    impact_description.
+    Schéma exposé (source de vérité unique) :
+    - ``is_relevant`` (bool) — décision pertinence
+    - ``themes_amf`` (list[str]) — multi-label, codes AMF
+    - ``impact_level`` (str) — MAJEUR / MODERE / MINEUR
+    - ``nouvelle_idee`` (bool) — décision OUI/NON IA
+    - ``nouvelle_idee_justification`` (str) — 2 phrases ancrées sur le rapport
+    - ``action_requise`` (str) — escalade / investigation / ...
+    - ``exclusion_reason`` (str | None) — si is_relevant=False
+    - ``category`` (str) — REGLEMENTAIRE / RISQUE / CAPITAL / STRUCTURE / NON_PERTINENT
+      (présent dans le triage brut, propagé tel quel)
+
+    Plus de mapping legacy translated (relevance / risk_level / review_priority).
+    Les consommateurs ont été migrés pour lire directement ``category``,
+    ``impact_level`` et ``nouvelle_idee``.
     """
     if not triage:
         return {}
     mapped: dict[str, Any] = dict(triage)
-    # explanation → justification (what review_detail_v2 reads)
-    if "explanation" in triage and "justification" not in triage:
-        mapped["justification"] = triage["explanation"]
-    # category → relevance (badge label)
-    if "category" in triage and "relevance" not in triage:
-        mapped["relevance"] = _CATEGORY_TO_RELEVANCE.get(
-            str(triage["category"]).upper(), str(triage["category"])
-        )
-    # relevance_score → review_priority
-    if "relevance_score" in triage and "review_priority" not in triage:
-        mapped["review_priority"] = _RELEVANCE_TO_PRIORITY.get(
-            str(triage["relevance_score"]).upper(), "normale"
-        )
-    # analyst_summary fallback
-    if "explanation" in triage and "analyst_summary" not in triage:
-        mapped["analyst_summary"] = triage["explanation"]
-    # risk_level and confidence pass through (names match Dash expectations)
-    # impact_type, project_phase, action_requise, reference_reglementaire,
-    # impact_description also pass through as-is
+
+    # Normalisation des champs AMF v2 (formes canoniques).
+    mapped["is_relevant"] = bool(triage.get("is_relevant", False))
+    mapped["themes_amf"] = [
+        str(t).upper() for t in (triage.get("themes_amf") or []) if t
+    ]
+    mapped["impact_level"] = str(triage.get("impact_level") or "MINEUR").upper()
+    mapped["nouvelle_idee"] = bool(triage.get("nouvelle_idee", False))
+    mapped["nouvelle_idee_justification"] = str(
+        triage.get("nouvelle_idee_justification") or ""
+    )
+    mapped["action_requise"] = str(triage.get("action_requise") or "aucune").lower()
+    mapped["exclusion_reason"] = triage.get("exclusion_reason")
     return mapped
 
 

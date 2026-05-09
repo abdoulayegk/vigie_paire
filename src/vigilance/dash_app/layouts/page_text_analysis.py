@@ -35,13 +35,25 @@ _DIFF_LABELS: dict[str, str] = {
     "modified": "Modifié",
 }
 
-_CATEGORY_BADGE: dict[str, tuple[str, str]] = {
-    "REGLEMENTAIRE": ("Réglementaire", "primary"),
-    "RISQUE": ("Risque", "warning"),
-    "CAPITAL": ("Capital", "info"),
-    "STRUCTURE": ("Structure", "secondary"),
-    "COSMETIQUE": ("Cosmétique", "light"),
-    "INCONNU": ("Inconnu", "light"),
+_THEMES_AMF_SHORT: dict[str, str] = {
+    "DIVULGATION_AJOUT": "Ajout divulgation",
+    "DIVULGATION_RETRAIT": "Retrait divulgation",
+    "MODIFICATION_TEXTE_RISQUE": "Modif. texte risque",
+    "MODIFICATION_METHODOLOGIE": "Modif. méthodologie",
+    "FACTEUR_RISQUE_CHANGEMENT": "Facteur risque",
+    "CAPITAL_REGLEMENTAIRE": "Capital régl.",
+    "LIQUIDITE": "Liquidité",
+    "FONDS_PROPRES_REGLEMENTAIRES": "Fonds propres",
+    "EXIGENCES_REGLEMENTAIRES": "Exigences régl.",
+    "RATIOS_REGLEMENTAIRES": "Ratios régl.",
+    "STRUCTURE_RAPPORT": "Structure rapport",
+    "HYPOTHESES_EXPLICATIONS_RISQUES": "Hypothèses risques",
+    "ESG_CLIMATIQUE": "ESG / Climat",
+    "RISQUE_EMERGENT": "Risque émergent",
+    "GOUVERNANCE_RISQUES": "Gouvernance",
+    "CONTROLE_CONFORMITE": "Contrôle / Conformité",
+    "NOUVELLE_MENTION_REGLEMENTAIRE": "Nouvelle mention régl.",
+    "MONTANT_REGLEMENTAIRE": "Montant régl.",
 }
 
 _ACTION_BADGE: dict[str, tuple[str, str]] = {
@@ -60,6 +72,158 @@ _ACTION_BADGE: dict[str, tuple[str, str]] = {
 
 def _badge(label: str, color: str, **kwargs) -> dbc.Badge:
     return dbc.Badge(label, color=color, className="me-1", **kwargs)
+
+
+# Styles inline pour les highlights — couleurs métier banque (rouge=retiré, vert=ajouté)
+_HIGHLIGHT_REMOVED_STYLE = {
+    "backgroundColor": "#fde2e2",
+    "color": "#9b1c1c",
+    "padding": "0 2px",
+    "borderRadius": "2px",
+    "fontWeight": "500",
+}
+_HIGHLIGHT_ADDED_STYLE = {
+    "backgroundColor": "#dcfce7",
+    "color": "#14532d",
+    "padding": "0 2px",
+    "borderRadius": "2px",
+    "fontWeight": "500",
+}
+
+
+def _highlight_text(text: str, highlights: list[str], style: dict[str, str]) -> list:
+    """Découpe ``text`` en spans dont les portions matching ``highlights`` portent ``style``.
+
+    Recherche par ``str.find()`` insensible à la casse mais avec le texte
+    verbatim de GPT. Si un highlight n'est pas trouvable dans le texte source
+    (hallucination GPT), il est silencieusement ignoré.
+
+    Args:
+        text: Texte source complet (T1 ou T2).
+        highlights: Liste de fragments à surligner.
+        style: Dict de style CSS appliqué aux spans surlignés.
+
+    Returns:
+        Liste de ``html.Span`` (alternance segments normaux / surlignés).
+    """
+    if not text:
+        return []
+    if not highlights:
+        return [html.Span(text)]
+
+    # Collecte les intervalles (start, end) des fragments trouvables
+    intervals: list[tuple[int, int]] = []
+    for highlight in highlights:
+        if not highlight or not highlight.strip():
+            continue
+        start = 0
+        while True:
+            idx = text.find(highlight, start)
+            if idx < 0:
+                break
+            intervals.append((idx, idx + len(highlight)))
+            start = idx + len(highlight)
+
+    if not intervals:
+        return [html.Span(text)]
+
+    # Tri + fusion des intervalles chevauchants
+    intervals.sort()
+    merged: list[tuple[int, int]] = [intervals[0]]
+    for start, end in intervals[1:]:
+        last_start, last_end = merged[-1]
+        if start <= last_end:
+            merged[-1] = (last_start, max(last_end, end))
+        else:
+            merged.append((start, end))
+
+    # Construit la liste de spans alternés
+    spans: list = []
+    cursor = 0
+    for start, end in merged:
+        if cursor < start:
+            spans.append(html.Span(text[cursor:start]))
+        spans.append(html.Span(text[start:end], style=style))
+        cursor = end
+    if cursor < len(text):
+        spans.append(html.Span(text[cursor:]))
+    return spans
+
+
+def _build_side_by_side(
+    *,
+    text_t1: str,
+    text_t2: str,
+    page_t1: str,
+    page_t2: str,
+    change_segments: list[dict],
+    diff_type: str,
+) -> html.Div:
+    """Affiche T1/T2 côte à côte avec highlights des segments AMF v2.
+
+    - ``added``  : segment surligné en VERT dans la colonne T2.
+    - ``removed``: segment surligné en ROUGE dans la colonne T1.
+    - ``modified``: les deux côtés surlignés (text_t1 rouge, text_t2 vert).
+
+    Pour ``diff_type=added`` seul T2 est affiché ; pour ``removed`` seul T1.
+    Pour ``modified`` les deux colonnes sont visibles côte à côte.
+    """
+    highlights_t1 = [
+        seg.get("text_t1", "")
+        for seg in change_segments
+        if seg.get("kind") in ("removed", "modified") and seg.get("text_t1")
+    ]
+    highlights_t2 = [
+        seg.get("text_t2", "")
+        for seg in change_segments
+        if seg.get("kind") in ("added", "modified") and seg.get("text_t2")
+    ]
+
+    base_card_style = {
+        "whiteSpace": "pre-wrap",
+        "overflowWrap": "anywhere",
+        "wordBreak": "break-word",
+        "lineHeight": "1.55",
+    }
+
+    def _column(label: str, text: str, highlights: list[str], style: dict[str, str]) -> html.Div:
+        return html.Div(
+            [
+                html.Div(
+                    label,
+                    className="fw-semibold border-bottom px-2 py-1 small text-muted",
+                ),
+                html.Div(
+                    _highlight_text(text, highlights, style),
+                    className="px-2 py-2 small",
+                    style=base_card_style,
+                ),
+            ],
+            className="border rounded bg-white overflow-hidden flex-grow-1",
+            style={"minWidth": "0"},
+        )
+
+    label_t1 = f"Précédent (p.{page_t1})" if page_t1 else "Précédent"
+    label_t2 = f"Courant (p.{page_t2})" if page_t2 else "Courant"
+
+    if diff_type == "added":
+        return html.Div(
+            [_column(label_t2, text_t2, highlights_t2, _HIGHLIGHT_ADDED_STYLE)],
+            className="mb-3",
+        )
+    if diff_type == "removed":
+        return html.Div(
+            [_column(label_t1, text_t1, highlights_t1, _HIGHLIGHT_REMOVED_STYLE)],
+            className="mb-3",
+        )
+
+    return html.Div(
+        [
+            _column(label_t1, text_t1, highlights_t1, _HIGHLIGHT_REMOVED_STYLE),
+            _column(label_t2, text_t2, highlights_t2, _HIGHLIGHT_ADDED_STYLE),
+        ],
+        className="mb-3 d-flex gap-2",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -82,46 +246,84 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
 
     if diff_type == "unchanged" or triage.get("source") == "skip":
         return None  # type: ignore[return-value]
+    # Filtrer les changements explicitement non pertinents (exclusion AMF)
+    if not bool(triage.get("is_relevant", False)):
+        return None  # type: ignore[return-value]
 
     impact_level = (triage.get("impact_level") or "MINEUR").upper()
-    category = (triage.get("category") or "INCONNU").upper()
     action = (triage.get("action_requise") or "aucune").lower()
-    explanation = (triage.get("explanation") or "").strip()
-    nouvelle_idee = triage.get("nouvelle_idee", False)
+    nouvelle_idee = bool(triage.get("nouvelle_idee", False))
+    nouvelle_idee_justification = (
+        triage.get("nouvelle_idee_justification") or ""
+    ).strip()
+    themes_amf = list(triage.get("themes_amf") or [])
 
     evidence_t1 = change.get("evidence_t1") or {}
     evidence_t2 = change.get("evidence_t2") or {}
 
-    if diff_type == "removed":
-        phrase = f"[SUPPRIMÉ] {(change.get('source_text_t1') or change.get('semantic_text_t1') or '').strip()}"
-        pages = evidence_t1.get("pages") or []
-    else:
-        phrase = (change.get("source_text_t2") or change.get("semantic_text_t2") or "").strip()
-        pages = evidence_t2.get("pages") or []
-    page_label = ", ".join(str(p) for p in pages if p) if pages else ""
+    text_t1 = (change.get("source_text_t1") or change.get("semantic_text_t1") or "").strip()
+    text_t2 = (change.get("source_text_t2") or change.get("semantic_text_t2") or "").strip()
+    pages_t1 = evidence_t1.get("pages") or []
+    pages_t2 = evidence_t2.get("pages") or []
+    page_t1_label = ", ".join(str(p) for p in pages_t1 if p) if pages_t1 else ""
+    page_t2_label = ", ".join(str(p) for p in pages_t2 if p) if pages_t2 else ""
 
-    # Couleur border-left
+    # Pages affichées dans la ligne meta (priorité T2 si disponible)
+    page_label = page_t2_label or page_t1_label
+    change_segments = list(triage.get("change_segments") or [])
+
+    # Couleur border-left dérivée du niveau d'impact
     border_color = {"MAJEUR": "danger", "MODERE": "warning"}.get(impact_level, "secondary")
 
-    # Ligne 1 — badges
+    # Ligne 1 — badges (nouvelle idée + impact + action)
     impact_lbl, impact_color = _IMPACT_BADGE.get(impact_level, (impact_level, "secondary"))
     action_lbl, action_color = _ACTION_BADGE.get(action, (action.capitalize(), "secondary"))
-    cat_lbl, cat_color = _CATEGORY_BADGE.get(category, (category, "secondary"))
 
-    badge_row = html.Div(
-        [
-            _badge(impact_lbl, impact_color),
-            _badge(cat_lbl, cat_color),
+    badge_children: list = []
+    if nouvelle_idee:
+        badge_children.append(
             dbc.Badge(
-                "★ Nouvelle idée",
+                "✨ Nouvelle idée",
                 color="primary",
-                pill=True,
                 className="me-1",
             )
-            if nouvelle_idee
-            else None,
-        ],
-        className="mb-1 d-flex flex-wrap align-items-center",
+        )
+    badge_children.append(_badge(impact_lbl, impact_color))
+    if action and action != "aucune":
+        badge_children.append(_badge(action_lbl, action_color))
+
+    badge_row = html.Div(
+        badge_children,
+        className="mb-2 d-flex flex-wrap align-items-center",
+    )
+
+    # Ligne 1 bis — chips thèmes AMF (max 4 + overflow)
+    themes_chips: list = []
+    visible_themes = themes_amf[:4]
+    overflow_themes = themes_amf[4:]
+    for theme in visible_themes:
+        themes_chips.append(
+            dbc.Badge(
+                _THEMES_AMF_SHORT.get(theme, theme),
+                color="light",
+                text_color="dark",
+                className="me-1 mb-1 border",
+            )
+        )
+    if overflow_themes:
+        tooltip = ", ".join(_THEMES_AMF_SHORT.get(t, t) for t in overflow_themes)
+        themes_chips.append(
+            dbc.Badge(
+                f"+{len(overflow_themes)}",
+                color="secondary",
+                className="me-1 mb-1",
+                title=tooltip,
+            )
+        )
+    themes_row = (
+        html.Div(themes_chips, className="mb-2 d-flex flex-wrap")
+        if themes_chips
+        else None
     )
 
     # Ligne 2 — meta
@@ -129,49 +331,46 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
     meta_text = f"{section_title} · pages {page_label} · {diff_label}" if page_label else f"{section_title} · {diff_label}"
     meta = html.Small(meta_text, className="text-muted d-block mb-2")
 
-    text_block = html.Div(
-        phrase,
-        className="bg-light p-2 rounded small mb-3 border-start border-2 "
-        + ("border-danger" if diff_type == "removed" else "border-primary"),
-        style={"whiteSpace": "pre-wrap"},
+    text_block = _build_side_by_side(
+        text_t1=text_t1,
+        text_t2=text_t2,
+        page_t1=page_t1_label,
+        page_t2=page_t2_label,
+        change_segments=change_segments,
+        diff_type=diff_type,
     )
 
-    evidence_snippet = (
-        (evidence_t1.get("snippet") or "").strip()
-        if diff_type == "removed"
-        else (evidence_t2.get("snippet") or "").strip()
-    )
-    evidence_block = (
-        html.Div(
-            [
-                html.Div("Preuve source", className="small fw-semibold text-muted mb-1"),
-                html.Div(evidence_snippet, className="small text-muted", style={"whiteSpace": "pre-wrap"}),
-            ],
-            className="mb-3",
-        )
-        if evidence_snippet
-        else None
-    )
+    # Bloc preuve source : retiré du nouveau design — la preuve EST le texte
+    # source affiché dans le side-by-side avec les highlights AMF v2.
+    evidence_block = None
 
-    # Analyse IA
-    ia_children = [
-        html.Div(
+    # Justification IA (champ AMF v2 — OUI/NON 2 phrases)
+    ia_block: html.Div | None = None
+    if nouvelle_idee_justification:
+        ia_block = html.Div(
             [
                 html.Div(
                     className="border-start border-primary border-3 ps-2 mb-2",
                     children=[
-                        html.Span("Analyse IA", className="fw-semibold small text-primary"),
+                        html.Span(
+                            "Justification IA",
+                            className="fw-semibold small text-primary",
+                        ),
                     ],
                 ),
-                html.P(explanation, className="small mb-1", style={"whiteSpace": "pre-wrap"}),
+                html.P(
+                    nouvelle_idee_justification,
+                    className="small mb-1",
+                    style={"whiteSpace": "pre-wrap"},
+                ),
             ]
         )
-        if explanation
-        else None,
-    ]
-    ia_block = html.Div([c for c in ia_children if c is not None])
 
-    card_children = [c for c in [badge_row, meta, text_block, evidence_block, ia_block] if c is not None]
+    card_children = [
+        c
+        for c in [badge_row, themes_row, meta, text_block, evidence_block, ia_block]
+        if c is not None
+    ]
 
     return dbc.Card(
         dbc.CardBody(card_children, className="p-3"),

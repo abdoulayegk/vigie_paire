@@ -171,9 +171,50 @@ ActionRequise = Literal[
 TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_v2"
 
 
+ChangeSegmentKind = Literal["added", "removed", "modified"]
+
+
+class ChangeSegment(BaseModel):
+    """Segment substantiel identifié par GPT comme différent entre t1 et t2.
+
+    Citations VERBATIM depuis le texte source — ne pas paraphraser.
+    Le rendu Dash recherche ces segments par ``str.find()`` pour surligner
+    les portions correspondantes dans la vue side-by-side.
+
+    Invariants :
+    - ``kind="added"``    → ``text_t1=""``, ``text_t2`` non vide
+    - ``kind="removed"``  → ``text_t1`` non vide, ``text_t2=""``
+    - ``kind="modified"`` → ``text_t1`` non vide ET ``text_t2`` non vide
+    """
+
+    kind: ChangeSegmentKind
+    text_t1: str = ""
+    text_t2: str = ""
+
+    @model_validator(mode="after")
+    def _check_kind_consistency(self) -> "ChangeSegment":
+        if self.kind == "added":
+            if self.text_t1.strip():
+                raise ValueError("kind='added' interdit text_t1 non vide")
+            if not self.text_t2.strip():
+                raise ValueError("kind='added' exige text_t2 non vide")
+        elif self.kind == "removed":
+            if not self.text_t1.strip():
+                raise ValueError("kind='removed' exige text_t1 non vide")
+            if self.text_t2.strip():
+                raise ValueError("kind='removed' interdit text_t2 non vide")
+        else:  # modified
+            if not self.text_t1.strip():
+                raise ValueError("kind='modified' exige text_t1 non vide")
+            if not self.text_t2.strip():
+                raise ValueError("kind='modified' exige text_t2 non vide")
+        return self
+
+
 _EXPLANATION_MIN_LENGTH = 50
-_JUSTIFICATION_MIN_SENTENCES = 2
-_JUSTIFICATION_MIN_SENTENCE_LENGTH = 15
+_JUSTIFICATION_MIN_SENTENCES = 3
+_JUSTIFICATION_MIN_SENTENCE_LENGTH = 20
+_JUSTIFICATION_MIN_TOTAL_LENGTH = 200
 _SENTENCE_BOUNDARY_RE = re.compile(r"[.!?]+")
 
 
@@ -223,6 +264,7 @@ class TriageAMFResult(BaseModel):
     nouvelle_idee_justification: str = ""
     action_requise: ActionRequise = "aucune"
     exclusion_reason: ExclusionReason | None = None
+    change_segments: list[ChangeSegment] = Field(default_factory=list)
 
     @field_validator("themes_amf")
     @classmethod
@@ -237,6 +279,29 @@ class TriageAMFResult(BaseModel):
 
     @model_validator(mode="after")
     def _check_invariants(self) -> "TriageAMFResult":
+        # ---------- Justification : OBLIGATOIRE et SUBSTANTIELLE ----------
+        # Quel que soit ``is_relevant`` (Oui ou Non), l'analyste a besoin
+        # d'une explication détaillée pour comprendre la décision GPT.
+        justification = self.nouvelle_idee_justification.strip()
+        if _count_substantive_sentences(justification) < _JUSTIFICATION_MIN_SENTENCES:
+            raise ValueError(
+                f"nouvelle_idee_justification exige au moins "
+                f"{_JUSTIFICATION_MIN_SENTENCES} phrases complètes "
+                f"de {_JUSTIFICATION_MIN_SENTENCE_LENGTH}+ caractères chacune"
+            )
+        if len(justification) < _JUSTIFICATION_MIN_TOTAL_LENGTH:
+            raise ValueError(
+                f"nouvelle_idee_justification exige au moins "
+                f"{_JUSTIFICATION_MIN_TOTAL_LENGTH} caractères au total"
+            )
+        expected_prefix = "OUI" if self.nouvelle_idee else "NON"
+        if not justification.upper().startswith(expected_prefix):
+            raise ValueError(
+                "nouvelle_idee_justification doit commencer par "
+                f"'{expected_prefix}' quand nouvelle_idee={self.nouvelle_idee}"
+            )
+
+        # ---------- Cohérence pertinent / non pertinent ----------
         if self.is_relevant:
             if not self.themes_amf:
                 raise ValueError(
@@ -250,19 +315,6 @@ class TriageAMFResult(BaseModel):
                 raise ValueError(
                     "is_relevant=True exige une explanation d'au moins "
                     f"{_EXPLANATION_MIN_LENGTH} caractères (3 phrases attendues)"
-                )
-            justification = self.nouvelle_idee_justification.strip()
-            if _count_substantive_sentences(justification) < _JUSTIFICATION_MIN_SENTENCES:
-                raise ValueError(
-                    "is_relevant=True exige nouvelle_idee_justification d'au "
-                    f"moins {_JUSTIFICATION_MIN_SENTENCES} phrases complètes "
-                    f"de {_JUSTIFICATION_MIN_SENTENCE_LENGTH}+ caractères chacune"
-                )
-            expected_prefix = "OUI" if self.nouvelle_idee else "NON"
-            if not justification.upper().startswith(expected_prefix):
-                raise ValueError(
-                    "nouvelle_idee_justification doit commencer par "
-                    f"'{expected_prefix}' quand nouvelle_idee={self.nouvelle_idee}"
                 )
         else:
             if self.themes_amf:
@@ -289,9 +341,9 @@ class TriageAMFResult(BaseModel):
                 raise ValueError(
                     "is_relevant=False exige explanation vide"
                 )
-            if self.nouvelle_idee_justification.strip():
+            if self.change_segments:
                 raise ValueError(
-                    "is_relevant=False exige nouvelle_idee_justification vide"
+                    "is_relevant=False exige change_segments vide"
                 )
 
         if self.action_requise == "escalade" and self.impact_level != "MAJEUR":
@@ -358,6 +410,13 @@ def empty_triage_skeleton() -> dict:
         impact_level="MINEUR",
         nouvelle_idee=False,
         explanation="",
+        nouvelle_idee_justification=(
+            "NON — aucun triage AMF n'a été produit par GPT-4o pour ce "
+            "changement. L'analyste doit considérer cet élément comme non "
+            "classifié et le marquer manuellement si pertinent. Aucune "
+            "décision automatisée n'est disponible (cas rare : défaut "
+            "structurel ou erreur en amont)."
+        ),
         action_requise="aucune",
         exclusion_reason="non_pertinent_autre",
     ).model_dump()

@@ -79,8 +79,22 @@ class TestHasMeaningfulDiff:
 
 def _valid_justification_oui() -> str:
     return (
-        "OUI - le ratio TLAC est ajoute au TABLEAU 11 absent du t1. "
-        "Ce changement croise les themes AMF DIVULGATION_AJOUT et RATIOS_REGLEMENTAIRES."
+        "OUI - le ratio TLAC est ajoute au TABLEAU 11 et n'apparaissait pas au "
+        "trimestre precedent. Ce changement croise les themes AMF "
+        "DIVULGATION_AJOUT et RATIOS_REGLEMENTAIRES, signalant une nouvelle "
+        "exigence prudentielle BSIF substantielle. L'analyste doit comparer "
+        "cette divulgation avec les pairs canadiens pour valider la conformite "
+        "et la coherence du calcul TLAC."
+    )
+
+
+def _valid_justification_non() -> str:
+    return (
+        "NON - le changement observe est une simple mise a jour de date entre "
+        "les deux trimestres, sans modification de fond. Aucun thème AMF n'est "
+        "touche et aucun seuil reglementaire ne change. L'analyste peut "
+        "considerer cette ligne comme une mise a jour rédactionnelle attendue, "
+        "sans implication metier sur la divulgation prudentielle."
     )
 
 
@@ -124,7 +138,9 @@ class TestValidateTriageResponse:
         assert result["source"] == "heuristic"
         assert result["themes_amf"] == []
         assert result["nouvelle_idee"] is False
-        assert result["nouvelle_idee_justification"] == ""
+        # Justification désormais OBLIGATOIRE même pour le squelette par défaut
+        assert result["nouvelle_idee_justification"].startswith("NON")
+        assert len(result["nouvelle_idee_justification"]) >= 200
         assert result["category"] == "NON_PERTINENT"
         assert result["risk_level"] == "FAIBLE"
         assert result["confidence"] == 0.0
@@ -134,34 +150,63 @@ class TestValidateTriageResponse:
         assert result["reference_reglementaire"] == ""
         assert result["impact_description"] == ""
 
+    def _base_payload(self) -> dict:
+        """Helper : payload minimal valide (non pertinent avec justification)."""
+        return {
+            "is_relevant": False,
+            "themes_amf": [],
+            "nouvelle_idee": False,
+            "nouvelle_idee_justification": _valid_justification_non(),
+            "category": "NON_PERTINENT",
+            "action_requise": "aucune",
+        }
+
     def test_invalid_category_defaults(self):
-        result = _validate_triage_response({"category": "FAKE"})
+        payload = self._base_payload()
+        payload["category"] = "FAKE"
+        result = _validate_triage_response(payload)
+        # FAKE n'est pas dans VALID_CATEGORIES → fallback INCONNU
+        # Mais comme is_relevant=False, l'invariant force NON_PERTINENT en aval ?
+        # Non — l'invariant ne contraint pas category, donc reste INCONNU.
         assert result["category"] == "INCONNU"
 
     def test_invalid_relevance_defaults(self):
-        result = _validate_triage_response({"relevance_score": "SUPER"})
+        payload = self._base_payload()
+        payload["relevance_score"] = "SUPER"
+        result = _validate_triage_response(payload)
         assert result["relevance_score"] == "FAIBLE"
 
     def test_invalid_risk_level_defaults(self):
-        result = _validate_triage_response({"risk_level": "CRITIQUE"})
+        payload = self._base_payload()
+        payload["risk_level"] = "CRITIQUE"
+        result = _validate_triage_response(payload)
         assert result["risk_level"] == "FAIBLE"
 
     def test_confidence_clamped(self):
-        result = _validate_triage_response({"confidence": 2.5})
+        payload = self._base_payload()
+        payload["confidence"] = 2.5
+        result = _validate_triage_response(payload)
         assert result["confidence"] == 1.0
-        result2 = _validate_triage_response({"confidence": -1.0})
+        payload["confidence"] = -1.0
+        result2 = _validate_triage_response(payload)
         assert result2["confidence"] == 0.0
 
     def test_invalid_impact_type_defaults(self):
-        result = _validate_triage_response({"impact_type": "FAKE"})
+        payload = self._base_payload()
+        payload["impact_type"] = "FAKE"
+        result = _validate_triage_response(payload)
         assert result["impact_type"] == "non_substantif"
 
     def test_invalid_project_phase_defaults(self):
-        result = _validate_triage_response({"project_phase": "FAKE"})
+        payload = self._base_payload()
+        payload["project_phase"] = "FAKE"
+        result = _validate_triage_response(payload)
         assert result["project_phase"] == "autre"
 
     def test_invalid_action_defaults(self):
-        result = _validate_triage_response({"action_requise": "FAKE"})
+        payload = self._base_payload()
+        payload["action_requise"] = "FAKE"
+        result = _validate_triage_response(payload)
         assert result["action_requise"] == "aucune"
 
     def test_invalid_theme_codes_filtered_out(self):
@@ -333,7 +378,9 @@ class TestFallbackEnrich:
         assert pair_triage["category"] == "NON_PERTINENT"
         assert pair_triage["themes_amf"] == []
         assert pair_triage["nouvelle_idee"] is False
-        assert pair_triage["nouvelle_idee_justification"] == ""
+        # Justification désormais OBLIGATOIRE (≥ 200 chars, préfixe NON)
+        assert pair_triage["nouvelle_idee_justification"].startswith("NON")
+        assert len(pair_triage["nouvelle_idee_justification"]) >= 200
         assert pair_triage["impact_type"] == "non_substantif"
         assert pair_triage["action_requise"] == "aucune"
         assert pair_triage["confidence"] == 0.0

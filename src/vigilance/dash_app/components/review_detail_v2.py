@@ -182,7 +182,7 @@ def _build_change_full_detail(change: dict) -> html.Div | None:
     justification = str(assessment.get("justification", "") or "").strip()
     if justification:
         relevance_level = assessment.get("relevance_level")
-        level_labels = {1: "Critique / Réglementaire", 2: "Élevé / Structurel", 3: "Faible / Cosmétique"}
+        level_labels = {1: "Critique / Réglementaire", 2: "Élevé / Structurel", 3: "Faible / Non substantif"}
         level_colors = {1: "danger", 2: "warning", 3: "secondary"}
         level_badge = (
             dbc.Badge(
@@ -212,204 +212,208 @@ def _build_change_full_detail(change: dict) -> html.Div | None:
     return html.Div(blocks, className="d-grid gap-3 mt-3")
 
 
-def _build_fallback_genai_message(table: dict) -> str:
-    """Construit un message de repli lorsque la classification GenAI est indisponible."""
-    change_types = {
-        str(change.get("change_type", ""))
-        for change in (table.get("changes", []) or [])
-    }
-    match_meta = table.get("match_metadata") or {}
-    semantic_judge = (
-        match_meta.get("semantic_judge") if isinstance(match_meta, dict) else None
+_THEMES_AMF_DISPLAY: dict[str, str] = {
+    "DIVULGATION_AJOUT": "Ajout de divulgation",
+    "DIVULGATION_RETRAIT": "Retrait de divulgation",
+    "MODIFICATION_TEXTE_RISQUE": "Modif. texte risque",
+    "MODIFICATION_METHODOLOGIE": "Modif. méthodologie",
+    "FACTEUR_RISQUE_CHANGEMENT": "Facteur de risque",
+    "CAPITAL_REGLEMENTAIRE": "Capital régl.",
+    "LIQUIDITE": "Liquidité",
+    "FONDS_PROPRES_REGLEMENTAIRES": "Fonds propres",
+    "EXIGENCES_REGLEMENTAIRES": "Exigences régl.",
+    "RATIOS_REGLEMENTAIRES": "Ratios régl.",
+    "STRUCTURE_RAPPORT": "Structure rapport",
+    "HYPOTHESES_EXPLICATIONS_RISQUES": "Hypothèses risques",
+    "ESG_CLIMATIQUE": "ESG / Climat",
+    "RISQUE_EMERGENT": "Risque émergent",
+    "GOUVERNANCE_RISQUES": "Gouvernance",
+    "CONTROLE_CONFORMITE": "Contrôle / Conformité",
+    "NOUVELLE_MENTION_REGLEMENTAIRE": "Nouvelle mention régl.",
+    "MONTANT_REGLEMENTAIRE": "Montant régl.",
+}
+
+_EXCLUSION_REASON_DISPLAY: dict[str, str] = {
+    "variation_numerique_propre_banque": "Variation chiffrée propre à la banque",
+    "reformulation_mineure": "Reformulation sans nouveau fond",
+    "deplacement_texte": "Déplacement de texte sans modification",
+    "formatage_visuel": "Formatage visuel",
+    "non_pertinent_autre": "Non pertinent",
+}
+
+_IMPACT_LEVEL_DISPLAY: dict[str, str] = {
+    "MAJEUR": "MAJEUR",
+    "MODERE": "MODÉRÉ",
+    "MINEUR": "MINEUR",
+}
+
+_IMPACT_LEVEL_COLORS: dict[str, str] = {
+    "MAJEUR": "danger",
+    "MODERE": "warning",
+    "MINEUR": "info",
+}
+
+_ACTION_REQUISE_DISPLAY: dict[str, str] = {
+    "escalade": "Escalade",
+    "investigation": "Investigation",
+    "confirmation": "À confirmer",
+    "information": "Pour information",
+    "aucune": "Aucune",
+}
+
+
+def _build_themes_amf_chips(themes: list[str], *, max_visible: int = 4) -> html.Div:
+    """Affiche les thèmes AMF en chips gris (max ``max_visible`` puis « +N »)."""
+    if not themes:
+        return html.Div()
+    visible = themes[:max_visible]
+    overflow = themes[max_visible:]
+    chips: list = [
+        dbc.Badge(
+            _THEMES_AMF_DISPLAY.get(theme, theme),
+            color="light",
+            text_color="dark",
+            className="me-1 mb-1 border",
+        )
+        for theme in visible
+    ]
+    if overflow:
+        tooltip = ", ".join(_THEMES_AMF_DISPLAY.get(t, t) for t in overflow)
+        chips.append(
+            dbc.Badge(
+                f"+{len(overflow)}",
+                color="secondary",
+                className="me-1 mb-1",
+                title=tooltip,
+            )
+        )
+    return html.Div(chips, className="mb-2")
+
+
+def _build_non_relevant_card(exclusion_reason: str | None) -> html.Div:
+    """Carte minimaliste pour les changements jugés non pertinents par GPT.
+
+    Affiche la raison d'exclusion AMF (sans le « Activez GPT » fallback ancien).
+    """
+    reason_label = _EXCLUSION_REASON_DISPLAY.get(
+        str(exclusion_reason or ""), "Non pertinent"
     )
-    semantic_hint = ""
-    if isinstance(semantic_judge, dict):
-        final_decision = str(semantic_judge.get("final_decision", "") or "").strip()
-        guard_action = str(semantic_judge.get("guard_action", "") or "").strip()
-        if final_decision and guard_action:
-            semantic_hint = f" Contrôle sémantique : {final_decision} ({guard_action})."
-
-    if change_types.intersection({ChangeType.TABLE_REMOVED.value, "table_removed"}):
-        return (
-            "Explication automatique : ce tableau est présent au trimestre précédent "
-            "et absent au trimestre courant. Vérifier si le contenu a été renommé, "
-            "fusionné ou déplacé dans une autre section."
-            f"{semantic_hint}"
-        )
-
-    if change_types.intersection({ChangeType.TABLE_ADDED.value, "table_added"}):
-        return (
-            "Explication automatique : ce tableau est absent au trimestre précédent "
-            "et présent au trimestre courant. Vérifier s'il s'agit d'une nouvelle "
-            "divulgation ou d'une table décomposée depuis un ancien tableau."
-            f"{semantic_hint}"
-        )
-
-    return (
-        "Classification IA générative non disponible pour cet élément. Activez "
-        "'Classer les changements avec l'IA générative (GPT-4o)' puis relancez l'analyse pour "
-        "obtenir une justification détaillée."
+    return html.Div(
+        [
+            html.H6("Explication IA générative", className="mb-2"),
+            html.Div(
+                dbc.Badge(
+                    "Non pertinent",
+                    color="secondary",
+                    className="me-2",
+                ),
+                className="mb-2",
+            ),
+            html.Small(
+                [html.Strong("Raison : "), reason_label],
+                className="text-muted",
+            ),
+        ],
+        className="mb-4",
     )
 
 
 def _build_genai_section(table: dict) -> html.Div:
-    """Genere le bloc d'explication GenAI concis pour la revue par l'analyste."""
-    ga = table.get("genai_analysis") or {}
-    relevance = str(ga.get("relevance", "") or "")
-    risk = str(ga.get("risk_level", "") or "")
-    confidence = ga.get("confidence", None)
-    justification = str(ga.get("justification", "") or "").strip()
+    """Génère le bloc d'explication IA aligné taxonomie AMF.
 
-    if not any([relevance, risk, justification]):
-        fallback_msg = _build_fallback_genai_message(table)
+    Hiérarchie d'affichage (alignée avec la charge cognitive analyste) :
+    1. Bandeau du haut : ✨ Nouvelle idée + badge impact_level (couleur)
+    2. Thèmes AMF en chips gris (max 4 + overflow)
+    3. Justification IA (nouvelle_idee_justification — OUI/NON 2 phrases)
+    4. Action suggérée (discrète, en bas)
+
+    Si ``is_relevant=False`` → carte minimaliste avec la raison d'exclusion.
+    Si ``genai_analysis`` est totalement vide (legacy data sans triage) →
+    message court signalant l'absence de classification.
+    """
+    ga = table.get("genai_analysis") or {}
+
+    if not ga:
         return html.Div(
             [
                 html.H6("Explication IA générative", className="mb-2"),
-                html.P(fallback_msg, className="text-muted mb-0"),
+                html.P(
+                    "Aucune classification IA disponible pour cet élément.",
+                    className="text-muted mb-0",
+                ),
             ],
             className="mb-4",
         )
 
-    _CATEGORY_DISPLAY = {
-        "REGLEMENTAIRE": "Réglementaire",
-        "RISQUE": "Risque",
-        "CAPITAL": "Capital",
-        "STRUCTURE": "Structure",
-        "COSMETIQUE": "Cosmétique",
-        "INCONNU": "Inconnu",
-    }
-    _CATEGORY_COLORS = {
-        "REGLEMENTAIRE": "danger",
-        "RISQUE": "warning",
-        "CAPITAL": "primary",
-        "STRUCTURE": "info",
-        "COSMETIQUE": "secondary",
-        "INCONNU": "light",
-    }
-    _RISK_LABELS = {
-        "ELEVE": "Risque élevé",
-        "MODERE": "Risque modéré",
-        "FAIBLE": "Risque faible",
-    }
-    _RISK_COLORS = {
-        "ELEVE": "danger",
-        "MODERE": "warning",
-        "FAIBLE": "success",
-    }
-    _IMPACT_LABELS = {
-        "structurel": "Impact structurel",
-        "contenu": "Impact contenu",
-        "methodologique": "Impact méthodologique",
-        "cosmetique": "Impact cosmétique",
-    }
-    _IMPACT_COLORS = {
-        "structurel": "danger",
-        "contenu": "primary",
-        "methodologique": "warning",
-        "cosmetique": "secondary",
-    }
-    _ACTION_LABELS = {
-        "escalade": "Escalade",
-        "investigation": "Investigation",
-        "confirmation": "À confirmer",
-        "information": "Pour information",
-        "aucune": "Aucune action",
-    }
-    _ACTION_COLORS = {
-        "escalade": "danger",
-        "investigation": "warning",
-        "confirmation": "info",
-        "information": "secondary",
-        "aucune": "light",
-    }
-    _PHASE_DISPLAY = {
-        "rapport_gestion": "Rapport de gestion",
-        "pilier_3": "Pilier 3",
-        "ifc": "IFC",
-        "autre": "Autre",
-    }
+    is_relevant = bool(ga.get("is_relevant", False))
+    if not is_relevant:
+        return _build_non_relevant_card(ga.get("exclusion_reason"))
 
-    chips = []
-    if relevance:
-        relevance_key = relevance.upper()
-        chips.append(dbc.Badge(
-            _CATEGORY_DISPLAY.get(relevance_key, relevance),
-            color=_CATEGORY_COLORS.get(relevance_key, "primary"),
-            className="me-2",
-        ))
-    if risk:
-        risk_key = risk.upper()
-        chips.append(dbc.Badge(
-            _RISK_LABELS.get(risk_key, f"Risque {risk}"),
-            color=_RISK_COLORS.get(risk_key, "warning"),
-            className="me-2",
-        ))
-    if confidence is not None:
-        try:
-            conf_pct = max(0.0, min(1.0, float(confidence))) * 100
-            chips.append(
-                dbc.Badge(
-                    f"Confiance {conf_pct:.0f}%",
-                    color="light",
-                    text_color="dark",
-                    className="me-2",
-                )
-            )
-        except (TypeError, ValueError):
-            pass
+    nouvelle_idee = bool(ga.get("nouvelle_idee", False))
+    nouvelle_idee_justification = str(
+        ga.get("nouvelle_idee_justification", "") or ""
+    ).strip()
+    themes_amf = list(ga.get("themes_amf") or [])
+    impact_level = str(ga.get("impact_level", "") or "").upper()
+    action_requise = str(ga.get("action_requise", "") or "").lower()
 
-    impact_type = str(ga.get("impact_type", "") or "")
-    project_phase = str(ga.get("project_phase", "") or "")
-    action_requise = str(ga.get("action_requise", "") or "")
-    impact_desc = str(ga.get("impact_description", "") or "").strip()
-
-    secondary_chips = []
-    if impact_type:
-        secondary_chips.append(
+    # Bandeau principal : nouvelle idée + impact (deux signaux les plus
+    # importants pour le triage analyste).
+    header_badges: list = []
+    if nouvelle_idee:
+        header_badges.append(
             dbc.Badge(
-                _IMPACT_LABELS.get(impact_type, impact_type.capitalize()),
-                color=_IMPACT_COLORS.get(impact_type, "secondary"),
+                "✨ Nouvelle idée",
+                color="primary",
                 className="me-2",
             )
         )
-    if project_phase:
-        secondary_chips.append(
+    else:
+        header_badges.append(
             dbc.Badge(
-                _PHASE_DISPLAY.get(project_phase, project_phase),
-                color="info",
+                "Pas une nouvelle idée",
+                color="secondary",
                 className="me-2",
             )
         )
+    if impact_level:
+        header_badges.append(
+            dbc.Badge(
+                _IMPACT_LEVEL_DISPLAY.get(impact_level, impact_level),
+                color=_IMPACT_LEVEL_COLORS.get(impact_level, "secondary"),
+                className="me-2",
+            )
+        )
+
+    # Justification IA — schéma AMF v2 strict (plus de fallback legacy).
+    # Si vide, on affiche un message explicite : ré-exécuter la pipeline.
+    justification = nouvelle_idee_justification
+
+    # Action suggérée (discrète, sous la justification).
+    action_line: html.Small | None = None
     if action_requise and action_requise != "aucune":
-        secondary_chips.append(
-            dbc.Badge(
-                _ACTION_LABELS.get(action_requise, action_requise.capitalize()),
-                color=_ACTION_COLORS.get(action_requise, "secondary"),
-                className="me-2",
-            )
+        action_line = html.Small(
+            [
+                html.Strong("Action suggérée : "),
+                _ACTION_REQUISE_DISPLAY.get(action_requise, action_requise.capitalize()),
+            ],
+            className="d-block text-muted mt-2",
         )
 
-    detail_parts = []
-    if impact_desc:
-        detail_parts.append(
-            html.Small(
-                [html.Strong("Description de l'impact : "), impact_desc],
-                className="d-block text-muted mb-1",
-            )
-        )
+    body: list = [
+        html.H6("Explication IA générative", className="mb-2"),
+        html.Div(header_badges, className="mb-2"),
+        _build_themes_amf_chips(themes_amf),
+        html.P(
+            justification
+            or "Justification AMF non disponible — relancer la pipeline pour obtenir le triage.",
+            className="mb-0 small",
+        ),
+    ]
+    if action_line is not None:
+        body.append(action_line)
 
-    return html.Div(
-        [
-            html.H6("Explication IA générative", className="mb-2"),
-            html.Div(chips, className="mb-2"),
-            html.Div(secondary_chips, className="mb-2")
-            if secondary_chips
-            else html.Div(),
-            *detail_parts,
-            html.P(justification or "Explication non fournie.", className="mb-0"),
-        ],
-        className="mb-4",
-    )
+    return html.Div(body, className="mb-4")
 
 
 def build_change_list_v2(
