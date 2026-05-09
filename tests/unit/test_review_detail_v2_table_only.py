@@ -130,7 +130,7 @@ def test_table_with_non_relevant_triage_shows_exclusion_reason() -> None:
 def test_table_with_relevant_triage_shows_nouvelle_idee_and_themes() -> None:
     """Cas pertinent : badge nouvelle idée + impact + chips thèmes AMF + justification."""
     justification = (
-        "OUI - le ratio TLAC est ajoute au TABLEAU 11 absent du t1. "
+        "OUI - le ratio TLAC est ajoute au TABLEAU 11 absent du T1. "
         "Cela aligne la divulgation BMO sur les attentes BSIF (DIVULGATION_AJOUT, RATIOS_REGLEMENTAIRES)."
     )
     table = {

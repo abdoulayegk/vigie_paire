@@ -76,7 +76,7 @@ def test_filter_text_cards_sorts_new_idea_first_and_filters_non_pertinent() -> N
                             "action_requise": "escalade",
                             "nouvelle_idee": False,
                             "nouvelle_idee_justification": (
-                                "NON le concept existait deja au t1. "
+                                "NON le concept existait deja au T1. "
                                 "Seule la formulation a evolue de maniere substantive."
                             ),
                         },
@@ -94,7 +94,7 @@ def test_filter_text_cards_sorts_new_idea_first_and_filters_non_pertinent() -> N
                             "action_requise": "information",
                             "nouvelle_idee": True,
                             "nouvelle_idee_justification": (
-                                "OUI nouvelle divulgation absente au t1. "
+                                "OUI nouvelle divulgation absente au T1. "
                                 "Cela introduit un sujet nouveau dans le rapport."
                             ),
                         },

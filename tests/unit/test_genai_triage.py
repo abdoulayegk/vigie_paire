@@ -9,6 +9,7 @@ from vigilance.genai_triage import (
     _build_change_prompt,
     _fallback_enrich,
     _has_meaningful_diff,
+    _TRIAGE_SYSTEM_PROMPT,
     _validate_summary_response,
     _validate_triage_response,
     enrich_comparison_with_genai_triage,
@@ -99,6 +100,11 @@ def _valid_justification_non() -> str:
 
 
 class TestValidateTriageResponse:
+    def test_system_prompt_requests_analyst_style_justification(self):
+        assert "NOTE D'ANALYSTE" in _TRIAGE_SYSTEM_PROMPT
+        assert "vigie AMF/BSIF" in _TRIAGE_SYSTEM_PROMPT
+        assert "simple liste de codes AMF" in _TRIAGE_SYSTEM_PROMPT
+
     def test_valid_response(self):
         data = {
             "is_relevant": True,
@@ -262,7 +268,7 @@ class TestValidateTriageResponse:
                 "themes_amf": ["DIVULGATION_AJOUT"],
                 "nouvelle_idee": True,
                 "nouvelle_idee_justification": (
-                    "NON le ratio CET1 existait deja au t1 et seule sa valeur a change. "
+                    "NON le ratio CET1 existait deja au T1 et seule sa valeur a change. "
                     "Variation chiffree propre a la banque."
                 ),
                 "action_requise": "escalade",

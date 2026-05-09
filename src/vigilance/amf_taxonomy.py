@@ -10,8 +10,8 @@ taxonomie doit passer par ce fichier — le prompt GPT et les exports en aval
 en dérivent.
 
 Conventions :
-- ``t1`` désigne le rapport précédent dans la paire comparée (avant)
-- ``t2`` désigne le rapport courant dans la paire comparée (après)
+- ``T1`` désigne le rapport précédent dans la paire comparée (avant)
+- ``T2`` désigne le rapport courant dans la paire comparée (après)
 - Les paires possibles sont : T2 vs T1, T3 vs T2, T1 N+1 vs T3 N (passage
   d'année), T4 N+1 vs T4 N (annuel sur annuel).
 """
@@ -175,7 +175,7 @@ ChangeSegmentKind = Literal["added", "removed", "modified"]
 
 
 class ChangeSegment(BaseModel):
-    """Segment substantiel identifié par GPT comme différent entre t1 et t2.
+    """Segment substantiel identifié par GPT comme différent entre T1 et T2.
 
     Citations VERBATIM depuis le texte source — ne pas paraphraser.
     Le rendu Dash recherche ces segments par ``str.find()`` pour surligner

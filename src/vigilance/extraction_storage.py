@@ -309,7 +309,7 @@ def load_stored_extractions(
     tuple[list[TableArtifact], list[TableArtifact], dict[str, Any], dict[str, Any]]
     | None
 ):
-    """Charger les extractions t1 et t2 si elles existent toutes les deux.
+    """Charger les extractions T1 et T2 si elles existent toutes les deux.
 
     Args:
         bank_code: Code identifiant la banque.

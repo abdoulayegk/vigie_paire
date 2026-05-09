@@ -344,7 +344,7 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
     # source affiché dans le side-by-side avec les highlights AMF v2.
     evidence_block = None
 
-    # Justification IA (champ AMF v2 — OUI/NON 2 phrases)
+    # Justification IA (champ AMF v2 — note d'analyste en 3 paragraphes)
     ia_block: html.Div | None = None
     if nouvelle_idee_justification:
         ia_block = html.Div(

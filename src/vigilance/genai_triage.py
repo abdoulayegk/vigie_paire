@@ -56,7 +56,7 @@ VALID_ACTIONS = frozenset({"escalade", "investigation", "confirmation", "informa
 VALID_THEMES_AMF = frozenset(THEMES_AMF_PIPELINE_2)
 
 # Format strict pour la justification GPT : commence par OUI ou NON suivi
-# d'un séparateur (tiret ou virgule), au moins 2 phrases substantives.
+# d'un séparateur (tiret ou virgule), au moins 3 phrases substantives.
 _JUSTIFICATION_MIN_SENTENCES = 3
 _JUSTIFICATION_MIN_SENTENCE_LENGTH = 20
 _JUSTIFICATION_MIN_TOTAL_LENGTH = 200
@@ -82,8 +82,8 @@ _TRIAGE_SYSTEM_PROMPT = (
     "de l'AMF (Autorité des marchés financiers du Québec) et du BSIF.\n\n"
     "On te soumet un changement détecté dans un TABLEAU ou une FOOTNOTE de "
     "tableau entre deux rapports d'une même banque comparés pair-à-pair :\n"
-    "- t1 = rapport PRÉCÉDENT dans la paire\n"
-    "- t2 = rapport COURANT dans la paire\n\n"
+    "- T1 = rapport PRÉCÉDENT dans la paire\n"
+    "- T2 = rapport COURANT dans la paire\n\n"
     "Ton rôle : qualifier ce changement contre la taxonomie AMF unifiée, "
     "trancher si c'est une NOUVELLE IDÉE, et produire une justification "
     "ancrée sur le contenu réel du rapport.\n\n"
@@ -114,8 +114,8 @@ _TRIAGE_SYSTEM_PROMPT = (
     "(a) SUBSTANTIELLE : modifie la SUBSTANCE de la divulgation (concept, "
     "indicateur, mention réglementaire, méthodologie) — PAS une variation "
     "chiffrée propre à la banque ni une reformulation.\n"
-    "(b) NOUVEAUTÉ INFORMATIONNELLE : ajoute (présent t2 absent t1), retire "
-    "(présent t1 absent t2), OU modifie substantiellement la posture sur "
+    "(b) NOUVEAUTÉ INFORMATIONNELLE : ajoute (présent T2 absent T1), retire "
+    "(présent T1 absent T2), OU modifie substantiellement la posture sur "
     "un thème AMF.\n"
     "(c) ADOSSÉE À UN THÈME AMF : au moins un code dans themes_amf.\n"
     "Si UNE des 3 conditions est violée → nouvelle_idee=false.\n\n"
@@ -123,19 +123,27 @@ _TRIAGE_SYSTEM_PROMPT = (
     "y compris pour les changements jugés non pertinents) :\n"
     "- Commencer par 'OUI' (si nouvelle_idee=true) ou 'NON' (sinon), suivi "
     "d'un tiret ou d'une virgule.\n"
+    "- Rédiger une NOTE D'ANALYSTE en 3 paragraphes séparés par \\n\\n : "
+    "1) ce qui est nouveau ou retiré entre T1 et T2, avec l'élément exact du "
+    "rapport ; 2) pourquoi c'est pertinent ou non pertinent pour la vigie "
+    "AMF/BSIF ; 3) ce que l'analyste doit surveiller, confirmer ou écarter.\n"
     "- Au moins 3 phrases complètes (≥ 20 caractères chacune, ponctuation "
     "finale) ET ≥ 200 caractères au total — l'analyste doit avoir une "
     "explication détaillée et claire, pas un résumé.\n"
     "- Citer l'ÉLÉMENT SPÉCIFIQUE du rapport : nom exact d'un indicateur, "
     "titre du tableau, libellé de footnote — adossé au contenu réel des "
     "rapports aux actionnaires traités.\n"
-    "- Si is_relevant=true : mentionner explicitement les thèmes AMF "
-    "concernés et expliquer pourquoi c'est une nouveauté pour la banque.\n"
+    "- Si is_relevant=true : mentionner les thèmes AMF concernés en langage "
+    "naturel et expliquer pourquoi c'est une nouveauté pour la banque.\n"
     "- Si is_relevant=false : expliquer en LANGAGE MÉTIER pourquoi ce "
     "changement n'est PAS une nouvelle idée AMF (variation chiffrée propre, "
     "reformulation sans nouveau fond, formatage, déplacement). L'analyste "
     "doit comprendre la raison de l'exclusion sans avoir à interpréter le "
     "code d'exclusion.\n\n"
+    "Ne jamais remplacer l'analyse par une simple liste de codes AMF ou par "
+    "une phrase générique du type 'ce changement affecte les thèmes AMF'. Les "
+    "codes peuvent apparaître, mais la justification doit expliquer le "
+    "raisonnement métier.\n\n"
     "RÉPONDRE UNIQUEMENT en JSON valide, sans markdown, selon ce schéma exact :\n"
     "{\n"
     '  "is_relevant": true | false,\n'
@@ -175,7 +183,8 @@ _TRIAGE_SYSTEM_PROMPT = (
     "- aucune : non pertinent, aucune action.\n\n"
     "INVARIANTS STRICTS (toute violation rejette la réponse) :\n"
     "- nouvelle_idee_justification est TOUJOURS OBLIGATOIRE (≥ 3 phrases, "
-    "≥ 200 chars), commençant par 'OUI' ou 'NON' selon nouvelle_idee.\n"
+    "≥ 200 chars), commençant par 'OUI' ou 'NON' selon nouvelle_idee, "
+    "rédigée en 3 paragraphes séparés par \\n\\n.\n"
     "- is_relevant=true → themes_amf NON VIDE.\n"
     "- is_relevant=false → themes_amf=[], category='NON_PERTINENT', "
     "nouvelle_idee=false, action_requise='aucune'. La justification reste "

@@ -324,7 +324,7 @@ def _build_genai_section(table: dict) -> html.Div:
     Hiérarchie d'affichage (alignée avec la charge cognitive analyste) :
     1. Bandeau du haut : ✨ Nouvelle idée + badge impact_level (couleur)
     2. Thèmes AMF en chips gris (max 4 + overflow)
-    3. Justification IA (nouvelle_idee_justification — OUI/NON 2 phrases)
+    3. Justification IA (nouvelle_idee_justification — note d'analyste)
     4. Action suggérée (discrète, en bas)
 
     Si ``is_relevant=False`` → carte minimaliste avec la raison d'exclusion.
@@ -408,6 +408,7 @@ def _build_genai_section(table: dict) -> html.Div:
             justification
             or "Justification AMF non disponible — relancer la pipeline pour obtenir le triage.",
             className="mb-0 small",
+            style={"whiteSpace": "pre-wrap"},
         ),
     ]
     if action_line is not None:

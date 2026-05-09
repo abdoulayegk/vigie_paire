@@ -20,6 +20,7 @@ from vigilance.text_analysis_pipeline import (
     _derive_legacy_fields,
     _extract_audits_for_pdf,
     _extract_section_text_from_markdown,
+    _FEW_SHOT_TRIAGE_AMF,
     _gpt_match_orphan_headings,
     _is_new_major_or_allowed_moderate,
     _is_non_cosmetic_change,
@@ -200,6 +201,14 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     assert triage["category"] == "NON_PERTINENT"
     assert triage["confidence"] == 0.0
     assert triage["signals"]["methodology_change"] is False
+
+
+def test_triage_few_shots_request_analyst_style_justification() -> None:
+    """Le prompt doit guider GPT vers une vraie note d'analyste, pas une liste de tags."""
+    assert "note d'analyste" in _FEW_SHOT_TRIAGE_AMF.lower()
+    assert "pourquoi c'est pertinent" in _FEW_SHOT_TRIAGE_AMF
+    assert "simple liste de codes AMF" in _FEW_SHOT_TRIAGE_AMF
+    assert "\\n\\n" in _FEW_SHOT_TRIAGE_AMF
 
 
 def test_derive_legacy_fields_maps_methodology_theme() -> None:
@@ -1182,7 +1191,7 @@ from vigilance.text_analysis_pipeline import (
 
 def _valid_explanation() -> str:
     return (
-        "Au t2 la banque introduit un nouveau modele interne pour le risque "
+        "Au T2 la banque introduit un nouveau modele interne pour le risque "
         "de credit. Ce changement est substantif car il modifie la base de "
         "comparaison avec le rapport precedent. Cela implique une revue de "
         "la surveillance prudentielle."
@@ -1192,7 +1201,7 @@ def _valid_explanation() -> str:
 def _valid_justification_oui() -> str:
     return (
         "OUI - le nouveau modele interne avance pour le risque de credit est "
-        "ajoute au t2 et n'apparaissait pas au t1. Ce changement aligne la "
+        "ajoute au T2 et n'apparaissait pas au T1. Ce changement aligne la "
         "divulgation sur les attentes prudentielles BSIF et touche directement "
         "les exigences reglementaires (themes AMF MODIFICATION_METHODOLOGIE et "
         "EXIGENCES_REGLEMENTAIRES). L'analyste doit comparer la nouvelle base "
@@ -1203,7 +1212,7 @@ def _valid_justification_oui() -> str:
 
 def _valid_justification_non() -> str:
     return (
-        "NON - le ratio CET1 existait deja au t1 et seule sa valeur chiffree a "
+        "NON - le ratio CET1 existait deja au T1 et seule sa valeur chiffree a "
         "change entre les deux trimestres (variation chiffree propre a la banque). "
         "Cette evolution numerique reflete l'activite normale et ne touche aucun "
         "seuil reglementaire ni methodologie de calcul. L'analyste peut considerer "
@@ -1306,7 +1315,7 @@ def test_invariant_justification_must_start_with_oui_when_nouvelle_idee() -> Non
     # On utilise un texte ≥ 3 phrases ≥ 200 chars sans préfixe pour tester la
     # règle préfixe (sans déclencher la règle longueur en premier).
     bad_prefix_long = (
-        "Le ratio TLAC est ajoute au TABLEAU 11 absent du t1, ce qui constitue "
+        "Le ratio TLAC est ajoute au TABLEAU 11 absent du T1, ce qui constitue "
         "une nouveaute structurelle pour la divulgation. Cela aligne BMO sur "
         "les attentes BSIF prudentielles selon la ligne directrice canadienne. "
         "L'analyste doit considerer cette ligne comme une nouvelle exigence "

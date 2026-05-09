@@ -117,7 +117,7 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
             "impact_level": "MAJEUR",
             "nouvelle_idee": True,
             "nouvelle_idee_justification": (
-                "OUI - methodologie modifiee au t2. "
+                "OUI - methodologie modifiee au T2. "
                 "Cela touche les exigences BSIF (MODIFICATION_METHODOLOGIE)."
             ),
             "action_requise": "escalade",

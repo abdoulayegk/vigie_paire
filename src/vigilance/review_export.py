@@ -306,6 +306,27 @@ def _to_nouvelle_idee(genai_analysis: dict[str, Any] | None) -> str:
     return "Oui" if bool(ga.get("nouvelle_idee", False)) else "Non"
 
 
+def _to_analyst_justification(*analyses: dict[str, Any] | None) -> str:
+    """Retourne la justification AMF v2 à afficher dans les exports expert.
+
+    Le champ canonique est ``nouvelle_idee_justification``. ``justification``
+    reste accepté comme fallback legacy pour les anciens artefacts déjà générés.
+    """
+    for analysis in analyses:
+        if not isinstance(analysis, dict):
+            continue
+        justification = str(analysis.get("nouvelle_idee_justification") or "").strip()
+        if justification:
+            return justification
+    for analysis in analyses:
+        if not isinstance(analysis, dict):
+            continue
+        justification = str(analysis.get("justification") or "").strip()
+        if justification:
+            return justification
+    return ""
+
+
 def _build_libelle(precedent: str, courant: str, ind_type: str) -> str:
     """Fusionne precedent/courant en un seul libelle lisible selon le type de changement."""
     if ind_type in ("added", "table_added"):
@@ -369,8 +390,8 @@ def _iter_expert_excel_rows(
                 precedent = display_indicator
                 courant = display_indicator
 
-            # Utilise le résumé LLM si disponible, sinon fallback local
-            resume = base.get("genai_analysis", {}).get("justification")
+            # Utilise la justification AMF v2 si disponible, sinon fallback legacy/local.
+            resume = _to_analyst_justification(base.get("genai_analysis"))
             if not resume:
                 resume = _build_resume_court(
                     ind_type,
@@ -427,11 +448,12 @@ def _iter_expert_excel_rows(
                 courant = to_val or ind_name
 
             resume_type = item_change_type if item_change_type in ("table_added", "table_removed") else ind_type
-            # Priorité : justification GPT par indicateur/note > table-level > fallback local
+            # Priorité : justification GPT par indicateur/note > table-level > fallback local.
             ind_assessment = ind.get("analyst_assessment") or {}
-            resume = ind_assessment.get("justification") or ""
-            if not resume:
-                resume = base.get("genai_analysis", {}).get("justification")
+            resume = _to_analyst_justification(
+                ind_assessment,
+                base.get("genai_analysis"),
+            )
             if not resume:
                 resume = _build_resume_court(
                     resume_type,
