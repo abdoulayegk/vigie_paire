@@ -467,28 +467,55 @@ def _bar_chart(values: dict[str, int], *, theme: str) -> html.Div:
     return _chart_card("RÉPARTITION PAR NATURE", fig, theme=theme)
 
 
-def _global_evolution_chart(values: dict[str, int], *, theme: str) -> html.Div:
-    grid_color = "#d8e0ea" if theme == "light" else "#223248"
-    axis_color = "#475569" if theme == "light" else "#c8d2e0"
+def _review_status_chart(counts: dict[str, int], *, theme: str) -> html.Div:
+    total = _safe_int(counts.get("total"))
+    if total <= 0:
+        return html.Div("Aucune revue disponible", className="vigie-cockpit-empty")
+    is_light = theme == "light"
+    main_color = "#172033" if is_light else "#f4f7fb"
+    muted_color = "#64748b" if is_light else "#c8d2e0"
+    values = [
+        _safe_int(counts.get("approved")),
+        _safe_int(counts.get("pending")),
+        _safe_int(counts.get("rejected")),
+    ]
+    labels = ["Validés", "En attente", "Rejetés"]
+    marker_colors = ["#68b976", "#f3b23c", "#e45142"]
     fig = go.Figure(
-        go.Bar(
-            x=list(values.keys()),
-            y=list(values.values()),
-            marker={"color": ["#68b976", "#e45142", "#f3b23c", "#4b74f2"]},
-            text=[str(v) for v in values.values()],
-            textposition="outside",
-            cliponaxis=False,
+        go.Pie(
+            labels=labels,
+            values=values,
+            hole=0.62,
+            marker={"colors": marker_colors},
+            textinfo="none",
+            sort=False,
+            domain={"x": [0.0, 0.46], "y": [0.0, 1.0]},
         )
     )
-    fig.update_layout(
-        yaxis={
-            "title": {"text": "Nombre de changements", "font": {"color": axis_color, "size": 11}},
-            "gridcolor": grid_color,
-            "rangemode": "tozero",
-        },
-        xaxis={"gridcolor": "rgba(0,0,0,0)"},
-    )
-    return _chart_card("ÉVOLUTION GLOBALE", fig, theme=theme)
+    fig.add_annotation(text=str(total), x=0.23, y=0.56, showarrow=False, font={"size": 28, "color": main_color})
+    fig.add_annotation(text="Total", x=0.23, y=0.41, showarrow=False, font={"size": 12, "color": muted_color})
+    for idx, (label, value, color) in enumerate(zip(labels, values, marker_colors, strict=False)):
+        y = 0.75 - idx * 0.24
+        pct = value / total if total else 0
+        fig.add_annotation(text="●", x=0.55, y=y, showarrow=False, font={"size": 18, "color": color}, xanchor="left")
+        fig.add_annotation(
+            text=label,
+            x=0.62,
+            y=y,
+            showarrow=False,
+            font={"size": 12, "color": main_color},
+            xanchor="left",
+        )
+        fig.add_annotation(
+            text=f"{value} ({pct:.0%})",
+            x=0.98,
+            y=y,
+            showarrow=False,
+            font={"size": 12, "color": main_color},
+            xanchor="right",
+        )
+    fig.update_layout(showlegend=False)
+    return _chart_card("STATUT DE LA FILE DE REVUE", fig, theme=theme)
 
 
 def _top_text(text_metrics: dict[str, Any]) -> html.Div:
@@ -1211,12 +1238,6 @@ def render_vigie_cockpit(
         "Modifications": text_metrics["modified"] + indicator_metrics["footnote_modified"],
         "Renommages": text_metrics["renamed_changes"] + indicator_metrics["renamed"],
     }
-    evolution_bars = {
-        "Ajouts": bars["Ajouts"],
-        "Suppressions": bars["Suppressions"],
-        "Modifications": bars["Modifications"],
-        "Renommages": bars["Renommages"],
-    }
     pertinence = {"ELEVEE": "Élevée", "MOYENNE": "Moyenne", "FAIBLE": "Faible"}.get(
         text_metrics["pertinence"], text_metrics["pertinence"]
     )
@@ -1432,7 +1453,7 @@ def render_vigie_cockpit(
                 [
                     _donut_chart(text_total, indicator_total, theme=theme),
                     _bar_chart(bars, theme=theme),
-                    _global_evolution_chart(evolution_bars, theme=theme),
+                    _review_status_chart(counts, theme=theme),
                 ],
                 className="vigie-cockpit-chart-grid",
             ),
