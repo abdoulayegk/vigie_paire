@@ -127,6 +127,8 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
     assert "Modif. méthodologie" in text
     assert "OUI" in text
     assert "Revue prioritaire" in text
+    assert "Justification" in text
+    assert "Justification de triage" not in text
 
 
 def test_text_analysis_change_card_keeps_non_pertinent() -> None:

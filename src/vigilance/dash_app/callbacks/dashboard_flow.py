@@ -172,11 +172,31 @@ def render_results(comparison, indicator, show_results):
             dbc.Col(
                 build_analyst_kpi_card(
                     t("kpi_added"),
-                    int(kpi.get("total_added_indicators", 0) or 0)
-                    + int(kpi.get("total_removed_indicators", 0) or 0)
-                    + int(kpi.get("total_renamed_indicators", 0) or 0),
+                    int(kpi.get("total_added_indicators", 0) or 0),
                     color="white",
-                    helper_text="Ajouts, suppressions et renommages d'indicateurs",
+                    helper_text="Nouveaux indicateurs identifiés",
+                ),
+                xl=2,
+                md=4,
+                className="mb-3",
+            ),
+            dbc.Col(
+                build_analyst_kpi_card(
+                    t("kpi_removed"),
+                    int(kpi.get("total_removed_indicators", 0) or 0),
+                    color="white",
+                    helper_text="Indicateurs présents avant, absents maintenant",
+                ),
+                xl=2,
+                md=4,
+                className="mb-3",
+            ),
+            dbc.Col(
+                build_analyst_kpi_card(
+                    t("kpi_renamed"),
+                    int(kpi.get("total_renamed_indicators", 0) or 0),
+                    color="white",
+                    helper_text="Libellés rapprochés comme renommages",
                 ),
                 xl=2,
                 md=4,

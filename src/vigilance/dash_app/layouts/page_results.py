@@ -339,8 +339,7 @@ def build_section_accordion_item(
 def build_page_results() -> html.Div:
     """Construit le layout principal de la page de resultats.
 
-    Inclut les KPI, la vue par section, le panneau de revue analyste
-    et les statistiques de validation.
+    Inclut les KPI, le panneau de revue analyste et les statistiques de validation.
 
     Returns:
         Composant ``html.Div`` contenant l'ensemble de la page de resultats.
@@ -421,17 +420,7 @@ def build_page_results() -> html.Div:
                                         ],
                                         className="g-3 mb-4",
                                     ),
-                                    html.Div(
-                                        [
-                                            html.H5("Vue rapide par section", className="mb-1 mt-3"),
-                                            html.P(
-                                                "Repérez rapidement les tableaux touchés avant d'ouvrir le détail analyste.",
-                                                className="text-muted mb-0",
-                                            ),
-                                        ],
-                                        className="mb-3",
-                                    ),
-                                    html.Div(id="results-sections-tab"),
+                                    html.Div(id="results-sections-tab", style={"display": "none"}),
                                 ]
                             ),
                             label="Indicateurs",

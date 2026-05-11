@@ -1388,6 +1388,20 @@ def render_vigie_cockpit(
                                         "success",
                                     ),
                                     _kpi(
+                                        "bi-graph-down-arrow",
+                                        "Indicateurs supprimés",
+                                        indicator_metrics["indicator_removed"],
+                                        "Suppressions identifiées",
+                                        "danger",
+                                    ),
+                                    _kpi(
+                                        "bi-pencil-square",
+                                        "Indicateurs renommés",
+                                        indicator_metrics["indicator_renamed"],
+                                        "Renommages identifiés",
+                                        "warning",
+                                    ),
+                                    _kpi(
                                         "bi-journal-plus",
                                         "Notes ajoutées",
                                         indicator_metrics["footnote_added"],

@@ -470,6 +470,15 @@ def test_legacy_nav_buttons_hidden_when_v2_active(monkeypatch) -> None:
     assert "store-current-review-index" not in ids
 
 
+def test_results_page_hides_quick_section_overview() -> None:
+    view = page_results.build_page_results()
+
+    text = _flatten_text(view)
+
+    assert "Vue rapide par section" not in text
+    assert "Repérez rapidement les tableaux touchés" not in text
+
+
 def test_get_proof_render_result_returns_bbox_missing_for_crop() -> None:
     result = pdf_mod._get_proof_render_result_for_item(
         {
