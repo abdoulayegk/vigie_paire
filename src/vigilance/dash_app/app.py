@@ -68,7 +68,7 @@ stores = [
     dcc.Store(id="store-review-filters", data={"section": "all", "status": "all"}),
     dcc.Store(id="store-proof-display-mode", data="crop"),
     dcc.Store(id="store-sidebar-collapsed", data=False),
-    dcc.Store(id="store-vigie-dashboard-theme", data="dark"),
+    dcc.Store(id="store-vigie-dashboard-theme", data="light"),
     dcc.Interval(id="analysis-timer-interval", interval=1000, n_intervals=0, disabled=True),
 ]
 
