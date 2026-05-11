@@ -550,6 +550,43 @@ def test_footnote_render_passes_highlights_to_crop(monkeypatch) -> None:
     }
     assert seen["kwargs"]["highlight_rects"] == [[0.2, 0.7, 0.8, 0.74]]
     assert seen["kwargs"]["secondary_highlight_rects"] == [[0.2, 0.75, 0.8, 0.79]]
+    assert seen["kwargs"]["highlight_color"] == pdf_mod.PROOF_HIGHLIGHT_COLOR_T1
+    assert seen["kwargs"]["secondary_highlight_color"] == pdf_mod.PROOF_HIGHLIGHT_COLOR_T1
+
+
+def test_table_render_uses_current_quarter_highlight_color(monkeypatch) -> None:
+    seen: dict[str, object] = {}
+
+    def _fake_crop_table(*args, **kwargs):
+        seen["args"] = args
+        seen["kwargs"] = kwargs
+        return b"abc"
+
+    monkeypatch.setattr(
+        "vigilance.utils.pdf_crop.crop_table_region_to_bytes",
+        _fake_crop_table,
+    )
+
+    result = pdf_mod._get_proof_render_result_for_item(
+        {
+            "page_t2": 7,
+            "source_ref_t2": "/tmp/t2.pdf",
+            "bbox_t2": [0.1, 0.2, 0.9, 0.6],
+        },
+        "t2",
+        {"pdf_t2": "/tmp/t2.pdf"},
+        proof_display_mode="crop",
+        highlight_rects=[[0.2, 0.3, 0.8, 0.34]],
+        secondary_highlight_rects=[[0.2, 0.35, 0.8, 0.39]],
+    )
+
+    assert result == {
+        "image_b64": base64.b64encode(b"abc").decode("ascii"),
+        "status": "ok",
+        "mode_effective": "crop",
+    }
+    assert seen["kwargs"]["highlight_color"] == pdf_mod.PROOF_HIGHLIGHT_COLOR_T2
+    assert seen["kwargs"]["secondary_highlight_color"] == pdf_mod.PROOF_HIGHLIGHT_COLOR_T2
 
 
 def test_get_proof_render_result_uses_full_without_bbox(monkeypatch) -> None:

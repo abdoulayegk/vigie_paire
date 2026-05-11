@@ -2,7 +2,22 @@ from __future__ import annotations
 
 from typing import Any
 
+from dash.development.base_component import Component
+
 from vigilance.dash_app.callbacks.text_flow import download_text_excel, filter_text_cards
+from vigilance.dash_app.layouts.page_text_analysis import build_text_analysis_tab
+
+
+def _flat_text(node: object) -> str:
+    if node is None:
+        return ""
+    if isinstance(node, str):
+        return node
+    if isinstance(node, list | tuple):
+        return " ".join(_flat_text(child) for child in node)
+    if isinstance(node, Component):
+        return _flat_text(getattr(node, "children", None))
+    return ""
 
 
 def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) -> None:
@@ -147,3 +162,43 @@ def test_filter_text_cards_sorts_new_idea_first_and_keeps_non_pertinent() -> Non
     assert "Majeur existant" in second_text  # phrase modified present in T2 column
     assert "Variation chiffree" in third_text
     assert "Non pertinent" in third_text
+
+
+def test_text_analysis_banner_uses_auditable_text_total_not_retained_total() -> None:
+    """Le badge principal texte suit le même périmètre que l'Excel."""
+    changes = [
+        {
+            "change_id": f"c{i}",
+            "diff_type": "modified",
+            "source_text_t1": "Ancien",
+            "source_text_t2": "Nouveau",
+            "genai_triage": {"impact_level": "MINEUR", "is_relevant": i < 17},
+        }
+        for i in range(27)
+    ]
+    text_data = {
+        "bank_code": "bnc",
+        "quarter_current": "2025_t2",
+        "quarter_previous": "2025_t1",
+        "global_summary": {
+            "counts": {
+                "total": 32,
+                "total_relevant": 17,
+                "by_impact": {},
+            }
+        },
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "block_comparisons": changes[:17],
+                "all_block_comparisons": changes,
+            }
+        ],
+    }
+
+    view = build_text_analysis_tab(text_data)
+    text = _flat_text(view)
+
+    assert "27 changement(s) textuel(s)" in text
+    assert "17 pertinents / 32 analysés" not in text

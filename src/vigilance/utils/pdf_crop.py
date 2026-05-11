@@ -197,6 +197,8 @@ def crop_table_region_to_bytes(
     dpi: int | None = None,
     highlight_rects: list[list[float]] | None = None,
     secondary_highlight_rects: list[list[float]] | None = None,
+    highlight_color: tuple[float, float, float] = (1, 0, 1),
+    secondary_highlight_color: tuple[float, float, float] | None = None,
 ) -> bytes:
     """Recadre une region de tableau d'une page PDF et retourne les octets PNG.
 
@@ -209,15 +211,19 @@ def crop_table_region_to_bytes(
         top_extension: Hauteur supplementaire au-dessus de la bbox (ex. titre ou lignes manquees), normalisee 0..1.
         horizontal_padding: Padding horizontal symetrique (normalise 0..1), borne a la page.
         dpi: Si defini, rendu a cette resolution (72 * zoom) ; ecrase scale. Utiliser 300 pour Vision/OCR.
-        highlight_rects: Surlignages primaires en magenta -- le changement actif en cours de validation.
-        secondary_highlight_rects: Surlignages secondaires en jaune -- autres changements du tableau
+        highlight_rects: Surlignages primaires -- le changement actif en cours de validation.
+        secondary_highlight_rects: Surlignages secondaires -- autres changements du tableau
             (contexte seulement, plus discrets pour que le changement actif reste visuellement dominant).
+        highlight_color: Couleur RGB normalisee du surlignage primaire.
+        secondary_highlight_color: Couleur RGB normalisee du surlignage secondaire.
+            Si absent, utilise la meme couleur que ``highlight_color``.
 
     Returns:
         Octets PNG de la region recadree. Retourne ``b""`` si bbox invalide, page hors limites,
         import echoue ou toute exception de recadrage (pas de repli pleine page).
     """
     zoom = (dpi / 72.0) if dpi is not None else scale
+    secondary_color = secondary_highlight_color or highlight_color
 
     if not _validate_bbox(bbox_norm):
         return b""
@@ -248,7 +254,7 @@ def crop_table_region_to_bytes(
             y1 = rect.y0 + b_norm_effective * rect.height
             clip = fitz.Rect(x0, y0, x1, y1)
 
-            # Secondary highlights first (yellow, dimmer) so primary renders on top
+            # Secondary highlights first, dimmer, so primary renders on top.
             if secondary_highlight_rects:
                 for hl_norm in secondary_highlight_rects:
                     if len(hl_norm) == 4:
@@ -258,12 +264,12 @@ def crop_table_region_to_bytes(
                         hy1 = rect.y0 + hl_norm[3] * rect.height
                         page.draw_rect(
                             fitz.Rect(hx0, hy0, hx1, hy1),
-                            color=(0.9, 0.75, 0),
-                            fill=(0.9, 0.75, 0),
+                            color=secondary_color,
+                            fill=secondary_color,
                             fill_opacity=0.2,
                         )
 
-            # Primary highlights (magenta) — the active change being validated
+            # Primary highlights — the active change being validated.
             if highlight_rects:
                 for hl_norm in highlight_rects:
                     if len(hl_norm) == 4:
@@ -273,8 +279,8 @@ def crop_table_region_to_bytes(
                         hy1 = rect.y0 + hl_norm[3] * rect.height
                         page.draw_rect(
                             fitz.Rect(hx0, hy0, hx1, hy1),
-                            color=(1, 0, 1),
-                            fill=(1, 0, 1),
+                            color=highlight_color,
+                            fill=highlight_color,
                             fill_opacity=0.35,
                         )
 
@@ -365,6 +371,8 @@ def crop_footnote_region_to_bytes(
     dpi: int | None = None,
     highlight_rects: list[list[float]] | None = None,
     secondary_highlight_rects: list[list[float]] | None = None,
+    highlight_color: tuple[float, float, float] = (1, 0, 1),
+    secondary_highlight_color: tuple[float, float, float] | None = None,
 ) -> bytes:
     """Recadre uniquement la region de notes de bas de page sous un tableau.
 
@@ -375,8 +383,11 @@ def crop_footnote_region_to_bytes(
         scale: Echelle de rendu quand dpi n'est pas defini.
         footnote_height: Hauteur de la region de notes en fraction de page (defaut 0.25 = 25 %).
         dpi: Si defini, rendu a cette resolution ; ecrase scale.
-        highlight_rects: Surlignages primaires en magenta.
-        secondary_highlight_rects: Surlignages secondaires en jaune.
+        highlight_rects: Surlignages primaires.
+        secondary_highlight_rects: Surlignages secondaires.
+        highlight_color: Couleur RGB normalisee du surlignage primaire.
+        secondary_highlight_color: Couleur RGB normalisee du surlignage secondaire.
+            Si absent, utilise la meme couleur que ``highlight_color``.
 
     Returns:
         Octets PNG de la region de notes sous le tableau.
@@ -384,6 +395,7 @@ def crop_footnote_region_to_bytes(
     from vigilance.extraction.pdf_preview import render_pdf_page
 
     zoom = (dpi / 72.0) if dpi is not None else scale
+    secondary_color = secondary_highlight_color or highlight_color
 
     if not _validate_bbox(table_bbox_norm):
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
@@ -430,8 +442,8 @@ def crop_footnote_region_to_bytes(
                         if highlight.intersects(clip):
                             page.draw_rect(
                                 highlight,
-                                color=(0.9, 0.75, 0),
-                                fill=(0.9, 0.75, 0),
+                                color=secondary_color,
+                                fill=secondary_color,
                                 fill_opacity=0.2,
                             )
             if highlight_rects:
@@ -445,8 +457,8 @@ def crop_footnote_region_to_bytes(
                         if highlight.intersects(clip):
                             page.draw_rect(
                                 highlight,
-                                color=(1, 0, 1),
-                                fill=(1, 0, 1),
+                                color=highlight_color,
+                                fill=highlight_color,
                                 fill_opacity=0.35,
                             )
             mat = fitz.Matrix(zoom, zoom)

@@ -11,6 +11,7 @@ from typing import Any
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from vigilance.text_comparison.text_comparison_excel import _should_exclude
 from vigilance.text_comparison.justification import build_text_triage_justification
 
 # ---------------------------------------------------------------------------
@@ -383,6 +384,7 @@ def _build_executive_banner(
     bank: str,
     q_cur: str,
     q_prev: str,
+    auditable_changes: int | None = None,
 ) -> dbc.Alert:
     """Bannière exécutive avec résumé, compteurs et bouton export."""
     overview = global_summary.get("executive_overview", "")
@@ -397,8 +399,7 @@ def _build_executive_banner(
     # Compteurs
     n_maj = by_impact.get("MAJEUR", 0)
     n_mod = by_impact.get("MODERE", 0)
-    n_rel = counts.get("total_relevant", 0)
-    n_tot = counts.get("total", 0)
+    n_auditable = auditable_changes if auditable_changes is not None else counts.get("total", 0)
 
     return dbc.Alert(
         [
@@ -424,7 +425,7 @@ def _build_executive_banner(
                 [
                     _badge(f"{n_maj} Majeur(s)", "danger") if n_maj else None,
                     _badge(f"{n_mod} Modéré(s)", "warning") if n_mod else None,
-                    _badge(f"{n_rel} pertinents / {n_tot} analysés", "primary") if n_rel else None,
+                    _badge(f"{n_auditable} changement(s) textuel(s)", "primary") if n_auditable else None,
                     dbc.Button(
                         "↓ Télécharger Excel",
                         id="btn-download-text-excel",
@@ -439,6 +440,19 @@ def _build_executive_banner(
         color=pertinence_color,
         className="mb-3",
     )
+
+
+def _count_auditable_text_changes(section_comparisons: list[dict[str, Any]]) -> int:
+    """Compte les changements textuels alignés avec l'export Excel analyste."""
+    total = 0
+    for sec in section_comparisons:
+        for change in sec.get("all_block_comparisons") or []:
+            if change.get("diff_type") == "unchanged":
+                continue
+            if _should_exclude(change):
+                continue
+            total += 1
+    return total
 
 
 # ---------------------------------------------------------------------------
@@ -549,7 +563,13 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
 
     return html.Div(
         [
-            _build_executive_banner(global_summary, bank, q_cur, q_prev),
+            _build_executive_banner(
+                global_summary,
+                bank,
+                q_cur,
+                q_prev,
+                auditable_changes=_count_auditable_text_changes(section_comparisons),
+            ),
             _build_filter_bar(section_options),
             html.Div(id="text-cards-container"),
         ],
