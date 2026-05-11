@@ -11,6 +11,8 @@ from typing import Any
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from vigilance.text_comparison.justification import build_text_triage_justification
+
 # ---------------------------------------------------------------------------
 # Constantes d'affichage
 # ---------------------------------------------------------------------------
@@ -252,7 +254,7 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
     impact_level = (triage.get("impact_level") or "MINEUR").upper()
     action = (triage.get("action_requise") or "aucune").lower()
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
-    nouvelle_idee_justification = (triage.get("nouvelle_idee_justification") or "").strip()
+    nouvelle_idee_justification = build_text_triage_justification(change)
     themes_amf = list(triage.get("themes_amf") or [])
 
     evidence_t1 = change.get("evidence_t1") or {}

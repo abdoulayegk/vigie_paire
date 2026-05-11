@@ -242,8 +242,9 @@ _REQUIRED_JUSTIFICATION_SECTIONS = (
     "Sujet détecté :",
     "Ce qui change :",
     "Pertinence métier :",
-    "Lecture de vigie :",
+    "Point de surveillance :",
 )
+_LEGACY_SURVEILLANCE_SECTION = "Lecture de vigie :"
 
 
 def _count_substantive_sentences(text: str) -> int:
@@ -265,11 +266,14 @@ def _count_substantive_sentences(text: str) -> int:
 
 def _missing_justification_sections(text: str) -> list[str]:
     """Retourne les rubriques obligatoires absentes de la justification."""
-    return [
-        section
-        for section in _REQUIRED_JUSTIFICATION_SECTIONS
-        if section not in text
-    ]
+    missing: list[str] = []
+    for section in _REQUIRED_JUSTIFICATION_SECTIONS:
+        if section in text:
+            continue
+        if section == "Point de surveillance :" and _LEGACY_SURVEILLANCE_SECTION in text:
+            continue
+        missing.append(section)
+    return missing
 
 
 class TriageAMFResult(BaseModel):
@@ -471,9 +475,9 @@ def empty_triage_skeleton() -> dict:
             "métier détectée par la vigie, car aucun thème AMF, risque, "
             "méthode, conformité ou divulgation substantielle n'a pu être "
             "rattaché au changement de façon fiable.\n\n"
-            "Lecture de vigie : Le point à retenir est que la ligne reste non "
-            "classifiée par l'automatisation et ne porte pas de signal métier "
-            "utilisable dans le résumé de surveillance."
+            "Point de surveillance : Élément non classifié — La ligne ne porte "
+            "pas de signal métier exploitable dans le résumé de surveillance "
+            "automatisé."
         ),
         action_requise="aucune",
         exclusion_reason="non_pertinent_autre",

@@ -67,8 +67,9 @@ _REQUIRED_JUSTIFICATION_SECTIONS = (
     "Sujet détecté :",
     "Ce qui change :",
     "Pertinence métier :",
-    "Lecture de vigie :",
+    "Point de surveillance :",
 )
+_LEGACY_SURVEILLANCE_SECTION = "Lecture de vigie :"
 
 
 def _count_substantive_sentences(text: str) -> int:
@@ -82,11 +83,14 @@ def _count_substantive_sentences(text: str) -> int:
 
 
 def _missing_justification_sections(text: str) -> list[str]:
-    return [
-        section
-        for section in _REQUIRED_JUSTIFICATION_SECTIONS
-        if section not in text
-    ]
+    missing: list[str] = []
+    for section in _REQUIRED_JUSTIFICATION_SECTIONS:
+        if section in text:
+            continue
+        if section == "Point de surveillance :" and _LEGACY_SURVEILLANCE_SECTION in text:
+            continue
+        missing.append(section)
+    return missing
 
 # ---------------------------------------------------------------------------
 # System Prompts
@@ -152,10 +156,13 @@ _TRIAGE_SYSTEM_PROMPT = (
     "  3) 'Ce qui change : ...' avec l'élément exact ajouté, retiré ou "
     "modifié entre T1 et T2.\n"
     "  4) 'Pertinence métier : ...' avec une explication longue, concrète et "
-    "spécifique à la vigie bancaire. Relier le changement au sujet détecté "
-    "(IA, cyber, climat, conformité, capital, méthode, divulgation) et à son "
-    "importance pour une banque.\n"
-    "  5) 'Lecture de vigie : ...' avec le point de surveillance à retenir, "
+    "formulée comme un analyste de vigie : commencer idéalement par "
+    "'Ce changement met l'accent sur ...' ou 'Ce changement met en évidence ...'. "
+    "Relier le changement au sujet détecté (IA, cyber, climat, conformité, "
+    "capital, méthode, divulgation), aux attentes prudentielles, à la conformité, "
+    "aux contrôles, à la comparabilité entre pairs et à son importance pour une "
+    "banque.\n"
+    "  5) 'Point de surveillance : ...' avec le point de surveillance à retenir, "
     "sans demander à l'analyste de vérifier, accepter ou rejeter le changement.\n"
     "- Au moins 3 phrases complètes (≥ 20 caractères chacune, ponctuation "
     "finale) ET ≥ 200 caractères au total — l'analyste doit avoir une "
@@ -183,7 +190,7 @@ _TRIAGE_SYSTEM_PROMPT = (
     '  "is_relevant": true | false,\n'
     '  "themes_amf": ["<code AMF>", ...],   // multi-label, vide si is_relevant=false\n'
     '  "nouvelle_idee": true | false,\n'
-    '  "nouvelle_idee_justification": "<OUI/NON — rubriques obligatoires : Nouvel élément à surveiller, Sujet détecté, Ce qui change, Pertinence métier, Lecture de vigie>",\n'
+    '  "nouvelle_idee_justification": "<OUI/NON — rubriques obligatoires : Nouvel élément à surveiller, Sujet détecté, Ce qui change, Pertinence métier, Point de surveillance>",\n'
     '  "category": "REGLEMENTAIRE" | "RISQUE" | "CAPITAL" | "STRUCTURE" | "NON_PERTINENT" | "INCONNU",\n'
     '  "relevance_score": "ELEVEE" | "MOYENNE" | "FAIBLE",\n'
     '  "risk_level": "ELEVE" | "MODERE" | "FAIBLE",\n'
@@ -219,7 +226,7 @@ _TRIAGE_SYSTEM_PROMPT = (
     "- nouvelle_idee_justification est TOUJOURS OBLIGATOIRE (≥ 3 phrases, "
     "≥ 200 chars), commençant par 'OUI' ou 'NON' selon nouvelle_idee, "
     "et contenant les rubriques exactes : Nouvel élément à surveiller, "
-    "Sujet détecté, Ce qui change, Pertinence métier, Lecture de vigie.\n"
+    "Sujet détecté, Ce qui change, Pertinence métier, Point de surveillance.\n"
     "- is_relevant=true → themes_amf NON VIDE.\n"
     "- is_relevant=false → themes_amf=[], category='NON_PERTINENT', "
     "nouvelle_idee=false, action_requise='aucune'. La justification reste "
@@ -557,9 +564,9 @@ def _empty_triage_skeleton(*, source: str = "heuristic") -> dict[str, Any]:
             "métier détectée par la vigie, car aucun thème AMF, risque, "
             "méthode, conformité ou divulgation substantielle n'a pu être "
             "rattaché au changement de façon fiable.\n\n"
-            "Lecture de vigie : Le point à retenir est que la ligne reste non "
-            "classifiée par l'automatisation et ne porte pas de signal métier "
-            "utilisable dans le résumé de surveillance."
+            "Point de surveillance : Élément non classifié — La ligne ne porte "
+            "pas de signal métier exploitable dans le résumé de surveillance "
+            "automatisé."
         ),
         "impact_level": "MINEUR",
         "category": "NON_PERTINENT",

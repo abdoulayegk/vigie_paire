@@ -29,7 +29,7 @@ def test_comparison_excel_prefers_amf_justification() -> None:
                         "Ce qui change : Le T2 ajoute une mention cyber absente du T1.\n\n"
                         "Pertinence métier : La justification AMF explique le lien "
                         "avec la vigie bancaire et la comparabilité entre pairs.\n\n"
-                        "Lecture de vigie : Le point à retenir est le nouveau signal cyber."
+                        "Point de surveillance : Le point à retenir est le nouveau signal cyber."
                     ),
                 },
                 "technical_diff": {

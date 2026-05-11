@@ -1217,7 +1217,7 @@ def _valid_justification_oui() -> str:
         "réglementaires. Une méthode interne avancée peut modifier la lecture "
         "des actifs pondérés, du capital requis et de la comparabilité "
         "inter-pairs.\n\n"
-        "Lecture de vigie : Le point à retenir est que la banque présente une "
+        "Point de surveillance : Le point à retenir est que la banque présente une "
         "base méthodologique différente pour le risque de crédit, ce qui change "
         "la lecture métier de la divulgation."
     )
@@ -1234,7 +1234,7 @@ def _valid_justification_non() -> str:
         "normale de la banque et ne touche aucun seuil réglementaire ni "
         "méthodologie de calcul. Elle ne modifie pas la lecture prudentielle "
         "du rapport ni la comparabilité métier.\n\n"
-        "Lecture de vigie : Le point à retenir est que la substance de la "
+        "Point de surveillance : Le point à retenir est que la substance de la "
         "divulgation demeure stable. Le changement correspond à une mise à "
         "jour quantitative plutôt qu'à un nouveau signal de surveillance."
     )

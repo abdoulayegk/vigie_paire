@@ -22,7 +22,6 @@ from vigilance.dash_app.services.comparison_context import (
 )
 from vigilance.dash_app.services.export_helpers import (
     _comparison_has_changes,
-    _footnote_change_total,
     _is_high_priority_item,
     _is_low_confidence_comparison,
 )
@@ -49,6 +48,16 @@ from vigilance.review_storage import is_review_state_compatible
 from vigilance.ui_indicators import build_indicator_change_rows
 
 logger = logging.getLogger(__name__)
+
+
+def _footnote_change_counts(comp: dict) -> dict[str, int]:
+    """Compte les notes ajoutées, supprimées et modifiées pour une comparaison."""
+    footnotes = comp.get("footnotes_counts", {}) or {}
+    return {
+        "added": int(footnotes.get("added", 0) or 0),
+        "removed": int(footnotes.get("removed", 0) or 0),
+        "modified": int(footnotes.get("modified", 0) or 0),
+    }
 
 
 @callback(
@@ -114,7 +123,14 @@ def render_results(comparison, indicator, show_results):
         tables_removed = indicator.get("tables_removed", []) or []
         tables_added = indicator.get("tables_added", []) or []
 
-        notes_total = sum(_footnote_change_total(comp) for comp in comparisons)
+        notes_added = sum(_footnote_change_counts(comp)["added"] for comp in comparisons)
+        notes_removed = sum(
+            _footnote_change_counts(comp)["removed"] for comp in comparisons
+        )
+        notes_modified = sum(
+            _footnote_change_counts(comp)["modified"] for comp in comparisons
+        )
+        notes_total = notes_added + notes_removed + notes_modified
         high_priority_tables = sum(
             1
             for comp in comparisons
@@ -168,10 +184,32 @@ def render_results(comparison, indicator, show_results):
             ),
             dbc.Col(
                 build_analyst_kpi_card(
-                    t("kpi_notes_modified"),
-                    notes_total,
+                    "Notes ajoutées",
+                    notes_added,
                     color="white",
-                    helper_text="Toutes les notes de bas de tableau qui changent",
+                    helper_text=f"Nouvelles notes de bas de tableau (total notes: {notes_total})",
+                ),
+                xl=2,
+                md=4,
+                className="mb-3",
+            ),
+            dbc.Col(
+                build_analyst_kpi_card(
+                    "Notes supprimées",
+                    notes_removed,
+                    color="white",
+                    helper_text="Notes présentes avant, absentes maintenant",
+                ),
+                xl=2,
+                md=4,
+                className="mb-3",
+            ),
+            dbc.Col(
+                build_analyst_kpi_card(
+                    "Notes modifiées",
+                    notes_modified,
+                    color="white",
+                    helper_text="Notes dont le contenu ou la portée change",
                 ),
                 xl=2,
                 md=4,

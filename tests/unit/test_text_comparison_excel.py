@@ -4,6 +4,7 @@ import io
 
 from openpyxl import load_workbook
 
+from vigilance.text_comparison.justification import build_text_triage_justification
 from vigilance.text_comparison.text_comparison_excel import generate_text_comparison_excel
 
 
@@ -167,6 +168,110 @@ def test_generate_text_comparison_excel_strips_control_characters() -> None:
 
     assert ws["F2"].value == "Texte T1"
     assert ws["I2"].value == "OUI - note analyste utile."
+
+
+def test_text_justification_falls_back_for_legacy_b15_triage() -> None:
+    change = {
+        "diff_type": "added",
+        "change_summary": (
+            "Sous-section ajoutee: Faits nouveaux sur la reglementation en "
+            "matiere de durabilite"
+        ),
+        "source_text_t1": "",
+        "source_text_t2": (
+            "En mars 2025, le BSIF a publie une mise a jour de la ligne "
+            "directrice B-15 afin de l'harmoniser avec les exigences des "
+            "normes du Conseil canadien des normes d'information sur la "
+            "durabilite. Les principales modifications comprennent le report "
+            "de la date de mise en oeuvre pour la communication d'informations "
+            "sur les emissions de GES du champ d'application 3."
+        ),
+        "evidence_t2": {"pages": [43]},
+        "genai_triage": {
+            "is_relevant": True,
+            "category": "REGLEMENTAIRE",
+            "impact_level": "MODERE",
+            "risk_type": "conformite",
+            "action_requise": "confirmation",
+            "nouvelle_idee": True,
+            "explanation": (
+                "Une nouvelle section a ete ajoutee concernant la mise a jour "
+                "des lignes directrices pour s'aligner sur les normes de "
+                "durabilite."
+            ),
+            "impact_description": (
+                "Le report des exigences de communication sur les emissions "
+                "de GES permet a la banque de mieux se preparer"
+            ),
+        },
+    }
+
+    justification = build_text_triage_justification(change)
+
+    assert justification.startswith("OUI — Nouvel élément à surveiller : Oui.")
+    assert "Sujet détecté : Risque climatique, ESG" in justification
+    assert "nouvelle mention réglementaire" in justification
+    assert "information ajoutée" in justification
+    assert "Ce qui change : Le T2 ajoute" in justification
+    assert "Pertinence métier :" in justification
+    assert (
+        "Ce changement met l'accent sur l'évolution du cadre réglementaire "
+        "applicable aux divulgations climatiques des institutions financières."
+    ) in justification
+    assert (
+        "Ce point est important à suivre, car il permet d'évaluer l'évolution "
+        "des attentes prudentielles, la comparabilité des pratiques de divulgation "
+        "entre pairs et le niveau de préparation des banques face aux exigences "
+        "climatiques."
+    ) in justification
+    assert "Point de surveillance :" in justification
+
+    raw = generate_text_comparison_excel(
+        {
+            "section_comparisons": [
+                {
+                    "section_key": "gestion_reglementation",
+                    "section_title": "Faits nouveaux en matiere de reglementation",
+                    "all_block_comparisons": [change],
+                }
+            ]
+        },
+        output_path=None,
+    )
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+    assert ws["H2"].value == "Oui"
+    assert ws["I2"].value == justification
+
+
+def test_text_justification_rewrites_b15_pertinence_when_explicit_exists() -> None:
+    change = {
+        "diff_type": "added",
+        "source_text_t2": "Le BSIF met à jour la ligne directrice B-15 sur les GES.",
+        "genai_triage": {
+            "nouvelle_idee": True,
+            "nouvelle_idee_justification": (
+                "OUI — Nouvel élément à surveiller : Oui.\n\n"
+                "Sujet détecté : Risque climatique, ESG.\n\n"
+                "Ce qui change : Le T2 ajoute une mention B-15.\n\n"
+                "Pertinence métier : Ancienne formulation à remplacer.\n\n"
+                "Point de surveillance : Le point à retenir demeure le suivi des exigences."
+            ),
+        },
+    }
+
+    justification = build_text_triage_justification(change)
+
+    assert "Ancienne formulation à remplacer" not in justification
+    assert (
+        "Pertinence métier : Ce changement met l'accent sur l'évolution du cadre "
+        "réglementaire applicable aux divulgations climatiques des institutions "
+        "financières."
+    ) in justification
+    assert (
+        "Point de surveillance : Risque climatique / ESG — Le changement indique "
+        "que la banque tient compte de la mise à jour de la ligne directrice B-15"
+    ) in justification
 
 
 def test_generate_text_comparison_excel_labels_text_renames() -> None:

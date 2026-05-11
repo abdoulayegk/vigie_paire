@@ -90,7 +90,7 @@ def _valid_justification_oui() -> str:
         "ratios prudentiels. Une nouvelle divulgation TLAC peut modifier la "
         "lecture de la capacité d'absorption des pertes et la comparabilité "
         "entre banques canadiennes.\n\n"
-        "Lecture de vigie : Le point à retenir est que la banque rend visible "
+        "Point de surveillance : Le point à retenir est que la banque rend visible "
         "un indicateur réglementaire supplémentaire, ce qui enrichit la lecture "
         "du capital et du cadre prudentiel."
     )
@@ -107,7 +107,7 @@ def _valid_justification_non() -> str:
         "vigie bancaire parce qu'il ne touche aucun risque, seuil prudentiel, "
         "méthode de calcul, gouvernance ou exigence de conformité. Il ne "
         "modifie pas la lecture métier du rapport.\n\n"
-        "Lecture de vigie : Le point à retenir est que la substance de la "
+        "Point de surveillance : Le point à retenir est que la substance de la "
         "divulgation demeure inchangée; la ligne reflète une mise à jour "
         "rédactionnelle attendue plutôt qu'un nouveau signal de surveillance."
     )

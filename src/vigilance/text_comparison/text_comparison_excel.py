@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from vigilance.text_comparison.justification import build_text_triage_justification
+
 logger = logging.getLogger(__name__)
 
 _SECTION_DISPLAY: dict[str, str] = {
@@ -188,7 +190,7 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
             page_t1 = ", ".join(str(p) for p in (evidence_t1.get("pages") or []) if p)
             page_t2 = ", ".join(str(p) for p in (evidence_t2.get("pages") or []) if p)
 
-            justification = (triage.get("nouvelle_idee_justification") or "").strip()
+            justification = build_text_triage_justification(block_comp)
 
             rows.append(
                 {

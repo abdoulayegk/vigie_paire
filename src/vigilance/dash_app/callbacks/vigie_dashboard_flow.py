@@ -1388,10 +1388,24 @@ def render_vigie_cockpit(
                                         "success",
                                     ),
                                     _kpi(
-                                        "bi-journal-bookmark",
+                                        "bi-journal-plus",
+                                        "Notes ajoutées",
+                                        indicator_metrics["footnote_added"],
+                                        "Nouvelles notes",
+                                        "success",
+                                    ),
+                                    _kpi(
+                                        "bi-journal-minus",
+                                        "Notes supprimées",
+                                        indicator_metrics["footnote_removed"],
+                                        "Retraits de notes",
+                                        "danger",
+                                    ),
+                                    _kpi(
+                                        "bi-journal-text",
                                         "Notes modifiées",
-                                        indicator_metrics["notes"],
-                                        "Notes de bas tableau",
+                                        indicator_metrics["footnote_modified"],
+                                        "Contenu ou portée",
                                         "warning",
                                     ),
                                     _kpi(
