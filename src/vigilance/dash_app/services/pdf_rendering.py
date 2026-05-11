@@ -72,7 +72,14 @@ def _cached_render_or_crop(
 
     try:
         if display_mode == "footnote":
-            return crop_footnote_region_to_bytes(pdf_path, page, bbox, dpi=dpi)
+            return crop_footnote_region_to_bytes(
+                pdf_path,
+                page,
+                bbox,
+                dpi=dpi,
+                highlight_rects=highlight_rects,
+                secondary_highlight_rects=secondary_highlight_rects,
+            )
         else:  # "crop" (default)
             return crop_table_region_to_bytes(
                 pdf_path,

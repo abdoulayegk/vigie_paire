@@ -363,6 +363,8 @@ def crop_footnote_region_to_bytes(
     scale: float = 1.5,
     footnote_height: float = 0.25,
     dpi: int | None = None,
+    highlight_rects: list[list[float]] | None = None,
+    secondary_highlight_rects: list[list[float]] | None = None,
 ) -> bytes:
     """Recadre uniquement la region de notes de bas de page sous un tableau.
 
@@ -373,6 +375,8 @@ def crop_footnote_region_to_bytes(
         scale: Echelle de rendu quand dpi n'est pas defini.
         footnote_height: Hauteur de la region de notes en fraction de page (defaut 0.25 = 25 %).
         dpi: Si defini, rendu a cette resolution ; ecrase scale.
+        highlight_rects: Surlignages primaires en magenta.
+        secondary_highlight_rects: Surlignages secondaires en jaune.
 
     Returns:
         Octets PNG de la region de notes sous le tableau.
@@ -415,6 +419,36 @@ def crop_footnote_region_to_bytes(
             y1 = rect.y0 + footnote_bottom * rect.height
 
             clip = fitz.Rect(x0, y0, x1, y1)
+            if secondary_highlight_rects:
+                for hl_norm in secondary_highlight_rects:
+                    if len(hl_norm) == 4:
+                        hx0 = rect.x0 + hl_norm[0] * rect.width
+                        hy0 = rect.y0 + hl_norm[1] * rect.height
+                        hx1 = rect.x0 + hl_norm[2] * rect.width
+                        hy1 = rect.y0 + hl_norm[3] * rect.height
+                        highlight = fitz.Rect(hx0, hy0, hx1, hy1)
+                        if highlight.intersects(clip):
+                            page.draw_rect(
+                                highlight,
+                                color=(0.9, 0.75, 0),
+                                fill=(0.9, 0.75, 0),
+                                fill_opacity=0.2,
+                            )
+            if highlight_rects:
+                for hl_norm in highlight_rects:
+                    if len(hl_norm) == 4:
+                        hx0 = rect.x0 + hl_norm[0] * rect.width
+                        hy0 = rect.y0 + hl_norm[1] * rect.height
+                        hx1 = rect.x0 + hl_norm[2] * rect.width
+                        hy1 = rect.y0 + hl_norm[3] * rect.height
+                        highlight = fitz.Rect(hx0, hy0, hx1, hy1)
+                        if highlight.intersects(clip):
+                            page.draw_rect(
+                                highlight,
+                                color=(1, 0, 1),
+                                fill=(1, 0, 1),
+                                fill_opacity=0.35,
+                            )
             mat = fitz.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, clip=clip, alpha=False)
             return pix.tobytes("png")

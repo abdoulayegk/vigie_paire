@@ -168,13 +168,30 @@ def _build_change_full_detail(change: dict) -> html.Div | None:
         new_text = _normalize_text(payload.get("new_text"))
 
         if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
-            blocks.append(_build_detail_block("Trimestre courant", new_text))
+            blocks.append(
+                _build_detail_block("Trimestre courant - note ajoutée", new_text)
+            )
+            blocks.append(_build_detail_block("Trimestre précédent", "", muted=True))
         elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
-            blocks.append(_build_detail_block("Trimestre précédent", old_text))
             blocks.append(_build_detail_block("Trimestre courant", "", muted=True))
+            blocks.append(
+                _build_detail_block("Trimestre précédent - note supprimée", old_text)
+            )
         else:
-            blocks.append(_build_detail_block("Trimestre précédent", old_text, muted=not old_text))
-            blocks.append(_build_detail_block("Trimestre courant", new_text, muted=not new_text))
+            blocks.append(
+                _build_detail_block(
+                    "Trimestre courant - nouvelle version",
+                    new_text,
+                    muted=not new_text,
+                )
+            )
+            blocks.append(
+                _build_detail_block(
+                    "Trimestre précédent - ancienne version",
+                    old_text,
+                    muted=not old_text,
+                )
+            )
 
     # --- Justification GPT par changement ---
     payload = change.get("payload", {}) or {}

@@ -52,7 +52,9 @@ def update_review_proofs(
     if table is None:
         return html.Div(
             [
-                html.H6("Preuves visuelles T1/T2", className="mb-1"),
+                html.H6(
+                    "Preuves visuelles : courant vs précédent", className="mb-1"
+                ),
                 html.P(
                     "Aucune preuve visuelle disponible pour la sélection courante.",
                     className="text-muted small mb-0",

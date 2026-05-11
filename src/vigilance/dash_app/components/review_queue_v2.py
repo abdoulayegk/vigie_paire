@@ -225,12 +225,14 @@ def _build_metric_chip(label: str, value: int, tone: str) -> html.Span:
     )
 
 
-def _build_detail_panel(label: str, text: str, empty_message: str) -> html.Div:
+def _build_detail_panel(
+    label: str, text: str, empty_message: str, *, muted: bool = False
+) -> html.Div:
     """Construit un panneau de detail avec message de repli si vide."""
     content = text or empty_message
     content_class = (
         "review-queue-change-text"
-        if text
+        if text and not muted
         else "review-queue-change-text text-muted fst-italic"
     )
     return html.Div(
@@ -471,15 +473,27 @@ def _build_change_panels(change: dict) -> html.Div:
     elif change_type in (ChangeType.FOOTNOTE_ADDED.value, "footnote_added"):
         panels = [
             _build_detail_panel(
-                "Texte ajoute",
+                "Trimestre courant - note ajoutée",
                 new_text,
                 "Texte de la note indisponible.",
-            )
+            ),
+            _build_detail_panel(
+                "Trimestre précédent",
+                "",
+                "Élément absent.",
+                muted=True,
+            ),
         ]
     elif change_type in (ChangeType.FOOTNOTE_REMOVED.value, "footnote_removed"):
         panels = [
             _build_detail_panel(
-                "Texte supprime",
+                "Trimestre courant",
+                "",
+                "Élément absent.",
+                muted=True,
+            ),
+            _build_detail_panel(
+                "Trimestre précédent - note supprimée",
                 old_text,
                 "Texte de la note indisponible.",
             )
@@ -487,14 +501,14 @@ def _build_change_panels(change: dict) -> html.Div:
     elif change_type in (ChangeType.FOOTNOTE_MODIFIED.value, "footnote_modified"):
         panels = [
             _build_detail_panel(
-                "Version precedente",
-                old_text,
-                "Ancienne version indisponible.",
-            ),
-            _build_detail_panel(
-                "Version courante",
+                "Trimestre courant - nouvelle version",
                 new_text,
                 "Nouvelle version indisponible.",
+            ),
+            _build_detail_panel(
+                "Trimestre précédent - ancienne version",
+                old_text,
+                "Ancienne version indisponible.",
             ),
         ]
     else:

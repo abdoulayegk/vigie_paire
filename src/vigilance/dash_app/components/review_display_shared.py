@@ -29,6 +29,13 @@ _CHANGE_TYPES_WITH_VISUAL_FLAG = frozenset(
     }
 )
 
+_FOOTNOTE_ADDED_TYPES = frozenset({"footnote_added", "FOOTNOTE_ADDED"})
+_FOOTNOTE_REMOVED_TYPES = frozenset({"footnote_removed", "FOOTNOTE_REMOVED"})
+_FOOTNOTE_MODIFIED_TYPES = frozenset({"footnote_modified", "FOOTNOTE_MODIFIED"})
+_FOOTNOTE_CHANGE_TYPES = (
+    _FOOTNOTE_ADDED_TYPES | _FOOTNOTE_REMOVED_TYPES | _FOOTNOTE_MODIFIED_TYPES
+)
+
 _SECTION_LABELS = {
     "gestion_capital": "Gestion du capital",
     "capital_management": "Gestion du capital",
@@ -147,6 +154,7 @@ def compute_flag_state(item: dict) -> dict:
         Dictionnaire avec les classes CSS et libelles de badges pour T1/T2.
     """
     change_type = (item.get("change_type") or "").strip()
+    selected_change_type = (item.get("selected_change_type") or change_type).strip()
     added = item.get("added_indicators") or []
     removed = item.get("removed_indicators") or []
     indicators = item.get("indicators") or []
@@ -158,8 +166,40 @@ def compute_flag_state(item: dict) -> dict:
         if isinstance(ind, dict) and ind.get("type") == CHANGE_TYPE_RENAMED
     )
 
+    if selected_change_type in _FOOTNOTE_ADDED_TYPES:
+        return {
+            "has_change": True,
+            "t1_class": "proof-card",
+            "t2_class": "proof-card proof-flag-t2",
+            "badge_t1": "Trimestre précédent",
+            "badge_t2": "Trimestre courant - note ajoutée",
+            "badge_class_t1": "neutral",
+            "badge_class_t2": "t2",
+        }
+    if selected_change_type in _FOOTNOTE_REMOVED_TYPES:
+        return {
+            "has_change": True,
+            "t1_class": "proof-card proof-flag-t1",
+            "t2_class": "proof-card",
+            "badge_t1": "Trimestre précédent - note supprimée",
+            "badge_t2": "Trimestre courant",
+            "badge_class_t1": "t1",
+            "badge_class_t2": "neutral",
+        }
+    if selected_change_type in _FOOTNOTE_MODIFIED_TYPES:
+        return {
+            "has_change": True,
+            "t1_class": "proof-card proof-flag-t1",
+            "t2_class": "proof-card proof-flag-t2",
+            "badge_t1": "Trimestre précédent - ancienne note",
+            "badge_t2": "Trimestre courant - nouvelle note",
+            "badge_class_t1": "t1",
+            "badge_class_t2": "t2",
+        }
+
     has_change = (
         change_type in _CHANGE_TYPES_WITH_VISUAL_FLAG
+        or selected_change_type in _FOOTNOTE_CHANGE_TYPES
         or added_count + removed_count + renamed_count > 0
     )
     if not has_change:
@@ -476,7 +516,7 @@ def build_proofs_section(
 
     return html.Div(
         [
-            html.H6("Preuves visuelles T1/T2", className="mb-1"),
+            html.H6("Preuves visuelles : courant vs précédent", className="mb-1"),
             proof_mode_toggle,
             proofs_row,
         ]
