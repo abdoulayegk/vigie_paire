@@ -1952,7 +1952,7 @@ afin que les imports existants restent valides.</p>
 </section>
 <section id="module-vigilance.comparison_noise_filter">
 <span id="vigilance-comparison-noise-filter-module"></span><h2>vigilance.comparison_noise_filter module<a class="headerlink" href="#module-vigilance.comparison_noise_filter" title="Lien vers cette rubrique"></a></h2>
-<p>Filtres post-traitement pour retirer le bruit cosmetique des diffs techniques.</p>
+<p>Filtres post-traitement pour retirer le bruit non substantif des diffs techniques.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.comparison_noise_filter.recompute_table_level_change">
 <span class="sig-prename descclassname"><span class="pre">vigilance.comparison_noise_filter.</span></span><span class="sig-name descname"><span class="pre">recompute_table_level_change</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">technical_diff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.comparison_noise_filter.recompute_table_level_change" title="Lien vers cette définition"></a></dt>
@@ -2140,7 +2140,7 @@ ou d’une version de schema incompatible.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.extraction_storage.load_stored_extractions">
 <span class="sig-prename descclassname"><span class="pre">vigilance.extraction_storage.</span></span><span class="sig-name descname"><span class="pre">load_stored_extractions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.extraction_storage.load_stored_extractions" title="Lien vers cette définition"></a></dt>
-<dd><p>Charger les extractions t1 et t2 si elles existent toutes les deux.</p>
+<dd><p>Charger les extractions T1 et T2 si elles existent toutes les deux.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -3209,7 +3209,14 @@ la deduplication quand la meme table apparait plusieurs fois.</p>
 </section>
 <section id="module-vigilance.review_priority">
 <span id="vigilance-review-priority-module"></span><h2>vigilance.review_priority module<a class="headerlink" href="#module-vigilance.review_priority" title="Lien vers cette rubrique"></a></h2>
-<p>Utilitaires de priorite pour le tri de la file de revue et la normalisation des signaux GenAI.</p>
+<p>Utilitaires de priorite pour le tri de la file de revue.</p>
+<p>Aligne sur la taxonomie AMF v2 unifiée :
+- <code class="docutils literal notranslate"><span class="pre">action_requise</span></code> (revue_prioritaire &gt; investigation &gt; confirmation &gt; information &gt; aucune)
+- <code class="docutils literal notranslate"><span class="pre">category</span></code> (REGLEMENTAIRE &gt; RISQUE &gt; CAPITAL &gt; STRUCTURE &gt; NON_PERTINENT &gt; INCONNU)
+- <code class="docutils literal notranslate"><span class="pre">impact_level</span></code> (MAJEUR &gt; MODERE &gt; MINEUR)</p>
+<p>Plus de traduction anglais→français (les sorties GPT sont natives en français
+via la taxonomie AMF). Plus de fallback sur les anciens champs <code class="docutils literal notranslate"><span class="pre">relevance</span></code> /
+<code class="docutils literal notranslate"><span class="pre">risk_level</span></code> translated.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.review_priority.get_priority_signals">
 <span class="sig-prename descclassname"><span class="pre">vigilance.review_priority.</span></span><span class="sig-name descname"><span class="pre">get_priority_signals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.review_priority.get_priority_signals" title="Lien vers cette définition"></a></dt>
@@ -3219,44 +3226,10 @@ la deduplication quand la meme table apparait plusieurs fois.</p>
 <dd class="field-odd"><p><strong>item</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionnaire representant un element de revue.</p>
 </dd>
 <dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
 </dd>
 <dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(action_requise,</span> <span class="pre">relevance,</span> <span class="pre">risk,</span> <span class="pre">confidence)</span></code>.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.review_priority.normalize_relevance">
-<span class="sig-prename descclassname"><span class="pre">vigilance.review_priority.</span></span><span class="sig-name descname"><span class="pre">normalize_relevance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.review_priority.normalize_relevance" title="Lien vers cette définition"></a></dt>
-<dd><p>Normalise un code de pertinence anglais vers la terminologie francaise.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>value</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Code de pertinence brut (ex. <code class="docutils literal notranslate"><span class="pre">&quot;REGULATORY&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;NEW_DISCLOSURE&quot;</span></code>).</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Code normalise en francais (ex. <code class="docutils literal notranslate"><span class="pre">&quot;REGLEMENTAIRE&quot;</span></code>).</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.review_priority.normalize_risk">
-<span class="sig-prename descclassname"><span class="pre">vigilance.review_priority.</span></span><span class="sig-name descname"><span class="pre">normalize_risk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.review_priority.normalize_risk" title="Lien vers cette définition"></a></dt>
-<dd><p>Normalise un code de niveau de risque anglais vers le francais.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>value</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Code de risque brut (ex. <code class="docutils literal notranslate"><span class="pre">&quot;HIGH&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;MODERATE&quot;</span></code>).</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Code normalise en francais (ex. <code class="docutils literal notranslate"><span class="pre">&quot;ELEVE&quot;</span></code>).</p>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(action_requise,</span> <span class="pre">category,</span> <span class="pre">impact_level)</span></code> aux valeurs AMF v2.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3265,7 +3238,7 @@ la deduplication quand la meme table apparait plusieurs fois.</p>
 <dt class="sig sig-object py" id="vigilance.review_priority.sort_review_items_by_priority">
 <span class="sig-prename descclassname"><span class="pre">vigilance.review_priority.</span></span><span class="sig-name descname"><span class="pre">sort_review_items_by_priority</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.review_priority.sort_review_items_by_priority" title="Lien vers cette définition"></a></dt>
 <dd><p>Trie les elements de la file de revue par urgence analyste.</p>
-<p>Cle primaire : action_requise (escalade &gt; investigation &gt; confirmation &gt; information &gt; aucune).
+<p>Cle primaire : action_requise (revue_prioritaire &gt; investigation &gt; confirmation &gt; information &gt; aucune).
 Secondaire   : pertinence (REGLEMENTAIRE &gt; … &gt; NON_SIGNIFICATIF).
 Tertiaire    : niveau de risque (ELEVE &gt; MODERE &gt; FAIBLE).
 Quaternaire  : confiance (descendant).
