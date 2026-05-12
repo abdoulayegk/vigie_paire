@@ -323,7 +323,7 @@ def write_indicators_json(
     """Ecrire ``indicators.json`` pour l'audit.
 
     Chaque entree contient : table_id, title, date_reference, page, source
-    (t1/t2), sections.
+    (T1/T2), sections.
 
     Args:
         tables_t1: Tableaux du trimestre T1.
@@ -369,7 +369,7 @@ def write_footnotes_json(
 ) -> Path:
     """Ecrire ``footnotes.json`` pour l'audit.
 
-    Chaque entree contient : table_id, title, page, source (t1/t2),
+    Chaque entree contient : table_id, title, page, source (T1/T2),
     has_footnotes, footnote_markers, footnotes_content.
 
     Args:

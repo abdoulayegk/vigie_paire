@@ -288,7 +288,7 @@ Les tableaux sont triés automatiquement par priorité d'action :
 
 | Priorité          | Signification                  |
 | ----------------- | ------------------------------ |
-| **Escalade**      | Intervention immédiate requise |
+| **Revue prioritaire** | Intervention immédiate requise |
 | **Investigation** | Analyse approfondie nécessaire |
 | **Confirmation**  | Vérification de cohérence      |
 | **Information**   | Changement mineur à documenter |

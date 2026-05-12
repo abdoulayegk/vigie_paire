@@ -81,20 +81,14 @@ def _build_change_badges(comp: dict) -> list[dbc.Badge]:
     removed = len(comp.get("removed_indicators", []) or [])
     renamed = len(comp.get("renamed_indicators", []) or [])
     fn_counts = comp.get("footnotes_counts", {}) or {}
-    fn_total = sum(
-        int(fn_counts.get(key, 0) or 0) for key in ("added", "removed", "modified")
-    )
+    fn_total = sum(int(fn_counts.get(key, 0) or 0) for key in ("added", "removed", "modified"))
 
     if added:
         badges.append(dbc.Badge(f"+{added}", color="success", className="me-2"))
     if removed:
         badges.append(dbc.Badge(f"-{removed}", color="danger", className="me-2"))
     if renamed:
-        badges.append(
-            dbc.Badge(
-                f"~{renamed}", color="warning", text_color="dark", className="me-2"
-            )
-        )
+        badges.append(dbc.Badge(f"~{renamed}", color="warning", text_color="dark", className="me-2"))
     if fn_total:
         badges.append(dbc.Badge(f"FN {fn_total}", color="info", className="me-2"))
     return badges
@@ -103,16 +97,8 @@ def _build_change_badges(comp: dict) -> list[dbc.Badge]:
 def _build_indicator_detail_lines(comp: dict) -> list:
     """Construit les lignes de detail des indicateurs ajoutes, supprimes et renommes."""
     details: list = []
-    added = [
-        str(v).strip()
-        for v in (comp.get("added_indicators", []) or [])
-        if str(v).strip()
-    ]
-    removed = [
-        str(v).strip()
-        for v in (comp.get("removed_indicators", []) or [])
-        if str(v).strip()
-    ]
+    added = [str(v).strip() for v in (comp.get("added_indicators", []) or []) if str(v).strip()]
+    removed = [str(v).strip() for v in (comp.get("removed_indicators", []) or []) if str(v).strip()]
     renamed = comp.get("renamed_indicators", []) or []
     footnotes_diff = comp.get("footnotes_diff", {}) or {}
 
@@ -194,11 +180,7 @@ def _build_comparison_overview_card(comp: dict) -> dbc.Card:
     change_badges = _build_change_badges(comp)
     detail_lines = _build_indicator_detail_lines(comp)
 
-    badge_row = [
-        badge
-        for badge in [priority_badge, confidence_badge, *change_badges]
-        if badge is not None
-    ]
+    badge_row = [badge for badge in [priority_badge, confidence_badge, *change_badges] if badge is not None]
 
     return dbc.Card(
         dbc.CardBody(
@@ -226,16 +208,9 @@ def _build_comparison_overview_card(comp: dict) -> dbc.Card:
     )
 
 
-def _build_table_presence_card(
-    table: dict, *, change_label: str, color: str
-) -> dbc.Card:
+def _build_table_presence_card(table: dict, *, change_label: str, color: str) -> dbc.Card:
     """Construit une carte pour un tableau ajoute ou retire."""
-    title = (
-        table.get("title")
-        or table.get("table_title")
-        or table.get("table_id")
-        or "Sans titre"
-    )
+    title = table.get("title") or table.get("table_title") or table.get("table_id") or "Sans titre"
     page = table.get("page")
     indicators = [
         str(v).strip()
@@ -247,9 +222,7 @@ def _build_table_presence_card(
         )
         if str(v).strip()
     ]
-    excerpt = (
-        ", ".join(indicators[:3]) if indicators else "Aucun indicateur exploitable"
-    )
+    excerpt = ", ".join(indicators[:3]) if indicators else "Aucun indicateur exploitable"
     return dbc.Card(
         dbc.CardBody(
             [
@@ -293,18 +266,14 @@ def build_section_accordion_item(
     parts = []
     if tables_with_changes:
         n = len(tables_with_changes)
-        cards = [
-            _build_comparison_overview_card(comp) for comp in tables_with_changes[:6]
-        ]
+        cards = [_build_comparison_overview_card(comp) for comp in tables_with_changes[:6]]
         parts.append(
             html.Div(
                 [
                     html.Strong(f"{n} tableau(x) avec changements"),
                     html.Div(cards, className="mt-3"),
                     html.Small(
-                        f"{n - len(cards)} autre(s) tableau(x) dans cette section."
-                        if n > len(cards)
-                        else "",
+                        f"{n - len(cards)} autre(s) tableau(x) dans cette section." if n > len(cards) else "",
                         className="text-muted",
                     ),
                 ],
@@ -359,11 +328,7 @@ def build_section_accordion_item(
                 className="mb-2",
             )
         )
-    body = (
-        html.Div(parts, className="p-2")
-        if parts
-        else html.Div("Aucun détail.", className="text-muted p-2")
-    )
+    body = html.Div(parts, className="p-2") if parts else html.Div("Aucun détail.", className="text-muted p-2")
     return dbc.AccordionItem(
         body,
         title=section_name,
@@ -374,8 +339,7 @@ def build_section_accordion_item(
 def build_page_results() -> html.Div:
     """Construit le layout principal de la page de resultats.
 
-    Inclut les KPI, la vue par section, le panneau de revue analyste
-    et les statistiques de validation.
+    Inclut les KPI, le panneau de revue analyste et les statistiques de validation.
 
     Returns:
         Composant ``html.Div`` contenant l'ensemble de la page de resultats.
@@ -391,13 +355,7 @@ def build_page_results() -> html.Div:
                             dbc.Col(
                                 [
                                     html.H2(t("analyse_comparative"), className="mb-1"),
-                                    html.Div(
-                                        id="results-header", className="text-muted mb-3"
-                                    ),
-                                    html.Div(
-                                        id="results-executive-summary", className="mb-3"
-                                    ),
-                                    html.Div(id="results-kpis"),
+                                    html.Div(id="results-header", className="text-muted mb-0"),
                                 ],
                                 width=9,
                             ),
@@ -417,81 +375,65 @@ def build_page_results() -> html.Div:
                         ]
                     )
                 ],
-                className="mb-4",
+                className="mb-3",
             ),
-            # KPI Row (File de Revue summary)
-            html.Div(
-                [
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                build_analyst_kpi_card(
-                                    t("file_review_total"), "0", color="white"
-                                ),
-                                width=3,
-                                className="mb-3",
-                                id="kpi-queue-total",
-                            ),
-                            dbc.Col(
-                                build_analyst_kpi_card(
-                                    t("validated"), "0", color="white"
-                                ),
-                                width=3,
-                                className="mb-3",
-                                id="kpi-queue-approved",
-                            ),
-                            dbc.Col(
-                                build_analyst_kpi_card(
-                                    t("rejected"), "0", color="white"
-                                ),
-                                width=3,
-                                className="mb-3",
-                                id="kpi-queue-rejected",
-                            ),
-                            dbc.Col(
-                                build_analyst_kpi_card(
-                                    t("pending"), "0", color="white"
-                                ),
-                                width=3,
-                                className="mb-3",
-                                id="kpi-queue-pending",
-                            ),
-                        ],
-                        className="g-3 mb-4",
-                    ),
-                ],
-            ),
-            # Tabs: Indicateurs / Analyse Textuelle
+            # Tabs: Dashboard / Indicateurs / Analyse Textuelle
             html.Div(
                 dbc.Tabs(
                     [
                         dbc.Tab(
+                            html.Div(id="vigie-cockpit-tab-content"),
+                            label="Dashboard",
+                            tab_id="tab-cockpit",
+                        ),
+                        dbc.Tab(
                             html.Div(
                                 [
-                                    html.Div(
+                                    html.Div(id="results-executive-summary", className="mb-3 mt-3"),
+                                    html.Div(id="results-kpis"),
+                                    dbc.Row(
                                         [
-                                            html.H5("Vue rapide par section", className="mb-1 mt-3"),
-                                            html.P(
-                                                "Repérez rapidement les tableaux touchés avant d'ouvrir le détail analyste.",
-                                                className="text-muted mb-0",
+                                            dbc.Col(
+                                                build_analyst_kpi_card(t("file_review_total"), "0", color="white"),
+                                                width=3,
+                                                className="mb-3",
+                                                id="kpi-queue-total",
+                                            ),
+                                            dbc.Col(
+                                                build_analyst_kpi_card(t("validated"), "0", color="white"),
+                                                width=3,
+                                                className="mb-3",
+                                                id="kpi-queue-approved",
+                                            ),
+                                            dbc.Col(
+                                                build_analyst_kpi_card(t("rejected"), "0", color="white"),
+                                                width=3,
+                                                className="mb-3",
+                                                id="kpi-queue-rejected",
+                                            ),
+                                            dbc.Col(
+                                                build_analyst_kpi_card(t("pending"), "0", color="white"),
+                                                width=3,
+                                                className="mb-3",
+                                                id="kpi-queue-pending",
                                             ),
                                         ],
-                                        className="mb-3",
+                                        className="g-3 mb-4",
                                     ),
-                                    html.Div(id="results-sections-tab"),
+                                    html.Div(id="results-sections-tab", style={"display": "none"}),
                                 ]
                             ),
                             label="Indicateurs",
                             tab_id="tab-indicateurs",
                         ),
                         dbc.Tab(
-                            html.Div(id="text-analysis-tab-content"),
+                            html.Div(id="text-analysis-tab-content", className="mt-3"),
                             label="Analyse Textuelle",
                             tab_id="tab-texte",
                         ),
                     ],
                     id="results-main-tabs",
-                    active_tab="tab-indicateurs",
+                    active_tab="tab-cockpit",
                 ),
                 className="mb-5",
             ),

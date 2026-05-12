@@ -132,10 +132,18 @@ def _step_compare(
     config: str,
     extraction_root: Path,
     out_root: Path,
+    expected_comparison_dir: Path,
     pdf_previous: Path | None = None,
     pdf_current: Path | None = None,
 ) -> Path:
-    """Step 2: Run GPT-4o comparison and return the comparison output path."""
+    """Step 2: Run GPT-4o comparison and return the comparison output path.
+
+    Args:
+        expected_comparison_dir: Chemin canonique attendu pour ce run
+            (``outputs/resultats/{bank}/{year_q_vs_year_q}/``). Utilisé pour
+            résoudre le ``comparison.json`` produit sans risque de retomber
+            sur un fichier d'un autre run via une recherche globale.
+    """
     from vigilance.cli.run_compare_gpt4o import main as compare_main
 
     cmd = [
@@ -159,15 +167,16 @@ def _step_compare(
 
     compare_main(cmd)
 
-    # Find the comparison.json that was produced
-    comparison_dir = out_root
-    candidates = sorted(comparison_dir.rglob("comparison.json"))
-    if not candidates:
-        # Also check for any JSON output
-        candidates = sorted(comparison_dir.rglob("*.json"))
-    if not candidates:
-        raise FileNotFoundError(f"Comparaison terminée mais aucun fichier de sortie trouvé dans: {out_root}")
-    return candidates[-1]
+    # Résolution stricte : on attend le ``comparison.json`` au chemin canonique
+    # de ce run, jamais une recherche globale (qui retomberait sur un fichier
+    # d'un autre run lexicographiquement « plus grand »).
+    expected_path = expected_comparison_dir / "comparison.json"
+    if expected_path.exists():
+        return expected_path
+    raise FileNotFoundError(
+        f"Comparaison terminée mais ``{expected_path}`` est introuvable. "
+        f"Vérifier que la commande compare_gpt4o a bien écrit dans ce dossier."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -258,6 +267,7 @@ def main(argv: list[str] | None = None) -> int:
             config=config,
             extraction_root=extraction_root,
             out_root=comparison_out,
+            expected_comparison_dir=comparison_dir,
             pdf_previous=previous_pdf,
             pdf_current=current_pdf,
         )

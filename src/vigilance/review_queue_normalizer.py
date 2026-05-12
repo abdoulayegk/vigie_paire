@@ -429,11 +429,17 @@ def build_normalized_review_queue(
         if not table.source_pdf_t2:
             table.source_pdf_t2 = pdf_path_t2
 
-    # Extract priority signals from genai_analysis if available
+    # Extract priority signals from genai_analysis (lecture directe AMF v2).
+    # ``relevance`` legacy → ``category`` AMF (REGLEMENTAIRE/RISQUE/...)
+    # ``risk_level`` legacy → ``impact_level`` AMF (MAJEUR/MODERE/MINEUR)
     for table in tables:
         if table.genai_analysis:
-            table.relevance = str(table.genai_analysis.get("relevance", ""))
-            table.risk_level = str(table.genai_analysis.get("risk_level", ""))
+            table.relevance = str(
+                table.genai_analysis.get("category", "") or ""
+            ).upper()
+            table.risk_level = str(
+                table.genai_analysis.get("impact_level", "") or ""
+            ).upper()
 
     # Sort by priority
     tables = sort_review_tables_by_priority(tables)

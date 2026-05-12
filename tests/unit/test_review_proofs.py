@@ -5,7 +5,11 @@ import base64
 from dash.development.base_component import Component
 
 from vigilance.dash_app.callbacks import proof_flow as proof_mod
-from vigilance.dash_app.components.review_display_shared import build_proofs_section
+from vigilance.dash_app.components.review_detail_v2 import _build_change_full_detail
+from vigilance.dash_app.components.review_display_shared import (
+    build_proofs_section,
+    compute_flag_state,
+)
 from vigilance.dash_app.layouts import page_results
 from vigilance.dash_app.services import pdf_rendering as pdf_mod
 
@@ -40,7 +44,7 @@ def test_build_proofs_section_shows_heading_and_visual_context() -> None:
     )
 
     text = _flatten_text(section)
-    assert "Preuves visuelles T1/T2" in text
+    assert "Preuves visuelles : courant vs précédent" in text
     assert "Page 10" in text
     assert "Page 12" in text
     assert "Mode page complète encadrée" in text
@@ -160,7 +164,7 @@ def test_update_review_proofs_returns_non_empty_panel_with_fallback_images(
     )
 
     text = _flatten_text(result)
-    assert "Preuves visuelles T1/T2" in text
+    assert "Preuves visuelles : courant vs précédent" in text
     assert "Rendu impossible pour cette preuve." in text
 
 
@@ -209,6 +213,59 @@ def test_update_review_proofs_uses_requested_display_mode(monkeypatch) -> None:
     text = _flatten_text(result)
     assert seen_modes == ["footnote", "footnote"]
     assert "Mode note de bas de tableau" in text
+
+
+def test_footnote_proof_flags_follow_current_left_previous_right() -> None:
+    added_state = compute_flag_state(
+        {
+            "change_type": "modified",
+            "selected_change_type": "footnote_added",
+        }
+    )
+    removed_state = compute_flag_state(
+        {
+            "change_type": "modified",
+            "selected_change_type": "footnote_removed",
+        }
+    )
+
+    assert added_state["t2_class"] == "proof-card proof-flag-t2"
+    assert added_state["t1_class"] == "proof-card"
+    assert added_state["badge_t2"] == "Trimestre courant - note ajoutée"
+    assert added_state["badge_t1"] == "Trimestre précédent"
+
+    assert removed_state["t2_class"] == "proof-card"
+    assert removed_state["t1_class"] == "proof-card proof-flag-t1"
+    assert removed_state["badge_t2"] == "Trimestre courant"
+    assert removed_state["badge_t1"] == "Trimestre précédent - note supprimée"
+
+
+def test_footnote_detail_uses_current_then_previous_semantics() -> None:
+    added_detail = _build_change_full_detail(
+        {
+            "change_type": "footnote_added",
+            "payload": {"old_text": "", "new_text": "Nouvelle note"},
+        }
+    )
+    removed_detail = _build_change_full_detail(
+        {
+            "change_type": "footnote_removed",
+            "payload": {"old_text": "Ancienne note", "new_text": ""},
+        }
+    )
+
+    added_text = _flatten_text(added_detail)
+    removed_text = _flatten_text(removed_detail)
+
+    assert "Trimestre courant - note ajoutée" in added_text
+    assert "Nouvelle note" in added_text
+    assert "Trimestre précédent" in added_text
+    assert "Élément absent" in added_text
+
+    assert "Trimestre courant" in removed_text
+    assert "Élément absent" in removed_text
+    assert "Trimestre précédent - note supprimée" in removed_text
+    assert "Ancienne note" in removed_text
 
 
 def test_update_review_proofs_table_removed_without_bbox_falls_back_to_full(
@@ -413,6 +470,15 @@ def test_legacy_nav_buttons_hidden_when_v2_active(monkeypatch) -> None:
     assert "store-current-review-index" not in ids
 
 
+def test_results_page_hides_quick_section_overview() -> None:
+    view = page_results.build_page_results()
+
+    text = _flatten_text(view)
+
+    assert "Vue rapide par section" not in text
+    assert "Repérez rapidement les tableaux touchés" not in text
+
+
 def test_get_proof_render_result_returns_bbox_missing_for_crop() -> None:
     result = pdf_mod._get_proof_render_result_for_item(
         {
@@ -449,6 +515,78 @@ def test_get_proof_render_result_returns_bbox_missing_for_footnote() -> None:
         "status": "bbox_missing",
         "mode_effective": "footnote",
     }
+
+
+def test_footnote_render_passes_highlights_to_crop(monkeypatch) -> None:
+    seen: dict[str, object] = {}
+
+    def _fake_crop_footnote(*args, **kwargs):
+        seen["args"] = args
+        seen["kwargs"] = kwargs
+        return b"abc"
+
+    monkeypatch.setattr(
+        "vigilance.utils.pdf_crop.crop_footnote_region_to_bytes",
+        _fake_crop_footnote,
+    )
+
+    result = pdf_mod._get_proof_render_result_for_item(
+        {
+            "page_t1": 4,
+            "source_ref_t1": "/tmp/t1.pdf",
+            "bbox_t1": [0.1, 0.2, 0.9, 0.6],
+        },
+        "t1",
+        {"pdf_t1": "/tmp/t1.pdf"},
+        proof_display_mode="footnote",
+        highlight_rects=[[0.2, 0.7, 0.8, 0.74]],
+        secondary_highlight_rects=[[0.2, 0.75, 0.8, 0.79]],
+    )
+
+    assert result == {
+        "image_b64": base64.b64encode(b"abc").decode("ascii"),
+        "status": "ok",
+        "mode_effective": "footnote",
+    }
+    assert seen["kwargs"]["highlight_rects"] == [[0.2, 0.7, 0.8, 0.74]]
+    assert seen["kwargs"]["secondary_highlight_rects"] == [[0.2, 0.75, 0.8, 0.79]]
+    assert seen["kwargs"]["highlight_color"] == pdf_mod.PROOF_HIGHLIGHT_COLOR_T1
+    assert seen["kwargs"]["secondary_highlight_color"] == pdf_mod.PROOF_HIGHLIGHT_COLOR_T1
+
+
+def test_table_render_uses_current_quarter_highlight_color(monkeypatch) -> None:
+    seen: dict[str, object] = {}
+
+    def _fake_crop_table(*args, **kwargs):
+        seen["args"] = args
+        seen["kwargs"] = kwargs
+        return b"abc"
+
+    monkeypatch.setattr(
+        "vigilance.utils.pdf_crop.crop_table_region_to_bytes",
+        _fake_crop_table,
+    )
+
+    result = pdf_mod._get_proof_render_result_for_item(
+        {
+            "page_t2": 7,
+            "source_ref_t2": "/tmp/t2.pdf",
+            "bbox_t2": [0.1, 0.2, 0.9, 0.6],
+        },
+        "t2",
+        {"pdf_t2": "/tmp/t2.pdf"},
+        proof_display_mode="crop",
+        highlight_rects=[[0.2, 0.3, 0.8, 0.34]],
+        secondary_highlight_rects=[[0.2, 0.35, 0.8, 0.39]],
+    )
+
+    assert result == {
+        "image_b64": base64.b64encode(b"abc").decode("ascii"),
+        "status": "ok",
+        "mode_effective": "crop",
+    }
+    assert seen["kwargs"]["highlight_color"] == pdf_mod.PROOF_HIGHLIGHT_COLOR_T2
+    assert seen["kwargs"]["secondary_highlight_color"] == pdf_mod.PROOF_HIGHLIGHT_COLOR_T2
 
 
 def test_get_proof_render_result_uses_full_without_bbox(monkeypatch) -> None:

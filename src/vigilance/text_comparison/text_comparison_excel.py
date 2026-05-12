@@ -8,6 +8,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from vigilance.text_comparison.justification import build_text_triage_justification
+
 logger = logging.getLogger(__name__)
 
 _SECTION_DISPLAY: dict[str, str] = {
@@ -23,7 +25,7 @@ _CATEGORY_SORT_ORDER: dict[str, int] = {
     "RISQUE": 1,
     "CAPITAL": 2,
     "STRUCTURE": 3,
-    "COSMETIQUE": 4,
+    "NON_PERTINENT": 4,
     "INCONNU": 5,
 }
 
@@ -44,6 +46,7 @@ _DIFF_TYPE_FR: dict[str, str] = {
     "added": "Ajout",
     "removed": "Suppression",
     "modified": "Modification",
+    "renamed": "Renommage",
     "unchanged": "Inchangé",
 }
 
@@ -63,10 +66,19 @@ _DATE_UPDATE_RE = re.compile(
 
 _REFORMULATION_RE = re.compile(
     r"\b(légère|simple|même|pure).{0,20}(reformulation|reformulé|reformulée)\b|"
-    r"\breformulation.{0,20}(légère|sans changement|cosmétique)\b|"
+    r"\breformulation.{0,20}(légère|sans changement|sans nouveau fond)\b|"
     r"\bmême (idée|information|sens|contenu).{0,30}(reformul|formulat différente)\b",
     flags=re.IGNORECASE,
 )
+
+_CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
+def _excel_safe(value: Any) -> Any:
+    """Nettoie les chaînes avant écriture dans openpyxl."""
+    if isinstance(value, str):
+        return _CONTROL_CHAR_RE.sub("", value)
+    return value
 
 
 def _is_pure_date_update(change: dict[str, Any]) -> bool:
@@ -74,7 +86,7 @@ def _is_pure_date_update(change: dict[str, Any]) -> bool:
     triage = change.get("genai_triage") or {}
     if str(triage.get("impact_level") or "").upper() != "MINEUR":
         return False
-    if str(triage.get("category") or "").upper() != "COSMETIQUE":
+    if str(triage.get("category") or "").upper() != "NON_PERTINENT":
         return False
     summary = change.get("change_summary") or ""
     return bool(_DATE_UPDATE_RE.search(summary))
@@ -85,7 +97,7 @@ def _is_pure_reformulation(change: dict[str, Any]) -> bool:
     triage = change.get("genai_triage") or {}
     if str(triage.get("impact_level") or "").upper() != "MINEUR":
         return False
-    if str(triage.get("category") or "").upper() != "COSMETIQUE":
+    if str(triage.get("category") or "").upper() != "NON_PERTINENT":
         return False
     summary = change.get("change_summary") or ""
     return bool(_REFORMULATION_RE.search(summary))
@@ -138,7 +150,7 @@ _FILL_NOUVELLE_IDEE = "D6E4F0"   # bleu clair — nouvelle idée
 _FILL_MAJEUR        = "FADADD"   # rouge clair
 _FILL_MODERE        = "FDEBD0"   # orange clair
 _FILL_MINEUR_REL    = "FEF9E7"   # jaune très pâle — MINEUR mais pertinent
-_FILL_MINEUR        = "FFFFFF"   # blanc — COSMETIQUE/MINEUR standard
+_FILL_MINEUR        = "FFFFFF"   # blanc — non pertinent ou MINEUR standard
 
 
 def _row_fill_color(row: dict[str, Any]) -> str | None:
@@ -178,12 +190,7 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
             page_t1 = ", ".join(str(p) for p in (evidence_t1.get("pages") or []) if p)
             page_t2 = ", ".join(str(p) for p in (evidence_t2.get("pages") or []) if p)
 
-            explanation = (triage.get("explanation") or "").strip()
-            impact_desc = (triage.get("impact_description") or "").strip()
-            if impact_desc and impact_desc not in explanation:
-                justification = f"{explanation}\n\n{impact_desc}".strip()
-            else:
-                justification = explanation
+            justification = build_text_triage_justification(block_comp)
 
             rows.append(
                 {
@@ -273,7 +280,7 @@ def generate_text_comparison_excel(
             "",  # Commentaire analyste
         ]
         for col_idx, value in enumerate(row_data, 1):
-            cell = ws.cell(row=row_num, column=col_idx, value=value)
+            cell = ws.cell(row=row_num, column=col_idx, value=_excel_safe(value))
             cell.alignment = cell_align
             cell.border = thin_border
             if fill:

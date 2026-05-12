@@ -3,86 +3,67 @@ from __future__ import annotations
 from vigilance.review_priority import sort_review_items_by_priority
 
 
-def test_sort_review_items_by_priority_orders_by_relevance_then_risk() -> None:
+def test_sort_review_items_by_priority_orders_by_category_then_impact() -> None:
+    """Tri AMF v2 : action > category > impact_level (sans confidence legacy)."""
     items = [
         {
-            "change_id": "non_signif",
+            "change_id": "non_pertinent",
             "genai_analysis": {
-                "relevance": "NON_SIGNIFICATIF",
-                "risk_level": "ELEVE",
-                "confidence": 0.9,
+                "action_requise": "aucune",
+                "category": "NON_PERTINENT",
+                "impact_level": "MAJEUR",
             },
         },
         {
-            "change_id": "structural",
+            "change_id": "structure",
             "genai_analysis": {
-                "relevance": "STRUCTUREL",
-                "risk_level": "FAIBLE",
-                "confidence": 0.2,
+                "action_requise": "investigation",
+                "category": "STRUCTURE",
+                "impact_level": "MINEUR",
             },
         },
         {
             "change_id": "reg_mod",
             "genai_analysis": {
-                "relevance": "REGLEMENTAIRE",
-                "risk_level": "MODERE",
-                "confidence": 0.7,
+                "action_requise": "investigation",
+                "category": "REGLEMENTAIRE",
+                "impact_level": "MODERE",
             },
         },
         {
             "change_id": "reg_high",
             "genai_analysis": {
-                "relevance": "REGLEMENTAIRE",
-                "risk_level": "ELEVE",
-                "confidence": 0.1,
+                "action_requise": "revue_prioritaire",
+                "category": "REGLEMENTAIRE",
+                "impact_level": "MAJEUR",
             },
         },
     ]
 
     ordered = sort_review_items_by_priority(items)
     ordered_ids = [str(item.get("change_id")) for item in ordered]
-    assert ordered_ids == ["reg_high", "reg_mod", "structural", "non_signif"]
+    # revue_prioritaire > investigation > aucune ; puis REGLEMENTAIRE > STRUCTURE > NON_PERTINENT
+    assert ordered_ids == ["reg_high", "reg_mod", "structure", "non_pertinent"]
 
 
-def test_sort_review_items_by_priority_handles_english_labels() -> None:
+def test_sort_review_items_by_priority_falls_back_when_no_genai() -> None:
+    """Items sans genai_analysis utilisent les rangs par défaut (rangés en dernier)."""
     items = [
+        {"change_id": "no_genai_a"},
         {
-            "change_id": "unknown",
+            "change_id": "regle_majeur",
             "genai_analysis": {
-                "relevance": "UNKNOWN",
-                "risk_level": "LOW",
-                "confidence": 0.9,
+                "action_requise": "revue_prioritaire",
+                "category": "REGLEMENTAIRE",
+                "impact_level": "MAJEUR",
             },
         },
-        {
-            "change_id": "regulatory",
-            "genai_analysis": {
-                "relevance": "REGULATORY",
-                "risk_level": "HIGH",
-                "confidence": 0.3,
-            },
-        },
+        {"change_id": "no_genai_b"},
     ]
 
     ordered = sort_review_items_by_priority(items)
     ordered_ids = [str(item.get("change_id")) for item in ordered]
-    assert ordered_ids == ["regulatory", "unknown"]
-
-
-def test_sort_review_items_by_priority_fallbacks_to_structure_change() -> None:
-    items = [
-        {"change_id": "fallback_structure", "change_type": "structure_change"},
-        {
-            "change_id": "non_signif",
-            "genai_analysis": {
-                "relevance": "NON_SIGNIFICATIF",
-                "risk_level": "FAIBLE",
-                "confidence": 0.5,
-            },
-        },
-        {"change_id": "no_genai_other"},
-    ]
-
-    ordered = sort_review_items_by_priority(items)
-    ordered_ids = [str(item.get("change_id")) for item in ordered]
-    assert ordered_ids == ["fallback_structure", "non_signif", "no_genai_other"]
+    # L'item avec triage AMF v2 passe en premier ; les sans-triage suivent en
+    # ordre stable d'apparition.
+    assert ordered_ids[0] == "regle_majeur"
+    assert set(ordered_ids[1:]) == {"no_genai_a", "no_genai_b"}

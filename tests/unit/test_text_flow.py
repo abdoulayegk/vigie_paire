@@ -2,7 +2,22 @@ from __future__ import annotations
 
 from typing import Any
 
+from dash.development.base_component import Component
+
 from vigilance.dash_app.callbacks.text_flow import download_text_excel, filter_text_cards
+from vigilance.dash_app.layouts.page_text_analysis import build_text_analysis_tab
+
+
+def _flat_text(node: object) -> str:
+    if node is None:
+        return ""
+    if isinstance(node, str):
+        return node
+    if isinstance(node, list | tuple):
+        return " ".join(_flat_text(child) for child in node)
+    if isinstance(node, Component):
+        return _flat_text(getattr(node, "children", None))
+    return ""
 
 
 def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) -> None:
@@ -10,9 +25,7 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
         "bank_code": "td",
         "quarter_current": "2026_t1",
         "quarter_previous": "2025_t3",
-        "section_comparisons": [
-            {"block_comparisons": [{"change_id": "strict"}], "all_block_comparisons": []}
-        ],
+        "section_comparisons": [{"block_comparisons": [{"change_id": "strict"}], "all_block_comparisons": []}],
     }
     latest_payload = {
         "bank_code": "td",
@@ -53,7 +66,12 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
     assert response["filename"] == "veille_textuelle_TD_2026t1.xlsx"
 
 
-def test_filter_text_cards_sorts_new_idea_first_and_keeps_minor_cosmetic() -> None:
+def test_filter_text_cards_sorts_new_idea_first_and_keeps_non_pertinent() -> None:
+    """Le filtrage Dash garde les changements non pertinents pour revue humaine.
+
+    Tri : nouvelle idée d'abord, puis impact décroissant. Les is_relevant=False
+    restent visibles afin que l'analyste puisse contester le triage.
+    """
     text_data = {
         "section_comparisons": [
             {
@@ -67,10 +85,15 @@ def test_filter_text_cards_sorts_new_idea_first_and_keeps_minor_cosmetic() -> No
                         "pages_t2": [5],
                         "evidence_t2": {"pages": [5], "snippet": "preuve 1"},
                         "genai_triage": {
-                            "category": "RISQUE",
+                            "is_relevant": True,
+                            "themes_amf": ["MODIFICATION_TEXTE_RISQUE"],
                             "impact_level": "MAJEUR",
-                            "action_requise": "escalade",
+                            "action_requise": "revue_prioritaire",
                             "nouvelle_idee": False,
+                            "nouvelle_idee_justification": (
+                                "NON le concept existait deja au T1. "
+                                "Seule la formulation a evolue de maniere substantive."
+                            ),
                         },
                     },
                     {
@@ -80,23 +103,30 @@ def test_filter_text_cards_sorts_new_idea_first_and_keeps_minor_cosmetic() -> No
                         "pages_t2": [9],
                         "evidence_t2": {"pages": [9], "snippet": "preuve 2"},
                         "genai_triage": {
-                            "category": "STRUCTURE",
+                            "is_relevant": True,
+                            "themes_amf": ["DIVULGATION_AJOUT", "STRUCTURE_RAPPORT"],
                             "impact_level": "MODERE",
                             "action_requise": "information",
                             "nouvelle_idee": True,
+                            "nouvelle_idee_justification": (
+                                "OUI nouvelle divulgation absente au T1. "
+                                "Cela introduit un sujet nouveau dans le rapport."
+                            ),
                         },
                     },
                     {
-                        "change_id": "cosmetic",
+                        "change_id": "non_pertinent",
                         "diff_type": "modified",
-                        "semantic_text_t2": "Cosmétique",
+                        "semantic_text_t2": "Variation chiffree",
                         "pages_t2": [2],
                         "evidence_t2": {"pages": [2], "snippet": "preuve 3"},
                         "genai_triage": {
-                            "category": "COSMETIQUE",
+                            "is_relevant": False,
+                            "themes_amf": [],
                             "impact_level": "MINEUR",
                             "action_requise": "aucune",
                             "nouvelle_idee": False,
+                            "exclusion_reason": "variation_numerique_propre_banque",
                         },
                     },
                 ],
@@ -108,9 +138,67 @@ def test_filter_text_cards_sorts_new_idea_first_and_keeps_minor_cosmetic() -> No
 
     assert count_text == "3 changement(s) affiché(s)"
     assert len(cards) == 3
-    first_phrase = cards[0].children.children[2].children
-    second_phrase = cards[1].children.children[2].children
-    third_phrase = cards[2].children.children[2].children
-    assert first_phrase == "Nouvelle idée"
-    assert second_phrase == "Majeur existant"
-    assert third_phrase == "Cosmétique"
+    # La structure de la carte est : badge_row, themes_row?, meta, side_by_side, ...
+    # Le side-by-side rend les textes T1/T2 dans des spans imbriqués.
+    # On aplatit tous les enfants pour vérifier la présence des phrases.
+    from dash.development.base_component import Component as _DashComponent
+
+    def _flat_text(node) -> str:
+        if node is None:
+            return ""
+        if isinstance(node, str):
+            return node
+        if isinstance(node, list):
+            return " ".join(_flat_text(c) for c in node)
+        if isinstance(node, _DashComponent):
+            return _flat_text(getattr(node, "children", None))
+        return ""
+
+    first_text = _flat_text(cards[0])
+    second_text = _flat_text(cards[1])
+    third_text = _flat_text(cards[2])
+    # Tri : nouvelle idée d'abord, puis impact décroissant
+    assert "Nouvelle idée" in first_text  # phrase added present in T2 column
+    assert "Majeur existant" in second_text  # phrase modified present in T2 column
+    assert "Variation chiffree" in third_text
+    assert "Non pertinent" in third_text
+
+
+def test_text_analysis_banner_uses_auditable_text_total_not_retained_total() -> None:
+    """Le badge principal texte suit le même périmètre que l'Excel."""
+    changes = [
+        {
+            "change_id": f"c{i}",
+            "diff_type": "modified",
+            "source_text_t1": "Ancien",
+            "source_text_t2": "Nouveau",
+            "genai_triage": {"impact_level": "MINEUR", "is_relevant": i < 17},
+        }
+        for i in range(27)
+    ]
+    text_data = {
+        "bank_code": "bnc",
+        "quarter_current": "2025_t2",
+        "quarter_previous": "2025_t1",
+        "global_summary": {
+            "counts": {
+                "total": 32,
+                "total_relevant": 17,
+                "by_impact": {},
+            }
+        },
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "block_comparisons": changes[:17],
+                "all_block_comparisons": changes,
+            }
+        ],
+    }
+
+    view = build_text_analysis_tab(text_data)
+    text = _flat_text(view)
+
+    assert "27 changement(s) textuel(s)" in text
+    assert "17 pertinents / 32 analysés" not in text

@@ -14,8 +14,7 @@ def build_sidebar() -> dbc.Col:
     """Construit la barre laterale de configuration de l'analyse.
 
     La sidebar contient les champs de contexte analyste (nom, banque, annee,
-    trimestre), le selecteur de source de donnees (analyse enregistree ou
-    telechargement PDF) et les options avancees.
+    trimestre), le selecteur d'analyses enregistrees et les options avancees.
 
     Returns:
         Composant ``dbc.Col`` representant la barre laterale complete.
@@ -130,10 +129,9 @@ def build_sidebar() -> dbc.Col:
                         className="small text-muted mb-3",
                     ),
                     html.Hr(),
-                    # 4. Source Selection (cachee en mode reader: source = "saved" forcee)
+                    # Source forcee en mode analyses enregistrees.
                     html.Div(
                         [
-                            html.Label("Source des données", className="fw-bold small mt-2"),
                             dbc.RadioItems(
                                 id="data-source-type",
                                 options=[
@@ -141,14 +139,13 @@ def build_sidebar() -> dbc.Col:
                                         "label": "Analyses enregistrées",
                                         "value": "saved",
                                     },
-                                    {"label": "Téléverser les PDF", "value": "upload"},
                                 ],
                                 value="saved",
-                                className="mb-3 small",
+                                className="d-none",
                             ),
                         ],
                         id="data-source-wrapper",
-                        style=hide_in_reader,
+                        style={"display": "none"},
                     ),
                     # 4b. Saved analyses selector (hidden by default)
                     html.Div(

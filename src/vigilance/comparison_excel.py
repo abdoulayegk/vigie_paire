@@ -30,10 +30,9 @@ EXCEL_COLUMNS = [
     "Libellé T1",
     "Libellé T2",
     "Justification IA",
-    "Nouvelle divulgation ?",
+    "Nouvelle idée ?",
     "Commentaire analyste",
     "Statut validation",
-    "Validé par",
     "Validé le",
 ]
 
@@ -128,7 +127,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
 
         # Triage global du tableau
         triage = pair.get("genai_triage") or {}
-        table_justification = str(triage.get("explanation") or "").strip()
+        table_justification = str(triage.get("nouvelle_idee_justification") or "").strip()
         table_is_relevant = bool(triage.get("is_relevant", False))
         table_category = str(triage.get("category") or "").upper()
 
@@ -137,9 +136,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(ind, dict):
                 continue
             assessment = ind.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -152,7 +149,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "label_t2": str(ind.get("value") or ""),
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
-                "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(ind),
             })
 
@@ -161,9 +158,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(ind, dict):
                 continue
             assessment = ind.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -176,7 +171,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "label_t2": "",
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
-                "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(ind),
             })
 
@@ -185,9 +180,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(ind, dict):
                 continue
             assessment = ind.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -200,7 +193,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "label_t2": str(ind.get("current") or ""),
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
-                "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(ind),
             })
 
@@ -209,9 +202,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(fn, dict):
                 continue
             assessment = fn.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -224,7 +215,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "label_t2": str(fn.get("text") or ""),
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
-                "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(fn),
             })
 
@@ -233,9 +224,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(fn, dict):
                 continue
             assessment = fn.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -248,7 +237,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "label_t2": "",
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
-                "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(fn),
             })
 
@@ -257,9 +246,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if not isinstance(fn, dict):
                 continue
             assessment = fn.get("analyst_assessment") or {}
-            justification = str(assessment.get("justification") or "").strip()
-            if not justification:
-                justification = table_justification
+            justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
             rows.append({
                 "section": section,
@@ -272,7 +259,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "label_t2": str(fn.get("current_text") or ""),
                 "justification": justification,
                 "relevance_level_raw": relevance_level,
-                "nouvelle_divulgation": _is_nouvelle_divulgation(table_is_relevant, table_category),
+                "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(fn),
             })
 
@@ -282,7 +269,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
         if not isinstance(tbl, dict):
             continue
         triage = tbl.get("genai_triage") or {}
-        justification = str(triage.get("explanation") or "").strip()
+        justification = str(triage.get("nouvelle_idee_justification") or "").strip()
         category = str(triage.get("category") or "").upper()
         is_relevant = bool(triage.get("is_relevant", False))
         rows.append({
@@ -296,7 +283,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             "label_t2": str(tbl.get("title") or ""),
             "justification": justification or "Nouveau tableau détecté dans le trimestre courant.",
             "relevance_level_raw": None,
-            "nouvelle_divulgation": _is_nouvelle_divulgation(is_relevant, category),
+            "nouvelle_idee": _is_nouvelle_idee_label(triage),
             "review": _review_fields(tbl),
         })
 
@@ -305,7 +292,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
         if not isinstance(tbl, dict):
             continue
         triage = tbl.get("genai_triage") or {}
-        justification = str(triage.get("explanation") or "").strip()
+        justification = str(triage.get("nouvelle_idee_justification") or "").strip()
         category = str(triage.get("category") or "").upper()
         is_relevant = bool(triage.get("is_relevant", False))
         rows.append({
@@ -319,7 +306,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             "label_t2": "",
             "justification": justification or "Tableau supprimé du trimestre courant.",
             "relevance_level_raw": None,
-            "nouvelle_divulgation": _is_nouvelle_divulgation(is_relevant, category),
+            "nouvelle_idee": _is_nouvelle_idee_label(triage),
             "review": _review_fields(tbl),
         })
 
@@ -334,11 +321,20 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
-def _is_nouvelle_divulgation(is_relevant: bool, category: str) -> str:
-    """Retourne 'Oui' si le changement est pertinent et réglementaire/risque/capital."""
-    if is_relevant and category in ("REGLEMENTAIRE", "RISQUE", "CAPITAL"):
-        return "Oui"
-    return "Non"
+def _is_nouvelle_idee_label(triage: dict[str, Any]) -> str:
+    """Retourne 'Oui' / 'Non' selon la décision GPT (champ ``nouvelle_idee``)."""
+    return "Oui" if bool(triage.get("nouvelle_idee", False)) else "Non"
+
+
+def _best_analyst_justification(
+    assessment: dict[str, Any],
+    table_justification: str,
+) -> str:
+    """Privilégie la justification AMF enrichie, puis le fallback technique."""
+    amf_justification = table_justification.strip()
+    if amf_justification:
+        return amf_justification
+    return str(assessment.get("justification") or "").strip()
 
 
 # ---------------------------------------------------------------------------
@@ -403,10 +399,9 @@ def generate_comparison_excel(
             row["label_t1"],
             row["label_t2"],
             row["justification"],
-            row["nouvelle_divulgation"],
+            row["nouvelle_idee"],
             review.get("notes", ""),
             review.get("status", ""),
-            review.get("by", ""),
             review.get("at", ""),
         ]
         for col_idx, value in enumerate(row_data, 1):
@@ -429,11 +424,10 @@ def generate_comparison_excel(
         7: 50,   # Libellé T1
         8: 50,   # Libellé T2
         9: 70,   # Justification IA
-        10: 22,  # Nouvelle divulgation ?
+        10: 16,  # Nouvelle idée ?
         11: 30,  # Commentaire analyste
         12: 16,  # Statut validation
-        13: 18,  # Validé par
-        14: 22,  # Validé le
+        13: 22,  # Validé le
     }
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width

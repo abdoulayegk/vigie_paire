@@ -301,14 +301,30 @@ def _to_validation_finale(review_status: str) -> str:
 
 
 def _to_nouvelle_idee(genai_analysis: dict[str, Any] | None) -> str:
-    """Retourne 'Oui' si le changement est pertinent et de categorie reglementaire/risque/capital."""
+    """Retourne 'Oui' / 'Non' selon la décision GPT-4o (champ AMF v2 ``nouvelle_idee``)."""
     ga = genai_analysis or {}
-    is_relevant = bool(ga.get("is_relevant", False))
-    category = str(ga.get("category", "") or "").upper()
-    high_relevance = str(ga.get("relevance_score", "") or "").upper() == "ELEVEE"
-    if is_relevant and (category in ("REGLEMENTAIRE", "RISQUE", "CAPITAL") or high_relevance):
-        return "Oui"
-    return "Non"
+    return "Oui" if bool(ga.get("nouvelle_idee", False)) else "Non"
+
+
+def _to_analyst_justification(*analyses: dict[str, Any] | None) -> str:
+    """Retourne la justification AMF v2 à afficher dans les exports expert.
+
+    Le champ canonique est ``nouvelle_idee_justification``. ``justification``
+    reste accepté comme fallback legacy pour les anciens artefacts déjà générés.
+    """
+    for analysis in analyses:
+        if not isinstance(analysis, dict):
+            continue
+        justification = str(analysis.get("nouvelle_idee_justification") or "").strip()
+        if justification:
+            return justification
+    for analysis in analyses:
+        if not isinstance(analysis, dict):
+            continue
+        justification = str(analysis.get("justification") or "").strip()
+        if justification:
+            return justification
+    return ""
 
 
 def _build_libelle(precedent: str, courant: str, ind_type: str) -> str:
@@ -374,8 +390,8 @@ def _iter_expert_excel_rows(
                 precedent = display_indicator
                 courant = display_indicator
 
-            # Utilise le résumé LLM si disponible, sinon fallback local
-            resume = base.get("genai_analysis", {}).get("justification")
+            # Utilise la justification AMF v2 si disponible, sinon fallback legacy/local.
+            resume = _to_analyst_justification(base.get("genai_analysis"))
             if not resume:
                 resume = _build_resume_court(
                     ind_type,
@@ -432,11 +448,12 @@ def _iter_expert_excel_rows(
                 courant = to_val or ind_name
 
             resume_type = item_change_type if item_change_type in ("table_added", "table_removed") else ind_type
-            # Priorité : justification GPT par indicateur/note > table-level > fallback local
+            # Priorité : justification GPT par indicateur/note > table-level > fallback local.
             ind_assessment = ind.get("analyst_assessment") or {}
-            resume = ind_assessment.get("justification") or ""
-            if not resume:
-                resume = base.get("genai_analysis", {}).get("justification")
+            resume = _to_analyst_justification(
+                ind_assessment,
+                base.get("genai_analysis"),
+            )
             if not resume:
                 resume = _build_resume_court(
                     resume_type,
@@ -705,19 +722,17 @@ def _iter_validation_rows(
 
         item_type = str(base.get("item_type", "indicator"))
         ga = base.get("genai_analysis") or {}
-        pertinence_genai = _sanitize_cell(ga.get("relevance", ""))
-        niveau_risque_genai = _sanitize_cell(ga.get("risk_level", ""))
+        # Lecture directe AMF v2 — plus de champs legacy translated.
+        pertinence_genai = _sanitize_cell(ga.get("category", ""))
+        niveau_risque_genai = _sanitize_cell(ga.get("impact_level", ""))
         impact_type_genai = _sanitize_cell(ga.get("impact_type", ""))
         phase_genai = _sanitize_cell(ga.get("project_phase", ""))
         action_genai = _sanitize_cell(ga.get("action_requise", ""))
         ref_regl_genai = _sanitize_cell(ga.get("reference_reglementaire", ""))
 
-        is_relevant = bool(ga.get("is_relevant", False))
-        category_genai = str(ga.get("category", "") or "").upper()
-        high_relevance = str(ga.get("relevance_score", "") or "").upper() == "ELEVEE"
         if not ga:
             nouvelle_divulgation = "Non analysé"
-        elif is_relevant and (category_genai in ("REGLEMENTAIRE", "RISQUE", "CAPITAL") or high_relevance):
+        elif bool(ga.get("nouvelle_idee", False)):
             nouvelle_divulgation = "Oui"
         else:
             nouvelle_divulgation = "Non"

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,18 @@ logger = logging.getLogger(__name__)
 
 TEXT_COMPARISON_SCHEMA_VERSION = 3
 _ACCEPTED_TEXT_COMPARISON_SCHEMAS = {TEXT_COMPARISON_SCHEMA_VERSION}
+_CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
+def _sanitize_text_value(value: Any) -> Any:
+    """Retire les caractères de contrôle illégaux pour JSON/Dash/Excel."""
+    if isinstance(value, str):
+        return _CONTROL_CHAR_RE.sub("", value)
+    if isinstance(value, list):
+        return [_sanitize_text_value(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _sanitize_text_value(item) for key, item in value.items()}
+    return value
 
 
 def get_text_comparison_path(
@@ -43,6 +56,11 @@ def write_text_comparison(
     Returns:
         Path du fichier écrit.
     """
+    sanitized_payload = _sanitize_text_value(payload)
+    if isinstance(sanitized_payload, dict):
+        payload.clear()
+        payload.update(sanitized_payload)
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 

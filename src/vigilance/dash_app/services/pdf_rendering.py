@@ -25,6 +25,9 @@ from vigilance.utils.proof_rendering import (
 
 logger = logging.getLogger(__name__)
 
+PROOF_HIGHLIGHT_COLOR_T1: tuple[float, float, float] = (0.86, 0.21, 0.33)
+PROOF_HIGHLIGHT_COLOR_T2: tuple[float, float, float] = (0.20, 0.72, 0.36)
+
 
 def _filter_noise(items: list[str]) -> list[str]:
     """Filtre les lignes de bruit (dates, unites, notes) via la normalisation d'indicateurs."""
@@ -41,6 +44,7 @@ def _cached_render_or_crop(
     display_mode: str = "crop",
     highlight_rects: list[list[float]] | None = None,
     secondary_highlight_rects: list[list[float]] | None = None,
+    highlight_color: tuple[float, float, float] = PROOF_HIGHLIGHT_COLOR_T2,
 ) -> bytes:
     """Retourne les octets PNG selon le mode d'affichage : crop, full ou footnote."""
     from vigilance.utils.pdf_crop import (
@@ -72,7 +76,16 @@ def _cached_render_or_crop(
 
     try:
         if display_mode == "footnote":
-            return crop_footnote_region_to_bytes(pdf_path, page, bbox, dpi=dpi)
+            return crop_footnote_region_to_bytes(
+                pdf_path,
+                page,
+                bbox,
+                dpi=dpi,
+                highlight_rects=highlight_rects,
+                secondary_highlight_rects=secondary_highlight_rects,
+                highlight_color=highlight_color,
+                secondary_highlight_color=highlight_color,
+            )
         else:  # "crop" (default)
             return crop_table_region_to_bytes(
                 pdf_path,
@@ -81,6 +94,8 @@ def _cached_render_or_crop(
                 dpi=dpi,
                 highlight_rects=highlight_rects,
                 secondary_highlight_rects=secondary_highlight_rects,
+                highlight_color=highlight_color,
+                secondary_highlight_color=highlight_color,
             )
     except Exception:
         return b""
@@ -125,6 +140,9 @@ def _get_proof_render_result_for_item(
         Dictionnaire avec ``image_b64``, ``status`` et ``mode_effective``.
     """
     display_mode = (proof_display_mode or "crop").strip().lower()
+    highlight_color = (
+        PROOF_HIGHLIGHT_COLOR_T1 if side == "t1" else PROOF_HIGHLIGHT_COLOR_T2
+    )
     if display_mode not in {"crop", "full", "footnote"}:
         display_mode = "crop"
 
@@ -194,6 +212,9 @@ def _get_proof_image_b64_for_item(
     notes de bas de page.
     """
     display_mode = (proof_display_mode or "crop").strip().lower()
+    highlight_color = (
+        PROOF_HIGHLIGHT_COLOR_T1 if side == "t1" else PROOF_HIGHLIGHT_COLOR_T2
+    )
 
     table_status = (item_dict.get("table_status") or "").strip().lower()
     if table_status == "stable" and display_mode == "crop":
@@ -235,6 +256,7 @@ def _get_proof_image_b64_for_item(
                 display_mode,
                 highlight_rects=highlight_rects,
                 secondary_highlight_rects=secondary_highlight_rects,
+                highlight_color=highlight_color,
             )
             if raw_bytes:
                 return base64.b64encode(raw_bytes).decode("ascii")
@@ -294,6 +316,7 @@ def _get_proof_image_b64_for_item(
                 display_mode,
                 highlight_rects=highlight_rects,
                 secondary_highlight_rects=secondary_highlight_rects,
+                highlight_color=highlight_color,
             )
             base_img_b64 = (
                 base64.b64encode(raw_bytes).decode("ascii") if raw_bytes else None

@@ -57,15 +57,26 @@ def _comparison_has_changes(comp: dict) -> bool:
     return _comparison_change_total(comp) > 0
 
 
+_IMPACT_TO_PRIORITY = {
+    "MAJEUR": "critique",
+    "MODERE": "prioritaire",
+    "MINEUR": "normale",
+}
+
+
 def _review_priority_of(item: dict) -> str:
-    """Extrait la priorite de revue normalisee en minuscules."""
+    """Extrait la priorite de revue normalisee en minuscules.
+
+    Source 1 (analyste) : ``match_metadata.review_priority`` si saisi.
+    Source 2 (IA AMF v2) : dérivée de ``genai_analysis.impact_level``.
+    """
     match_meta = item.get("match_metadata", {}) or {}
+    analyst_priority = str(match_meta.get("review_priority") or "").strip().lower()
+    if analyst_priority:
+        return analyst_priority
     genai = item.get("genai_analysis", {}) or {}
-    return (
-        str(match_meta.get("review_priority") or genai.get("review_priority") or "")
-        .strip()
-        .lower()
-    )
+    impact = str(genai.get("impact_level") or "").strip().upper()
+    return _IMPACT_TO_PRIORITY.get(impact, "")
 
 
 def _is_high_priority_item(item: dict) -> bool:

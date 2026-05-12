@@ -1,4 +1,4 @@
-"""Filtres post-traitement pour retirer le bruit cosmetique des diffs techniques."""
+"""Filtres post-traitement pour retirer le bruit non substantif des diffs techniques."""
 
 from __future__ import annotations
 
@@ -44,14 +44,14 @@ def recompute_table_level_change(technical_diff: dict[str, Any]) -> str:
 
 
 def _filter_noise_from_diff(technical_diff: dict[str, Any]) -> dict[str, Any]:
-    """Retire les renommages cosmetiques (marqueurs de notes, numeros de page) du diff.
+    """Retire les renommages non substantifs (marqueurs de notes, numeros de page) du diff.
 
     Args:
         technical_diff: Dictionnaire du diff technique contenant les listes de
             changements d'indicateurs et de notes de bas de page.
 
     Returns:
-        Copie du diff avec les renommages cosmetiques retires.
+        Copie du diff avec les renommages non substantifs retires.
     """
     # Filter indicator renames where only footnote marker differs
     clean_ind_renamed = []

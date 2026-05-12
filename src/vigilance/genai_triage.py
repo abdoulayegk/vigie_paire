@@ -14,9 +14,16 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import time
 from pathlib import Path
 from typing import Any
+
+from vigilance.amf_taxonomy import (
+    THEMES_AMF_PIPELINE_2,
+    format_theme_subjects_for_prompt,
+    format_themes_for_prompt,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +37,7 @@ VALID_CATEGORIES = frozenset(
         "RISQUE",
         "CAPITAL",
         "STRUCTURE",
-        "COSMETIQUE",
+        "NON_PERTINENT",
         "INCONNU",
     }
 )
@@ -39,80 +46,193 @@ VALID_RELEVANCE = frozenset({"ELEVEE", "MOYENNE", "FAIBLE"})
 
 VALID_RISK_LEVELS = frozenset({"ELEVE", "MODERE", "FAIBLE"})
 
-VALID_IMPACT_TYPES = frozenset({"structurel", "contenu", "methodologique", "cosmetique"})
+VALID_IMPACT_TYPES = frozenset({"structurel", "contenu", "methodologique", "non_substantif"})
 
 VALID_PROJECT_PHASES = frozenset({"rapport_gestion", "pilier_3", "ifc", "autre"})
 
-VALID_ACTIONS = frozenset({"escalade", "investigation", "confirmation", "information", "aucune"})
+VALID_ACTIONS = frozenset({"revue_prioritaire", "investigation", "confirmation", "information", "aucune"})
+
+# Réutilise la taxonomie AMF unifiée définie dans amf_taxonomy.py (mêmes 18 codes
+# que Pipeline 2, partagés pour permettre des filtres transverses).
+VALID_THEMES_AMF = frozenset(THEMES_AMF_PIPELINE_2)
+
+# Format strict pour la justification GPT : commence par OUI ou NON suivi
+# d'un séparateur (tiret ou virgule), au moins 3 phrases substantives.
+_JUSTIFICATION_MIN_SENTENCES = 3
+_JUSTIFICATION_MIN_SENTENCE_LENGTH = 20
+_JUSTIFICATION_MIN_TOTAL_LENGTH = 200
+_SENTENCE_BOUNDARY_RE = re.compile(r"[.!?]+")
+_REQUIRED_JUSTIFICATION_SECTIONS = (
+    "Nouvel élément à surveiller :",
+    "Sujet détecté :",
+    "Ce qui change :",
+    "Pertinence métier :",
+    "Point de surveillance :",
+)
+_LEGACY_SURVEILLANCE_SECTION = "Lecture de vigie :"
+
+
+def _count_substantive_sentences(text: str) -> int:
+    """Compte les phrases substantives dans ``text`` (≥ 15 caractères chacune)."""
+    if not text:
+        return 0
+    parts = _SENTENCE_BOUNDARY_RE.split(text)
+    return sum(
+        1 for part in parts if len(part.strip()) >= _JUSTIFICATION_MIN_SENTENCE_LENGTH
+    )
+
+
+def _missing_justification_sections(text: str) -> list[str]:
+    missing: list[str] = []
+    for section in _REQUIRED_JUSTIFICATION_SECTIONS:
+        if section in text:
+            continue
+        if section == "Point de surveillance :" and _LEGACY_SURVEILLANCE_SECTION in text:
+            continue
+        missing.append(section)
+    return missing
 
 # ---------------------------------------------------------------------------
 # System Prompts
 # ---------------------------------------------------------------------------
 
-_TRIAGE_SYSTEM_PROMPT = """\
-Tu es un analyste senior en réglementation bancaire canadienne (BSIF/OSFI). \
-On te soumet un changement détecté entre deux trimestres consécutifs d'un \
-rapport bancaire (rapport de gestion, Pilier 3, ou IFC).
-
-Ton rôle : déterminer si ce changement est pertinent pour la veille \
-réglementaire et l'expliquer brièvement.
-
-RÈGLES STRICTES D'EXCLUSION — marque comme NON PERTINENT :
-- Les simples mises à jour de dates ou de trimestres (ex: T1 2025 → T2 2025).
-- Les déplacements de texte sans modification de fond.
-- Les variations de valeurs numériques propres à la banque (chiffre d'affaires, \
-  rendement, nombre d'actions, etc.) qui ne sont pas des seuils réglementaires.
-- Les changements purement cosmétiques (mise en forme, renumérotation).
-
-RÈGLES STRICTES D'INCLUSION — marque comme PERTINENT :
-- Ajout ou suppression de lignes/colonnes liées à la réglementation \
-  (Bâle III, TLAC, LCR, NSFR, CET1, coussin de fonds propres, etc.).
-- Modifications de notes de bas de tableau signalant un changement \
-  méthodologique ou réglementaire.
-- Nouveaux tableaux de risque ou suppression de tableaux existants.
-- Montants liés à la réglementation (seuils, ratios prudentiels).
-- Changements structurels dans les sections gestion du capital ou gestion \
-  des risques.
-
-RÉPONDRE UNIQUEMENT en JSON valide, sans markdown, selon ce schéma exact :
-{
-  "is_relevant": true | false,
-  "category": "REGLEMENTAIRE" | "RISQUE" | "CAPITAL" | "STRUCTURE" | "COSMETIQUE" | "INCONNU",
-  "relevance_score": "ELEVEE" | "MOYENNE" | "FAIBLE",
-  "risk_level": "ELEVE" | "MODERE" | "FAIBLE",
-  "confidence": 0.0 à 1.0,
-  "explanation": "<Texte fluide et naturel d'au moins 3 paragraphes en français (separes par \\n\\n). NE PAS inclure d'etiquettes comme 'Paragraphe 1' -- le texte doit se lire comme une analyse redigee par un analyste senior. Couvrir dans l'ordre : (a) decrire precisement le changement constate (quel element, dans quel tableau, quel contexte trimestriel) ; (b) expliquer l'impact reglementaire ou metier concret (Bale III, BSIF, ratios prudentiels, divulgation, methodologie) et mentionner les references reglementaires applicables ; (c) conclure en indiquant si c'est une nouvelle divulgation, un changement methodologique ou une mise a jour ordinaire, et formuler une recommandation (confirmer, investiguer, escalader).>",
-  "impact_type": "structurel" | "contenu" | "methodologique" | "cosmetique",
-  "project_phase": "rapport_gestion" | "pilier_3" | "ifc" | "autre",
-  "action_requise": "escalade" | "investigation" | "confirmation" | "information" | "aucune",
-  "reference_reglementaire": "<référence si applicable, ex: Bâle III — CET1, sinon chaîne vide>",
-  "impact_description": "<1 phrase décrivant l'impact concret du changement>"
-}
-
-GUIDE pour risk_level :
-- ELEVE : impact direct sur les ratios prudentiels, seuils réglementaires, ou conformité.
-- MODERE : changement méthodologique ou structurel à surveiller.
-- FAIBLE : changement mineur ou cosmétique.
-
-GUIDE pour impact_type :
-- structurel : ajout/suppression de lignes, colonnes, tableaux entiers.
-- contenu : modification de valeurs, seuils, descriptions réglementaires.
-- methodologique : changement de méthode de calcul, de périmètre, de définition.
-- cosmetique : renommage, reformulation, mise en forme sans impact de fond.
-
-GUIDE pour project_phase :
-- rapport_gestion : sections gestion du capital, gestion des risques, texte risque.
-- pilier_3 : tableaux de divulgation Pilier 3 (BSIF).
-- ifc : rapports intermédiaires/condensés.
-- autre : si la section ne correspond à aucune phase ci-dessus.
-
-GUIDE pour action_requise :
-- escalade : changement critique nécessitant une revue immédiate par un senior.
-- investigation : anomalie ou surprise nécessitant une analyse approfondie.
-- confirmation : changement attendu à confirmer comme normal.
-- information : changement mineur, pour information seulement.
-- aucune : non pertinent, aucune action.
-"""
+_TRIAGE_SYSTEM_PROMPT = (
+    "Tu es un analyste senior en gestion intégrée des risques, spécialisé "
+    "dans la vigie de pairs des banques canadiennes alignée sur les attentes "
+    "de l'AMF (Autorité des marchés financiers du Québec) et du BSIF.\n\n"
+    "On te soumet un changement détecté dans un TABLEAU ou une FOOTNOTE de "
+    "tableau entre deux rapports d'une même banque comparés pair-à-pair :\n"
+    "- T1 = rapport PRÉCÉDENT dans la paire\n"
+    "- T2 = rapport COURANT dans la paire\n\n"
+    "Ton rôle : qualifier ce changement contre la taxonomie AMF unifiée, "
+    "trancher si c'est une NOUVELLE IDÉE, et produire une justification "
+    "ancrée sur le contenu réel du rapport.\n\n"
+    "RÈGLES STRICTES D'EXCLUSION — mettre is_relevant=false :\n"
+    "- Variations chiffrées propres à la banque (valeur d'une cellule, montant "
+    "d'actif, exposition chiffrée propre) — PAS un seuil réglementaire.\n"
+    "- Reformulation d'un libellé d'indicateur ou de footnote sans nouveau fond "
+    "(synonyme, ordre des mots).\n"
+    "- Déplacement de texte sans modification de contenu.\n"
+    "- Formatage visuel pur (gras, italique, ponctuation, casse, espacement).\n"
+    "- Mises à jour de dates pures (ex : « janvier » → « avril »).\n\n"
+    "RÈGLES STRICTES D'INCLUSION — mettre is_relevant=true :\n"
+    "- Ajout / retrait d'un tableau entier, d'une ligne (indicateur), ou d'une "
+    "footnote substantive.\n"
+    "- Renommage d'un indicateur signalant un changement méthodologique "
+    "(ex : « Tier 1 » → « Tier 1 ex-AT1 »).\n"
+    "- Footnote nouvelle ou modifiée citant une nouvelle ligne directrice "
+    "(BSIF, BCBS, Bâle, AMF).\n"
+    "- Montants RÉGLEMENTAIRES (seuils prudentiels, planchers Bâle, "
+    "exigences pilier 2) — INCLUS dans le scope, marqués via "
+    "MONTANT_REGLEMENTAIRE.\n"
+    "- Indicateurs de risques émergents (cyber, IA, IA générative, fraude "
+    "numérique) — PRIORITAIRES, impact_level minimum MODERE.\n\n"
+    "TAXONOMIE AMF (utilise UNIQUEMENT ces codes dans themes_amf, multi-label "
+    "autorisé et encouragé) :\n"
+    f"{format_themes_for_prompt()}\n\n"
+    "LIBELLÉS ANALYSTE À UTILISER dans `Sujet détecté` et la justification "
+    "(ne pas laisser seulement les codes AMF techniques) :\n"
+    f"{format_theme_subjects_for_prompt()}\n\n"
+    "DÉFINITION DE `nouvelle_idee` — 3 conditions cumulatives :\n"
+    "(a) SUBSTANTIELLE : modifie la SUBSTANCE de la divulgation (concept, "
+    "indicateur, mention réglementaire, méthodologie) — PAS une variation "
+    "chiffrée propre à la banque ni une reformulation.\n"
+    "(b) NOUVEAUTÉ INFORMATIONNELLE : ajoute (présent T2 absent T1), retire "
+    "(présent T1 absent T2), OU modifie substantiellement la posture sur "
+    "un thème AMF.\n"
+    "(c) ADOSSÉE À UN THÈME AMF : au moins un code dans themes_amf.\n"
+    "Si UNE des 3 conditions est violée → nouvelle_idee=false.\n\n"
+    "FORMAT STRICT pour `nouvelle_idee_justification` (TOUJOURS obligatoire, "
+    "y compris pour les changements jugés non pertinents) :\n"
+    "- Commencer par 'OUI' (si nouvelle_idee=true) ou 'NON' (sinon), suivi "
+    "d'un tiret ou d'une virgule.\n"
+    "- Rédiger une NOTE D'ANALYSTE structurée avec ces rubriques EXACTES, "
+    "dans cet ordre, séparées par \\n\\n :\n"
+    "  1) 'OUI — Nouvel élément à surveiller : Oui' ou "
+    "'NON — Nouvel élément à surveiller : Non'.\n"
+    "  2) 'Sujet détecté : ...' avec des mots simples tirés des libellés "
+    "analyste ci-dessus (ex : IA, cybersécurité, risque climatique, "
+    "conformité, capital, liquidité, méthode de calcul).\n"
+    "  3) 'Ce qui change : ...' avec l'élément exact ajouté, retiré ou "
+    "modifié entre T1 et T2.\n"
+    "  4) 'Pertinence métier : ...' avec une explication longue, concrète et "
+    "formulée comme un analyste de vigie : commencer idéalement par "
+    "'Ce changement met l'accent sur ...' ou 'Ce changement met en évidence ...'. "
+    "Relier le changement au sujet détecté (IA, cyber, climat, conformité, "
+    "capital, méthode, divulgation), aux attentes prudentielles, à la conformité, "
+    "aux contrôles, à la comparabilité entre pairs et à son importance pour une "
+    "banque.\n"
+    "  5) 'Point de surveillance : ...' avec le point de surveillance à retenir, "
+    "sans demander à l'analyste de vérifier, accepter ou rejeter le changement.\n"
+    "- Au moins 3 phrases complètes (≥ 20 caractères chacune, ponctuation "
+    "finale) ET ≥ 200 caractères au total — l'analyste doit avoir une "
+    "explication détaillée et claire, pas un résumé.\n"
+    "- Citer l'ÉLÉMENT SPÉCIFIQUE du rapport : nom exact d'un indicateur, "
+    "titre du tableau, libellé de footnote — adossé au contenu réel des "
+    "rapports aux actionnaires traités.\n"
+    "- Si is_relevant=true : mentionner les thèmes AMF concernés en langage "
+    "naturel dans 'Sujet détecté' et expliquer pourquoi c'est une nouveauté "
+    "métier pour la banque.\n"
+    "- Si is_relevant=false : expliquer en LANGAGE MÉTIER pourquoi ce "
+    "changement n'est PAS une nouvelle idée AMF (variation chiffrée propre, "
+    "reformulation sans nouveau fond, formatage, déplacement). L'analyste "
+    "doit comprendre la raison de l'exclusion sans avoir à interpréter le "
+    "code d'exclusion.\n\n"
+    "Ne jamais remplacer l'analyse par une simple liste de codes AMF ou par "
+    "une phrase générique du type 'ce changement affecte les thèmes AMF'. Les "
+    "codes peuvent apparaître, mais la justification doit expliquer le "
+    "raisonnement métier. Ne pas utiliser de formules de tâche comme "
+    "'vérifier si', 'accepter', 'rejeter', 'à confirmer par l'analyste' dans "
+    "la justification : Dash affiche déjà la preuve et l'analyste prend la "
+    "décision finale.\n\n"
+    "RÉPONDRE UNIQUEMENT en JSON valide, sans markdown, selon ce schéma exact :\n"
+    "{\n"
+    '  "is_relevant": true | false,\n'
+    '  "themes_amf": ["<code AMF>", ...],   // multi-label, vide si is_relevant=false\n'
+    '  "nouvelle_idee": true | false,\n'
+    '  "nouvelle_idee_justification": "<OUI/NON — rubriques obligatoires : Nouvel élément à surveiller, Sujet détecté, Ce qui change, Pertinence métier, Point de surveillance>",\n'
+    '  "category": "REGLEMENTAIRE" | "RISQUE" | "CAPITAL" | "STRUCTURE" | "NON_PERTINENT" | "INCONNU",\n'
+    '  "relevance_score": "ELEVEE" | "MOYENNE" | "FAIBLE",\n'
+    '  "risk_level": "ELEVE" | "MODERE" | "FAIBLE",\n'
+    '  "confidence": 0.0 à 1.0,\n'
+    '  "explanation": "<3 paragraphes français séparés par \\n\\n>",\n'
+    '  "impact_type": "structurel" | "contenu" | "methodologique" | "non_substantif",\n'
+    '  "project_phase": "rapport_gestion" | "pilier_3" | "ifc" | "autre",\n'
+    '  "action_requise": "revue_prioritaire" | "investigation" | "confirmation" | "information" | "aucune",\n'
+    '  "reference_reglementaire": "<référence si applicable, ex: Bâle III — CET1, sinon chaîne vide>",\n'
+    '  "impact_description": "<1 phrase décrivant l\'impact concret>"\n'
+    "}\n\n"
+    "GUIDE pour `risk_level` :\n"
+    "- ELEVE : impact direct sur les ratios prudentiels, seuils réglementaires, ou conformité.\n"
+    "- MODERE : changement méthodologique ou structurel à surveiller.\n"
+    "- FAIBLE : changement modeste ou non substantiel.\n\n"
+    "GUIDE pour `impact_type` :\n"
+    "- structurel : ajout/suppression de lignes, colonnes, tableaux entiers.\n"
+    "- contenu : modification de valeurs, seuils, descriptions réglementaires.\n"
+    "- methodologique : changement de méthode de calcul, de périmètre, de définition.\n"
+    "- non_substantif : renommage, reformulation, mise en forme sans impact de fond.\n\n"
+    "GUIDE pour `project_phase` :\n"
+    "- rapport_gestion : sections gestion du capital, gestion des risques, texte risque.\n"
+    "- pilier_3 : tableaux de divulgation Pilier 3 (BSIF).\n"
+    "- ifc : rapports intermédiaires/condensés.\n"
+    "- autre : si la section ne correspond à aucune phase ci-dessus.\n\n"
+    "GUIDE pour `action_requise` :\n"
+    "- revue_prioritaire : changement critique MAJEUR nécessitant une revue immédiate par un senior.\n"
+    "- investigation : anomalie ou surprise nécessitant une analyse approfondie.\n"
+    "- confirmation : changement attendu à confirmer comme normal.\n"
+    "- information : changement mineur, pour information seulement.\n"
+    "- aucune : non pertinent, aucune action.\n\n"
+    "INVARIANTS STRICTS (toute violation rejette la réponse) :\n"
+    "- nouvelle_idee_justification est TOUJOURS OBLIGATOIRE (≥ 3 phrases, "
+    "≥ 200 chars), commençant par 'OUI' ou 'NON' selon nouvelle_idee, "
+    "et contenant les rubriques exactes : Nouvel élément à surveiller, "
+    "Sujet détecté, Ce qui change, Pertinence métier, Point de surveillance.\n"
+    "- is_relevant=true → themes_amf NON VIDE.\n"
+    "- is_relevant=false → themes_amf=[], category='NON_PERTINENT', "
+    "nouvelle_idee=false, action_requise='aucune'. La justification reste "
+    "obligatoire pour expliquer à l'analyste pourquoi le changement n'est "
+    "pas une nouvelle idée AMF.\n"
+)
 
 _SUMMARY_SYSTEM_PROMPT = """\
 Tu es un analyste senior en réglementation bancaire canadienne. \
@@ -133,7 +253,7 @@ RÉPONDRE UNIQUEMENT en JSON valide, sans markdown :
     "autre": {"count": N, "resume": "<1 phrase>"}
   },
   "par_action": {
-    "escalade": N,
+    "revue_prioritaire": N,
     "investigation": N,
     "confirmation": N,
     "information": N,
@@ -319,6 +439,11 @@ async def _call_openai_json_async(
 def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
     """Valide et normalise une reponse LLM de triage individuelle.
 
+    Applique la taxonomie AMF unifiée (themes_amf multi-label) et les
+    invariants nouvelle_idee + nouvelle_idee_justification définis avec
+    Pipeline 2. En cas de violation des invariants stricts, le triage est
+    forcé en non pertinent (squelette neutre) et l'incident est journalisé.
+
     Args:
         data: Dictionnaire brut retourne par le LLM, ou ``None``.
 
@@ -326,22 +451,22 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
         Dictionnaire valide avec toutes les cles attendues et des valeurs par defaut.
     """
     if not data or not isinstance(data, dict):
-        return {
-            "is_relevant": False,
-            "category": "INCONNU",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "confidence": 0.0,
-            "explanation": "",
-            "impact_type": "cosmetique",
-            "project_phase": "autre",
-            "action_requise": "aucune",
-            "reference_reglementaire": "",
-            "impact_description": "",
-            "source": "heuristic",
-        }
+        return _empty_triage_skeleton(source="heuristic")
 
     is_relevant = bool(data.get("is_relevant", False))
+
+    raw_themes = data.get("themes_amf") or []
+    themes_amf: list[str] = []
+    if isinstance(raw_themes, list):
+        seen: set[str] = set()
+        for theme in raw_themes:
+            code = str(theme or "").upper()
+            if code in VALID_THEMES_AMF and code not in seen:
+                seen.add(code)
+                themes_amf.append(code)
+
+    nouvelle_idee = bool(data.get("nouvelle_idee", False))
+    nouvelle_idee_justification = str(data.get("nouvelle_idee_justification") or "").strip()
 
     category = str(data.get("category") or "INCONNU").upper()
     if category not in VALID_CATEGORIES:
@@ -355,6 +480,12 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
     if risk_level not in VALID_RISK_LEVELS:
         risk_level = "FAIBLE"
 
+    # Dérivation du champ AMF v2 ``impact_level`` (MAJEUR/MODERE/MINEUR)
+    # à partir du ``risk_level`` legacy (ELEVE/MODERE/FAIBLE) — assure la
+    # cohérence avec Pipeline 2 et l'affichage UI Dash.
+    _RISK_TO_IMPACT = {"ELEVE": "MAJEUR", "MODERE": "MODERE", "FAIBLE": "MINEUR"}
+    impact_level = _RISK_TO_IMPACT.get(risk_level, "MINEUR")
+
     try:
         confidence = max(0.0, min(1.0, float(data.get("confidence", 0.5))))
     except (TypeError, ValueError):
@@ -362,9 +493,9 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
 
     explanation = str(data.get("explanation") or "")[:1200]
 
-    impact_type = str(data.get("impact_type") or "cosmetique").lower()
+    impact_type = str(data.get("impact_type") or "non_substantif").lower()
     if impact_type not in VALID_IMPACT_TYPES:
-        impact_type = "cosmetique"
+        impact_type = "non_substantif"
 
     project_phase = str(data.get("project_phase") or "autre").lower()
     if project_phase not in VALID_PROJECT_PHASES:
@@ -377,8 +508,27 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
     reference_reglementaire = str(data.get("reference_reglementaire") or "")[:200]
     impact_description = str(data.get("impact_description") or "")[:500]
 
+    invariant_error = _validate_amf_invariants(
+        is_relevant=is_relevant,
+        themes_amf=themes_amf,
+        category=category,
+        nouvelle_idee=nouvelle_idee,
+        nouvelle_idee_justification=nouvelle_idee_justification,
+        action_requise=action_requise,
+    )
+    if invariant_error:
+        logger.warning(
+            "Invariants AMF violés dans la sortie LLM (%s) — triage forcé en NON_PERTINENT",
+            invariant_error,
+        )
+        return _empty_triage_skeleton(source="invariant_violation")
+
     return {
         "is_relevant": is_relevant,
+        "themes_amf": themes_amf,
+        "nouvelle_idee": nouvelle_idee,
+        "nouvelle_idee_justification": nouvelle_idee_justification,
+        "impact_level": impact_level,
         "category": category,
         "relevance_score": relevance,
         "risk_level": risk_level,
@@ -391,6 +541,102 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
         "impact_description": impact_description,
         "source": "llm",
     }
+
+
+def _empty_triage_skeleton(*, source: str = "heuristic") -> dict[str, Any]:
+    """Squelette de triage non pertinent (aligné Pipeline 2 - empty_triage_skeleton).
+
+    Utilisé quand GPT n'a pas répondu, quand la réponse est inutilisable, ou
+    quand les invariants AMF sont violés. Volontairement neutre pour ne pas
+    polluer le rapport avec des classifications fictives.
+    """
+    return {
+        "is_relevant": False,
+        "themes_amf": [],
+        "nouvelle_idee": False,
+        "nouvelle_idee_justification": (
+            "NON — Nouvel élément à surveiller : Non.\n\n"
+            "Sujet détecté : Élément non classifié par l'analyse automatisée.\n\n"
+            "Ce qui change : Aucun triage AMF exploitable n'a été produit par "
+            "GPT-4o pour ce changement. Le système ne dispose donc pas d'une "
+            "lecture fiable du contenu T1/T2 pour qualifier cette ligne.\n\n"
+            "Pertinence métier : Ce cas ne constitue pas une nouvelle idée "
+            "métier détectée par la vigie, car aucun thème AMF, risque, "
+            "méthode, conformité ou divulgation substantielle n'a pu être "
+            "rattaché au changement de façon fiable.\n\n"
+            "Point de surveillance : Élément non classifié — La ligne ne porte "
+            "pas de signal métier exploitable dans le résumé de surveillance "
+            "automatisé."
+        ),
+        "impact_level": "MINEUR",
+        "category": "NON_PERTINENT",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": source,
+    }
+
+
+def _validate_amf_invariants(
+    *,
+    is_relevant: bool,
+    themes_amf: list[str],
+    category: str,
+    nouvelle_idee: bool,
+    nouvelle_idee_justification: str,
+    action_requise: str,
+) -> str | None:
+    """Vérifie les invariants AMF transversaux (mêmes règles que Pipeline 2).
+
+    La ``nouvelle_idee_justification`` est OBLIGATOIRE et SUBSTANTIELLE quel
+    que soit ``is_relevant`` — l'analyste doit toujours comprendre la décision
+    GPT (≥ 3 phrases complètes, ≥ 200 caractères, préfixée par OUI ou NON).
+
+    Returns:
+        ``None`` si tous les invariants sont satisfaits, sinon un message
+        décrivant la première violation détectée.
+    """
+    justification = nouvelle_idee_justification.strip()
+    if _count_substantive_sentences(justification) < _JUSTIFICATION_MIN_SENTENCES:
+        return (
+            f"nouvelle_idee_justification exige ≥ {_JUSTIFICATION_MIN_SENTENCES} "
+            f"phrases complètes (≥ {_JUSTIFICATION_MIN_SENTENCE_LENGTH} chars chacune)"
+        )
+    if len(justification) < _JUSTIFICATION_MIN_TOTAL_LENGTH:
+        return (
+            f"nouvelle_idee_justification exige ≥ {_JUSTIFICATION_MIN_TOTAL_LENGTH} "
+            "caractères au total"
+        )
+    expected_prefix = "OUI" if nouvelle_idee else "NON"
+    if not justification.upper().startswith(expected_prefix):
+        return (
+            f"nouvelle_idee_justification doit commencer par '{expected_prefix}' "
+            f"quand nouvelle_idee={nouvelle_idee}"
+        )
+    missing_sections = _missing_justification_sections(justification)
+    if missing_sections:
+        return (
+            "nouvelle_idee_justification doit contenir les rubriques "
+            f"obligatoires : {', '.join(missing_sections)}"
+        )
+
+    if is_relevant:
+        if not themes_amf:
+            return "is_relevant=True exige themes_amf non vide"
+    else:
+        if themes_amf:
+            return "is_relevant=False interdit themes_amf non vide"
+        if nouvelle_idee:
+            return "is_relevant=False interdit nouvelle_idee=True"
+        if action_requise != "aucune":
+            return "is_relevant=False exige action_requise='aucune'"
+    return None
 
 
 def _validate_summary_response(data: dict[str, Any] | None) -> dict[str, Any]:
@@ -447,7 +693,7 @@ def _validate_summary_response(data: dict[str, Any] | None) -> dict[str, Any]:
     par_action: dict[str, int] = {}
     if isinstance(par_action_raw, dict):
         for action in (
-            "escalade",
+            "revue_prioritaire",
             "investigation",
             "confirmation",
             "information",
@@ -520,20 +766,7 @@ async def _triage_all_changes(
 
     for idx, pair in enumerate(pair_comparisons):
         if not _has_meaningful_diff(pair):
-            pair["genai_triage"] = {
-                "is_relevant": False,
-                "category": "COSMETIQUE",
-                "relevance_score": "FAIBLE",
-                "risk_level": "FAIBLE",
-                "confidence": 1.0,
-                "explanation": "Aucun changement sémantique détecté.",
-                "impact_type": "cosmetique",
-                "project_phase": "autre",
-                "action_requise": "aucune",
-                "reference_reglementaire": "",
-                "impact_description": "",
-                "source": "skip",
-            }
+            pair["genai_triage"] = _empty_triage_skeleton(source="skip")
             continue
 
         prompt = _build_change_prompt(pair, "pair")
@@ -663,53 +896,13 @@ def _fallback_enrich(comparison: dict[str, Any]) -> dict[str, Any]:
     """
     for pair in comparison.get("pair_comparisons") or []:
         if not pair.get("genai_triage"):
-            meaningful = _has_meaningful_diff(pair)
-            pair["genai_triage"] = {
-                "is_relevant": meaningful,
-                "category": "INCONNU",
-                "relevance_score": "MOYENNE" if meaningful else "FAIBLE",
-                "risk_level": "MODERE" if meaningful else "FAIBLE",
-                "confidence": 0.0,
-                "explanation": "",
-                "impact_type": "cosmetique",
-                "project_phase": "autre",
-                "action_requise": "aucune",
-                "reference_reglementaire": "",
-                "impact_description": "",
-                "source": "heuristic",
-            }
+            pair["genai_triage"] = _empty_triage_skeleton(source="heuristic")
     for tbl in comparison.get("matching", {}).get("tables_added") or []:
         if not tbl.get("genai_triage"):
-            tbl["genai_triage"] = {
-                "is_relevant": True,
-                "category": "INCONNU",
-                "relevance_score": "MOYENNE",
-                "risk_level": "MODERE",
-                "confidence": 0.0,
-                "explanation": "Nouveau tableau détecté.",
-                "impact_type": "structurel",
-                "project_phase": "autre",
-                "action_requise": "investigation",
-                "reference_reglementaire": "",
-                "impact_description": "Nouveau tableau ajouté dans le rapport.",
-                "source": "heuristic",
-            }
+            tbl["genai_triage"] = _empty_triage_skeleton(source="heuristic")
     for tbl in comparison.get("matching", {}).get("tables_removed") or []:
         if not tbl.get("genai_triage"):
-            tbl["genai_triage"] = {
-                "is_relevant": True,
-                "category": "INCONNU",
-                "relevance_score": "MOYENNE",
-                "risk_level": "MODERE",
-                "confidence": 0.0,
-                "explanation": "Tableau supprimé.",
-                "impact_type": "structurel",
-                "project_phase": "autre",
-                "action_requise": "investigation",
-                "reference_reglementaire": "",
-                "impact_description": "Tableau supprimé du rapport.",
-                "source": "heuristic",
-            }
+            tbl["genai_triage"] = _empty_triage_skeleton(source="heuristic")
     comparison["global_summary"] = {
         "executive_overview": "",
         "key_highlights": [],

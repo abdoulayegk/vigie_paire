@@ -10,17 +10,20 @@ from vigilance.text_analysis_pipeline import (
     ResolvedSection,
     SectionAudit,
     SemanticUnit,
-    _call_json_completion,
     _allowed_target_sections,
-    _build_text_extraction_markdown,
     _build_section_audit,
+    _build_text_extraction_markdown,
+    _call_json_completion,
     _classify_block_type,
     _compare_section_texts,
-    _compute_conservative_new_idea,
+    _default_triage,
+    _derive_legacy_fields,
     _extract_audits_for_pdf,
     _extract_section_text_from_markdown,
+    _FEW_SHOT_TRIAGE_AMF,
     _gpt_match_orphan_headings,
     _is_new_major_or_allowed_moderate,
+    _is_non_cosmetic_change,
     _looks_like_footnote,
     _max_output_tokens_for_model,
     _normalize_heading,
@@ -102,7 +105,12 @@ def test_sanitize_semantic_text_expands_residual_acronyms() -> None:
 
 
 def test_keep_change_for_major_relevant() -> None:
-    triage = {"is_relevant": True, "impact_level": "MAJEUR", "nouvelle_idee": False, "signals": {}}
+    triage = {
+        "is_relevant": True,
+        "impact_level": "MAJEUR",
+        "nouvelle_idee": False,
+        "themes_amf": ["MODIFICATION_METHODOLOGIE"],
+    }
 
     assert _is_new_major_or_allowed_moderate(triage) is True
 
@@ -144,74 +152,120 @@ def test_resolve_sections_ignores_regulatory_for_bnc(monkeypatch, tmp_path: Path
     assert set(resolved) == {"gestion_capital", "gestion_risques"}
 
 
-def test_keep_change_for_new_moderate_signal() -> None:
+def test_keep_change_for_new_moderate_with_strong_amf_theme() -> None:
+    """Un changement MODERE est retenu s'il porte un thème AMF fort
+    (NOUVELLE_MENTION_REGLEMENTAIRE, MODIFICATION_METHODOLOGIE, ...).
+    """
     triage = {
         "is_relevant": True,
         "impact_level": "MODERE",
         "nouvelle_idee": False,
-        "signals": {"regulatory_reference_added": True, "methodology_change": False},
+        "themes_amf": ["NOUVELLE_MENTION_REGLEMENTAIRE"],
     }
 
     assert _is_new_major_or_allowed_moderate(triage) is True
 
 
-def test_drop_editorial_moderate_change() -> None:
+def test_keep_change_for_new_moderate_with_risque_emergent_theme() -> None:
+    """Un changement MODERE sur RISQUE_EMERGENT (cyber, IA, fraude) doit toujours être retenu."""
     triage = {
         "is_relevant": True,
         "impact_level": "MODERE",
         "nouvelle_idee": False,
-        "signals": {"regulatory_reference_added": False, "methodology_change": False},
+        "themes_amf": ["RISQUE_EMERGENT"],
+    }
+
+    assert _is_new_major_or_allowed_moderate(triage) is True
+
+
+def test_drop_non_substantive_moderate_change() -> None:
+    """Un MODERE sans nouvelle idée et sans thème fort est rejeté."""
+    triage = {
+        "is_relevant": True,
+        "impact_level": "MODERE",
+        "nouvelle_idee": False,
+        "themes_amf": ["DIVULGATION_AJOUT"],
     }
 
     assert _is_new_major_or_allowed_moderate(triage) is False
 
 
-def test_conservative_new_idea_is_false_for_moderate_methodology_change() -> None:
-    change = {
-        "diff_type": "modified",
-        "semantic_text_t1": "La banque améliore progressivement sa méthode de mesure des risques.",
-        "semantic_text_t2": "La banque améliore sa méthode de gestion des risques selon les meilleures pratiques.",
-    }
-    triage = {
-        "is_relevant": True,
-        "impact_level": "MODERE",
-        "category": "RISQUE",
-        "signals": {"regulatory_reference_added": False, "methodology_change": True},
-    }
+def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
+    """Le triage par défaut produit le schéma AMF v2 + champs hérités pour rétro-compatibilité."""
+    triage = _default_triage()
 
-    assert _compute_conservative_new_idea(change, triage) is False
+    assert triage["source"] == "gpt4o_triage_amf_v2"
+    assert triage["themes_amf"] == []
+    assert triage["exclusion_reason"] == "non_pertinent_autre"
+    assert triage["is_relevant"] is False
+    assert triage["category"] == "NON_PERTINENT"
+    assert triage["confidence"] == 0.0
+    assert triage["signals"]["methodology_change"] is False
 
 
-def test_conservative_new_idea_is_true_for_major_added_regulatory_change() -> None:
-    change = {
-        "diff_type": "added",
-        "semantic_text_t1": "",
-        "semantic_text_t2": "La banque introduit un nouveau dispositif de contrôle contre le crime financier.",
-    }
-    triage = {
-        "is_relevant": True,
-        "impact_level": "MODERE",
-        "category": "RISQUE",
-        "signals": {"regulatory_reference_added": True, "methodology_change": False},
-    }
-
-    assert _compute_conservative_new_idea(change, triage) is True
+def test_triage_few_shots_request_analyst_style_justification() -> None:
+    """Le prompt doit guider GPT vers une vraie note d'analyste, pas une liste de tags."""
+    assert "note d'analyste" in _FEW_SHOT_TRIAGE_AMF.lower()
+    assert "Pertinence métier" in _FEW_SHOT_TRIAGE_AMF
+    assert "Sujet détecté" in _FEW_SHOT_TRIAGE_AMF
+    assert "codes AMF servent à choisir les sujets" in _FEW_SHOT_TRIAGE_AMF
+    assert "\n\n" in _FEW_SHOT_TRIAGE_AMF
 
 
-def test_conservative_new_idea_is_false_for_modified_major_change() -> None:
-    change = {
-        "diff_type": "modified",
-        "semantic_text_t1": "La banque surveille le risque technologique.",
-        "semantic_text_t2": "La banque surveille le risque technologique et renforce ses contrôles.",
-    }
-    triage = {
-        "is_relevant": True,
-        "impact_level": "MAJEUR",
-        "category": "RISQUE",
-        "signals": {"regulatory_reference_added": True, "methodology_change": False},
-    }
+def test_derive_legacy_fields_maps_methodology_theme() -> None:
+    """MODIFICATION_METHODOLOGIE doit activer signals.methodology_change."""
+    legacy = _derive_legacy_fields(
+        {
+            "is_relevant": True,
+            "themes_amf": ["MODIFICATION_METHODOLOGIE", "EXIGENCES_REGLEMENTAIRES"],
+            "impact_level": "MAJEUR",
+        }
+    )
 
-    assert _compute_conservative_new_idea(change, triage) is False
+    assert legacy["signals"]["methodology_change"] is True
+    assert legacy["category"] == "REGLEMENTAIRE"
+    assert legacy["risk_level"] == "ELEVEE"
+
+
+def test_derive_legacy_fields_maps_risque_emergent_to_risque_category() -> None:
+    """RISQUE_EMERGENT doit mapper sur la catégorie héritée RISQUE."""
+    legacy = _derive_legacy_fields(
+        {
+            "is_relevant": True,
+            "themes_amf": ["RISQUE_EMERGENT", "GOUVERNANCE_RISQUES"],
+            "impact_level": "MAJEUR",
+        }
+    )
+
+    assert legacy["category"] == "RISQUE"
+
+
+def test_derive_legacy_fields_maps_montant_reglementaire_to_quantitative_signal() -> None:
+    """MONTANT_REGLEMENTAIRE active signals.quantitative_changed."""
+    legacy = _derive_legacy_fields(
+        {
+            "is_relevant": True,
+            "themes_amf": ["RATIOS_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE"],
+            "impact_level": "MAJEUR",
+        }
+    )
+
+    assert legacy["signals"]["quantitative_changed"] is True
+    assert legacy["category"] == "CAPITAL"
+
+
+def test_is_non_cosmetic_change_rejects_irrelevant_triage() -> None:
+    """Un triage non pertinent (themes_amf vide) est rejeté de la rétention."""
+    triage = {"is_relevant": False, "themes_amf": []}
+
+    assert _is_non_cosmetic_change(triage) is False
+
+
+def test_is_non_cosmetic_change_keeps_relevant_with_themes() -> None:
+    """Un triage pertinent avec au moins un thème AMF est retenu."""
+    triage = {"is_relevant": True, "themes_amf": ["DIVULGATION_AJOUT"]}
+
+    assert _is_non_cosmetic_change(triage) is True
 
 
 def test_call_json_completion_retries_with_larger_token_budget_after_truncation() -> None:
@@ -331,21 +385,63 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
              "evidence_t1": {"pages": [], "snippet": ""}, "evidence_t2": {"pages": [], "snippet": ""},
              "change_summary": "Modification."},
             {"change_id": "c3", "section_key": "gestion_risques", "diff_type": "modified",
-             "semantic_text_t1": "Cosmetique avant", "semantic_text_t2": "Cosmetique apres",
-             "source_text_t1": "Cosmetique avant", "source_text_t2": "Cosmetique apres",
+             "semantic_text_t1": "Non substantif avant", "semantic_text_t2": "Non substantif apres",
+             "source_text_t1": "Non substantif avant", "source_text_t2": "Non substantif apres",
              "source_block_ids_t1": [], "source_block_ids_t2": [], "source_refs_t1": [],
              "source_refs_t2": [], "pages_t1": [], "pages_t2": [],
              "source_resolution_t1": "markdown", "source_resolution_t2": "markdown",
              "evidence_t1": {"pages": [], "snippet": ""}, "evidence_t2": {"pages": [], "snippet": ""},
-             "change_summary": "Cosmétique."},
+             "change_summary": "Reformulation non substantive."},
         ],
     )
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._triage_section_changes",
         lambda **kwargs: [
-            {**kwargs["changes"][0], "genai_triage": {"is_relevant": True, "impact_level": "MODERE", "category": "STRUCTURE", "action_requise": "information", "nouvelle_idee": True, "explanation": "", "impact_description": "", "signals": {"regulatory_reference_added": False, "methodology_change": False}}},
-            {**kwargs["changes"][1], "genai_triage": {"is_relevant": True, "impact_level": "MAJEUR", "category": "RISQUE", "action_requise": "escalade", "nouvelle_idee": False, "explanation": "", "impact_description": "", "signals": {"regulatory_reference_added": False, "methodology_change": False}}},
-            {**kwargs["changes"][2], "genai_triage": {"is_relevant": False, "impact_level": "MINEUR", "category": "COSMETIQUE", "action_requise": "aucune", "nouvelle_idee": False, "explanation": "", "impact_description": "", "signals": {"regulatory_reference_added": False, "methodology_change": False}}},
+            {
+                **kwargs["changes"][0],
+                "genai_triage": {
+                    "is_relevant": True,
+                    "themes_amf": ["DIVULGATION_AJOUT", "RISQUE_EMERGENT"],
+                    "impact_level": "MODERE",
+                    "nouvelle_idee": True,
+                    "explanation": "",
+                    "action_requise": "information",
+                    "exclusion_reason": None,
+                    "category": "RISQUE",
+                    "signals": {"regulatory_reference_added": False, "methodology_change": False},
+                    "source": "gpt4o_triage_amf_v2",
+                },
+            },
+            {
+                **kwargs["changes"][1],
+                "genai_triage": {
+                    "is_relevant": True,
+                    "themes_amf": ["MODIFICATION_TEXTE_RISQUE"],
+                    "impact_level": "MAJEUR",
+                    "nouvelle_idee": False,
+                    "explanation": "",
+                    "action_requise": "revue_prioritaire",
+                    "exclusion_reason": None,
+                    "category": "RISQUE",
+                    "signals": {"regulatory_reference_added": False, "methodology_change": False},
+                    "source": "gpt4o_triage_amf_v2",
+                },
+            },
+            {
+                **kwargs["changes"][2],
+                "genai_triage": {
+                    "is_relevant": False,
+                    "themes_amf": [],
+                    "impact_level": "MINEUR",
+                    "nouvelle_idee": False,
+                    "explanation": "",
+                    "action_requise": "aucune",
+                    "exclusion_reason": "reformulation_mineure",
+                    "category": "NON_PERTINENT",
+                    "signals": {"regulatory_reference_added": False, "methodology_change": False},
+                    "source": "gpt4o_triage_amf_v2",
+                },
+            },
         ],
     )
 
@@ -1038,7 +1134,7 @@ def test_gpt_match_orphan_headings_enforces_1_to_1(monkeypatch) -> None:
 
 
 def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
-    """Une sous-section renommée T1→T2 est comparée (appel GPT) avec heading_label 'T1 → T2'."""
+    """Une sous-section renommée T1→T2 est exposée puis comparée."""
     single_call_slugs: list[str] = []
     single_call_labels: list[str] = []
 
@@ -1058,7 +1154,7 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
     md_t1 = "### Risque de marché\n\nCorps T1.\n\n### Incidence des tarifs\n\nTexte T1.\n"
     md_t2 = "### Risque de marché\n\nCorps T2.\n\n### Incidence des tarifs douaniers\n\nTexte T2.\n"
 
-    _compare_section_texts(
+    changes = _compare_section_texts(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
@@ -1072,3 +1168,453 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
     renamed_labels = [lbl for lbl in single_call_labels if "→" in lbl]
     assert len(renamed_labels) == 1
     assert renamed_labels[0] == "Incidence des tarifs → Incidence des tarifs douaniers"
+    renamed_changes = [change for change in changes if change["diff_type"] == "renamed"]
+    assert len(renamed_changes) == 1
+    assert renamed_changes[0]["source_text_t1"] == "Incidence des tarifs"
+    assert renamed_changes[0]["source_text_t2"] == "Incidence des tarifs douaniers"
+    assert "Sous-section renommée" in renamed_changes[0]["change_summary"]
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: AMF triage — invariants stricts et erreurs explicites
+# ---------------------------------------------------------------------------
+
+
+from pydantic import ValidationError as _PydValidationError
+
+from vigilance.amf_taxonomy import (
+    TriageAMFBatch,
+    TriageAMFResult,
+    TriageAMFResultWithIndex,
+    TriageValidationError,
+)
+from vigilance.text_analysis_pipeline import (
+    _call_structured_completion,
+    _call_structured_completion_with_correction,
+    _triage_section_changes,
+)
+
+
+def _valid_explanation() -> str:
+    return (
+        "Au T2 la banque introduit un nouveau modele interne pour le risque "
+        "de credit. Ce changement est substantif car il modifie la base de "
+        "comparaison avec le rapport precedent. Cela implique une revue de "
+        "la surveillance prudentielle."
+    )
+
+
+def _valid_justification_oui() -> str:
+    return (
+        "OUI - Nouvel élément à surveiller : Oui.\n\n"
+        "Sujet détecté : Méthode de calcul modifiée, exigence réglementaire, "
+        "risque de crédit.\n\n"
+        "Ce qui change : Le nouveau modèle interne avancé pour le risque de "
+        "crédit est ajouté au T2 et n'apparaissait pas au T1. La divulgation "
+        "ne présente donc plus la même approche de mesure du risque.\n\n"
+        "Pertinence métier : Ce changement est pertinent pour la vigie bancaire "
+        "parce qu'il touche une méthodologie prudentielle et les exigences "
+        "réglementaires. Une méthode interne avancée peut modifier la lecture "
+        "des actifs pondérés, du capital requis et de la comparabilité "
+        "inter-pairs.\n\n"
+        "Point de surveillance : Le point à retenir est que la banque présente une "
+        "base méthodologique différente pour le risque de crédit, ce qui change "
+        "la lecture métier de la divulgation."
+    )
+
+
+def _valid_justification_non() -> str:
+    return (
+        "NON - Nouvel élément à surveiller : Non.\n\n"
+        "Sujet détecté : Mise à jour quantitative propre à la banque.\n\n"
+        "Ce qui change : Le ratio CET1 existait déjà au T1 et seule sa valeur "
+        "chiffrée change entre les deux trimestres. Aucun nouveau seuil ou "
+        "nouvelle méthode n'est introduit dans la divulgation.\n\n"
+        "Pertinence métier : Cette évolution numérique reflète l'activité "
+        "normale de la banque et ne touche aucun seuil réglementaire ni "
+        "méthodologie de calcul. Elle ne modifie pas la lecture prudentielle "
+        "du rapport ni la comparabilité métier.\n\n"
+        "Point de surveillance : Le point à retenir est que la substance de la "
+        "divulgation demeure stable. Le changement correspond à une mise à "
+        "jour quantitative plutôt qu'à un nouveau signal de surveillance."
+    )
+
+
+# --- Invariants Pydantic ---
+
+
+def test_invariant_relevant_without_themes_raises() -> None:
+    with pytest.raises(_PydValidationError, match="themes_amf"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=[],
+            nouvelle_idee=True,
+            explanation=_valid_explanation(),
+            nouvelle_idee_justification=_valid_justification_oui(),
+        )
+
+
+def test_invariant_relevant_with_short_explanation_raises() -> None:
+    with pytest.raises(_PydValidationError, match="50"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=["DIVULGATION_AJOUT"],
+            nouvelle_idee=True,
+            explanation="trop court",
+            nouvelle_idee_justification=_valid_justification_oui(),
+        )
+
+
+def test_invariant_irrelevant_with_nouvelle_idee_raises() -> None:
+    with pytest.raises(_PydValidationError, match="nouvelle_idee"):
+        TriageAMFResult(
+            is_relevant=False,
+            nouvelle_idee=True,
+            exclusion_reason="reformulation_mineure",
+            nouvelle_idee_justification=_valid_justification_oui(),
+        )
+
+
+def test_invariant_irrelevant_with_majeur_impact_raises() -> None:
+    with pytest.raises(_PydValidationError, match="MINEUR"):
+        TriageAMFResult(
+            is_relevant=False,
+            impact_level="MAJEUR",
+            exclusion_reason="reformulation_mineure",
+            nouvelle_idee_justification=_valid_justification_non(),
+        )
+
+
+def test_invariant_irrelevant_without_exclusion_reason_raises() -> None:
+    with pytest.raises(_PydValidationError, match="exclusion_reason"):
+        TriageAMFResult(
+            is_relevant=False,
+            nouvelle_idee_justification=_valid_justification_non(),
+        )
+
+
+def test_invariant_revue_prioritaire_without_majeur_raises() -> None:
+    with pytest.raises(_PydValidationError, match="revue_prioritaire"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=["MODIFICATION_METHODOLOGIE"],
+            impact_level="MODERE",
+            nouvelle_idee=True,
+            action_requise="revue_prioritaire",
+            explanation=_valid_explanation(),
+            nouvelle_idee_justification=_valid_justification_oui(),
+        )
+
+
+def test_invariant_relevant_without_justification_raises() -> None:
+    with pytest.raises(_PydValidationError, match="nouvelle_idee_justification"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=["DIVULGATION_AJOUT"],
+            impact_level="MINEUR",
+            nouvelle_idee=True,
+            explanation=_valid_explanation(),
+            nouvelle_idee_justification="",
+        )
+
+
+def test_invariant_justification_with_single_sentence_raises() -> None:
+    with pytest.raises(_PydValidationError, match="phrases|caractères"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=["DIVULGATION_AJOUT"],
+            impact_level="MINEUR",
+            nouvelle_idee=True,
+            explanation=_valid_explanation(),
+            nouvelle_idee_justification="OUI le ratio TLAC est ajoute au tableau.",
+        )
+
+
+def test_invariant_justification_must_start_with_oui_when_nouvelle_idee() -> None:
+    # On utilise un texte ≥ 3 phrases ≥ 200 chars sans préfixe pour tester la
+    # règle préfixe (sans déclencher la règle longueur en premier).
+    bad_prefix_long = (
+        "Le ratio TLAC est ajoute au TABLEAU 11 absent du T1, ce qui constitue "
+        "une nouveaute structurelle pour la divulgation. Cela aligne BMO sur "
+        "les attentes BSIF prudentielles selon la ligne directrice canadienne. "
+        "L'analyste doit considerer cette ligne comme une nouvelle exigence "
+        "qui touche les ratios prudentiels (themes AMF DIVULGATION_AJOUT)."
+    )
+    with pytest.raises(_PydValidationError, match="OUI"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=["DIVULGATION_AJOUT"],
+            impact_level="MINEUR",
+            nouvelle_idee=True,
+            explanation=_valid_explanation(),
+            nouvelle_idee_justification=bad_prefix_long,
+        )
+
+
+def test_invariant_justification_must_start_with_non_when_not_nouvelle_idee() -> None:
+    with pytest.raises(_PydValidationError, match="NON"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=["CAPITAL_REGLEMENTAIRE"],
+            impact_level="MINEUR",
+            nouvelle_idee=False,
+            explanation=_valid_explanation(),
+            nouvelle_idee_justification=_valid_justification_oui(),
+        )
+
+
+def test_invariant_irrelevant_now_requires_substantial_justification() -> None:
+    """is_relevant=False exige désormais une justification détaillée (≥ 3 phrases, 200+ chars)."""
+    # Justification trop courte → rejet
+    with pytest.raises(_PydValidationError, match="phrases|caractères"):
+        TriageAMFResult(
+            is_relevant=False,
+            exclusion_reason="reformulation_mineure",
+            nouvelle_idee_justification="NON c'est une reformulation. Pas substantif. Trop court.",
+        )
+
+    # Justification complète et bien préfixée → accepté
+    ok = TriageAMFResult(
+        is_relevant=False,
+        exclusion_reason="reformulation_mineure",
+        nouvelle_idee_justification=_valid_justification_non(),
+    )
+    assert ok.is_relevant is False
+    assert ok.nouvelle_idee_justification.startswith("NON")
+
+
+def test_invariant_change_index_must_be_at_least_one() -> None:
+    with pytest.raises(_PydValidationError):
+        TriageAMFResultWithIndex(
+            change_index=0,
+            is_relevant=False,
+            exclusion_reason="reformulation_mineure",
+            nouvelle_idee_justification=_valid_justification_non(),
+        )
+
+
+# --- Helpers de mock pour l'API structured outputs ---
+
+
+def _make_parsed_response(parsed_obj, *, refusal=None, finish_reason="stop"):
+    """Construit une réponse OpenAI structured outputs simulée."""
+    message = type(
+        "FakeMessage",
+        (),
+        {"parsed": parsed_obj, "refusal": refusal},
+    )()
+    choice = type(
+        "FakeChoice",
+        (),
+        {"message": message, "finish_reason": finish_reason},
+    )()
+    return type("FakeResponse", (), {"choices": [choice]})()
+
+
+class _FakeStructuredCompletions:
+    def __init__(self, side_effect) -> None:
+        self.side_effect = side_effect
+        self.call_count = 0
+        self.calls: list[dict] = []
+
+    def parse(self, **kwargs):
+        self.call_count += 1
+        self.calls.append(kwargs)
+        if callable(self.side_effect):
+            return self.side_effect(**kwargs)
+        return self.side_effect
+
+
+class _FakeStructuredClient:
+    def __init__(self, side_effect) -> None:
+        completions = _FakeStructuredCompletions(side_effect)
+        chat = type("Chat", (), {"completions": completions})()
+        self.beta = type("Beta", (), {"chat": chat})()
+        self._completions = completions
+
+    @property
+    def call_count(self) -> int:
+        return self._completions.call_count
+
+
+def _make_validation_error() -> _PydValidationError:
+    try:
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=[],
+            explanation=_valid_explanation(),
+        )
+    except _PydValidationError as exc:
+        return exc
+    raise AssertionError("expected ValidationError")
+
+
+# --- _call_structured_completion : pas de fallback ---
+
+
+def test_call_structured_completion_raises_runtime_error_on_refusal() -> None:
+    client = _FakeStructuredClient(
+        _make_parsed_response(None, refusal="Je refuse pour des raisons de sécurité.")
+    )
+
+    with pytest.raises(RuntimeError, match="refused"):
+        _call_structured_completion(
+            client,
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "x"}],
+            response_format=TriageAMFBatch,
+        )
+
+
+def test_call_structured_completion_raises_runtime_error_on_truncation() -> None:
+    client = _FakeStructuredClient(
+        _make_parsed_response(None, finish_reason="length")
+    )
+
+    with pytest.raises(RuntimeError, match="truncated"):
+        _call_structured_completion(
+            client,
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "x"}],
+            response_format=TriageAMFBatch,
+        )
+
+
+def test_call_structured_completion_raises_runtime_error_on_empty_payload() -> None:
+    client = _FakeStructuredClient(_make_parsed_response(None))
+
+    with pytest.raises(RuntimeError, match="no parsed payload"):
+        _call_structured_completion(
+            client,
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "x"}],
+            response_format=TriageAMFBatch,
+        )
+
+
+# --- Retry borné avec feedback correctif ---
+
+
+def test_correction_retry_succeeds_on_second_attempt() -> None:
+    valid_batch = TriageAMFBatch(triages=[])
+    err = _make_validation_error()
+    state = {"calls": 0}
+
+    def side_effect(**kwargs):
+        state["calls"] += 1
+        if state["calls"] == 1:
+            raise err
+        return _make_parsed_response(valid_batch)
+
+    client = _FakeStructuredClient(side_effect)
+
+    result = _call_structured_completion_with_correction(
+        client,
+        model="gpt-4o",
+        messages=[{"role": "user", "content": "x"}],
+        response_format=TriageAMFBatch,
+        max_retries=1,
+    )
+
+    assert result is valid_batch
+    assert state["calls"] == 2
+
+
+def test_correction_retry_propagates_after_exhaustion() -> None:
+    err = _make_validation_error()
+
+    def always_fail(**kwargs):
+        raise err
+
+    client = _FakeStructuredClient(always_fail)
+
+    with pytest.raises(_PydValidationError):
+        _call_structured_completion_with_correction(
+            client,
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "x"}],
+            response_format=TriageAMFBatch,
+            max_retries=1,
+        )
+
+    # 2 appels = 1 initial + 1 retry
+    assert client.call_count == 2
+
+
+def test_correction_retry_does_not_retry_runtime_errors() -> None:
+    """RuntimeError (refus, troncature) ne doit PAS déclencher de retry."""
+
+    def fake_refusal(**kwargs):
+        return _make_parsed_response(None, refusal="refus")
+
+    client = _FakeStructuredClient(fake_refusal)
+
+    with pytest.raises(RuntimeError, match="refused"):
+        _call_structured_completion_with_correction(
+            client,
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "x"}],
+            response_format=TriageAMFBatch,
+            max_retries=1,
+        )
+
+    # Un seul appel : pas de retry sur RuntimeError
+    assert client.call_count == 1
+
+
+# --- _triage_section_changes : ValidationError → TriageValidationError ---
+
+
+def test_triage_section_changes_converts_validation_error_to_triage_validation_error(monkeypatch) -> None:
+    err = _make_validation_error()
+
+    def always_fail(**kwargs):
+        raise err
+
+    client = _FakeStructuredClient(always_fail)
+
+    changes = [
+        {
+            "diff_type": "modified",
+            "semantic_text_t1": "Texte T1.",
+            "semantic_text_t2": "Texte T2.",
+        }
+    ]
+
+    with pytest.raises(TriageValidationError) as exc_info:
+        _triage_section_changes(
+            client=client,
+            model="gpt-4o",
+            section_key="gestion_risques",
+            changes=changes,
+        )
+
+    assert exc_info.value.section_key == "gestion_risques"
+    assert exc_info.value.validation_error is err
+    # 2 appels = 1 initial + 1 retry avant remontée
+    assert client.call_count == 2
+
+
+def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
+    """Un refus modèle remonte en RuntimeError, PAS en TriageValidationError."""
+    client = _FakeStructuredClient(
+        _make_parsed_response(None, refusal="je refuse")
+    )
+
+    changes = [
+        {
+            "diff_type": "modified",
+            "semantic_text_t1": "T1",
+            "semantic_text_t2": "T2",
+        }
+    ]
+
+    with pytest.raises(RuntimeError, match="refused"):
+        _triage_section_changes(
+            client=client,
+            model="gpt-4o",
+            section_key="gestion_risques",
+            changes=changes,
+        )
+
+    assert client.call_count == 1

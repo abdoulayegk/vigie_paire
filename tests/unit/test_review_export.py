@@ -180,6 +180,54 @@ def test_generate_validation_excel_generates_expert_workbook() -> None:
     ]
 
 
+def test_validation_excel_prefers_amf_v2_analyst_justification() -> None:
+    analyst_note = (
+        "OUI - le T2 ajoute un indicateur TLAC absent du T1 dans le tableau "
+        "des fonds propres. Cette information change la divulgation prudentielle "
+        "et introduit un nouvel axe de lecture.\n\n"
+        "Cette nouveaute est pertinente pour la vigie parce qu'elle touche les "
+        "ratios reglementaires et les exigences de capital applicables aux "
+        "banques canadiennes. Elle ne doit pas etre remplacee par un simple "
+        "resume technique.\n\n"
+        "L'analyste devrait verifier la methode de calcul, comparer la "
+        "presentation avec les pairs et suivre si d'autres tableaux reprennent "
+        "la meme exigence."
+    )
+    item = ReviewItem(
+        change_id="ind-amf-v2",
+        change_type="modified",
+        indicator="Ratio TLAC",
+        section="capital_management",
+        table_name="Structure des fonds propres",
+        page_t1=33,
+        page_t2=38,
+        indicators=[
+            {
+                "name": "Ratio TLAC",
+                "type": "modified",
+                "from": "ancien libelle",
+                "to": "nouveau libelle",
+                "analyst_assessment": {
+                    "nouvelle_idee_justification": analyst_note,
+                    "justification": "Ancien resume court a ne pas utiliser.",
+                },
+            }
+        ],
+        genai_analysis={
+            "nouvelle_idee": True,
+            "nouvelle_idee_justification": "Justification table-level moins prioritaire.",
+            "justification": "Ancien resume table-level.",
+        },
+    )
+
+    excel_bytes = generate_validation_excel([item], {"bank_code": "bnc"})
+    wb = load_workbook(io.BytesIO(excel_bytes))
+    ws_review = wb[EXPERT_EXCEL_SHEET_REVIEW]
+
+    assert ws_review.cell(row=2, column=8).value == analyst_note
+    assert ws_review.cell(row=2, column=9).value == "Oui"
+
+
 def test_generate_validation_txt_generates_readable_report() -> None:
     item = ReviewItem(
         change_id="ind-1",

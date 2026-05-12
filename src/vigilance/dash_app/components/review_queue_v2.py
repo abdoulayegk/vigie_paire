@@ -71,20 +71,17 @@ _PRIORITY_DISPLAY = {
 }
 
 _ACTION_DISPLAY = {
-    "escalade": ("Escalade", "danger"),
+    "revue_prioritaire": ("Revue prioritaire", "danger"),
     "investigation": ("Investigation", "warning"),
     "confirmation": ("Confirmation", "info"),
     "information": ("Information", "secondary"),
     "aucune": None,
 }
 
-_CATEGORY_DISPLAY = {
-    "REGLEMENTAIRE": ("Réglementaire", "danger"),
-    "RISQUE": ("Risque", "warning"),
-    "CAPITAL": ("Capital", "primary"),
-    "STRUCTURE": ("Structure", "info"),
-    "COSMETIQUE": ("Cosmétique", "secondary"),
-    "INCONNU": None,
+_IMPACT_LEVEL_BADGE: dict[str, tuple[str, str]] = {
+    "MAJEUR": ("MAJEUR", "danger"),
+    "MODERE": ("MODÉRÉ", "warning"),
+    "MINEUR": ("MINEUR", "info"),
 }
 
 _RELEVANCE_DISPLAY = {
@@ -187,16 +184,26 @@ def _truncate_text(value: object, max_length: int = 110) -> str:
     return text[: max(0, max_length - 3)].rstrip() + "..."
 
 
+_IMPACT_TO_PRIORITY: dict[str, str] = {
+    "MAJEUR": "critique",
+    "MODERE": "prioritaire",
+    "MINEUR": "normale",
+}
+
+
 def _get_review_priority(table: dict) -> str:
-    """Extrait la priorite de revue depuis les metadonnees ou l'analyse GenAI."""
+    """Extrait la priorite de revue depuis les metadonnees ou l'analyse GenAI.
+
+    Source 1 (analyste) : ``match_metadata.review_priority`` si saisi.
+    Source 2 (IA AMF v2) : dérivée de ``genai_analysis.impact_level``.
+    """
     match_meta = table.get("match_metadata") or {}
+    analyst_priority = str(match_meta.get("review_priority") or "").strip().lower()
+    if analyst_priority:
+        return analyst_priority
     genai = table.get("genai_analysis") or {}
-    priority = (
-        str((match_meta.get("review_priority") or genai.get("review_priority") or ""))
-        .strip()
-        .lower()
-    )
-    return priority
+    impact = str(genai.get("impact_level") or "").strip().upper()
+    return _IMPACT_TO_PRIORITY.get(impact, "")
 
 
 def _build_signal_chip(label: str, color: str) -> html.Span:
@@ -218,12 +225,14 @@ def _build_metric_chip(label: str, value: int, tone: str) -> html.Span:
     )
 
 
-def _build_detail_panel(label: str, text: str, empty_message: str) -> html.Div:
+def _build_detail_panel(
+    label: str, text: str, empty_message: str, *, muted: bool = False
+) -> html.Div:
     """Construit un panneau de detail avec message de repli si vide."""
     content = text or empty_message
     content_class = (
         "review-queue-change-text"
-        if text
+        if text and not muted
         else "review-queue-change-text text-muted fst-italic"
     )
     return html.Div(
@@ -464,15 +473,27 @@ def _build_change_panels(change: dict) -> html.Div:
     elif change_type in (ChangeType.FOOTNOTE_ADDED.value, "footnote_added"):
         panels = [
             _build_detail_panel(
-                "Texte ajoute",
+                "Trimestre courant - note ajoutée",
                 new_text,
                 "Texte de la note indisponible.",
-            )
+            ),
+            _build_detail_panel(
+                "Trimestre précédent",
+                "",
+                "Élément absent.",
+                muted=True,
+            ),
         ]
     elif change_type in (ChangeType.FOOTNOTE_REMOVED.value, "footnote_removed"):
         panels = [
             _build_detail_panel(
-                "Texte supprime",
+                "Trimestre courant",
+                "",
+                "Élément absent.",
+                muted=True,
+            ),
+            _build_detail_panel(
+                "Trimestre précédent - note supprimée",
                 old_text,
                 "Texte de la note indisponible.",
             )
@@ -480,14 +501,14 @@ def _build_change_panels(change: dict) -> html.Div:
     elif change_type in (ChangeType.FOOTNOTE_MODIFIED.value, "footnote_modified"):
         panels = [
             _build_detail_panel(
-                "Version precedente",
-                old_text,
-                "Ancienne version indisponible.",
-            ),
-            _build_detail_panel(
-                "Version courante",
+                "Trimestre courant - nouvelle version",
                 new_text,
                 "Nouvelle version indisponible.",
+            ),
+            _build_detail_panel(
+                "Trimestre précédent - ancienne version",
+                old_text,
+                "Ancienne version indisponible.",
             ),
         ]
     else:
@@ -687,48 +708,74 @@ def _build_change_group(
 
 
 def _build_genai_summary_row(table: dict) -> html.Div | None:
-    """Construit le badge d'action GenAI, le badge categorie et la ligne narrative pour une carte de la file."""
+    """Synthèse GenAI compacte affichée sur chaque carte de la file de revue.
+
+    Aligné sur la taxonomie AMF unifiée :
+    - ✨ Nouvelle idée (si ``nouvelle_idee=True``)
+    - Badge impact_level coloré (MAJEUR/MODÉRÉ/MINEUR)
+    - Badge action_requise si revue prioritaire/investigation
+    - Justification AMF tronquée (≤ 90 chars)
+
+    Cartes filtrées : si is_relevant=False ou genai_analysis absent → None
+    (la carte n'affiche rien — l'analyste se concentre sur le pertinent).
+    """
     ga = table.get("genai_analysis")
     if not isinstance(ga, dict) or not ga:
         return None
+    if not bool(ga.get("is_relevant", False)):
+        return None
 
+    nouvelle_idee = bool(ga.get("nouvelle_idee", False))
+    impact_level = str(ga.get("impact_level", "") or "").strip().upper()
     action = str(ga.get("action_requise", "") or "").strip().lower()
-    category = str(ga.get("category", "") or "").strip().upper()
-    narrative = str(ga.get("impact_description", "") or ga.get("justification", "") or "").strip()
+    # Schéma AMF v2 strict (plus de fallback legacy).
+    justification = str(ga.get("nouvelle_idee_justification", "") or "").strip()
 
-    chips = []
-
+    chips: list = []
+    if nouvelle_idee:
+        chips.append(
+            dbc.Badge(
+                "✨ Nouvelle idée",
+                color="primary",
+                className="me-1",
+                style={"fontSize": "0.65rem"},
+            )
+        )
+    impact_info = _IMPACT_LEVEL_BADGE.get(impact_level)
+    if impact_info:
+        label, color = impact_info
+        chips.append(
+            dbc.Badge(
+                label, color=color, className="me-1", style={"fontSize": "0.65rem"}
+            )
+        )
     action_info = _ACTION_DISPLAY.get(action)
-    if action_info:
-        label, color = action_info
+    if action_info and action in {"revue_prioritaire", "investigation"}:
+        a_label, a_color = action_info
         chips.append(
-            dbc.Badge(label, color=color, className="me-1", style={"fontSize": "0.65rem"})
+            dbc.Badge(
+                a_label,
+                color=a_color,
+                className="me-1",
+                style={"fontSize": "0.65rem"},
+            )
         )
 
-    category_info = _CATEGORY_DISPLAY.get(category)
-    if category_info:
-        label, color = category_info
-        chips.append(
-            dbc.Badge(label, color=color, className="me-1", style={"fontSize": "0.65rem"})
-        )
-
-    if not chips and not narrative:
+    if not chips and not justification:
         return None
 
     parts: list = []
     if chips:
         parts.append(html.Div(chips, className="d-flex flex-wrap gap-1 mb-1"))
-    if narrative:
-        # Truncate to keep card compact
-        display = narrative if len(narrative) <= 90 else narrative[:87] + "…"
+    if justification:
+        display = justification if len(justification) <= 90 else justification[:87] + "…"
         parts.append(
             html.Div(
                 display,
                 className="review-queue-narrative",
-                title=narrative,
+                title=justification,
             )
         )
-
     return html.Div(parts, className="review-queue-genai-summary mt-1")
 
 
