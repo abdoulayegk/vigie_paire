@@ -104,6 +104,7 @@ def _is_pure_reformulation(change: dict[str, Any]) -> bool:
 
 
 def _should_exclude(change: dict[str, Any]) -> bool:
+    """Indique si le changement doit être exclu de l'export (date ou reformulation)."""
     return _is_pure_date_update(change) or _is_pure_reformulation(change)
 
 
@@ -132,6 +133,7 @@ def _subsection_label(change: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 def _row_sort_key(row: dict[str, Any]) -> tuple:
+    """Clé de tri analyste : nouvelle idée → impact → pertinence → catégorie."""
     return (
         0 if row.get("nouvelle_idee_bool") else 1,
         _IMPACT_SORT_ORDER.get(str(row.get("impact_level") or "").upper(), 99),
@@ -154,6 +156,7 @@ _FILL_MINEUR        = "FFFFFF"   # blanc — non pertinent ou MINEUR standard
 
 
 def _row_fill_color(row: dict[str, Any]) -> str | None:
+    """Retourne la couleur de remplissage Excel selon nouvelle_idee et impact."""
     if row.get("nouvelle_idee_bool"):
         return _FILL_NOUVELLE_IDEE
     level = str(row.get("impact_level") or "").upper()
@@ -171,6 +174,7 @@ def _row_fill_color(row: dict[str, Any]) -> str | None:
 # ---------------------------------------------------------------------------
 
 def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
+    """Extrait et aplatit toutes les lignes de changement depuis ``text_comparison.json``."""
     rows: list[dict[str, Any]] = []
     for section_comp in text_comparison.get("section_comparisons", []):
         section_key = section_comp.get("section_key", "")

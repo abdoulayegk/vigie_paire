@@ -2507,22 +2507,20 @@ def run_text_analysis_pipeline(
     allowed_section_keys: set[str] | None = None,
     project_root: Path | None = None,
 ) -> tuple[dict[str, Any], Path]:
-    """Execute le pipeline texte complet avec le markdown comme source de verite.
+    """Exécute le pipeline texte complet avec le markdown comme source de vérité.
 
-    Flow:
-    1. Pour chaque période : si le .md canonique existe → relecture + parse.
-       Sinon → Docling + construction du .md + écriture canonique pour réutilisation.
-    2. Feed .md sections directly to GPT-4o for comparison (added/modified/removed).
-    3. Triage and retain non-cosmetic changes sorted by business impact.
+    Déroulement :
 
-    Notes:
-    - le .md canonique vit dans ``outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md``
-      et sert d'artefact d'audit ET d'entrée réutilisable pour les runs suivants;
-    - supprimer ce .md force une ré-extraction Docling au prochain run;
-    - les marqueurs ``[p.N]`` présents dans le .md sont strippés avant tout
-      appel GPT (unique gatekeeper : ``_extract_section_text_from_markdown``);
-    - les appels GPT du flux texte n'envoient pas de limite de completion
-      explicite par defaut, afin de privilegier l'arret naturel du modele.
+    1. Pour chaque période, si le .md canonique existe sur disque, relecture et parse ; sinon Docling + construction du .md + écriture canonique pour réutilisation.
+    2. Envoi des sections .md à GPT-4o pour comparaison T1 vs T2 (ajouts, modifications, retraits).
+    3. Triage et retenue uniquement des changements substantiels, triés par impact métier.
+
+    Notes opérationnelles :
+
+    * Le .md canonique vit dans ``outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md`` et sert d'artefact d'audit ET d'entrée réutilisable pour les runs suivants.
+    * Supprimer ce .md force une ré-extraction Docling au prochain run.
+    * Les marqueurs ``[p.N]`` présents dans le .md sont strippés avant tout appel GPT (gatekeeper unique : ``_extract_section_text_from_markdown``).
+    * Les appels GPT du flux texte n'envoient pas de limite de complétion explicite par défaut, afin de privilégier l'arrêt naturel du modèle.
     """
     quarter_current = normalize_quarter(quarter_current)
     year_previous, quarter_previous = resolve_previous_quarter(year_current, quarter_current)

@@ -9,11 +9,11 @@ La référence métier est la spec verrouillée pour la vigie de pairs canadienn
 taxonomie doit passer par ce fichier — le prompt GPT et les exports en aval
 en dérivent.
 
-Conventions :
-- ``T1`` désigne le rapport précédent dans la paire comparée (avant)
-- ``T2`` désigne le rapport courant dans la paire comparée (après)
-- Les paires possibles sont : T2 vs T1, T3 vs T2, T1 N+1 vs T3 N (passage
-  d'année), T4 N+1 vs T4 N (annuel sur annuel).
+Conventions de nommage :
+
+* ``T1`` désigne le rapport précédent dans la paire comparée (avant).
+* ``T2`` désigne le rapport courant dans la paire comparée (après).
+* Paires supportées : T2 vs T1, T3 vs T2, T1 N+1 vs T3 N (passage d'année), T4 N+1 vs T4 N (annuel sur annuel).
 """
 
 from __future__ import annotations
@@ -214,6 +214,7 @@ class ChangeSegment(BaseModel):
 
     @model_validator(mode="after")
     def _check_kind_consistency(self) -> "ChangeSegment":
+        """Vérifie que ``text_t1`` / ``text_t2`` sont cohérents avec ``kind``."""
         if self.kind == "added":
             if self.text_t1.strip():
                 raise ValueError("kind='added' interdit text_t1 non vide")
@@ -279,19 +280,16 @@ def _missing_justification_sections(text: str) -> list[str]:
 class TriageAMFResult(BaseModel):
     """Sortie validée d'un triage GPT-4o pour un changement.
 
-    Invariants garantis (toute violation lève ``pydantic.ValidationError``) :
+    Invariants garantis (toute violation lève ``pydantic.ValidationError``).
 
-    Cohérence pertinent / non pertinent :
-    - ``is_relevant=True`` ⟹ ``themes_amf`` non vide, ``exclusion_reason=None``,
-      ``explanation`` ≥ 50 caractères (3 phrases attendues),
-      ``nouvelle_idee_justification`` ≥ 3 phrases complètes commençant par
-      ``OUI`` ou ``NON`` selon ``nouvelle_idee``.
-    - ``is_relevant=False`` ⟹ ``themes_amf=[]``, ``exclusion_reason`` renseigné,
-      ``nouvelle_idee=False``, ``impact_level="MINEUR"``, ``action_requise="aucune"``,
-      ``explanation=""``, ``nouvelle_idee_justification`` détaillée.
+    **Cohérence pertinent / non pertinent**
 
-    Cohérence sémantique :
-    - ``action_requise="revue_prioritaire"`` ⟹ ``impact_level="MAJEUR"``.
+    * ``is_relevant=True`` implique ``themes_amf`` non vide, ``exclusion_reason=None``, ``explanation`` ≥ 50 caractères (3 phrases attendues), ``nouvelle_idee_justification`` ≥ 3 phrases complètes commençant par ``OUI`` ou ``NON`` selon ``nouvelle_idee``.
+    * ``is_relevant=False`` implique ``themes_amf=[]``, ``exclusion_reason`` renseigné, ``nouvelle_idee=False``, ``impact_level="MINEUR"``, ``action_requise="aucune"``, ``explanation=""``, ``nouvelle_idee_justification`` détaillée.
+
+    **Cohérence sémantique**
+
+    * ``action_requise="revue_prioritaire"`` implique ``impact_level="MAJEUR"``.
 
     Pas de fallback silencieux : un triage invalide doit remonter en exception
     et être traité explicitement par l'appelant.
@@ -310,6 +308,7 @@ class TriageAMFResult(BaseModel):
     @field_validator("themes_amf")
     @classmethod
     def _dedupe_themes(cls, value: list[str]) -> list[str]:
+        """Supprime les doublons de la liste de thèmes AMF en préservant l'ordre."""
         seen: set[str] = set()
         out: list[str] = []
         for theme in value:
@@ -320,6 +319,7 @@ class TriageAMFResult(BaseModel):
 
     @model_validator(mode="after")
     def _check_invariants(self) -> "TriageAMFResult":
+        """Garantit la cohérence métier de la sortie GPT (cf. docstring de classe)."""
         # ---------- Justification : OBLIGATOIRE et SUBSTANTIELLE ----------
         # Quel que soit ``is_relevant`` (Oui ou Non), l'analyste a besoin
         # d'une explication détaillée pour comprendre la décision GPT.
@@ -500,6 +500,14 @@ class TriageValidationError(RuntimeError):
         raw_payload: object,
         validation_error: Exception,
     ) -> None:
+        """Initialise l'erreur avec le contexte de triage non conforme.
+
+        Args:
+            section_key: Section métier dans laquelle le triage a échoué.
+            change_index: Indice du changement concerné, si disponible.
+            raw_payload: Réponse brute reçue avant validation.
+            validation_error: Erreur de validation à l'origine du rejet.
+        """
         message = (
             f"Triage AMF invalide [section={section_key}, "
             f"change_index={change_index}] : {validation_error}"

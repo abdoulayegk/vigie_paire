@@ -115,6 +115,7 @@ def _pdf_paths_from_comparison_meta(
                 pass
 
     def _pick(*candidates: str) -> str:
+        """Retourne le premier candidat existant sur disque, sinon le premier non vide."""
         for candidate in candidates:
             if candidate and Path(candidate).exists():
                 return candidate

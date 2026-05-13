@@ -75,6 +75,7 @@ _ACTION_BADGE: dict[str, tuple[str, str]] = {
 
 
 def _badge(label: str, color: str, **kwargs) -> dbc.Badge:
+    """Construit un ``dbc.Badge`` standardisé pour la page d'analyse texte."""
     return dbc.Badge(label, color=color, className="me-1", **kwargs)
 
 
@@ -191,6 +192,7 @@ def _build_side_by_side(
     }
 
     def _column(label: str, text: str, highlights: list[str], style: dict[str, str]) -> html.Div:
+        """Construit une colonne (T1 ou T2) avec son libellé et son texte mis en surbrillance."""
         return html.Div(
             [
                 html.Div(

@@ -175,6 +175,7 @@ class _MatchingValidationError(ValueError):
         duplicate_count: int = 0,
         validation_failures: int = 1,
     ) -> None:
+        """Initialise l'erreur avec les compteurs de duplicatas et d'échecs de validation."""
         super().__init__(message)
         self.duplicate_count = int(max(0, duplicate_count))
         self.validation_failures = int(max(1, validation_failures))

@@ -48,10 +48,12 @@ def _config_dir() -> Path:
 
 
 def _config_path() -> Path:
+    """Retourne le chemin du fichier de configuration utilisateur de l'application."""
     return _config_dir() / "config.json"
 
 
 def _load_config() -> dict:
+    """Charge la configuration utilisateur ou retourne un dictionnaire vide si absente / illisible."""
     path = _config_path()
     if not path.exists():
         return {}
@@ -62,6 +64,7 @@ def _load_config() -> dict:
 
 
 def _save_config(payload: dict) -> None:
+    """Sérialise la configuration utilisateur sur disque au format JSON."""
     path = _config_path()
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 

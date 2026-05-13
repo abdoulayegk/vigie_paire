@@ -1,4 +1,4 @@
-name: Deploy GitHub Pages
+name: Publier la documentation GitHub Pages
 
 # Pousse le HTML Sphinx sur la branche `gh-pages`.
 # Sur GitHub : Settings -> Pages -> Source : Deploy from a branch
@@ -30,10 +30,10 @@ jobs:
       - name: Setup Python
         run: uv python install 3.11
 
-      - name: Install dependencies (incl. docs)
+      - name: Installer les dépendances de documentation
         run: uv sync --group dev --group docs
 
-      - name: Build Sphinx HTML
+      - name: Construire le site Sphinx
         env:
           SPHINX_HTML_BASEURL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: |
@@ -41,7 +41,7 @@ jobs:
           touch docs/_build/html/.nojekyll
           test -f docs/_build/html/index.html
 
-      - name: Deploy to gh-pages branch
+      - name: Publier sur la branche gh-pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages

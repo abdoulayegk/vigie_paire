@@ -1,21 +1,12 @@
-vigilance.i18n package
-======================
+Internationalisation
+====================
 
-Submodules
+Modules
 ----------
 
-vigilance.i18n.fr module
+i18n.fr
 ------------------------
 
 .. automodule:: vigilance.i18n.fr
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance.i18n
-   :members:
-   :show-inheritance:
-   :undoc-members:

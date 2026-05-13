@@ -1248,6 +1248,7 @@ class DoclingProcessor:
                         top_extension_title = dyn_top
 
                         def _recrop(ext: float) -> bytes:
+                            """Re-crope la région du tableau avec une extension verticale ajustée."""
                             return crop_table_region_to_bytes(
                                 str(pdf_path),
                                 page_num,
@@ -1263,6 +1264,7 @@ class DoclingProcessor:
                             bbox_override: list[float] | None = None,
                             bottom_extension: float | None = None,
                         ) -> bytes:
+                            """Variante de crop avec bbox et extension verticale optionnelles."""
                             return crop_table_region_to_bytes(
                                 str(pdf_path),
                                 page_num,

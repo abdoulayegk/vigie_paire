@@ -101,6 +101,7 @@ def filter_text_cards(text_data, filter_section, filter_impact, filter_action):
 
 
 def _empty_state():
+    """Composant Dash affiché lorsque aucun changement ne passe les filtres."""
     from dash import html
 
     return [

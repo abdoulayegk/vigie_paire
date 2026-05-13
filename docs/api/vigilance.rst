@@ -1,7 +1,7 @@
-vigilance package
+Moteur applicatif
 =================
 
-Subpackages
+Composants
 -----------
 
 .. toctree::
@@ -16,239 +16,226 @@ Subpackages
    vigilance.models
    vigilance.quality
    vigilance.report
+   vigilance.text_comparison
+   vigilance.text_extraction
    vigilance.utils
 
-Submodules
+Modules
 ----------
 
-vigilance.compare\_gpt module
+amf\_taxonomy
+------------------------------
+
+.. automodule:: vigilance.amf_taxonomy
+   :members:
+   :show-inheritance:
+
+compare\_gpt
 -----------------------------
 
 .. automodule:: vigilance.compare_gpt
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_analyst module
+comparison\_analyst
 ------------------------------------
 
 .. automodule:: vigilance.comparison_analyst
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_canonical module
+comparison\_canonical
 --------------------------------------
 
 .. automodule:: vigilance.comparison_canonical
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_devil\_advocate module
+comparison\_excel
+----------------------------------
+
+.. automodule:: vigilance.comparison_excel
+   :members:
+   :show-inheritance:
+
+comparison\_devil\_advocate
 --------------------------------------------
 
 .. automodule:: vigilance.comparison_devil_advocate
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_diff\_gpt module
+comparison\_diff\_gpt
 --------------------------------------
 
 .. automodule:: vigilance.comparison_diff_gpt
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_inspector module
+comparison\_inspector
 --------------------------------------
 
 .. automodule:: vigilance.comparison_inspector
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_io module
+comparison\_io
 -------------------------------
 
 .. automodule:: vigilance.comparison_io
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_matching module
+comparison\_matching
 -------------------------------------
 
 .. automodule:: vigilance.comparison_matching
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_metrics module
+comparison\_metrics
 ------------------------------------
 
 .. automodule:: vigilance.comparison_metrics
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_noise\_filter module
+comparison\_noise\_filter
 ------------------------------------------
 
 .. automodule:: vigilance.comparison_noise_filter
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_runner module
+comparison\_runner
 -----------------------------------
 
 .. automodule:: vigilance.comparison_runner
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.comparison\_visual\_sanity module
+comparison\_visual\_sanity
 -------------------------------------------
 
 .. automodule:: vigilance.comparison_visual_sanity
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction\_storage module
+extraction\_storage
 ------------------------------------
 
 .. automodule:: vigilance.extraction_storage
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.genai\_summary module
+genai\_summary
 -------------------------------
 
 .. automodule:: vigilance.genai_summary
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.genai\_triage module
+genai\_triage
 ------------------------------
 
 .. automodule:: vigilance.genai_triage
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.quarter\_utils module
+quarter\_utils
 -------------------------------
 
 .. automodule:: vigilance.quarter_utils
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.review\_adapters module
+review\_adapters
 ---------------------------------
 
 .. automodule:: vigilance.review_adapters
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.review\_export module
+review\_export
 -------------------------------
 
 .. automodule:: vigilance.review_export
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.review\_models module
+review\_models
 -------------------------------
 
 .. automodule:: vigilance.review_models
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.review\_models\_v2 module
+review\_models\_v2
 -----------------------------------
 
 .. automodule:: vigilance.review_models_v2
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.review\_priority module
+review\_priority
 ---------------------------------
 
 .. automodule:: vigilance.review_priority
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.review\_queue\_normalizer module
+review\_queue\_normalizer
 ------------------------------------------
 
 .. automodule:: vigilance.review_queue_normalizer
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.review\_state module
+review\_state
 ------------------------------
 
 .. automodule:: vigilance.review_state
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.review\_storage module
+review\_storage
 --------------------------------
 
 .. automodule:: vigilance.review_storage
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.ui\_config module
+text\_analysis\_pipeline
+-----------------------------------------
+
+.. automodule:: vigilance.text_analysis_pipeline
+   :members:
+   :show-inheritance:
+
+ui\_config
 ---------------------------
 
 .. automodule:: vigilance.ui_config
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.ui\_detection module
+ui\_detection
 ------------------------------
 
 .. automodule:: vigilance.ui_detection
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.ui\_indicators module
+ui\_indicators
 -------------------------------
 
 .. automodule:: vigilance.ui_indicators
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.ui\_io module
+ui\_io
 -----------------------
 
 .. automodule:: vigilance.ui_io
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance
-   :members:
-   :show-inheritance:
-   :undoc-members:

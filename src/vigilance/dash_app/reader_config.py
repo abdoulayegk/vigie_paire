@@ -59,5 +59,6 @@ _INVALID_CHARS = re.compile(r"[^A-Za-z0-9_.-]+")
 
 
 def _sanitize_username(value: str) -> str:
+    """Nettoie un nom d'utilisateur pour le rendre safe (caractères restreints)."""
     cleaned = _INVALID_CHARS.sub("_", value.strip())
     return cleaned or "anonymous"

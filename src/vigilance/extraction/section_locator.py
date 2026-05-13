@@ -1911,6 +1911,7 @@ class SectionLocator:
             return replace(section, anchor_found=False)
 
         def _candidate_sort_key(elem: VisualTextElement) -> tuple[int, float, float, int]:
+            """Clé de tri privilégiant les en-têtes, position verticale, grande police."""
             return (
                 0 if elem.is_likely_header else 1,
                 float(elem.y0),
