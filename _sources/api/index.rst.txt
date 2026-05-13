@@ -1,7 +1,8 @@
-Reference API
-=============
+Référence technique
+===================
 
-Documentation generee automatiquement a partir des modules Python du paquet ``vigilance``.
+Documentation générée automatiquement à partir des modules Python du moteur applicatif.
+Elle décrit les fonctions, classes et contrats utiles à la maintenance de Vigie de paire.
 
 .. toctree::
    :maxdepth: 4

@@ -1,9 +1,10 @@
-# Convention docstrings -- Vigie Paire
+# Convention des docstrings -- Vigie de paire
 
-Style **Google** avec descriptions en **francais**.
+Format compatible Sphinx, avec descriptions en **français**.
 
-Les mots-cles de section (`Args`, `Returns`, `Raises`, `Attributes`) restent en
-anglais (compatibilite ruff, IDE, Sphinx).
+Les mots-clés techniques de section (`Args`, `Returns`, `Raises`, `Attributes`) restent en
+anglais pour conserver la compatibilité avec Ruff, les IDE et Sphinx. Le contenu
+des descriptions doit rester en français.
 
 ## Fonction
 
@@ -48,16 +49,16 @@ dans l'architecture et de ses responsabilites principales.
 """
 ```
 
-## Regles specifiques
+## Règles spécifiques
 
-- **Fonctions privees** (`_prefix`) : docstring d'une ligne minimum.
-  `Args`/`Returns` seulement si la signature n'est pas evidente.
-- **Pydantic pour OpenAI** : docstring de classe en francais.
-  Ne PAS toucher les `Field(description=...)` (envoyes a l'API).
+- **Fonctions privées** (`_prefix`) : docstring d'une ligne minimum.
+  `Args`/`Returns` seulement si la signature n'est pas évidente.
+- **Pydantic pour OpenAI** : docstring de classe en français.
+  Ne PAS toucher les `Field(description=...)` (envoyés à l'API).
 - **Dataclasses / Pydantic internes** : `Attributes:` pour les champs non
-  evidents uniquement.
-- **Enums** : docstring d'une ligne en francais.
-- **Callbacks Dash** : documenter les inputs/outputs Dash et l'effet metier.
-- **Prompts LLM** : ne pas documenter les chaines de prompt.
-- **Pas de docstring triviale** : ne pas ecrire `"""Retourne True."""` quand
-  le nom de la fonction est deja explicite.
+  évidents uniquement.
+- **Enums** : docstring d'une ligne en français.
+- **Rappels Dash** : documenter les entrées, les sorties et l'effet métier.
+- **Consignes LLM** : ne pas documenter les chaînes de consigne.
+- **Pas de docstring triviale** : ne pas écrire `"""Retourne True."""` quand
+  le nom de la fonction est déjà explicite.

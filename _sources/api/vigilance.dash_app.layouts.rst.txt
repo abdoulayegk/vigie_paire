@@ -1,53 +1,40 @@
-vigilance.dash\_app.layouts package
-===================================
+Mises en page de l'interface
+============================
 
-Submodules
+Modules
 ----------
 
-vigilance.dash\_app.layouts.page\_load module
+dash\_app.layouts.page\_load
 ---------------------------------------------
 
 .. automodule:: vigilance.dash_app.layouts.page_load
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.dash\_app.layouts.page\_results module
+dash\_app.layouts.page\_results
 ------------------------------------------------
 
 .. automodule:: vigilance.dash_app.layouts.page_results
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.dash\_app.layouts.page\_upload module
+dash\_app.layouts.page\_upload
 -----------------------------------------------
 
 .. automodule:: vigilance.dash_app.layouts.page_upload
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.dash\_app.layouts.page\_validation module
+dash\_app.layouts.page\_validation
 ---------------------------------------------------
 
 .. automodule:: vigilance.dash_app.layouts.page_validation
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.dash\_app.layouts.sidebar module
+dash\_app.layouts.sidebar
 ------------------------------------------
 
 .. automodule:: vigilance.dash_app.layouts.sidebar
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance.dash_app.layouts
-   :members:
-   :show-inheritance:
-   :undoc-members:

@@ -6,12 +6,12 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Internationalisation &mdash; Vigie de paire - documentation technique</title>
+  <title>Extraction texte &mdash; Vigie de paire - documentation technique</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
-    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/api/vigilance.i18n.html" />
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/api/vigilance.text_extraction.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../_static/documentation_options.js?v=d1a510d7"></script>
@@ -21,8 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Recherche" href="../search.html" />
-    <link rel="next" title="Modèles de données" href="vigilance.models.html" />
-    <link rel="prev" title="Extraction documentaire" href="vigilance.extraction.html" /> 
+    <link rel="next" title="Utilitaires" href="vigilance.utils.html" />
+    <link rel="prev" title="Comparaison texte" href="vigilance.text_comparison.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -112,7 +112,7 @@
           <li class="breadcrumb-item"><a href="index.html">Référence technique</a></li>
           <li class="breadcrumb-item"><a href="modules.html">Moteur applicatif</a></li>
           <li class="breadcrumb-item"><a href="vigilance.html">Moteur applicatif</a></li>
-      <li class="breadcrumb-item active">Internationalisation</li>
+      <li class="breadcrumb-item active">Extraction texte</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -121,54 +121,75 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="internationalisation">
-<h1>Internationalisation<a class="headerlink" href="#internationalisation" title="Lien vers cette rubrique"></a></h1>
+  <section id="extraction-texte">
+<h1>Extraction texte<a class="headerlink" href="#extraction-texte" title="Lien vers cette rubrique"></a></h1>
+<p>Sous-package du pipeline texte canonique. Écrit le markdown auditable
+(<code class="docutils literal notranslate"><span class="pre">text_extraction_{q}.md</span></code>), source de vérité narrative et entrée directe
+de la comparaison GPT, ainsi que l’audit bloc-à-bloc associé.</p>
 <section id="modules">
 <h2>Modules<a class="headerlink" href="#modules" title="Lien vers cette rubrique"></a></h2>
 </section>
-<section id="module-vigilance.i18n.fr">
-<span id="i18n-fr"></span><h2>i18n.fr<a class="headerlink" href="#module-vigilance.i18n.fr" title="Lien vers cette rubrique"></a></h2>
-<p>Traductions francaises – terminologie professionnelle bancaire.</p>
+<section id="module-vigilance.text_extraction.text_extraction_audit_writer">
+<span id="text-extraction-text-extraction-audit-writer"></span><h2>text_extraction.text_extraction_audit_writer<a class="headerlink" href="#module-vigilance.text_extraction.text_extraction_audit_writer" title="Lien vers cette rubrique"></a></h2>
+<p>Lecture et écriture des artefacts d’audit d’extraction texte.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="vigilance.i18n.fr.reason_fr">
-<span class="sig-name descname"><span class="pre">reason_fr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.i18n.fr.reason_fr" title="Lien vers cette définition"></a></dt>
-<dd><p>Convertit un code de raison en libelle francais. Les codes inconnus sont retournes tels quels.</p>
+<dt class="sig sig-object py" id="vigilance.text_extraction.text_extraction_audit_writer.get_text_extraction_audit_path">
+<span class="sig-name descname"><span class="pre">get_text_extraction_audit_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_extraction.text_extraction_audit_writer.get_text_extraction_audit_path" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne le chemin canonique d’un artefact d’extraction texte auditée.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="vigilance.i18n.fr.source_method_fr">
-<span class="sig-name descname"><span class="pre">source_method_fr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.i18n.fr.source_method_fr" title="Lien vers cette définition"></a></dt>
-<dd><p>Convertit une methode source en libelle francais.</p>
+<dt class="sig sig-object py" id="vigilance.text_extraction.text_extraction_audit_writer.write_text_extraction_audit">
+<span class="sig-name descname"><span class="pre">write_text_extraction_audit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_extraction.text_extraction_audit_writer.write_text_extraction_audit" title="Lien vers cette définition"></a></dt>
+<dd><p>Écrit l’artefact d’audit d’extraction texte.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.text_extraction.text_extraction_markdown_writer">
+<span id="text-extraction-text-extraction-markdown-writer"></span><h2>text_extraction.text_extraction_markdown_writer<a class="headerlink" href="#module-vigilance.text_extraction.text_extraction_markdown_writer" title="Lien vers cette rubrique"></a></h2>
+<p>Écriture du fichier markdown d’extraction textuelle (source de vérité auditée).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_extraction.text_extraction_markdown_writer.get_canonical_text_extraction_md_path">
+<span class="sig-name descname"><span class="pre">get_canonical_text_extraction_md_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_extraction.text_extraction_markdown_writer.get_canonical_text_extraction_md_path" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne le chemin canonique du .md d’extraction pour une période.</p>
+<p>Le .md vit dans <code class="docutils literal notranslate"><span class="pre">outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md</span></code>
+et est réutilisé par les runs suivants pour éviter de relancer Docling.
+Pour forcer une ré-extraction, supprimer ce fichier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="vigilance.i18n.fr.status_fr">
-<span class="sig-name descname"><span class="pre">status_fr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.i18n.fr.status_fr" title="Lien vers cette définition"></a></dt>
-<dd><p>Convertit un code de statut de tableau ou d’indicateur en libelle francais.</p>
+<dt class="sig sig-object py" id="vigilance.text_extraction.text_extraction_markdown_writer.get_text_extraction_markdown_path">
+<span class="sig-name descname"><span class="pre">get_text_extraction_markdown_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_extraction.text_extraction_markdown_writer.get_text_extraction_markdown_path" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne le chemin du fichier markdown d’extraction pour un trimestre donné.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="vigilance.i18n.fr.t">
-<span class="sig-name descname"><span class="pre">t</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.i18n.fr.t" title="Lien vers cette définition"></a></dt>
-<dd><p>Retourne la traduction francaise pour une cle, ou la valeur par defaut, ou la cle elle-meme.</p>
+<dt class="sig sig-object py" id="vigilance.text_extraction.text_extraction_markdown_writer.write_text_extraction_markdown">
+<span class="sig-name descname"><span class="pre">write_text_extraction_markdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_extraction.text_extraction_markdown_writer.write_text_extraction_markdown" title="Lien vers cette définition"></a></dt>
+<dd><p>Écrit le contenu markdown dans le fichier de sortie et retourne le chemin.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -180,8 +201,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
-        <a href="vigilance.extraction.html" class="btn btn-neutral float-left" title="Extraction documentaire" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
-        <a href="vigilance.models.html" class="btn btn-neutral float-right" title="Modèles de données" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="vigilance.text_comparison.html" class="btn btn-neutral float-left" title="Comparaison texte" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigilance.utils.html" class="btn btn-neutral float-right" title="Utilitaires" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

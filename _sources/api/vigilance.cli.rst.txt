@@ -1,61 +1,47 @@
-vigilance.cli package
-=====================
+Commandes applicatives
+======================
 
-Submodules
+Modules
 ----------
 
-vigilance.cli.output\_builder module
+cli.output\_builder
 ------------------------------------
 
 .. automodule:: vigilance.cli.output_builder
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.cli.quarter\_logic module
+cli.quarter\_logic
 -----------------------------------
 
 .. automodule:: vigilance.cli.quarter_logic
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.cli.run\_compare\_gpt4o module
+cli.run\_compare\_gpt4o
 ----------------------------------------
 
 .. automodule:: vigilance.cli.run_compare_gpt4o
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.cli.run\_extract\_report module
+cli.run\_extract\_report
 -----------------------------------------
 
 .. automodule:: vigilance.cli.run_extract_report
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.cli.run\_ranges module
+cli.run\_ranges
 --------------------------------
 
 .. automodule:: vigilance.cli.run_ranges
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.cli.run\_tables module
+cli.run\_tables
 --------------------------------
 
 .. automodule:: vigilance.cli.run_tables
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance.cli
-   :members:
-   :show-inheritance:
-   :undoc-members:

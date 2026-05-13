@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Convention docstrings – Vigie Paire &mdash; Documentation bank-peer-vigilance </title>
+  <title>Convention des docstrings – Vigie de paire &mdash; Vigie de paire - documentation technique</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
@@ -21,8 +21,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Recherche" href="search.html" />
-    <link rel="next" title="Reference API" href="api/index.html" />
-    <link rel="prev" title="Architecture technique du système de vigilance bancaire" href="ARCHITECTURE_TECHNIQUE.html" /> 
+    <link rel="next" title="Référence technique" href="api/index.html" />
+    <link rel="prev" title="Architecture technique de Vigie de paire" href="ARCHITECTURE_TECHNIQUE.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,7 +34,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            bank-peer-vigilance
+            Vigie de paire
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -46,18 +46,18 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ARCHITECTURE_TECHNIQUE.html">Architecture technique du système de vigilance bancaire</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Convention docstrings – Vigie Paire</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="ARCHITECTURE_TECHNIQUE.html">Architecture technique de Vigie de paire</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Convention des docstrings – Vigie de paire</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#fonction">Fonction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#classe">Classe</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-en-tete-de-fichier">Module (en-tete de fichier)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#regles-specifiques">Regles specifiques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#regles-specifiques">Règles spécifiques</a></li>
 </ul>
 </li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<p class="caption" role="heading"><span class="caption-text">Référence technique</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api/index.html">Reference API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">Référence technique</a></li>
 </ul>
 
         </div>
@@ -66,7 +66,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">bank-peer-vigilance</a>
+          <a href="index.html">Vigie de paire</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -74,9 +74,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Convention docstrings – Vigie Paire</li>
+      <li class="breadcrumb-item active">Convention des docstrings – Vigie de paire</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/CONVENTION_DOCSTRINGS.md.txt" rel="nofollow"> Afficher la source de la page</a>
       </li>
   </ul>
   <hr/>
@@ -84,11 +83,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="convention-docstrings-vigie-paire">
-<h1>Convention docstrings – Vigie Paire<a class="headerlink" href="#convention-docstrings-vigie-paire" title="Lien vers cette rubrique"></a></h1>
-<p>Style <strong>Google</strong> avec descriptions en <strong>francais</strong>.</p>
-<p>Les mots-cles de section (<code class="docutils literal notranslate"><span class="pre">Args</span></code>, <code class="docutils literal notranslate"><span class="pre">Returns</span></code>, <code class="docutils literal notranslate"><span class="pre">Raises</span></code>, <code class="docutils literal notranslate"><span class="pre">Attributes</span></code>) restent en
-anglais (compatibilite ruff, IDE, Sphinx).</p>
+  <section id="convention-des-docstrings-vigie-de-paire">
+<h1>Convention des docstrings – Vigie de paire<a class="headerlink" href="#convention-des-docstrings-vigie-de-paire" title="Lien vers cette rubrique"></a></h1>
+<p>Format compatible Sphinx, avec descriptions en <strong>français</strong>.</p>
+<p>Les mots-clés techniques de section (<code class="docutils literal notranslate"><span class="pre">Args</span></code>, <code class="docutils literal notranslate"><span class="pre">Returns</span></code>, <code class="docutils literal notranslate"><span class="pre">Raises</span></code>, <code class="docutils literal notranslate"><span class="pre">Attributes</span></code>) restent en
+anglais pour conserver la compatibilité avec Ruff, les IDE et Sphinx. Le contenu
+des descriptions doit rester en français.</p>
 <section id="fonction">
 <h2>Fonction<a class="headerlink" href="#fonction" title="Lien vers cette rubrique"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">ma_fonction</span><span class="p">(</span><span class="n">param1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">param2</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -133,19 +133,19 @@ anglais (compatibilite ruff, IDE, Sphinx).</p>
 </div>
 </section>
 <section id="regles-specifiques">
-<h2>Regles specifiques<a class="headerlink" href="#regles-specifiques" title="Lien vers cette rubrique"></a></h2>
+<h2>Règles spécifiques<a class="headerlink" href="#regles-specifiques" title="Lien vers cette rubrique"></a></h2>
 <ul class="simple">
-<li><p><strong>Fonctions privees</strong> (<code class="docutils literal notranslate"><span class="pre">_prefix</span></code>) : docstring d’une ligne minimum.
-<code class="docutils literal notranslate"><span class="pre">Args</span></code>/<code class="docutils literal notranslate"><span class="pre">Returns</span></code> seulement si la signature n’est pas evidente.</p></li>
-<li><p><strong>Pydantic pour OpenAI</strong> : docstring de classe en francais.
-Ne PAS toucher les <code class="docutils literal notranslate"><span class="pre">Field(description=...)</span></code> (envoyes a l’API).</p></li>
+<li><p><strong>Fonctions privées</strong> (<code class="docutils literal notranslate"><span class="pre">_prefix</span></code>) : docstring d’une ligne minimum.
+<code class="docutils literal notranslate"><span class="pre">Args</span></code>/<code class="docutils literal notranslate"><span class="pre">Returns</span></code> seulement si la signature n’est pas évidente.</p></li>
+<li><p><strong>Pydantic pour OpenAI</strong> : docstring de classe en français.
+Ne PAS toucher les <code class="docutils literal notranslate"><span class="pre">Field(description=...)</span></code> (envoyés à l’API).</p></li>
 <li><p><strong>Dataclasses / Pydantic internes</strong> : <code class="docutils literal notranslate"><span class="pre">Attributes:</span></code> pour les champs non
-evidents uniquement.</p></li>
-<li><p><strong>Enums</strong> : docstring d’une ligne en francais.</p></li>
-<li><p><strong>Callbacks Dash</strong> : documenter les inputs/outputs Dash et l’effet metier.</p></li>
-<li><p><strong>Prompts LLM</strong> : ne pas documenter les chaines de prompt.</p></li>
-<li><p><strong>Pas de docstring triviale</strong> : ne pas ecrire <code class="docutils literal notranslate"><span class="pre">&quot;&quot;&quot;Retourne</span> <span class="pre">True.&quot;&quot;&quot;</span></code> quand
-le nom de la fonction est deja explicite.</p></li>
+évidents uniquement.</p></li>
+<li><p><strong>Enums</strong> : docstring d’une ligne en français.</p></li>
+<li><p><strong>Rappels Dash</strong> : documenter les entrées, les sorties et l’effet métier.</p></li>
+<li><p><strong>Consignes LLM</strong> : ne pas documenter les chaînes de consigne.</p></li>
+<li><p><strong>Pas de docstring triviale</strong> : ne pas écrire <code class="docutils literal notranslate"><span class="pre">&quot;&quot;&quot;Retourne</span> <span class="pre">True.&quot;&quot;&quot;</span></code> quand
+le nom de la fonction est déjà explicite.</p></li>
 </ul>
 </section>
 </section>
@@ -154,8 +154,8 @@ le nom de la fonction est deja explicite.</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
-        <a href="ARCHITECTURE_TECHNIQUE.html" class="btn btn-neutral float-left" title="Architecture technique du système de vigilance bancaire" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
-        <a href="api/index.html" class="btn btn-neutral float-right" title="Reference API" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="ARCHITECTURE_TECHNIQUE.html" class="btn btn-neutral float-left" title="Architecture technique de Vigie de paire" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="api/index.html" class="btn btn-neutral float-right" title="Référence technique" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

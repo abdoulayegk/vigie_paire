@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>vigilance.utils package &mdash; Documentation bank-peer-vigilance </title>
+  <title>Utilitaires &mdash; Vigie de paire - documentation technique</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -21,7 +21,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Recherche" href="../search.html" />
-    <link rel="prev" title="vigilance.report package" href="vigilance.report.html" /> 
+    <link rel="prev" title="Extraction texte" href="vigilance.text_extraction.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -33,7 +33,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            bank-peer-vigilance
+            Vigie de paire
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -45,45 +45,47 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique du système de vigilance bancaire</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention docstrings – Vigie Paire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique de Vigie de paire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention des docstrings – Vigie de paire</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<p class="caption" role="heading"><span class="caption-text">Référence technique</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference API</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="modules.html">vigilance</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="vigilance.html">vigilance package</a><ul class="current">
-<li class="toctree-l4 current"><a class="reference internal" href="vigilance.html#subpackages">Subpackages</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">vigilance.compare_gpt module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">vigilance.comparison_analyst module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">vigilance.comparison_canonical module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">vigilance.comparison_devil_advocate module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">vigilance.comparison_diff_gpt module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">vigilance.comparison_inspector module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">vigilance.comparison_io module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">vigilance.comparison_matching module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">vigilance.comparison_metrics module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">vigilance.comparison_noise_filter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">vigilance.comparison_runner module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">vigilance.comparison_visual_sanity module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">vigilance.extraction_storage module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">vigilance.genai_summary module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">vigilance.genai_triage module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">vigilance.quarter_utils module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">vigilance.review_adapters module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">vigilance.review_export module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">vigilance.review_models module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">vigilance.review_models_v2 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">vigilance.review_priority module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">vigilance.review_queue_normalizer module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">vigilance.review_state module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">vigilance.review_storage module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">vigilance.ui_config module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">vigilance.ui_detection module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">vigilance.ui_indicators module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">vigilance.ui_io module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Référence technique</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">Moteur applicatif</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vigilance.html">Moteur applicatif</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vigilance.html#composants">Composants</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.amf_taxonomy">amf_taxonomy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">compare_gpt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">comparison_analyst</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">comparison_canonical</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_excel">comparison_excel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">comparison_devil_advocate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">comparison_diff_gpt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">comparison_inspector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">comparison_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">comparison_matching</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">comparison_metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">comparison_noise_filter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">comparison_runner</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">comparison_visual_sanity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">extraction_storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">genai_summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">genai_triage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">quarter_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">review_adapters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">review_export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">review_models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">review_models_v2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">review_priority</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">review_queue_normalizer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">review_state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">review_storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.text_analysis_pipeline">text_analysis_pipeline</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">ui_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">ui_detection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">ui_indicators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">ui_io</a></li>
 </ul>
 </li>
 </ul>
@@ -98,7 +100,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">bank-peer-vigilance</a>
+          <a href="../index.html">Vigie de paire</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -106,12 +108,11 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="index.html">Reference API</a></li>
-          <li class="breadcrumb-item"><a href="modules.html">vigilance</a></li>
-          <li class="breadcrumb-item"><a href="vigilance.html">vigilance package</a></li>
-      <li class="breadcrumb-item active">vigilance.utils package</li>
+          <li class="breadcrumb-item"><a href="index.html">Référence technique</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Moteur applicatif</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.html">Moteur applicatif</a></li>
+      <li class="breadcrumb-item active">Utilitaires</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/vigilance.utils.rst.txt" rel="nofollow"> Afficher la source de la page</a>
       </li>
   </ul>
   <hr/>
@@ -119,17 +120,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="vigilance-utils-package">
-<h1>vigilance.utils package<a class="headerlink" href="#vigilance-utils-package" title="Lien vers cette rubrique"></a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Lien vers cette rubrique"></a></h2>
+  <section id="utilitaires">
+<h1>Utilitaires<a class="headerlink" href="#utilitaires" title="Lien vers cette rubrique"></a></h1>
+<section id="modules">
+<h2>Modules<a class="headerlink" href="#modules" title="Lien vers cette rubrique"></a></h2>
 </section>
 <section id="module-vigilance.utils.feature_flags">
-<span id="vigilance-utils-feature-flags-module"></span><h2>vigilance.utils.feature_flags module<a class="headerlink" href="#module-vigilance.utils.feature_flags" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-feature-flags"></span><h2>utils.feature_flags<a class="headerlink" href="#module-vigilance.utils.feature_flags" title="Lien vers cette rubrique"></a></h2>
 <p>Drapeaux de fonctionnalite pour l’extraction et le comportement du cache.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.feature_flags.extraction_cache_mode_tag">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.feature_flags.</span></span><span class="sig-name descname"><span class="pre">extraction_cache_mode_tag</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.feature_flags.extraction_cache_mode_tag" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">extraction_cache_mode_tag</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.feature_flags.extraction_cache_mode_tag" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne un tag utilise dans les cles de cache pour invalider le cache lors d’un changement de mode d’extraction.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
@@ -140,11 +141,11 @@
 
 </section>
 <section id="module-vigilance.utils.footnotes_utils">
-<span id="vigilance-utils-footnotes-utils-module"></span><h2>vigilance.utils.footnotes_utils module<a class="headerlink" href="#module-vigilance.utils.footnotes_utils" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-footnotes-utils"></span><h2>utils.footnotes_utils<a class="headerlink" href="#module-vigilance.utils.footnotes_utils" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires de conversion des notes de bas de page.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.footnotes_utils.count_stringified_dict_suspects">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.footnotes_utils.</span></span><span class="sig-name descname"><span class="pre">count_stringified_dict_suspects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.footnotes_utils.count_stringified_dict_suspects" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">count_stringified_dict_suspects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.footnotes_utils.count_stringified_dict_suspects" title="Lien vers cette définition"></a></dt>
 <dd><p>Compte les entrees qui ressemblent a des payloads dict sous forme de chaine (metrique d’audit).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -161,7 +162,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.footnotes_utils.footnotes_list_to_dict">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.footnotes_utils.</span></span><span class="sig-name descname"><span class="pre">footnotes_list_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.footnotes_utils.footnotes_list_to_dict" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">footnotes_list_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.footnotes_utils.footnotes_list_to_dict" title="Lien vers cette définition"></a></dt>
 <dd><p>Convertit un payload de notes sous forme de liste en un dict stable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -178,7 +179,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.footnotes_utils.normalize_footnotes_to_canonical">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.footnotes_utils.</span></span><span class="sig-name descname"><span class="pre">normalize_footnotes_to_canonical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.footnotes_utils.normalize_footnotes_to_canonical" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">normalize_footnotes_to_canonical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.footnotes_utils.normalize_footnotes_to_canonical" title="Lien vers cette définition"></a></dt>
 <dd><p>Convertit les notes de bas de page de divers formats vers une liste canonique de dicts avec id et text.</p>
 <p>Gere :
 - None ou vide -&gt; []
@@ -200,11 +201,11 @@
 
 </section>
 <section id="module-vigilance.utils.genai">
-<span id="vigilance-utils-genai-module"></span><h2>vigilance.utils.genai module<a class="headerlink" href="#module-vigilance.utils.genai" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-genai"></span><h2>utils.genai<a class="headerlink" href="#module-vigilance.utils.genai" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires d’environnement pour l’IA generative.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.genai.get_openai_api_key">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.genai.</span></span><span class="sig-name descname"><span class="pre">get_openai_api_key</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.genai.get_openai_api_key" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_openai_api_key</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.genai.get_openai_api_key" title="Lien vers cette définition"></a></dt>
 <dd><p>Lit la cle API OpenAI depuis l’environnement (.env charge a l’import si dotenv est disponible).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
@@ -218,7 +219,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.genai.is_genai_configured">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.genai.</span></span><span class="sig-name descname"><span class="pre">is_genai_configured</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.genai.is_genai_configured" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">is_genai_configured</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.genai.is_genai_configured" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne True lorsqu’une cle API GenAI est disponible.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
@@ -229,11 +230,11 @@
 
 </section>
 <section id="module-vigilance.utils.indicator_cleaner">
-<span id="vigilance-utils-indicator-cleaner-module"></span><h2>vigilance.utils.indicator_cleaner module<a class="headerlink" href="#module-vigilance.utils.indicator_cleaner" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-indicator-cleaner"></span><h2>utils.indicator_cleaner<a class="headerlink" href="#module-vigilance.utils.indicator_cleaner" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires de nettoyage des libelles d’indicateurs et titres de tableaux.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.clean_spaced_out_text">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">clean_spaced_out_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.clean_spaced_out_text" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">clean_spaced_out_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.clean_spaced_out_text" title="Lien vers cette définition"></a></dt>
 <dd><p>Recombine les lettres isolees issues de l’OCR : <code class="docutils literal notranslate"><span class="pre">T</span> <span class="pre">o</span> <span class="pre">t</span> <span class="pre">a</span> <span class="pre">l</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Total</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">s</span> <span class="pre">s</span> <span class="pre">e</span> <span class="pre">t</span> <span class="pre">s</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Assets</span></code>.</p>
 <p>Gere les artefacts OCR ou les lettres sont incorrectement separees par des espaces.
 Fusionne uniquement les jetons alphabetiques mono-caractere consecutifs (preserve <code class="docutils literal notranslate"><span class="pre">A</span></code>
@@ -253,7 +254,7 @@ dans <code class="docutils literal notranslate"><span class="pre">Section</span>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.clean_table_title_contamination">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">clean_table_title_contamination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.clean_table_title_contamination" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">clean_table_title_contamination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.clean_table_title_contamination" title="Lien vers cette définition"></a></dt>
 <dd><p>Supprime la contamination par montants/valeurs de colonnes d’un titre de tableau.</p>
 <ul class="simple">
 <li><p>Retire les suites numeriques en fin (nombres multiples, ex. <code class="docutils literal notranslate"><span class="pre">79</span> <span class="pre">772</span> <span class="pre">76</span> <span class="pre">163</span></code>).</p></li>
@@ -276,13 +277,13 @@ dans <code class="docutils literal notranslate"><span class="pre">Section</span>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.collapse_redundant_parenthetical_expansion">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">collapse_redundant_parenthetical_expansion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.collapse_redundant_parenthetical_expansion" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">collapse_redundant_parenthetical_expansion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.collapse_redundant_parenthetical_expansion" title="Lien vers cette définition"></a></dt>
 <dd><p>Reduit <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">(X</span> <span class="pre">...)</span></code> en la forme developpee <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">...</span></code>.</p>
-<p>Exemple :
-- <code class="docutils literal notranslate"><span class="pre">Fonds</span> <span class="pre">propres</span> <span class="pre">de</span> <span class="pre">categorie</span> <span class="pre">1</span> <span class="pre">(fonds</span> <span class="pre">propres</span> <span class="pre">de</span> <span class="pre">categorie</span> <span class="pre">1</span> <span class="pre">sous</span> <span class="pre">forme</span> <span class="pre">...)</span></code></p>
-<blockquote>
-<div><p>-&gt; <code class="docutils literal notranslate"><span class="pre">fonds</span> <span class="pre">propres</span> <span class="pre">de</span> <span class="pre">categorie</span> <span class="pre">1</span> <span class="pre">sous</span> <span class="pre">forme</span> <span class="pre">...</span></code></p>
-</div></blockquote>
+<p>Exemple:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Fonds</span> <span class="n">propres</span> <span class="n">de</span> <span class="n">categorie</span> <span class="mi">1</span> <span class="p">(</span><span class="n">fonds</span> <span class="n">propres</span> <span class="n">de</span> <span class="n">categorie</span> <span class="mi">1</span> <span class="n">sous</span> <span class="n">forme</span> <span class="o">...</span><span class="p">)</span>
+<span class="o">-&gt;</span> <span class="n">fonds</span> <span class="n">propres</span> <span class="n">de</span> <span class="n">categorie</span> <span class="mi">1</span> <span class="n">sous</span> <span class="n">forme</span> <span class="o">...</span>
+</pre></div>
+</div>
 <p>Neutralise les parenthetiques explicatives qui repetent le meme prefixe
 semantique et gonfleraient sinon les scores de renommage flou.</p>
 <dl class="field-list simple">
@@ -300,7 +301,7 @@ semantique et gonfleraient sinon les scores de renommage flou.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.collapse_redundant_separator_expansion">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">collapse_redundant_separator_expansion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.collapse_redundant_separator_expansion" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">collapse_redundant_separator_expansion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.collapse_redundant_separator_expansion" title="Lien vers cette définition"></a></dt>
 <dd><p>Reduit <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">:</span> <span class="pre">X</span> <span class="pre">...</span></code> ou <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">-</span> <span class="pre">X</span> <span class="pre">...</span></code> en le suffixe developpe.</p>
 <p>L’extraction OCR/layout produit parfois un titre court suivi d’un segment
 explicatif repete, separe par <code class="docutils literal notranslate"><span class="pre">:</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code> ou un tiret cadratin.
@@ -320,7 +321,7 @@ On conserve la forme developpee quand le suffixe reexprime clairement le meme pr
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.dedupe_indicators">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">dedupe_indicators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.dedupe_indicators" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">dedupe_indicators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.dedupe_indicators" title="Lien vers cette définition"></a></dt>
 <dd><p>Supprime les doublons exacts en preservant l’ordre. Normalise les espaces pour la comparaison.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -342,7 +343,7 @@ le ratio &gt;= seuil.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.insert_space_after_change_tag">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">insert_space_after_change_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.insert_space_after_change_tag" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">insert_space_after_change_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.insert_space_after_change_tag" title="Lien vers cette définition"></a></dt>
 <dd><p>Insere un espace apres AJOUT/SUPPRESSION/RENOMMAGE si directement suivi d’une lettre.</p>
 <p>Gere les indicateurs comme <code class="docutils literal notranslate"><span class="pre">AJOUTactions</span> <span class="pre">ordinaires</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">AJOUT</span> <span class="pre">actions</span> <span class="pre">ordinaires</span></code>.</p>
 <dl class="field-list simple">
@@ -360,7 +361,7 @@ le ratio &gt;= seuil.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.is_header_footer_table_title">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">is_header_footer_table_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.is_header_footer_table_title" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">is_header_footer_table_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.is_header_footer_table_title" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne True si le titre est un en-tete/pied de page (num page + banque + trimestre), non semantique.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -380,7 +381,7 @@ le ratio &gt;= seuil.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.is_table_title_contaminated">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">is_table_title_contaminated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">numeric_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing_numbers_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long_run_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.is_table_title_contaminated" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">is_table_title_contaminated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">numeric_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing_numbers_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long_run_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.is_table_title_contaminated" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne True si le titre de tableau semble contamine par des valeurs numeriques (montants/colonnes).</p>
 <p>Contamination : longue suite numerique (3+ nombres), ou &gt;40 % des jetons sont des nombres,
 ou se termine par 2+ nombres.</p>
@@ -404,7 +405,7 @@ ou se termine par 2+ nombres.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.is_trailing_number_semantic">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">is_trailing_number_semantic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.is_trailing_number_semantic" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">is_trailing_number_semantic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.is_trailing_number_semantic" title="Lien vers cette définition"></a></dt>
 <dd><p>Detecte les cas ou les nombres en fin de chaine sont semantiquement pertinents.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -421,7 +422,7 @@ ou se termine par 2+ nombres.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.merge_line_split_indicators">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">merge_line_split_indicators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_combined_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.merge_line_split_indicators" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">merge_line_split_indicators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_combined_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.merge_line_split_indicators" title="Lien vers cette définition"></a></dt>
 <dd><p>Fusionne les lignes d’indicateurs lorsque la ligne suivante est probablement une continuation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -441,7 +442,7 @@ ou se termine par 2+ nombres.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.normalize_indicator_for_comparison">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">normalize_indicator_for_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.normalize_indicator_for_comparison" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">normalize_indicator_for_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.normalize_indicator_for_comparison" title="Lien vers cette définition"></a></dt>
 <dd><p>Cle canonique unique pour la comparaison d’indicateurs (premiere colonne).</p>
 <p>Utilisee par <code class="docutils literal notranslate"><span class="pre">comparison_runner</span></code> et <code class="docutils literal notranslate"><span class="pre">structural_comparator</span></code> pour que le meme
 libelle semantique (ex. <code class="docutils literal notranslate"><span class="pre">Metaux</span> <span class="pre">precieux</span></code> vs <code class="docutils literal notranslate"><span class="pre">Metaux</span> <span class="pre">precieux</span> <span class="pre">:</span></code>) produise
@@ -468,7 +469,7 @@ une seule cle et evite les faux ajouts/suppressions dans le detail des changemen
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.normalize_indicator_variants">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">normalize_indicator_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.normalize_indicator_variants" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">normalize_indicator_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.normalize_indicator_variants" title="Lien vers cette définition"></a></dt>
 <dd><p>Normalise les variantes d’indicateur en une chaine canonique.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -485,7 +486,7 @@ une seule cle et evite les faux ajouts/suppressions dans le detail des changemen
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.post_normalize_indicator">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">post_normalize_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.post_normalize_indicator" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">post_normalize_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.post_normalize_indicator" title="Lien vers cette définition"></a></dt>
 <dd><p>Applique le decoupage camelCase et la correction d’espace de tag apres normalisation canonique.</p>
 <p>Doit etre appele sur la valeur d’indicateur <em>nettoyee</em>, pas brute.</p>
 <dl class="field-list simple">
@@ -503,7 +504,7 @@ une seule cle et evite les faux ajouts/suppressions dans le detail des changemen
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.singularize_words">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">singularize_words</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.singularize_words" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">singularize_words</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.singularize_words" title="Lien vers cette définition"></a></dt>
 <dd><p>Retire le “s” final des mots pour neutraliser les variations pluriel/singulier.</p>
 <p>Gere : <code class="docutils literal notranslate"><span class="pre">actions</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">actifs</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">actif</span></code>, <code class="docutils literal notranslate"><span class="pre">garantis</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">garanti</span></code>.
 Preserve les mots ou le “s” final est inherent (frais, cours, mois, fonds, etc.).
@@ -523,7 +524,7 @@ N’opere que sur les mots de plus de 3 caracteres pour eviter de casser les mot
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.split_camel_case_concatenation">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">split_camel_case_concatenation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.split_camel_case_concatenation" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">split_camel_case_concatenation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.split_camel_case_concatenation" title="Lien vers cette définition"></a></dt>
 <dd><p>Insere un espace aux frontieres minuscule-majuscule.</p>
 <p>Gere les jetons concatenes comme <code class="docutils literal notranslate"><span class="pre">impotAJOUTactions</span></code> ou <code class="docutils literal notranslate"><span class="pre">fondsPropresTier1</span></code>.</p>
 <dl class="field-list simple">
@@ -541,7 +542,7 @@ N’opere que sur les mots de plus de 3 caracteres pour eviter de casser les mot
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.strip_dates_from_indicator_label">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">strip_dates_from_indicator_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_dates_from_indicator_label" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">strip_dates_from_indicator_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_dates_from_indicator_label" title="Lien vers cette définition"></a></dt>
 <dd><p>Supprime les fragments de date/temporels des libelles d’indicateurs (premiere colonne).</p>
 <p>Gere : dates autonomes (<code class="docutils literal notranslate"><span class="pre">Au</span> <span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code>), suffixes (<code class="docutils literal notranslate"><span class="pre">Prets</span> <span class="pre">garantis</span> <span class="pre">au</span> <span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code>),
 prefixes et formats multiples (FR, ISO, numerique, abreviations, periodes).
@@ -561,7 +562,7 @@ Retourne une chaine vide si le libelle est purement une expression de date.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.strip_dates_from_table_title">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">strip_dates_from_table_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_dates_from_table_title" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">strip_dates_from_table_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_dates_from_table_title" title="Lien vers cette définition"></a></dt>
 <dd><p>Supprime les fragments de type date des titres de tableaux (CIBC, RBC).</p>
 <p>Gere : <code class="docutils literal notranslate"><span class="pre">au</span> <span class="pre">31</span> <span class="pre">octobre...</span></code>, <code class="docutils literal notranslate"><span class="pre">31</span> <span class="pre">janvier</span> <span class="pre">2025</span></code>, <code class="docutils literal notranslate"><span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code> en debut/fin.</p>
 <dl class="field-list simple">
@@ -579,7 +580,7 @@ Retourne une chaine vide si le libelle est purement une expression de date.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.strip_note_refs_from_title">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">strip_note_refs_from_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_note_refs_from_title" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">strip_note_refs_from_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_note_refs_from_title" title="Lien vers cette définition"></a></dt>
 <dd><p>Supprime les references de notes en fin de titre de tableau (ex. <code class="docutils literal notranslate"><span class="pre">NOTATIONS</span> <span class="pre">DE</span> <span class="pre">CREDIT1</span></code>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -596,7 +597,7 @@ Retourne une chaine vide si le libelle est purement une expression de date.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.strip_trailing_note_or_column_value">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">strip_trailing_note_or_column_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_trailing_note_or_column_value" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">strip_trailing_note_or_column_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_trailing_note_or_column_value" title="Lien vers cette définition"></a></dt>
 <dd><p>Supprime les marqueurs de note en fin de chaine et les residus de colonnes numeriques.</p>
 <p>Inclut la suppression (style Jad) des chiffres colles au dernier mot (sans espace) :
 ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <span class="pre">des</span> <span class="pre">actifs1</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Total</span> <span class="pre">des</span> <span class="pre">actifs</span></code>, <code class="docutils literal notranslate"><span class="pre">Revenue2024</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Revenue</span></code>.</p>
@@ -615,7 +616,7 @@ ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <s
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.strip_units_currency_from_indicator_label">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">strip_units_currency_from_indicator_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_units_currency_from_indicator_label" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">strip_units_currency_from_indicator_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_units_currency_from_indicator_label" title="Lien vers cette définition"></a></dt>
 <dd><p>Supprime les mentions d’unite/devise des libelles d’indicateurs (premiere colonne).</p>
 <p>Retire : <code class="docutils literal notranslate"><span class="pre">en</span> <span class="pre">millions</span> <span class="pre">de</span> <span class="pre">dollars</span></code>, <code class="docutils literal notranslate"><span class="pre">(M$)</span></code>, <code class="docutils literal notranslate"><span class="pre">(CAD)</span></code>, <code class="docutils literal notranslate"><span class="pre">(%)</span></code>, <code class="docutils literal notranslate"><span class="pre">en</span> <span class="pre">milliers</span></code>,
 <code class="docutils literal notranslate"><span class="pre">points</span> <span class="pre">de</span> <span class="pre">base</span></code>, etc. Preserve le noyau semantique (ex. <code class="docutils literal notranslate"><span class="pre">Ratio</span> <span class="pre">CET1</span></code> de <code class="docutils literal notranslate"><span class="pre">Ratio</span> <span class="pre">CET1</span> <span class="pre">(%)</span></code>).</p>
@@ -634,7 +635,7 @@ ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <s
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_cleaner.strip_units_from_table_title">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_cleaner.</span></span><span class="sig-name descname"><span class="pre">strip_units_from_table_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_units_from_table_title" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">strip_units_from_table_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_cleaner.strip_units_from_table_title" title="Lien vers cette définition"></a></dt>
 <dd><p>Supprime les mentions d’unite des titres de tableaux pour la comparaison semantique (ex. RBC).</p>
 <p>Retire les fragments en debut/fin comme <code class="docutils literal notranslate"><span class="pre">(en</span> <span class="pre">millions)</span></code>, <code class="docutils literal notranslate"><span class="pre">en</span> <span class="pre">$</span></code>, <code class="docutils literal notranslate"><span class="pre">(en</span> <span class="pre">millions</span> <span class="pre">de</span> <span class="pre">dollars)</span></code>.</p>
 <dl class="field-list simple">
@@ -655,11 +656,11 @@ ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <s
 
 </section>
 <section id="module-vigilance.utils.indicator_line_merge">
-<span id="vigilance-utils-indicator-line-merge-module"></span><h2>vigilance.utils.indicator_line_merge module<a class="headerlink" href="#module-vigilance.utils.indicator_line_merge" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-indicator-line-merge"></span><h2>utils.indicator_line_merge<a class="headerlink" href="#module-vigilance.utils.indicator_line_merge" title="Lien vers cette rubrique"></a></h2>
 <p>Fusion deterministe de lignes d’indicateurs fragmentees (heuristiques OCR/Docling securitaires).</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_line_merge.IndicatorLineMergeConfig">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_line_merge.</span></span><span class="sig-name descname"><span class="pre">IndicatorLineMergeConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_next_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_combined_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uppercase_long_tokens_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uppercase_long_char_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_line_merge.IndicatorLineMergeConfig" title="Lien vers cette définition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">IndicatorLineMergeConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_next_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_combined_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uppercase_long_tokens_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uppercase_long_char_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_line_merge.IndicatorLineMergeConfig" title="Lien vers cette définition"></a></dt>
 <dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Configuration pour la fusion deterministe de lignes.</p>
 <dl class="py attribute">
@@ -691,7 +692,7 @@ ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <s
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_line_merge.merge_indicator_lines">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_line_merge.</span></span><span class="sig-name descname"><span class="pre">merge_indicator_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_line_merge.merge_indicator_lines" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">merge_indicator_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_line_merge.merge_indicator_lines" title="Lien vers cette définition"></a></dt>
 <dd><p>Fusionne les lignes d’indicateurs fragmentees avec des regles deterministes et conservatrices.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -711,11 +712,11 @@ ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <s
 
 </section>
 <section id="module-vigilance.utils.indicator_normalizer">
-<span id="vigilance-utils-indicator-normalizer-module"></span><h2>vigilance.utils.indicator_normalizer module<a class="headerlink" href="#module-vigilance.utils.indicator_normalizer" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-indicator-normalizer"></span><h2>utils.indicator_normalizer<a class="headerlink" href="#module-vigilance.utils.indicator_normalizer" title="Lien vers cette rubrique"></a></h2>
 <p>Normalisation d’indicateurs invariante a l’ordre pour l’appariement (canonique + tri par jetons).</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_normalizer.get_canonical_text">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_normalizer.</span></span><span class="sig-name descname"><span class="pre">get_canonical_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_normalizer.get_canonical_text" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_canonical_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_normalizer.get_canonical_text" title="Lien vers cette définition"></a></dt>
 <dd><p>Texte d’indicateur normalise : suppression des marqueurs de note puis normalisation complete.</p>
 <p>Coherent avec le pipeline existant (minuscules, espaces, suppression dates/unites, accents).</p>
 <dl class="field-list simple">
@@ -733,7 +734,7 @@ ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <s
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_normalizer.get_normalized_forms">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_normalizer.</span></span><span class="sig-name descname"><span class="pre">get_normalized_forms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_normalizer.get_normalized_forms" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_normalized_forms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_normalizer.get_normalized_forms" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne <code class="docutils literal notranslate"><span class="pre">(texte_canonique,</span> <span class="pre">texte_trie_par_jetons)</span></code>. Raccourci pour les appelants ayant besoin des deux formes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -750,7 +751,7 @@ ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <s
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_normalizer.get_token_sorted_text">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_normalizer.</span></span><span class="sig-name descname"><span class="pre">get_token_sorted_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_normalizer.get_token_sorted_text" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_token_sorted_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_normalizer.get_token_sorted_text" title="Lien vers cette définition"></a></dt>
 <dd><p>Produire une forme invariante a l’ordre pour un libelle d’indicateur.</p>
 <p>Tokenise le texte canonique, supprime les mots vides et jetons d’unite,
 elimine les jetons majoritairement numeriques, trie alphabetiquement,
@@ -771,7 +772,7 @@ joint avec un espace. Deterministe et compatible avec le francais
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.indicator_normalizer.strip_footnote_markers_from_indicator">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.indicator_normalizer.</span></span><span class="sig-name descname"><span class="pre">strip_footnote_markers_from_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_normalizer.strip_footnote_markers_from_indicator" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">strip_footnote_markers_from_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.indicator_normalizer.strip_footnote_markers_from_indicator" title="Lien vers cette définition"></a></dt>
 <dd><p>Supprime les marqueurs de note de bas de page en fin de chaine ; preserve les nombres semantiques (Tier 1, CET1, etc.).</p>
 <p>Implementation unique partagee par <code class="docutils literal notranslate"><span class="pre">comparison_runner</span></code> et <code class="docutils literal notranslate"><span class="pre">get_canonical_text</span></code>.</p>
 <dl class="field-list simple">
@@ -789,11 +790,11 @@ joint avec un espace. Deterministe et compatible avec le francais
 
 </section>
 <section id="module-vigilance.utils.matching_normalizer">
-<span id="vigilance-utils-matching-normalizer-module"></span><h2>vigilance.utils.matching_normalizer module<a class="headerlink" href="#module-vigilance.utils.matching_normalizer" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-matching-normalizer"></span><h2>utils.matching_normalizer<a class="headerlink" href="#module-vigilance.utils.matching_normalizer" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires de normalisation de texte pour l’appariement de tableaux.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.matching_normalizer.header_schema_similarity">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.matching_normalizer.</span></span><span class="sig-name descname"><span class="pre">header_schema_similarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">headers1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.header_schema_similarity" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">header_schema_similarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">headers1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.header_schema_similarity" title="Lien vers cette définition"></a></dt>
 <dd><p>Compare les schemas d’en-tetes (DATE/YEAR/CURRENCY/PERCENT/TEXT) avec une tolerance de position.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -813,7 +814,7 @@ joint avec un espace. Deterministe et compatible avec le francais
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.matching_normalizer.infer_header_schema">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.matching_normalizer.</span></span><span class="sig-name descname"><span class="pre">infer_header_schema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">headers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.infer_header_schema" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">infer_header_schema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">headers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.infer_header_schema" title="Lien vers cette définition"></a></dt>
 <dd><p>Mappe une ligne d’en-tete vers des types semantiques grossiers pour un appariement robuste.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -830,7 +831,7 @@ joint avec un espace. Deterministe et compatible avec le francais
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.matching_normalizer.infer_header_schema_type">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.matching_normalizer.</span></span><span class="sig-name descname"><span class="pre">infer_header_schema_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.infer_header_schema_type" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">infer_header_schema_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.infer_header_schema_type" title="Lien vers cette définition"></a></dt>
 <dd><p>Infere un type semantique grossier pour une cellule d’en-tete.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -847,7 +848,7 @@ joint avec un espace. Deterministe et compatible avec le francais
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.matching_normalizer.is_date_only_line">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.matching_normalizer.</span></span><span class="sig-name descname"><span class="pre">is_date_only_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.is_date_only_line" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">is_date_only_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.is_date_only_line" title="Lien vers cette définition"></a></dt>
 <dd><p>Detecter si une ligne est purement temporelle, unitaire ou une note.</p>
 <p>Couvre les lignes de date seules, les en-tetes de periode, les en-tetes d’unite monetaire
 comme <code class="docutils literal notranslate"><span class="pre">(en</span> <span class="pre">millions</span> <span class="pre">de</span> <span class="pre">dollars</span> <span class="pre">canadiens)</span> <span class="pre">Au</span> <span class="pre">31</span> <span class="pre">janvier</span> <span class="pre">2025</span></code>, et les lignes de definition
@@ -867,7 +868,7 @@ de notes comme <code class="docutils literal notranslate"><span class="pre">(1)<
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.matching_normalizer.is_generic_title">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.matching_normalizer.</span></span><span class="sig-name descname"><span class="pre">is_generic_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generic_titles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.is_generic_title" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">is_generic_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generic_titles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.is_generic_title" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne True lorsque le titre est trop generique pour etre un identifiant fiable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -887,7 +888,7 @@ de notes comme <code class="docutils literal notranslate"><span class="pre">(1)<
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.matching_normalizer.is_non_indicator_line">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.matching_normalizer.</span></span><span class="sig-name descname"><span class="pre">is_non_indicator_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.is_non_indicator_line" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">is_non_indicator_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.is_non_indicator_line" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne True quand la ligne ne doit pas etre traitee comme un indicateur (totaux, unites, nombres).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -904,7 +905,7 @@ de notes comme <code class="docutils literal notranslate"><span class="pre">(1)<
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.matching_normalizer.normalize_for_matching">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.matching_normalizer.</span></span><span class="sig-name descname"><span class="pre">normalize_for_matching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'generic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.normalize_for_matching" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">normalize_for_matching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'generic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.normalize_for_matching" title="Lien vers cette définition"></a></dt>
 <dd><p>Normalise le texte en une representation stable adaptee a la comparaison.</p>
 <p>Utilisee par <code class="docutils literal notranslate"><span class="pre">normalize_indicator_variants</span></code> dans <code class="docutils literal notranslate"><span class="pre">indicator_cleaner</span></code>. La cle canonique
 pour le diff d’indicateurs est <code class="docutils literal notranslate"><span class="pre">normalize_indicator_for_comparison</span></code> (elision, impot/impots,
@@ -927,7 +928,7 @@ guillemets sont appliques avant/apres cette etape).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.matching_normalizer.normalize_label">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.matching_normalizer.</span></span><span class="sig-name descname"><span class="pre">normalize_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.normalize_label" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">normalize_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.normalize_label" title="Lien vers cette définition"></a></dt>
 <dd><p>Alias utilise par le code de comparaison historique.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
@@ -938,7 +939,7 @@ guillemets sont appliques avant/apres cette etape).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.matching_normalizer.strip_temporal_expressions">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.matching_normalizer.</span></span><span class="sig-name descname"><span class="pre">strip_temporal_expressions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'title'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggressive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.strip_temporal_expressions" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">strip_temporal_expressions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'title'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggressive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.matching_normalizer.strip_temporal_expressions" title="Lien vers cette définition"></a></dt>
 <dd><p>Supprime les fragments de date/trimestre pour conserver le contenu semantique du titre de tableau.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -959,11 +960,11 @@ guillemets sont appliques avant/apres cette etape).</p>
 
 </section>
 <section id="module-vigilance.utils.model_cost">
-<span id="vigilance-utils-model-cost-module"></span><h2>vigilance.utils.model_cost module<a class="headerlink" href="#module-vigilance.utils.model_cost" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-model-cost"></span><h2>utils.model_cost<a class="headerlink" href="#module-vigilance.utils.model_cost" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires d’estimation des couts de tokens OpenAI pour les modeles connus.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.model_cost.estimate_openai_cost_usd">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.model_cost.</span></span><span class="sig-name descname"><span class="pre">estimate_openai_cost_usd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">completion_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.model_cost.estimate_openai_cost_usd" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">estimate_openai_cost_usd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">completion_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.model_cost.estimate_openai_cost_usd" title="Lien vers cette définition"></a></dt>
 <dd><p>Estime le cout API pour les noms de modeles connus.</p>
 <p>Les modeles inconnus retournent <code class="docutils literal notranslate"><span class="pre">0.0</span></code> afin que l’observabilite reste
 sure meme lorsque le modele actif n’est pas encore tarifie localement.</p>
@@ -986,11 +987,11 @@ sure meme lorsque le modele actif n’est pas encore tarifie localement.</p>
 
 </section>
 <section id="module-vigilance.utils.openai_schema">
-<span id="vigilance-utils-openai-schema-module"></span><h2>vigilance.utils.openai_schema module<a class="headerlink" href="#module-vigilance.utils.openai_schema" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-openai-schema"></span><h2>utils.openai_schema<a class="headerlink" href="#module-vigilance.utils.openai_schema" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires de normalisation du JSON Schema Pydantic pour les Structured Outputs OpenAI.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.openai_schema.build_strict_openai_response_format">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.openai_schema.</span></span><span class="sig-name descname"><span class="pre">build_strict_openai_response_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'RuntimeError'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.openai_schema.build_strict_openai_response_format" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">build_strict_openai_response_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'RuntimeError'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.openai_schema.build_strict_openai_response_format" title="Lien vers cette définition"></a></dt>
 <dd><p>Construit un payload <code class="docutils literal notranslate"><span class="pre">response_format</span></code> OpenAI a partir d’un modele Pydantic.</p>
 <p>Le mode strict des Structured Outputs OpenAI exige que chaque noeud objet :
 - declare <code class="docutils literal notranslate"><span class="pre">additionalProperties:</span> <span class="pre">false</span></code>
@@ -1019,7 +1020,7 @@ ce contrat ; on normalise donc ici une seule fois et on reutilise la meme logiqu
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.openai_schema.validate_strict_openai_response_format">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.openai_schema.</span></span><span class="sig-name descname"><span class="pre">validate_strict_openai_response_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'RuntimeError'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.openai_schema.validate_strict_openai_response_format" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">validate_strict_openai_response_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'RuntimeError'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.openai_schema.validate_strict_openai_response_format" title="Lien vers cette définition"></a></dt>
 <dd><p>Valide un payload <code class="docutils literal notranslate"><span class="pre">response_format</span></code> OpenAI strict avant les appels API.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1039,14 +1040,14 @@ ce contrat ; on normalise donc ici une seule fois et on reutilise la meme logiqu
 
 </section>
 <section id="module-vigilance.utils.page_layout_context">
-<span id="vigilance-utils-page-layout-context-module"></span><h2>vigilance.utils.page_layout_context module<a class="headerlink" href="#module-vigilance.utils.page_layout_context" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-page-layout-context"></span><h2>utils.page_layout_context<a class="headerlink" href="#module-vigilance.utils.page_layout_context" title="Lien vers cette rubrique"></a></h2>
 <p>Contexte de mise en page pour les extensions dynamiques de recadrage.</p>
 <p>Utilise les bounding boxes de tableaux detectes par Docling pour calculer les
 extensions optimales haut/bas de chaque recadrage, en evitant les collisions
 avec les tableaux voisins tout en capturant titres et notes de bas de page.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.page_layout_context.build_page_table_map">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.page_layout_context.</span></span><span class="sig-name descname"><span class="pre">build_page_table_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vision_items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.page_layout_context.build_page_table_map" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">build_page_table_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vision_items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.page_layout_context.build_page_table_map" title="Lien vers cette définition"></a></dt>
 <dd><p>Regroupe les bboxes de tableaux par page, tries de haut en bas.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1063,7 +1064,7 @@ avec les tableaux voisins tout en capturant titres et notes de bas de page.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.page_layout_context.compute_dynamic_extensions">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.page_layout_context.</span></span><span class="sig-name descname"><span class="pre">compute_dynamic_extensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_table_map</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_bottom_margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_proximity_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_gap_for_footnotes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.page_layout_context.compute_dynamic_extensions" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">compute_dynamic_extensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_table_map</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_bottom_margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_proximity_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_gap_for_footnotes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.page_layout_context.compute_dynamic_extensions" title="Lien vers cette définition"></a></dt>
 <dd><p>Calcule les extensions dynamiques haut et bas pour un recadrage de tableau.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1090,13 +1091,13 @@ avec les tableaux voisins tout en capturant titres et notes de bas de page.</p>
 
 </section>
 <section id="module-vigilance.utils.pattern_loader">
-<span id="vigilance-utils-pattern-loader-module"></span><h2>vigilance.utils.pattern_loader module<a class="headerlink" href="#module-vigilance.utils.pattern_loader" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-pattern-loader"></span><h2>utils.pattern_loader<a class="headerlink" href="#module-vigilance.utils.pattern_loader" title="Lien vers cette rubrique"></a></h2>
 <p>Chargeur optionnel de patterns d’extraction configurables par banque.</p>
 <p>Si aucun fichier de config ou module externe n’est fourni, get_patterns()
 retourne None; les appelants font alors sans patterns (comportement par defaut).</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pattern_loader.get_patterns">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.pattern_loader.</span></span><span class="sig-name descname"><span class="pre">get_patterns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pattern_loader.get_patterns" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_patterns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pattern_loader.get_patterns" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne les patterns d’extraction pour la banque donnee, ou None si non configures.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1113,11 +1114,11 @@ retourne None; les appelants font alors sans patterns (comportement par defaut).
 
 </section>
 <section id="module-vigilance.utils.pdf_crop">
-<span id="vigilance-utils-pdf-crop-module"></span><h2>vigilance.utils.pdf_crop module<a class="headerlink" href="#module-vigilance.utils.pdf_crop" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-pdf-crop"></span><h2>utils.pdf_crop<a class="headerlink" href="#module-vigilance.utils.pdf_crop" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaire de recadrage de tableaux PDF via PyMuPDF. Rend une region recadree en PNG.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pdf_crop.bbox_sanity_profile">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.pdf_crop.</span></span><span class="sig-name descname"><span class="pre">bbox_sanity_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.bbox_sanity_profile" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">bbox_sanity_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.bbox_sanity_profile" title="Lien vers cette définition"></a></dt>
 <dd><p>Calcule un profil de coherence pour une bbox normalisee [l, t, r, b].</p>
 <p>Utilise pour filtrer la Vision : rejette les bbox trop petites, quasi pleine page
 ou avec un ratio d’aspect extreme.</p>
@@ -1137,7 +1138,7 @@ eventuellement la raison de rejet.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pdf_crop.crop_footnote_region_to_bytes">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.pdf_crop.</span></span><span class="sig-name descname"><span class="pre">crop_footnote_region_to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">footnote_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.crop_footnote_region_to_bytes" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">crop_footnote_region_to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">footnote_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.crop_footnote_region_to_bytes" title="Lien vers cette définition"></a></dt>
 <dd><p>Recadre uniquement la region de notes de bas de page sous un tableau.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1166,7 +1167,7 @@ Si absent, utilise la meme couleur que <code class="docutils literal notranslate
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pdf_crop.crop_table_image">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.pdf_crop.</span></span><span class="sig-name descname"><span class="pre">crop_table_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.crop_table_image" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">crop_table_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.crop_table_image" title="Lien vers cette définition"></a></dt>
 <dd><p>Recadre une region de tableau d’une page PDF et sauvegarde en PNG.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1190,7 +1191,7 @@ Si absent, utilise la meme couleur que <code class="docutils literal notranslate
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pdf_crop.crop_table_region_to_bytes">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.pdf_crop.</span></span><span class="sig-name descname"><span class="pre">crop_table_region_to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizontal_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.crop_table_region_to_bytes" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">crop_table_region_to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizontal_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.crop_table_region_to_bytes" title="Lien vers cette définition"></a></dt>
 <dd><p>Recadre une region de tableau d’une page PDF et retourne les octets PNG.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1223,7 +1224,7 @@ import echoue ou toute exception de recadrage (pas de repli pleine page).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pdf_crop.is_bbox_sane">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.pdf_crop.</span></span><span class="sig-name descname"><span class="pre">is_bbox_sane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.is_bbox_sane" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">is_bbox_sane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.is_bbox_sane" title="Lien vers cette définition"></a></dt>
 <dd><p>Verifie si une bbox normalisee est exploitable pour la Vision.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1245,7 +1246,7 @@ import echoue ou toute exception de recadrage (pas de repli pleine page).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pdf_crop.render_page_with_bbox_highlight_to_bytes">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.pdf_crop.</span></span><span class="sig-name descname"><span class="pre">render_page_with_bbox_highlight_to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.render_page_with_bbox_highlight_to_bytes" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">render_page_with_bbox_highlight_to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.render_page_with_bbox_highlight_to_bytes" title="Lien vers cette définition"></a></dt>
 <dd><p>Rend une page PDF complete en PNG avec un rectangle rouge autour du tableau.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1269,11 +1270,11 @@ import echoue ou toute exception de recadrage (pas de repli pleine page).</p>
 
 </section>
 <section id="module-vigilance.utils.pdf_highlight">
-<span id="vigilance-utils-pdf-highlight-module"></span><h2>vigilance.utils.pdf_highlight module<a class="headerlink" href="#module-vigilance.utils.pdf_highlight" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-pdf-highlight"></span><h2>utils.pdf_highlight<a class="headerlink" href="#module-vigilance.utils.pdf_highlight" title="Lien vers cette rubrique"></a></h2>
 <p>Recherche de texte et surlignage dans une region d’une page PDF via PyMuPDF.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pdf_highlight.find_text_bboxes_in_region">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.pdf_highlight.</span></span><span class="sig-name descname"><span class="pre">find_text_bboxes_in_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text_to_find</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_bbox_norm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_highlight.find_text_bboxes_in_region" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">find_text_bboxes_in_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text_to_find</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_bbox_norm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_highlight.find_text_bboxes_in_region" title="Lien vers cette définition"></a></dt>
 <dd><p>Recherche un texte dans une region contrainte d’une page PDF et retourne les bboxes normalisees.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1296,14 +1297,14 @@ Retourne une liste vide si non trouve.</p>
 
 </section>
 <section id="module-vigilance.utils.pdf_image">
-<span id="vigilance-utils-pdf-image-module"></span><h2>vigilance.utils.pdf_image module<a class="headerlink" href="#module-vigilance.utils.pdf_image" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-pdf-image"></span><h2>utils.pdf_image<a class="headerlink" href="#module-vigilance.utils.pdf_image" title="Lien vers cette rubrique"></a></h2>
 <p>Conversion d’une page PDF en image numpy RGB pour le repli Vision.</p>
 <p>Utilise par docling_processor pour rendre une page avant d’appeler GPT-4 Vision
 sur les tableaux que Docling n’a pas reussi a extraire. Retourne None si PyMuPDF
 ou numpy n’est pas disponible, ou en cas d’erreur.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pdf_image.pdf_page_to_image">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.pdf_image.</span></span><span class="sig-name descname"><span class="pre">pdf_page_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_image.pdf_page_to_image" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">pdf_page_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_image.pdf_page_to_image" title="Lien vers cette définition"></a></dt>
 <dd><p>Rend une page PDF unique sous forme d’image numpy RGB.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1325,11 +1326,11 @@ en cas d’erreur ou si PyMuPDF/numpy n’est pas disponible.</p>
 
 </section>
 <section id="module-vigilance.utils.proof_rendering">
-<span id="vigilance-utils-proof-rendering-module"></span><h2>vigilance.utils.proof_rendering module<a class="headerlink" href="#module-vigilance.utils.proof_rendering" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-proof-rendering"></span><h2>utils.proof_rendering<a class="headerlink" href="#module-vigilance.utils.proof_rendering" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires partages de rendu de preuves utilises par Dash et les pipelines de comparaison.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.proof_rendering.normalize_proof_bbox">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.proof_rendering.</span></span><span class="sig-name descname"><span class="pre">normalize_proof_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.proof_rendering.normalize_proof_bbox" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">normalize_proof_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.proof_rendering.normalize_proof_bbox" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne [l, t, r, b] dans 0..1 si exploitable pour le rendu de preuve.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1346,7 +1347,7 @@ en cas d’erreur ou si PyMuPDF/numpy n’est pas disponible.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.proof_rendering.render_full_proof_bytes">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.proof_rendering.</span></span><span class="sig-name descname"><span class="pre">render_full_proof_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_full_page_fallback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.proof_rendering.render_full_proof_bytes" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">render_full_proof_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_full_page_fallback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.proof_rendering.render_full_proof_bytes" title="Lien vers cette définition"></a></dt>
 <dd><p>Rend une image de preuve pleine page avec surlignage de bbox si disponible.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1373,11 +1374,11 @@ page seule est utilise car la bbox n’est pas disponible.</p>
 
 </section>
 <section id="module-vigilance.utils.pymupdf_utils">
-<span id="vigilance-utils-pymupdf-utils-module"></span><h2>vigilance.utils.pymupdf_utils module<a class="headerlink" href="#module-vigilance.utils.pymupdf_utils" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-pymupdf-utils"></span><h2>utils.pymupdf_utils<a class="headerlink" href="#module-vigilance.utils.pymupdf_utils" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires de configuration du comportement global de PyMuPDF / MuPDF.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pymupdf_utils.configure_mupdf_runtime">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.pymupdf_utils.</span></span><span class="sig-name descname"><span class="pre">configure_mupdf_runtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fitz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pymupdf_utils.configure_mupdf_runtime" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">configure_mupdf_runtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fitz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pymupdf_utils.configure_mupdf_runtime" title="Lien vers cette définition"></a></dt>
 <dd><p>Reduit les avertissements stderr bruyants de MuPDF tout en preservant les exceptions Python.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1391,11 +1392,11 @@ page seule est utilise car la bbox n’est pas disponible.</p>
 
 </section>
 <section id="module-vigilance.utils.rbc_table_signals">
-<span id="vigilance-utils-rbc-table-signals-module"></span><h2>vigilance.utils.rbc_table_signals module<a class="headerlink" href="#module-vigilance.utils.rbc_table_signals" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-rbc-table-signals"></span><h2>utils.rbc_table_signals<a class="headerlink" href="#module-vigilance.utils.rbc_table_signals" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires specifiques RBC pour la fiabilite des titres et la structure de la premiere colonne.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="vigilance.utils.rbc_table_signals.RbcFirstColumnSignals">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.utils.rbc_table_signals.</span></span><span class="sig-name descname"><span class="pre">RbcFirstColumnSignals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators_raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicators_clean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups_raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups_clean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchical_indicator_signature</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.rbc_table_signals.RbcFirstColumnSignals" title="Lien vers cette définition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RbcFirstColumnSignals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators_raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicators_clean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups_raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups_clean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchical_indicator_signature</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.rbc_table_signals.RbcFirstColumnSignals" title="Lien vers cette définition"></a></dt>
 <dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Signaux extraits de la premiere colonne d’un tableau RBC.</p>
 <dl class="py attribute">
@@ -1427,7 +1428,7 @@ page seule est utilise car la bbox n’est pas disponible.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.rbc_table_signals.build_rbc_first_column_signals">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.rbc_table_signals.</span></span><span class="sig-name descname"><span class="pre">build_rbc_first_column_signals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.rbc_table_signals.build_rbc_first_column_signals" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">build_rbc_first_column_signals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.rbc_table_signals.build_rbc_first_column_signals" title="Lien vers cette définition"></a></dt>
 <dd><p>Separe le contenu de la premiere colonne RBC en indicateurs et groupes structurels.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1448,7 +1449,7 @@ les groupes et la signature hierarchique.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.rbc_table_signals.classify_rbc_title_reliability">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.rbc_table_signals.</span></span><span class="sig-name descname"><span class="pre">classify_rbc_title_reliability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.rbc_table_signals.classify_rbc_title_reliability" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">classify_rbc_title_reliability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.rbc_table_signals.classify_rbc_title_reliability" title="Lien vers cette définition"></a></dt>
 <dd><p>Classifie la fiabilite d’un titre RBC.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1470,7 +1471,7 @@ l’utilitaire reste sur comme repli.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.rbc_table_signals.is_rbc_bank">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.rbc_table_signals.</span></span><span class="sig-name descname"><span class="pre">is_rbc_bank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.rbc_table_signals.is_rbc_bank" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">is_rbc_bank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.rbc_table_signals.is_rbc_bank" title="Lien vers cette définition"></a></dt>
 <dd><p>Verifie si le code banque correspond a RBC.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
@@ -1481,7 +1482,7 @@ l’utilitaire reste sur comme repli.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.rbc_table_signals.is_unreliable_rbc_title">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.rbc_table_signals.</span></span><span class="sig-name descname"><span class="pre">is_unreliable_rbc_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.rbc_table_signals.is_unreliable_rbc_title" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">is_unreliable_rbc_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.rbc_table_signals.is_unreliable_rbc_title" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne <code class="docutils literal notranslate"><span class="pre">True</span></code> si le titre RBC est absent ou non fiable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
@@ -1492,11 +1493,11 @@ l’utilitaire reste sur comme repli.</p>
 
 </section>
 <section id="module-vigilance.utils.table_page_structure">
-<span id="vigilance-utils-table-page-structure-module"></span><h2>vigilance.utils.table_page_structure module<a class="headerlink" href="#module-vigilance.utils.table_page_structure" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-table-page-structure"></span><h2>utils.table_page_structure<a class="headerlink" href="#module-vigilance.utils.table_page_structure" title="Lien vers cette rubrique"></a></h2>
 <p>Metadonnees de structure locale par page pour les tableaux (ordre vertical, role) pour l’appariement intra-page.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.table_page_structure.derive_page_local_structure">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.table_page_structure.</span></span><span class="sig-name descname"><span class="pre">derive_page_local_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tables</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.table_page_structure.derive_page_local_structure" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">derive_page_local_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tables</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.table_page_structure.derive_page_local_structure" title="Lien vers cette définition"></a></dt>
 <dd><p>Calcule la structure locale par page pour chaque tableau : index, compteur, bbox_top, role.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1521,7 +1522,7 @@ l’utilitaire reste sur comme repli.</p>
 
 </section>
 <section id="module-vigilance.utils.text_normalize_base">
-<span id="vigilance-utils-text-normalize-base-module"></span><h2>vigilance.utils.text_normalize_base module<a class="headerlink" href="#module-vigilance.utils.text_normalize_base" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-text-normalize-base"></span><h2>utils.text_normalize_base<a class="headerlink" href="#module-vigilance.utils.text_normalize_base" title="Lien vers cette rubrique"></a></h2>
 <p>Normalisation de base partagee pour la comparaison de texte entre indicateurs et notes.</p>
 <p>Source unique de verite pour : suppression des accents, canonicalisation des
 apostrophes, reduction elision+espace, et normalisation des espaces. Utilise
@@ -1530,7 +1531,7 @@ vision_indicator_added_validator et footnotes_utils pour eliminer les faux
 positifs lies a la variance de caracteres/encodages.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.text_normalize_base.normalize_text_base">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.text_normalize_base.</span></span><span class="sig-name descname"><span class="pre">normalize_text_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowercase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.text_normalize_base.normalize_text_base" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">normalize_text_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowercase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.text_normalize_base.normalize_text_base" title="Lien vers cette définition"></a></dt>
 <dd><p>Normalise le texte pour une comparaison stable : accents, apostrophes, elision, espaces.</p>
 <p>Quand <code class="docutils literal notranslate"><span class="pre">lowercase=True</span></code> (defaut), met aussi en minuscules (matching, notes, bbox).
 Quand <code class="docutils literal notranslate"><span class="pre">lowercase=False</span></code>, preserve la casse pour la passe initiale d’indicator_cleaner
@@ -1559,11 +1560,11 @@ afin que les regex en aval (dates, unites, numeros de lignes) conservent le comp
 
 </section>
 <section id="module-vigilance.utils.text_normalizer">
-<span id="vigilance-utils-text-normalizer-module"></span><h2>vigilance.utils.text_normalizer module<a class="headerlink" href="#module-vigilance.utils.text_normalizer" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-text-normalizer"></span><h2>utils.text_normalizer<a class="headerlink" href="#module-vigilance.utils.text_normalizer" title="Lien vers cette rubrique"></a></h2>
 <p>Normaliseur de texte utilise par les modules de comparaison historiques.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="vigilance.utils.text_normalizer.TextNormalizer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.utils.text_normalizer.</span></span><span class="sig-name descname"><span class="pre">TextNormalizer</span></span><a class="headerlink" href="#vigilance.utils.text_normalizer.TextNormalizer" title="Lien vers cette définition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TextNormalizer</span></span><a class="headerlink" href="#vigilance.utils.text_normalizer.TextNormalizer" title="Lien vers cette définition"></a></dt>
 <dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Wrapper de compatibilite pour les utilitaires de normalisation statique historiques.</p>
 <dl class="py method">
@@ -1603,11 +1604,11 @@ afin que les regex en aval (dates, unites, numeros de lignes) conservent le comp
 
 </section>
 <section id="module-vigilance.utils.type_metier">
-<span id="vigilance-utils-type-metier-module"></span><h2>vigilance.utils.type_metier module<a class="headerlink" href="#module-vigilance.utils.type_metier" title="Lien vers cette rubrique"></a></h2>
+<span id="utils-type-metier"></span><h2>utils.type_metier<a class="headerlink" href="#module-vigilance.utils.type_metier" title="Lien vers cette rubrique"></a></h2>
 <p>Utilitaires de correspondance entre sections et types metier.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.type_metier.compute_type_metier">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.type_metier.</span></span><span class="sig-name descname"><span class="pre">compute_type_metier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">change_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.type_metier.compute_type_metier" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">compute_type_metier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">change_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.type_metier.compute_type_metier" title="Lien vers cette définition"></a></dt>
 <dd><p>Associe une section ou un type de changement a un code de famille metier.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -1621,440 +1622,6 @@ afin que les regex en aval (dates, unites, numeros de lignes) conservent le comp
 </dd>
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Code famille metier</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<section id="module-vigilance.utils">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vigilance.utils" title="Lien vers cette rubrique"></a></h2>
-<p>Utilitaires partages par les modules de comparaison.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="vigilance.utils.TextNormalizer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">TextNormalizer</span></span><a class="headerlink" href="#vigilance.utils.TextNormalizer" title="Lien vers cette définition"></a></dt>
-<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Wrapper de compatibilite pour les utilitaires de normalisation statique historiques.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="vigilance.utils.TextNormalizer.normalize">
-<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">normalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggressive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lowercase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.TextNormalizer.normalize" title="Lien vers cette définition"></a></dt>
-<dd><p>Normalise un texte pour la comparaison.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte brut a normaliser.</p></li>
-<li><p><strong>aggressive</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Si <code class="docutils literal notranslate"><span class="pre">True</span></code>, supprime les mots-outils francais courants.</p></li>
-<li><p><strong>remove_notes</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Si <code class="docutils literal notranslate"><span class="pre">True</span></code>, supprime les marqueurs de notes de bas de page.</p></li>
-<li><p><strong>lowercase</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Si <code class="docutils literal notranslate"><span class="pre">False</span></code>, retourne en majuscules au lieu de minuscules.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Texte normalise.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vigilance.utils.TextNormalizer.normalize_indicator">
-<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">normalize_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.TextNormalizer.normalize_indicator" title="Lien vers cette définition"></a></dt>
-<dd><p>Normalise un indicateur de maniere agressive (notes supprimees, mots-outils retires).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.clean_spaced_out_text">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">clean_spaced_out_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.clean_spaced_out_text" title="Lien vers cette définition"></a></dt>
-<dd><p>Recombine les lettres isolees issues de l’OCR : <code class="docutils literal notranslate"><span class="pre">T</span> <span class="pre">o</span> <span class="pre">t</span> <span class="pre">a</span> <span class="pre">l</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Total</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">s</span> <span class="pre">s</span> <span class="pre">e</span> <span class="pre">t</span> <span class="pre">s</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Assets</span></code>.</p>
-<p>Gere les artefacts OCR ou les lettres sont incorrectement separees par des espaces.
-Fusionne uniquement les jetons alphabetiques mono-caractere consecutifs (preserve <code class="docutils literal notranslate"><span class="pre">A</span></code>
-dans <code class="docutils literal notranslate"><span class="pre">Section</span> <span class="pre">A</span></code>, etc., quand il est suivi d’un jeton multi-caractere).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte potentiellement contamine par un espacement lettre a lettre.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Texte avec les lettres isolees recombinees en mots.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.clean_table_title_contamination">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">clean_table_title_contamination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.clean_table_title_contamination" title="Lien vers cette définition"></a></dt>
-<dd><p>Supprime la contamination par montants/valeurs de colonnes d’un titre de tableau.</p>
-<ul class="simple">
-<li><p>Retire les suites numeriques en fin (nombres multiples, ex. <code class="docutils literal notranslate"><span class="pre">79</span> <span class="pre">772</span> <span class="pre">76</span> <span class="pre">163</span></code>).</p></li>
-<li><p>Retire les suites numeriques en debut si presentes.</p></li>
-<li><p>Preserve les vrais marqueurs de note : <code class="docutils literal notranslate"><span class="pre">(1)</span></code>, <code class="docutils literal notranslate"><span class="pre">(2)</span></code> en fin sont conserves
-(geres par l’appelant ou <code class="docutils literal notranslate"><span class="pre">strip_note_refs</span></code>).</p></li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau brut.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Titre nettoye sans contamination numerique.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.compute_type_metier">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">compute_type_metier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">change_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.compute_type_metier" title="Lien vers cette définition"></a></dt>
-<dd><p>Associe une section ou un type de changement a un code de famille metier.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>section</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Nom de section brut (ex. <code class="docutils literal notranslate"><span class="pre">&quot;regulatory_updates&quot;</span></code>).</p></li>
-<li><p><strong>change_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Type de changement brut (ex. <code class="docutils literal notranslate"><span class="pre">&quot;reg_update&quot;</span></code>).</p></li>
-</ul>
-</dd>
-<dt class="field-even">Renvoie<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">&quot;IFC&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;RG&quot;</span></code> ou <code class="docutils literal notranslate"><span class="pre">&quot;PB&quot;</span></code>.</p>
-</dd>
-<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Code famille metier</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.dedupe_indicators">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">dedupe_indicators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.dedupe_indicators" title="Lien vers cette définition"></a></dt>
-<dd><p>Supprime les doublons exacts en preservant l’ordre. Normalise les espaces pour la comparaison.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>indicators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Liste de libelles d’indicateurs bruts.</p></li>
-<li><p><strong>duplicate_ratio_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Seuil de ratio de doublons pour appliquer la deduplication.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(liste_dedoublonnee,</span> <span class="pre">ratio_doublons,</span> <span class="pre">nombre_supprimes)</span></code>.
-<code class="docutils literal notranslate"><span class="pre">ratio_doublons</span> <span class="pre">=</span> <span class="pre">1</span> <span class="pre">-</span> <span class="pre">unique/total</span></code>. La deduplication n’est appliquee que si
-le ratio &gt;= seuil.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.footnotes_list_to_dict">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">footnotes_list_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.footnotes_list_to_dict" title="Lien vers cette définition"></a></dt>
-<dd><p>Convertit un payload de notes sous forme de liste en un dict stable.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Liste brute de notes de bas de page.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionnaire <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">text}</span></code> pour chaque note valide.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.get_openai_api_key">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">get_openai_api_key</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.get_openai_api_key" title="Lien vers cette définition"></a></dt>
-<dd><p>Lit la cle API OpenAI depuis l’environnement (.env charge a l’import si dotenv est disponible).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
-</dd>
-<dt class="field-even">Renvoie<span class="colon">:</span></dt>
-<dd class="field-even"><p>La cle API nettoyee, ou None si absente.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.is_generic_title">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">is_generic_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generic_titles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.is_generic_title" title="Lien vers cette définition"></a></dt>
-<dd><p>Retourne True lorsque le titre est trop generique pour etre un identifiant fiable.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau a evaluer.</p></li>
-<li><p><strong>generic_titles</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Ensemble optionnel de titres generiques supplementaires.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True si le titre est considere comme generique.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.is_non_indicator_line">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">is_non_indicator_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.is_non_indicator_line" title="Lien vers cette définition"></a></dt>
-<dd><p>Retourne True quand la ligne ne doit pas etre traitee comme un indicateur (totaux, unites, nombres).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Ligne a analyser.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True si la ligne est exclue de l’analyse des indicateurs.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.is_table_title_contaminated">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">is_table_title_contaminated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">numeric_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing_numbers_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long_run_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.is_table_title_contaminated" title="Lien vers cette définition"></a></dt>
-<dd><p>Retourne True si le titre de tableau semble contamine par des valeurs numeriques (montants/colonnes).</p>
-<p>Contamination : longue suite numerique (3+ nombres), ou &gt;40 % des jetons sont des nombres,
-ou se termine par 2+ nombres.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau a verifier.</p></li>
-<li><p><strong>numeric_ratio_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Ratio maximal de jetons numeriques avant contamination.</p></li>
-<li><p><strong>trailing_numbers_min</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Nombre minimal de jetons numeriques en fin de titre.</p></li>
-<li><p><strong>long_run_min</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Longueur minimale d’une suite consecutive de jetons numeriques.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True si le titre est considere comme contamine.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.is_trailing_number_semantic">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">is_trailing_number_semantic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.is_trailing_number_semantic" title="Lien vers cette définition"></a></dt>
-<dd><p>Detecte les cas ou les nombres en fin de chaine sont semantiquement pertinents.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur a analyser.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True si les nombres finaux font partie du sens (ex. <code class="docutils literal notranslate"><span class="pre">Pilier</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">CET1</span></code>).</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.normalize_footnotes_to_canonical">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">normalize_footnotes_to_canonical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.normalize_footnotes_to_canonical" title="Lien vers cette définition"></a></dt>
-<dd><p>Convertit les notes de bas de page de divers formats vers une liste canonique de dicts avec id et text.</p>
-<p>Gere :
-- None ou vide -&gt; []
-- list[str] (Docling legacy) -&gt; [{« id »: « 1 », « text »: s}, …] en preservant l’ordre
-- list[dict] (extraction Vision) -&gt; preserve id/marker et text ; pas de chaines repr
-- types mixtes -&gt; normalise chaque element de facon securitaire</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Liste brute de notes (divers formats) ou None.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Liste canonique de dicts <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">...,</span> <span class="pre">&quot;text&quot;:</span> <span class="pre">...}</span></code>.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.normalize_for_matching">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">normalize_for_matching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'generic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.normalize_for_matching" title="Lien vers cette définition"></a></dt>
-<dd><p>Normalise le texte en une representation stable adaptee a la comparaison.</p>
-<p>Utilisee par <code class="docutils literal notranslate"><span class="pre">normalize_indicator_variants</span></code> dans <code class="docutils literal notranslate"><span class="pre">indicator_cleaner</span></code>. La cle canonique
-pour le diff d’indicateurs est <code class="docutils literal notranslate"><span class="pre">normalize_indicator_for_comparison</span></code> (elision, impot/impots,
-guillemets sont appliques avant/apres cette etape).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte brut a normaliser.</p></li>
-<li><p><strong>target</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Contexte cible (<code class="docutils literal notranslate"><span class="pre">generic</span></code>, <code class="docutils literal notranslate"><span class="pre">indicator</span></code>, <code class="docutils literal notranslate"><span class="pre">header</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>).</p></li>
-</ul>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Texte normalise en minuscules, sans accents, avec ponctuation nettoyee.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.normalize_indicator_for_comparison">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">normalize_indicator_for_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.normalize_indicator_for_comparison" title="Lien vers cette définition"></a></dt>
-<dd><p>Cle canonique unique pour la comparaison d’indicateurs (premiere colonne).</p>
-<p>Utilisee par <code class="docutils literal notranslate"><span class="pre">comparison_runner</span></code> et <code class="docutils literal notranslate"><span class="pre">structural_comparator</span></code> pour que le meme
-libelle semantique (ex. <code class="docutils literal notranslate"><span class="pre">Metaux</span> <span class="pre">precieux</span></code> vs <code class="docutils literal notranslate"><span class="pre">Metaux</span> <span class="pre">precieux</span> <span class="pre">:</span></code>) produise
-une seule cle et evite les faux ajouts/suppressions dans le detail des changements.</p>
-<ul class="simple">
-<li><p>Unicode NFD et normalisation de tous les espaces (y compris U+00A0) en espace simple</p></li>
-<li><p>Suppression des dates et unites/devises du libelle (ex. <code class="docutils literal notranslate"><span class="pre">au</span> <span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code>, <code class="docutils literal notranslate"><span class="pre">(M$)</span></code>)</p></li>
-<li><p>Variantes (CET-1, Tier-1, notes de fin)</p></li>
-<li><p>Suppression des accents, refs de notes <code class="docutils literal notranslate"><span class="pre">(1)</span></code> <code class="docutils literal notranslate"><span class="pre">[2]</span></code> <code class="docutils literal notranslate"><span class="pre">a)</span></code> <code class="docutils literal notranslate"><span class="pre">*</span></code>, exposants</p></li>
-<li><p>Normalisation de la ponctuation et des espaces, mise en minuscules</p></li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur brut a normaliser.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Cle canonique en minuscules, sans accents, prete pour la comparaison.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.normalize_indicator_variants">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">normalize_indicator_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.normalize_indicator_variants" title="Lien vers cette définition"></a></dt>
-<dd><p>Normalise les variantes d’indicateur en une chaine canonique.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur brut.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Libelle canonique apres suppression des marqueurs de notes et normalisation.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.normalize_label">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">normalize_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.normalize_label" title="Lien vers cette définition"></a></dt>
-<dd><p>Alias utilise par le code de comparaison historique.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.singularize_words">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">singularize_words</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.singularize_words" title="Lien vers cette définition"></a></dt>
-<dd><p>Retire le “s” final des mots pour neutraliser les variations pluriel/singulier.</p>
-<p>Gere : <code class="docutils literal notranslate"><span class="pre">actions</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">actifs</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">actif</span></code>, <code class="docutils literal notranslate"><span class="pre">garantis</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">garanti</span></code>.
-Preserve les mots ou le “s” final est inherent (frais, cours, mois, fonds, etc.).
-N’opere que sur les mots de plus de 3 caracteres pour eviter de casser les mots courts.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte a singulariser.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Texte avec les pluriels neutralises.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.strip_dates_from_indicator_label">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">strip_dates_from_indicator_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.strip_dates_from_indicator_label" title="Lien vers cette définition"></a></dt>
-<dd><p>Supprime les fragments de date/temporels des libelles d’indicateurs (premiere colonne).</p>
-<p>Gere : dates autonomes (<code class="docutils literal notranslate"><span class="pre">Au</span> <span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code>), suffixes (<code class="docutils literal notranslate"><span class="pre">Prets</span> <span class="pre">garantis</span> <span class="pre">au</span> <span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code>),
-prefixes et formats multiples (FR, ISO, numerique, abreviations, periodes).
-Retourne une chaine vide si le libelle est purement une expression de date.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur potentiellement contamine par des dates.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Libelle nettoye sans fragments temporels.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.strip_dates_from_table_title">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">strip_dates_from_table_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.strip_dates_from_table_title" title="Lien vers cette définition"></a></dt>
-<dd><p>Supprime les fragments de type date des titres de tableaux (CIBC, RBC).</p>
-<p>Gere : <code class="docutils literal notranslate"><span class="pre">au</span> <span class="pre">31</span> <span class="pre">octobre...</span></code>, <code class="docutils literal notranslate"><span class="pre">31</span> <span class="pre">janvier</span> <span class="pre">2025</span></code>, <code class="docutils literal notranslate"><span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code> en debut/fin.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau brut.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Titre nettoye sans fragments de date.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.strip_trailing_note_or_column_value">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">strip_trailing_note_or_column_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.strip_trailing_note_or_column_value" title="Lien vers cette définition"></a></dt>
-<dd><p>Supprime les marqueurs de note en fin de chaine et les residus de colonnes numeriques.</p>
-<p>Inclut la suppression (style Jad) des chiffres colles au dernier mot (sans espace) :
-ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <span class="pre">des</span> <span class="pre">actifs1</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Total</span> <span class="pre">des</span> <span class="pre">actifs</span></code>, <code class="docutils literal notranslate"><span class="pre">Revenue2024</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Revenue</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur brut.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Libelle nettoye sans marqueurs de note ni residus numeriques.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.utils.strip_units_currency_from_indicator_label">
-<span class="sig-prename descclassname"><span class="pre">vigilance.utils.</span></span><span class="sig-name descname"><span class="pre">strip_units_currency_from_indicator_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.strip_units_currency_from_indicator_label" title="Lien vers cette définition"></a></dt>
-<dd><p>Supprime les mentions d’unite/devise des libelles d’indicateurs (premiere colonne).</p>
-<p>Retire : <code class="docutils literal notranslate"><span class="pre">en</span> <span class="pre">millions</span> <span class="pre">de</span> <span class="pre">dollars</span></code>, <code class="docutils literal notranslate"><span class="pre">(M$)</span></code>, <code class="docutils literal notranslate"><span class="pre">(CAD)</span></code>, <code class="docutils literal notranslate"><span class="pre">(%)</span></code>, <code class="docutils literal notranslate"><span class="pre">en</span> <span class="pre">milliers</span></code>,
-<code class="docutils literal notranslate"><span class="pre">points</span> <span class="pre">de</span> <span class="pre">base</span></code>, etc. Preserve le noyau semantique (ex. <code class="docutils literal notranslate"><span class="pre">Ratio</span> <span class="pre">CET1</span></code> de <code class="docutils literal notranslate"><span class="pre">Ratio</span> <span class="pre">CET1</span> <span class="pre">(%)</span></code>).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur potentiellement contamine par des unites.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Libelle nettoye sans mentions d’unite ou de devise.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2066,7 +1633,7 @@ ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <s
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
-        <a href="vigilance.report.html" class="btn btn-neutral float-left" title="vigilance.report package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigilance.text_extraction.html" class="btn btn-neutral float-left" title="Extraction texte" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
     </div>
 
   <hr/>

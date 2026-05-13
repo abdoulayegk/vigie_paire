@@ -1,0 +1,271 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comparaison texte &mdash; Vigie de paire - documentation technique</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/api/vigilance.text_comparison.html" />
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d1a510d7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=e6b791cb"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+    <link rel="next" title="Extraction texte" href="vigilance.text_extraction.html" />
+    <link rel="prev" title="Rapports" href="vigilance.report.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Vigie de paire
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique de Vigie de paire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention des docstrings – Vigie de paire</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Référence technique</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Référence technique</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">Moteur applicatif</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vigilance.html">Moteur applicatif</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vigilance.html#composants">Composants</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.amf_taxonomy">amf_taxonomy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">compare_gpt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">comparison_analyst</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">comparison_canonical</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_excel">comparison_excel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">comparison_devil_advocate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">comparison_diff_gpt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">comparison_inspector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">comparison_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">comparison_matching</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">comparison_metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">comparison_noise_filter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">comparison_runner</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">comparison_visual_sanity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">extraction_storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">genai_summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">genai_triage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">quarter_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">review_adapters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">review_export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">review_models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">review_models_v2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">review_priority</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">review_queue_normalizer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">review_state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">review_storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.text_analysis_pipeline">text_analysis_pipeline</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">ui_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">ui_detection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">ui_indicators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">ui_io</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Vigie de paire</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Référence technique</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Moteur applicatif</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.html">Moteur applicatif</a></li>
+      <li class="breadcrumb-item active">Comparaison texte</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="comparaison-texte">
+<h1>Comparaison texte<a class="headerlink" href="#comparaison-texte" title="Lien vers cette rubrique"></a></h1>
+<p>Sous-package du pipeline texte canonique. Sérialise <code class="docutils literal notranslate"><span class="pre">text_comparison.json</span></code>,
+produit l’export Excel analyste et porte les helpers de justification utilisés
+pour rendre lisibles les sorties du triage AMF.</p>
+<section id="modules">
+<h2>Modules<a class="headerlink" href="#modules" title="Lien vers cette rubrique"></a></h2>
+</section>
+<section id="module-vigilance.text_comparison.justification">
+<span id="text-comparison-justification"></span><h2>text_comparison.justification<a class="headerlink" href="#module-vigilance.text_comparison.justification" title="Lien vers cette rubrique"></a></h2>
+<p>Helpers de justification pour l’analyse textuelle.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_comparison.justification.build_text_triage_justification">
+<span class="sig-name descname"><span class="pre">build_text_triage_justification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">change</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.justification.build_text_triage_justification" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne la justification AMF v2 ou un fallback structure pour Dash/Excel.</p>
+<p>Les nouveaux artefacts doivent contenir <code class="docutils literal notranslate"><span class="pre">genai_triage.nouvelle_idee_justification</span></code>.
+Les anciens artefacts texte produits par <code class="docutils literal notranslate"><span class="pre">gpt4o_triage</span></code> peuvent avoir
+<code class="docutils literal notranslate"><span class="pre">nouvelle_idee=True</span></code> sans ce champ. Dans ce cas, on reformate les champs
+disponibles en note d’analyste structuree pour eviter un affichage vide.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.text_comparison.text_comparison_excel">
+<span id="text-comparison-text-comparison-excel"></span><h2>text_comparison.text_comparison_excel<a class="headerlink" href="#module-vigilance.text_comparison.text_comparison_excel" title="Lien vers cette rubrique"></a></h2>
+<p>Export des résultats de comparaison texte vers un classeur Excel analyste.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_comparison.text_comparison_excel.generate_text_comparison_excel">
+<span class="sig-name descname"><span class="pre">generate_text_comparison_excel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text_comparison</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.text_comparison_excel.generate_text_comparison_excel" title="Lien vers cette définition"></a></dt>
+<dd><p>Génère le classeur Excel analyste à partir de text_comparison.json.</p>
+<p>Affiche tous les changements détectés (hors unchanged, dates pures et
+reformulations strictes), triés par nouvelle idée puis par priorité.
+L’analyste valide chaque ligne via la colonne Statut.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text_comparison</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Dictionnaire text_comparison.json complet.</p></li>
+<li><p><strong>output_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Chemin de sortie .xlsx. Si None, retourne les bytes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path du fichier créé, ou bytes si output_path est None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigilance.text_comparison.text_comparison_writer">
+<span id="text-comparison-text-comparison-writer"></span><h2>text_comparison.text_comparison_writer<a class="headerlink" href="#module-vigilance.text_comparison.text_comparison_writer" title="Lien vers cette rubrique"></a></h2>
+<p>Lecture et écriture du fichier text_comparison.json.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_comparison.text_comparison_writer.get_text_comparison_path">
+<span class="sig-name descname"><span class="pre">get_text_comparison_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_t2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_t2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_t1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_t1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.text_comparison_writer.get_text_comparison_path" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne le chemin canonique du fichier text_comparison.json.</p>
+<p>Pattern : out_root/{bank}/{year_t2}_{qt2}_vs_{year_t1}_{qt1}/text_comparison.json
+Exemple  : outputs/resultats/bns/2025_t2_vs_2025_t1/text_comparison.json</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_comparison.text_comparison_writer.load_text_comparison">
+<span class="sig-name descname"><span class="pre">load_text_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comparison_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.text_comparison_writer.load_text_comparison" title="Lien vers cette définition"></a></dt>
+<dd><p>Charge text_comparison.json et valide le schema_version.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>comparison_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – Chemin vers text_comparison.json.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionnaire chargé.</p>
+</dd>
+<dt class="field-even">Lève<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>FileNotFoundError</strong> – Si le fichier est absent.</p></li>
+<li><p><strong>ValueError</strong> – Si le schema_version est incompatible.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_comparison.text_comparison_writer.write_text_comparison">
+<span class="sig-name descname"><span class="pre">write_text_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.text_comparison_writer.write_text_comparison" title="Lien vers cette définition"></a></dt>
+<dd><p>Sérialise et écrit text_comparison.json.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>payload</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Dictionnaire texte canonique.</p></li>
+<li><p><strong>out_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span>) – Chemin complet du fichier de sortie.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path du fichier écrit.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="vigilance.report.html" class="btn btn-neutral float-left" title="Rapports" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigilance.text_extraction.html" class="btn btn-neutral float-right" title="Extraction texte" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2026.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

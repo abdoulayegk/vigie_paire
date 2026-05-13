@@ -1,29 +1,19 @@
-vigilance.extract package
-=========================
+Extraction textuelle
+====================
 
-Submodules
+Modules
 ----------
 
-vigilance.extract.exclusions module
+extract.exclusions
 -----------------------------------
 
 .. automodule:: vigilance.extract.exclusions
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extract.pdf\_text module
+extract.pdf\_text
 ----------------------------------
 
 .. automodule:: vigilance.extract.pdf_text
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance.extract
-   :members:
-   :show-inheritance:
-   :undoc-members:

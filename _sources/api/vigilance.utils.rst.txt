@@ -1,181 +1,152 @@
-vigilance.utils package
-=======================
+Utilitaires
+===========
 
-Submodules
+Modules
 ----------
 
-vigilance.utils.feature\_flags module
+utils.feature\_flags
 -------------------------------------
 
 .. automodule:: vigilance.utils.feature_flags
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.footnotes\_utils module
+utils.footnotes\_utils
 ---------------------------------------
 
 .. automodule:: vigilance.utils.footnotes_utils
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.genai module
+utils.genai
 ----------------------------
 
 .. automodule:: vigilance.utils.genai
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.indicator\_cleaner module
+utils.indicator\_cleaner
 -----------------------------------------
 
 .. automodule:: vigilance.utils.indicator_cleaner
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.indicator\_line\_merge module
+utils.indicator\_line\_merge
 ---------------------------------------------
 
 .. automodule:: vigilance.utils.indicator_line_merge
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.indicator\_normalizer module
+utils.indicator\_normalizer
 --------------------------------------------
 
 .. automodule:: vigilance.utils.indicator_normalizer
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.matching\_normalizer module
+utils.matching\_normalizer
 -------------------------------------------
 
 .. automodule:: vigilance.utils.matching_normalizer
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.model\_cost module
+utils.model\_cost
 ----------------------------------
 
 .. automodule:: vigilance.utils.model_cost
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.openai\_schema module
+utils.openai\_schema
 -------------------------------------
 
 .. automodule:: vigilance.utils.openai_schema
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.page\_layout\_context module
+utils.page\_layout\_context
 --------------------------------------------
 
 .. automodule:: vigilance.utils.page_layout_context
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.pattern\_loader module
+utils.pattern\_loader
 --------------------------------------
 
 .. automodule:: vigilance.utils.pattern_loader
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.pdf\_crop module
+utils.pdf\_crop
 --------------------------------
 
 .. automodule:: vigilance.utils.pdf_crop
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.pdf\_highlight module
+utils.pdf\_highlight
 -------------------------------------
 
 .. automodule:: vigilance.utils.pdf_highlight
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.pdf\_image module
+utils.pdf\_image
 ---------------------------------
 
 .. automodule:: vigilance.utils.pdf_image
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.proof\_rendering module
+utils.proof\_rendering
 ---------------------------------------
 
 .. automodule:: vigilance.utils.proof_rendering
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.pymupdf\_utils module
+utils.pymupdf\_utils
 -------------------------------------
 
 .. automodule:: vigilance.utils.pymupdf_utils
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.rbc\_table\_signals module
+utils.rbc\_table\_signals
 ------------------------------------------
 
 .. automodule:: vigilance.utils.rbc_table_signals
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.table\_page\_structure module
+utils.table\_page\_structure
 ---------------------------------------------
 
 .. automodule:: vigilance.utils.table_page_structure
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.text\_normalize\_base module
+utils.text\_normalize\_base
 --------------------------------------------
 
 .. automodule:: vigilance.utils.text_normalize_base
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.text\_normalizer module
+utils.text\_normalizer
 ---------------------------------------
 
 .. automodule:: vigilance.utils.text_normalizer
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.utils.type\_metier module
+utils.type\_metier
 -----------------------------------
 
 .. automodule:: vigilance.utils.type_metier
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance.utils
-   :members:
-   :show-inheritance:
-   :undoc-members:

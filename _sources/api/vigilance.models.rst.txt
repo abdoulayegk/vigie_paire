@@ -1,37 +1,28 @@
-vigilance.models package
-========================
+Modèles de données
+==================
 
-Submodules
+Modules
 ----------
 
-vigilance.models.comparison\_models module
+models.comparison\_models
 ------------------------------------------
 
 .. automodule:: vigilance.models.comparison_models
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.models.section\_models module
+models.section\_models
 ---------------------------------------
 
 .. automodule:: vigilance.models.section_models
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.models.table\_models module
+models.table\_models
 -------------------------------------
 
 .. automodule:: vigilance.models.table_models
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance.models
-   :members:
-   :show-inheritance:
-   :undoc-members:
+   :exclude-members: TableCandidate
+   :no-index:

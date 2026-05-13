@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>vigilance.dash_app.services package &mdash; Documentation bank-peer-vigilance </title>
+  <title>Services de l’interface &mdash; Vigie de paire - documentation technique</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -21,8 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Recherche" href="../search.html" />
-    <link rel="next" title="vigilance.extract package" href="vigilance.extract.html" />
-    <link rel="prev" title="vigilance.dash_app.layouts package" href="vigilance.dash_app.layouts.html" /> 
+    <link rel="next" title="Extraction textuelle" href="vigilance.extract.html" />
+    <link rel="prev" title="Mises en page de l’interface" href="vigilance.dash_app.layouts.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,7 +34,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            bank-peer-vigilance
+            Vigie de paire
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -46,45 +46,47 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique du système de vigilance bancaire</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention docstrings – Vigie Paire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique de Vigie de paire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention des docstrings – Vigie de paire</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Reference API</span></p>
+<p class="caption" role="heading"><span class="caption-text">Référence technique</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Reference API</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="modules.html">vigilance</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="vigilance.html">vigilance package</a><ul class="current">
-<li class="toctree-l4 current"><a class="reference internal" href="vigilance.html#subpackages">Subpackages</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">vigilance.compare_gpt module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">vigilance.comparison_analyst module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">vigilance.comparison_canonical module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">vigilance.comparison_devil_advocate module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">vigilance.comparison_diff_gpt module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">vigilance.comparison_inspector module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">vigilance.comparison_io module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">vigilance.comparison_matching module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">vigilance.comparison_metrics module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">vigilance.comparison_noise_filter module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">vigilance.comparison_runner module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">vigilance.comparison_visual_sanity module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">vigilance.extraction_storage module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">vigilance.genai_summary module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">vigilance.genai_triage module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">vigilance.quarter_utils module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">vigilance.review_adapters module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">vigilance.review_export module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">vigilance.review_models module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">vigilance.review_models_v2 module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">vigilance.review_priority module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">vigilance.review_queue_normalizer module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">vigilance.review_state module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">vigilance.review_storage module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">vigilance.ui_config module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">vigilance.ui_detection module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">vigilance.ui_indicators module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">vigilance.ui_io module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance">Module contents</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Référence technique</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">Moteur applicatif</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vigilance.html">Moteur applicatif</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vigilance.html#composants">Composants</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.amf_taxonomy">amf_taxonomy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">compare_gpt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">comparison_analyst</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">comparison_canonical</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_excel">comparison_excel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">comparison_devil_advocate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">comparison_diff_gpt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">comparison_inspector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">comparison_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">comparison_matching</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">comparison_metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">comparison_noise_filter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">comparison_runner</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">comparison_visual_sanity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">extraction_storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">genai_summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">genai_triage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">quarter_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">review_adapters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">review_export</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">review_models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">review_models_v2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">review_priority</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">review_queue_normalizer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">review_state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">review_storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.text_analysis_pipeline">text_analysis_pipeline</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">ui_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">ui_detection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">ui_indicators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">ui_io</a></li>
 </ul>
 </li>
 </ul>
@@ -99,7 +101,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">bank-peer-vigilance</a>
+          <a href="../index.html">Vigie de paire</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -107,13 +109,12 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="index.html">Reference API</a></li>
-          <li class="breadcrumb-item"><a href="modules.html">vigilance</a></li>
-          <li class="breadcrumb-item"><a href="vigilance.html">vigilance package</a></li>
-          <li class="breadcrumb-item"><a href="vigilance.dash_app.html">vigilance.dash_app package</a></li>
-      <li class="breadcrumb-item active">vigilance.dash_app.services package</li>
+          <li class="breadcrumb-item"><a href="index.html">Référence technique</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Moteur applicatif</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.html">Moteur applicatif</a></li>
+          <li class="breadcrumb-item"><a href="vigilance.dash_app.html">Interface Dash</a></li>
+      <li class="breadcrumb-item active">Services de l’interface</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/vigilance.dash_app.services.rst.txt" rel="nofollow"> Afficher la source de la page</a>
       </li>
   </ul>
   <hr/>
@@ -121,13 +122,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="vigilance-dash-app-services-package">
-<h1>vigilance.dash_app.services package<a class="headerlink" href="#vigilance-dash-app-services-package" title="Lien vers cette rubrique"></a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Lien vers cette rubrique"></a></h2>
+  <section id="services-de-l-interface">
+<h1>Services de l’interface<a class="headerlink" href="#services-de-l-interface" title="Lien vers cette rubrique"></a></h1>
+<section id="modules">
+<h2>Modules<a class="headerlink" href="#modules" title="Lien vers cette rubrique"></a></h2>
 </section>
 <section id="module-vigilance.dash_app.services.comparison_context">
-<span id="vigilance-dash-app-services-comparison-context-module"></span><h2>vigilance.dash_app.services.comparison_context module<a class="headerlink" href="#module-vigilance.dash_app.services.comparison_context" title="Lien vers cette rubrique"></a></h2>
+<span id="dash-app-services-comparison-context"></span><h2>dash_app.services.comparison_context<a class="headerlink" href="#module-vigilance.dash_app.services.comparison_context" title="Lien vers cette rubrique"></a></h2>
 <p>Fonctions utilitaires de contexte pour les callbacks Dash.</p>
 <p>Fournit la resolution des chemins PDF, le contexte trimestriel et les noms
 d’export. Extrait de <code class="docutils literal notranslate"><span class="pre">dash_app/app.py</span></code> ; <code class="docutils literal notranslate"><span class="pre">app.py</span></code> reexporte tous les
@@ -135,7 +136,7 @@ noms de ce module afin que les monkey-patches existants continuent de
 fonctionner.</p>
 </section>
 <section id="module-vigilance.dash_app.services.comparison_store">
-<span id="vigilance-dash-app-services-comparison-store-module"></span><h2>vigilance.dash_app.services.comparison_store module<a class="headerlink" href="#module-vigilance.dash_app.services.comparison_store" title="Lien vers cette rubrique"></a></h2>
+<span id="dash-app-services-comparison-store"></span><h2>dash_app.services.comparison_store<a class="headerlink" href="#module-vigilance.dash_app.services.comparison_store" title="Lien vers cette rubrique"></a></h2>
 <p>Magasin de comparaisons (fichier d’abord) utilise par Dash.</p>
 <p>Ce module centralise tous les acces Dash aux artefacts de comparaison
 sauvegardes afin que l’interface utilisateur ne se couple plus directement
@@ -144,7 +145,7 @@ locale <code class="docutils literal notranslate"><span class="pre">comparison.j
 backend base de donnees puisse le remplacer sans reecrire chaque callback.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.services.comparison_store.</span></span><span class="sig-name descname"><span class="pre">ComparisonPayloadBundle</span></span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle" title="Lien vers cette définition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ComparisonPayloadBundle</span></span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle" title="Lien vers cette définition"></a></dt>
 <dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
 <p>Payload canonique et contexte systeme de fichiers resolu pour Dash.</p>
 <dl class="py attribute">
@@ -181,7 +182,7 @@ backend base de donnees puisse le remplacer sans reecrire chaque callback.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.ComparisonStore">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.services.comparison_store.</span></span><span class="sig-name descname"><span class="pre">ComparisonStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonStore" title="Lien vers cette définition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ComparisonStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.ComparisonStore" title="Lien vers cette définition"></a></dt>
 <dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></p>
 <p>Interface de persistence des comparaisons utilisee par Dash.</p>
 <dl class="py method">
@@ -243,7 +244,7 @@ backend base de donnees puisse le remplacer sans reecrire chaque callback.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.FileComparisonStore">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.services.comparison_store.</span></span><span class="sig-name descname"><span class="pre">FileComparisonStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore" title="Lien vers cette définition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">FileComparisonStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.FileComparisonStore" title="Lien vers cette définition"></a></dt>
 <dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Magasin de comparaisons supporte par les artefacts locaux <code class="docutils literal notranslate"><span class="pre">comparison.json</span></code>.</p>
 <dl class="py method">
@@ -364,7 +365,7 @@ chemins PDF resolus, ou <code class="docutils literal notranslate"><span class="
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.dash_app.services.comparison_store.build_file_comparison_store">
-<span class="sig-prename descclassname"><span class="pre">vigilance.dash_app.services.comparison_store.</span></span><span class="sig-name descname"><span class="pre">build_file_comparison_store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.build_file_comparison_store" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">build_file_comparison_store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.dash_app.services.comparison_store.build_file_comparison_store" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne le magasin local supporte par fichiers utilise par Dash.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
@@ -382,32 +383,28 @@ configuration globale <code class="docutils literal notranslate"><span class="pr
 
 </section>
 <section id="module-vigilance.dash_app.services.export_helpers">
-<span id="vigilance-dash-app-services-export-helpers-module"></span><h2>vigilance.dash_app.services.export_helpers module<a class="headerlink" href="#module-vigilance.dash_app.services.export_helpers" title="Lien vers cette rubrique"></a></h2>
+<span id="dash-app-services-export-helpers"></span><h2>dash_app.services.export_helpers<a class="headerlink" href="#module-vigilance.dash_app.services.export_helpers" title="Lien vers cette rubrique"></a></h2>
 <p>Fonctions utilitaires d’export et de construction des elements de revue.</p>
 <p>Extrait de <code class="docutils literal notranslate"><span class="pre">dash_app/app.py</span></code>. <code class="docutils literal notranslate"><span class="pre">app.py</span></code> reexporte tous les noms de ce
 module afin que les monkey-patches existants continuent de fonctionner.</p>
 </section>
 <section id="module-vigilance.dash_app.services.pdf_rendering">
-<span id="vigilance-dash-app-services-pdf-rendering-module"></span><h2>vigilance.dash_app.services.pdf_rendering module<a class="headerlink" href="#module-vigilance.dash_app.services.pdf_rendering" title="Lien vers cette rubrique"></a></h2>
+<span id="dash-app-services-pdf-rendering"></span><h2>dash_app.services.pdf_rendering<a class="headerlink" href="#module-vigilance.dash_app.services.pdf_rendering" title="Lien vers cette rubrique"></a></h2>
 <p>Fonctions de rendu de preuves PDF pour les callbacks Dash.</p>
 <p>Extrait de <code class="docutils literal notranslate"><span class="pre">dash_app/app.py</span></code>. <code class="docutils literal notranslate"><span class="pre">app.py</span></code> reexporte tous les noms de ce
 module afin que les monkey-patches existants continuent de fonctionner.</p>
 </section>
 <section id="module-vigilance.dash_app.services.review_navigation">
-<span id="vigilance-dash-app-services-review-navigation-module"></span><h2>vigilance.dash_app.services.review_navigation module<a class="headerlink" href="#module-vigilance.dash_app.services.review_navigation" title="Lien vers cette rubrique"></a></h2>
+<span id="dash-app-services-review-navigation"></span><h2>dash_app.services.review_navigation<a class="headerlink" href="#module-vigilance.dash_app.services.review_navigation" title="Lien vers cette rubrique"></a></h2>
 <p>Navigation, selection et filtrage de la revue pour les callbacks Dash.</p>
 <p>Extrait de <code class="docutils literal notranslate"><span class="pre">dash_app/app.py</span></code>. <code class="docutils literal notranslate"><span class="pre">app.py</span></code> reexporte tous les noms de ce
 module afin que les monkey-patches existants continuent de fonctionner.</p>
 </section>
 <section id="module-vigilance.dash_app.services.review_persistence">
-<span id="vigilance-dash-app-services-review-persistence-module"></span><h2>vigilance.dash_app.services.review_persistence module<a class="headerlink" href="#module-vigilance.dash_app.services.review_persistence" title="Lien vers cette rubrique"></a></h2>
+<span id="dash-app-services-review-persistence"></span><h2>dash_app.services.review_persistence<a class="headerlink" href="#module-vigilance.dash_app.services.review_persistence" title="Lien vers cette rubrique"></a></h2>
 <p>Fonctions de persistence de l’etat de revue pour les callbacks Dash.</p>
 <p>Extrait de <code class="docutils literal notranslate"><span class="pre">dash_app/app.py</span></code>. <code class="docutils literal notranslate"><span class="pre">app.py</span></code> reexporte tous les noms de ce
 module afin que les monkey-patches existants continuent de fonctionner.</p>
-</section>
-<section id="module-vigilance.dash_app.services">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-vigilance.dash_app.services" title="Lien vers cette rubrique"></a></h2>
-<p>Sous-paquet des services metier utilises par les callbacks Dash.</p>
 </section>
 </section>
 
@@ -415,8 +412,8 @@ module afin que les monkey-patches existants continuent de fonctionner.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
-        <a href="vigilance.dash_app.layouts.html" class="btn btn-neutral float-left" title="vigilance.dash_app.layouts package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
-        <a href="vigilance.extract.html" class="btn btn-neutral float-right" title="vigilance.extract package" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="vigilance.dash_app.layouts.html" class="btn btn-neutral float-left" title="Mises en page de l’interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigilance.extract.html" class="btn btn-neutral float-right" title="Extraction textuelle" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
