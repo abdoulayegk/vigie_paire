@@ -1,61 +1,47 @@
-vigilance.dash\_app.services package
-====================================
+Services de l'interface
+=======================
 
-Submodules
+Modules
 ----------
 
-vigilance.dash\_app.services.comparison\_context module
+dash\_app.services.comparison\_context
 -------------------------------------------------------
 
 .. automodule:: vigilance.dash_app.services.comparison_context
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.dash\_app.services.comparison\_store module
+dash\_app.services.comparison\_store
 -----------------------------------------------------
 
 .. automodule:: vigilance.dash_app.services.comparison_store
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.dash\_app.services.export\_helpers module
+dash\_app.services.export\_helpers
 ---------------------------------------------------
 
 .. automodule:: vigilance.dash_app.services.export_helpers
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.dash\_app.services.pdf\_rendering module
+dash\_app.services.pdf\_rendering
 --------------------------------------------------
 
 .. automodule:: vigilance.dash_app.services.pdf_rendering
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.dash\_app.services.review\_navigation module
+dash\_app.services.review\_navigation
 ------------------------------------------------------
 
 .. automodule:: vigilance.dash_app.services.review_navigation
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.dash\_app.services.review\_persistence module
+dash\_app.services.review\_persistence
 -------------------------------------------------------
 
 .. automodule:: vigilance.dash_app.services.review_persistence
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance.dash_app.services
-   :members:
-   :show-inheritance:
-   :undoc-members:

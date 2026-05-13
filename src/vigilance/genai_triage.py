@@ -83,6 +83,7 @@ def _count_substantive_sentences(text: str) -> int:
 
 
 def _missing_justification_sections(text: str) -> list[str]:
+    """Retourne les rubriques obligatoires absentes de la justification GPT."""
     missing: list[str] = []
     for section in _REQUIRED_JUSTIFICATION_SECTIONS:
         if section in text:
@@ -772,6 +773,7 @@ async def _triage_all_changes(
         prompt = _build_change_prompt(pair, "pair")
 
         async def _run(p: str = prompt) -> dict[str, Any] | None:
+            """Tâche async qui appelle le triage GPT pour un changement de paire."""
             async with semaphore:
                 return await _call_openai_json_async(
                     client,
@@ -787,6 +789,7 @@ async def _triage_all_changes(
         prompt = _build_change_prompt(tbl, "added")
 
         async def _run_added(p: str = prompt) -> dict[str, Any] | None:
+            """Tâche async qui appelle le triage GPT pour un tableau ajouté."""
             async with semaphore:
                 return await _call_openai_json_async(
                     client,
@@ -802,6 +805,7 @@ async def _triage_all_changes(
         prompt = _build_change_prompt(tbl, "removed")
 
         async def _run_removed(p: str = prompt) -> dict[str, Any] | None:
+            """Tâche async qui appelle le triage GPT pour un tableau retiré."""
             async with semaphore:
                 return await _call_openai_json_async(
                     client,

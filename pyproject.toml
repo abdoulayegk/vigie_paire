@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bank-peer-vigilance"
+name = "vigie-paire"
 version = "0.1.0"
-description = "Bank peer vigilance – PDF section extraction toolkit"
+description = "Outil d'extraction et de comparaison de rapports bancaires PDF"
 requires-python = ">=3.10"
 dependencies = [
     "rapidfuzz>=3.0.0",
@@ -24,11 +24,11 @@ dependencies = [
 ]
 
 [project.scripts]
-vigilance-run-ranges = "vigilance.cli.run_ranges:main"
-vigilance-run-tables = "vigilance.cli.run_tables:main"
-vigilance-run-extract-report = "vigilance.cli.run_extract_report:main"
-vigilance-run-compare-gpt4o = "vigilance.cli.run_compare_gpt4o:main"
-vigilance-run = "run_full_pipeline:main"
+vigie-run-ranges = "vigilance.cli.run_ranges:main"
+vigie-run-tables = "vigilance.cli.run_tables:main"
+vigie-run-extract-report = "vigilance.cli.run_extract_report:main"
+vigie-run-compare-gpt4o = "vigilance.cli.run_compare_gpt4o:main"
+vigie-run = "run_full_pipeline:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

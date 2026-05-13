@@ -112,7 +112,7 @@ toml = [
 ]
 
 [[package]]
-name = "bank-peer-vigilance"
+name = "vigie-paire"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

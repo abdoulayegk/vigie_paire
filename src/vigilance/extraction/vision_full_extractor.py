@@ -998,6 +998,7 @@ def _extract_usage_metrics(response: Any) -> tuple[int | None, int | None, int |
         return None, None, None
 
     def _coerce_int(value: Any) -> int | None:
+        """Convertit ``value`` en entier, retourne ``None`` si la conversion échoue."""
         if value is None:
             return None
         try:
@@ -1805,6 +1806,17 @@ class VisionFullExtractor:
         max_retries_json: int = 2,
         use_cache: bool = False,
     ):
+        """Prépare le client d'extraction Vision et ses paramètres d'exécution.
+
+        Args:
+            api_key: Clé OpenAI à utiliser. Si absente, elle est lue depuis la
+                configuration locale.
+            model: Nom du modèle à utiliser. Si absent, il est résolu depuis le
+                rôle logique de l'extracteur.
+            max_retries_json: Nombre maximal de reprises quand la réponse JSON
+                n'est pas exploitable.
+            use_cache: Active la lecture et l'écriture du cache d'extraction.
+        """
         self._api_key = api_key or get_openai_api_key()
         self._model = str(model or "").strip() or resolve_openai_model(_MODEL_ROLE)
         self._max_retries_json = max_retries_json
@@ -2085,6 +2097,7 @@ class VisionFullExtractor:
             max_completion_tokens: int,
             label: str,
         ) -> tuple[str, str, bool, int, int | None, int | None, int | None] | None:
+            """Lance un appel OpenAI avec retries et fallback structuré → texte libre."""
             local_use_structured = structured
             effective_max = max_completion_tokens
             transport_attempt = 0
@@ -2491,6 +2504,7 @@ class VisionFullExtractor:
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
         def _shot(variant: str) -> VisionFullResult | None:
+            """Exécute un tir d'extraction Vision pour une variante de prompt donnée."""
             if variant == _PROMPT_VARIANT_PRECISION:
                 prompt_override = _build_precision_prompt(
                     bank_code,
@@ -2563,6 +2577,7 @@ class VisionFullExtractor:
 
         # Normalise labels for comparison
         def _norm(label: str) -> str:
+            """Normalise un libellé pour comparaison de consensus (lowercase + trim)."""
             return label.strip().lower()
 
         # Collect vote counts per normalised label
@@ -2593,6 +2608,7 @@ class VisionFullExtractor:
                 )
 
         def _score(r: VisionFullResult) -> float:
+            """Calcule le score composite (proximité médiane + popularité + qualité) d'un résultat."""
             real_count = _count_real_indicators(r.indicators or [])
             # Penalty for deviating from the median count
             count_penalty = abs(real_count - median_count)
@@ -2690,6 +2706,7 @@ class VisionFullExtractor:
         )
 
         def _footnote_ids(r: VisionFullResult) -> set[str]:
+            """Retourne l'ensemble des identifiants de footnotes extraits du résultat."""
             return {
                 str(item.get("id") or "").strip()
                 for item in list(r.footnotes_content or [])
@@ -2697,6 +2714,7 @@ class VisionFullExtractor:
             }
 
         def _extract_markers_from_indicators(indicators: list[str]) -> set[str]:
+            """Détecte les marqueurs de footnote (²³*†‡, (1), (a)…) présents dans les libellés."""
             import re
 
             markers = set()
@@ -2719,6 +2737,7 @@ class VisionFullExtractor:
             return markers
 
         def _needs_recrop(result: VisionFullResult | None) -> bool:
+            """Indique si le résultat porte des signaux d'incomplétude justifiant un re-crop."""
             return bool(
                 _collect_incompleteness_reasons(
                     result,
@@ -2728,6 +2747,7 @@ class VisionFullExtractor:
             )
 
         def _has_truncation_signal(result: VisionFullResult | None) -> bool:
+            """Indique si le résultat porte un signal de troncature (finish_reason / warnings)."""
             if result is None:
                 return False
             if str(result.finish_reason or "").strip().lower() == "length":
@@ -2745,6 +2765,7 @@ class VisionFullExtractor:
             rescue_mode: bool = False,
             rescue_instruction: str = "",
         ) -> VisionFullResult | None:
+            """Exécute une passe complète d'extraction Vision avec rescue éventuel."""
             if consensus_enabled and not rescue_mode:
                 primary = self.extract_with_consensus(
                     crop_bytes=crop_bytes_for_pass,
@@ -2906,6 +2927,7 @@ class VisionFullExtractor:
             candidate_bbox: list[float] | None = None,
             custom_rescue_instr: str | None = None,
         ) -> None:
+            """Lance une passe pour un crop alternatif et ajoute le résultat aux candidats."""
             nonlocal no_table_evidence
             if not crop_bytes_for_pass:
                 return

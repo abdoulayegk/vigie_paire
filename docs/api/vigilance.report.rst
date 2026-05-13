@@ -1,29 +1,19 @@
-vigilance.report package
-========================
+Rapports
+========
 
-Submodules
+Modules
 ----------
 
-vigilance.report.export\_json module
+report.export\_json
 ------------------------------------
 
 .. automodule:: vigilance.report.export_json
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.report.vigie\_extract\_schema module
+report.vigie\_extract\_schema
 ----------------------------------------------
 
 .. automodule:: vigilance.report.vigie_extract_schema
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance.report
-   :members:
-   :show-inheritance:
-   :undoc-members:

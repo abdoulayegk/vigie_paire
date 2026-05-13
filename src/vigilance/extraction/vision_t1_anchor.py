@@ -96,6 +96,8 @@ def anchor_against_previous(
         from pydantic import BaseModel, ConfigDict, Field
 
         class AnchorJudgment(BaseModel):
+            """Sortie GPT validée : décision sur la nature d'une divergence d'ancrage."""
+
             model_config = ConfigDict(extra="forbid")
             likely_extraction_error: bool = Field(
                 ...,

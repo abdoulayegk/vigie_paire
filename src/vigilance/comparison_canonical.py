@@ -101,10 +101,12 @@ def _is_comparison_changed(c: dict[str, Any]) -> bool:
 def compute_changed_tables_t1(result: dict[str, Any]) -> int:
     """Compte les tableaux T1 distincts impliques dans au moins un changement.
 
-    Un tableau T1 est considere comme « modifie » s'il participe a :
+    Un tableau T1 est considere comme modifie lorsqu'il participe a l'une des
+    situations suivantes :
+
     - une paire appariee avec des diffs d'indicateurs/notes ou un changement
       de structure,
-    - OU s'il a ete supprime (present en T1, absent en T2).
+    - un retrait du T2, alors qu'il etait present en T1.
 
     Utilise ``table_id_t1`` (paires appariees) et ``table_id``
     (tables_removed) comme cles de deduplication stables.
@@ -125,10 +127,12 @@ def compute_changed_tables_t1(result: dict[str, Any]) -> int:
 def compute_changed_tables_t2(result: dict[str, Any]) -> int:
     """Compte les tableaux T2 distincts impliques dans au moins un changement.
 
-    Un tableau T2 est considere comme « modifie » s'il participe a :
+    Un tableau T2 est considere comme modifie lorsqu'il participe a l'une des
+    situations suivantes :
+
     - une paire appariee avec des diffs d'indicateurs/notes ou un changement
       de structure,
-    - OU s'il a ete ajoute (absent en T1, present en T2).
+    - un ajout au T2, alors qu'il etait absent en T1.
 
     Utilise ``table_id_t2`` (paires appariees) et ``table_id``
     (tables_added) comme cles de deduplication stables.

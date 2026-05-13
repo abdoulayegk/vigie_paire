@@ -1,141 +1,117 @@
-vigilance.extraction package
-============================
+Extraction documentaire
+=======================
 
-Submodules
+Modules
 ----------
 
-vigilance.extraction.docling\_normalization module
+extraction.docling\_normalization
 --------------------------------------------------
 
 .. automodule:: vigilance.extraction.docling_normalization
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.docling\_processor module
+extraction.docling\_processor
 ----------------------------------------------
 
 .. automodule:: vigilance.extraction.docling_processor
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.extraction\_debug\_writer module
+extraction.extraction\_debug\_writer
 -----------------------------------------------------
 
 .. automodule:: vigilance.extraction.extraction_debug_writer
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.genai\_toc\_detector module
+extraction.genai\_toc\_detector
 ------------------------------------------------
 
 .. automodule:: vigilance.extraction.genai_toc_detector
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.page\_title\_assistant module
+extraction.page\_title\_assistant
 --------------------------------------------------
 
 .. automodule:: vigilance.extraction.page_title_assistant
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.pdf\_preview module
+extraction.pdf\_preview
 ----------------------------------------
 
 .. automodule:: vigilance.extraction.pdf_preview
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.row\_bbox\_extractor module
+extraction.row\_bbox\_extractor
 ------------------------------------------------
 
 .. automodule:: vigilance.extraction.row_bbox_extractor
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.section\_locator module
+extraction.section\_locator
 --------------------------------------------
 
 .. automodule:: vigilance.extraction.section_locator
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.section\_taxonomy module
+extraction.section\_taxonomy
 ---------------------------------------------
 
 .. automodule:: vigilance.extraction.section_taxonomy
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.table\_annotator module
+extraction.table\_annotator
 --------------------------------------------
 
 .. automodule:: vigilance.extraction.table_annotator
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.table\_title\_resolver module
+extraction.table\_title\_resolver
 --------------------------------------------------
 
 .. automodule:: vigilance.extraction.table_title_resolver
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.vision\_cache module
+extraction.vision\_cache
 -----------------------------------------
 
 .. automodule:: vigilance.extraction.vision_cache
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.vision\_extraction\_writer module
+extraction.vision\_extraction\_writer
 ------------------------------------------------------
 
 .. automodule:: vigilance.extraction.vision_extraction_writer
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.vision\_full\_extractor module
+extraction.vision\_full\_extractor
 ---------------------------------------------------
 
 .. automodule:: vigilance.extraction.vision_full_extractor
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.vision\_image\_preprocessor module
+extraction.vision\_image\_preprocessor
 -------------------------------------------------------
 
 .. automodule:: vigilance.extraction.vision_image_preprocessor
    :members:
    :show-inheritance:
-   :undoc-members:
 
-vigilance.extraction.vision\_qa\_inspector module
+extraction.vision\_qa\_inspector
 -------------------------------------------------
 
 .. automodule:: vigilance.extraction.vision_qa_inspector
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance.extraction
-   :members:
-   :show-inheritance:
-   :undoc-members:

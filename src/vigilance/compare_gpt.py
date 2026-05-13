@@ -290,6 +290,7 @@ def compare_reports_gpt4o(
         dict[str, dict[str, Any]],
         dict[str, dict[str, Any]],
     ]:
+        """Construit les vues (cards, details, snapshots) pour T1 et T2."""
         return (
             [_table_card(entry) for entry in previous_business_tables],
             [_table_card(entry) for entry in current_business_tables],
@@ -459,6 +460,7 @@ def compare_reports_gpt4o(
     _sanity_check_enabled = bool(source_pdf_previous and source_pdf_current)
 
     def _worst_render_status(statuses: list[str]) -> str:
+        """Retourne le pire statut de rendu visuel (priorité aux erreurs)."""
         for candidate in (
             "skipped_missing_pdf",
             "skipped_missing_anchor",
@@ -470,6 +472,7 @@ def compare_reports_gpt4o(
         return "ok"
 
     def _snapshot_has_render_anchor(snapshot: dict[str, Any]) -> bool:
+        """Indique si le snapshot porte un ancrage de rendu visuel exploitable."""
         try:
             page = int(snapshot.get("page") or 0)
         except (TypeError, ValueError):
@@ -480,6 +483,7 @@ def compare_reports_gpt4o(
         event_snapshot: dict[str, Any],
         opposite_snapshots: dict[str, dict[str, Any]],
     ) -> dict[str, Any] | None:
+        """Trouve l'ancrage de tableau correspondant dans le trimestre opposé."""
         normalized_section = _normalize_table_anchor_section(event_snapshot.get("section"))
         normalized_title = _normalize_table_anchor_title(event_snapshot.get("title"))
         if not normalized_section or not normalized_title:
@@ -500,6 +504,7 @@ def compare_reports_gpt4o(
         previous_table_snapshot: dict[str, Any],
         current_table_snapshot: dict[str, Any],
     ) -> tuple[bytes | None, bytes | None, str]:
+        """Rend les deux preuves visuelles (T1, T2) pour une paire appariée."""
         previous_render, previous_status = render_visual_sanity_proof(
             source_pdf_previous,
             page=previous_table_snapshot.get("page"),
@@ -521,6 +526,7 @@ def compare_reports_gpt4o(
         event_type: str,
         event_snapshot: dict[str, Any],
     ) -> tuple[bytes | None, bytes | None, str]:
+        """Rend les deux preuves visuelles pour un événement (ajout / retrait de tableau)."""
         normalized_event_type = str(event_type or "").strip().lower()
         if normalized_event_type == "table_added":
             opposite_anchor = _resolve_opposite_table_anchor(

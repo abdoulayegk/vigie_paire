@@ -24,6 +24,7 @@ from vigilance.quarter_utils import get_payload_quarter_context
 from vigilance.text_comparison.text_comparison_excel import _should_exclude
 
 def _plot_layout(theme: str) -> dict[str, Any]:
+    """Retourne le layout Plotly commun (couleurs adaptées au thème clair/sombre)."""
     is_light = theme == "light"
     return {
         "paper_bgcolor": "rgba(0,0,0,0)",
@@ -44,6 +45,7 @@ _PDF_GREEN = colors.HexColor("#68b976")
 
 
 def _safe_int(value: Any, default: int = 0) -> int:
+    """Convertit ``value`` en entier, retourne ``default`` si la conversion échoue."""
     if value is None or value == "":
         return default
     try:
@@ -53,6 +55,7 @@ def _safe_int(value: Any, default: int = 0) -> int:
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
+    """Convertit ``value`` en float, retourne ``default`` si la conversion échoue."""
     try:
         return float(value or 0.0)
     except (TypeError, ValueError):
@@ -60,12 +63,14 @@ def _safe_float(value: Any, default: float = 0.0) -> float:
 
 
 def _format_number(value: int | float | str) -> str:
+    """Formate un nombre avec espaces comme séparateurs de milliers."""
     if isinstance(value, (int, float)):
         return f"{value:,.0f}".replace(",", " ")
     return str(value)
 
 
 def _pdf_text(value: Any, max_len: int | None = None) -> str:
+    """Échappe le HTML et tronque le texte pour insertion dans un PDF ReportLab."""
     text = str(value or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     text = " ".join(text.split())
     if max_len and len(text) > max_len:
@@ -74,6 +79,7 @@ def _pdf_text(value: Any, max_len: int | None = None) -> str:
 
 
 def _quarter_label(label: Any) -> str:
+    """Normalise un libellé de trimestre (``T2`` → ``Q2``)."""
     text = str(label or "").strip().upper().replace("_", "-")
     if text.startswith("T"):
         return text.replace("T", "Q", 1)
@@ -81,6 +87,7 @@ def _quarter_label(label: Any) -> str:
 
 
 def _comparisons(indicator: dict | None) -> list[dict]:
+    """Retourne la liste des comparaisons de tableaux d'un payload d'indicateurs."""
     if not isinstance(indicator, dict):
         return []
     table_comparisons = indicator.get("table_comparisons")
@@ -91,10 +98,12 @@ def _comparisons(indicator: dict | None) -> list[dict]:
 
 
 def _technical_diff(comp: dict) -> dict:
+    """Retourne le dictionnaire ``technical_diff`` d'une comparaison (ou vide)."""
     return comp.get("technical_diff", {}) or {}
 
 
 def _table_title(comp: dict) -> str:
+    """Retourne le titre d'un tableau apparié (T2 prioritaire, fallbacks variés)."""
     current = comp.get("current_table", {}) or {}
     previous = comp.get("previous_table", {}) or {}
     return str(
@@ -110,6 +119,7 @@ def _table_title(comp: dict) -> str:
 
 
 def _indicator_confidence(comp: dict) -> float | None:
+    """Retourne le score de confiance de l'appariement d'indicateurs (ou ``None``)."""
     raw = comp.get("match_score", comp.get("match_confidence"))
     if raw is None:
         return None
@@ -117,6 +127,7 @@ def _indicator_confidence(comp: dict) -> float | None:
 
 
 def _low_confidence(comp: dict) -> bool:
+    """Indique si la comparaison est de faible confiance (score < 85 % ou flags d'incertitude)."""
     score = _indicator_confidence(comp)
     if score is not None:
         normalized = score if score <= 1 else score / 100
@@ -128,11 +139,13 @@ def _low_confidence(comp: dict) -> bool:
 
 
 def _count_list(comp: dict, canonical_key: str, diff_key: str) -> int:
+    """Compte les éléments d'une liste canonique avec fallback sur ``technical_diff``."""
     diff = _technical_diff(comp)
     return len(comp.get(canonical_key, []) or diff.get(diff_key, []) or [])
 
 
 def _footnote_counts(comp: dict) -> dict[str, int]:
+    """Retourne les compteurs (added / removed / modified / renamed) de notes de bas de page."""
     existing = comp.get("footnotes_counts", {}) or {}
     diff = _technical_diff(comp)
     diff_renamed = len(diff.get("footnotes_renamed", []) or [])
@@ -156,6 +169,7 @@ def _footnote_counts(comp: dict) -> dict[str, int]:
 
 
 def _change_total(comp: dict) -> int:
+    """Retourne le nombre total de changements (indicateurs + notes) pour une comparaison."""
     notes = _footnote_counts(comp)
     return (
         _count_list(comp, "added_indicators", "indicators_added")
@@ -168,6 +182,7 @@ def _change_total(comp: dict) -> int:
 
 
 def _change_label(comp: dict) -> str:
+    """Retourne un libellé synthétique du type de changement (priorité aux indicateurs)."""
     notes = _footnote_counts(comp)
     if _count_list(comp, "added_indicators", "indicators_added"):
         return "Ajout d'indicateurs"
@@ -181,6 +196,7 @@ def _change_label(comp: dict) -> str:
 
 
 def _impact_label(comp: dict) -> str:
+    """Retourne le label d'impact analyste (Élevé / Moyen / Faible) à partir du triage."""
     triage = comp.get("genai_triage", {}) or comp.get("genai_analysis", {}) or {}
     assessment = comp.get("analyst_assessment", {}) or {}
     raw = triage.get("impact_level") or assessment.get("change_significance") or assessment.get("review_priority") or ""
@@ -197,6 +213,7 @@ def _impact_label(comp: dict) -> str:
 
 
 def _confidence_label(score: float | None) -> str:
+    """Retourne un label de confiance (Élevée / Moyenne / Faible) à partir d'un score 0-1 ou 0-100."""
     if score is None:
         return "N/D"
     pct = score * 100 if score <= 1 else score
@@ -208,6 +225,7 @@ def _confidence_label(score: float | None) -> str:
 
 
 def _badge_class(label: str) -> str:
+    """Retourne la classe CSS de badge correspondant au label de criticité."""
     normalized = str(label or "").lower()
     if any(token in normalized for token in ("majeur", "élev", "eleve", "critique", "faible")):
         return "vigie-cockpit-badge is-danger"
@@ -219,6 +237,7 @@ def _badge_class(label: str) -> str:
 
 
 def _text_changes(text_data: dict | None, *, relevant_only: bool = True) -> list[tuple[dict, str]]:
+    """Aplatit les changements texte d'un ``text_comparison.json`` en liste (changement, section)."""
     if not isinstance(text_data, dict):
         return []
     rows: list[tuple[dict, str]] = []
@@ -242,6 +261,7 @@ def _text_changes(text_data: dict | None, *, relevant_only: bool = True) -> list
 
 
 def _text_metrics(text_data: dict | None) -> dict[str, Any]:
+    """Agrège les KPIs du pipeline texte (compteurs par impact, mots impactés, top 5)."""
     summary = (text_data or {}).get("global_summary") or (text_data or {}).get("all_changes_summary") or {}
     counts = summary.get("counts") or {}
     by_impact = counts.get("by_impact") or {}
@@ -311,6 +331,7 @@ def _text_metrics(text_data: dict | None) -> dict[str, Any]:
 
 
 def _indicator_metrics(indicator: dict | None) -> dict[str, Any]:
+    """Agrège les KPIs du pipeline tableaux (indicateurs, footnotes, tableaux ajoutés / retirés)."""
     if not isinstance(indicator, dict):
         return {"comparisons": [], "confidence_values": [], "total_changes": 0}
     summary = indicator.get("summary", indicator.get("kpi_metier", {})) or {}
@@ -370,6 +391,7 @@ def _indicator_metrics(indicator: dict | None) -> dict[str, Any]:
 
 
 def _review_counts(review_queue: list | None, review_items: list | None, indicator: dict | None) -> dict[str, int]:
+    """Compte les décisions de revue (total / approved / rejected / pending) par fallback de sources."""
     queue = review_queue if isinstance(review_queue, list) else []
     if queue:
         total = len(queue)
@@ -400,6 +422,7 @@ def _review_counts(review_queue: list | None, review_items: list | None, indicat
 
 
 def _kpi(icon: str, label: str, value: int | str, helper: str, tone: str = "neutral") -> html.Div:
+    """Construit une carte KPI (icône + libellé + valeur + helper) pour le cockpit."""
     return html.Div(
         [
             html.Div(html.I(className=f"bi {icon}"), className=f"vigie-cockpit-kpi-icon is-{tone}"),
@@ -417,6 +440,7 @@ def _kpi(icon: str, label: str, value: int | str, helper: str, tone: str = "neut
 
 
 def _chart_card(title: str, figure: go.Figure, *, theme: str) -> html.Div:
+    """Encapsule un graphique Plotly dans le composant carte cockpit."""
     figure.update_layout(**_plot_layout(theme))
     return html.Div(
         [
@@ -428,6 +452,7 @@ def _chart_card(title: str, figure: go.Figure, *, theme: str) -> html.Div:
 
 
 def _donut_chart(text_total: int, indicator_total: int, *, theme: str) -> html.Div:
+    """Graphique donut combiné texte + indicateurs avec total au centre."""
     total = text_total + indicator_total
     if total <= 0:
         return html.Div("Aucun changement disponible", className="vigie-cockpit-empty")
@@ -451,6 +476,7 @@ def _donut_chart(text_total: int, indicator_total: int, *, theme: str) -> html.D
 
 
 def _bar_chart(values: dict[str, int], *, theme: str) -> html.Div:
+    """Histogramme horizontal de la répartition par nature de changement."""
     grid_color = "#d8e0ea" if theme == "light" else "#223248"
     fig = go.Figure(
         go.Bar(
@@ -468,6 +494,7 @@ def _bar_chart(values: dict[str, int], *, theme: str) -> html.Div:
 
 
 def _review_status_chart(counts: dict[str, int], *, theme: str) -> html.Div:
+    """Donut du statut de la file de revue (validés / en attente / rejetés)."""
     total = _safe_int(counts.get("total"))
     if total <= 0:
         return html.Div("Aucune revue disponible", className="vigie-cockpit-empty")
@@ -519,6 +546,7 @@ def _review_status_chart(counts: dict[str, int], *, theme: str) -> html.Div:
 
 
 def _top_text(text_metrics: dict[str, Any]) -> html.Div:
+    """Construit la liste des 5 principaux changements textuels avec badge d'impact."""
     rows = []
     for item in text_metrics.get("top") or []:
         label = {
@@ -546,6 +574,7 @@ def _top_text(text_metrics: dict[str, Any]) -> html.Div:
 
 
 def _priority_table(indicator_metrics: dict[str, Any], review_queue: list | None) -> html.Div:
+    """Construit la table « Top tableaux à prioriser » du cockpit."""
     rows = _priority_rows(indicator_metrics, review_queue, limit=6)
     body = []
     for idx, row in enumerate(rows, start=1):
@@ -593,6 +622,7 @@ def _priority_table(indicator_metrics: dict[str, Any], review_queue: list | None
 
 
 def _priority_rows(indicator_metrics: dict[str, Any], review_queue: list | None, *, limit: int = 6) -> list[dict[str, Any]]:
+    """Calcule les lignes priorisées (haute priorité, faible confiance) pour le top tableaux."""
     queue_lookup = {}
     if isinstance(review_queue, list):
         for table in review_queue:
@@ -625,6 +655,7 @@ def _priority_rows(indicator_metrics: dict[str, Any], review_queue: list | None,
 
 
 def _updated_at(indicator_meta: dict | None, indicator: dict | None, text_data: dict | None) -> str:
+    """Retourne la date de mise à jour la plus récente disponible parmi les sources."""
     for source in (indicator_meta, indicator, text_data):
         if not isinstance(source, dict):
             continue
@@ -642,6 +673,7 @@ class _DashboardCharts(Flowable):
     """Dessine les graphiques principaux du rapport PDF."""
 
     def __init__(self, *, text_total: int, indicator_total: int, bars: dict[str, int]) -> None:
+        """Initialise les compteurs et la taille du flowable cockpit."""
         super().__init__()
         self.text_total = text_total
         self.indicator_total = indicator_total
@@ -650,6 +682,7 @@ class _DashboardCharts(Flowable):
         self.height = 3.45 * inch
 
     def draw(self) -> None:
+        """Dessine le donut combiné et l'histogramme de répartition sur la page PDF."""
         canvas = self.canv
         canvas.saveState()
         self._draw_donut(canvas, 0.05 * inch, 0.2 * inch)
@@ -657,6 +690,7 @@ class _DashboardCharts(Flowable):
         canvas.restoreState()
 
     def _draw_donut(self, canvas, x: float, y: float) -> None:
+        """Dessine le donut texte / indicateurs aux coordonnées ``(x, y)``."""
         total = max(1, self.text_total + self.indicator_total)
         canvas.setFillColor(_PDF_TEXT)
         canvas.setFont("Helvetica-Bold", 10)
@@ -694,6 +728,7 @@ class _DashboardCharts(Flowable):
             canvas.drawString(legend_x + 0.18 * inch, yy, f"{label}: {value}")
 
     def _draw_bars(self, canvas, x: float, y: float) -> None:
+        """Dessine l'histogramme horizontal « Répartition par nature » aux coordonnées ``(x, y)``."""
         canvas.setFillColor(_PDF_TEXT)
         canvas.setFont("Helvetica-Bold", 10)
         canvas.drawString(x, y + 2.95 * inch, "RÉPARTITION PAR NATURE")
@@ -731,6 +766,7 @@ class _ReportBarChart(Flowable):
         width: float = 7.0 * inch,
         height: float = 4.8 * inch,
     ) -> None:
+        """Initialise le titre, les valeurs et l'orientation du graphique à barres PDF."""
         super().__init__()
         self.title = title
         self.values = values
@@ -739,6 +775,7 @@ class _ReportBarChart(Flowable):
         self.height = height
 
     def draw(self) -> None:
+        """Dessine le titre puis l'histogramme selon l'orientation choisie."""
         canvas = self.canv
         canvas.saveState()
         canvas.setFillColor(_PDF_TEXT)
@@ -751,6 +788,7 @@ class _ReportBarChart(Flowable):
         canvas.restoreState()
 
     def _draw_vertical(self, canvas) -> None:
+        """Dessine un histogramme vertical avec axes et étiquettes."""
         chart_x = 0.45 * inch
         chart_y = 0.55 * inch
         chart_w = self.width - 0.9 * inch
@@ -783,6 +821,7 @@ class _ReportBarChart(Flowable):
             canvas.drawCentredString(x + bar_w / 2, chart_y - 0.22 * inch, _pdf_text(label, 18))
 
     def _draw_horizontal(self, canvas) -> None:
+        """Dessine un histogramme horizontal avec étiquettes à gauche."""
         chart_x = 1.65 * inch
         chart_y = 0.55 * inch
         chart_w = self.width - 2.0 * inch
@@ -814,6 +853,7 @@ class _ReportDonutChart(Flowable):
         width: float = 7.0 * inch,
         height: float = 4.8 * inch,
     ) -> None:
+        """Initialise le titre et les valeurs du graphique en anneau PDF."""
         super().__init__()
         self.title = title
         self.values = values
@@ -821,6 +861,7 @@ class _ReportDonutChart(Flowable):
         self.height = height
 
     def draw(self) -> None:
+        """Dessine le titre, l'anneau et la légende du donut sur la page PDF."""
         canvas = self.canv
         canvas.saveState()
         canvas.setFillColor(_PDF_TEXT)
@@ -856,6 +897,7 @@ class _ReportDonutChart(Flowable):
 
 
 def _pdf_styles() -> dict[str, ParagraphStyle]:
+    """Retourne le dictionnaire des styles ReportLab utilisés dans le rapport PDF."""
     base = getSampleStyleSheet()
     return {
         "title": ParagraphStyle(
@@ -917,6 +959,7 @@ def _pdf_styles() -> dict[str, ParagraphStyle]:
 
 
 def _pdf_table(data: list[list[Any]], widths: list[float] | None = None, *, header: bool = True) -> Table:
+    """Construit un ``reportlab.Table`` stylisé pour le rapport PDF (grille, alternance de couleurs)."""
     table = Table(data, colWidths=widths, repeatRows=1 if header else 0, hAlign="LEFT")
     commands = [
         ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#d7dee9")),
@@ -951,6 +994,7 @@ def _build_pdf_report(
     priority_rows: list[dict[str, Any]],
     text_data: dict | None,
 ) -> bytes:
+    """Construit le rapport PDF complet du cockpit (résumé, graphiques, priorités, annexe)."""
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -965,6 +1009,7 @@ def _build_pdf_report(
     story: list[Any] = []
 
     def p(text: Any, style: str = "body") -> Paragraph:
+        """Construit un ``Paragraph`` ReportLab avec échappement HTML et style nommé."""
         return Paragraph(_pdf_text(text), styles[style])
 
     story.append(p("Rapport de vigie bancaire", "title"))
@@ -1170,6 +1215,7 @@ def _build_pdf_report(
     story.append(p("Note: l'annexe est un extrait opérationnel; l'export Excel conserve le détail complet ligne par ligne.", "muted"))
 
     def _page(canvas, doc_obj) -> None:
+        """Dessine le bandeau d'en-tête et de pied de page sur chaque page du rapport PDF."""
         canvas.saveState()
         canvas.setFillColor(_PDF_NAVY)
         canvas.rect(0, letter[1] - 0.22 * inch, letter[0], 0.22 * inch, stroke=0, fill=1)
@@ -1243,6 +1289,7 @@ def render_vigie_cockpit(
     )
 
     def _pct(value: int) -> str:
+        """Retourne le pourcentage formaté d'une valeur par rapport au total de revue."""
         return f"({value / review_total:.0%})" if review_total else "(0%)"
 
     return html.Div(

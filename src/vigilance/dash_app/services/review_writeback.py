@@ -27,10 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 def _clean(value: Any) -> str:
+    """Normalise une valeur en chaîne minuscule sans espaces périphériques."""
     return str(value or "").strip().lower()
 
 
 def _attach_review(target: dict[str, Any], decision: dict[str, Any]) -> None:
+    """Attache la décision d'analyste à ``target`` sous la clé ``_analyst_review``."""
     target["_analyst_review"] = dict(decision)
 
 
@@ -157,6 +159,7 @@ def _inject_into_matching(
 def _merge_decisions(
     comparison: dict[str, Any], review_queue: list[dict[str, Any]]
 ) -> dict[str, int]:
+    """Fusionne les décisions de la file de revue dans le ``comparison.json`` en mémoire."""
     stats = {"matched": 0, "unmatched": 0, "pending": 0}
     pairs = comparison.get("pair_comparisons") or []
 

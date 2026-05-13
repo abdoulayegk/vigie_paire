@@ -121,6 +121,7 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
         changes = table.get("changes", []) or []
 
         def _export_status_label(status: str) -> str:
+            """Mappe un statut de revue technique vers un libellé d'export analyste."""
             s = str(status or "pending")
             if s == "approved" or s == "skipped":
                 return REVIEW_STATUS_APPROVED

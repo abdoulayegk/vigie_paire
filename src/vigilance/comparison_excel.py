@@ -93,6 +93,7 @@ _FILL_FAIBLE = "FFFFFF"     # blanc
 
 
 def _row_fill_color(row: dict[str, Any]) -> str | None:
+    """Retourne la couleur de remplissage Excel selon le niveau de pertinence."""
     level = row.get("relevance_level_raw")
     if level == 1:
         return _FILL_CRITIQUE
@@ -102,6 +103,7 @@ def _row_fill_color(row: dict[str, Any]) -> str | None:
 
 
 def _section_label(section: str) -> str:
+    """Retourne le libellé français d'une section, ou la clé brute si inconnue."""
     return _SECTION_FR.get(str(section).strip().lower(), section)
 
 

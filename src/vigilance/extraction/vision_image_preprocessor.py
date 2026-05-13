@@ -34,6 +34,7 @@ def preprocess_for_vision(image_bytes: bytes, *, enabled: bool | None = None) ->
     """Appliquer le pre-traitement contraste/nettete a une image PNG pour Vision.
 
     Pipeline (Pillow uniquement, sans dependance OpenCV) :
+
     1. Conversion en niveaux de gris puis retour en RGB pour supprimer les
        bordures / arriere-plans colores
     2. Amelioration du contraste via autocontrast (similaire a CLAHE)

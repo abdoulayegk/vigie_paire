@@ -1,7 +1,7 @@
-vigilance.dash\_app package
-===========================
+Interface Dash
+==============
 
-Subpackages
+Composants
 -----------
 
 .. toctree::
@@ -12,21 +12,12 @@ Subpackages
    vigilance.dash_app.layouts
    vigilance.dash_app.services
 
-Submodules
+Modules
 ----------
 
-vigilance.dash\_app.app module
+dash\_app.app
 ------------------------------
 
 .. automodule:: vigilance.dash_app.app
    :members:
    :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: vigilance.dash_app
-   :members:
-   :show-inheritance:
-   :undoc-members:

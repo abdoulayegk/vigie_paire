@@ -1,7 +1,8 @@
-bank-peer-vigilance
-====================
+Vigie de paire
+==============
 
-Documentation du projet d'extraction et de comparaison de rapports bancaires (PDF, tableaux, revue Dash).
+Documentation technique de la solution d'extraction et de comparaison de rapports bancaires.
+La documentation vise un style clair, en français, orienté revue et contrôle.
 
 .. toctree::
    :maxdepth: 2
@@ -12,13 +13,12 @@ Documentation du projet d'extraction et de comparaison de rapports bancaires (PD
 
 .. toctree::
    :maxdepth: 3
-   :caption: Reference API
+   :caption: Référence technique
 
    api/index
 
-Indices et tables
-=================
+Recherche
+=========
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

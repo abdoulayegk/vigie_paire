@@ -148,9 +148,10 @@ def _normalized_phrase_key(text: str) -> str:
 def collapse_redundant_parenthetical_expansion(text: str) -> str:
     """Reduit ``X (X ...)`` en la forme developpee ``X ...``.
 
-    Exemple :
-    - ``Fonds propres de categorie 1 (fonds propres de categorie 1 sous forme ...)``
-      -> ``fonds propres de categorie 1 sous forme ...``
+    Exemple::
+
+        Fonds propres de categorie 1 (fonds propres de categorie 1 sous forme ...)
+        -> fonds propres de categorie 1 sous forme ...
 
     Neutralise les parenthetiques explicatives qui repetent le meme prefixe
     semantique et gonfleraient sinon les scores de renommage flou.
