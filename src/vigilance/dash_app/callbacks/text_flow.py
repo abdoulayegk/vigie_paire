@@ -6,12 +6,9 @@ from dash import Input, Output, State, callback, dcc
 from dash.exceptions import PreventUpdate
 
 from vigilance.dash_app.layouts.page_text_analysis import (
-    _IMPACT_ORDER,
-    _SECTION_LABELS,
-    _build_change_card,
+    build_filtered_text_cards,
     build_text_analysis_tab,
 )
-from vigilance.text_comparison.text_comparison_excel import _should_exclude
 
 
 @callback(
@@ -40,76 +37,7 @@ def filter_text_cards(text_data, filter_section, filter_impact, filter_action):
     """Filtre et trie les cartes analytiques selon les dropdowns."""
     if not text_data:
         raise PreventUpdate
-
-    # 1. Collecter tous les changements détectés (hors unchanged)
-    items: list[tuple[tuple[int, int, str, str, str], dict, str]] = []  # (sort_key, change, section_title)
-    for sec in text_data.get("section_comparisons") or []:
-        key = sec.get("section_key", "")
-        title = sec.get("section_title") or _SECTION_LABELS.get(key, key)
-
-        # Filtre section
-        if filter_section and key != filter_section:
-            continue
-
-        for change in sec.get("all_block_comparisons") or []:
-            diff_type = change.get("diff_type", "")
-            if diff_type == "unchanged":
-                continue
-            if _should_exclude(change):
-                continue
-            triage = change.get("genai_triage") or {}
-
-            impact = (triage.get("impact_level") or "MINEUR").upper()
-            action = (triage.get("action_requise") or "aucune").lower()
-            nouvelle_idee = bool(triage.get("nouvelle_idee", False))
-            pages = change.get("pages_t2") or change.get("pages_t1") or []
-            page_sort = ""
-            if pages:
-                try:
-                    page_sort = f"{int(pages[0]):06d}"
-                except (TypeError, ValueError):
-                    page_sort = str(pages[0])
-
-            # Filtre impact
-            if filter_impact and impact != filter_impact.upper():
-                continue
-            # Filtre action
-            if filter_action and action != filter_action.lower():
-                continue
-
-            sort_key = (
-                0 if nouvelle_idee else 1,
-                _IMPACT_ORDER.get(impact, 99),
-                title,
-                page_sort,
-                diff_type,
-            )
-            items.append((sort_key, change, title))
-
-    # 2. Trier nouvelle idée → impact → section/page/type
-    items.sort(key=lambda x: x[0])
-
-    # 3. Construire les cartes
-    cards = []
-    for _, change, title in items:
-        card = _build_change_card(change, title)
-        if card is not None:
-            cards.append(card)
-
-    count_text = f"{len(cards)} changement(s) affiché(s)"
-    return cards or _empty_state(), count_text
-
-
-def _empty_state():
-    """Composant Dash affiché lorsque aucun changement ne passe les filtres."""
-    from dash import html
-
-    return [
-        html.Div(
-            "Aucun changement détecté correspondant aux filtres sélectionnés.",
-            className="text-muted text-center py-4",
-        )
-    ]
+    return build_filtered_text_cards(text_data, filter_section, filter_impact, filter_action)
 
 
 @callback(

@@ -79,6 +79,61 @@ def _badge(label: str, color: str, **kwargs) -> dbc.Badge:
     return dbc.Badge(label, color=color, className="me-1", **kwargs)
 
 
+def _plural_count(count: int, singular: str, plural: str) -> str:
+    """Retourne un libellé compté avec accord simple."""
+    return f"{count} {singular if count == 1 else plural}"
+
+
+def _build_executive_overview_text(
+    global_summary: dict[str, Any],
+    auditable_changes: int | None,
+) -> str:
+    """Construit le résumé analytique affiché dans la bannière texte."""
+    counts = global_summary.get("counts") or {}
+    by_impact = counts.get("by_impact") or {}
+
+    n_detected = auditable_changes if auditable_changes is not None else int(counts.get("total", 0) or 0)
+    n_substantive = int(counts.get("total_relevant", counts.get("total", 0)) or 0)
+    n_maj = int(by_impact.get("MAJEUR", 0) or 0)
+    n_mod = int(by_impact.get("MODERE", 0) or 0)
+
+    detected_label = _plural_count(
+        n_detected,
+        "changement textuel détecté",
+        "changements textuels détectés",
+    )
+
+    if n_substantive <= 0:
+        access_sentence = (
+            "Tous les changements restent accessibles afin de permettre une revue complète par l'analyste."
+            if n_detected
+            else ""
+        )
+        return (
+            f"{detected_label}. Aucun changement n'est classé comme substantiel "
+            f"à prioriser pour revue experte. {access_sentence}"
+        ).strip()
+
+    substantive_label = _plural_count(
+        n_substantive,
+        "changement substantiel",
+        "changements substantiels",
+    )
+    major_label = _plural_count(n_maj, "majeur", "majeurs")
+    moderate_label = _plural_count(n_mod, "modéré", "modérés")
+    access_sentence = (
+        "Les autres changements restent accessibles afin de permettre une revue complète par l'analyste."
+        if n_detected > n_substantive
+        else "Tous les changements restent accessibles afin de permettre une revue complète par l'analyste."
+    )
+
+    return (
+        f"{detected_label}. L'analyse en classe {substantive_label}, "
+        f"à prioriser pour revue experte : {major_label} et {moderate_label}. "
+        f"{access_sentence}"
+    )
+
+
 # Styles inline pour les highlights — couleurs métier banque (rouge=retiré, vert=ajouté)
 _HIGHLIGHT_REMOVED_STYLE = {
     "backgroundColor": "#fde2e2",
@@ -389,8 +444,7 @@ def _build_executive_banner(
     auditable_changes: int | None = None,
 ) -> dbc.Alert:
     """Bannière exécutive avec résumé, compteurs et bouton export."""
-    overview = global_summary.get("executive_overview", "")
-    highlights = global_summary.get("key_highlights") or []
+    overview = _build_executive_overview_text(global_summary, auditable_changes)
     pertinence = (global_summary.get("pertinence_globale") or "FAIBLE").upper()
     counts = global_summary.get("counts") or {}
     by_impact = counts.get("by_impact") or {}
@@ -415,14 +469,7 @@ def _build_executive_banner(
             ),
             # Ligne 2 : résumé exécutif
             html.P(overview, className="mb-2 small") if overview else None,
-            # Ligne 3 : points clés
-            html.Ul(
-                [html.Li(h, className="small") for h in highlights],
-                className="mb-2 ps-3",
-            )
-            if highlights
-            else None,
-            # Ligne 4 : compteurs + bouton Excel
+            # Ligne 3 : compteurs + bouton Excel
             html.Div(
                 [
                     _badge(f"{n_maj} Majeur(s)", "danger") if n_maj else None,
@@ -457,12 +504,111 @@ def _count_auditable_text_changes(section_comparisons: list[dict[str, Any]]) -> 
     return total
 
 
+def _section_has_auditable_text_changes(section: dict[str, Any]) -> bool:
+    """Indique si une section contient au moins un changement texte affichable."""
+    for change in section.get("all_block_comparisons") or []:
+        if change.get("diff_type") == "unchanged":
+            continue
+        if _should_exclude(change):
+            continue
+        return True
+    return False
+
+
+def _default_text_section(section_comparisons: list[dict[str, Any]]) -> str | None:
+    """Retourne la première section affichable à sélectionner par défaut."""
+    first_key: str | None = None
+    for section in section_comparisons:
+        key = str(section.get("section_key") or "").strip()
+        if not key:
+            continue
+        if first_key is None:
+            first_key = key
+        if _section_has_auditable_text_changes(section):
+            return key
+    return first_key
+
+
+def _empty_text_state() -> list[html.Div]:
+    """Composant Dash affiché lorsque aucun changement ne passe les filtres."""
+    return [
+        html.Div(
+            "Aucun changement détecté correspondant aux filtres sélectionnés.",
+            className="text-muted text-center py-4",
+        )
+    ]
+
+
+def build_filtered_text_cards(
+    text_data: dict[str, Any],
+    filter_section: str | None,
+    filter_impact: str | None,
+    filter_action: str | None,
+) -> tuple[list[Any], str]:
+    """Construit les cartes texte selon les filtres courants."""
+    items: list[tuple[tuple[int, int, str, str, str], dict[str, Any], str]] = []
+    for sec in text_data.get("section_comparisons") or []:
+        key = sec.get("section_key", "")
+        title = sec.get("section_title") or _SECTION_LABELS.get(key, key)
+
+        if filter_section and key != filter_section:
+            continue
+
+        for change in sec.get("all_block_comparisons") or []:
+            diff_type = change.get("diff_type", "")
+            if diff_type == "unchanged":
+                continue
+            if _should_exclude(change):
+                continue
+            triage = change.get("genai_triage") or {}
+
+            impact = (triage.get("impact_level") or "MINEUR").upper()
+            action = (triage.get("action_requise") or "aucune").lower()
+            nouvelle_idee = bool(triage.get("nouvelle_idee", False))
+            pages = change.get("pages_t2") or change.get("pages_t1") or []
+            page_sort = ""
+            if pages:
+                try:
+                    page_sort = f"{int(pages[0]):06d}"
+                except (TypeError, ValueError):
+                    page_sort = str(pages[0])
+
+            if filter_impact and impact != filter_impact.upper():
+                continue
+            if filter_action and action != filter_action.lower():
+                continue
+
+            sort_key = (
+                0 if nouvelle_idee else 1,
+                _IMPACT_ORDER.get(impact, 99),
+                title,
+                page_sort,
+                diff_type,
+            )
+            items.append((sort_key, change, title))
+
+    items.sort(key=lambda x: x[0])
+
+    cards = []
+    for _, change, title in items:
+        card = _build_change_card(change, title)
+        if card is not None:
+            cards.append(card)
+
+    count_text = f"{len(cards)} changement(s) affiché(s)"
+    return cards or _empty_text_state(), count_text
+
+
 # ---------------------------------------------------------------------------
 # Filter bar
 # ---------------------------------------------------------------------------
 
 
-def _build_filter_bar(section_options: list[dict]) -> html.Div:
+def _build_filter_bar(
+    section_options: list[dict],
+    default_section: str | None,
+    initial_count: str,
+) -> html.Div:
     """Barre de filtres : section / impact / action + compteur."""
     return html.Div(
         dbc.Row(
@@ -471,6 +617,7 @@ def _build_filter_bar(section_options: list[dict]) -> html.Div:
                     dcc.Dropdown(
                         id="text-filter-section",
                         options=section_options,
+                        value=default_section,
                         placeholder="Toutes les sections",
                         clearable=True,
                     ),
@@ -505,7 +652,7 @@ def _build_filter_bar(section_options: list[dict]) -> html.Div:
                     md=3,
                 ),
                 dbc.Col(
-                    html.Span(id="text-filter-count", className="small text-muted align-self-center"),
+                    html.Span(initial_count, id="text-filter-count", className="small text-muted align-self-center"),
                     md=2,
                     className="d-flex",
                 ),
@@ -563,6 +710,14 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
             section_options.append({"label": title, "value": key})
             seen.add(key)
 
+    default_section = _default_text_section(section_comparisons)
+    initial_cards, initial_count = build_filtered_text_cards(
+        text_data,
+        default_section,
+        None,
+        None,
+    )
+
     return html.Div(
         [
             _build_executive_banner(
@@ -572,8 +727,8 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
                 q_prev,
                 auditable_changes=_count_auditable_text_changes(section_comparisons),
             ),
-            _build_filter_bar(section_options),
-            html.Div(id="text-cards-container"),
+            _build_filter_bar(section_options, default_section, initial_count),
+            html.Div(initial_cards, id="text-cards-container"),
         ],
         className="pt-3",
     )

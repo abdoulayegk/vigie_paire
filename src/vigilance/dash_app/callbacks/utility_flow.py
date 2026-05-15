@@ -13,8 +13,6 @@ from dash import (
 from dash.exceptions import PreventUpdate
 
 from vigilance.dash_app.layouts import build_page_upload
-from vigilance.dash_app.services.review_navigation import _format_duration
-from vigilance.i18n import t
 
 
 # -- Sidebar ------------------------------------------------------------------
@@ -73,24 +71,6 @@ def on_proof_display_mode_change(value):
     if value in ("crop", "full", "footnote"):
         return value
     return no_update
-
-
-# -- Validation time footer ----------------------------------------------------
-
-
-@callback(
-    Output("stats-validation-time", "children"),
-    Input("store-validation-duration-sec", "data"),
-    Input("store-show-results-page", "data"),
-    prevent_initial_call=True,
-)
-def update_validation_time_footer(duration_sec, show_results):
-    """Afficher le temps de validation dans le pied de page des statistiques."""
-    if not show_results:
-        raise PreventUpdate
-    if duration_sec is None:
-        return f"{t('validation_time')}: --:--"
-    return f"{t('validation_time')}: {_format_duration(duration_sec)}"
 
 
 # -- Reset / toggles ----------------------------------------------------------

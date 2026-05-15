@@ -421,6 +421,48 @@ def build_page_results() -> html.Div:
                                         className="g-3 mb-4",
                                     ),
                                     html.Div(id="results-sections-tab", style={"display": "none"}),
+                                    html.Div(
+                                        dbc.Row(
+                                            [
+                                                # Left Panel: Review Queue
+                                                dbc.Col(
+                                                    [
+                                                        html.Div(
+                                                            id="review-queue-container",
+                                                            className="bg-white p-3 shadow-sm rounded flex-grow-1",
+                                                            style={"overflowY": "auto", "minHeight": 0},
+                                                        ),
+                                                        html.Div(id="results-export-tab", className="mt-3"),
+                                                    ],
+                                                    md=4,
+                                                    className="h-100 d-flex flex-column",
+                                                ),
+                                                # Right Panel: Detail View + Nav (buttons in layout so callbacks fire)
+                                                dbc.Col(
+                                                    [
+                                                        html.Div(
+                                                            [
+                                                                html.Div(id="review-progress-banner", className="mb-3"),
+                                                                html.Div(
+                                                                    id="review-proof-container",
+                                                                    className="mb-3",
+                                                                ),
+                                                                html.Div(id="review-meta-container"),
+                                                            ],
+                                                            id="review-detail-container",
+                                                            className="bg-white p-4 shadow-sm rounded",
+                                                            style={"overflowY": "auto", "minHeight": "400px"},
+                                                        ),
+                                                    ],
+                                                    md=8,
+                                                    className="h-100 d-flex flex-column",
+                                                ),
+                                            ],
+                                            className="g-4 h-100",
+                                            style={"minHeight": "600px", "height": "calc(100vh - 280px)"},
+                                        ),
+                                        className="mb-5",
+                                    ),
                                 ]
                             ),
                             label="Indicateurs",
@@ -436,96 +478,6 @@ def build_page_results() -> html.Div:
                     active_tab="tab-cockpit",
                 ),
                 className="mb-5",
-            ),
-            html.Div(
-                dbc.Row(
-                    [
-                        # Left Panel: Review Queue
-                        dbc.Col(
-                            html.Div(
-                                id="review-queue-container",
-                                className="bg-white p-3 shadow-sm rounded h-100",
-                                style={"overflowY": "hidden"},
-                            ),
-                            md=4,
-                            className="h-100",
-                        ),
-                        # Right Panel: Detail View + Nav (buttons in layout so callbacks fire)
-                        dbc.Col(
-                            [
-                                html.Div(
-                                    [
-                                        html.Div(id="review-progress-banner", className="mb-3"),
-                                        html.Div(
-                                            id="review-proof-container",
-                                            className="mb-3",
-                                        ),
-                                        html.Div(id="review-meta-container"),
-                                    ],
-                                    id="review-detail-container",
-                                    className="bg-white p-4 shadow-sm rounded",
-                                    style={"overflowY": "auto", "minHeight": "400px"},
-                                ),
-                            ],
-                            md=8,
-                            className="h-100 d-flex flex-column",
-                        ),
-                    ],
-                    className="g-4 h-100",
-                    style={"minHeight": "600px", "height": "calc(100vh - 280px)"},
-                ),
-                className="mb-5",
-            ),
-            # Footer: Validation Client Statistics
-            html.Div(
-                [
-                    html.H5(t("statistiques_validation"), className="mb-3"),
-                    dbc.Progress(
-                        [
-                            dbc.Progress(
-                                value=0,
-                                color="success",
-                                bar=True,
-                                id="progress-approved",
-                            ),
-                            dbc.Progress(
-                                value=0,
-                                color="danger",
-                                bar=True,
-                                id="progress-rejected",
-                            ),
-                            dbc.Progress(
-                                value=100,
-                                color="warning",
-                                bar=True,
-                                id="progress-pending",
-                            ),
-                        ],
-                        className="mb-3",
-                        style={"height": "20px"},
-                    ),
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                html.Div(
-                                    id="stats-validation-time",
-                                    className="text-muted small",
-                                ),
-                                width=6,
-                            ),
-                            dbc.Col(
-                                html.Div(
-                                    id="stats-export-status",
-                                    className="text-end text-muted small",
-                                ),
-                                width=6,
-                            ),
-                        ]
-                    ),
-                    html.Hr(className="my-4"),
-                    html.Div(id="results-export-tab"),
-                ],
-                className="p-4 bg-light rounded shadow-sm",
             ),
             html.Div(id="results-table-tab", style={"display": "none"}),
         ],

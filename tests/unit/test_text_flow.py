@@ -20,6 +20,22 @@ def _flat_text(node: object) -> str:
     return ""
 
 
+def _find_by_id(node: object, target_id: str) -> Component:
+    if isinstance(node, Component):
+        if getattr(node, "id", None) == target_id:
+            return node
+        children = getattr(node, "children", None)
+        if isinstance(children, list | tuple):
+            for child in children:
+                try:
+                    return _find_by_id(child, target_id)
+                except LookupError:
+                    pass
+        elif children is not None:
+            return _find_by_id(children, target_id)
+    raise LookupError(target_id)
+
+
 def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) -> None:
     stale_payload = {
         "bank_code": "td",
@@ -181,10 +197,12 @@ def test_text_analysis_banner_uses_auditable_text_total_not_retained_total() -> 
         "quarter_current": "2025_t2",
         "quarter_previous": "2025_t1",
         "global_summary": {
+            "executive_overview": "17 changement(s) textuel(s) substantiel(s) retenu(s) pour revue experte.",
+            "key_highlights": ["Exemple brut à ne pas afficher"],
             "counts": {
                 "total": 32,
                 "total_relevant": 17,
-                "by_impact": {},
+                "by_impact": {"MAJEUR": 4, "MODERE": 13},
             }
         },
         "section_comparisons": [
@@ -201,4 +219,56 @@ def test_text_analysis_banner_uses_auditable_text_total_not_retained_total() -> 
     text = _flat_text(view)
 
     assert "27 changement(s) textuel(s)" in text
+    assert "27 changements textuels détectés" in text
+    assert "17 changements substantiels" in text
+    assert "4 majeurs et 13 modérés" in text
+    assert "Les autres changements restent accessibles" in text
+    assert "Exemple brut à ne pas afficher" not in text
+    assert "retenu(s) pour revue experte" not in text
     assert "17 pertinents / 32 analysés" not in text
+
+
+def test_text_analysis_tab_selects_first_auditable_section_by_default() -> None:
+    text_data = {
+        "bank_code": "bnc",
+        "quarter_current": "2025_t2",
+        "quarter_previous": "2025_t1",
+        "global_summary": {"counts": {"total": 2, "total_relevant": 2, "by_impact": {}}},
+        "section_comparisons": [
+            {
+                "section_key": "gestion_capital",
+                "section_title": "Gestion du capital",
+                "all_block_comparisons": [
+                    {
+                        "change_id": "capital_1",
+                        "diff_type": "modified",
+                        "source_text_t1": "Ancien capital",
+                        "source_text_t2": "Nouveau capital",
+                        "genai_triage": {"impact_level": "MAJEUR"},
+                    }
+                ],
+            },
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "change_id": "risk_1",
+                        "diff_type": "modified",
+                        "source_text_t1": "Ancien risque",
+                        "source_text_t2": "Nouveau risque",
+                        "genai_triage": {"impact_level": "MODERE"},
+                    }
+                ],
+            },
+        ],
+    }
+
+    view = build_text_analysis_tab(text_data)
+    section_dropdown = _find_by_id(view, "text-filter-section")
+    text = _flat_text(view)
+
+    assert section_dropdown.value == "gestion_capital"
+    assert "1 changement(s) affiché(s)" in text
+    assert "Nouveau capital" in text
+    assert "Nouveau risque" not in text
