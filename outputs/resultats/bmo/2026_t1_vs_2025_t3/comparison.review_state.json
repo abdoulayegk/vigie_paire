@@ -1,0 +1,18 @@
+{
+  "schema_version": "review_state_v1",
+  "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/comparisons/bmo/2026_t1_vs_2025_t3/comparison.json",
+  "comparison_run_id": "20260408_191418",
+  "review_items_signature": "",
+  "saved_at": "2026-04-09T01:39:06+00:00",
+  "source": "init_review_items",
+  "preferred_store": "review_queue",
+  "review_selection": {
+    "review_id": null,
+    "change_id": null
+  },
+  "review_current_idx": 0,
+  "current_change_idx": 0,
+  "current_indicator_idx": 0,
+  "review_items": [],
+  "review_queue": []
+}

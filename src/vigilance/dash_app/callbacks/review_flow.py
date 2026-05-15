@@ -33,9 +33,6 @@ logger = logging.getLogger(__name__)
     Output("kpi-queue-approved", "children"),
     Output("kpi-queue-rejected", "children"),
     Output("kpi-queue-pending", "children"),
-    Output("progress-approved", "value"),
-    Output("progress-rejected", "value"),
-    Output("progress-pending", "value"),
     Input("store-review-queue", "data"),
     Input("store-review-selection", "data"),
     Input("store-indicator-result", "data"),
@@ -67,9 +64,6 @@ def update_review_queue(
             build_analyst_kpi_card(t("validated"), "-", color="white"),
             build_analyst_kpi_card(t("rejected"), "-", color="white"),
             build_analyst_kpi_card(t("pending"), "-", color="white"),
-            0,
-            0,
-            0,
         )
     if len(review_queue_data) == 0:
         empty_msg = t("no_changes_review", "Aucun changement a revoir.")
@@ -82,9 +76,6 @@ def update_review_queue(
             build_analyst_kpi_card(t("validated"), "0", color="white"),
             build_analyst_kpi_card(t("rejected"), "0", color="white"),
             build_analyst_kpi_card(t("pending"), "0", color="white"),
-            0,
-            0,
-            0,
         )
 
     queue = review_queue_data or []
@@ -95,9 +86,6 @@ def update_review_queue(
     approved = sum(1 for t in queue if _table_decision_bucket(t) == "approved")
     rejected = sum(1 for t in queue if _table_decision_bucket(t) == "rejected")
     pending = max(0, total - approved - rejected)
-    pct_approved = (approved / total) * 100 if total else 0
-    pct_rejected = (rejected / total) * 100 if total else 0
-    pct_pending = (pending / total) * 100 if total else 0
 
     queue_component = build_review_queue_v2(
         queue,
@@ -112,9 +100,6 @@ def update_review_queue(
         build_analyst_kpi_card(t("validated"), str(approved), color="white"),
         build_analyst_kpi_card(t("rejected"), str(rejected), color="white"),
         build_analyst_kpi_card(t("pending"), str(pending), color="white"),
-        pct_approved,
-        pct_rejected,
-        pct_pending,
     )
 
 

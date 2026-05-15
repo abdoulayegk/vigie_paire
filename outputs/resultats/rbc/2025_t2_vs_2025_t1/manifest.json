@@ -1,0 +1,17 @@
+{
+  "bank": "RBC",
+  "current": {
+    "year": 2025,
+    "quarter": "T2",
+    "extraction_path": "/Users/balde/Desktop/vigie_paire/outputs/extractions/rbc/2025/t2",
+    "pdf_path": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf"
+  },
+  "previous": {
+    "year": 2025,
+    "quarter": "T1",
+    "extraction_path": "/Users/balde/Desktop/vigie_paire/outputs/extractions/rbc/2025/t1",
+    "pdf_path": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf"
+  },
+  "status": "completed",
+  "generated_at": "2026-04-18T23:52:07.632104+00:00"
+}
