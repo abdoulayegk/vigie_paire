@@ -2330,6 +2330,12 @@ jamais ce module – il ne lit que les champs pre-calcules dans comparison.json.
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="vigilance.quarter_utils.QuarterRef.display_label">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">display_label</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.quarter_utils.QuarterRef.display_label" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourner le libelle utilisateur francais (ex. <code class="docutils literal notranslate"><span class="pre">T2</span> <span class="pre">2025</span></code>).</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="vigilance.quarter_utils.QuarterRef.label">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">label</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.quarter_utils.QuarterRef.label" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourner le libelle formate (ex. <code class="docutils literal notranslate"><span class="pre">Q2-2025</span></code>).</p>
@@ -2354,6 +2360,17 @@ jamais ce module – il ne lit que les champs pre-calcules dans comparison.json.
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.quarter_utils.format_quarter_display_label">
+<span class="sig-name descname"><span class="pre">format_quarter_display_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quarter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.quarter_utils.format_quarter_display_label" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourner le libelle utilisateur francais comme <code class="docutils literal notranslate"><span class="pre">T2</span> <span class="pre">2025</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -2851,7 +2868,7 @@ valide independamment.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="vigilance.review_models_v2.ChangeItem.is_validated">
 <span class="sig-name descname"><span class="pre">is_validated</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.review_models_v2.ChangeItem.is_validated" title="Lien vers cette définition"></a></dt>
-<dd><p>Verifier si ce changement a ete valide (approuve/rejete/ignore).</p>
+<dd><p>Verifier si ce changement a une decision finale analyste.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
