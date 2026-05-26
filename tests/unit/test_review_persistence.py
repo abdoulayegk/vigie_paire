@@ -60,6 +60,37 @@ def test_review_items_from_v2_queue_preserves_validation_metadata() -> None:
     assert items[0].review_timestamp == "2026-03-18T10:00:00Z"
 
 
+def test_review_items_from_v2_queue_maps_skipped_to_pending_export() -> None:
+    queue = [
+        {
+            "table_key": "bnc::capital::pair",
+            "section": "capital_management",
+            "table_name": "Capital",
+            "table_number": "1",
+            "table_id_t1": "t1",
+            "table_id_t2": "t2",
+            "page_t1": 10,
+            "page_t2": 11,
+            "table_status": "pending",
+            "changes": [
+                {
+                    "change_id": "chg_1",
+                    "change_type": "indicator_added",
+                    "payload": {"indicator_name": "Ratio CET1"},
+                    "validation_status": "skipped",
+                    "validation_notes": "À revoir plus tard",
+                    "is_required": True,
+                }
+            ],
+        }
+    ]
+
+    items = _review_items_from_v2_queue(queue)
+
+    assert items[0].review_status == "pending"
+    assert items[0].indicators[0]["review_status"] == "pending"
+
+
 def test_init_review_items_restores_persisted_state(monkeypatch, tmp_path) -> None:
     compare_path = tmp_path / "bnc_q2_vs_q1_2025.json"
     compare_path.write_text("{}", encoding="utf-8")
@@ -447,3 +478,58 @@ def test_on_validate_change_v2_persists_review_state(monkeypatch, tmp_path) -> N
     assert persisted["preferred_store"] == "review_queue"
     assert persisted["review_queue"][0]["changes"][0]["validation_notes"] == "Confirme"
     assert persisted["review_selection"]["review_id"] == "bnc::capital::pair"
+
+
+def test_on_validate_change_v2_keeps_skipped_open(monkeypatch, tmp_path) -> None:
+    compare_path = tmp_path / "comparison.json"
+    compare_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        review_mod,
+        "ctx",
+        SimpleNamespace(triggered_id="btn-skip-change-v2"),
+    )
+
+    queue = [
+        {
+            "table_key": "bnc::capital::pair",
+            "section": "capital_management",
+            "table_name": "Capital",
+            "table_number": "1",
+            "table_id_t1": "t1",
+            "table_id_t2": "t2",
+            "page_t1": 10,
+            "page_t2": 11,
+            "table_status": "pending",
+            "changes": [
+                {
+                    "change_id": "chg_1",
+                    "change_type": "indicator_added",
+                    "payload": {"indicator_name": "Ratio CET1"},
+                    "validation_status": "pending",
+                    "is_required": True,
+                }
+            ],
+        }
+    ]
+
+    new_queue, _selection, change_idx = review_mod.on_validate_change_v2(
+        None,
+        None,
+        1,
+        queue,
+        {"review_id": "bnc::capital::pair", "change_id": "chg_1"},
+        {"section": "all", "status": "all"},
+        {},
+        "À revoir plus tard",
+        {"compare_path": str(compare_path)},
+    )
+
+    assert new_queue[0]["changes"][0]["validation_status"] == "skipped"
+    assert new_queue[0]["summary"]["validated"] == 0
+    assert new_queue[0]["summary"]["pending"] == 1
+    assert new_queue[0]["table_status"] == "pending"
+    assert change_idx == 0
+
+    persisted = load_review_state(compare_path)
+    assert persisted is not None
+    assert persisted["review_queue"][0]["changes"][0]["validation_status"] == "skipped"

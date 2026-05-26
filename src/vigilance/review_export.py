@@ -9,6 +9,7 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from typing import Any, Iterator
 
+from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.review_models import ReviewItem
 
 CSV_SCHEMA_VERSION = "csv_review_v1"
@@ -213,8 +214,8 @@ def _build_export_context(indicator_result: dict[str, Any] | None) -> dict[str, 
     current = (meta.get("extraction_sources") or {}).get("current") or {}
     return {
         "bank_code": _sanitize_cell(ir.get("bank_code", "")),
-        "quarter_from": _sanitize_cell(ir.get("quarter_from") or ir.get("previous_quarter") or ""),
-        "quarter_to": _sanitize_cell(ir.get("quarter_to") or ir.get("current_quarter") or ""),
+        "quarter_from": _sanitize_cell(quarter_label_from_payload(ir, "previous")),
+        "quarter_to": _sanitize_cell(quarter_label_from_payload(ir, "current")),
         "year": _format_cell(ir.get("year", "")),
         "compare_path": _sanitize_cell(meta.get("compare_path", "")),
         "generated_at": _sanitize_cell(meta.get("generated_at", "")),

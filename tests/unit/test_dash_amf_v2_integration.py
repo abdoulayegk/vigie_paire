@@ -34,6 +34,42 @@ def _flatten_text(node: object) -> str:
     return ""
 
 
+def _find_component_with_text(node: object, expected_text: str) -> Component:
+    """Retourne le premier composant dont le texte aplati contient expected_text."""
+    if isinstance(node, Component):
+        if expected_text in _flatten_text(node):
+            children = getattr(node, "children", None)
+            if isinstance(children, list):
+                for child in children:
+                    try:
+                        return _find_component_with_text(child, expected_text)
+                    except LookupError:
+                        pass
+            elif children is not None:
+                try:
+                    return _find_component_with_text(children, expected_text)
+                except LookupError:
+                    pass
+            return node
+    raise LookupError(expected_text)
+
+
+def _styled_texts(node: object) -> list[tuple[str, dict]]:
+    """Retourne les textes portés par des composants stylés."""
+    results: list[tuple[str, dict]] = []
+    if isinstance(node, Component):
+        style = getattr(node, "style", None)
+        if style:
+            results.append((_flatten_text(node), style))
+        children = getattr(node, "children", None)
+        if isinstance(children, list):
+            for child in children:
+                results.extend(_styled_texts(child))
+        elif children is not None:
+            results.extend(_styled_texts(children))
+    return results
+
+
 # --- Filtrage is_relevant=False dans la queue (review_queue_v2) ---
 
 
@@ -131,6 +167,40 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
     assert "Justification de triage" not in text
 
 
+def test_text_analysis_highlights_ce_qui_change_in_ia_justification() -> None:
+    """La rubrique clé de la justification IA est mise en évidence en bleu."""
+    change = {
+        "diff_type": "removed",
+        "source_text_t1": "Contexte géopolitique volatile.",
+        "evidence_t1": {"pages": [12], "snippet": "preuve"},
+        "genai_triage": {
+            "is_relevant": True,
+            "themes_amf": ["FACTEUR_RISQUE_CHANGEMENT"],
+            "impact_level": "MAJEUR",
+            "nouvelle_idee": True,
+            "nouvelle_idee_justification": (
+                "OUI — Nouvel élément à surveiller : Oui.\n\n"
+                "Sujet détecté : Risques géopolitiques.\n\n"
+                "Ce qui change : Le T2 retire la description du contexte géopolitique "
+                "et économique volatile, incluant les mesures commerciales, la guerre "
+                "russo-ukrainienne, et les affrontements entre Israël et le Hamas, "
+                "qui étaient mentionnés au T1.\n\n"
+                "Pertinence métier : Le retrait modifie le niveau de détail fourni.\n\n"
+                "Point de surveillance : Risques géopolitiques — Suivre la transparence."
+            ),
+            "action_requise": "revue_prioritaire",
+        },
+    }
+
+    card = _build_change_card(change, "Gestion des risques")
+
+    highlighted = _find_component_with_text(card, "Ce qui change : Le T2 retire")
+    style = getattr(highlighted, "style", {}) or {}
+    assert style["backgroundColor"] == "#e0f2fe"
+    assert style["color"] == "#075985"
+    assert "Pertinence métier" not in _flatten_text(highlighted)
+
+
 def test_text_analysis_change_card_keeps_non_pertinent() -> None:
     """Une carte avec is_relevant=False reste visible pour revue humaine."""
     change = {
@@ -208,7 +278,7 @@ def test_highlight_text_merges_overlapping_segments() -> None:
 
 
 def test_side_by_side_modified_renders_two_columns() -> None:
-    """Pour diff_type=modified, on affiche les 2 colonnes T1 et T2."""
+    """Pour diff_type=modified, on affiche Courant a gauche puis Precedent."""
     sbs = _build_side_by_side(
         text_t1="Le seuil est de 4,5 %.",
         text_t2="Le seuil est de 5,0 %.",
@@ -216,12 +286,16 @@ def test_side_by_side_modified_renders_two_columns() -> None:
         page_t2="25",
         change_segments=[{"kind": "modified", "text_t1": "4,5 %", "text_t2": "5,0 %"}],
         diff_type="modified",
+        current_quarter_label="T3 2025",
+        previous_quarter_label="T2 2025",
     )
     text = _flatten_text(sbs)
-    assert "Précédent (p.22)" in text
-    assert "Courant (p.25)" in text
+    assert "Précédent - T2 2025 (p.22)" in text
+    assert "Courant - T3 2025 (p.25)" in text
     assert "4,5 %" in text
     assert "5,0 %" in text
+    assert _flatten_text(sbs.children[0]).startswith("Courant - T3 2025 (p.25)")
+    assert _flatten_text(sbs.children[1]).startswith("Précédent - T2 2025 (p.22)")
 
 
 def test_side_by_side_added_renders_only_t2() -> None:
@@ -260,6 +334,38 @@ def test_side_by_side_removed_renders_only_t1() -> None:
     assert "Précédent (p.18)" in text
     assert "Courant" not in text
     assert "cybermenaces" in text
+
+
+def test_side_by_side_modified_highlights_diff_when_change_segments_do_not_match() -> None:
+    """Sans segment IA exploitable, le diff T1/T2 surligne la partie source retirée."""
+    removed_sentence = (
+        "Depuis quelques années, la Banque fait face à un contexte volatile. "
+        "Le contexte géopolitique, notamment les mesures commerciales, la guerre "
+        "russo-ukrainienne et les affrontements entre Israël et le Hamas, crée des incertitudes."
+    )
+    sbs = _build_side_by_side(
+        text_t1=(
+            "Le risque de marché est le risque de pertes financières liées à la variation "
+            f"des prix de marché. {removed_sentence}"
+        ),
+        text_t2=(
+            "Le risque de marché est le risque de pertes financières liées à la variation "
+            "des prix de marché."
+        ),
+        page_t1="30",
+        page_t2="33",
+        change_segments=[],
+        diff_type="modified",
+    )
+
+    styled = _styled_texts(sbs)
+    removed_highlights = [
+        text
+        for text, style in styled
+        if style.get("backgroundColor") == "#fef3c7" and "contexte géopolitique" in text
+    ]
+    assert removed_highlights
+    assert any("affrontements entre Israël et le Hamas" in text for text in removed_highlights)
 
 
 def test_change_segment_pydantic_invariants() -> None:

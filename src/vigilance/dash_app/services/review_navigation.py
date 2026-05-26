@@ -149,6 +149,10 @@ def _resolve_change_id(
         status = str(change.get("validation_status", "pending"))
         if change.get("is_required", True) and status == "pending":
             return str(change.get("change_id", "")) or None
+    for change in changes:
+        status = str(change.get("validation_status", "pending"))
+        if change.get("is_required", True) and status == "skipped":
+            return str(change.get("change_id", "")) or None
     if changes:
         return str(changes[0].get("change_id", "")) or None
     return None
@@ -325,7 +329,7 @@ def _table_decision_bucket(table: dict) -> str:
     if not required:
         required = changes
     statuses = [str(c.get("validation_status", "pending")) for c in required]
-    if all(s in ("approved", "skipped") for s in statuses):
+    if all(s == "approved" for s in statuses):
         return "approved"
     if all(s == "rejected" for s in statuses):
         return "rejected"

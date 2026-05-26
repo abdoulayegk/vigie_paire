@@ -20,6 +20,7 @@ from vigilance.dash_app.services.review_navigation import (
     _resolve_selection,
     _table_to_proof_item,
 )
+from vigilance.quarter_utils import quarter_label_from_payload
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +32,16 @@ logger = logging.getLogger(__name__)
     Input("store-pdf-paths", "data"),
     Input("store-show-results-page", "data"),
     Input("store-proof-display-mode", "data"),
+    State("store-indicator-result", "data"),
     prevent_initial_call=True,
 )
 def update_review_proofs(
-    review_queue_data, selection, paths, show_results, proof_display_mode
+    review_queue_data,
+    selection,
+    paths,
+    show_results,
+    proof_display_mode,
+    indicator_result=None,
 ):
     """Mettre a jour la section des preuves visuelles (portee tableau ; stable lors de la navigation entre indicateurs)."""
     if not show_results:
@@ -50,10 +57,19 @@ def update_review_proofs(
         review_queue_data, resolved_selection.get("review_id")
     )
     if table is None:
+        current_label = quarter_label_from_payload(indicator_result, "current")
+        previous_label = quarter_label_from_payload(indicator_result, "previous")
+        heading_label = (
+            f"Preuves visuelles : {current_label} vs {previous_label}"
+            if current_label != "Trimestre courant"
+            and previous_label != "Trimestre précédent"
+            else "Preuves visuelles : courant vs précédent"
+        )
         return html.Div(
             [
                 html.H6(
-                    "Preuves visuelles : courant vs précédent", className="mb-1"
+                    heading_label,
+                    className="mb-1",
                 ),
                 html.P(
                     "Aucune preuve visuelle disponible pour la sélection courante.",
@@ -188,6 +204,8 @@ def update_review_proofs(
         proof_display_mode=mode,
         proof_result_t1=proof_t1,
         proof_result_t2=proof_t2,
+        current_quarter_label=quarter_label_from_payload(indicator_result, "current"),
+        previous_quarter_label=quarter_label_from_payload(indicator_result, "previous"),
     )
 
 
@@ -196,9 +214,10 @@ def update_review_proofs(
     Input("store-review-queue", "data"),
     Input("store-review-selection", "data"),
     Input("store-show-results-page", "data"),
+    State("store-indicator-result", "data"),
     prevent_initial_call=True,
 )
-def update_review_meta(review_queue_data, selection, show_results):
+def update_review_meta(review_queue_data, selection, show_results, indicator_result=None):
     """Mettre a jour les metadonnees V2 et la section de validation par changement."""
     if not show_results:
         raise PreventUpdate
@@ -224,6 +243,8 @@ def update_review_meta(review_queue_data, selection, show_results):
         proof_image_t1_b64="",
         proof_image_t2_b64="",
         show_proofs=False,
+        current_quarter_label=quarter_label_from_payload(indicator_result, "current"),
+        previous_quarter_label=quarter_label_from_payload(indicator_result, "previous"),
     )
 
 
@@ -250,7 +271,7 @@ def update_progress_banner(review_queue_data, show_results, indicator_meta):
         1
         for t in review_queue_data
         for c in (t.get("changes", []) or [])
-        if c.get("validation_status", "pending") in ("approved", "rejected", "skipped")
+        if c.get("validation_status", "pending") in ("approved", "rejected")
     )
     pct = int(validated_changes / total_changes * 100) if total_changes else 0
 

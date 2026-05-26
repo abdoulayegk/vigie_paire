@@ -157,7 +157,7 @@ def test_generate_validation_excel_generates_expert_workbook() -> None:
         if ws_summary.cell(row=i, column=1).value not in ("", None)
     }
     assert summary_pairs["Banque"] == "BNC"
-    assert summary_pairs["Trimestre comparé"] == "Q2-2025 vs Q1-2025"
+    assert summary_pairs["Trimestre comparé"] == "T2 2025 vs T1 2025"
     assert summary_pairs["Nombre total de changements"] == 3
     assert summary_pairs["Validés"] == 1
     assert summary_pairs["Rejetés"] == 1
@@ -262,7 +262,7 @@ def test_generate_validation_txt_generates_readable_report() -> None:
 
     assert "REVUE EXPERT" in txt
     assert "Banque : BNC" in txt
-    assert "Trimestre comparé : Q2-2025 vs Q1-2025" in txt
+    assert "Trimestre comparé : T2 2025 vs T1 2025" in txt
     assert "SECTION : Gestion du capital" in txt
     assert "Tableau : Structure des fonds propres" in txt
     assert "Nouvelle idée : Non" in txt

@@ -13,6 +13,11 @@ from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.review_export import generate_validation_excel
 
 
+def _filename_period(label: str) -> str:
+    """Normalise un libelle de trimestre pour un nom de fichier."""
+    return "_".join(str(label or "").strip().upper().split())
+
+
 @callback(
     Output("results-export-tab", "children"),
     Input("store-review-items", "data"),
@@ -87,8 +92,8 @@ def on_download_excel(
         review_items_data, review_queue_data, indicator_result, paths
     )
     bank = str(ir.get("bank_code", "bank")).upper()
-    q_from = quarter_label_from_payload(ir, "previous").upper()
-    q_to = quarter_label_from_payload(ir, "current").upper()
+    q_from = _filename_period(quarter_label_from_payload(ir, "previous"))
+    q_to = _filename_period(quarter_label_from_payload(ir, "current"))
     year_val = str(ir.get("year", "2025"))
     filename = f"Vigie_Comparaison_{bank}_{q_to}_vs_{q_from}_{year_val}.xlsx"
     excel_bytes = generate_validation_excel(items, ir)

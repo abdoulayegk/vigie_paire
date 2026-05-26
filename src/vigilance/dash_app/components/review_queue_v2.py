@@ -558,12 +558,12 @@ def _get_change_state_label(change: dict) -> str:
     """Retourne le libelle d'etat de validation du changement."""
     status = str(change.get("validation_status", "pending") or "pending")
     if status == "approved":
-        return "Valide"
+        return "Validé"
     if status == "rejected":
-        return "Rejete"
+        return "Rejeté"
     if status == "skipped":
-        return "Passe"
-    return "A revoir"
+        return "Passé"
+    return "À revoir"
 
 
 def _build_change_card(change: dict, is_current: bool) -> html.Button:

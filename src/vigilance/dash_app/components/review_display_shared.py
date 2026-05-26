@@ -143,16 +143,25 @@ def table_display_label(item: dict) -> str:
     return f"{prefix} (sans titre)"
 
 
-def compute_flag_state(item: dict) -> dict:
+def compute_flag_state(
+    item: dict,
+    *,
+    current_quarter_label: str | None = None,
+    previous_quarter_label: str | None = None,
+) -> dict:
     """Calcule les indicateurs visuels des cartes de preuve a partir du payload de changement.
 
     Args:
         item: Dictionnaire du changement contenant ``change_type``,
             ``added_indicators``, ``removed_indicators`` et ``indicators``.
+        current_quarter_label: Libelle du trimestre courant, si disponible.
+        previous_quarter_label: Libelle du trimestre precedent, si disponible.
 
     Returns:
         Dictionnaire avec les classes CSS et libelles de badges pour T1/T2.
     """
+    current_label = str(current_quarter_label or "").strip() or "Trimestre courant"
+    previous_label = str(previous_quarter_label or "").strip() or "Trimestre précédent"
     change_type = (item.get("change_type") or "").strip()
     selected_change_type = (item.get("selected_change_type") or change_type).strip()
     added = item.get("added_indicators") or []
@@ -171,8 +180,8 @@ def compute_flag_state(item: dict) -> dict:
             "has_change": True,
             "t1_class": "proof-card",
             "t2_class": "proof-card proof-flag-t2",
-            "badge_t1": "Trimestre précédent",
-            "badge_t2": "Trimestre courant - note ajoutée",
+            "badge_t1": previous_label,
+            "badge_t2": f"{current_label} - note ajoutée",
             "badge_class_t1": "neutral",
             "badge_class_t2": "t2",
         }
@@ -181,8 +190,8 @@ def compute_flag_state(item: dict) -> dict:
             "has_change": True,
             "t1_class": "proof-card proof-flag-t1",
             "t2_class": "proof-card",
-            "badge_t1": "Trimestre précédent - note supprimée",
-            "badge_t2": "Trimestre courant",
+            "badge_t1": f"{previous_label} - note supprimée",
+            "badge_t2": current_label,
             "badge_class_t1": "t1",
             "badge_class_t2": "neutral",
         }
@@ -191,8 +200,8 @@ def compute_flag_state(item: dict) -> dict:
             "has_change": True,
             "t1_class": "proof-card proof-flag-t1",
             "t2_class": "proof-card proof-flag-t2",
-            "badge_t1": "Trimestre précédent - ancienne note",
-            "badge_t2": "Trimestre courant - nouvelle note",
+            "badge_t1": f"{previous_label} - ancienne note",
+            "badge_t2": f"{current_label} - nouvelle note",
             "badge_class_t1": "t1",
             "badge_class_t2": "t2",
         }
@@ -207,8 +216,8 @@ def compute_flag_state(item: dict) -> dict:
             "has_change": False,
             "t1_class": "proof-card",
             "t2_class": "proof-card",
-            "badge_t1": "Trimestre précédent",
-            "badge_t2": "Trimestre courant",
+            "badge_t1": previous_label,
+            "badge_t2": current_label,
             "badge_class_t1": "neutral",
             "badge_class_t2": "neutral",
         }
@@ -217,8 +226,8 @@ def compute_flag_state(item: dict) -> dict:
             "has_change": True,
             "t1_class": "proof-card",
             "t2_class": "proof-card proof-flag-t2",
-            "badge_t1": "Trimestre précédent",
-            "badge_t2": "Trimestre courant",
+            "badge_t1": previous_label,
+            "badge_t2": current_label,
             "badge_class_t1": "neutral",
             "badge_class_t2": "t2",
         }
@@ -227,8 +236,8 @@ def compute_flag_state(item: dict) -> dict:
             "has_change": True,
             "t1_class": "proof-card proof-flag-t1",
             "t2_class": "proof-card",
-            "badge_t1": "Trimestre précédent",
-            "badge_t2": "Trimestre courant",
+            "badge_t1": previous_label,
+            "badge_t2": current_label,
             "badge_class_t1": "t1",
             "badge_class_t2": "neutral",
         }
@@ -236,8 +245,8 @@ def compute_flag_state(item: dict) -> dict:
         "has_change": True,
         "t1_class": "proof-card proof-flag-t1",
         "t2_class": "proof-card proof-flag-t2",
-        "badge_t1": "Trimestre précédent",
-        "badge_t2": "Trimestre courant",
+        "badge_t1": previous_label,
+        "badge_t2": current_label,
         "badge_class_t1": "t1",
         "badge_class_t2": "t2",
     }
@@ -272,6 +281,8 @@ def build_proofs_section(
     proof_display_mode: str = "crop",
     proof_result_t1: dict | None = None,
     proof_result_t2: dict | None = None,
+    current_quarter_label: str | None = None,
+    previous_quarter_label: str | None = None,
 ) -> html.Div:
     """Construit le panneau de preuves visuelles partage par la vue de detail V2.
 
@@ -283,11 +294,28 @@ def build_proofs_section(
             ``"footnote"`` ou ``"full_without_bbox"``).
         proof_result_t1: Resultat de rendu pour la preuve T1.
         proof_result_t2: Resultat de rendu pour la preuve T2.
+        current_quarter_label: Libelle du trimestre courant, si disponible.
+        previous_quarter_label: Libelle du trimestre precedent, si disponible.
 
     Returns:
         Un ``Div`` contenant les cartes de preuve T1/T2 et le selecteur de mode.
     """
-    flag_state = compute_flag_state(item)
+    current_label = str(current_quarter_label or "").strip() or "Trimestre courant"
+    previous_label = str(previous_quarter_label or "").strip() or "Trimestre précédent"
+    has_period_labels = (
+        current_label != "Trimestre courant"
+        and previous_label != "Trimestre précédent"
+    )
+    heading_label = (
+        f"Preuves visuelles : {current_label} vs {previous_label}"
+        if has_period_labels
+        else "Preuves visuelles : courant vs précédent"
+    )
+    flag_state = compute_flag_state(
+        item,
+        current_quarter_label=current_label,
+        previous_quarter_label=previous_label,
+    )
     normalized_mode = (proof_display_mode or "crop").strip().lower()
     mode_label_map = {
         "crop": "Mode zoom tableau",
@@ -415,17 +443,18 @@ def build_proofs_section(
     if change_type == CHANGE_TYPE_TABLE_ADDED:
         card_t1 = _img_card(
             None,
-            _proof_caption("Trimestre précédent", item.get("page_t1"), mode_t1),
+            _proof_caption(previous_label, item.get("page_t1"), mode_t1),
             mode_value=mode_t1,
-            placeholder=t(
-                "no_table_added_t2",
-                "Aucun tableau dans le trimestre précédent",
+            placeholder=(
+                f"Aucun tableau en {previous_label}"
+                if has_period_labels
+                else t("no_table_added_t2", "Aucun tableau dans le trimestre précédent")
             ),
             render_result=proof_result_t1,
         )
         card_t2 = _img_card(
             img_t2_b64,
-            _proof_caption("Trimestre courant", item.get("page_t2"), mode_t2),
+            _proof_caption(current_label, item.get("page_t2"), mode_t2),
             mode_value=mode_t2,
             bbox_norm=bbox_t2_norm,
             render_result=proof_result_t2,
@@ -434,7 +463,7 @@ def build_proofs_section(
     elif change_type == CHANGE_TYPE_TABLE_REMOVED:
         card_t1 = _img_card(
             img_t1_b64,
-            _proof_caption("Trimestre précédent", item.get("page_t1"), mode_t1),
+            _proof_caption(previous_label, item.get("page_t1"), mode_t1),
             mode_value=mode_t1,
             bbox_norm=bbox_t1_norm,
             render_result=proof_result_t1,
@@ -442,18 +471,22 @@ def build_proofs_section(
         )
         card_t2 = _img_card(
             None,
-            _proof_caption("Trimestre courant", item.get("page_t2"), mode_t2),
+            _proof_caption(current_label, item.get("page_t2"), mode_t2),
             mode_value=mode_t2,
-            placeholder=t(
-                "no_table_removed_t2",
-                "Aucun tableau au trimestre courant (supprimé depuis le trimestre précédent)",
+            placeholder=(
+                f"Aucun tableau en {current_label} (supprimé depuis {previous_label})"
+                if has_period_labels
+                else t(
+                    "no_table_removed_t2",
+                    "Aucun tableau au trimestre courant (supprimé depuis le trimestre précédent)",
+                )
             ),
             render_result=proof_result_t2,
         )
     else:
         card_t1 = _img_card(
             img_t1_b64,
-            _proof_caption("Trimestre précédent", item.get("page_t1"), mode_t1),
+            _proof_caption(previous_label, item.get("page_t1"), mode_t1),
             mode_value=mode_t1,
             bbox_norm=bbox_t1_norm,
             render_result=proof_result_t1,
@@ -461,7 +494,7 @@ def build_proofs_section(
         )
         card_t2 = _img_card(
             img_t2_b64,
-            _proof_caption("Trimestre courant", item.get("page_t2"), mode_t2),
+            _proof_caption(current_label, item.get("page_t2"), mode_t2),
             mode_value=mode_t2,
             bbox_norm=bbox_t2_norm,
             render_result=proof_result_t2,
@@ -516,7 +549,7 @@ def build_proofs_section(
 
     return html.Div(
         [
-            html.H6("Preuves visuelles : courant vs précédent", className="mb-1"),
+            html.H6(heading_label, className="mb-1"),
             proof_mode_toggle,
             proofs_row,
         ]

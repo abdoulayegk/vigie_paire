@@ -57,3 +57,16 @@ def test_text_tab_does_not_include_indicator_review_panel() -> None:
     assert "review-queue-container" not in text_ids
     assert "review-proof-container" not in text_ids
     assert "results-export-tab" not in text_ids
+
+
+def test_results_tabs_start_with_indicators_and_dashboard_last() -> None:
+    page = build_page_results()
+    tabs = _find_by_id(page, "results-main-tabs")
+    tab_children = getattr(tabs, "children", []) or []
+
+    assert getattr(tabs, "active_tab", None) == "tab-indicateurs"
+    assert [getattr(tab, "tab_id", None) for tab in tab_children] == [
+        "tab-indicateurs",
+        "tab-texte",
+        "tab-cockpit",
+    ]

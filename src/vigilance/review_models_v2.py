@@ -154,8 +154,8 @@ class ChangeItem:
         )
 
     def is_validated(self) -> bool:
-        """Verifier si ce changement a ete valide (approuve/rejete/ignore)."""
-        return self.validation_status in ("approved", "rejected", "skipped")
+        """Verifier si ce changement a une decision finale analyste."""
+        return self.validation_status in ("approved", "rejected")
 
 
 @dataclass(slots=True)

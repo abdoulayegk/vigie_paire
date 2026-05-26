@@ -9,7 +9,6 @@ from dash import Input, Output, State, callback, html
 from dash.exceptions import PreventUpdate
 
 from vigilance.comparison_canonical import (
-    get_meta_value,
     is_canonical_comparison,
 )
 from vigilance.dash_app.components.review_display_shared import (
@@ -37,10 +36,7 @@ from vigilance.dash_app.services.review_persistence import (
     _stored_review_items_from_state,
 )
 from vigilance.i18n import t
-from vigilance.quarter_utils import (
-    get_payload_quarter_context,
-    quarter_label_from_payload,
-)
+from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.review_adapters import build_review_items_from_indicator_result
 from vigilance.review_priority import sort_review_items_by_priority
 from vigilance.review_queue_normalizer import build_normalized_review_queue
@@ -87,34 +83,13 @@ def render_results(comparison, indicator, show_results):
     elif indicator:
         bank = indicator.get("bank_code", "N/A")
         title = "Indicateurs"
-    quarter_context = get_payload_quarter_context(
-        data if isinstance(data, dict) else {}
-    )
-    previous_label = str(quarter_context["previous"]["label"])
-    current_label = str(quarter_context["current"]["label"])
+    previous_label = quarter_label_from_payload(data if isinstance(data, dict) else {}, "previous")
+    current_label = quarter_label_from_payload(data if isinstance(data, dict) else {}, "current")
     header = html.H5(
         f"{str(bank).upper()} - {title} - {current_label} vs {previous_label}"
     )
 
     executive_summary = html.Div()
-    if indicator and isinstance(indicator, dict):
-        meta = indicator.get("meta", {}) or {}
-        genai_text = get_meta_value(meta, "executive_summary", "content") or ""
-        if genai_text:
-            executive_summary = dbc.Alert(
-                html.P(genai_text, className="mb-0 small"),
-                color="info",
-                className="mb-3 shadow-sm",
-            )
-        else:
-            executive_summary = dbc.Alert(
-                html.P(
-                    "Résumé en cours de génération ou non disponible.",
-                    className="mb-0 small text-muted",
-                ),
-                color="light",
-                className="mb-3",
-            )
 
     kpis = []
     if indicator:
@@ -391,6 +366,8 @@ def render_sections_tab(indicator_result, show_results):
     comparisons = indicator_result.get("table_comparisons", [])
     tables_added = indicator_result.get("tables_added", [])
     tables_removed = indicator_result.get("tables_removed", [])
+    current_label = quarter_label_from_payload(indicator_result, "current")
+    previous_label = quarter_label_from_payload(indicator_result, "previous")
 
     # Group by section
     sections: dict[str, dict] = {}
@@ -434,6 +411,8 @@ def render_sections_tab(indicator_result, show_results):
             tables_added=data["added"],
             tables_removed=data["removed"],
             item_id=f"section-{i}",
+            current_quarter_label=current_label,
+            previous_quarter_label=previous_label,
         )
         accordion_items.append(item)
 
