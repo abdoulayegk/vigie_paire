@@ -6,13 +6,16 @@ restants sont gérés dans ``text_flow.py``.
 
 from __future__ import annotations
 
+import re
+from difflib import SequenceMatcher
 from typing import Any
 
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from vigilance.text_comparison.text_comparison_excel import _should_exclude
+from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.text_comparison.justification import build_text_triage_justification
+from vigilance.text_comparison.text_comparison_excel import _should_exclude
 
 # ---------------------------------------------------------------------------
 # Constantes d'affichage
@@ -66,6 +69,12 @@ _ACTION_BADGE: dict[str, tuple[str, str]] = {
     "confirmation": ("Confirmation", "success"),
     "information": ("Information", "info"),
     "aucune": ("Aucune", "secondary"),
+}
+
+_TEXT_REVIEW_STATUS_BADGES: dict[str, tuple[str, str]] = {
+    "approved": ("Validé", "success"),
+    "rejected": ("Rejeté", "danger"),
+    "skipped": ("Passé", "secondary"),
 }
 
 
@@ -134,10 +143,11 @@ def _build_executive_overview_text(
     )
 
 
-# Styles inline pour les highlights — couleurs métier banque (rouge=retiré, vert=ajouté)
+# Styles inline pour les highlights — couleurs métier banque
+# (ambre=retiré, vert=ajouté, bleu=synthèse IA).
 _HIGHLIGHT_REMOVED_STYLE = {
-    "backgroundColor": "#fde2e2",
-    "color": "#9b1c1c",
+    "backgroundColor": "#fef3c7",
+    "color": "#92400e",
     "padding": "0 2px",
     "borderRadius": "2px",
     "fontWeight": "500",
@@ -149,6 +159,75 @@ _HIGHLIGHT_ADDED_STYLE = {
     "borderRadius": "2px",
     "fontWeight": "500",
 }
+_IA_CHANGE_HIGHLIGHT_STYLE = {
+    "backgroundColor": "#e0f2fe",
+    "borderLeft": "3px solid #0284c7",
+    "color": "#075985",
+    "display": "inline-block",
+    "padding": "2px 6px",
+    "borderRadius": "4px",
+    "fontWeight": "600",
+}
+
+
+def _merge_intervals(intervals: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """Fusionne des intervalles de caractères chevauchants."""
+    if not intervals:
+        return []
+    intervals.sort()
+    merged: list[tuple[int, int]] = [intervals[0]]
+    for start, end in intervals[1:]:
+        last_start, last_end = merged[-1]
+        if start <= last_end:
+            merged[-1] = (last_start, max(last_end, end))
+        else:
+            merged.append((start, end))
+    return merged
+
+
+def _find_highlight_intervals(text: str, highlights: list[str]) -> list[tuple[int, int]]:
+    """Retourne les positions des fragments GPT retrouvables dans le texte."""
+    intervals: list[tuple[int, int]] = []
+    lower_text = text.lower()
+    for highlight in highlights:
+        if not highlight or not highlight.strip():
+            continue
+        needle = highlight.lower()
+        start = 0
+        while True:
+            idx = lower_text.find(needle, start)
+            if idx < 0:
+                break
+            intervals.append((idx, idx + len(highlight)))
+            start = idx + len(highlight)
+    return _merge_intervals(intervals)
+
+
+def _highlight_text_by_intervals(
+    text: str,
+    intervals: list[tuple[int, int]],
+    style: dict[str, str],
+) -> list:
+    """Découpe ``text`` en spans selon des intervalles déjà calculés."""
+    if not text:
+        return []
+    merged = _merge_intervals(intervals)
+    if not merged:
+        return [html.Span(text)]
+
+    spans: list = []
+    cursor = 0
+    for start, end in merged:
+        start = max(0, min(start, len(text)))
+        end = max(start, min(end, len(text)))
+        if cursor < start:
+            spans.append(html.Span(text[cursor:start]))
+        if start < end:
+            spans.append(html.Span(text[start:end], style=style))
+        cursor = end
+    if cursor < len(text):
+        spans.append(html.Span(text[cursor:]))
+    return spans
 
 
 def _highlight_text(text: str, highlights: list[str], style: dict[str, str]) -> list:
@@ -171,42 +250,72 @@ def _highlight_text(text: str, highlights: list[str], style: dict[str, str]) -> 
     if not highlights:
         return [html.Span(text)]
 
-    # Collecte les intervalles (start, end) des fragments trouvables
-    intervals: list[tuple[int, int]] = []
-    for highlight in highlights:
-        if not highlight or not highlight.strip():
+    return _highlight_text_by_intervals(text, _find_highlight_intervals(text, highlights), style)
+
+
+def _token_intervals(text: str) -> list[tuple[str, int, int]]:
+    """Tokenise un texte en mots avec positions pour calculer un diff lisible."""
+    return [(match.group(0).lower(), match.start(), match.end()) for match in re.finditer(r"\S+", text)]
+
+
+def _diff_highlight_intervals(text_t1: str, text_t2: str) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
+    """Calcule les intervalles modifiés directement depuis le diff T1/T2."""
+    tokens_t1 = _token_intervals(text_t1)
+    tokens_t2 = _token_intervals(text_t2)
+    if not tokens_t1 and not tokens_t2:
+        return [], []
+    if tokens_t1 and not tokens_t2:
+        return [(0, len(text_t1))], []
+    if tokens_t2 and not tokens_t1:
+        return [], [(0, len(text_t2))]
+
+    words_t1 = [token for token, _, _ in tokens_t1]
+    words_t2 = [token for token, _, _ in tokens_t2]
+    intervals_t1: list[tuple[int, int]] = []
+    intervals_t2: list[tuple[int, int]] = []
+    matcher = SequenceMatcher(None, words_t1, words_t2, autojunk=False)
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == "equal":
             continue
-        start = 0
-        while True:
-            idx = text.find(highlight, start)
-            if idx < 0:
-                break
-            intervals.append((idx, idx + len(highlight)))
-            start = idx + len(highlight)
+        if tag in {"delete", "replace"} and i1 < i2:
+            intervals_t1.append((tokens_t1[i1][1], tokens_t1[i2 - 1][2]))
+        if tag in {"insert", "replace"} and j1 < j2:
+            intervals_t2.append((tokens_t2[j1][1], tokens_t2[j2 - 1][2]))
+    return _merge_intervals(intervals_t1), _merge_intervals(intervals_t2)
 
-    if not intervals:
-        return [html.Span(text)]
 
-    # Tri + fusion des intervalles chevauchants
-    intervals.sort()
-    merged: list[tuple[int, int]] = [intervals[0]]
-    for start, end in intervals[1:]:
-        last_start, last_end = merged[-1]
-        if start <= last_end:
-            merged[-1] = (last_start, max(last_end, end))
-        else:
-            merged.append((start, end))
+def _highlight_change_section_in_justification(justification: str) -> list:
+    """Surligne la rubrique ``Ce qui change`` dans la justification IA."""
+    marker = "Ce qui change :"
+    start = justification.find(marker)
+    if start == -1:
+        return [html.Span(justification)]
 
-    # Construit la liste de spans alternés
+    next_markers = (
+        "\n\nPertinence métier :",
+        "\n\nPoint de surveillance :",
+        "\n\nLecture de vigie :",
+        "\n\nSujet détecté :",
+    )
+    next_positions = [
+        idx
+        for next_marker in next_markers
+        if (idx := justification.find(next_marker, start + len(marker))) != -1
+    ]
+    end = min(next_positions) if next_positions else len(justification)
+
     spans: list = []
-    cursor = 0
-    for start, end in merged:
-        if cursor < start:
-            spans.append(html.Span(text[cursor:start]))
-        spans.append(html.Span(text[start:end], style=style))
-        cursor = end
-    if cursor < len(text):
-        spans.append(html.Span(text[cursor:]))
+    if start:
+        spans.append(html.Span(justification[:start]))
+    spans.append(
+        html.Span(
+            justification[start:end],
+            style=_IA_CHANGE_HIGHLIGHT_STYLE,
+            title="Synthèse du changement à repérer en priorité",
+        )
+    )
+    if end < len(justification):
+        spans.append(html.Span(justification[end:]))
     return spans
 
 
@@ -218,11 +327,13 @@ def _build_side_by_side(
     page_t2: str,
     change_segments: list[dict],
     diff_type: str,
+    current_quarter_label: str = "Trimestre courant",
+    previous_quarter_label: str = "Trimestre précédent",
 ) -> html.Div:
-    """Affiche T1/T2 côte à côte avec highlights des segments AMF v2.
+    """Affiche T2/T1 côte à côte avec highlights des segments AMF v2.
 
     - ``added``  : segment surligné en VERT dans la colonne T2.
-    - ``removed``: segment surligné en ROUGE dans la colonne T1.
+    - ``removed``: segment surligné en AMBRE dans la colonne T1.
     - ``modified`` ou ``renamed``: les deux côtés sont affichés côte à côte.
 
     Pour ``diff_type=added`` seul T2 est affiché ; pour ``removed`` seul T1.
@@ -238,6 +349,19 @@ def _build_side_by_side(
         for seg in change_segments
         if seg.get("kind") in ("added", "modified") and seg.get("text_t2")
     ]
+    intervals_t1 = _find_highlight_intervals(text_t1, highlights_t1)
+    intervals_t2 = _find_highlight_intervals(text_t2, highlights_t2)
+    diff_intervals_t1, diff_intervals_t2 = _diff_highlight_intervals(text_t1, text_t2)
+
+    if diff_type == "added" and not intervals_t2:
+        intervals_t2 = diff_intervals_t2 or ([(0, len(text_t2))] if text_t2 else [])
+    elif diff_type == "removed" and not intervals_t1:
+        intervals_t1 = diff_intervals_t1 or ([(0, len(text_t1))] if text_t1 else [])
+    elif diff_type in {"modified", "renamed"}:
+        if not intervals_t1:
+            intervals_t1 = diff_intervals_t1
+        if not intervals_t2:
+            intervals_t2 = diff_intervals_t2
 
     base_card_style = {
         "whiteSpace": "pre-wrap",
@@ -246,7 +370,7 @@ def _build_side_by_side(
         "lineHeight": "1.55",
     }
 
-    def _column(label: str, text: str, highlights: list[str], style: dict[str, str]) -> html.Div:
+    def _column(label: str, text: str, intervals: list[tuple[int, int]], style: dict[str, str]) -> html.Div:
         """Construit une colonne (T1 ou T2) avec son libellé et son texte mis en surbrillance."""
         return html.Div(
             [
@@ -255,7 +379,7 @@ def _build_side_by_side(
                     className="fw-semibold border-bottom px-2 py-1 small text-muted",
                 ),
                 html.Div(
-                    _highlight_text(text, highlights, style),
+                    _highlight_text_by_intervals(text, intervals, style),
                     className="px-2 py-2 small",
                     style=base_card_style,
                 ),
@@ -264,24 +388,44 @@ def _build_side_by_side(
             style={"minWidth": "0"},
         )
 
-    label_t1 = f"Précédent (p.{page_t1})" if page_t1 else "Précédent"
-    label_t2 = f"Courant (p.{page_t2})" if page_t2 else "Courant"
+    current_label = str(current_quarter_label or "").strip()
+    previous_label = str(previous_quarter_label or "").strip()
+    has_period_labels = (
+        current_label
+        and previous_label
+        and current_label != "Trimestre courant"
+        and previous_label != "Trimestre précédent"
+    )
+    if has_period_labels:
+        label_t1 = (
+            f"Précédent - {previous_label} (p.{page_t1})"
+            if page_t1
+            else f"Précédent - {previous_label}"
+        )
+        label_t2 = (
+            f"Courant - {current_label} (p.{page_t2})"
+            if page_t2
+            else f"Courant - {current_label}"
+        )
+    else:
+        label_t1 = f"Précédent (p.{page_t1})" if page_t1 else "Précédent"
+        label_t2 = f"Courant (p.{page_t2})" if page_t2 else "Courant"
 
     if diff_type == "added":
         return html.Div(
-            [_column(label_t2, text_t2, highlights_t2, _HIGHLIGHT_ADDED_STYLE)],
+            [_column(label_t2, text_t2, intervals_t2, _HIGHLIGHT_ADDED_STYLE)],
             className="mb-3",
         )
     if diff_type == "removed":
         return html.Div(
-            [_column(label_t1, text_t1, highlights_t1, _HIGHLIGHT_REMOVED_STYLE)],
+            [_column(label_t1, text_t1, intervals_t1, _HIGHLIGHT_REMOVED_STYLE)],
             className="mb-3",
         )
 
     return html.Div(
         [
-            _column(label_t1, text_t1, highlights_t1, _HIGHLIGHT_REMOVED_STYLE),
-            _column(label_t2, text_t2, highlights_t2, _HIGHLIGHT_ADDED_STYLE),
+            _column(label_t2, text_t2, intervals_t2, _HIGHLIGHT_ADDED_STYLE),
+            _column(label_t1, text_t1, intervals_t1, _HIGHLIGHT_REMOVED_STYLE),
         ],
         className="mb-3 d-flex gap-2",
     )
@@ -292,18 +436,27 @@ def _build_side_by_side(
 # ---------------------------------------------------------------------------
 
 
-def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
+def _build_change_card(
+    change: dict[str, Any],
+    section_title: str,
+    *,
+    current_quarter_label: str = "Trimestre courant",
+    previous_quarter_label: str = "Trimestre précédent",
+) -> dbc.Card:
     """Carte analytique pour un changement détecté.
 
     Args:
         change: Dict bloc issu de text_comparison.json.
         section_title: Nom affiché de la section/sous-section.
+        current_quarter_label: Libelle du trimestre courant, si disponible.
+        previous_quarter_label: Libelle du trimestre precedent, si disponible.
 
     Returns:
         dbc.Card stylisée ou None si unchanged/skip.
     """
     triage = change.get("genai_triage") or {}
     diff_type = change.get("diff_type", "")
+    change_id = str(change.get("change_id") or "").strip()
 
     if diff_type == "unchanged" or triage.get("source") == "skip":
         return None  # type: ignore[return-value]
@@ -395,6 +548,8 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
         page_t2=page_t2_label,
         change_segments=change_segments,
         diff_type=diff_type,
+        current_quarter_label=current_quarter_label,
+        previous_quarter_label=previous_quarter_label,
     )
 
     # Bloc preuve source : retiré du nouveau design — la preuve EST le texte
@@ -416,14 +571,77 @@ def _build_change_card(change: dict[str, Any], section_title: str) -> dbc.Card:
                     ],
                 ),
                 html.P(
-                    nouvelle_idee_justification,
+                    _highlight_change_section_in_justification(nouvelle_idee_justification),
                     className="small mb-1",
                     style={"whiteSpace": "pre-wrap"},
                 ),
             ]
         )
 
-    card_children = [c for c in [badge_row, themes_row, meta, text_block, evidence_block, ia_block] if c is not None]
+    review = change.get("_analyst_review") or {}
+    review_status = str(review.get("status") or "").strip().lower()
+    review_comment = str(review.get("comment") or "").strip()
+    review_badge = None
+    if review_status in _TEXT_REVIEW_STATUS_BADGES:
+        review_label, review_color = _TEXT_REVIEW_STATUS_BADGES[review_status]
+        review_badge = _badge(f"Décision : {review_label}", review_color)
+
+    review_controls = html.Div(
+        [
+            html.Div(
+                [
+                    html.Span("Revue analyste", className="fw-semibold small text-muted me-2"),
+                    review_badge,
+                ],
+                className="mb-2 d-flex align-items-center flex-wrap",
+            ),
+            dcc.Textarea(
+                id={"type": "text-review-comment", "change_id": change_id},
+                value=review_comment,
+                placeholder="Commentaire analyste (optionnel)...",
+                className="form-control form-control-sm mb-2",
+                style={"minHeight": "64px", "resize": "vertical"},
+            ),
+            html.Div(
+                [
+                    dbc.Button(
+                        "Valider",
+                        id={"type": "text-review-action", "change_id": change_id, "action": "approved"},
+                        color="success",
+                        size="sm",
+                        outline=review_status != "approved",
+                        className="me-2",
+                        disabled=not change_id,
+                    ),
+                    dbc.Button(
+                        "Rejeter",
+                        id={"type": "text-review-action", "change_id": change_id, "action": "rejected"},
+                        color="danger",
+                        size="sm",
+                        outline=review_status != "rejected",
+                        className="me-2",
+                        disabled=not change_id,
+                    ),
+                    dbc.Button(
+                        "Passer",
+                        id={"type": "text-review-action", "change_id": change_id, "action": "skipped"},
+                        color="secondary",
+                        size="sm",
+                        outline=review_status != "skipped",
+                        disabled=not change_id,
+                    ),
+                ],
+                className="d-flex flex-wrap",
+            ),
+        ],
+        className="mt-3 pt-3 border-top",
+    )
+
+    card_children = [
+        c
+        for c in [badge_row, themes_row, meta, text_block, evidence_block, ia_block, review_controls]
+        if c is not None
+    ]
 
     return dbc.Card(
         dbc.CardBody(card_children, className="p-3"),
@@ -547,6 +765,8 @@ def build_filtered_text_cards(
 ) -> tuple[list[Any], str]:
     """Construit les cartes texte selon les filtres courants."""
     items: list[tuple[tuple[int, int, str, str, str], dict[str, Any], str]] = []
+    current_label = quarter_label_from_payload(text_data, "current")
+    previous_label = quarter_label_from_payload(text_data, "previous")
     for sec in text_data.get("section_comparisons") or []:
         key = sec.get("section_key", "")
         title = sec.get("section_title") or _SECTION_LABELS.get(key, key)
@@ -579,8 +799,9 @@ def build_filtered_text_cards(
                 continue
 
             sort_key = (
-                0 if nouvelle_idee else 1,
+                0 if triage.get("is_relevant", False) else 1,
                 _IMPACT_ORDER.get(impact, 99),
+                0 if nouvelle_idee else 1,
                 title,
                 page_sort,
                 diff_type,
@@ -591,7 +812,12 @@ def build_filtered_text_cards(
 
     cards = []
     for _, change, title in items:
-        card = _build_change_card(change, title)
+        card = _build_change_card(
+            change,
+            title,
+            current_quarter_label=current_label,
+            previous_quarter_label=previous_label,
+        )
         if card is not None:
             cards.append(card)
 
@@ -696,8 +922,8 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
 
     global_summary = text_data.get("global_summary") or text_data.get("all_changes_summary") or {}
     section_comparisons = text_data.get("section_comparisons") or []
-    q_cur = text_data.get("quarter_current", "")
-    q_prev = text_data.get("quarter_previous", "")
+    q_cur = quarter_label_from_payload(text_data, "current")
+    q_prev = quarter_label_from_payload(text_data, "previous")
     bank = str(text_data.get("bank_code", "")).upper()
 
     # Options de filtre section dynamiques

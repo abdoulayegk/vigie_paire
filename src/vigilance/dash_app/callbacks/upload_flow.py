@@ -60,8 +60,8 @@ logger = logging.getLogger(__name__)
 def sync_quarter_context(year_value, current_quarter):
     """Deriver le trimestre precedent a partir du trimestre courant selectionne."""
     ctx = build_quarter_context(current_quarter or "T2", year=year_value or 2025)
-    previous_label = str(ctx["previous"]["label"])
-    current_label = str(ctx["current"]["label"])
+    previous_label = str(ctx["previous"].get("display_label") or ctx["previous"]["label"])
+    current_label = str(ctx["current"].get("display_label") or ctx["current"]["label"])
     return (
         ctx,
         previous_label,

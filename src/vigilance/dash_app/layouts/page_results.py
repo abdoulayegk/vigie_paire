@@ -157,7 +157,12 @@ def _build_indicator_detail_lines(comp: dict) -> list:
     return details
 
 
-def _build_comparison_overview_card(comp: dict) -> dbc.Card:
+def _build_comparison_overview_card(
+    comp: dict,
+    *,
+    current_quarter_label: str = "Trimestre courant",
+    previous_quarter_label: str = "Trimestre précédent",
+) -> dbc.Card:
     """Construit une carte resume pour un tableau avec changements."""
     title = (
         comp.get("title_t2")
@@ -189,7 +194,12 @@ def _build_comparison_overview_card(comp: dict) -> dbc.Card:
                     [
                         html.H6(title, className="mb-1"),
                         html.Small(
-                            f"Pages: préc. p.{page_t1 if page_t1 is not None else '-'} / cour. p.{page_t2 if page_t2 is not None else '-'}",
+                            (
+                                f"Pages: {previous_quarter_label} p."
+                                f"{page_t1 if page_t1 is not None else '-'} / "
+                                f"{current_quarter_label} p."
+                                f"{page_t2 if page_t2 is not None else '-'}"
+                            ),
                             className="text-muted",
                         ),
                     ],
@@ -250,6 +260,8 @@ def build_section_accordion_item(
     tables_added: list,
     tables_removed: list,
     item_id: str,
+    current_quarter_label: str = "Trimestre courant",
+    previous_quarter_label: str = "Trimestre précédent",
 ) -> dbc.AccordionItem:
     """Construit un element d'accordeon pour l'onglet des changements par section.
 
@@ -259,6 +271,8 @@ def build_section_accordion_item(
         tables_added: Tableaux presents uniquement dans le trimestre courant.
         tables_removed: Tableaux presents uniquement dans le trimestre precedent.
         item_id: Identifiant HTML de l'element d'accordeon.
+        current_quarter_label: Libelle du trimestre courant, si disponible.
+        previous_quarter_label: Libelle du trimestre precedent, si disponible.
 
     Returns:
         Composant ``dbc.AccordionItem`` representant la section.
@@ -266,7 +280,14 @@ def build_section_accordion_item(
     parts = []
     if tables_with_changes:
         n = len(tables_with_changes)
-        cards = [_build_comparison_overview_card(comp) for comp in tables_with_changes[:6]]
+        cards = [
+            _build_comparison_overview_card(
+                comp,
+                current_quarter_label=current_quarter_label,
+                previous_quarter_label=previous_quarter_label,
+            )
+            for comp in tables_with_changes[:6]
+        ]
         parts.append(
             html.Div(
                 [
@@ -377,19 +398,14 @@ def build_page_results() -> html.Div:
                 ],
                 className="mb-3",
             ),
-            # Tabs: Dashboard / Indicateurs / Analyse Textuelle
+            # Tabs: Indicateurs / Analyse Textuelle / Dashboard
             html.Div(
                 dbc.Tabs(
                     [
                         dbc.Tab(
-                            html.Div(id="vigie-cockpit-tab-content"),
-                            label="Dashboard",
-                            tab_id="tab-cockpit",
-                        ),
-                        dbc.Tab(
                             html.Div(
                                 [
-                                    html.Div(id="results-executive-summary", className="mb-3 mt-3"),
+                                    html.Div(id="results-executive-summary"),
                                     html.Div(id="results-kpis"),
                                     dbc.Row(
                                         [
@@ -473,9 +489,14 @@ def build_page_results() -> html.Div:
                             label="Analyse Textuelle",
                             tab_id="tab-texte",
                         ),
+                        dbc.Tab(
+                            html.Div(id="vigie-cockpit-tab-content"),
+                            label="Dashboard",
+                            tab_id="tab-cockpit",
+                        ),
                     ],
                     id="results-main-tabs",
-                    active_tab="tab-cockpit",
+                    active_tab="tab-indicateurs",
                 ),
                 className="mb-5",
             ),

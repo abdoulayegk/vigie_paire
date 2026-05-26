@@ -156,10 +156,17 @@ def _build_detail_block(label: str, text: str, muted: bool = False) -> html.Div:
     )
 
 
-def _build_change_full_detail(change: dict) -> html.Div | None:
+def _build_change_full_detail(
+    change: dict,
+    *,
+    current_quarter_label: str | None = None,
+    previous_quarter_label: str | None = None,
+) -> html.Div | None:
     """Construit le détail complet d'un changement (note de bas de page et/ou justification GPT)."""
     change_type = str(change.get("change_type", "") or "")
     blocks: list[Any] = []
+    current_label = str(current_quarter_label or "").strip() or "Trimestre courant"
+    previous_label = str(previous_quarter_label or "").strip() or "Trimestre précédent"
 
     # --- Détail texte des notes de bas de page ---
     if _is_footnote_change(change_type):
@@ -168,26 +175,24 @@ def _build_change_full_detail(change: dict) -> html.Div | None:
         new_text = _normalize_text(payload.get("new_text"))
 
         if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
-            blocks.append(
-                _build_detail_block("Trimestre courant - note ajoutée", new_text)
-            )
-            blocks.append(_build_detail_block("Trimestre précédent", "", muted=True))
+            blocks.append(_build_detail_block(f"{current_label} - note ajoutée", new_text))
+            blocks.append(_build_detail_block(previous_label, "", muted=True))
         elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
-            blocks.append(_build_detail_block("Trimestre courant", "", muted=True))
+            blocks.append(_build_detail_block(current_label, "", muted=True))
             blocks.append(
-                _build_detail_block("Trimestre précédent - note supprimée", old_text)
+                _build_detail_block(f"{previous_label} - note supprimée", old_text)
             )
         else:
             blocks.append(
                 _build_detail_block(
-                    "Trimestre courant - nouvelle version",
+                    f"{current_label} - nouvelle version",
                     new_text,
                     muted=not new_text,
                 )
             )
             blocks.append(
                 _build_detail_block(
-                    "Trimestre précédent - ancienne version",
+                    f"{previous_label} - ancienne version",
                     old_text,
                     muted=not old_text,
                 )
@@ -437,12 +442,17 @@ def _build_genai_section(table: dict) -> html.Div:
 def build_change_list_v2(
     changes: list[dict],
     current_change_idx: int,
+    *,
+    current_quarter_label: str | None = None,
+    previous_quarter_label: str | None = None,
 ) -> dbc.ListGroup:
     """Construit la liste des changements pour un tableau.
 
     Args:
         changes: Liste de dictionnaires ``ChangeItem``.
         current_change_idx: Index du changement actuellement selectionne.
+        current_quarter_label: Libelle du trimestre courant, si disponible.
+        previous_quarter_label: Libelle du trimestre precedent, si disponible.
 
     Returns:
         Un ``Div`` contenant la liste des changements.
@@ -478,7 +488,15 @@ def build_change_list_v2(
 
         # Description
         description = _get_change_row_summary(change)
-        full_detail = _build_change_full_detail(change) if is_current else None
+        full_detail = (
+            _build_change_full_detail(
+                change,
+                current_quarter_label=current_quarter_label,
+                previous_quarter_label=previous_quarter_label,
+            )
+            if is_current
+            else None
+        )
 
         # Required indicator
         required_badge = None
@@ -492,20 +510,6 @@ def build_change_list_v2(
             "bg-primary bg-opacity-10 border-start border-3 border-primary"
             if is_current
             else ""
-        )
-
-        # "Modifier" button for already-validated changes
-        reset_button = (
-            dbc.Button(
-                [html.I(className="bi bi-pencil me-1"), "Modifier"],
-                id={"type": "btn-reset-change-v2", "change_id": change_id},
-                color="light",
-                size="sm",
-                className="ms-auto flex-shrink-0",
-                title="Réinitialiser la décision pour re-valider",
-            )
-            if status in ("approved", "rejected", "skipped")
-            else None
         )
 
         row = dbc.ListGroupItem(
@@ -529,7 +533,6 @@ def build_change_list_v2(
                             ],
                             className="d-flex align-items-center flex-wrap flex-grow-1 gap-1",
                         ),
-                        reset_button,
                     ],
                     className="d-flex align-items-start gap-2",
                 ),
@@ -588,98 +591,80 @@ def build_validation_panel_v2(
     status = current_change.get("validation_status", "pending")
     description = _get_change_row_summary(current_change)
 
-    # Current change info
+    review_status_badges = {
+        "approved": ("Validé", "success"),
+        "rejected": ("Rejeté", "danger"),
+        "skipped": ("Passé", "secondary"),
+    }
+    review_badge = None
+    if status in review_status_badges:
+        review_label, review_color = review_status_badges[status]
+        review_badge = dbc.Badge(
+            f"Décision : {review_label}",
+            color=review_color,
+            className="ms-2",
+        )
+
     change_info = html.Div(
         [
-            html.H6("Changement actuel", className="mb-2"),
             html.Div(
                 [
-                    html.Div(
-                        [
-                            dbc.Badge(
-                                _CHANGE_TYPE_LABELS.get(change_type, change_type),
-                                color=_CHANGE_TYPE_COLORS.get(change_type, "secondary"),
-                                className="me-2",
-                            ),
-                            html.Span(description, className="fw-semibold"),
-                        ],
-                        className="d-flex align-items-center flex-wrap gap-1",
-                    ),
+                    html.Span("Revue analyste", className="fw-semibold small text-muted me-2"),
+                    review_badge,
                 ],
-                className="mb-2",
+                className="mb-2 d-flex align-items-center flex-wrap",
+            ),
+            html.Div(
+                [
+                    dbc.Badge(
+                        _CHANGE_TYPE_LABELS.get(change_type, change_type),
+                        color=_CHANGE_TYPE_COLORS.get(change_type, "secondary"),
+                        className="me-2",
+                    ),
+                    html.Span(description, className="fw-semibold"),
+                ],
+                className="mb-2 d-flex align-items-center flex-wrap gap-1",
             ),
         ]
     )
 
-    # Notes input
     notes_input = dbc.Textarea(
         id="validation-notes-v2",
-        placeholder="Notes de validation (optionnel)...",
+        placeholder="Commentaire analyste (optionnel)...",
         value=current_change.get("validation_notes", ""),
-        className="mb-3",
+        className="mb-2",
         rows=2,
+        style={"minHeight": "64px", "resize": "vertical"},
     )
 
-    # Validation buttons
-    is_validated = status in ("approved", "rejected", "skipped")
     validation_buttons = html.Div(
         [
             dbc.Button(
-                [html.I(className="bi bi-check-lg me-1"), "Approuver"],
+                "Valider",
                 id="btn-approve-change-v2",
                 color="success",
+                size="sm",
+                outline=status != "approved",
                 className="me-2",
-                disabled=is_validated,
             ),
             dbc.Button(
-                [html.I(className="bi bi-x-lg me-1"), "Rejeter"],
+                "Rejeter",
                 id="btn-reject-change-v2",
                 color="danger",
+                size="sm",
+                outline=status != "rejected",
                 className="me-2",
-                disabled=is_validated,
             ),
             dbc.Button(
-                [html.I(className="bi bi-arrow-right me-1"), "Passer"],
+                "Passer",
                 id="btn-skip-change-v2",
                 color="secondary",
-                outline=True,
-                disabled=is_validated,
+                size="sm",
+                outline=status != "skipped",
             ),
         ],
-        className="mb-3",
+        className="mb-3 d-flex flex-wrap",
     )
-
-    # Status indicator if already validated
-    change_id_current = str(current_change.get("change_id", "") or f"idx_{current_change_idx}")
-    status_indicator = None
-    if is_validated:
-        _status_colors = {"approved": "success", "rejected": "danger", "skipped": "secondary"}
-        _status_labels = {
-            "approved": ("bi bi-check-circle me-2", "Approuvé"),
-            "rejected": ("bi bi-x-circle me-2", "Rejeté"),
-            "skipped": ("bi bi-dash-circle me-2", "Passé"),
-        }
-        icon_cls, label = _status_labels.get(status, ("bi bi-circle me-2", status))
-        status_indicator = dbc.Alert(
-            [
-                html.Div(
-                    [
-                        html.Span([html.I(className=icon_cls), label]),
-                        dbc.Button(
-                            [html.I(className="bi bi-pencil me-1"), "Modifier"],
-                            id={"type": "btn-reset-change-v2", "change_id": change_id_current},
-                            color="light",
-                            size="sm",
-                            className="ms-auto",
-                            title="Réinitialiser pour re-valider",
-                        ),
-                    ],
-                    className="d-flex align-items-center justify-content-between",
-                )
-            ],
-            color=_status_colors.get(status, "secondary"),
-            className="py-2",
-        )
 
     # Navigation buttons
     nav_buttons = html.Div(
@@ -710,7 +695,6 @@ def build_validation_panel_v2(
             change_info,
             notes_input,
             validation_buttons,
-            status_indicator,
             html.Hr(),
             nav_buttons,
         ]
@@ -723,6 +707,8 @@ def build_review_detail_v2(
     proof_image_t1_b64: str = "",
     proof_image_t2_b64: str = "",
     show_proofs: bool = True,
+    current_quarter_label: str | None = None,
+    previous_quarter_label: str | None = None,
 ) -> html.Div:
     """Construit le panneau complet de detail de revue V2.
 
@@ -732,6 +718,8 @@ def build_review_detail_v2(
         proof_image_t1_b64: Image de preuve T1 encodee en base64.
         proof_image_t2_b64: Image de preuve T2 encodee en base64.
         show_proofs: Si ``True``, affiche la section des preuves visuelles.
+        current_quarter_label: Libelle du trimestre courant, si disponible.
+        previous_quarter_label: Libelle du trimestre precedent, si disponible.
 
     Returns:
         Le panneau de detail de revue complet.
@@ -754,6 +742,8 @@ def build_review_detail_v2(
     table_status = table.get("table_status", "pending")
     summary = table.get("summary", {})
     match_meta = table.get("match_metadata") or {}
+    current_label = str(current_quarter_label or "").strip() or "Trimestre courant"
+    previous_label = str(previous_quarter_label or "").strip() or "Trimestre précédent"
 
     alert_badges = []
     if match_meta.get("drastic_row_drop"):
@@ -778,7 +768,7 @@ def build_review_detail_v2(
                         [
                             f"Section : {section}",
                             html.Span(" | ", className="text-muted"),
-                            f"Pages : précédent p.{page_t1 or '?'} / courant p.{page_t2 or '?'}",
+                            f"Pages : {previous_label} p.{page_t1 or '?'} / {current_label} p.{page_t2 or '?'}",
                         ],
                         className="text-muted",
                     ),
@@ -848,7 +838,7 @@ def build_review_detail_v2(
                                 html.H6(
                                     [
                                         html.I(className="bi bi-file-earmark-pdf me-2"),
-                                        "Trimestre courant",
+                                        current_label,
                                     ],
                                     className="mb-2",
                                 ),
@@ -876,7 +866,7 @@ def build_review_detail_v2(
                                 html.H6(
                                     [
                                         html.I(className="bi bi-file-earmark-pdf me-2"),
-                                        "Trimestre précédent",
+                                        previous_label,
                                     ],
                                     className="mb-2",
                                 ),
@@ -931,7 +921,12 @@ def build_review_detail_v2(
                 ],
                 className="mb-2",
             ),
-            build_change_list_v2(changes, current_change_idx),
+            build_change_list_v2(
+                changes,
+                current_change_idx,
+                current_quarter_label=current_label,
+                previous_quarter_label=previous_label,
+            ),
         ],
         className="mb-4",
     )

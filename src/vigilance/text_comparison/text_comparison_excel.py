@@ -133,11 +133,11 @@ def _subsection_label(change: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 def _row_sort_key(row: dict[str, Any]) -> tuple:
-    """Clé de tri analyste : nouvelle idée → impact → pertinence → catégorie."""
+    """Cle de tri analyste : pertinence -> impact -> nouvelle idee."""
     return (
-        0 if row.get("nouvelle_idee_bool") else 1,
-        _IMPACT_SORT_ORDER.get(str(row.get("impact_level") or "").upper(), 99),
         0 if row.get("is_relevant") else 1,
+        _IMPACT_SORT_ORDER.get(str(row.get("impact_level") or "").upper(), 99),
+        0 if row.get("nouvelle_idee_bool") else 1,
         _CATEGORY_SORT_ORDER.get(str(row.get("category") or "").upper(), 5),
         str(row.get("section_title") or ""),
         str(row.get("diff_type") or ""),
@@ -195,9 +195,20 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
             page_t2 = ", ".join(str(p) for p in (evidence_t2.get("pages") or []) if p)
 
             justification = build_text_triage_justification(block_comp)
+            analyst_review = block_comp.get("_analyst_review") or {}
+            analyst_status = str(analyst_review.get("status") or "").strip().lower()
+            ai_nouvelle_idee = bool(triage.get("nouvelle_idee", False))
+            nouvelle_idee = "Oui" if ai_nouvelle_idee else "Non"
+            analyst_comment = ""
+            if analyst_status == "rejected":
+                nouvelle_idee = "Non"
+                analyst_comment = str(analyst_review.get("comment") or "").strip()
+            elif analyst_status == "approved":
+                analyst_comment = str(analyst_review.get("comment") or "").strip()
 
             rows.append(
                 {
+                    "change_id": block_comp.get("change_id", ""),
                     "section_key": section_key,
                     "section_title": section_title,
                     "subsection": _subsection_label(block_comp),
@@ -209,9 +220,10 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
                     "impact_level": str(triage.get("impact_level") or "MINEUR").upper(),
                     "category": str(triage.get("category") or "INCONNU").upper(),
                     "is_relevant": bool(triage.get("is_relevant", False)),
-                    "nouvelle_idee_bool": bool(triage.get("nouvelle_idee", False)),
-                    "nouvelle_idee": "Oui" if triage.get("nouvelle_idee", False) else "Non",
+                    "nouvelle_idee_bool": nouvelle_idee == "Oui",
+                    "nouvelle_idee": nouvelle_idee,
                     "justification": justification,
+                    "commentaire_analyste": analyst_comment,
                 }
             )
 
@@ -281,7 +293,7 @@ def generate_text_comparison_excel(
             row["source_text_t2"],
             row["nouvelle_idee"],
             row["justification"],
-            "",  # Commentaire analyste
+            row["commentaire_analyste"],
         ]
         for col_idx, value in enumerate(row_data, 1):
             cell = ws.cell(row=row_num, column=col_idx, value=_excel_safe(value))

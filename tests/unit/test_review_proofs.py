@@ -50,6 +50,26 @@ def test_build_proofs_section_shows_heading_and_visual_context() -> None:
     assert "Mode page complète encadrée" in text
 
 
+def test_build_proofs_section_uses_dynamic_quarter_labels() -> None:
+    section = build_proofs_section(
+        item={
+            "change_type": "modified",
+            "page_t1": 44,
+            "page_t2": 47,
+        },
+        img_t1_b64="abc",
+        img_t2_b64="def",
+        proof_display_mode="crop",
+        current_quarter_label="T3 2025",
+        previous_quarter_label="T2 2025",
+    )
+
+    text = _flatten_text(section)
+    assert "Preuves visuelles : T3 2025 vs T2 2025" in text
+    assert "T3 2025 · Page 47 · Mode zoom tableau" in text
+    assert "T2 2025 · Page 44 · Mode zoom tableau" in text
+
+
 def test_build_proofs_section_shows_full_without_bbox_label() -> None:
     section = build_proofs_section(
         item={

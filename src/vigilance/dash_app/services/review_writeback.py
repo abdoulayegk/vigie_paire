@@ -181,7 +181,7 @@ def _merge_decisions(
 
         for change in table.get("changes", []) or []:
             status = str(change.get("validation_status", "") or "pending").lower()
-            if status == "pending":
+            if status in {"pending", "skipped"}:
                 stats["pending"] += 1
                 continue
             decision = {

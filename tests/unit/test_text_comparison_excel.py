@@ -170,6 +170,103 @@ def test_generate_text_comparison_excel_strips_control_characters() -> None:
     assert ws["I2"].value == "OUI - note analyste utile."
 
 
+def test_generate_text_comparison_excel_applies_analyst_review_without_new_columns() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "change_id": "chg-rejected",
+                        "diff_type": "modified",
+                        "source_text_t1": "Ancien",
+                        "source_text_t2": "Nouveau",
+                        "evidence_t1": {"pages": [1]},
+                        "evidence_t2": {"pages": [2]},
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "category": "RISQUE",
+                            "impact_level": "MAJEUR",
+                            "nouvelle_idee": True,
+                            "nouvelle_idee_justification": "OUI - idée nouvelle.",
+                        },
+                        "_analyst_review": {
+                            "status": "rejected",
+                            "comment": "Pas une nouvelle idée.",
+                        },
+                    },
+                    {
+                        "change_id": "chg-approved",
+                        "diff_type": "added",
+                        "source_text_t1": "",
+                        "source_text_t2": "Ajout",
+                        "evidence_t2": {"pages": [3]},
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "category": "RISQUE",
+                            "impact_level": "MAJEUR",
+                            "nouvelle_idee": True,
+                            "nouvelle_idee_justification": "OUI - ajout.",
+                        },
+                        "_analyst_review": {
+                            "status": "approved",
+                            "comment": "À conserver.",
+                        },
+                    },
+                    {
+                        "change_id": "chg-skipped",
+                        "diff_type": "modified",
+                        "source_text_t1": "A",
+                        "source_text_t2": "B",
+                        "evidence_t1": {"pages": [4]},
+                        "evidence_t2": {"pages": [5]},
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "category": "RISQUE",
+                            "impact_level": "MAJEUR",
+                            "nouvelle_idee": True,
+                            "nouvelle_idee_justification": "OUI - autre.",
+                        },
+                        "_analyst_review": {
+                            "status": "skipped",
+                            "comment": "Ne doit pas sortir.",
+                        },
+                    },
+                ],
+            }
+        ]
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+    headers = [ws.cell(row=1, column=i).value for i in range(1, ws.max_column + 1)]
+
+    assert headers == [
+        "Titre",
+        "Sous-section",
+        "Page T1",
+        "Page T2",
+        "Type de changement",
+        "Texte exact T1",
+        "Texte exact T2",
+        "Nouvelle idée ?",
+        "Justification IA",
+        "Commentaire analyste",
+    ]
+    values = {
+        ws.cell(row=row, column=7).value: (
+            ws.cell(row=row, column=8).value,
+            ws.cell(row=row, column=10).value,
+        )
+        for row in range(2, ws.max_row + 1)
+    }
+    assert values["Nouveau"] == ("Non", "Pas une nouvelle idée.")
+    assert values["Ajout"] == ("Oui", "À conserver.")
+    assert values["B"] == ("Oui", None)
+
+
 def test_text_justification_falls_back_for_legacy_b15_triage() -> None:
     change = {
         "diff_type": "added",

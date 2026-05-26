@@ -27,6 +27,46 @@ from vigilance.i18n import t
 logger = logging.getLogger(__name__)
 
 
+def _has_final_indicator_decision(change: dict) -> bool:
+    """Retourne True si le changement indicateur a une decision finale."""
+    return str(change.get("validation_status", "pending")) in {"approved", "rejected"}
+
+
+def _indicator_review_summary(changes: list[dict]) -> dict[str, int]:
+    """Recalcule les compteurs de revue pour un tableau indicateur."""
+    finalized = sum(1 for c in changes if _has_final_indicator_decision(c))
+    pending = max(0, len(changes) - finalized)
+    return {
+        "total_changes": len(changes),
+        "indicators_added": sum(
+            1 for c in changes if c.get("change_type") == "indicator_added"
+        ),
+        "indicators_removed": sum(
+            1 for c in changes if c.get("change_type") == "indicator_removed"
+        ),
+        "indicators_renamed": sum(
+            1 for c in changes if c.get("change_type") == "indicator_renamed"
+        ),
+        "footnotes_changed": sum(
+            1 for c in changes if "footnote" in c.get("change_type", "")
+        ),
+        "validated": finalized,
+        "pending": pending,
+    }
+
+
+def _apply_indicator_table_status(table: dict, changes: list[dict]) -> None:
+    """Met a jour le statut du tableau selon les decisions finales."""
+    summary = _indicator_review_summary(changes)
+    if summary["pending"] == 0:
+        table["table_status"] = "completed"
+    elif summary["validated"] > 0:
+        table["table_status"] = "partial"
+    else:
+        table["table_status"] = "pending"
+    table["summary"] = summary
+
+
 @callback(
     Output("review-queue-container", "children"),
     Output("kpi-queue-total", "children"),
@@ -226,38 +266,7 @@ def on_validate_change_v2(
     changes[change_idx]["validated_by"] = "analyst"
 
     table["changes"] = changes
-    n_pending = sum(
-        1 for c in changes if c.get("validation_status", "pending") == "pending"
-    )
-    if n_pending == 0:
-        table["table_status"] = "completed"
-    else:
-        n_validated = sum(
-            1
-            for c in changes
-            if c.get("validation_status", "pending")
-            in ("approved", "rejected", "skipped")
-        )
-        table["table_status"] = "partial" if n_validated > 0 else "pending"
-
-    summary = {
-        "total_changes": len(changes),
-        "indicators_added": sum(
-            1 for c in changes if c.get("change_type") == "indicator_added"
-        ),
-        "indicators_removed": sum(
-            1 for c in changes if c.get("change_type") == "indicator_removed"
-        ),
-        "indicators_renamed": sum(
-            1 for c in changes if c.get("change_type") == "indicator_renamed"
-        ),
-        "footnotes_changed": sum(
-            1 for c in changes if "footnote" in c.get("change_type", "")
-        ),
-        "validated": len(changes) - n_pending,
-        "pending": n_pending,
-    }
-    table["summary"] = summary
+    _apply_indicator_table_status(table, changes)
 
     next_selection = dict(resolved_selection)
     remembered_positions = _remember_selection(last_positions, resolved_selection)
@@ -365,25 +374,7 @@ def on_reset_change_decision(
                 break
         if found:
             changes = table.get("changes", [])
-            n_pending = sum(
-                1 for c in changes if c.get("validation_status", "pending") == "pending"
-            )
-            n_validated = sum(
-                1
-                for c in changes
-                if c.get("validation_status", "pending")
-                in ("approved", "rejected", "skipped")
-            )
-            if n_pending == 0:
-                table["table_status"] = "completed"
-            elif n_validated > 0:
-                table["table_status"] = "partial"
-            else:
-                table["table_status"] = "pending"
-            summary = table.get("summary", {})
-            summary["pending"] = n_pending
-            summary["validated"] = len(changes) - n_pending
-            table["summary"] = summary
+            _apply_indicator_table_status(table, changes)
             break
 
     if not found:

@@ -126,7 +126,7 @@ class TestChangeItem:
         assert restored.is_required == original.is_required
 
     def test_is_validated(self):
-        """is_validated should return True for approved/rejected/skipped."""
+        """is_validated should return True only for final analyst decisions."""
         pending = ChangeItem("1", "indicator_added", {}, "pending")
         approved = ChangeItem("2", "indicator_added", {}, "approved")
         rejected = ChangeItem("3", "indicator_added", {}, "rejected")
@@ -135,7 +135,7 @@ class TestChangeItem:
         assert not pending.is_validated()
         assert approved.is_validated()
         assert rejected.is_validated()
-        assert skipped.is_validated()
+        assert not skipped.is_validated()
 
 
 class TestReviewTableItem:

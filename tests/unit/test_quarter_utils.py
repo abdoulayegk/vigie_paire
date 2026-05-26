@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.quarter_utils import build_quarter_context, parse_quarter_ref
+from vigilance.quarter_utils import (
+    build_quarter_context,
+    format_quarter_display_label,
+    quarter_label_from_payload,
+    parse_quarter_ref,
+)
 
 
 @pytest.mark.parametrize(
@@ -42,3 +47,23 @@ def test_parse_quarter_ref_accepts_repo_formats(
     ref = parse_quarter_ref(raw_value, year=year)
 
     assert ref.label == expected_label
+
+
+def test_parse_quarter_ref_accepts_year_first_periods() -> None:
+    ref = parse_quarter_ref("2025_t3")
+
+    assert ref.label == "Q3-2025"
+    assert ref.display_label == "T3 2025"
+
+
+def test_quarter_label_from_payload_uses_french_display_labels() -> None:
+    payload = {
+        "year_previous": 2025,
+        "quarter_previous": "t2",
+        "year_current": 2025,
+        "quarter_current": "t3",
+    }
+
+    assert quarter_label_from_payload(payload, "current") == "T3 2025"
+    assert quarter_label_from_payload(payload, "previous") == "T2 2025"
+    assert format_quarter_display_label("2026_t1") == "T1 2026"

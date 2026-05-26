@@ -79,13 +79,13 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
         "quarter_previous": "2025_t3",
     }
     assert captured["export_payload"] is latest_payload
-    assert response["filename"] == "veille_textuelle_TD_2026t1.xlsx"
+    assert response["filename"] == "veille_textuelle_TD_T1_2026.xlsx"
 
 
-def test_filter_text_cards_sorts_new_idea_first_and_keeps_non_pertinent() -> None:
+def test_filter_text_cards_sorts_by_impact_then_new_idea_and_keeps_non_pertinent() -> None:
     """Le filtrage Dash garde les changements non pertinents pour revue humaine.
 
-    Tri : nouvelle idée d'abord, puis impact décroissant. Les is_relevant=False
+    Tri : impact d'abord, puis nouvelle idée. Les is_relevant=False
     restent visibles afin que l'analyste puisse contester le triage.
     """
     text_data = {
@@ -173,9 +173,9 @@ def test_filter_text_cards_sorts_new_idea_first_and_keeps_non_pertinent() -> Non
     first_text = _flat_text(cards[0])
     second_text = _flat_text(cards[1])
     third_text = _flat_text(cards[2])
-    # Tri : nouvelle idée d'abord, puis impact décroissant
-    assert "Nouvelle idée" in first_text  # phrase added present in T2 column
-    assert "Majeur existant" in second_text  # phrase modified present in T2 column
+    # Tri : impact d'abord, puis nouvelle idée
+    assert "Majeur existant" in first_text
+    assert "Nouvelle idée" in second_text
     assert "Variation chiffree" in third_text
     assert "Non pertinent" in third_text
 
@@ -218,6 +218,9 @@ def test_text_analysis_banner_uses_auditable_text_total_not_retained_total() -> 
     view = build_text_analysis_tab(text_data)
     text = _flat_text(view)
 
+    assert "BNC · T2 2025 vs T1 2025" in text
+    assert "Courant - T2 2025" in text
+    assert "Précédent - T1 2025" in text
     assert "27 changement(s) textuel(s)" in text
     assert "27 changements textuels détectés" in text
     assert "17 changements substantiels" in text
@@ -270,5 +273,6 @@ def test_text_analysis_tab_selects_first_auditable_section_by_default() -> None:
 
     assert section_dropdown.value == "gestion_capital"
     assert "1 changement(s) affiché(s)" in text
-    assert "Nouveau capital" in text
+    assert "Nouveau" in text
+    assert "capital" in text
     assert "Nouveau risque" not in text
