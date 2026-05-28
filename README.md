@@ -270,7 +270,7 @@ uv run python -m vigilance.dash_app.app
 Ce mode sert aux postes Desjardins qui consultent uniquement les fichiers déjà
 présents dans `outputs/resultats` ou dans un dossier `resultats` synchronisé
 SharePoint/OneDrive. Il ne lance pas l'extraction PDF et ne fait aucun appel LLM.
-Pour cet usage, utiliser la commande publique `vigie.validateur`.
+Pour cet usage, lancer le point d'entrée validateur existant.
 
 Python doit être en version `>=3.10`. Les postes employés peuvent avoir des
 versions différentes : vérifier d'abord la version utilisée par la commande
@@ -283,7 +283,7 @@ python -m venv .venv
 python -m pip install --upgrade pip
 python -m pip install -r requirements-validateur.txt
 python -m pip install -e . --no-deps
-python -m vigie.validateur
+python -m vigilance.dash_app.reader
 ```
 
 Si `python --version` retourne une version inférieure à `3.10`, utiliser le
@@ -299,7 +299,16 @@ possible de le fixer explicitement :
 
 ```powershell
 $env:VIGIE_RESULTATS_DIR="C:\Users\<utilisateur>\Desjardins\Vigie\resultats"
-python -m vigie.validateur
+python -m vigilance.dash_app.reader
+```
+
+Si Windows affiche `No module named vigilance`, relancer l'installation locale
+depuis la racine du projet avec le même environnement virtuel activé :
+
+```powershell
+python -m pip install -e . --no-deps
+python -c "import vigilance; print('vigilance_ok')"
+python -m vigilance.dash_app.reader
 ```
 
 ### Option B — Avec `pip`
