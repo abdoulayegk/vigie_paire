@@ -1,0 +1,15 @@
+# Dependances minimales pour le validateur Dash Windows :
+# - aucun appel LLM
+# - aucune extraction Docling
+# - lecture des artefacts existants dans outputs/resultats
+# - affichage des preuves visuelles PDF et ecrans de validation
+#
+# Python: >=3.10
+
+dash==4.0.0
+dash-bootstrap-components==2.0.4
+plotly==6.7.0
+PyMuPDF==1.27.1
+Pillow==12.2.0
+openpyxl==3.1.5
+reportlab==4.4.10
