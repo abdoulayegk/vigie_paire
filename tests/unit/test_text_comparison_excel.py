@@ -122,9 +122,13 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
     assert ws["F2"].value == "Paragraphe exact T1"
     assert ws["G2"].value == "Paragraphe exact T2"
     assert ws["H2"].value == "Oui"
-    # La colonne 9 contient maintenant nouvelle_idee_justification
-    assert ws["I2"].value == justification_oui
-    assert "\n\nCette nouveaute est pertinente" in ws["I2"].value
+    # La colonne 9 contient une justification structurée pour l'affichage Dash.
+    assert ws["I2"].value.startswith("OUI — Nouvel élément à surveiller : Oui.")
+    assert "Sujet détecté :" in ws["I2"].value
+    assert "Ce qui change : Le passage est modifie entre T1 et T2." in ws["I2"].value
+    assert "Pertinence métier :" in ws["I2"].value
+    assert "le nouveau modele AIRB est introduit" in ws["I2"].value
+    assert "Point de surveillance :" in ws["I2"].value
     assert ws["F3"].value == "Paragraphe modéré T1"
     assert ws["G3"].value == "Paragraphe modéré T2"
     assert ws["C4"].value is None
@@ -167,7 +171,10 @@ def test_generate_text_comparison_excel_strips_control_characters() -> None:
     ws = workbook["Analyse complète"]
 
     assert ws["F2"].value == "Texte T1"
-    assert ws["I2"].value == "OUI - note analyste utile."
+    assert "\x00" not in ws["I2"].value
+    assert ws["I2"].value.startswith("OUI — Nouvel élément à surveiller : Oui.")
+    assert "Ce qui change :" in ws["I2"].value
+    assert "Pertinence métier : note analyste utile." in ws["I2"].value
 
 
 def test_generate_text_comparison_excel_applies_analyst_review_without_new_columns() -> None:

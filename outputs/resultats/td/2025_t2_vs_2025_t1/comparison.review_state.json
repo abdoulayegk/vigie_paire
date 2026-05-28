@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260423_052401",
   "review_items_signature": "33df0dcec8f802c3b0ac95bd817f59b1abb1838bde683538db198938bc6d55aa",
-  "saved_at": "2026-04-23T09:38:13+00:00",
+  "saved_at": "2026-05-15T01:26:44+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "td::capital_management::tbl_p035_i01|",
-    "change_id": "chg_00038"
+    "review_id": "td::risk_management::tbl_p045_i01|tbl_p047_i01",
+    "change_id": "chg_00003"
   },
-  "review_current_idx": 12,
-  "current_change_idx": 0,
+  "review_current_idx": 0,
+  "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-23T09:35:55.816120+00:00",
+      "review_timestamp": "2026-05-15T01:26:44.297625+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -142,8 +142,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T09:36:37.996258+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -153,12 +153,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Autres titres de créance",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Autres titres",
@@ -240,8 +240,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T09:36:43.635454+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -251,12 +251,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS¹",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Dépôts personnels",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "Dépôts non personnels",
@@ -326,10 +326,10 @@
       "page_t2": 51,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T09:36:50.293551+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -339,14 +339,14 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p051_i02",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "RATIO DE LIQUIDITÉ À LONG TERME -> RATIO DE LIQUIDITÉ À LONG TERME (NSFR)",
           "type": "renamed",
           "from": "RATIO DE LIQUIDITÉ À LONG TERME",
           "to": "RATIO DE LIQUIDITÉ À LONG TERME (NSFR)",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[15] Les attentes de la Banque à l’égard des niveaux de liquidités s’appuient sur les hypothèses de la Banque à l’égard de ce",
@@ -411,10 +411,10 @@
       "page_t2": 50,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T09:37:09.460310+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -424,12 +424,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "NOTATIONS DE CRÉDIT¹",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Perspectives – Stables (court terme)",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[2] Tient compte de l’abaissement des notations de crédit et de la modification des perspectives par DBRS après la fin du tr",
@@ -486,8 +486,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T09:37:13.014781+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -497,12 +497,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "FINANCEMENT DE GROS",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[4] Comprennent la dette de premier rang qui est assujettie à un -> Comprennent la dette de premier rang qui est assujettie à un",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[6] Comprend les dépôts à échéance déterminée d’institutions aut -> Comprend les dépôts à échéance déterminée d’institutions aut",
@@ -559,8 +559,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T09:37:32.461532+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -570,12 +570,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "DURÉE CONTRACTUELLE RESTANTE",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[5] Comprennent 75 milliards de dollars d’obligations sécurisées -> Comprennent 74 milliards de dollars d’obligations sécurisées",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[6] Comprennent 633 millions de dollars d’engagements de crédit  -> Comprennent 653 millions de dollars d’engagements de crédit ",
@@ -630,10 +630,10 @@
       "page_t2": 36,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T09:37:35.651984+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -643,12 +643,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[4] En plus des expositions présentées ci-dessus, la Banque a ég -> En plus des expositions présentées ci-dessus, la Banque a ég",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title identical: 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE'; indicators and headers are highly similar; footnote count identical; row_count 10 vs 11 is acceptable.",
@@ -766,10 +766,10 @@
       "page_t2": 45,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T09:38:07.654009+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -779,12 +779,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "SENSIBILITÉ AU RISQUE DE TAUX D’INTÉRÊT STRUCTUREL – MESURES",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[1] Représente l’exposition des produits d’intérêts nets au cour -> Représente l’exposition des produits d’intérêts nets au cour",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title and table_summary identical; indicators match exactly; headers align perfectly; row_count 3 vs 3.",
@@ -902,10 +902,10 @@
       "page_t2": 49,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-23T09:38:13.252037+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -915,12 +915,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "ACTIFS GREVÉS ET ACTIFS NON GREVÉS",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[5] Les autres actifs comprennent la participation dans Schwab,  -> Les autres actifs comprennent le goodwill, les autres immobi",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title and table_summary identical; indicators match exactly; headers align perfectly; row_count 8 vs 8.",
@@ -969,7 +969,7 @@
       "page_t1": 35,
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
@@ -1057,7 +1057,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-23T09:35:55.816120+00:00",
+          "validated_at": "2026-05-15T01:26:44.297625+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1291,12 +1291,12 @@
               "justification": "L'indicateur \"Autres titres de créance\" a été ajouté dans le tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer une nouvelle catégorie d'actifs liquides que la banque a commencé à inclure dans ses rapports. Cela peut refléter un changement dans la stratégie de gestion des actifs ou une réponse à des exigences réglementaires accrues concernant la transparence des actifs liquides. Les lignes directrices de Bâle III et les exigences du BSIF en matière de liquidité pourraient être des facteurs influençant cette inclusion.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cette nouvelle catégorie est correctement intégrée dans les calculs de liquidité et vérifier si des ajustements similaires apparaissent dans d'autres sections du rapport."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T09:36:37.996258+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00012",
@@ -1406,7 +1406,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title and table_summary identical; indicators match exactly; headers align perfectly; row_count 16 vs 18.",
       "genai_analysis": {
@@ -1430,8 +1430,8 @@
         "indicators_removed": 4,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 6
+        "validated": 0,
+        "pending": 7
       }
     },
     {
@@ -1475,12 +1475,12 @@
               "justification": "L'indicateur \"Dépôts personnels\" a été ajouté dans le tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il n'était pas présent au T1 2025.\n\nCet ajout pourrait refléter une nouvelle segmentation des dépôts, ce qui peut avoir un impact sur la manière dont la banque gère et rapporte ses sources de financement. Une telle segmentation peut être liée à des exigences de divulgation plus détaillées ou à une stratégie interne visant à mieux comprendre la composition des dépôts.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier si cette nouvelle catégorie est alignée avec d'autres rapports financiers et si elle répond à des exigences réglementaires spécifiques."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T09:36:43.635454+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00020",
@@ -1554,7 +1554,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title and table_summary identical: 'SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS'; indicators are similar; footnote count identical; row_count 3 vs 3.",
       "genai_analysis": {
@@ -1578,8 +1578,8 @@
         "indicators_removed": 2,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 4
+        "validated": 0,
+        "pending": 5
       }
     },
     {
@@ -1627,12 +1627,12 @@
               "justification": "L'indicateur \"RATIO DE LIQUIDITÉ À LONG TERME\" a été renommé en \"RATIO DE LIQUIDITÉ À LONG TERME (NSFR)\" dans le tableau des mesures de liquidité réglementaires et notes explicatives au T2 2025, alors qu'il était simplement intitulé \"RATIO DE LIQUIDITÉ À LONG TERME\" au T1 2025.\n\nCe changement de nom indique une clarification importante concernant le type de ratio de liquidité à long terme présenté. Le NSFR (Net Stable Funding Ratio) est une mesure clé de la stabilité de financement à long terme, exigée par les normes de Bâle III. Cette clarification est cruciale pour les parties prenantes, car elle précise que le ratio présenté est conforme aux exigences réglementaires internationales en matière de liquidité.\n\nIl s'agit d'une mise à jour structurante qui améliore la transparence et la précision des informations fournies. L'analyste devrait confirmer que cette clarification est cohérente avec les autres divulgations de liquidité dans le rapport et s'assurer que les calculs sous-jacents respectent les méthodologies NSFR prescrites."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T09:36:50.293551+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00030",
@@ -1686,7 +1686,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.98,
       "match_method": "Title and table_summary identical; indicators match exactly; headers align perfectly; row_count 4 vs 4.",
       "genai_analysis": {
@@ -1710,8 +1710,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 1,
         "footnotes_changed": 3,
-        "validated": 1,
-        "pending": 3
+        "validated": 0,
+        "pending": 4
       }
     },
     {
@@ -1755,12 +1755,12 @@
               "justification": "L'indicateur 'Perspectives – Stables (court terme)' a été retiré du tableau des notations de crédit au T2 2025, alors qu'il était présent au T1 2025.\n\nCet indicateur fournissait une indication sur la stabilité des perspectives à court terme, ce qui peut être pertinent pour les investisseurs et les analystes évaluant la solidité financière à court terme de l'institution. Cependant, son absence n'affecte pas directement les exigences réglementaires telles que Bâle III ou les lignes directrices du BSIF, car il s'agit d'une information plus qualitative que quantitative.\n\nIl s'agit probablement d'une mise à jour ordinaire du tableau, visant à simplifier la présentation des perspectives. L'analyste devrait confirmer que cette suppression n'entraîne pas de perte d'information critique pour les parties prenantes."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T09:37:09.460310+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00029",
@@ -1780,7 +1780,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title and table_summary identical; indicators match exactly; headers align perfectly; row_count 11 vs 12.",
       "genai_analysis": {
@@ -1804,8 +1804,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1848,12 +1848,12 @@
             "old_text": "Comprennent la dette de premier rang qui est assujettie à une conversion au titre du régime de recapitalisation interne des banques. Excluent des billets structurés d’un montant de 4,0 milliards de dollars qui sont assujettis à une conversion au titre du régime de recapitalisation interne des banques (4,4 milliards de dollars au 31 octobre 2024).",
             "new_text": "Comprennent la dette de premier rang qui est assujettie à une conversion au titre du régime de recapitalisation interne des banques. Excluent des billets structurés d’un montant de 3,7 milliards de dollars qui sont assujettis à une conversion au titre du régime de recapitalisation interne des banques (4,4 milliards de dollars au 31 octobre 2024)."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T09:37:13.014781+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00035",
@@ -1873,7 +1873,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.98,
       "match_method": "Title and table_summary identical; indicators match exactly; headers align perfectly; row_count 16 vs 16.",
       "genai_analysis": {
@@ -1897,8 +1897,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1941,12 +1941,12 @@
             "old_text": "Comprennent 75 milliards de dollars d’obligations sécurisées, dont une tranche de 2 milliards de dollars comporte une durée contractuelle restante de « plus de 1 à 3 mois », une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 3 mois à 6 mois », une tranche de 22 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 33 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 8 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans ».",
             "new_text": "Comprennent 74 milliards de dollars d’obligations sécurisées, dont une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 1 à 3 mois », une tranche de 10 milliards de dollars comporte une durée contractuelle restante de « plus de 9 mois à 1 an », une tranche de 22 milliards de dollars comporte une durée contractuelle restante de « plus de 1 an à 2 ans », une tranche de 26 milliards de dollars comporte une durée contractuelle restante de « plus de 2 à 5 ans » et une tranche de 6 milliards de dollars comporte une durée contractuelle restante de « plus de 5 ans »."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T09:37:32.461532+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00037",
@@ -1966,7 +1966,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.98,
       "match_method": "Title and table_summary identical; indicators match exactly; headers align perfectly; row_count 50 vs 50.",
       "genai_analysis": {
@@ -1990,8 +1990,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -2034,15 +2034,15 @@
             "old_text": "En plus des expositions présentées ci-dessus, la Banque a également une exposition de 35,3 milliards de dollars (35,5 milliards de dollars au 31 octobre 2024) à des entités supranationales.",
             "new_text": "En plus des expositions présentées ci-dessus, la Banque a également une exposition de 33,6 milliards de dollars (35,5 milliards de dollars au 31 octobre 2024) à des entités supranationales."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T09:37:35.651984+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Title identical: 'TOTAL DE L’EXPOSITION NETTE PAR RÉGION ET CONTREPARTIE'; indicators and headers are highly similar; footnote count identical; row_count 10 vs 11 is acceptable.",
       "genai_analysis": {
@@ -2066,8 +2066,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -2187,15 +2187,15 @@
             "old_text": "Représente l’exposition des produits d’intérêts nets au cours des douze mois suivant un choc immédiat et soutenu des taux d’intérêt.",
             "new_text": "Représente l’exposition des produits d’intérêts nets au cours des douze mois suivant un choc immédiat et soutenu des taux d’intérêt et peut comprendre des ajustements au titre d’éléments non récurrents."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T09:38:07.654009+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.98,
       "match_method": "Title and table_summary identical; indicators match exactly; headers align perfectly; row_count 3 vs 3.",
       "genai_analysis": {
@@ -2219,8 +2219,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -2339,15 +2339,15 @@
             "old_text": "Les autres actifs comprennent la participation dans Schwab, le goodwill, les autres immobilisations incorporelles, les terrains, bâtiments, matériel et mobilier, autres actifs amortissables et actifs au titre de droits d’utilisation, les actifs d’impôt différé, les montants à recevoir des courtiers et des clients et les autres actifs du bilan qui ne sont pas présentés dans les catégories ci-dessus.",
             "new_text": "Les autres actifs comprennent le goodwill, les autres immobilisations incorporelles, les terrains, bâtiments, matériel et mobilier, autres actifs amortissables et actifs au titre de droits d’utilisation, les actifs d’impôt différé, les montants à recevoir des courtiers et des clients et les autres actifs du bilan qui ne sont pas présentés dans les catégories ci-dessus."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-23T09:38:13.252037+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.98,
       "match_method": "Title and table_summary identical; indicators match exactly; headers align perfectly; row_count 8 vs 8.",
       "genai_analysis": {
@@ -2371,8 +2371,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -2398,7 +2398,7 @@
       ],
       "bbox_t2": null,
       "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/previous_report.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/td/2025_t2_vs_2025_t1/current_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/TD/2025/TD_2025_T2.pdf",
       "changes": [
         {
           "change_id": "chg_00038",

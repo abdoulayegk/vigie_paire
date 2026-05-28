@@ -8,6 +8,11 @@ import re
 from pathlib import Path
 from typing import Any
 
+from vigilance.text_comparison.justification import (
+    build_text_triage_justification,
+    is_structured_text_triage_justification,
+)
+
 logger = logging.getLogger(__name__)
 
 TEXT_COMPARISON_SCHEMA_VERSION = 3
@@ -24,6 +29,59 @@ def _sanitize_text_value(value: Any) -> Any:
     if isinstance(value, dict):
         return {key: _sanitize_text_value(item) for key, item in value.items()}
     return value
+
+
+def _clean_text(value: Any) -> str:
+    """Retourne une chaîne compacte pour les fallbacks d'artefact."""
+    return " ".join(str(value or "").strip().split())
+
+
+def _fallback_change_segments(change: dict[str, Any]) -> list[dict[str, str]]:
+    """Construit un segment de changement minimal quand GPT ne l'a pas fourni."""
+    diff_type = str(change.get("diff_type") or "").lower()
+    text_t1 = _clean_text(change.get("source_text_t1") or change.get("semantic_text_t1"))
+    text_t2 = _clean_text(change.get("source_text_t2") or change.get("semantic_text_t2"))
+
+    if diff_type == "added" and text_t2:
+        return [{"kind": "added", "text_t1": "", "text_t2": text_t2}]
+    if diff_type == "removed" and text_t1:
+        return [{"kind": "removed", "text_t1": text_t1, "text_t2": ""}]
+    if diff_type in {"modified", "renamed"} and (text_t1 or text_t2):
+        return [{"kind": "modified", "text_t1": text_t1, "text_t2": text_t2}]
+    return []
+
+
+def _normalize_text_change(change: dict[str, Any]) -> None:
+    """Garantit les champs nécessaires au rendu analyste de l'analyse textuelle."""
+    triage = change.get("genai_triage")
+    if not isinstance(triage, dict) or not triage:
+        return
+
+    justification = build_text_triage_justification(change)
+    if justification and not is_structured_text_triage_justification(
+        triage.get("nouvelle_idee_justification")
+    ):
+        triage["nouvelle_idee_justification"] = justification
+
+    if bool(triage.get("is_relevant", False)):
+        segments = triage.get("change_segments")
+        if not isinstance(segments, list) or not segments:
+            fallback_segments = _fallback_change_segments(change)
+            if fallback_segments:
+                triage["change_segments"] = fallback_segments
+    else:
+        triage["change_segments"] = []
+
+
+def _normalize_text_comparison_payload(payload: dict[str, Any]) -> None:
+    """Normalise tous les changements avant écriture du JSON final."""
+    for section in payload.get("section_comparisons") or []:
+        if not isinstance(section, dict):
+            continue
+        for bucket in ("block_comparisons", "all_block_comparisons"):
+            for change in section.get(bucket) or []:
+                if isinstance(change, dict):
+                    _normalize_text_change(change)
 
 
 def get_text_comparison_path(
@@ -56,6 +114,7 @@ def write_text_comparison(
     Returns:
         Path du fichier écrit.
     """
+    _normalize_text_comparison_payload(payload)
     sanitized_payload = _sanitize_text_value(payload)
     if isinstance(sanitized_payload, dict):
         payload.clear()

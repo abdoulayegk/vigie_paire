@@ -200,7 +200,13 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor"
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-05-15T01:19:46.877348+00:00",
+          "by": "analyst"
+        }
       }
     ],
     "artifacts_confirmed_previous": [
@@ -562,7 +568,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-19T00:08:32.496067+00:00",
+              "at": "2026-05-15T01:19:05.653787+00:00",
               "by": "analyst"
             }
           },
@@ -977,12 +983,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La modification des montants des comptes de correction de valeur et des lettres de crédit peut indiquer un changement dans l'évaluation des risques de crédit, ce qui est crucial pour l'analyse des expositions financières."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:08:33.686821+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -1350,12 +1350,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La suppression de cette note pourrait indiquer un changement dans la présentation des passifs, ce qui peut affecter l'analyse des obligations financières de la Banque."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:08:27.047697+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -1941,7 +1935,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-19T00:07:59.165786+00:00",
+              "at": "2026-05-15T01:18:51.064197+00:00",
               "by": "analyst"
             }
           },
@@ -1956,7 +1950,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-19T00:07:59.323560+00:00",
+              "at": "2026-05-15T01:18:51.419545+00:00",
               "by": "analyst"
             }
           },
@@ -1967,12 +1961,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "L'ajout d'une nouvelle note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:08:31.167511+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -2535,7 +2523,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-19T00:08:36.126494+00:00",
+              "at": "2026-05-15T01:19:20.610668+00:00",
               "by": "analyst"
             }
           }
@@ -3391,12 +3379,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'ajout de cet indicateur pourrait refléter un changement dans la manière dont la banque évalue ou présente son exposition au risque de levier, ce qui est crucial pour la gestion des risques et la conformité réglementaire."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:08:28.104931+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -3499,9 +3481,9 @@
     "high_priority_items_total": 7
   },
   "review_decisions_summary": {
-    "matched": 8,
+    "matched": 5,
     "unmatched": 0,
-    "pending": 6,
-    "updated_at": "2026-04-19T00:08:36+00:00"
+    "pending": 9,
+    "updated_at": "2026-05-15T01:19:46+00:00"
   }
 }
