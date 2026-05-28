@@ -2,12 +2,29 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
+
+_REQUIRED_JUSTIFICATION_MARKERS = (
+    "Nouvel élément à surveiller :",
+    "Sujet détecté :",
+    "Ce qui change :",
+    "Pertinence métier :",
+    "Point de surveillance :",
+)
 
 
 def _clean(value: Any) -> str:
     """Retourne une chaine nettoyee sans retours parasites."""
     return " ".join(str(value or "").strip().split())
+
+
+def is_structured_text_triage_justification(value: Any) -> bool:
+    """Vrai si la justification contient toutes les rubriques attendues."""
+    text = str(value or "")
+    if "Lecture de vigie :" in text and "Point de surveillance :" not in text:
+        text = text.replace("Lecture de vigie :", "Point de surveillance :")
+    return all(marker in text for marker in _REQUIRED_JUSTIFICATION_MARKERS)
 
 
 def _sentence(value: str) -> str:
@@ -16,6 +33,12 @@ def _sentence(value: str) -> str:
     if not value:
         return ""
     return value if value[-1] in ".!?" else f"{value}."
+
+
+def _strip_decision_prefix(value: str) -> str:
+    """Retire le préfixe OUI/NON d'une justification legacy."""
+    value = value.strip()
+    return re.sub(r"^(OUI|NON)\s*[-—:]\s*", "", value, flags=re.IGNORECASE).strip()
 
 
 def _combined_text(change: dict[str, Any]) -> str:
@@ -100,10 +123,14 @@ def _fallback_pertinence(change: dict[str, Any], triage: dict[str, Any]) -> str:
     if _is_climate_b15_change(change):
         return _climate_b15_pertinence()
 
+    legacy_justification = _clean(
+        _strip_decision_prefix(str(triage.get("nouvelle_idee_justification") or ""))
+    )
     explanation = _clean(triage.get("explanation"))
     impact_description = _clean(triage.get("impact_description"))
     return (
-        explanation
+        legacy_justification
+        or explanation
         or impact_description
         or "La pertinence métier doit être appréciée à partir du changement détecté."
     )
@@ -206,18 +233,19 @@ def build_text_triage_justification(change: dict[str, Any]) -> str:
     explicit = str(triage.get("nouvelle_idee_justification") or "").strip()
     if explicit:
         explicit = _normalize_surveillance_marker(explicit)
-        if _is_climate_b15_change(change):
-            subject = _infer_subject(change, triage)
-            explicit = _replace_pertinence(explicit, _climate_b15_pertinence())
-            return _replace_surveillance_point(
-                explicit,
-                _surveillance_point(change, triage, subject),
-            )
-        return explicit
+        if is_structured_text_triage_justification(explicit):
+            if _is_climate_b15_change(change):
+                subject = _infer_subject(change, triage)
+                explicit = _replace_pertinence(explicit, _climate_b15_pertinence())
+                return _replace_surveillance_point(
+                    explicit,
+                    _surveillance_point(change, triage, subject),
+                )
+            return explicit
 
     explanation = _clean(triage.get("explanation"))
     impact_description = _clean(triage.get("impact_description"))
-    if not explanation and not impact_description:
+    if not explicit and not explanation and not impact_description:
         return ""
 
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
