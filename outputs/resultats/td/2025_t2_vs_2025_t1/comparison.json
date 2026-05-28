@@ -408,12 +408,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°4 a été modifiée dans le tableau de l'exposition nette par région et contrepartie. Le texte a été révisé pour indiquer que l'exposition de la Banque à des entités supranationales est passée de 35,3 milliards de dollars à 33,6 milliards de dollars.\n\nCe changement a un impact direct sur la divulgation des expositions de la Banque, ce qui est crucial pour l'évaluation des risques et la conformité réglementaire. Une telle modification peut influencer les ratios prudentiels et la perception du risque par les régulateurs et les investisseurs. Selon les normes de Bâle III, les expositions à des entités supranationales peuvent affecter le calcul des actifs pondérés en fonction des risques (RWA), ce qui a des implications sur le ratio de fonds propres.\n\nIl s'agit d'une mise à jour significative des données financières qui nécessite une vérification approfondie. L'analyste devrait confirmer l'exactitude de cette nouvelle valeur et s'assurer qu'elle est cohérente avec les autres divulgations financières du rapport. Une investigation plus poussée pourrait être nécessaire pour comprendre les raisons de cette variation."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-23T09:37:35.651984+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -1442,12 +1436,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°1 a été modifiée dans le tableau de la sensibilité au risque de taux d’intérêt structurel. Le texte initial décrivait l’exposition des produits d’intérêts nets sur douze mois après un choc de taux d’intérêt. La version révisée ajoute que cette exposition peut inclure des ajustements pour des éléments non récurrents.\n\nCette modification a un impact significatif sur l’interprétation des résultats financiers. En incluant la possibilité d’ajustements pour des éléments non récurrents, la banque introduit une variabilité potentielle dans les résultats qui pourrait affecter les ratios de sensibilité au risque de taux d’intérêt. Cela pourrait avoir des implications sur la manière dont les investisseurs et les régulateurs perçoivent la stabilité financière de l’institution, notamment en lien avec les exigences de Bâle III sur la gestion du risque de taux d’intérêt.\n\nIl s’agit d’un changement méthodologique important. L’analyste devrait confirmer que cette nouvelle approche est cohérente avec les autres divulgations de risque de taux d’intérêt dans le rapport et s’assurer que les ajustements pour éléments non récurrents sont correctement documentés et justifiés. Une investigation plus approfondie est recommandée pour évaluer l’impact de ces ajustements sur les résultats financiers."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-23T09:38:07.654009+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -1586,7 +1574,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-23T09:35:55.816120+00:00",
+              "at": "2026-05-15T01:26:44.297625+00:00",
               "by": "analyst"
             }
           },
@@ -1886,12 +1874,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Autres titres de créance\" a été ajouté dans le tableau de synthèse des actifs liquides moyens par type et par monnaie au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer une nouvelle catégorie d'actifs liquides que la banque a commencé à inclure dans ses rapports. Cela peut refléter un changement dans la stratégie de gestion des actifs ou une réponse à des exigences réglementaires accrues concernant la transparence des actifs liquides. Les lignes directrices de Bâle III et les exigences du BSIF en matière de liquidité pourraient être des facteurs influençant cette inclusion.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cette nouvelle catégorie est correctement intégrée dans les calculs de liquidité et vérifier si des ajustements similaires apparaissent dans d'autres sections du rapport."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-23T09:36:37.996258+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -2199,12 +2181,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°5 a été modifiée par la suppression de la mention de la participation dans Schwab. Cette note se trouve dans le tableau des actifs grevés et non grevés, et décrit les autres actifs de la banque.\n\nL'impact de cette suppression est plus significatif, car elle pourrait indiquer un changement dans la structure des actifs de la banque. La participation dans Schwab étant un élément potentiellement important du portefeuille d'actifs, sa suppression de la note pourrait refléter une vente ou une réévaluation stratégique. Cela pourrait avoir des implications sur les ratios de fonds propres ou sur la stratégie de gestion des actifs de la banque, en lien avec les exigences de Bâle III ou les directives du BSIF.\n\nIl s'agit d'un changement structurel qui mérite une investigation plus approfondie. L'analyste devrait vérifier si cette suppression est liée à une transaction récente ou à une réorganisation des actifs, et évaluer son impact sur les autres tableaux financiers du rapport."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-23T09:38:13.252037+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -2351,12 +2327,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "L'indicateur 'Perspectives – Stables (court terme)' a été retiré du tableau des notations de crédit au T2 2025, alors qu'il était présent au T1 2025.\n\nCet indicateur fournissait une indication sur la stabilité des perspectives à court terme, ce qui peut être pertinent pour les investisseurs et les analystes évaluant la solidité financière à court terme de l'institution. Cependant, son absence n'affecte pas directement les exigences réglementaires telles que Bâle III ou les lignes directrices du BSIF, car il s'agit d'une information plus qualitative que quantitative.\n\nIl s'agit probablement d'une mise à jour ordinaire du tableau, visant à simplifier la présentation des perspectives. L'analyste devrait confirmer que cette suppression n'entraîne pas de perte d'information critique pour les parties prenantes."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-23T09:37:09.460310+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -2719,12 +2689,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"RATIO DE LIQUIDITÉ À LONG TERME\" a été renommé en \"RATIO DE LIQUIDITÉ À LONG TERME (NSFR)\" dans le tableau des mesures de liquidité réglementaires et notes explicatives au T2 2025, alors qu'il était simplement intitulé \"RATIO DE LIQUIDITÉ À LONG TERME\" au T1 2025.\n\nCe changement de nom indique une clarification importante concernant le type de ratio de liquidité à long terme présenté. Le NSFR (Net Stable Funding Ratio) est une mesure clé de la stabilité de financement à long terme, exigée par les normes de Bâle III. Cette clarification est cruciale pour les parties prenantes, car elle précise que le ratio présenté est conforme aux exigences réglementaires internationales en matière de liquidité.\n\nIl s'agit d'une mise à jour structurante qui améliore la transparence et la précision des informations fournies. L'analyste devrait confirmer que cette clarification est cohérente avec les autres divulgations de liquidité dans le rapport et s'assurer que les calculs sous-jacents respectent les méthodologies NSFR prescrites."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-23T09:36:50.293551+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -3048,12 +3012,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Dépôts personnels\" a été ajouté dans le tableau de synthèse du financement provenant des dépôts au T2 2025, alors qu'il n'était pas présent au T1 2025.\n\nCet ajout pourrait refléter une nouvelle segmentation des dépôts, ce qui peut avoir un impact sur la manière dont la banque gère et rapporte ses sources de financement. Une telle segmentation peut être liée à des exigences de divulgation plus détaillées ou à une stratégie interne visant à mieux comprendre la composition des dépôts.\n\nIl s'agit d'une mise à jour structurelle du tableau. L'analyste devrait vérifier si cette nouvelle catégorie est alignée avec d'autres rapports financiers et si elle répond à des exigences réglementaires spécifiques."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-23T09:36:43.635454+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -3484,12 +3442,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°4 a été modifiée dans le tableau du financement de gros. Le texte a été ajusté pour refléter une modification du montant des billets structurés exclus de la conversion au titre du régime de recapitalisation interne des banques, passant de 4,0 milliards de dollars à 3,7 milliards de dollars.\n\nCe changement a un impact direct sur la divulgation des engagements financiers de la banque, en particulier en ce qui concerne la gestion des risques liés aux instruments de dette de premier rang. La réduction du montant des billets structurés exclus pourrait indiquer une réévaluation des risques associés ou une modification des conditions de marché. Cela pourrait également avoir des implications sur les ratios de capital réglementaire, notamment ceux liés à Bâle III, qui exigent une divulgation précise des instruments de dette pouvant être convertis en capital en cas de crise.\n\nIl s'agit d'une mise à jour importante qui pourrait signaler un changement dans la stratégie de gestion des risques de la banque. L'analyste devrait confirmer la raison de cette modification et s'assurer qu'elle est cohérente avec les autres divulgations financières et les stratégies de gestion des risques de la banque. Une investigation plus approfondie pourrait être nécessaire pour comprendre l'impact complet de ce changement."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-23T09:37:13.014781+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -3771,12 +3723,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°5 a subi une révision significative dans le tableau de la durée contractuelle restante. Le montant total des obligations sécurisées a été ajusté de 75 milliards de dollars à 74 milliards de dollars, et les tranches ont été redistribuées avec des durées contractuelles différentes, notamment l'ajout d'une tranche de 10 milliards de dollars pour la période de « plus de 9 mois à 1 an » et des ajustements dans les autres tranches.\n\nCe changement a un impact structurel important car il modifie la répartition des obligations sécurisées par durée, ce qui peut affecter l'analyse de la liquidité et du risque de taux d'intérêt de la banque. Les obligations sécurisées sont souvent utilisées pour garantir des financements à long terme, et leur répartition par échéance est cruciale pour la gestion des risques de liquidité et de taux. Selon les normes de Bâle III, la gestion des échéances est essentielle pour le calcul des ratios de liquidité, tels que le ratio de liquidité à court terme (LCR) et le ratio de financement stable net (NSFR).\n\nIl s'agit d'une mise à jour méthodologique qui nécessite une attention particulière. L'analyste devrait confirmer que ces ajustements sont cohérents avec les autres divulgations financières et s'assurer que les changements dans la répartition des échéances sont correctement intégrés dans les modèles de gestion des risques de la banque. Une vérification supplémentaire pourrait être nécessaire pour garantir que ces ajustements ne compromettent pas la conformité réglementaire."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-23T09:37:32.461532+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -4143,9 +4089,9 @@
     "high_priority_items_total": 10
   },
   "review_decisions_summary": {
-    "matched": 10,
+    "matched": 1,
     "unmatched": 0,
-    "pending": 28,
-    "updated_at": "2026-04-23T09:38:13+00:00"
+    "pending": 37,
+    "updated_at": "2026-05-15T01:26:44+00:00"
   }
 }
