@@ -88,6 +88,10 @@ copy .env.example .env      # puis renseigner OPENAI_API_KEY
 
 `requirements.txt` couvre les dépendances runtime. Les dépendances de développement comme `pytest` et `reportlab` ne sont pas incluses dans le parcours `pip` standard.
 
+Pour un poste analyste qui doit uniquement lancer l'interface Dash en lecture/validation
+des résultats déjà générés, utiliser plutôt `requirements-reader.txt`. Ce fichier
+n'installe pas les dépendances de pipeline (`docling`, `openai`, `scipy`, etc.).
+
 ---
 
 ## Variables d'environnement
@@ -259,6 +263,42 @@ bash scripts/run_dash.sh
 
 ```powershell
 uv run python -m vigilance.dash_app.app
+```
+
+### Dash reader — Windows sans pipeline ni LLM
+
+Ce mode sert aux postes Desjardins qui consultent uniquement les fichiers déjà
+présents dans `outputs/resultats` ou dans un dossier `resultats` synchronisé
+SharePoint/OneDrive. Il ne lance pas l'extraction PDF et ne fait aucun appel LLM.
+
+Python doit être en version `>=3.10`. Les postes employés peuvent avoir des
+versions différentes : vérifier d'abord la version utilisée par la commande
+`python`.
+
+```powershell
+python --version
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements-reader.txt
+python -m pip install -e . --no-deps
+python -m vigilance.dash_app.reader
+```
+
+Si `python --version` retourne une version inférieure à `3.10`, utiliser le
+launcher Windows pour choisir une version installée compatible :
+
+```powershell
+py -0p
+py -3.10 -m venv .venv
+```
+
+Au premier lancement, l'application demande le dossier `resultats`. Il est aussi
+possible de le fixer explicitement :
+
+```powershell
+$env:VIGIE_RESULTATS_DIR="C:\Users\<utilisateur>\Desjardins\Vigie\resultats"
+python -m vigilance.dash_app.reader
 ```
 
 ### Option B — Avec `pip`
