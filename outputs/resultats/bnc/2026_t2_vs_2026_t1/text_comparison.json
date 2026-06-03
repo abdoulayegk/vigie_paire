@@ -611,7 +611,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -672,7 +672,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -681,6 +681,13 @@
               "quantitative_changed": false
             },
             "source": "gpt4o_triage_amf_v2"
+          },
+          "_analyst_review": {
+            "status": "rejected",
+            "comment": "jhjkh",
+            "review_user": "analyste",
+            "reviewed_at": "2026-05-28T15:34:18.644429+00:00",
+            "nouvelle_idee_override": false
           }
         },
         {
@@ -733,7 +740,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -794,7 +801,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -803,6 +810,13 @@
               "quantitative_changed": false
             },
             "source": "gpt4o_triage_amf_v2"
+          },
+          "_analyst_review": {
+            "status": "rejected",
+            "comment": "",
+            "review_user": "analyste",
+            "reviewed_at": "2026-05-28T15:34:31.702315+00:00",
+            "nouvelle_idee_override": false
           }
         },
         {
@@ -855,7 +869,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -864,6 +878,13 @@
               "quantitative_changed": false
             },
             "source": "gpt4o_triage_amf_v2"
+          },
+          "_analyst_review": {
+            "status": "rejected",
+            "comment": "",
+            "review_user": "analyste",
+            "reviewed_at": "2026-05-28T15:34:34.371263+00:00",
+            "nouvelle_idee_override": false
           }
         },
         {
@@ -916,7 +937,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -925,6 +946,13 @@
               "quantitative_changed": false
             },
             "source": "gpt4o_triage_amf_v2"
+          },
+          "_analyst_review": {
+            "status": "rejected",
+            "comment": "",
+            "review_user": "analyste",
+            "reviewed_at": "2026-05-28T15:34:36.011614+00:00",
+            "nouvelle_idee_override": false
           }
         },
         {
@@ -977,7 +1005,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -986,6 +1014,13 @@
               "quantitative_changed": false
             },
             "source": "gpt4o_triage_amf_v2"
+          },
+          "_analyst_review": {
+            "status": "rejected",
+            "comment": "",
+            "review_user": "analyste",
+            "reviewed_at": "2026-05-28T15:34:37.962270+00:00",
+            "nouvelle_idee_override": false
           }
         },
         {
@@ -1038,7 +1073,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -1099,7 +1134,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -1193,6 +1228,12 @@
               "quantitative_changed": false
             },
             "source": "gpt4o_triage_amf_v2"
+          },
+          "_analyst_review": {
+            "status": "approved",
+            "comment": "",
+            "review_user": "analyste",
+            "reviewed_at": "2026-05-28T15:34:12.200799+00:00"
           }
         },
         {
@@ -1601,6 +1642,12 @@
               "quantitative_changed": false
             },
             "source": "gpt4o_triage_amf_v2"
+          },
+          "_analyst_review": {
+            "status": "approved",
+            "comment": "",
+            "review_user": "analyste",
+            "reviewed_at": "2026-05-28T15:34:12.200799+00:00"
           }
         },
         {
@@ -1992,7 +2039,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -2053,7 +2100,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -2114,7 +2161,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -2175,7 +2222,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -2236,7 +2283,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,
@@ -2297,7 +2344,7 @@
             "risk_level": "FAIBLE",
             "impact_description": "",
             "reference_reglementaire": "",
-            "confidence": 0.0,
+            "confidence": 0,
             "signals": {
               "regulatory_reference_added": false,
               "methodology_change": false,

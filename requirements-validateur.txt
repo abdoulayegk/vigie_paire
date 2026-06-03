@@ -13,3 +13,4 @@ PyMuPDF==1.27.1
 Pillow==12.2.0
 openpyxl==3.1.5
 reportlab==4.4.10
+PyYAML==6.0.3
