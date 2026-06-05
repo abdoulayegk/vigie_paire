@@ -180,6 +180,66 @@ def test_filter_text_cards_sorts_by_impact_then_new_idea_and_keeps_non_pertinent
     assert "Non pertinent" in third_text
 
 
+def test_filter_text_cards_keeps_minor_date_updates_and_reformulations() -> None:
+    text_data = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "change_id": "date_update",
+                        "diff_type": "modified",
+                        "change_summary": "La date de référence est passée de janvier à avril.",
+                        "source_text_t1": "Données au 31 janvier.",
+                        "source_text_t2": "Données au 30 avril.",
+                        "pages_t2": [5],
+                        "evidence_t1": {"pages": [4]},
+                        "evidence_t2": {"pages": [5]},
+                        "genai_triage": {
+                            "is_relevant": False,
+                            "themes_amf": [],
+                            "impact_level": "MINEUR",
+                            "action_requise": "aucune",
+                            "nouvelle_idee": False,
+                            "exclusion_reason": "variation_numerique_propre_banque",
+                        },
+                    },
+                    {
+                        "change_id": "reformulation",
+                        "diff_type": "modified",
+                        "change_summary": "Légère reformulation sans changement de fond.",
+                        "source_text_t1": "La banque surveille ce risque.",
+                        "source_text_t2": "Ce risque est surveillé par la banque.",
+                        "pages_t2": [7],
+                        "evidence_t1": {"pages": [6]},
+                        "evidence_t2": {"pages": [7]},
+                        "genai_triage": {
+                            "is_relevant": False,
+                            "themes_amf": [],
+                            "impact_level": "MINEUR",
+                            "action_requise": "aucune",
+                            "nouvelle_idee": False,
+                            "exclusion_reason": "reformulation_mineure",
+                        },
+                    },
+                ],
+            }
+        ]
+    }
+
+    cards, count_text = filter_text_cards(text_data, None, None, None)
+    rendered = _flat_text(cards)
+    compact = " ".join(rendered.split())
+
+    assert count_text == "2 changement(s) affiché(s)"
+    assert "Données au 31 janvier." in compact
+    assert "Données au 30 avril." in compact
+    assert "La banque surveille ce risque." in compact
+    assert "Ce risque est surveillé par la banque." in compact
+    assert rendered.count("Non pertinent") == 2
+
+
 def test_text_analysis_banner_uses_auditable_text_total_not_retained_total() -> None:
     """Le badge principal texte suit le même périmètre que l'Excel."""
     changes = [

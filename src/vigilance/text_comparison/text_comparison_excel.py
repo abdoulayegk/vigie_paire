@@ -185,8 +185,6 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
         for block_comp in section_comp.get("all_block_comparisons", []):
             if block_comp.get("diff_type") == "unchanged":
                 continue
-            if _should_exclude(block_comp):
-                continue
 
             triage = block_comp.get("genai_triage") or {}
             evidence_t1 = block_comp.get("evidence_t1") or {}
@@ -241,8 +239,9 @@ def generate_text_comparison_excel(
 ) -> Path | bytes:
     """Génère le classeur Excel analyste à partir de text_comparison.json.
 
-    Affiche tous les changements détectés (hors unchanged, dates pures et
-    reformulations strictes), triés par nouvelle idée puis par priorité.
+    Affiche tous les changements détectés hors ``unchanged``, triés par
+    nouvelle idée puis par priorité. Les dates pures, variations chiffrées et
+    reformulations restent visibles pour décision analyste.
     L'analyste valide chaque ligne via la colonne Statut.
 
     Args:

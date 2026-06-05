@@ -83,6 +83,15 @@ THEMES_AMF_DESCRIPTIONS: dict[str, str] = {
         "modèles tiers, fraude numérique, usurpation d'identité, ransomware, "
         "attaques sur la chaîne d'approvisionnement, dépendances technologiques."
     ),
+    "RISQUE_MACRO_GEOPOLITIQUE": (
+        "Changement lié à un risque macroéconomique, commercial ou "
+        "géopolitique — PRIORITAIRE : tarifs douaniers, guerre commerciale, "
+        "sanctions, conflits, incertitude des politiques commerciales. C'est un "
+        "déclencheur externe qui se transmet aux risques bancaires classiques "
+        "(crédit, marché, financement, macroéconomie). Couvre l'ajout, le "
+        "retrait ou la modification de la divulgation de ce déclencheur, qu'il "
+        "soit traité comme facteur autonome ou intégré au risque de crédit/marché."
+    ),
     "GOUVERNANCE_RISQUES": (
         "Changement dans la gouvernance des risques (comités, rôles, "
         "responsabilités, appétit pour le risque, cadre de gouvernance)."
@@ -121,6 +130,7 @@ THEMES_AMF_ANALYST_SUBJECTS: dict[str, str] = {
     "HYPOTHESES_EXPLICATIONS_RISQUES": "Hypothèses ou explications de risque",
     "ESG_CLIMATIQUE": "Risque climatique / ESG",
     "RISQUE_EMERGENT": "Risque émergent : IA, cybersécurité, fraude, cryptoactifs ou modèles tiers",
+    "RISQUE_MACRO_GEOPOLITIQUE": "Risque commercial et géopolitique : tarifs douaniers, sanctions, conflits",
     "GOUVERNANCE_RISQUES": "Gouvernance des risques",
     "CONTROLE_CONFORMITE": "Contrôle interne ou conformité",
     "NOUVELLE_MENTION_REGLEMENTAIRE": "Nouvelle mention réglementaire",
@@ -144,6 +154,7 @@ ThemeAMF = Literal[
     "HYPOTHESES_EXPLICATIONS_RISQUES",
     "ESG_CLIMATIQUE",
     "RISQUE_EMERGENT",
+    "RISQUE_MACRO_GEOPOLITIQUE",
     "GOUVERNANCE_RISQUES",
     "CONTROLE_CONFORMITE",
     "NOUVELLE_MENTION_REGLEMENTAIRE",

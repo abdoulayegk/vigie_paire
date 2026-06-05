@@ -139,6 +139,67 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
     assert ws["G5"].value == "Paragraphe non substantif T2"
 
 
+def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_changes() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "modified",
+                        "change_summary": "La date de référence est passée de janvier à avril.",
+                        "source_text_t1": "Données au 31 janvier.",
+                        "source_text_t2": "Données au 30 avril.",
+                        "evidence_t1": {"pages": [4]},
+                        "evidence_t2": {"pages": [5]},
+                        "genai_triage": {
+                            "is_relevant": False,
+                            "category": "NON_PERTINENT",
+                            "impact_level": "MINEUR",
+                            "action_requise": "aucune",
+                            "nouvelle_idee": False,
+                            "exclusion_reason": "variation_numerique_propre_banque",
+                            "nouvelle_idee_justification": (
+                                "NON - changement de date seulement."
+                            ),
+                        },
+                    },
+                    {
+                        "diff_type": "modified",
+                        "change_summary": "Légère reformulation sans changement de fond.",
+                        "source_text_t1": "La banque surveille ce risque.",
+                        "source_text_t2": "Ce risque est surveillé par la banque.",
+                        "evidence_t1": {"pages": [6]},
+                        "evidence_t2": {"pages": [7]},
+                        "genai_triage": {
+                            "is_relevant": False,
+                            "category": "NON_PERTINENT",
+                            "impact_level": "MINEUR",
+                            "action_requise": "aucune",
+                            "nouvelle_idee": False,
+                            "exclusion_reason": "reformulation_mineure",
+                            "nouvelle_idee_justification": (
+                                "NON - reformulation sans changement de sens."
+                            ),
+                        },
+                    },
+                ],
+            }
+        ]
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+
+    assert ws.max_row == 3
+    assert ws["F2"].value == "Données au 31 janvier."
+    assert ws["G2"].value == "Données au 30 avril."
+    assert ws["F3"].value == "La banque surveille ce risque."
+    assert ws["G3"].value == "Ce risque est surveillé par la banque."
+
+
 def test_generate_text_comparison_excel_strips_control_characters() -> None:
     payload = {
         "section_comparisons": [
