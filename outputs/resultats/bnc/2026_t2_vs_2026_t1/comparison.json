@@ -1073,7 +1073,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-05-28T14:44:27.781402+00:00",
+              "at": "2026-05-28T17:56:28.464078+00:00",
               "by": "analyst"
             }
           }
@@ -1092,7 +1092,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-05-28T14:44:28.127979+00:00",
+              "at": "2026-05-28T17:56:28.861267+00:00",
               "by": "analyst"
             }
           }
@@ -1562,6 +1562,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur 'Banques' a été ajouté dans le tableau d'exposition maximale au risque de crédit selon les catégories d'actifs de Bâle. Cet ajout se situe à la position 7 du tableau actuel, remplaçant l'indicateur précédent 'Institutions financières'.\n\nL'ajout de cet indicateur peut refléter un changement dans la manière dont la banque catégorise ses expositions au risque de crédit, potentiellement en réponse à des ajustements réglementaires ou à une réévaluation interne des risques associés aux contreparties bancaires. Les banques sont souvent considérées comme des contreparties distinctes en raison de leur profil de risque unique et de leur importance systémique, ce qui pourrait justifier cette nouvelle catégorisation.\n\nCe changement indique une révision structurelle dans la présentation des risques de crédit, soulignant une attention accrue portée aux expositions spécifiques aux banques. Cela pourrait signaler une adaptation aux exigences de divulgation plus fines ou une réponse à des évolutions du marché ou des régulations."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-05-28T17:56:50.378371+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -1753,6 +1759,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur 'Banques' a été ajouté dans le tableau de gestion des risques au T2 2025, remplaçant l'indicateur précédent 'Institutions financières'. Cette modification se situe à la position 7 du tableau, ce qui indique un changement dans la catégorisation des expositions au risque de crédit.\n\nL'ajout de cet indicateur peut refléter une révision de la méthodologie de classification des contreparties financières, potentiellement en réponse à des exigences réglementaires ou à une réévaluation interne des risques associés aux banques par rapport à d'autres institutions financières. Cela pourrait être lié aux directives de Bâle III qui mettent l'accent sur la différenciation des risques selon le type de contrepartie.\n\nLe signal de vigie à retenir est que la banque a potentiellement ajusté sa stratégie de gestion des risques pour mieux refléter les spécificités des expositions aux banques, ce qui pourrait avoir des implications sur les ratios de capital et la gestion des risques prudentiels."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-05-28T18:14:18.809065+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3836,9 +3848,9 @@
     "total_relevant": 8
   },
   "review_decisions_summary": {
-    "matched": 2,
+    "matched": 4,
     "unmatched": 0,
-    "pending": 8,
-    "updated_at": "2026-05-28T14:44:28+00:00"
+    "pending": 6,
+    "updated_at": "2026-05-28T18:14:18+00:00"
   }
 }

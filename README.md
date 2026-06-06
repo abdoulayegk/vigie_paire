@@ -270,11 +270,20 @@ uv run python -m vigilance.dash_app.app
 Ce mode sert aux postes Desjardins qui consultent uniquement les fichiers déjà
 présents dans `outputs/resultats` ou dans un dossier `resultats` synchronisé
 SharePoint/OneDrive. Il ne lance pas l'extraction PDF et ne fait aucun appel LLM.
-Pour cet usage, utiliser la commande publique `vigie.validateur`.
+Les dépendances LLM et le pipeline (docling, openai, scipy…) ne sont **pas**
+installés sur le poste analyste : seul `requirements-validateur.txt` est requis.
+Pour le validateur, privilégier une installation `pip` dans un environnement
+virtuel Windows. `uv` reste réservé aux postes de développement et au pipeline
+complet.
+
+La commande à lancer côté analyste est `vigie.validateur` (façade francophone
+qui appelle le lecteur interne `vigilance.dash_app.reader`).
 
 Python doit être en version `>=3.10`. Les postes employés peuvent avoir des
 versions différentes : vérifier d'abord la version utilisée par la commande
 `python`.
+
+#### Installation recommandée avec `pip`
 
 ```powershell
 python --version
@@ -285,6 +294,9 @@ python -m pip install -r requirements-validateur.txt
 python -m pip install -e . --no-deps
 python -m vigie.validateur
 ```
+
+> Après `pip install -e .`, la commande console `vigie-validateur` est aussi
+> disponible et équivaut à `python -m vigie.validateur`.
 
 Si `python --version` retourne une version inférieure à `3.10`, utiliser le
 launcher Windows pour choisir une version installée compatible :
@@ -302,7 +314,17 @@ $env:VIGIE_RESULTATS_DIR="C:\Users\<utilisateur>\Desjardins\Vigie\resultats"
 python -m vigie.validateur
 ```
 
-### Option B — Avec `pip`
+Si Windows affiche `No module named vigie` ou `No module named vigilance`,
+relancer l'installation locale depuis la racine du projet avec le même
+environnement virtuel activé :
+
+```powershell
+python -m pip install -e . --no-deps
+python -c "import vigie, vigilance; print('vigie_ok')"
+python -m vigie.validateur
+```
+
+### Dash complet — Avec `pip`
 
 Le mode `pip` est officiellement documenté pour les pipelines CLI. Pour Dash, il faut aussi installer le projet localement dans le venv :
 

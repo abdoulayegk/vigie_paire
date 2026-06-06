@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/comparison.json",
   "comparison_run_id": "20260528_092806",
   "review_items_signature": "aa9516c73e6d83d3cc6fbe73ad66ccf9e0b8b9993fbe2066f18c6beee3ab0793",
-  "saved_at": "2026-05-28T14:44:28+00:00",
+  "saved_at": "2026-05-28T18:14:18+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::capital_management::tbl_p027_i01|tbl_p028_i01",
-    "change_id": "chg_00005"
+    "review_id": "bnc::risk_management::tbl_p042_i01|",
+    "change_id": "chg_00008"
   },
-  "review_current_idx": 0,
-  "current_change_idx": 2,
+  "review_current_idx": 3,
+  "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-05-28T14:44:28.127979+00:00",
+      "review_timestamp": "2026-05-28T17:56:28.861267+00:00",
       "edited_value": "",
       "confidence": 0.97,
       "proof_image_path": "",
@@ -125,10 +125,10 @@
       "page_t2": 32,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-05-28T17:56:50.378371+00:00",
       "edited_value": "",
       "confidence": 0.97,
       "proof_image_path": "",
@@ -138,12 +138,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Exposition maximale au risque de crédit selon les catégories d'actifs de Bâle (1)",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "Banques",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Title and indicators are identical; headers are identical; row_count 14 vs 14; footnote_count 1 vs 0.",
@@ -213,10 +213,10 @@
       "page_t2": 32,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-05-28T18:14:18.809065+00:00",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -226,12 +226,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p032_i02",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "Banques",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Indicators and headers are identical; row_count 14 vs 14; footnote_count 5 vs 5.",
@@ -695,7 +695,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-05-28T14:44:27.781402+00:00",
+          "validated_at": "2026-05-28T17:56:28.464078+00:00",
           "validated_by": "analyst"
         },
         {
@@ -712,7 +712,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-05-28T14:44:28.127979+00:00",
+          "validated_at": "2026-05-28T17:56:28.861267+00:00",
           "validated_by": "analyst"
         },
         {
@@ -822,15 +822,15 @@
               "justification": "L'indicateur 'Banques' a été ajouté dans le tableau d'exposition maximale au risque de crédit selon les catégories d'actifs de Bâle. Cet ajout se situe à la position 7 du tableau actuel, remplaçant l'indicateur précédent 'Institutions financières'.\n\nL'ajout de cet indicateur peut refléter un changement dans la manière dont la banque catégorise ses expositions au risque de crédit, potentiellement en réponse à des ajustements réglementaires ou à une réévaluation interne des risques associés aux contreparties bancaires. Les banques sont souvent considérées comme des contreparties distinctes en raison de leur profil de risque unique et de leur importance systémique, ce qui pourrait justifier cette nouvelle catégorisation.\n\nCe changement indique une révision structurelle dans la présentation des risques de crédit, soulignant une attention accrue portée aux expositions spécifiques aux banques. Cela pourrait signaler une adaptation aux exigences de divulgation plus fines ou une réponse à des évolutions du marché ou des régulations."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-05-28T17:56:50.378371+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 0.97,
       "match_method": "Title and indicators are identical; headers are identical; row_count 14 vs 14; footnote_count 1 vs 0.",
       "genai_analysis": {
@@ -874,8 +874,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -919,15 +919,15 @@
               "justification": "L'indicateur 'Banques' a été ajouté dans le tableau de gestion des risques au T2 2025, remplaçant l'indicateur précédent 'Institutions financières'. Cette modification se situe à la position 7 du tableau, ce qui indique un changement dans la catégorisation des expositions au risque de crédit.\n\nL'ajout de cet indicateur peut refléter une révision de la méthodologie de classification des contreparties financières, potentiellement en réponse à des exigences réglementaires ou à une réévaluation interne des risques associés aux banques par rapport à d'autres institutions financières. Cela pourrait être lié aux directives de Bâle III qui mettent l'accent sur la différenciation des risques selon le type de contrepartie.\n\nLe signal de vigie à retenir est que la banque a potentiellement ajusté sa stratégie de gestion des risques pour mieux refléter les spécificités des expositions aux banques, ce qui pourrait avoir des implications sur les ratios de capital et la gestion des risques prudentiels."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-05-28T18:14:18.809065+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 0.99,
       "match_method": "Indicators and headers are identical; row_count 14 vs 14; footnote_count 5 vs 5.",
       "genai_analysis": {
@@ -970,8 +970,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {

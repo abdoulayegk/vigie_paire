@@ -12,7 +12,7 @@ Demarre l'application Dash en mode "reader" :
   ``%APPDATA%\\VigieRegDesjardins\\config.json``.
 
 Pour lancer en dev :
-    uv run python -m vigilance.dash_app.reader
+    python -m vigie.validateur
 
 Empaquete avec PyInstaller (cible : Windows .exe), ce module est l'``entry``
 du ``.spec``. Voir ``packaging/`` (a venir en Phase 2).
