@@ -27,12 +27,23 @@ def _walk_components(node: object) -> list[Component]:
 def test_sidebar_defaults_to_saved_analyses() -> None:
     sidebar = build_sidebar()
     components = _walk_components(sidebar)
+    quarter_dropdown = next(
+        component
+        for component in components
+        if getattr(component, "id", None) == "current-quarter"
+    )
     radio = next(
         component
         for component in components
         if getattr(component, "id", None) == "data-source-type"
     )
 
+    assert [option["value"] for option in quarter_dropdown.options] == [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+    ]
     assert radio.value == "saved"
     labels = [option["label"] for option in radio.options]
     assert labels == ["Analyses enregistrées"]
