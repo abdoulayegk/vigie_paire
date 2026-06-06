@@ -249,6 +249,7 @@ _THEMES_AMF_DISPLAY: dict[str, str] = {
     "HYPOTHESES_EXPLICATIONS_RISQUES": "Hypothèses risques",
     "ESG_CLIMATIQUE": "ESG / Climat",
     "RISQUE_EMERGENT": "Risque émergent",
+    "RISQUE_MACRO_GEOPOLITIQUE": "Commercial / géopolitique",
     "GOUVERNANCE_RISQUES": "Gouvernance",
     "CONTROLE_CONFORMITE": "Contrôle / Conformité",
     "NOUVELLE_MENTION_REGLEMENTAIRE": "Nouvelle mention régl.",

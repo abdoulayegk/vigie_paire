@@ -471,6 +471,7 @@ _STRONG_AMF_THEMES_FOR_MODERE_RETENTION: frozenset[str] = frozenset(
         "EXIGENCES_REGLEMENTAIRES",
         "FACTEUR_RISQUE_CHANGEMENT",
         "RISQUE_EMERGENT",
+        "RISQUE_MACRO_GEOPOLITIQUE",
     }
 )
 
@@ -1768,8 +1769,10 @@ def _compare_texts_single_call(
                     "role": "system",
                     "content": (
                         "Tu compares deux versions d'une section de rapport bancaire. "
-                        "Identifie les changements réels paragraphe par paragraphe. "
-                        "Ignore les reformulations sans changement de fond."
+                        "Identifie tous les changements observables paragraphe par paragraphe. "
+                        "Ne masque pas les reformulations, les mises à jour de dates "
+                        "ou les variations chiffrées : retourne-les comme changements, "
+                        "le triage métier décidera ensuite de leur pertinence."
                     ),
                 },
                 {
@@ -1780,10 +1783,15 @@ def _compare_texts_single_call(
                         '"text_t1":"texte du paragraphe en T1, vide si added",'
                         '"text_t2":"texte du paragraphe en T2, vide si removed",'
                         '"change_summary":"explication concise du changement"}]}.\n'
-                        "unchanged = même idée, légère reformulation sans évolution réelle.\n"
-                        "modified = même idée mais vraie évolution du contenu ou de la nuance.\n"
+                        "unchanged = texte substantiellement identique, sans changement observable.\n"
+                        "modified = texte correspondant changé, y compris reformulation, "
+                        "mise à jour de date, variation chiffrée, changement de nuance "
+                        "ou évolution substantielle.\n"
                         "added = idée nouvelle présente uniquement en T2.\n"
                         "removed = idée présente en T1, absente en T2.\n"
+                        "Important : si le texte change mais que le sens semble identique, "
+                        "retourne quand même diff_type='modified' avec un résumé indiquant "
+                        "qu'il s'agit probablement d'une reformulation.\n"
                         f"Section: {section_key}\n\n"
                         f"=== T1 ===\n{text_t1}\n\n"
                         f"=== T2 ===\n{text_t2}\n"
@@ -2037,6 +2045,14 @@ Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nou
 Exemple 5 — Montant réglementaire (seuil prudentiel)
 Input : diff_type="modified", T1="Le seuil prudentiel CET1 minimal applicable est de 4,5 %.", T2="Le seuil prudentiel CET1 minimal applicable est de 5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF."
 Output : {"is_relevant": true, "themes_amf": ["RATIOS_REGLEMENTAIRES", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE", "NOUVELLE_MENTION_REGLEMENTAIRE"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, le seuil prudentiel CET1 minimal applicable passe de 4,5 % à 5,0 % en lien avec les nouvelles exigences pilier 2 du BSIF. Ce changement porte sur un seuil réglementaire, pas sur une variation propre à la banque. Il modifie la lecture du cadre de capital applicable.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Ratio prudentiel, seuil réglementaire, exigence réglementaire, capital.\n\nCe qui change : Le T2 modifie le seuil prudentiel CET1 minimal applicable, qui passe de 4,5 % à 5,0 %, et rattache ce changement aux nouvelles exigences pilier 2 du BSIF. Il s'agit d'un seuil réglementaire, pas d'une simple variation du ratio publié par la banque.\n\nPertinence métier : Ce changement met en évidence une évolution du cadre prudentiel applicable aux ratios réglementaires et aux exigences de capital. Un changement de seuil peut modifier l'interprétation de la marge de gestion du capital, la comparaison entre banques et la lecture du niveau de contrainte réglementaire applicable.\n\nPoint de surveillance : Capital réglementaire — La variation observée ne doit pas être lue uniquement comme un mouvement de chiffre. Ce point permet de suivre l'évolution du cadre prudentiel présenté par la banque, la contrainte réglementaire applicable et la comparabilité des ratios de capital entre institutions.", "change_segments": [{"kind": "modified", "text_t1": "4,5 %", "text_t2": "5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF"}]}
+
+Exemple 6 — Ajout d'un risque tarifaire / commercial (added, MAJEUR)
+Input : diff_type="added", T1="", T2="L'application de nouveaux tarifs douaniers et de mesures de représailles accroît l'incertitude économique, perturbe les chaînes d'approvisionnement et amplifie la volatilité des marchés ainsi que le risque de crédit."
+Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque ajoute une divulgation sur l'incidence des nouveaux tarifs douaniers et des mesures de représailles, absente au T1. Ce déclencheur macroéconomique et commercial se transmet au risque de crédit, au risque de marché et aux chaînes d'approvisionnement. Il introduit un facteur de risque externe explicite dans la divulgation.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur les nouveaux tarifs douaniers et les mesures de représailles, ainsi que leurs effets sur l'incertitude économique, les chaînes d'approvisionnement, la volatilité des marchés et le risque de crédit. Cette information était absente du T1.\n\nPertinence métier : Ce changement met l'accent sur un déclencheur macroéconomique et commercial externe qui se transmet aux risques bancaires classiques. L'ajout d'une divulgation tarifaire rend visible la manière dont la banque relie un choc commercial à son exposition au crédit, au marché et au financement, ce qui modifie la lecture de son profil de risque.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque divulgue désormais explicitement l'incidence des tarifs douaniers. Ce point permet de suivre la transmission de ce déclencheur externe au risque de crédit et de marché, ainsi que l'évolution de la transparence de la banque sur les chocs commerciaux.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "L'application de nouveaux tarifs douaniers et de mesures de représailles accroît l'incertitude économique, perturbe les chaînes d'approvisionnement et amplifie la volatilité des marchés ainsi que le risque de crédit."}]}
+
+Exemple 7 — Retrait d'un risque tarifaire / commercial (removed, MAJEUR)
+Input : diff_type="removed", T1="Les nouveaux tarifs douaniers pourraient avoir une incidence sur les clients de détail et commerciaux, qui pourraient être touchés par la hausse du chômage et voir leur capacité à rembourser leurs prêts réduite.", T2=""
+Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque divulguait l'incidence des tarifs douaniers sur ses clients et sur leur capacité de remboursement, mais cette mention disparaît au T2. Ce retrait touche un déclencheur macroéconomique et commercial relié au risque de crédit. Il réduit le niveau de détail de la divulgation sur un risque externe important.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information retirée.\n\nCe qui change : Le T2 retire la divulgation, présente au T1, sur l'incidence des tarifs douaniers sur les clients de détail et commerciaux et sur leur capacité à rembourser leurs prêts. Ce lien explicite entre tarifs et risque de crédit n'apparaît plus.\n\nPertinence métier : Ce changement met l'accent sur le fait que la banque atténue sa communication sur un déclencheur macroéconomique et commercial relié au risque de crédit. Le retrait d'une divulgation sur les tarifs n'est pas neutre : il modifie la lecture de l'exposition de la banque et de sa transparence sur un risque externe, et mérite la même attention qu'un ajout.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque retire une divulgation tarifaire reliée au risque de crédit. Ce point permet de suivre l'évolution de la transparence de la banque sur les chocs commerciaux et la cohérence de sa divulgation du risque externe dans le temps.", "change_segments": [{"kind": "removed", "text_t1": "Les nouveaux tarifs douaniers pourraient avoir une incidence sur les clients de détail et commerciaux, qui pourraient être touchés par la hausse du chômage et voir leur capacité à rembourser leurs prêts réduite.", "text_t2": ""}]}
 """
 
 
@@ -2200,7 +2216,10 @@ def _triage_section_changes(
         "tournure équivalente) → 'reformulation_mineure'.\n"
         "   - Texte déplacé sans modification → 'deplacement_texte'.\n"
         "   - Formatage visuel (gras, italique, ponctuation, casse, espacement) "
-        "→ 'formatage_visuel'.\n\n"
+        "→ 'formatage_visuel'.\n"
+        "   IMPORTANT : ces changements restent dans le batch de sortie. Tu les "
+        "classes comme non pertinents, mais tu ne les supprimes jamais : "
+        "la décision finale appartient à l'analyste.\n\n"
         "3. INCLUSION EXPLICITE — les MONTANTS RÉGLEMENTAIRES (seuils "
         "prudentiels, planchers Bâle, exigences pilier 2, lignes directrices "
         "BSIF chiffrées) sont EN scope. Ajouter le marqueur 'MONTANT_REGLEMENTAIRE' "
@@ -2208,6 +2227,13 @@ def _triage_section_changes(
         "réglementaire chiffré (PAS un chiffre propre à la banque).\n\n"
         "4. RISQUE_EMERGENT (cyberrisque, IA, IA générative, fraude numérique, "
         "ransomware, modèles tiers) est PRIORITAIRE : impact_level minimum MODERE.\n\n"
+        "4b. RISQUE_MACRO_GEOPOLITIQUE (tarifs douaniers, guerre commerciale, "
+        "sanctions, conflits, incertitude des politiques commerciales) est un "
+        "déclencheur externe qui se transmet au crédit, au marché et au "
+        "financement : PRIORITAIRE, impact_level minimum MODERE. Un AJOUT comme "
+        "un RETRAIT significatif de cette divulgation est MAJEUR — un retrait "
+        "signale que la banque atténue sa communication sur ce risque, ce qui "
+        "est aussi important qu'un ajout.\n\n"
         "5. nouvelle_idee = true SI ET SEULEMENT SI les 3 conditions cumulatives sont vraies :\n"
         "   (a) SUBSTANTIELLE : modifie la SUBSTANCE de la divulgation (concept, "
         "facteur de risque, mention réglementaire, méthodologie, indicateur "
@@ -2393,12 +2419,19 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
     by_category: dict[str, int] = {}
     by_action: dict[str, int] = {}
     highlights: list[str] = []
+    relevant_count = 0
+    relevant_major_count = 0
 
     for change in all_changes:
         triage = change.get("genai_triage") or {}
+        is_relevant = bool(triage.get("is_relevant", False))
         impact = str(triage.get("impact_level") or "MINEUR").upper()
         category = str(triage.get("category") or "INCONNU").upper()
         action = str(triage.get("action_requise") or "aucune").lower()
+        if is_relevant:
+            relevant_count += 1
+            if impact == "MAJEUR":
+                relevant_major_count += 1
         by_impact[impact] = by_impact.get(impact, 0) + 1
         by_category[category] = by_category.get(category, 0) + 1
         by_action[action] = by_action.get(action, 0) + 1
@@ -2406,15 +2439,23 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
         if summary and len(highlights) < 5:
             highlights.append(summary)
 
-    overview = (
-        "Aucun changement textuel substantiel retenu."
-        if not all_changes
-        else f"{len(all_changes)} changement(s) textuel(s) substantiel(s) retenu(s) pour revue experte."
-    )
+    if not all_changes:
+        overview = "Aucun changement textuel détecté."
+    elif relevant_count == len(all_changes):
+        overview = (
+            f"{len(all_changes)} changement(s) textuel(s) substantiel(s) "
+            "retenu(s) pour revue experte."
+        )
+    else:
+        overview = (
+            f"{len(all_changes)} changement(s) textuel(s) détecté(s), "
+            f"dont {relevant_count} substantiel(s) selon l'IA. "
+            "Tous restent disponibles pour validation analyste."
+        )
     pertinence = "FAIBLE"
-    if by_impact.get("MAJEUR", 0) >= 3:
+    if relevant_major_count >= 3:
         pertinence = "ELEVEE"
-    elif all_changes:
+    elif relevant_count:
         pertinence = "MOYENNE"
 
     return {
@@ -2423,7 +2464,8 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
         "pertinence_globale": pertinence,
         "counts": {
             "total": len(all_changes),
-            "total_relevant": len(all_changes),
+            "total_detected": len(all_changes),
+            "total_relevant": relevant_count,
             "by_impact": by_impact,
             "by_category": by_category,
             "by_action": by_action,

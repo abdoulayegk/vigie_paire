@@ -15,7 +15,6 @@ from dash import dcc, html
 
 from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.text_comparison.justification import build_text_triage_justification
-from vigilance.text_comparison.text_comparison_excel import _should_exclude
 
 # ---------------------------------------------------------------------------
 # Constantes d'affichage
@@ -57,6 +56,7 @@ _THEMES_AMF_SHORT: dict[str, str] = {
     "HYPOTHESES_EXPLICATIONS_RISQUES": "Hypothèses risques",
     "ESG_CLIMATIQUE": "ESG / Climat",
     "RISQUE_EMERGENT": "Risque émergent",
+    "RISQUE_MACRO_GEOPOLITIQUE": "Commercial / géopolitique",
     "GOUVERNANCE_RISQUES": "Gouvernance",
     "CONTROLE_CONFORMITE": "Contrôle / Conformité",
     "NOUVELLE_MENTION_REGLEMENTAIRE": "Nouvelle mention régl.",
@@ -710,13 +710,11 @@ def _build_executive_banner(
 
 
 def _count_auditable_text_changes(section_comparisons: list[dict[str, Any]]) -> int:
-    """Compte les changements textuels alignés avec l'export Excel analyste."""
+    """Compte tous les changements textuels affichables pour revue analyste."""
     total = 0
     for sec in section_comparisons:
         for change in sec.get("all_block_comparisons") or []:
             if change.get("diff_type") == "unchanged":
-                continue
-            if _should_exclude(change):
                 continue
             total += 1
     return total
@@ -726,8 +724,6 @@ def _section_has_auditable_text_changes(section: dict[str, Any]) -> bool:
     """Indique si une section contient au moins un changement texte affichable."""
     for change in section.get("all_block_comparisons") or []:
         if change.get("diff_type") == "unchanged":
-            continue
-        if _should_exclude(change):
             continue
         return True
     return False
@@ -777,8 +773,6 @@ def build_filtered_text_cards(
         for change in sec.get("all_block_comparisons") or []:
             diff_type = change.get("diff_type", "")
             if diff_type == "unchanged":
-                continue
-            if _should_exclude(change):
                 continue
             triage = change.get("genai_triage") or {}
 

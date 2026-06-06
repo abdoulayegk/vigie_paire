@@ -21,7 +21,6 @@ from reportlab.platypus import Flowable, PageBreak, Paragraph, SimpleDocTemplate
 from vigilance.dash_app.services.export_helpers import _is_high_priority_item
 from vigilance.dash_app.services.review_navigation import _table_decision_bucket
 from vigilance.quarter_utils import get_payload_quarter_context
-from vigilance.text_comparison.text_comparison_excel import _should_exclude
 
 def _plot_layout(theme: str) -> dict[str, Any]:
     """Retourne le layout Plotly commun (couleurs adaptées au thème clair/sombre)."""
@@ -250,8 +249,6 @@ def _text_changes(text_data: dict | None, *, relevant_only: bool = True) -> list
                 continue
             triage = change.get("genai_triage") or {}
             if change.get("diff_type") == "unchanged" or triage.get("source") == "skip":
-                continue
-            if _should_exclude(change):
                 continue
             if relevant_only:
                 if triage and not bool(triage.get("is_relevant", False)):

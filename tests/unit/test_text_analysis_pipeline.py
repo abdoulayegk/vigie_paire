@@ -12,6 +12,7 @@ from vigilance.text_analysis_pipeline import (
     SemanticUnit,
     _allowed_target_sections,
     _build_section_audit,
+    _build_global_summary,
     _build_text_extraction_markdown,
     _call_json_completion,
     _classify_block_type,
@@ -467,6 +468,42 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
     assert payload["pipeline"] == "gpt4o_markdown_source_of_truth"
 
 
+def test_build_global_summary_distinguishes_detected_and_relevant_changes() -> None:
+    summary = _build_global_summary(
+        [
+            {
+                "block_comparisons": [
+                    {
+                        "change_summary": "Ajout réglementaire.",
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "impact_level": "MAJEUR",
+                            "category": "REGLEMENTAIRE",
+                            "action_requise": "revue_prioritaire",
+                        },
+                    },
+                    {
+                        "change_summary": "Changement de date.",
+                        "genai_triage": {
+                            "is_relevant": False,
+                            "impact_level": "MINEUR",
+                            "category": "NON_PERTINENT",
+                            "action_requise": "aucune",
+                        },
+                    },
+                ]
+            }
+        ]
+    )
+
+    assert summary["counts"]["total"] == 2
+    assert summary["counts"]["total_detected"] == 2
+    assert summary["counts"]["total_relevant"] == 1
+    assert "2 changement(s) textuel(s) détecté(s)" in summary["executive_overview"]
+    assert "dont 1 substantiel(s)" in summary["executive_overview"]
+    assert summary["pertinence_globale"] == "MOYENNE"
+
+
 def test_section_window_starts_after_anchor_and_stops_before_next_anchor_same_page() -> None:
     section = ResolvedSection(
         section_key="gestion_capital",
@@ -721,6 +758,32 @@ def test_compare_section_texts_skips_invalid_diff_types(monkeypatch) -> None:
     assert results[1]["diff_type"] == "removed"
     assert results[0]["source_resolution_t1"] == "markdown"
     assert results[0]["source_resolution_t2"] == "markdown"
+
+
+def test_compare_section_texts_prompt_requests_all_observable_changes(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    def _fake_call_json_completion(client, *, model, messages, max_tokens=None):
+        captured["messages"] = messages
+        return {"changes": []}
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._call_json_completion",
+        _fake_call_json_completion,
+    )
+
+    _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1="La banque surveille ce risque au premier trimestre.",
+        text_t2="Ce risque est surveillé par la banque au deuxième trimestre.",
+    )
+
+    prompt = "\n".join(str(msg.get("content", "")) for msg in captured["messages"])
+    assert "tous les changements observables" in prompt
+    assert "Ne masque pas les reformulations" in prompt
+    assert "retourne quand même diff_type='modified'" in prompt
 
 
 def test_build_text_extraction_markdown_keeps_headings_and_narrative_only() -> None:

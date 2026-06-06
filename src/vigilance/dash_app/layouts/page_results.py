@@ -398,7 +398,7 @@ def build_page_results() -> html.Div:
                 ],
                 className="mb-3",
             ),
-            # Tabs: Indicateurs / Analyse Textuelle / Dashboard
+            # Tabs: Indicateurs / Analyse Textuelle / Changements communs / Dashboard
             html.Div(
                 dbc.Tabs(
                     [
@@ -488,6 +488,11 @@ def build_page_results() -> html.Div:
                             html.Div(id="text-analysis-tab-content", className="mt-3"),
                             label="Analyse Textuelle",
                             tab_id="tab-texte",
+                        ),
+                        dbc.Tab(
+                            html.Div(id="changements-communs-tab-content", className="mt-3"),
+                            label="Changements communs entre banques",
+                            tab_id="tab-changements-communs",
                         ),
                         dbc.Tab(
                             html.Div(id="vigie-cockpit-tab-content"),
