@@ -166,8 +166,9 @@ disponibles en note d’analyste structuree pour eviter un affichage vide.</p>
 <dt class="sig sig-object py" id="vigilance.text_comparison.text_comparison_excel.generate_text_comparison_excel">
 <span class="sig-name descname"><span class="pre">generate_text_comparison_excel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text_comparison</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.text_comparison_excel.generate_text_comparison_excel" title="Lien vers cette définition"></a></dt>
 <dd><p>Génère le classeur Excel analyste à partir de text_comparison.json.</p>
-<p>Affiche tous les changements détectés (hors unchanged, dates pures et
-reformulations strictes), triés par nouvelle idée puis par priorité.
+<p>Affiche tous les changements détectés hors <code class="docutils literal notranslate"><span class="pre">unchanged</span></code>, triés par
+nouvelle idée puis par priorité. Les dates pures, variations chiffrées et
+reformulations restent visibles pour décision analyste.
 L’analyste valide chaque ligne via la colonne Statut.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Paramètres<span class="colon">:</span></dt>
