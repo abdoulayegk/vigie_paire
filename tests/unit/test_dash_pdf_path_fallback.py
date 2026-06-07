@@ -6,6 +6,7 @@ from pathlib import Path
 import dash_bootstrap_components as dbc
 
 from vigilance.dash_app.callbacks import load_flow as load_mod
+from vigilance.dash_app.services.comparison_store import FileComparisonStore
 
 
 def _write_report_comparison(path: Path) -> None:
@@ -90,3 +91,107 @@ def test_on_load_comparison_falls_back_to_run_archived_pdfs(
     assert notification.color == "success"
     assert show_results is True
     assert text_comparison is None
+
+
+def test_file_store_falls_back_to_repo_inputs_for_cross_platform_paths(
+    tmp_path: Path,
+) -> None:
+    repo_root = tmp_path / "repo"
+    result_root = repo_root / "outputs" / "resultats"
+    comparison_path = (
+        result_root / "rbc" / "2025_t2_vs_2025_t1" / "comparison.json"
+    )
+    comparison_path.parent.mkdir(parents=True)
+    comparison_path.write_text(
+        json.dumps(
+            {
+                "artifact_type": "report_comparison",
+                "bank_code": "rbc",
+                "year_previous": 2025,
+                "quarter_previous": "t1",
+                "year_current": 2025,
+                "quarter_current": "t2",
+                "source_pdf_previous": (
+                    "/Users/producer/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf"
+                ),
+                "source_pdf_current": (
+                    "/Users/producer/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf"
+                ),
+                "archived_pdf_previous": (
+                    "/Users/producer/vigie_paire/outputs/previous_report.pdf"
+                ),
+                "archived_pdf_current": (
+                    "/Users/producer/vigie_paire/outputs/current_report.pdf"
+                ),
+                "pair_comparisons": [],
+                "matching": {},
+                "summary": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    previous_pdf = repo_root / "Inputs" / "RBC" / "2025" / "RBC_2025_T1.pdf"
+    current_pdf = repo_root / "Inputs" / "RBC" / "2025" / "RBC_2025_T2.pdf"
+    previous_pdf.parent.mkdir(parents=True)
+    previous_pdf.write_bytes(b"%PDF-1.4 previous")
+    current_pdf.write_bytes(b"%PDF-1.4 current")
+
+    payload = FileComparisonStore(root_dir=result_root).load_dash_payload(
+        comparison_path,
+        source="analyse_enregistree",
+        source_label="Analyse enregistrée",
+    )
+
+    assert payload is not None
+    assert payload["pdf_paths"]["pdf_previous"] == str(previous_pdf)
+    assert payload["pdf_paths"]["pdf_current"] == str(current_pdf)
+    assert payload["warning"] == ""
+
+
+def test_file_store_inputs_fallback_supports_nonstandard_pdf_name(
+    tmp_path: Path,
+) -> None:
+    repo_root = tmp_path / "repo"
+    result_root = repo_root / "outputs" / "resultats"
+    comparison_path = (
+        result_root / "bmo" / "2025_t2_vs_2025_t1" / "comparison.json"
+    )
+    comparison_path.parent.mkdir(parents=True)
+    comparison_path.write_text(
+        json.dumps(
+            {
+                "artifact_type": "report_comparison",
+                "bank_code": "bmo",
+                "year_previous": 2025,
+                "quarter_previous": "t1",
+                "year_current": 2025,
+                "quarter_current": "t2",
+                "source_pdf_previous": "C:\\missing\\BMO_2025_T1.pdf",
+                "source_pdf_current": "C:\\missing\\BMO_2025_T2.pdf",
+                "archived_pdf_previous": "",
+                "archived_pdf_current": "",
+                "pair_comparisons": [],
+                "matching": {},
+                "summary": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    previous_pdf = repo_root / "Inputs" / "BMO" / "2025" / "BMO_2025_T1.pdf"
+    current_pdf = repo_root / "Inputs" / "BMO" / "2025" / "BNO_2025_T2.pdf"
+    previous_pdf.parent.mkdir(parents=True)
+    previous_pdf.write_bytes(b"%PDF-1.4 previous")
+    current_pdf.write_bytes(b"%PDF-1.4 current")
+
+    payload = FileComparisonStore(root_dir=result_root).load_dash_payload(
+        comparison_path,
+        source="analyse_enregistree",
+        source_label="Analyse enregistrée",
+    )
+
+    assert payload is not None
+    assert payload["pdf_paths"]["pdf_previous"] == str(previous_pdf)
+    assert payload["pdf_paths"]["pdf_current"] == str(current_pdf)
+    assert payload["warning"] == ""
