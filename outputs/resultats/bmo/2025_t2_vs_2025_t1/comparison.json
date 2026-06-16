@@ -9,7 +9,7 @@
   "quarter_current": "t2",
   "created_at": "2026-04-18T19:51:41",
   "source_pdf_previous": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T1.pdf",
-  "source_pdf_current": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+  "source_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T2.pdf",
   "archived_pdf_previous": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
   "archived_pdf_current": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
   "model_version": "gpt-4o",

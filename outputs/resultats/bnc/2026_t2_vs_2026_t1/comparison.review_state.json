@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/comparison.json",
   "comparison_run_id": "20260528_092806",
   "review_items_signature": "aa9516c73e6d83d3cc6fbe73ad66ccf9e0b8b9993fbe2066f18c6beee3ab0793",
-  "saved_at": "2026-06-05T19:45:10+00:00",
+  "saved_at": "2026-06-10T16:09:01+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
     "review_id": "bnc::capital_management::tbl_p027_i01|tbl_p028_i01",
-    "change_id": "chg_00005"
+    "change_id": "chg_00004"
   },
   "review_current_idx": 0,
-  "current_change_idx": 2,
+  "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-06-05T19:45:10.715516+00:00",
+      "review_timestamp": "2026-06-10T16:09:01.526460+00:00",
       "edited_value": "",
       "confidence": 0.97,
       "proof_image_path": "",
@@ -50,7 +50,7 @@
         {
           "name": "[3] Le rachat des BCRL – Série 1 effectué le 17 novembre 2025 avait été pris en compte dans les ratios au 31 octobre 2025.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[2] Le rachat des BCRL – Série 1 effectué le 17 novembre 2025 a  -> La marge sur services contractuels liée à nos filiales d'ass",
@@ -125,10 +125,10 @@
       "page_t2": 32,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-06-05T19:44:58.066138+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.97,
       "proof_image_path": "",
@@ -138,12 +138,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Exposition maximale au risque de crédit selon les catégories d'actifs de Bâle (1)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Banques",
           "type": "added",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Title and indicators are identical; headers are identical; row_count 14 vs 14; footnote_count 1 vs 0.",
@@ -300,10 +300,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-06-05T19:45:08.896124+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -313,7 +313,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p042_i01",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -372,10 +372,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-06-05T19:45:06.774270+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -385,7 +385,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p044_i01",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -516,10 +516,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-06-05T19:45:04.895920+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -529,7 +529,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -695,7 +695,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-06-05T19:39:30.795077+00:00",
+          "validated_at": "2026-06-10T16:09:01.526460+00:00",
           "validated_by": "analyst"
         },
         {
@@ -708,12 +708,12 @@
             "old_text": "",
             "new_text": "Le rachat des BCRL – Série 1 effectué le 17 novembre 2025 avait été pris en compte dans les ratios au 31 octobre 2025."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-06-05T19:45:10.715516+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00005",
@@ -777,8 +777,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 2,
-        "pending": 1
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -822,15 +822,15 @@
               "justification": "L'indicateur 'Banques' a été ajouté dans le tableau d'exposition maximale au risque de crédit selon les catégories d'actifs de Bâle. Cet ajout se situe à la position 7 du tableau actuel, remplaçant l'indicateur précédent 'Institutions financières'.\n\nL'ajout de cet indicateur peut refléter un changement dans la manière dont la banque catégorise ses expositions au risque de crédit, potentiellement en réponse à des ajustements réglementaires ou à une réévaluation interne des risques associés aux contreparties bancaires. Les banques sont souvent considérées comme des contreparties distinctes en raison de leur profil de risque unique et de leur importance systémique, ce qui pourrait justifier cette nouvelle catégorisation.\n\nCe changement indique une révision structurelle dans la présentation des risques de crédit, soulignant une attention accrue portée aux expositions spécifiques aux banques. Cela pourrait signaler une adaptation aux exigences de divulgation plus fines ou une réponse à des évolutions du marché ou des régulations."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-06-05T19:44:58.066138+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.97,
       "match_method": "Title and indicators are identical; headers are identical; row_count 14 vs 14; footnote_count 1 vs 0.",
       "genai_analysis": {
@@ -874,8 +874,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1006,15 +1006,15 @@
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-06-05T19:45:08.896124+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1053,8 +1053,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1089,15 +1089,15 @@
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-06-05T19:45:06.774270+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1136,8 +1136,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1255,15 +1255,15 @@
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-06-05T19:45:04.895920+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1303,8 +1303,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {

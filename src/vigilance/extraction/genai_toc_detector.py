@@ -103,7 +103,13 @@ Réponds en JSON :
 TÂCHE : Dans cette Table des Matières, identifier les sections suivantes :
 
 1. **Gestion du capital** (variantes : "Gestion des fonds propres", "Capital Management")
-2. **Gestion des risques** (variantes : "Gestion du risque", "Risk Management")
+2. **Gestion des risques** (variantes : "Gestion du risque", "Risk Management").
+   Cette portée comprend aussi les sections ou sous-sections autonomes sur les
+   données, la technologie, la cybersécurité, les fournisseurs et tiers,
+   l'impartition, les services infonuagiques, la vie privée et la résilience
+   opérationnelle. Si aucun titre global "Gestion des risques" n'existe,
+   utiliser la première de ces sections autonomes comme début de
+   gestion_risques.
 
 Pour chaque section trouvée, retourne :
 - Le type (gestion_capital ou gestion_risques)

@@ -13,6 +13,11 @@ from typing import Any
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from vigilance.amf_taxonomy import (
+    IMPACT_IT_DETAIL_LABELS,
+    POSTURE_DETAIL_LABELS,
+    extract_labeled_analysis,
+)
 from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.text_comparison.justification import build_text_triage_justification
 
@@ -32,6 +37,29 @@ _IMPACT_BADGE: dict[str, tuple[str, str]] = {
     "MAJEUR": ("Majeur", "danger"),
     "MODERE": ("Modéré", "warning"),
     "MINEUR": ("Mineur", "secondary"),
+}
+
+_POSTURE_BADGE: dict[str, tuple[str, str]] = {
+    "RENFORCEMENT": ("Posture renforcée", "success"),
+    "ALLEGEMENT": ("Posture allégée", "warning"),
+    "NOUVEAU_DISPOSITIF": ("Nouveau dispositif", "primary"),
+    "RETRAIT_DISPOSITIF": ("Dispositif retiré", "danger"),
+    "AUCUN": ("Posture inchangée", "secondary"),
+}
+
+_IMPLEMENTATION_DETAIL_LABEL: dict[str, str] = {
+    "ANNONCE": "Annoncée",
+    "PLANIFIE": "Planifiée",
+    "EN_COURS": "En cours",
+    "MIS_EN_OEUVRE": "Mise en œuvre",
+    "INDETERMINE": "Indéterminée",
+}
+
+_POSTURE_CONFIDENCE_DETAIL_LABEL: dict[str, str] = {
+    "ELEVEE": "Élevée",
+    "MOYENNE": "Moyenne",
+    "FAIBLE": "Faible",
+    "INDETERMINE": "Indéterminée",
 }
 
 _DIFF_LABELS: dict[str, str] = {
@@ -56,12 +84,64 @@ _THEMES_AMF_SHORT: dict[str, str] = {
     "HYPOTHESES_EXPLICATIONS_RISQUES": "Hypothèses risques",
     "ESG_CLIMATIQUE": "ESG / Climat",
     "RISQUE_EMERGENT": "Risque émergent",
+    "RISQUE_DONNEES": "Risque données",
+    "RISQUE_TIERS_CLOUD": "Tiers / Cloud",
     "RISQUE_MACRO_GEOPOLITIQUE": "Commercial / géopolitique",
     "GOUVERNANCE_RISQUES": "Gouvernance",
     "CONTROLE_CONFORMITE": "Contrôle / Conformité",
     "NOUVELLE_MENTION_REGLEMENTAIRE": "Nouvelle mention régl.",
     "MONTANT_REGLEMENTAIRE": "Montant régl.",
 }
+
+_IMPACT_DOMAIN_BY_THEME: dict[str, str] = {
+    "CAPITAL_REGLEMENTAIRE": "capital réglementaire",
+    "LIQUIDITE": "liquidité",
+    "FONDS_PROPRES_REGLEMENTAIRES": "fonds propres réglementaires",
+    "EXIGENCES_REGLEMENTAIRES": "exigences réglementaires",
+    "RATIOS_REGLEMENTAIRES": "ratios prudentiels",
+    "MONTANT_REGLEMENTAIRE": "seuils réglementaires",
+    "ESG_CLIMATIQUE": "ESG / climat",
+    "RISQUE_EMERGENT": "risques émergents",
+    "RISQUE_DONNEES": "données",
+    "RISQUE_TIERS_CLOUD": "tiers / cloud",
+    "RISQUE_MACRO_GEOPOLITIQUE": "risques macroéconomiques / géopolitiques",
+    "GOUVERNANCE_RISQUES": "gouvernance des risques",
+    "CONTROLE_CONFORMITE": "contrôle / conformité",
+    "NOUVELLE_MENTION_REGLEMENTAIRE": "réglementation",
+    "MODIFICATION_METHODOLOGIE": "méthodologie de risque",
+    "MODIFICATION_TEXTE_RISQUE": "gestion des risques",
+    "FACTEUR_RISQUE_CHANGEMENT": "facteurs de risque",
+    "HYPOTHESES_EXPLICATIONS_RISQUES": "hypothèses de risque",
+}
+
+_IMPACT_DOMAIN_PRIORITY = (
+    "RISQUE_DONNEES",
+    "RISQUE_TIERS_CLOUD",
+    "RISQUE_EMERGENT",
+    "ESG_CLIMATIQUE",
+    "RISQUE_MACRO_GEOPOLITIQUE",
+    "CAPITAL_REGLEMENTAIRE",
+    "LIQUIDITE",
+    "FONDS_PROPRES_REGLEMENTAIRES",
+    "RATIOS_REGLEMENTAIRES",
+    "MONTANT_REGLEMENTAIRE",
+    "EXIGENCES_REGLEMENTAIRES",
+    "CONTROLE_CONFORMITE",
+    "GOUVERNANCE_RISQUES",
+    "MODIFICATION_METHODOLOGIE",
+    "FACTEUR_RISQUE_CHANGEMENT",
+    "MODIFICATION_TEXTE_RISQUE",
+    "HYPOTHESES_EXPLICATIONS_RISQUES",
+    "NOUVELLE_MENTION_REGLEMENTAIRE",
+)
+
+_TRIAGE_DETAIL_LABELS = (
+    "Nouvel élément à surveiller",
+    "Sujet détecté",
+    "Ce qui change",
+    "Pertinence métier",
+    "Point de surveillance",
+)
 
 _ACTION_BADGE: dict[str, tuple[str, str]] = {
     "revue_prioritaire": ("Revue prioritaire", "danger"),
@@ -144,7 +224,7 @@ def _build_executive_overview_text(
 
 
 # Styles inline pour les highlights — couleurs métier banque
-# (ambre=retiré, vert=ajouté, bleu=synthèse IA).
+# (ambre=retiré, vert=ajouté).
 _HIGHLIGHT_REMOVED_STYLE = {
     "backgroundColor": "#fef3c7",
     "color": "#92400e",
@@ -159,17 +239,6 @@ _HIGHLIGHT_ADDED_STYLE = {
     "borderRadius": "2px",
     "fontWeight": "500",
 }
-_IA_CHANGE_HIGHLIGHT_STYLE = {
-    "backgroundColor": "#e0f2fe",
-    "borderLeft": "3px solid #0284c7",
-    "color": "#075985",
-    "display": "inline-block",
-    "padding": "2px 6px",
-    "borderRadius": "4px",
-    "fontWeight": "600",
-}
-
-
 def _merge_intervals(intervals: list[tuple[int, int]]) -> list[tuple[int, int]]:
     """Fusionne des intervalles de caractères chevauchants."""
     if not intervals:
@@ -284,39 +353,180 @@ def _diff_highlight_intervals(text_t1: str, text_t2: str) -> tuple[list[tuple[in
     return _merge_intervals(intervals_t1), _merge_intervals(intervals_t2)
 
 
-def _highlight_change_section_in_justification(justification: str) -> list:
-    """Surligne la rubrique ``Ce qui change`` dans la justification IA."""
-    marker = "Ce qui change :"
-    start = justification.find(marker)
-    if start == -1:
-        return [html.Span(justification)]
-
-    next_markers = (
-        "\n\nPertinence métier :",
-        "\n\nPoint de surveillance :",
-        "\n\nLecture de vigie :",
-        "\n\nSujet détecté :",
+def _ai_detail_item(label: str, value: str) -> html.Div:
+    """Affiche une rubrique courte dans le volet de détails IA."""
+    if not value:
+        return html.Div()
+    return html.Div(
+        [
+            html.Div(label, className="small fw-semibold text-muted mb-1"),
+            html.P(value, className="small mb-2"),
+        ]
     )
-    next_positions = [
-        idx
-        for next_marker in next_markers
-        if (idx := justification.find(next_marker, start + len(marker))) != -1
-    ]
-    end = min(next_positions) if next_positions else len(justification)
 
-    spans: list = []
-    if start:
-        spans.append(html.Span(justification[:start]))
-    spans.append(
-        html.Span(
-            justification[start:end],
-            style=_IA_CHANGE_HIGHLIGHT_STYLE,
-            title="Synthèse du changement à repérer en priorité",
+
+def _impact_domain(themes_amf: list[str], section_title: str) -> str:
+    """Retourne un domaine métier concis à partir des thèmes détectés."""
+    theme_set = set(themes_amf)
+    for theme in _IMPACT_DOMAIN_PRIORITY:
+        if theme in theme_set:
+            return _IMPACT_DOMAIN_BY_THEME[theme]
+    return section_title.lower()
+
+
+def _build_observed_block(
+    *,
+    impact_level: str,
+    impact_domain: str,
+    justification_sections: dict[str, str],
+    change_summary: str,
+) -> html.Div:
+    """Affiche les faits observés et l'impact contextualisé avant les détails."""
+    impact_label = _IMPACT_BADGE.get(
+        impact_level,
+        (impact_level.capitalize(), "secondary"),
+    )[0]
+    observed = (
+        justification_sections.get("Ce qui change")
+        or change_summary
+        or "Le changement est visible dans les passages comparés ci-dessus."
+    )
+    return html.Div(
+        [
+            html.Div(
+                "Éléments observés",
+                className="small fw-semibold text-primary mb-1",
+            ),
+            html.P(observed, className="small mb-2"),
+            html.Div(
+                f"Impact {impact_domain} — {impact_label}",
+                className="small fw-semibold text-muted",
+            ),
+        ],
+        className="border-start border-primary border-3 ps-2 mb-3",
+    )
+
+
+def _build_ai_details(
+    *,
+    impact_it_justification: str,
+    impact_level: str,
+    impact_domain: str,
+    justification_sections: dict[str, str],
+    changement_posture: str,
+    justification_posture: str,
+    statut_mise_en_oeuvre: str,
+    confiance_posture: str,
+) -> tuple[html.Div | None, html.Details | None]:
+    """Construit la preuve de posture visible et les explications repliées."""
+    impact_sections = extract_labeled_analysis(
+        impact_it_justification,
+        IMPACT_IT_DETAIL_LABELS,
+    )
+    posture_sections = extract_labeled_analysis(
+        justification_posture,
+        POSTURE_DETAIL_LABELS,
+    )
+
+    posture_proof = posture_sections.get("Preuve", "")
+    if not posture_proof and justification_posture:
+        posture_proof = justification_posture
+
+    proof_block: html.Div | None = None
+    if posture_proof:
+        proof_block = html.Div(
+            [
+                html.Div(
+                    "Preuve de posture",
+                    className="small fw-semibold text-primary mb-1",
+                ),
+                html.P(posture_proof, className="small mb-0"),
+            ],
+            className="border-start border-primary border-3 ps-2 mt-3",
         )
+
+    detail_sections: list = []
+    pertinence = justification_sections.get("Pertinence métier", "")
+    surveillance = justification_sections.get("Point de surveillance", "")
+    subject = justification_sections.get("Sujet détecté", "")
+    if pertinence or surveillance or subject or impact_sections:
+        impact_label = _IMPACT_BADGE.get(
+            impact_level,
+            (impact_level.capitalize(), "secondary"),
+        )[0]
+        detail_sections.append(
+            html.Div(
+                [
+                    html.H6(
+                        f"Impact {impact_domain} — {impact_label}",
+                        className="fw-semibold mb-2",
+                    ),
+                    _ai_detail_item("Domaine détecté", subject or impact_domain),
+                    _ai_detail_item("Pertinence métier", pertinence),
+                    _ai_detail_item("Point de surveillance", surveillance),
+                    _ai_detail_item(
+                        "Conséquence probable",
+                        impact_sections.get("Conséquence probable", ""),
+                    ),
+                    _ai_detail_item(
+                        "Limite de l’analyse",
+                        impact_sections.get("Limite de l'analyse", ""),
+                    ),
+                ],
+                className="mb-3",
+            )
+        )
+
+    if changement_posture in _POSTURE_BADGE and justification_posture:
+        posture_label = _POSTURE_BADGE[changement_posture][0]
+        detail_sections.append(
+            html.Div(
+                [
+                    html.H6(posture_label, className="fw-semibold mb-2"),
+                    _ai_detail_item(
+                        "Effet sur la gestion du risque",
+                        posture_sections.get(
+                            "Effet sur la gestion du risque",
+                            "",
+                        ),
+                    ),
+                    _ai_detail_item(
+                        "Mise en œuvre",
+                        (
+                            f"{_IMPLEMENTATION_DETAIL_LABEL.get(statut_mise_en_oeuvre, statut_mise_en_oeuvre.capitalize())} — "
+                            f"{posture_sections.get('Justification du statut', '')}"
+                        ).rstrip(" —"),
+                    ),
+                    _ai_detail_item(
+                        "Confiance",
+                        (
+                            f"{_POSTURE_CONFIDENCE_DETAIL_LABEL.get(confiance_posture, confiance_posture.capitalize())} — "
+                            f"{posture_sections.get('Justification de la confiance', '')}"
+                        ).rstrip(" —"),
+                    ),
+                ]
+            )
+        )
+
+    if not detail_sections:
+        return proof_block, None
+
+    details = html.Details(
+        [
+            html.Summary(
+                "Voir les détails de l’évaluation IA",
+                className="fw-semibold small text-primary",
+                style={"cursor": "pointer"},
+            ),
+            html.Div(
+                detail_sections,
+                className="pt-3 px-2",
+            ),
+        ],
+        open=False,
+        className="mt-3 border rounded bg-light p-2",
     )
-    if end < len(justification):
-        spans.append(html.Span(justification[end:]))
-    return spans
+    return proof_block, details
 
 
 def _build_side_by_side(
@@ -336,8 +546,9 @@ def _build_side_by_side(
     - ``removed``: segment surligné en AMBRE dans la colonne T1.
     - ``modified`` ou ``renamed``: les deux côtés sont affichés côte à côte.
 
-    Pour ``diff_type=added`` seul T2 est affiché ; pour ``removed`` seul T1.
-    Pour ``modified`` et ``renamed`` les deux colonnes sont visibles côte à côte.
+    Le rapport courant est toujours affiché en premier, puis le rapport
+    précédent. Pour un ajout ou une suppression, le côté absent présente
+    explicitement la nature du changement.
     """
     highlights_t1 = [
         seg.get("text_t1", "")
@@ -370,8 +581,20 @@ def _build_side_by_side(
         "lineHeight": "1.55",
     }
 
-    def _column(label: str, text: str, intervals: list[tuple[int, int]], style: dict[str, str]) -> html.Div:
+    def _column(
+        label: str,
+        text: str,
+        intervals: list[tuple[int, int]],
+        style: dict[str, str],
+        *,
+        empty_message: str = "",
+    ) -> html.Div:
         """Construit une colonne (T1 ou T2) avec son libellé et son texte mis en surbrillance."""
+        content = (
+            _highlight_text_by_intervals(text, intervals, style)
+            if text
+            else html.Span(empty_message, className="fst-italic text-muted")
+        )
         return html.Div(
             [
                 html.Div(
@@ -379,7 +602,7 @@ def _build_side_by_side(
                     className="fw-semibold border-bottom px-2 py-1 small text-muted",
                 ),
                 html.Div(
-                    _highlight_text_by_intervals(text, intervals, style),
+                    content,
                     className="px-2 py-2 small",
                     style=base_card_style,
                 ),
@@ -411,21 +634,33 @@ def _build_side_by_side(
         label_t1 = f"Précédent (p.{page_t1})" if page_t1 else "Précédent"
         label_t2 = f"Courant (p.{page_t2})" if page_t2 else "Courant"
 
-    if diff_type == "added":
-        return html.Div(
-            [_column(label_t2, text_t2, intervals_t2, _HIGHLIGHT_ADDED_STYLE)],
-            className="mb-3",
-        )
-    if diff_type == "removed":
-        return html.Div(
-            [_column(label_t1, text_t1, intervals_t1, _HIGHLIGHT_REMOVED_STYLE)],
-            className="mb-3",
-        )
+    current_empty_message = (
+        "Aucun texte dans le rapport courant — contenu retiré."
+        if diff_type == "removed"
+        else "Aucun texte dans le rapport courant."
+    )
+    previous_empty_message = (
+        "Aucun texte dans le rapport précédent — contenu ajouté."
+        if diff_type == "added"
+        else "Aucun texte dans le rapport précédent."
+    )
 
     return html.Div(
         [
-            _column(label_t2, text_t2, intervals_t2, _HIGHLIGHT_ADDED_STYLE),
-            _column(label_t1, text_t1, intervals_t1, _HIGHLIGHT_REMOVED_STYLE),
+            _column(
+                label_t2,
+                text_t2,
+                intervals_t2,
+                _HIGHLIGHT_ADDED_STYLE,
+                empty_message=current_empty_message,
+            ),
+            _column(
+                label_t1,
+                text_t1,
+                intervals_t1,
+                _HIGHLIGHT_REMOVED_STYLE,
+                empty_message=previous_empty_message,
+            ),
         ],
         className="mb-3 d-flex gap-2",
     )
@@ -463,10 +698,30 @@ def _build_change_card(
 
     is_relevant = bool(triage.get("is_relevant", False))
     impact_level = (triage.get("impact_level") or "MINEUR").upper()
+    impact_it_justification = str(
+        triage.get("impact_it_justification") or ""
+    ).strip()
+    changement_posture = (
+        triage.get("changement_posture") or "INDETERMINE"
+    ).upper()
+    justification_posture = str(
+        triage.get("justification_posture") or ""
+    ).strip()
+    statut_mise_en_oeuvre = (
+        triage.get("statut_mise_en_oeuvre") or "INDETERMINE"
+    ).upper()
+    confiance_posture = (
+        triage.get("confiance_posture") or "INDETERMINE"
+    ).upper()
     action = (triage.get("action_requise") or "aucune").lower()
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
     nouvelle_idee_justification = build_text_triage_justification(change)
     themes_amf = list(triage.get("themes_amf") or [])
+    justification_sections = extract_labeled_analysis(
+        nouvelle_idee_justification,
+        _TRIAGE_DETAIL_LABELS,
+    )
+    impact_domain = _impact_domain(themes_amf, section_title)
 
     evidence_t1 = change.get("evidence_t1") or {}
     evidence_t2 = change.get("evidence_t2") or {}
@@ -501,6 +756,9 @@ def _build_change_card(
     if not is_relevant:
         badge_children.append(_badge("Non pertinent", "secondary"))
     badge_children.append(_badge(impact_lbl, impact_color))
+    posture_badge = _POSTURE_BADGE.get(changement_posture)
+    if posture_badge:
+        badge_children.append(_badge(*posture_badge))
     if action and action != "aucune":
         badge_children.append(_badge(action_lbl, action_color))
 
@@ -556,27 +814,23 @@ def _build_change_card(
     # source affiché dans le side-by-side avec les highlights AMF v2.
     evidence_block = None
 
-    # Justification (champ AMF v2 — note d'analyste structurée)
-    ia_block: html.Div | None = None
-    if nouvelle_idee_justification:
-        ia_block = html.Div(
-            [
-                html.Div(
-                    className="border-start border-primary border-3 ps-2 mb-2",
-                    children=[
-                        html.Span(
-                            "Justification",
-                            className="fw-semibold small text-primary",
-                        ),
-                    ],
-                ),
-                html.P(
-                    _highlight_change_section_in_justification(nouvelle_idee_justification),
-                    className="small mb-1",
-                    style={"whiteSpace": "pre-wrap"},
-                ),
-            ]
-        )
+    observed_block = _build_observed_block(
+        impact_level=impact_level,
+        impact_domain=impact_domain,
+        justification_sections=justification_sections,
+        change_summary=str(change.get("change_summary") or "").strip(),
+    )
+
+    posture_proof_block, ai_details = _build_ai_details(
+        impact_it_justification=impact_it_justification,
+        impact_level=impact_level,
+        impact_domain=impact_domain,
+        justification_sections=justification_sections,
+        changement_posture=changement_posture,
+        justification_posture=justification_posture,
+        statut_mise_en_oeuvre=statut_mise_en_oeuvre,
+        confiance_posture=confiance_posture,
+    )
 
     review = change.get("_analyst_review") or {}
     review_status = str(review.get("status") or "").strip().lower()
@@ -639,7 +893,17 @@ def _build_change_card(
 
     card_children = [
         c
-        for c in [badge_row, themes_row, meta, text_block, evidence_block, ia_block, review_controls]
+        for c in [
+            badge_row,
+            themes_row,
+            meta,
+            text_block,
+            evidence_block,
+            observed_block,
+            posture_proof_block,
+            ai_details,
+            review_controls,
+        ]
         if c is not None
     ]
 

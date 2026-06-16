@@ -39,6 +39,28 @@ def test_collect_changements_communs_records_reads_v3_and_v1_shapes(tmp_path: Pa
                             "genai_triage": {
                                 "themes_amf": ["ESG_CLIMATIQUE"],
                                 "impact_level": "MAJEUR",
+                                "impact_it": "MOYEN",
+                                "impact_it_justification": (
+                                    "Éléments observés : Le rapport ajoute un "
+                                    "nouveau contrôle technologique.\n\n"
+                                    "Conséquence probable : Les processus et "
+                                    "rapports technologiques devront être adaptés.\n\n"
+                                    "Limite de l'analyse : Le périmètre technique "
+                                    "du changement n'est pas détaillé."
+                                ),
+                                "changement_posture": "RENFORCEMENT",
+                                "justification_posture": (
+                                    "Preuve : La banque renforce les contrôles et "
+                                    "le suivi du dispositif technologique.\n\n"
+                                    "Effet sur la gestion du risque : Le niveau "
+                                    "de surveillance du dispositif augmente.\n\n"
+                                    "Justification du statut : Le rapport décrit "
+                                    "des travaux en cours.\n\n"
+                                    "Justification de la confiance : Le "
+                                    "renforcement est formulé explicitement."
+                                ),
+                                "statut_mise_en_oeuvre": "EN_COURS",
+                                "confiance_posture": "ELEVEE",
                             },
                         }
                     ],
@@ -77,6 +99,10 @@ def test_collect_changements_communs_records_reads_v3_and_v1_shapes(tmp_path: Pa
     assert [record.bank_code for record in records] == ["bnc", "cibc"]
     assert records[0].record_id == "bnc:2025_t2_vs_2025_t1:chg_001"
     assert records[0].themes == ("ESG_CLIMATIQUE",)
+    assert records[0].impact_it == "MOYEN"
+    assert records[0].changement_posture == "RENFORCEMENT"
+    assert records[0].statut_mise_en_oeuvre == "EN_COURS"
+    assert records[0].confiance_posture == "ELEVEE"
     assert records[0].pages_after == (12,)
     assert records[1].text_after == "Les tarifs douaniers augmentent le risque."
     assert records[1].pages_after == (37,)
@@ -110,6 +136,10 @@ def test_changements_communs_source_stats_counts_banks_and_periods(tmp_path: Pat
     assert stats["bank_count"] == 1
     assert stats["period_count"] == 1
     assert stats["impact_counts"] == {"MAJEUR": 1}
+    assert stats["impact_it_counts"] == {"INDETERMINE": 1}
+    assert stats["posture_counts"] == {"INDETERMINE": 1}
+    assert stats["implementation_counts"] == {"INDETERMINE": 1}
+    assert stats["posture_confidence_counts"] == {"INDETERMINE": 1}
 
 
 def test_collect_changements_communs_records_can_filter_one_period(tmp_path: Path) -> None:
@@ -180,6 +210,10 @@ def test_changements_communs_judge_prompt_uses_candidate_record_ids(tmp_path: Pa
     assert record.record_id in messages[1]["content"]
     assert "min_banks" in messages[1]["content"]
     assert "signal_mineur_2_banques" in messages[1]["content"]
+    assert "impact_it" in messages[1]["content"]
+    assert "posture_summary" in messages[1]["content"]
+    assert "mise_en_oeuvre_summary" in messages[1]["content"]
+    assert "confiance_posture" in messages[1]["content"]
 
 
 def test_generate_report_classifies_two_bank_signal_as_minor(tmp_path: Path) -> None:
@@ -237,6 +271,11 @@ def test_generate_report_classifies_two_bank_signal_as_minor(tmp_path: Path) -> 
                         "summary": "Le LLM surestime le consensus.",
                         "status": "consensus_3_plus",
                         "banks": ["bmo", "bnc", "td"],
+                        "posture_summary": "Les deux banques renforcent leur suivi.",
+                        "mise_en_oeuvre_summary": (
+                            "Les rapports décrivent des mesures en cours."
+                        ),
+                        "confiance_posture": "Moyenne",
                         "evidence": [
                             {
                                 "record_id": record_ids[0],
@@ -279,6 +318,7 @@ def test_generate_report_classifies_two_bank_signal_as_minor(tmp_path: Path) -> 
 
     signal = report["signals"][0]
     assert report["artifact_type"] == "changements_communs_banques"
+    assert report["schema_version"] == 2
     assert report["period"] == "2025_t2_vs_2025_t1"
     assert report["analysis_scope"] == "single_period"
     assert report["source_stats"]["periods"] == ["2025_t2_vs_2025_t1"]
@@ -286,6 +326,11 @@ def test_generate_report_classifies_two_bank_signal_as_minor(tmp_path: Path) -> 
     assert signal["bank_count"] == 2
     assert signal["min_banks_met"] is False
     assert signal["status"] == "signal_mineur_2_banques"
+    assert signal["posture_summary"] == "Les deux banques renforcent leur suivi."
+    assert signal["mise_en_oeuvre_summary"] == (
+        "Les rapports décrivent des mesures en cours."
+    )
+    assert signal["confiance_posture"] == "Moyenne"
     assert report["signal_counts"] == {"total": 1, "consensus": 0, "minor": 1}
 
 

@@ -119,6 +119,9 @@ class TestValidateTriageResponse:
         assert "Pertinence métier" in _TRIAGE_SYSTEM_PROMPT
         assert "Sujet détecté" in _TRIAGE_SYSTEM_PROMPT
         assert "simple liste de codes AMF" in _TRIAGE_SYSTEM_PROMPT
+        assert "COUVERTURE DONNÉES / TIERS / CLOUD" in _TRIAGE_SYSTEM_PROMPT
+        assert "CHANGEMENT DE POSTURE" in _TRIAGE_SYSTEM_PROMPT
+        assert "impact_it" in _TRIAGE_SYSTEM_PROMPT
 
     def test_valid_response(self):
         data = {
@@ -151,6 +154,10 @@ class TestValidateTriageResponse:
         assert result["action_requise"] == "revue_prioritaire"
         assert result["reference_reglementaire"] == "Bâle III — CET1"
         assert result["impact_description"] == "Nouveau ratio prudentiel ajouté."
+        assert result["impact_it"] == "INDETERMINE"
+        assert result["changement_posture"] == "INDETERMINE"
+        assert result["statut_mise_en_oeuvre"] == "INDETERMINE"
+        assert result["confiance_posture"] == "INDETERMINE"
         assert result["source"] == "llm"
 
     def test_none_response(self):
@@ -166,6 +173,11 @@ class TestValidateTriageResponse:
         assert result["risk_level"] == "FAIBLE"
         assert result["confidence"] == 0.0
         assert result["impact_type"] == "non_substantif"
+        assert result["impact_it"] == "INDETERMINE"
+        assert result["changement_posture"] == "AUCUN"
+        assert result["justification_posture"] == ""
+        assert result["statut_mise_en_oeuvre"] == "INDETERMINE"
+        assert result["confiance_posture"] == "INDETERMINE"
         assert result["project_phase"] == "autre"
         assert result["action_requise"] == "aucune"
         assert result["reference_reglementaire"] == ""
@@ -245,6 +257,86 @@ class TestValidateTriageResponse:
             }
         )
         assert result["themes_amf"] == ["DIVULGATION_AJOUT", "RISQUE_EMERGENT"]
+
+    def test_data_and_third_party_cloud_themes_are_accepted(self):
+        result = _validate_triage_response(
+            {
+                "is_relevant": True,
+                "themes_amf": ["RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"],
+                "nouvelle_idee": True,
+                "nouvelle_idee_justification": _valid_justification_oui(),
+                "category": "RISQUE",
+                "relevance_score": "ELEVEE",
+                "risk_level": "ELEVE",
+                "impact_it": "ELEVE",
+                "impact_it_justification": (
+                    "Éléments observés : Le rapport décrit une migration des "
+                    "données vers le cloud.\n\n"
+                    "Conséquence probable : Cette migration exige des changements "
+                    "d'architecture et de contrôle.\n\n"
+                    "Limite de l'analyse : Le calendrier et le périmètre de la "
+                    "migration ne sont pas précisés."
+                ),
+                "changement_posture": "RENFORCEMENT",
+                "justification_posture": (
+                    "Preuve : La banque renforce la surveillance et les contrôles "
+                    "contractuels appliqués au fournisseur critique.\n\n"
+                    "Effet sur la gestion du risque : Le niveau d'encadrement du "
+                    "tiers critique augmente.\n\n"
+                    "Justification du statut : Le rapport décrit des travaux en "
+                    "cours, sans confirmer leur achèvement.\n\n"
+                    "Justification de la confiance : Le renforcement est formulé "
+                    "explicitement dans le texte."
+                ),
+                "statut_mise_en_oeuvre": "EN_COURS",
+                "confiance_posture": "ELEVEE",
+                "confidence": 0.8,
+                "action_requise": "revue_prioritaire",
+            }
+        )
+        assert result["themes_amf"] == ["RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"]
+        assert result["impact_it"] == "ELEVE"
+        assert result["changement_posture"] == "RENFORCEMENT"
+        assert result["statut_mise_en_oeuvre"] == "EN_COURS"
+        assert result["confiance_posture"] == "ELEVEE"
+
+    def test_posture_without_evidence_falls_back_to_unknown(self):
+        result = _validate_triage_response(
+            {
+                "is_relevant": True,
+                "themes_amf": ["RISQUE_TIERS_CLOUD"],
+                "nouvelle_idee": False,
+                "nouvelle_idee_justification": _valid_justification_non(),
+                "category": "RISQUE",
+                "risk_level": "MODERE",
+                "changement_posture": "RENFORCEMENT",
+                "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
+                "action_requise": "information",
+            }
+        )
+
+        assert result["changement_posture"] == "INDETERMINE"
+        assert result["justification_posture"] == ""
+        assert result["statut_mise_en_oeuvre"] == "INDETERMINE"
+        assert result["confiance_posture"] == "INDETERMINE"
+
+    def test_it_impact_without_justification_falls_back_to_unknown(self):
+        result = _validate_triage_response(
+            {
+                "is_relevant": True,
+                "themes_amf": ["RISQUE_TIERS_CLOUD"],
+                "nouvelle_idee": True,
+                "nouvelle_idee_justification": _valid_justification_oui(),
+                "category": "RISQUE",
+                "risk_level": "ELEVE",
+                "impact_it": "ELEVE",
+                "impact_it_justification": "Trop court",
+                "changement_posture": "INDETERMINE",
+                "action_requise": "revue_prioritaire",
+            }
+        )
+        assert result["impact_it"] == "INDETERMINE"
+        assert result["impact_it_justification"] == ""
 
     def test_relevant_without_themes_falls_back_to_skeleton(self):
         """Invariant : is_relevant=True sans themes_amf → forcé en NON_PERTINENT."""

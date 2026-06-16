@@ -1,0 +1,2033 @@
+{
+  "schema_version": 3,
+  "artifact_type": "report_comparison",
+  "run_id": "20260611_160511",
+  "bank_code": "bnc",
+  "year_previous": 2024,
+  "quarter_previous": "t4",
+  "year_current": 2025,
+  "quarter_current": "t4",
+  "created_at": "2026-06-11T16:05:11",
+  "source_pdf_previous": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2024/BNC_2024_T4.pdf",
+  "source_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T4.pdf",
+  "archived_pdf_previous": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/previous_report.pdf",
+  "archived_pdf_current": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/current_report.pdf",
+  "model_version": "gpt-4o",
+  "prompt_version_match": "table_match_v8",
+  "prompt_version_diff": "table_diff_v4",
+  "reference_resolution": {
+    "mode": "automatique",
+    "year_previous": 2024,
+    "quarter_previous": "t4",
+    "rule": "t2->t1 meme annee; t3->t2 meme annee; t1->t3 annee precedente; t4->t4 annee precedente"
+  },
+  "matching": {
+    "matched_pairs": [
+      {
+        "previous_table_id": "tbl_p014_i01",
+        "current_table_id": "tbl_p016_i01",
+        "match_confidence": 0.98,
+        "reason": "Indicators and row_count identical; headers structure matches; both tables are in the 'capital_management' section."
+      },
+      {
+        "previous_table_id": "tbl_p015_i01",
+        "current_table_id": "tbl_p017_i01",
+        "match_confidence": 0.97,
+        "reason": "Indicators and row_count identical; both tables are in the 'capital_management' section; headers are absent in both."
+      },
+      {
+        "previous_table_id": "tbl_p019_i01",
+        "current_table_id": "tbl_p021_i01",
+        "match_confidence": 0.98,
+        "reason": "Indicators and row_count identical; headers structure matches; both tables are in the 'capital_management' section."
+      },
+      {
+        "previous_table_id": "tbl_p021_i01",
+        "current_table_id": "tbl_p023_i01",
+        "match_confidence": 0.9,
+        "reason": "Table summary and indicators are highly similar to PQ table 'tbl_p021_i01'. Both focus on 'Résultat de base et dilué par action ajustés'. Headers and footnotes are consistent, indicating a continuation of the same financial reporting structure."
+      },
+      {
+        "previous_table_id": "tbl_p023_i01",
+        "current_table_id": "tbl_p025_i01",
+        "match_confidence": 0.98,
+        "reason": "Indicators and row_count identical; headers structure matches; both tables are in the 'capital_management' section."
+      },
+      {
+        "previous_table_id": "tbl_p083_i01",
+        "current_table_id": "tbl_p087_i01",
+        "match_confidence": 0.98,
+        "reason": "Indicators and row_count identical; headers structure matches; both tables are in the 'regulatory_updates' section."
+      },
+      {
+        "previous_table_id": "tbl_p020_i01",
+        "current_table_id": "tbl_p027_i01",
+        "match_confidence": 0.75,
+        "reason": "Both tables are related to capital management and share indicators related to 'Dotations aux pertes de crédit'. The CQ table appears to be a truncated version focusing on specific risk measures.",
+        "source": "devil_advocate"
+      }
+    ],
+    "tables_added": [
+      {
+        "table_id": "tbl_p026_i01",
+        "reason": "No previous table has a similar table summary or indicator structure related to 'Objectifs à moyen terme et résultats 2025'. The focus on medium-term objectives and 2025 results is unique.",
+        "title": "",
+        "table_summary": "Objectifs à moyen terme et résultats 2025",
+        "extraction_status": "rescued",
+        "page": 26,
+        "section": "capital_management",
+        "bbox": [
+          0.04196265476201874,
+          0.35798490890348805,
+          0.9198270311542586,
+          0.4434050743025963
+        ],
+        "row_count": 5,
+        "headers": [
+          "Objectifs à moyen terme",
+          "Résultats 2025"
+        ],
+        "indicators": [
+          "Croissance du résultat dilué par action – ajusté (2)",
+          "RCP – ajusté (3)",
+          "Ratio de versement des dividendes – ajusté (3)",
+          "Ratios des fonds propres (4)",
+          "Ratios de liquidité (4)"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les résultats, les soldes et les ratios pour l’exercice terminé le 31 octobre 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB."
+          },
+          {
+            "id": "2",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 18 à 23 pour le détail des mesures financières non conformes aux PCGR."
+          },
+          {
+            "id": "3",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 18 à 23 pour le détail des ratios non conformes aux PCGR."
+          },
+          {
+            "id": "4",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 18 à 23 pour de plus amples renseignements sur les mesures de gestion du capital."
+          },
+          {
+            "id": "5",
+            "text": "Consulter le « Glossaire » aux pages 136 à 139 pour plus de détails sur la composition de ces mesures."
+          },
+          {
+            "id": "6",
+            "text": "Pour les exercices 2021 à 2024, certains montants ont été ajustés à la suite de la cessation de la présentation des revenus et de la charge d’impôts selon la méthode de l’équivalent imposable."
+          }
+        ],
+        "analyst_assessment": {
+          "theme": "capital",
+          "change_significance": "eleve",
+          "review_priority": "critique",
+          "analyst_summary": "Nouveau tableau sur le theme capital a revoir par l'analyste."
+        },
+        "visual_sanity_applied": false,
+        "visual_sanity_rejected_count": 0,
+        "visual_sanity_scope": [
+          "indicators",
+          "footnotes",
+          "tables"
+        ],
+        "visual_sanity_render_mode": "full",
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "genai_triage": {
+          "is_relevant": true,
+          "themes_amf": [
+            "STRUCTURE_RAPPORT",
+            "CAPITAL_REGLEMENTAIRE",
+            "LIQUIDITE"
+          ],
+          "nouvelle_idee": true,
+          "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Capital réglementaire, Liquidité\n\nCe qui change : Un nouveau tableau a été ajouté dans la section gestion du capital, incluant des indicateurs tels que la croissance du résultat dilué par action ajusté, le RCP ajusté, le ratio de versement des dividendes ajusté, ainsi que des ratios des fonds propres et de liquidité.\n\nPertinence métier : Ce changement met l'accent sur l'amélioration de la transparence et de la divulgation des performances financières ajustées et des ratios réglementaires. L'ajout de ces indicateurs permet une meilleure évaluation de la santé financière de la banque et de sa conformité aux exigences réglementaires en matière de capital et de liquidité. Cela est crucial pour les investisseurs et les régulateurs qui surveillent la stabilité financière et la gestion des risques de la banque.\n\nPoint de surveillance : Surveiller l'impact de ces nouveaux indicateurs sur l'évaluation de la performance financière et la conformité réglementaire de la banque.",
+          "impact_level": "MODERE",
+          "impact_it": "MOYEN",
+          "impact_it_justification": "Éléments observés : Ajout d'un nouveau tableau avec des indicateurs financiers et réglementaires.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour intégrer ces nouveaux indicateurs et assurer leur précision et leur conformité.\n\nLimite de l'analyse: L'impact exact sur les systèmes IT dépendra de la complexité des calculs et de l'intégration des données nécessaires pour ces nouveaux indicateurs.",
+          "changement_posture": "NOUVEAU_DISPOSITIF",
+          "justification_posture": "Preuve : Ajout d'un tableau avec des indicateurs clés de performance et de conformité.\n\nEffet sur la gestion du risque : Amélioration de la surveillance et de la transparence des performances financières et des ratios réglementaires.\n\nJustification du statut : L'ajout de ces indicateurs représente un renforcement des capacités de reporting et de gestion des risques.\n\nJustification de la confiance : La présence de nouveaux indicateurs clés dans le rapport de gestion indique une volonté de renforc",
+          "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
+          "confiance_posture": "ELEVEE",
+          "category": "STRUCTURE",
+          "relevance_score": "ELEVEE",
+          "risk_level": "MODERE",
+          "confidence": 0.95,
+          "explanation": "Un nouveau tableau a été ajouté dans la section gestion du capital, comprenant des indicateurs financiers ajustés et des ratios réglementaires. Cela améliore la transparence et la divulgation des performances financières de la banque.\n\nL'ajout de ces indicateurs est pertinent pour évaluer la santé financière de la banque et sa conformité aux exigences réglementaires, ce qui est crucial pour les investisseurs et les régulateurs.\n\nCe changement nécessite une mise à jour des systèmes de reporting pour intégrer ces nouveaux indicateurs, ce qui pourrait avoir un impact modéré sur les systèmes IT de la banque.",
+          "impact_type": "structurel",
+          "project_phase": "rapport_gestion",
+          "action_requise": "information",
+          "reference_reglementaire": "",
+          "impact_description": "Ajout d'un tableau avec des indicateurs financiers et réglementaires, améliorant la transparence et la conformité.",
+          "source": "llm"
+        },
+        "genai_analysis": {
+          "resume_metier": "Un nouveau tableau a été ajouté dans la section gestion du capital, comprenant des indicateurs financiers ajustés et des ratios réglementaires. Cela améliore la transparence et la divulgation des performances financières de la banque.\n\nL'ajout de ces indicateurs est pertinent pour évaluer la santé financière de la banque et sa conformité aux exigences réglementaires, ce qui est crucial pour les investisseurs et les régulateurs.\n\nCe changement nécessite une mise à jour des systèmes de reporting pour intégrer ces nouveaux indicateurs, ce qui pourrait avoir un impact modéré sur les systèmes IT de la banque."
+        }
+      }
+    ],
+    "tables_removed": [
+      {
+        "table_id": "tbl_p011_i01",
+        "reason": "No current business table was matched to this previous table.",
+        "title": "",
+        "table_summary": "Principes de durabilité par pilier ESG",
+        "extraction_status": "rescued",
+        "page": 11,
+        "section": "risk_management",
+        "bbox": [
+          0.07260581870484197,
+          0.4230134366738676,
+          0.9573461993847018,
+          0.8638472894225458
+        ],
+        "row_count": 12,
+        "headers": [
+          "ENVIRONNEMENT",
+          "SOCIAL",
+          "GOUVERNANCE"
+        ],
+        "indicators": [
+          "Nous travaillons au développement d’une économie verte.",
+          "1. Nous considérons la lutte contre les changements climatiques dans notre action économique et communautaire.",
+          "2. Nous accompagnons et conseillons notre clientèle dans sa transition énergétique.",
+          "3. Nous gérons et réduisons notre empreinte environnementale dans l’ensemble de nos secteurs d’activité.",
+          "Nous enrichissons les communautés.",
+          "4. Nous maximisons le potentiel des individus et de la collectivité.",
+          "5. Nous faisons la promotion de l’inclusion, de la diversité et de l’équité.",
+          "6. Nous favorisons l’entrepreneuriat, la littératie financière, la philanthropie et le soutien à la santé et à l’éducation.",
+          "Nous gouvernons selon les plus hautes normes.",
+          "7. Nous mettons de l’avant une culture d’éthique forte, de saines pratiques de gouvernance et une gestion rigoureuse des risques.",
+          "8. Nous gérons selon des pratiques commerciales responsables.",
+          "9. Nous assurons la pérennité de l’institution."
+        ],
+        "footnotes": [],
+        "analyst_assessment": {
+          "theme": "autre",
+          "change_significance": "moyen",
+          "review_priority": "normale",
+          "analyst_summary": "Tableau supprime sur le theme autre a confirmer par l'analyste."
+        },
+        "visual_sanity_applied": false,
+        "visual_sanity_rejected_count": 0,
+        "visual_sanity_scope": [
+          "indicators",
+          "footnotes",
+          "tables"
+        ],
+        "visual_sanity_render_mode": "full",
+        "visual_sanity_render_status": "skipped_missing_anchor",
+        "genai_triage": {
+          "is_relevant": true,
+          "themes_amf": [
+            "DIVULGATION_RETRAIT",
+            "ESG_CLIMATIQUE"
+          ],
+          "nouvelle_idee": true,
+          "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Information retirée, Risque climatique / ESG\n\nCe qui change : Le tableau concernant les initiatives ESG, incluant la lutte contre les changements climatiques, la transition énergétique, et l'inclusion sociale, a été supprimé du rapport T2.\n\nPertinence métier : Ce changement met en évidence un retrait d'informations cruciales sur les engagements ESG de la banque, ce qui pourrait affecter la transparence et la perception de la banque en matière de responsabilité environnementale et sociale. Les investisseurs et régulateurs s'attendent à une divulgation claire des efforts ESG, et ce retrait pourrait être perçu comme un manque d'engagement ou de progrès dans ces domaines.\n\nPoint de surveillance : Surveiller les futures divulgations pour évaluer si la banque réintroduit ces informations ou si elle modifie sa stratégie ESG, ce qui pourrait avoir des implications sur sa réputation et sa conformité aux attentes réglementaires.",
+          "impact_level": "MODERE",
+          "impact_it": "INDETERMINE",
+          "impact_it_justification": "",
+          "changement_posture": "RETRAIT_DISPOSITIF",
+          "justification_posture": "Preuve : Le tableau sur les initiatives ESG a été supprimé.\n\nEffet sur la gestion du risque : La suppression de ces informations peut réduire la transparence sur les engagements ESG de la banque.\n\nJustification du statut : Le retrait de ce tableau indique un changement potentiel dans la communication ou la priorité accordée aux initiatives ESG.\n\nJustification de la confiance : La suppression est claire et documentée, mais les raisons sous-jacentes ne sont pas explicitées.",
+          "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
+          "confiance_posture": "ELEVEE",
+          "category": "STRUCTURE",
+          "relevance_score": "ELEVEE",
+          "risk_level": "MODERE",
+          "confidence": 0.95,
+          "explanation": "La suppression d'un tableau entier portant sur les initiatives ESG de la banque, y compris la lutte contre les changements climatiques et l'inclusion sociale, est un changement significatif. Cela pourrait indiquer un changement de priorité ou de stratégie de la banque en matière de responsabilité sociale et environnementale.\n\nCe retrait d'information pourrait affecter la perception de la banque par les investisseurs et les régulateurs, qui s'attendent à une transparence accrue sur les engagements ESG. La banque devra peut-être clarifier sa position ou réintroduire ces informations pour répondre aux attentes du marché.\n\nIl est crucial de surveiller comment la banque communiquera ses engagements ESG à l'avenir, car cela pourrait avoir des implications sur sa réputation et sa conformité aux normes réglementaires en matière de divulgation ESG.",
+          "impact_type": "structurel",
+          "project_phase": "rapport_gestion",
+          "action_requise": "revue_prioritaire",
+          "reference_reglementaire": "",
+          "impact_description": "La suppression du tableau ESG pourrait affecter la transparence et la perception des engagements environnementaux et sociaux de la banque.",
+          "source": "llm"
+        },
+        "genai_analysis": {
+          "resume_metier": "La suppression d'un tableau entier portant sur les initiatives ESG de la banque, y compris la lutte contre les changements climatiques et l'inclusion sociale, est un changement significatif. Cela pourrait indiquer un changement de priorité ou de stratégie de la banque en matière de responsabilité sociale et environnementale.\n\nCe retrait d'information pourrait affecter la perception de la banque par les investisseurs et les régulateurs, qui s'attendent à une transparence accrue sur les engagements ESG. La banque devra peut-être clarifier sa position ou réintroduire ces informations pour répondre aux attentes du marché.\n\nIl est crucial de surveiller comment la banque communiquera ses engagements ESG à l'avenir, car cela pourrait avoir des implications sur sa réputation et sa conformité aux normes réglementaires en matière de divulgation ESG."
+        }
+      }
+    ],
+    "artifacts_confirmed_previous": [],
+    "artifacts_confirmed_current": [],
+    "extraction_suspects_previous": [],
+    "extraction_suspects_current": []
+  },
+  "pair_comparisons": [
+    {
+      "previous_table_id": "tbl_p014_i01",
+      "current_table_id": "tbl_p016_i01",
+      "match_confidence": 0.98,
+      "match_reason": "Indicators and row_count identical; headers structure matches; both tables are in the 'capital_management' section.",
+      "diff_mode": "gpt",
+      "previous_table": {
+        "table_id": "tbl_p014_i01",
+        "title": "",
+        "table_summary": "Table de concordance des informations sur les risques et pages",
+        "extraction_status": "rescued",
+        "page": 14,
+        "section": "capital_management",
+        "bbox": [
+          0.0408984414892259,
+          0.21973839191475303,
+          0.9281685025084253,
+          0.8842452848800506
+        ],
+        "row_count": 44,
+        "headers": [
+          "Pages",
+          "Rapport annuel",
+          "Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3 (1)"
+        ],
+        "indicators": [
+          "Général",
+          "Localisation de la divulgation concernant les risques",
+          "Rapport de gestion",
+          "États financiers consolidés",
+          "Informations financières complémentaires",
+          "Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3",
+          "Terminologie relative aux risques et mesures de risque",
+          "Risques principaux et risques émergents",
+          "Principaux nouveaux ratios réglementaires",
+          "Gouvernance et gestion des risques",
+          "Structure, processus et principales fonctions de gestion des risques",
+          "Culture de gestion des risques",
+          "Principaux risques par secteur d’exploitation, gestion des risques et appétit pour le risque",
+          "Tests de tension",
+          "Adéquation des fonds propres et actif pondéré en fonction des risques",
+          "Exigences minimales des fonds propres en vertu du Pilier 1",
+          "Rapprochement du bilan comptable et du bilan réglementaire",
+          "Évolution des fonds propres réglementaires",
+          "Planification en matière de capital",
+          "Actif pondéré en fonction des risques par secteur d’exploitation et par type de risque",
+          "Exigences des fonds propres par risque et par méthode de calcul de l’actif pondéré en fonction des risques",
+          "Risque de crédit lié au portefeuille bancaire",
+          "Évolution de l’actif pondéré en fonction des risques par type de risque",
+          "Évaluation de la performance du modèle de risque de crédit",
+          "Liquidité",
+          "Gestion de la liquidité et composantes de la réserve de liquidité",
+          "Financement",
+          "Sommaire des actifs grevés et non grevés",
+          "Échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan",
+          "Stratégie de financement et sources de financement",
+          "Risque de marché",
+          "Lien entre les mesures de risque de marché et le bilan",
+          "Facteurs de risque de marché",
+          "VaR : hypothèses, limites et processus de validation",
+          "Tests de tension et tests de validité rétroactifs",
+          "Risque de crédit",
+          "Expositions au risque de crédit",
+          "Politiques d'identification des prêts dépréciés",
+          "Évolution des prêts dépréciés et provisions pour pertes sur créances",
+          "Risque de contrepartie lié aux transactions d’instruments financiers dérivés",
+          "Mesures d’atténuation du risque de crédit",
+          "Autres risques",
+          "Autres risques : gouvernance, mesure et gestion",
+          "Événements liés aux risques connus publiquement"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Quatrième trimestre 2024."
+          },
+          {
+            "id": "2",
+            "text": "Ces pages se retrouvent dans le document intitulé « Informations financières complémentaires – Quatrième trimestre 2024 »."
+          }
+        ]
+      },
+      "current_table": {
+        "table_id": "tbl_p016_i01",
+        "title": "",
+        "table_summary": "Table de concordance des divulgations sur les risques et pages",
+        "extraction_status": "rescued",
+        "page": 16,
+        "section": "capital_management",
+        "bbox": [
+          0.04085919124628204,
+          0.23022622773141574,
+          0.9283094219132966,
+          0.9052092426955098
+        ],
+        "row_count": 44,
+        "headers": [
+          "Rapport annuel",
+          "Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3 (1)"
+        ],
+        "indicators": [
+          "Général",
+          "Localisation de la divulgation concernant les risques",
+          "Rapport de gestion",
+          "États financiers consolidés",
+          "Informations financières complémentaires",
+          "Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3",
+          "Terminologie relative aux risques et mesures de risque",
+          "Risques principaux et risques émergents",
+          "Principaux nouveaux ratios réglementaires",
+          "Gouvernance et gestion des risques",
+          "Structure, processus et principales fonctions de gestion des risques",
+          "Culture de gestion des risques",
+          "Principaux risques par secteur d’exploitation, gestion des risques et appétit pour le risque",
+          "Tests de tension",
+          "Adéquation des fonds propres et actif pondéré en fonction des risques",
+          "Exigences minimales des fonds propres en vertu du Pilier 1",
+          "Rapprochement du bilan comptable et du bilan réglementaire",
+          "Évolution des fonds propres réglementaires",
+          "Planification en matière de capital",
+          "Actif pondéré en fonction des risques par secteur d’exploitation et par type de risque",
+          "Exigences des fonds propres par risque et par méthode de calcul de l’actif pondéré en fonction des risques",
+          "Risque de crédit lié au portefeuille bancaire",
+          "Évolution de l’actif pondéré en fonction des risques par type de risque",
+          "Évaluation de la performance du modèle de risque de crédit",
+          "Liquidité",
+          "Gestion de la liquidité et composantes de la réserve de liquidité",
+          "Financement",
+          "Sommaire des actifs grevés et non grevés",
+          "Échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan",
+          "Stratégie de financement et sources de financement",
+          "Risque de marché",
+          "Lien entre les mesures de risque de marché et le bilan",
+          "Facteurs de risque de marché",
+          "VaR : hypothèses, limites et processus de validation",
+          "Tests de tension et tests de validité rétroactifs",
+          "Risque de crédit",
+          "Expositions au risque de crédit",
+          "Politiques d’identification des prêts dépréciés",
+          "Évolution des prêts dépréciés et provisions pour pertes sur créances",
+          "Risque de contrepartie lié aux transactions d’instruments financiers dérivés",
+          "Mesures d’atténuation du risque de crédit",
+          "Autres risques",
+          "Autres risques : gouvernance, mesure et gestion",
+          "Événements liés aux risques connus publiquement"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Quatrième trimestre 2025."
+          },
+          {
+            "id": "2",
+            "text": "Ces pages se retrouvent dans le document intitulé « Informations financières complémentaires – Quatrième trimestre 2025 »."
+          }
+        ]
+      },
+      "technical_diff": {
+        "indicators_added": [],
+        "indicators_removed": [],
+        "indicators_renamed": [],
+        "footnotes_added": [],
+        "footnotes_removed": [],
+        "footnotes_renamed": [],
+        "table_level_change": "inchange"
+      },
+      "analyst_assessment": {
+        "theme": "capital",
+        "change_significance": "faible",
+        "review_priority": "normale",
+        "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
+      },
+      "reason": "Aucune différence sémantique significative n'a été détectée entre les indicateurs des deux tableaux comparés. Tous les indicateurs présents dans le tableau précédent se retrouvent dans le tableau actuel avec des noms et des positions identiques, ce qui indique qu'il n'y a eu ni ajout, ni suppression, ni renommage d'indicateurs entre les deux périodes considérées.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Élément non classifié par l'analyse automatisée.\n\nCe qui change : Aucun triage AMF exploitable n'a été produit par GPT-4o pour ce changement. Le système ne dispose donc pas d'une lecture fiable du contenu T1/T2 pour qualifier cette ligne.\n\nPertinence métier : Ce cas ne constitue pas une nouvelle idée métier détectée par la vigie, car aucun thème AMF, risque, méthode, conformité ou divulgation substantielle n'a pu être rattaché au changement de façon fiable.\n\nPoint de surveillance : Élément non classifié — La ligne ne porte pas de signal métier exploitable dans le résumé de surveillance automatisé.",
+        "impact_level": "MINEUR",
+        "impact_it": "INDETERMINE",
+        "impact_it_justification": "",
+        "changement_posture": "AUCUN",
+        "justification_posture": "",
+        "statut_mise_en_oeuvre": "INDETERMINE",
+        "confiance_posture": "INDETERMINE",
+        "category": "NON_PERTINENT",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
+    },
+    {
+      "previous_table_id": "tbl_p015_i01",
+      "current_table_id": "tbl_p017_i01",
+      "match_confidence": 0.97,
+      "match_reason": "Indicators and row_count identical; both tables are in the 'capital_management' section; headers are absent in both.",
+      "diff_mode": "gpt",
+      "previous_table": {
+        "table_id": "tbl_p015_i01",
+        "title": "",
+        "table_summary": "Table des matières du rapport",
+        "extraction_status": "rescued",
+        "page": 15,
+        "section": "capital_management",
+        "bbox": [
+          0.07242438372443705,
+          0.3866280064438329,
+          0.9577693565219056,
+          0.5283356483536538
+        ],
+        "row_count": 21,
+        "headers": [],
+        "indicators": [
+          "Mode de présentation de l’information",
+          "Communication de l’information financière",
+          "Vue d’ensemble",
+          "Analyse financière",
+          "Analyse sectorielle",
+          "Particuliers et Entreprises",
+          "Gestion de patrimoine",
+          "Marchés financiers",
+          "Financement spécialisé aux États-Unis et International (FSEU&I)",
+          "Autres",
+          "Information financière trimestrielle",
+          "Analyse du bilan consolidé",
+          "Titrisation et arrangements hors bilan",
+          "Gestion du capital",
+          "Gestion des risques",
+          "Méthodes comptables significatives et estimations comptables",
+          "Modifications de méthodes comptables",
+          "Modifications futures de méthodes comptables",
+          "Données financières supplémentaires",
+          "Glossaire",
+          "Mise en garde à propos des déclarations prospectives"
+        ],
+        "footnotes": []
+      },
+      "current_table": {
+        "table_id": "tbl_p017_i01",
+        "title": "",
+        "table_summary": "Table des matières du rapport",
+        "extraction_status": "rescued",
+        "page": 17,
+        "section": "capital_management",
+        "bbox": [
+          0.07749819911383336,
+          0.39778950238468674,
+          0.9519431918275123,
+          0.552347780478121
+        ],
+        "row_count": 21,
+        "headers": [],
+        "indicators": [
+          "Mode de présentation de l’information",
+          "Communication de l’information financière",
+          "Vue d’ensemble",
+          "Acquisition",
+          "Analyse financière",
+          "Analyse sectorielle",
+          "Particuliers et Entreprises",
+          "Gestion de patrimoine",
+          "Marchés des capitaux",
+          "Financement spécialisé aux États-Unis et International (FSEU&I)",
+          "Autres",
+          "Information financière trimestrielle",
+          "Analyse du bilan consolidé",
+          "Titrisation et arrangements hors bilan",
+          "Gestion du capital",
+          "Gestion des risques",
+          "Méthodes comptables significatives et estimations comptables",
+          "Modification futures de méthodes comptables",
+          "Données financières supplémentaires",
+          "Glossaire",
+          "Mise en garde à propos des déclarations prospectives"
+        ],
+        "footnotes": []
+      },
+      "technical_diff": {
+        "indicators_added": [
+          {
+            "value": "Acquisition",
+            "reason": "Un nouvel indicateur 'Acquisition' a été ajouté à la position 3 dans le tableau actuel, alors qu'il n'était pas présent dans le tableau précédent.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur 'Acquisition' a été ajouté dans le tableau de synthèse des matières du rapport au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout peut refléter une nouvelle stratégie ou une activité significative de la banque en matière d'acquisitions, ce qui pourrait avoir des implications importantes pour la gestion du capital et la stratégie de croissance. Les acquisitions peuvent affecter les ratios de capital, la structure du bilan et nécessitent souvent une divulgation accrue pour répondre aux exigences réglementaires.\n\nLe signal de vigie à retenir est que la banque pourrait être en train de renforcer sa position sur le marché par le biais d'acquisitions, ce qui pourrait avoir des implications sur sa stratégie globale et sa performance financière future."
+            }
+          }
+        ],
+        "indicators_removed": [
+          {
+            "value": "Modifications de méthodes comptables",
+            "reason": "L'indicateur 'Modifications de méthodes comptables' a été remplacé par 'Modification futures de méthodes comptables' à la position 17 dans le tableau actuel, ce qui indique une suppression de cet indicateur spécifique.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur 'Modifications de méthodes comptables' a été retiré du tableau de synthèse des matières du rapport au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur pourrait signaler un changement dans la manière dont la banque aborde les modifications comptables, potentiellement en raison de nouvelles normes comptables ou d'une révision des politiques internes. Cela pourrait avoir des implications sur la manière dont les résultats financiers sont présentés et interprétés, affectant ainsi la comparabilité et la transparence des rapports financiers.\n\nLe signal de vigie à retenir est que la banque pourrait être en train de s'adapter à de nouvelles exigences comptables ou de rationaliser ses méthodes de présentation, ce qui pourrait influencer la perception des résultats financiers par les investisseurs et les régulateurs."
+            }
+          }
+        ],
+        "indicators_renamed": [
+          {
+            "previous": "Marchés financiers",
+            "current": "Marchés des capitaux",
+            "reason": "L'indicateur 'Marchés financiers' a été renommé en 'Marchés des capitaux' à la position 8, reflétant un ajustement sémantique dans la terminologie utilisée.",
+            "analyst_assessment": {
+              "relevance_level": 3,
+              "justification": "L'indicateur 'Marchés financiers' a été renommé en 'Marchés des capitaux' dans le tableau de synthèse des matières du rapport au T2 2025.\n\nCe changement de nom pourrait refléter une mise à jour terminologique pour aligner la terminologie interne avec les pratiques du secteur ou pour mieux représenter l'activité couverte par cette section. Les marchés des capitaux incluent généralement une gamme plus large d'activités que les marchés financiers, ce qui pourrait indiquer une extension ou une clarification de la portée de cette section.\n\nLe signal de vigie à retenir est que la banque cherche à clarifier ou à élargir la portée de ses rapports sur les marchés, ce qui pourrait améliorer la compréhension des activités de marché par les parties prenantes."
+            }
+          }
+        ],
+        "footnotes_added": [],
+        "footnotes_removed": [],
+        "footnotes_renamed": [],
+        "table_level_change": "modifie"
+      },
+      "analyst_assessment": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 3 changement(s) d'indicateur et 0 changement(s) de footnote."
+      },
+      "reason": "Les changements identifiés reflètent des ajustements dans la structure et la terminologie des indicateurs du tableau, potentiellement en réponse à des évolutions stratégiques ou réglementaires.",
+      "visual_sanity_applied": true,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": true,
+        "themes_amf": [
+          "STRUCTURE_RAPPORT",
+          "MODIFICATION_METHODOLOGIE"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Méthode de calcul ou approche modifiée\n\nCe qui change : L'indicateur 'Acquisition' a été ajouté, 'Modifications de méthodes comptables' a été supprimé, et 'Marchés financiers' a été renommé en 'Marchés des capitaux'.\n\nPertinence métier : Ce changement met l'accent sur une réorganisation des indicateurs de gestion du capital, ce qui peut refléter une évolution dans la manière dont la banque gère ses acquisitions et ses interactions avec les marchés des capitaux. La suppression de l'indicateur lié aux méthodes comptables pourrait indiquer une stabilisation ou une standardisation des pratiques comptables.\n\nPoint de surveillance : Surveiller comment ces changements d'indicateurs affectent la gestion du capital et les rapports financiers de la banque, notamment en ce qui concerne les acquisitions et les marchés des capitaux.",
+        "impact_level": "MODERE",
+        "impact_it": "MOYEN",
+        "impact_it_justification": "Éléments observés : Ajout et suppression d'indicateurs dans le tableau de gestion du capital.\n\nConséquence probable : Nécessité d'adapter les systèmes de reporting pour intégrer les nouveaux indicateurs et supprimer les anciens.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la complexité des modifications apportées aux processus de reporting.",
+        "changement_posture": "NOUVEAU_DISPOSITIF",
+        "justification_posture": "Preuve : Ajout de l'indicateur 'Acquisition' et suppression de 'Modifications de méthodes comptables'.\n\nEffet sur la gestion du risque : Cela pourrait indiquer un changement dans la stratégie de gestion du capital, avec un accent accru sur les acquisitions.\n\nJustification du statut : L'ajout et la suppression d'indicateurs suggèrent une révision des priorités ou des méthodes de gestion du capital.\n\nJustification de la confiance : La confiance est élevée car les changements sont clairement docume",
+        "statut_mise_en_oeuvre": "EN_COURS",
+        "confiance_posture": "ELEVEE",
+        "category": "STRUCTURE",
+        "relevance_score": "MOYENNE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le tableau de gestion du capital a été modifié avec l'ajout de l'indicateur 'Acquisition', la suppression de 'Modifications de méthodes comptables', et le renommage de 'Marchés financiers' en 'Marchés des capitaux'.\n\nCes changements indiquent une réorganisation des priorités de gestion du capital, potentiellement pour mieux refléter les activités d'acquisition et les interactions avec les marchés des capitaux.\n\nL'impact sur les systèmes IT est modéré, nécessitant des ajustements dans les processus de reporting pour intégrer ces nouveaux indicateurs.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "information",
+        "reference_reglementaire": "",
+        "impact_description": "Réorganisation des indicateurs de gestion du capital, impactant le reporting.",
+        "source": "llm"
+      },
+      "genai_analysis": {
+        "resume_metier": "Le tableau de gestion du capital a été modifié avec l'ajout de l'indicateur 'Acquisition', la suppression de 'Modifications de méthodes comptables', et le renommage de 'Marchés financiers' en 'Marchés des capitaux'.\n\nCes changements indiquent une réorganisation des priorités de gestion du capital, potentiellement pour mieux refléter les activités d'acquisition et les interactions avec les marchés des capitaux.\n\nL'impact sur les systèmes IT est modéré, nécessitant des ajustements dans les processus de reporting pour intégrer ces nouveaux indicateurs."
+      }
+    },
+    {
+      "previous_table_id": "tbl_p019_i01",
+      "current_table_id": "tbl_p021_i01",
+      "match_confidence": 0.98,
+      "match_reason": "Indicators and row_count identical; headers structure matches; both tables are in the 'capital_management' section.",
+      "diff_mode": "gpt",
+      "previous_table": {
+        "table_id": "tbl_p019_i01",
+        "title": "",
+        "table_summary": "Lignes directrices du BSIF et mesures associées",
+        "extraction_status": "rescued",
+        "page": 19,
+        "section": "capital_management",
+        "bbox": [
+          0.07182621800042445,
+          0.17271111228249292,
+          0.9443200803270527,
+          0.5161563603564947
+        ],
+        "row_count": 5,
+        "headers": [
+          "Ligne directrice ou préavis du BSIF",
+          "Mesure"
+        ],
+        "indicators": [
+          "Normes de fonds propres",
+          "Exigences de levier",
+          "Capacité totale d’absorption des pertes (Total Loss Absorbing Capacity ou TLAC)",
+          "Normes de liquidité",
+          "Banques d’importance systémique mondiale (BISM) – Obligations redditionnelles"
+        ],
+        "footnotes": []
+      },
+      "current_table": {
+        "table_id": "tbl_p021_i01",
+        "title": "",
+        "table_summary": "Lignes directrices du BSIF et mesures réglementaires",
+        "extraction_status": "rescued",
+        "page": 21,
+        "section": "capital_management",
+        "bbox": [
+          0.07240792816760494,
+          0.4080219846783263,
+          0.9435526529947917,
+          0.754306754680595
+        ],
+        "row_count": 5,
+        "headers": [
+          "Ligne directrice ou préavis du BSIF",
+          "Mesure"
+        ],
+        "indicators": [
+          "Normes de fonds propres",
+          "Exigences de levier",
+          "Capacité totale d’absorption des pertes (Total Loss Absorbing Capacity ou TLAC)",
+          "Normes de liquidité",
+          "Banques d’importance systémique mondiale (BISM) – Obligations redditionnelles"
+        ],
+        "footnotes": []
+      },
+      "technical_diff": {
+        "indicators_added": [],
+        "indicators_removed": [],
+        "indicators_renamed": [],
+        "footnotes_added": [],
+        "footnotes_removed": [],
+        "footnotes_renamed": [],
+        "table_level_change": "inchange"
+      },
+      "analyst_assessment": {
+        "theme": "capital",
+        "change_significance": "faible",
+        "review_priority": "normale",
+        "analyst_summary": "Aucun changement semantique detecte sur le theme capital."
+      },
+      "reason": "Aucune différence sémantique significative n'a été détectée entre les indicateurs des deux tableaux comparés. Tous les indicateurs présents dans le tableau précédent se retrouvent dans le tableau actuel avec des noms et des positions identiques, y compris les normalisations des noms. Les changements mineurs de formatage ou de ponctuation ont été ignorés conformément aux règles.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Élément non classifié par l'analyse automatisée.\n\nCe qui change : Aucun triage AMF exploitable n'a été produit par GPT-4o pour ce changement. Le système ne dispose donc pas d'une lecture fiable du contenu T1/T2 pour qualifier cette ligne.\n\nPertinence métier : Ce cas ne constitue pas une nouvelle idée métier détectée par la vigie, car aucun thème AMF, risque, méthode, conformité ou divulgation substantielle n'a pu être rattaché au changement de façon fiable.\n\nPoint de surveillance : Élément non classifié — La ligne ne porte pas de signal métier exploitable dans le résumé de surveillance automatisé.",
+        "impact_level": "MINEUR",
+        "impact_it": "INDETERMINE",
+        "impact_it_justification": "",
+        "changement_posture": "AUCUN",
+        "justification_posture": "",
+        "statut_mise_en_oeuvre": "INDETERMINE",
+        "confiance_posture": "INDETERMINE",
+        "category": "NON_PERTINENT",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
+    },
+    {
+      "previous_table_id": "tbl_p021_i01",
+      "current_table_id": "tbl_p023_i01",
+      "match_confidence": 0.9,
+      "match_reason": "Table summary and indicators are highly similar to PQ table 'tbl_p021_i01'. Both focus on 'Résultat de base et dilué par action ajustés'. Headers and footnotes are consistent, indicating a continuation of the same financial reporting structure.",
+      "diff_mode": "gpt",
+      "previous_table": {
+        "table_id": "tbl_p021_i01",
+        "title": "",
+        "table_summary": "Résultat de base et dilué par action ajustés",
+        "extraction_status": "rescued",
+        "page": 21,
+        "section": "capital_management",
+        "bbox": [
+          0.06897103552724801,
+          0.40862886833422113,
+          0.9548964157603146,
+          0.7130604753590594
+        ],
+        "row_count": 22,
+        "headers": [
+          "2024",
+          "2023 (1)"
+        ],
+        "indicators": [
+          "Résultat de base par action",
+          "Amortissement des frais d'émission des reçus de souscription (2)",
+          "Gain sur réévaluation à la juste valeur de participations (3) (4)",
+          "Gestion des variations de la juste valeur relative à l’acquisition de CWB (5)",
+          "Charges liées à l'acquisition et à l'intégration de CWB (6)",
+          "Pertes de valeur d'immobilisations corporelles et incorporelles (7)",
+          "Charges pour litiges (8)",
+          "Charge liée aux modifications à la Loi sur la taxe d'accise (9)",
+          "Provisions pour contrats (10)",
+          "Charge d'impôts liée aux mesures fiscales 2022 du gouvernement du Canada (11)",
+          "Résultat de base par action – ajusté",
+          "Résultat dilué par action",
+          "Amortissement des frais d'émission des reçus de souscription (2) (bloc 2)",
+          "Gain sur réévaluation à la juste valeur de participations (3) (4) (bloc 2)",
+          "Gestion des variations de la juste valeur relative à l’acquisition de CWB (5) (bloc 2)",
+          "Charges liées à l'acquisition et à l'intégration de CWB (6) (bloc 2)",
+          "Pertes de valeur d'immobilisations corporelles et incorporelles (7) (bloc 2)",
+          "Charges pour litiges (8) (bloc 2)",
+          "Charge liée aux modifications à la Loi sur la taxe d'accise (9) (bloc 2)",
+          "Provisions pour contrats (10) (bloc 2)",
+          "Charge d'impôts liée aux mesures fiscales 2022 du gouvernement du Canada (11) (bloc 2)",
+          "Résultat dilué par action – ajusté"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Certains montants ont été ajustés à la suite de modifications de méthodes comptables relatives à l’adoption de l’IFRS 17. Pour de plus amples renseignements, se reporter à la note 2 afférente aux présents états financiers consolidés."
+          },
+          {
+            "id": "2",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2024, un montant de 14 M$ (10 M$ déduction faite des impôts) a été enregistré, représentant l’amortissement des frais d'émission des reçus de souscription émis dans le cadre de l’entente visant l’acquisition de CWB (pour de plus amples renseignements, se reporter aux notes 14 et 16 afférentes aux présents états financiers consolidés)."
+          },
+          {
+            "id": "3",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2024, un gain de 174 M$ (125 M$ déduction faite des impôts) a été enregistré, résultant de la réévaluation à la juste valeur de la participation que la Banque détient dans CWB."
+          },
+          {
+            "id": "4",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2023, la Banque avait conclu qu’elle avait perdu l’influence notable sur Groupe TMX limitée (TMX) et avait donc cessé la comptabilisation selon la méthode de la mise en équivalence de ce placement. La Banque avait désigné son placement dans TMX comme étant un actif financier évalué à la juste valeur par le biais des autres éléments du résultat global, à un montant de 191 M$. Lors de l’évaluation à la juste valeur, un gain de 91 M$ (67 M$ déduction faite des impôts) avait été enregistré."
+          },
+          {
+            "id": "5",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2024, la Banque a comptabilisé une perte de 3 M$ (2 M$ déduction faite des impôts) liée à la réévaluation à la juste valeur des swaps de taux d’intérêt utilisés pour la gestion des variations de la juste valeur des actifs et passifs de CWB qui donnent lieu à la volatilité du goodwill et des fonds propres à la clôture de la transaction. Pour de plus amples renseignements, se reporter à la section « Transaction CWB »."
+          },
+          {
+            "id": "6",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2024, des charges d'acquisition et d'intégration de 18 M$ (13 M$ déduction faite des impôts) ont été enregistrées relativement à la transaction CWB."
+          }
+        ]
+      },
+      "current_table": {
+        "table_id": "tbl_p023_i01",
+        "title": "Présentation du résultat de base et dilué par action – ajustés",
+        "table_summary": "Résultat de base et dilué par action ajustés",
+        "extraction_status": "rescued",
+        "page": 23,
+        "section": "capital_management",
+        "bbox": [
+          0.06876808365965201,
+          0.24863462737112335,
+          0.9553402171415442,
+          0.49684351140802563
+        ],
+        "row_count": 18,
+        "headers": [
+          "2025 (1)",
+          "2024"
+        ],
+        "indicators": [
+          "Résultat de base par action",
+          "Amortissement des frais d'émission des reçus de souscription (2)",
+          "Gain sur réévaluation à la juste valeur d'une participation (3)",
+          "Gestion des variations de la juste valeur relative à l’acquisition de CWB (4)",
+          "Charges liées à l'acquisition et à l'intégration de CWB (5)",
+          "Amortissement des immobilisations incorporelles liées à l'acquisition de CWB (6)",
+          "Dotations aux pertes de crédit initiales sur les prêts non dépréciés acquis de CWB (7)",
+          "Économie d'impôts liée à un changement de traitement fiscal (8)",
+          "Résultat de base par action – ajusté",
+          "Résultat dilué par action",
+          "Amortissement des frais d'émission des reçus de souscription (2) (bloc 2)",
+          "Gain sur réévaluation à la juste valeur d'une participation (3) (bloc 2)",
+          "Gestion des variations de la juste valeur relative à l’acquisition de CWB (4) (bloc 2)",
+          "Charges liées à l'acquisition et à l'intégration de CWB (5) (bloc 2)",
+          "Amortissement des immobilisations incorporelles liées à l'acquisition de CWB (6) (bloc 2)",
+          "Dotations aux pertes de crédit initiales sur les prêts non dépréciés acquis de CWB (7) (bloc 2)",
+          "Économie d'impôts liée à un changement de traitement fiscal (8) (bloc 2)",
+          "Résultat dilué par action – ajusté"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les résultats, les soldes et les ratios pour l’exercice terminé le 31 octobre 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB."
+          },
+          {
+            "id": "2",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2025, un montant de 28 M$ (20 M$ déduction faite des impôts) a été enregistré, représentant l’amortissement des frais d'émission des reçus de souscription émis dans le cadre de l’entente visant l’acquisition de CWB (2024 : 14 M$, 10 M$ déduction faite des impôts). Pour de plus amples renseignements, se reporter aux notes 13 et 15 afférentes aux états financiers consolidés."
+          },
+          {
+            "id": "3",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2025, un gain de 4 M$ a été enregistré, résultant de la réévaluation à la juste valeur de la participation que la Banque détenait dans CWB avant l’acquisition (2024 : 174 M$, 125 M$ déduction faite des impôts)."
+          },
+          {
+            "id": "4",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2025, la Banque a comptabilisé une perte de 23 M$ (17 M$ déduction faite des impôts) liée à la réévaluation à la juste valeur des swaps de taux d’intérêt utilisés pour la gestion des variations de la juste valeur des actifs et passifs de CWB qui donnaient lieu à la volatilité du goodwill et des fonds propres à la clôture de la transaction (2024 : 3 M$, 2 M$ déduction faite des impôts)."
+          },
+          {
+            "id": "5",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2025, des charges d'acquisition et d'intégration de 352 M$ (255 M$ déduction faite des impôts) ont été enregistrées relativement à la transaction avec CWB (2024 : 18 M$, 13 M$ déduction faite des impôts)."
+          },
+          {
+            "id": "6",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2025, un montant de 73 M$ (54 M$ déduction faite des impôts) a été enregistré, représentant l’amortissement des immobilisations incorporelles liées à l’acquisition de CWB."
+          },
+          {
+            "id": "7",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2025, des dotations aux pertes de crédit initiales de 230 M$ (166 M$ déduction faite des impôts) ont été enregistrées sur les prêts non dépréciés acquis de CWB."
+          },
+          {
+            "id": "8",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2025, une économie d’impôts de 47 M$ a été enregistrée en lien avec un changement de traitement fiscal relatif aux gains non réalisés comptabilisés au cours de l’exercice 2024 et du premier trimestre de 2025 suite à la réévaluation à la juste valeur de la participation que la Banque détenait dans CWB avant l’acquisition."
+          }
+        ]
+      },
+      "technical_diff": {
+        "indicators_added": [
+          {
+            "value": "Amortissement des immobilisations incorporelles liées à l'acquisition de CWB (6)",
+            "reason": "Cet indicateur n'était pas présent dans le tableau précédent et a été ajouté dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Amortissement des immobilisations incorporelles liées à l'acquisition de CWB\" a été ajouté dans le tableau de présentation du résultat de base et dilué par action ajustés au T2 2025. Cet ajout reflète une nouvelle ligne de reporting qui n'était pas présente au T1 2025.\n\nL'ajout de cet indicateur peut avoir un impact significatif sur la compréhension des coûts liés à l'acquisition de CWB, en particulier en ce qui concerne l'amortissement des actifs incorporels. Cela peut être pertinent pour les analyses de rentabilité et de performance post-acquisition, et pourrait également être lié à des exigences de divulgation accrues en vertu des normes comptables IFRS ou des directives du BSIF.\n\nLe signal de vigie à retenir est que la banque a jugé nécessaire de détailler davantage les coûts d'acquisition, ce qui pourrait indiquer une attention accrue sur la transparence des coûts d'intégration et leur impact sur les résultats financiers."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-06-14T06:14:04.504816+00:00",
+              "by": "analyst"
+            }
+          },
+          {
+            "value": "Dotations aux pertes de crédit initiales sur les prêts non dépréciés acquis de CWB (7)",
+            "reason": "Cet indicateur n'était pas présent dans le tableau précédent et a été ajouté dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Dotations aux pertes de crédit initiales sur les prêts non dépréciés acquis de CWB\" a été ajouté dans le tableau de présentation du résultat de base et dilué par action ajustés au T2 2025. Cet ajout représente une nouvelle ligne de reporting qui n'était pas présente au T1 2025.\n\nL'ajout de cet indicateur est crucial pour évaluer l'impact des pertes de crédit initiales sur les prêts acquis lors de l'acquisition de CWB. Cela peut avoir des implications importantes pour la gestion du risque de crédit et la conformité aux exigences prudentielles, notamment celles liées aux provisions pour pertes attendues selon les normes IFRS 9.\n\nLe signal de vigie à retenir est que la banque met en lumière les risques de crédit associés aux acquisitions récentes, ce qui pourrait refléter une stratégie de gestion proactive des risques et une réponse aux attentes des régulateurs en matière de transparence et de gestion des risques."
+            }
+          },
+          {
+            "value": "Économie d'impôts liée à un changement de traitement fiscal (8)",
+            "reason": "Cet indicateur n'était pas présent dans le tableau précédent et a été ajouté dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Économie d'impôts liée à un changement de traitement fiscal\" a été ajouté dans le tableau de présentation du résultat de base et dilué par action ajustés au T2 2025. Cet ajout représente une nouvelle ligne de reporting qui n'était pas présente au T1 2025.\n\nL'ajout de cet indicateur peut avoir un impact significatif sur la compréhension des économies fiscales réalisées par la banque, potentiellement en raison de changements dans la législation fiscale ou dans l'application des règles fiscales existantes. Cela peut être pertinent pour les analyses de rentabilité et de performance fiscale, et pourrait également être lié à des exigences de divulgation accrues en vertu des normes comptables IFRS ou des directives du BSIF.\n\nLe signal de vigie à retenir est que la banque a jugé nécessaire de détailler davantage les économies fiscales, ce qui pourrait indiquer une attention accrue sur l'optimisation fiscale et son impact sur les résultats financiers."
+            }
+          }
+        ],
+        "indicators_removed": [
+          {
+            "value": "Pertes de valeur d'immobilisations corporelles et incorporelles (7)",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Pertes de valeur d'immobilisations corporelles et incorporelles\" a été supprimé du tableau de présentation du résultat de base et dilué par action ajustés au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur peut avoir un impact sur la transparence des informations concernant les pertes de valeur des actifs corporels et incorporels. Cela pourrait refléter un changement dans la manière dont la banque souhaite présenter ses résultats financiers, potentiellement en raison d'une réévaluation des actifs ou d'une modification des politiques comptables.\n\nLe signal de vigie à retenir est que la banque a choisi de ne plus divulguer cet indicateur spécifique, ce qui pourrait indiquer une réorientation de la communication financière ou une évolution dans la gestion des actifs."
+            }
+          },
+          {
+            "value": "Charges pour litiges (8)",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Charges pour litiges\" a été supprimé du tableau de présentation du résultat de base et dilué par action ajustés au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur peut avoir un impact sur la transparence des informations concernant les charges liées aux litiges. Cela pourrait refléter une diminution des litiges en cours ou une modification de la manière dont la banque souhaite présenter ses résultats financiers, potentiellement en raison d'une résolution de litiges ou d'une modification des politiques comptables.\n\nLe signal de vigie à retenir est que la banque a choisi de ne plus divulguer cet indicateur spécifique, ce qui pourrait indiquer une réorientation de la communication financière ou une évolution dans la gestion des risques juridiques."
+            }
+          },
+          {
+            "value": "Charge liée aux modifications à la Loi sur la taxe d'accise (9)",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Charge liée aux modifications à la Loi sur la taxe d'accise\" a été supprimé du tableau de présentation du résultat de base et dilué par action ajustés au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur peut avoir un impact sur la transparence des informations concernant les charges fiscales spécifiques. Cela pourrait refléter une stabilisation des impacts fiscaux ou une modification de la manière dont la banque souhaite présenter ses résultats financiers, potentiellement en raison d'une adaptation aux nouvelles règles fiscales.\n\nLe signal de vigie à retenir est que la banque a choisi de ne plus divulguer cet indicateur spécifique, ce qui pourrait indiquer une réorientation de la communication financière ou une évolution dans la gestion des impacts fiscaux."
+            }
+          },
+          {
+            "value": "Provisions pour contrats (10)",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Provisions pour contrats\" a été supprimé du tableau de présentation du résultat de base et dilué par action ajustés au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur peut avoir un impact sur la transparence des informations concernant les provisions pour contrats. Cela pourrait refléter une diminution des provisions nécessaires ou une modification de la manière dont la banque souhaite présenter ses résultats financiers, potentiellement en raison d'une réévaluation des engagements contractuels.\n\nLe signal de vigie à retenir est que la banque a choisi de ne plus divulguer cet indicateur spécifique, ce qui pourrait indiquer une réorientation de la communication financière ou une évolution dans la gestion des engagements contractuels."
+            }
+          },
+          {
+            "value": "Charge d'impôts liée aux mesures fiscales 2022 du gouvernement du Canada (11)",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Charge d'impôts liée aux mesures fiscales 2022 du gouvernement du Canada\" a été supprimé du tableau de présentation du résultat de base et dilué par action ajustés au T2 2025, alors qu'il était présent au T1 2025.\n\nLa suppression de cet indicateur peut avoir un impact sur la transparence des informations concernant les charges fiscales spécifiques aux mesures de 2022. Cela pourrait refléter une stabilisation des impacts fiscaux ou une modification de la manière dont la banque souhaite présenter ses résultats financiers, potentiellement en raison d'une adaptation aux nouvelles règles fiscales.\n\nLe signal de vigie à retenir est que la banque a choisi de ne plus divulguer cet indicateur spécifique, ce qui pourrait indiquer une réorientation de la communication financière ou une évolution dans la gestion des impacts fiscaux."
+            }
+          }
+        ],
+        "indicators_renamed": [
+          {
+            "previous": "Gain sur réévaluation à la juste valeur de participations (3) (4)",
+            "current": "Gain sur réévaluation à la juste valeur d'une participation (3)",
+            "reason": "Le changement de nom reflète une modification de la portée de l'indicateur, passant de plusieurs participations à une seule participation.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Gain sur réévaluation à la juste valeur de participations\" a été renommé en \"Gain sur réévaluation à la juste valeur d'une participation\" dans le tableau de présentation du résultat de base et dilué par action ajustés au T2 2025. Ce changement de nom indique une modification de la portée de l'indicateur, passant de plusieurs participations à une seule participation.\n\nCe changement peut avoir un impact sur la manière dont les gains de réévaluation sont perçus et analysés, en particulier en ce qui concerne la concentration des investissements et la gestion des risques associés. Cela pourrait également refléter une modification des pratiques comptables ou des exigences de divulgation en vertu des normes IFRS.\n\nLe signal de vigie à retenir est que la banque a ajusté la portée de cet indicateur, ce qui pourrait indiquer une réévaluation stratégique des investissements ou une réponse aux attentes des régulateurs en matière de transparence et de gestion des risques."
+            }
+          }
+        ],
+        "footnotes_added": [
+          {
+            "id": "7",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2025, des dotations aux pertes de crédit initiales de 230 M$ (166 M$ déduction faite des impôts) ont été enregistrées sur les prêts non dépréciés acquis de CWB.",
+            "reason": "New footnote added in the current quarter.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La note de bas de page n°7 a été ajoutée dans le tableau de présentation du résultat de base et dilué par action ajustés au T2 2025. Cette note précise que des dotations aux pertes de crédit initiales de 230 M$ ont été enregistrées sur les prêts non dépréciés acquis de CWB.\n\nL'ajout de cette note est significatif car il met en lumière l'impact des pertes de crédit initiales sur les prêts acquis lors de l'acquisition de CWB. Cela a des implications importantes pour la gestion du risque de crédit et la conformité aux exigences prudentielles, notamment celles liées aux provisions pour pertes attendues selon les normes IFRS 9.\n\nLe signal de vigie à retenir est que la banque met en lumière les risques de crédit associés aux acquisitions récentes, ce qui pourrait refléter une stratégie de gestion proactive des risques et une réponse aux attentes des régulateurs en matière de transparence et de gestion des risques."
+            }
+          },
+          {
+            "id": "8",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2025, une économie d’impôts de 47 M$ a été enregistrée en lien avec un changement de traitement fiscal relatif aux gains non réalisés comptabilisés au cours de l’exercice 2024 et du premier trimestre de 2025 suite à la réévaluation à la juste valeur de la participation que la Banque détenait dans CWB avant l’acquisition.",
+            "reason": "New footnote added in the current quarter.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La note de bas de page n°8 a été ajoutée dans le tableau de présentation du résultat de base et dilué par action ajustés au T2 2025. Cette note indique qu'une économie d’impôts de 47 M$ a été enregistrée en lien avec un changement de traitement fiscal.\n\nL'ajout de cette note est significatif car il met en lumière les économies fiscales réalisées par la banque, potentiellement en raison de changements dans la législation fiscale ou dans l'application des règles fiscales existantes. Cela peut être pertinent pour les analyses de rentabilité et de performance fiscale, et pourrait également être lié à des exigences de divulgation accrues en vertu des normes comptables IFRS ou des directives du BSIF.\n\nLe signal de vigie à retenir est que la banque a jugé nécessaire de détailler davantage les économies fiscales, ce qui pourrait indiquer une attention accrue sur l'optimisation fiscale et son impact sur les résultats financiers."
+            }
+          }
+        ],
+        "footnotes_removed": [],
+        "footnotes_renamed": [
+          {
+            "previous_id": "1",
+            "current_id": "1",
+            "previous_text": "Certains montants ont été ajustés à la suite de modifications de méthodes comptables relatives à l’adoption de l’IFRS 17. Pour de plus amples renseignements, se reporter à la note 2 afférente aux présents états financiers consolidés.",
+            "current_text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les résultats, les soldes et les ratios pour l’exercice terminé le 31 octobre 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB.",
+            "reason": "The footnote text has been materially revised to reflect a significant event (acquisition of CWB) impacting financial results.",
+            "analyst_assessment": {
+              "relevance_level": 1,
+              "justification": "La note de bas de page n°1 a été substantiellement modifiée dans le tableau de présentation du résultat de base et dilué par action ajustés au T2 2025. La nouvelle version de la note se concentre sur l'acquisition de CWB et son impact sur les résultats financiers, les soldes et les ratios.\n\nCe changement est critique car il reflète un événement majeur, l'acquisition de CWB, qui a des implications significatives sur la consolidation des résultats financiers de la banque. Cela peut affecter les ratios de capital, la gestion des risques et la conformité aux exigences réglementaires, notamment celles de Bâle III et du BSIF.\n\nLe signal de vigie à retenir est que la banque met en avant un événement stratégique majeur qui influence la structure financière et les indicateurs de performance, nécessitant une attention particulière des analystes et des régulateurs."
+            }
+          },
+          {
+            "previous_id": "2",
+            "current_id": "2",
+            "previous_text": "Au cours de l’exercice terminé le 31 octobre 2024, un montant de 14 M$ (10 M$ déduction faite des impôts) a été enregistré, représentant l’amortissement des frais d'émission des reçus de souscription émis dans le cadre de l’entente visant l’acquisition de CWB (pour de plus amples renseignements, se reporter aux notes 14 et 16 afférentes aux présents états financiers consolidés).",
+            "current_text": "Au cours de l’exercice terminé le 31 octobre 2025, un montant de 28 M$ (20 M$ déduction faite des impôts) a été enregistré, représentant l’amortissement des frais d'émission des reçus de souscription émis dans le cadre de l’entente visant l’acquisition de CWB (2024 : 14 M$, 10 M$ déduction faite des impôts). Pour de plus amples renseignements, se reporter aux notes 13 et 15 afférentes aux états financiers consolidés.",
+            "reason": "The footnote text has been updated to reflect a change in the amortization amount and references to financial notes.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La note de bas de page n°2 a été modifiée pour refléter une mise à jour du montant de l'amortissement des frais d'émission des reçus de souscription, passant de 14 M$ en 2024 à 28 M$ en 2025.\n\nCe changement est important car il indique une augmentation significative des coûts liés à l'acquisition de CWB, ce qui peut avoir un impact sur les résultats financiers et les analyses de rentabilité. Cela peut également influencer les ratios de capital et la perception des investisseurs quant à l'efficacité de l'intégration de l'acquisition.\n\nLe signal de vigie à retenir est que la banque a ajusté ses rapports pour refléter des coûts accrus, ce qui pourrait indiquer une réévaluation des prévisions financières et une attention accrue sur la gestion des coûts d'acquisition."
+            }
+          },
+          {
+            "previous_id": "3",
+            "current_id": "3",
+            "previous_text": "Au cours de l’exercice terminé le 31 octobre 2024, un gain de 174 M$ (125 M$ déduction faite des impôts) a été enregistré, résultant de la réévaluation à la juste valeur de la participation que la Banque détient dans CWB.",
+            "current_text": "Au cours de l’exercice terminé le 31 octobre 2025, un gain de 4 M$ a été enregistré, résultant de la réévaluation à la juste valeur de la participation que la Banque détenait dans CWB avant l’acquisition (2024 : 174 M$, 125 M$ déduction faite des impôts).",
+            "reason": "The footnote text has been updated to reflect a significant decrease in the gain from revaluation and its context.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La note de bas de page n°3 a été modifiée pour indiquer une diminution significative du gain de réévaluation à la juste valeur de la participation dans CWB, passant de 174 M$ en 2024 à 4 M$ en 2025.\n\nCe changement est important car il reflète une réévaluation des actifs qui peut avoir des implications sur la valorisation de la banque et ses résultats financiers. Cela peut également influencer la perception des investisseurs et des analystes quant à la performance de l'acquisition de CWB.\n\nLe signal de vigie à retenir est que la banque a ajusté ses rapports pour refléter une baisse significative des gains de réévaluation, ce qui pourrait indiquer une révision des attentes de performance et une attention accrue sur la gestion des actifs."
+            }
+          },
+          {
+            "previous_id": "4",
+            "current_id": "4",
+            "previous_text": "Au cours de l’exercice terminé le 31 octobre 2023, la Banque avait conclu qu’elle avait perdu l’influence notable sur Groupe TMX limitée (TMX) et avait donc cessé la comptabilisation selon la méthode de la mise en équivalence de ce placement. La Banque avait désigné son placement dans TMX comme étant un actif financier évalué à la juste valeur par le biais des autres éléments du résultat global, à un montant de 191 M$. Lors de l’évaluation à la juste valeur, un gain de 91 M$ (67 M$ déduction faite des impôts) avait été enregistré.",
+            "current_text": "Au cours de l’exercice terminé le 31 octobre 2025, la Banque a comptabilisé une perte de 23 M$ (17 M$ déduction faite des impôts) liée à la réévaluation à la juste valeur des swaps de taux d’intérêt utilisés pour la gestion des variations de la juste valeur des actifs et passifs de CWB qui donnaient lieu à la volatilité du goodwill et des fonds propres à la clôture de la transaction (2024 : 3 M$, 2 M$ déduction faite des impôts).",
+            "reason": "The footnote text has been materially revised to reflect a shift from a gain to a loss related to interest rate swaps and their impact on goodwill and equity.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La note de bas de page n°4 a été substantiellement modifiée pour indiquer une perte de 23 M$ liée à la réévaluation à la juste valeur des swaps de taux d’intérêt, contrastant avec un gain antérieur.\n\nCe changement est significatif car il reflète une volatilité accrue dans la gestion des variations de la juste valeur des actifs et passifs de CWB, ce qui peut avoir des implications sur le goodwill et les fonds propres. Cela peut également influencer la perception des risques financiers et la gestion des dérivés par la banque.\n\nLe signal de vigie à retenir est que la banque a ajusté ses rapports pour refléter une perte liée aux instruments dérivés, ce qui pourrait indiquer une attention accrue sur la gestion des risques de marché et la transparence des impacts financiers."
+            }
+          },
+          {
+            "previous_id": "5",
+            "current_id": "5",
+            "previous_text": "Au cours de l’exercice terminé le 31 octobre 2024, la Banque a comptabilisé une perte de 3 M$ (2 M$ déduction faite des impôts) liée à la réévaluation à la juste valeur des swaps de taux d’intérêt utilisés pour la gestion des variations de la juste valeur des actifs et passifs de CWB qui donnent lieu à la volatilité du goodwill et des fonds propres à la clôture de la transaction. Pour de plus amples renseignements, se reporter à la section « Transaction CWB ».",
+            "current_text": "Au cours de l’exercice terminé le 31 octobre 2025, des charges d'acquisition et d'intégration de 352 M$ (255 M$ déduction faite des impôts) ont été enregistrées relativement à la transaction avec CWB (2024 : 18 M$, 13 M$ déduction faite des impôts).",
+            "reason": "The footnote text has been materially revised to reflect a significant increase in acquisition and integration charges related to CWB.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La note de bas de page n°5 a été modifiée pour indiquer une augmentation significative des charges d'acquisition et d'intégration, passant de 18 M$ en 2024 à 352 M$ en 2025.\n\nCe changement est important car il reflète une augmentation substantielle des coûts liés à l'intégration de CWB, ce qui peut avoir des implications sur les résultats financiers et la rentabilité de l'acquisition. Cela peut également influencer les ratios de capital et la perception des investisseurs quant à l'efficacité de l'intégration.\n\nLe signal de vigie à retenir est que la banque a ajusté ses rapports pour refléter des coûts accrus, ce qui pourrait indiquer une réévaluation des prévisions financières et une attention accrue sur la gestion des coûts d'acquisition."
+            }
+          },
+          {
+            "previous_id": "6",
+            "current_id": "6",
+            "previous_text": "Au cours de l’exercice terminé le 31 octobre 2024, des charges d'acquisition et d'intégration de 18 M$ (13 M$ déduction faite des impôts) ont été enregistrées relativement à la transaction CWB.",
+            "current_text": "Au cours de l’exercice terminé le 31 octobre 2025, un montant de 73 M$ (54 M$ déduction faite des impôts) a été enregistré, représentant l’amortissement des immobilisations incorporelles liées à l’acquisition de CWB.",
+            "reason": "The footnote text has been materially revised to reflect a new focus on the amortization of intangible assets related to the CWB acquisition.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La note de bas de page n°6 a été modifiée pour indiquer un montant de 73 M$ lié à l’amortissement des immobilisations incorporelles, contrastant avec les charges d'acquisition et d'intégration précédemment rapportées.\n\nCe changement est significatif car il met en lumière l'impact des amortissements sur les actifs incorporels acquis lors de l'acquisition de CWB, ce qui peut avoir des implications sur les résultats financiers et la rentabilité de l'acquisition. Cela peut également influencer la perception des investisseurs et des analystes quant à la gestion des actifs incorporels.\n\nLe signal de vigie à retenir est que la banque a ajusté ses rapports pour refléter l'importance des amortissements, ce qui pourrait indiquer une attention accrue sur la gestion des actifs incorporels et leur impact sur les résultats financiers."
+            }
+          }
+        ],
+        "table_level_change": "modifie"
+      },
+      "analyst_assessment": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 9 changement(s) d'indicateur et 8 changement(s) de footnote."
+      },
+      "reason": "The analysis focused on identifying meaningful semantic changes in the indicators between the two matched tables, considering the rules provided. Changes were classified as additions, removals, or renames based on the presence and scope of indicators in the current and previous tables. The analysis identified new footnotes added in the current quarter and significant revisions to existing footnotes, reflecting changes in financial reporting related to the acquisition of CWB.",
+      "visual_sanity_applied": true,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": true,
+        "themes_amf": [
+          "MODIFICATION_TEXTE_RISQUE",
+          "DIVULGATION_AJOUT",
+          "DIVULGATION_RETRAIT"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Information ajoutée, Information retirée, Texte de risque modifié\n\nCe qui change : Des indicateurs ont été ajoutés et supprimés dans le tableau 'Présentation du résultat de base et dilué par action – ajustés', notamment l'ajout de l'amortissement des immobilisations incorporelles liées à l'acquisition de CWB et la suppression de charges pour litiges.\n\nPertinence métier : Ce changement met l'accent sur la réévaluation des éléments comptables liés aux acquisitions et aux traitements fiscaux, ce qui peut avoir un impact sur la perception des résultats financiers ajustés de la banque. Les ajustements reflètent des changements dans la stratégie de gestion des acquisitions et des litiges, ce qui est crucial pour la transparence et la comparabilité entre pairs.\n\nPoint de surveillance : Surveiller l'impact de ces ajustements sur les résultats financiers ajustés et la manière dont ils influencent la communication des performances financières de la banque.",
+        "impact_level": "MODERE",
+        "impact_it": "MOYEN",
+        "impact_it_justification": "Éléments observés : Ajout et retrait d'indicateurs comptables dans le tableau des résultats ajustés.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting financier pour refléter ces changements, ce qui peut impliquer des ajustements dans les processus IT.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de l'ampleur des modifications requises dans les processus de reporting.",
+        "changement_posture": "RENFORCEMENT",
+        "justification_posture": "Preuve : Ajout d'indicateurs liés à l'acquisition et à la fiscalité, suppression de charges pour litiges.\n\nEffet sur la gestion du risque : Amélioration de la transparence et de la précision des résultats financiers ajustés.\n\nJustification du statut : Les changements indiquent un renforcement des pratiques de divulgation financière.\n\nJustification de la confiance : Basé sur l'ajustement des indicateurs comptables et la mise à jour des notes explicatives.",
+        "statut_mise_en_oeuvre": "EN_COURS",
+        "confiance_posture": "ELEVEE",
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "Le tableau 'Présentation du résultat de base et dilué par action – ajustés' a subi des modifications significatives avec l'ajout et la suppression d'indicateurs comptables. Ces changements reflètent des ajustements dans la stratégie de gestion des acquisitions et des litiges, ce qui est crucial pour la transparence et la comparabilité entre pairs.\n\nL'ajout d'indicateurs tels que l'amortissement des immobilisations incorporelles liées à l'acquisition de CWB et la suppression de charges pour litiges indiquent un renforcement des pratiques de divulgation financière. Cela met en évidence l'importance de la réévaluation des éléments comptables liés aux acquisitions et aux traitements fiscaux.\n\nCes ajustements nécessitent une mise à jour des systèmes de reporting financier, ce qui peut impliquer des ajustements dans les processus IT. L'impact exact sur les systèmes IT dépend de l'ampleur des modifications requises dans les processus de reporting.",
+        "impact_type": "contenu",
+        "project_phase": "rapport_gestion",
+        "action_requise": "revue_prioritaire",
+        "reference_reglementaire": "",
+        "impact_description": "Modification des indicateurs comptables influençant la transparence des résultats financiers ajustés.",
+        "source": "llm"
+      },
+      "genai_analysis": {
+        "resume_metier": "Le tableau 'Présentation du résultat de base et dilué par action – ajustés' a subi des modifications significatives avec l'ajout et la suppression d'indicateurs comptables. Ces changements reflètent des ajustements dans la stratégie de gestion des acquisitions et des litiges, ce qui est crucial pour la transparence et la comparabilité entre pairs.\n\nL'ajout d'indicateurs tels que l'amortissement des immobilisations incorporelles liées à l'acquisition de CWB et la suppression de charges pour litiges indiquent un renforcement des pratiques de divulgation financière. Cela met en évidence l'importance de la réévaluation des éléments comptables liés aux acquisitions et aux traitements fiscaux.\n\nCes ajustements nécessitent une mise à jour des systèmes de reporting financier, ce qui peut impliquer des ajustements dans les processus IT. L'impact exact sur les systèmes IT dépend de l'ampleur des modifications requises dans les processus de reporting."
+      }
+    },
+    {
+      "previous_table_id": "tbl_p023_i01",
+      "current_table_id": "tbl_p025_i01",
+      "match_confidence": 0.98,
+      "match_reason": "Indicators and row_count identical; headers structure matches; both tables are in the 'capital_management' section.",
+      "diff_mode": "gpt",
+      "previous_table": {
+        "table_id": "tbl_p023_i01",
+        "title": "",
+        "table_summary": "Faits saillants financiers et réglementaires",
+        "extraction_status": "rescued",
+        "page": 23,
+        "section": "capital_management",
+        "bbox": [
+          0.0681242039001066,
+          0.15171852497139363,
+          0.9562337040122039,
+          0.8083321157127921
+        ],
+        "row_count": 51,
+        "headers": [
+          "2024",
+          "2023 (1)",
+          "Variation %"
+        ],
+        "indicators": [
+          "Résultats d'exploitation",
+          "Revenu total",
+          "Résultat avant dotations aux pertes de crédit et charge d'impôts",
+          "Résultat net",
+          "Résultat net attribuable aux actionnaires et aux détenteurs d'autres instruments de capitaux propres de la Banque",
+          "Rendement des capitaux propres attribuables aux détenteurs d'actions ordinaires (2)",
+          "Ratio de versement des dividendes (2)",
+          "Levier opérationnel (2)",
+          "Ratio d'efficience (2)",
+          "Résultat par action",
+          "de base",
+          "dilué",
+          "Résultats d'exploitation – ajustés (3)",
+          "Revenu total – ajusté (3)",
+          "Résultat avant dotations aux pertes de crédit et charge d'impôts – ajusté (3)",
+          "Résultat net – ajusté (3)",
+          "Rendement des capitaux propres attribuables aux détenteurs d'actions ordinaires – ajusté (4)",
+          "Ratio de versement des dividendes – ajusté (4)",
+          "Levier opérationnel – ajusté (4)",
+          "Ratio d'efficience – ajusté (4)",
+          "Résultat dilué par action – ajusté (3)",
+          "Informations sur les actions ordinaires",
+          "Dividendes déclarés",
+          "Valeur comptable (2)",
+          "Cours de l'action",
+          "haut",
+          "bas",
+          "clôture",
+          "Nombre d’actions ordinaires (en milliers)",
+          "Capitalisation boursière",
+          "Bilan et hors bilan",
+          "Actif total",
+          "Prêts et acceptations, déduction faite des provisions",
+          "Dépôts",
+          "Capitaux propres attribuables aux actionnaires ordinaires",
+          "Actifs sous administration (2)",
+          "Actifs sous gestion (2)",
+          "Ratios réglementaires selon Bâle III (5)",
+          "Ratios des fonds propres",
+          "catégorie 1 sous forme d'actions ordinaires (CET1)",
+          "catégorie 1",
+          "total",
+          "Ratio de levier",
+          "Ratio TLAC (5)",
+          "Ratio de levier TLAC (5)",
+          "Ratio de liquidité à court terme (LCR) (5)",
+          "Ratio structurel de liquidité à long terme (NSFR) (5)",
+          "Autres renseignements",
+          "Nombre d’employés – mondial (équivalent temps plein)",
+          "Nombre de succursales au Canada",
+          "Nombre de guichets automatiques au Canada"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Certains montants ont été ajustés à la suite de modifications de méthodes comptables relatives à l’adoption de l’IFRS 17. Pour de plus amples renseignements, se reporter à la note 2 afférente aux présents états financiers consolidés."
+          },
+          {
+            "id": "2",
+            "text": "Consulter le « Glossaire » aux pages 130 à 133 pour plus de détails sur la composition de ces mesures."
+          },
+          {
+            "id": "3",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 14 à 20 pour le détail des mesures financières non conformes aux PCGR."
+          },
+          {
+            "id": "4",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 14 à 20 pour le détail des ratios non conformes aux PCGR."
+          },
+          {
+            "id": "5",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 14 à 20 pour de plus amples renseignements sur les mesures de gestion du capital."
+          }
+        ]
+      },
+      "current_table": {
+        "table_id": "tbl_p025_i01",
+        "title": "",
+        "table_summary": "Faits saillants financiers et réglementaires",
+        "extraction_status": "rescued",
+        "page": 25,
+        "section": "capital_management",
+        "bbox": [
+          0.06863489961312487,
+          0.1599917748961786,
+          0.9556901719835069,
+          0.8257876309481534
+        ],
+        "row_count": 51,
+        "headers": [
+          "2025 (1)",
+          "2024 (2)",
+          "Variation %"
+        ],
+        "indicators": [
+          "Résultats d'exploitation",
+          "Revenu total",
+          "Résultat avant dotations aux pertes de crédit et charge d'impôts",
+          "Résultat net",
+          "Résultat net attribuable aux actionnaires et aux détenteurs d'autres instruments de capitaux propres de la Banque",
+          "Rendement des capitaux propres attribuables aux détenteurs d'actions ordinaires (3)",
+          "Ratio de versement des dividendes (3)",
+          "Levier opérationnel (3)",
+          "Ratio d'efficience (3)",
+          "Résultat par action",
+          "de base",
+          "dilué",
+          "Résultats d'exploitation – ajustés (4)",
+          "Revenu total – ajusté (4)",
+          "Résultat avant dotations aux pertes de crédit et charge d'impôts – ajusté (4)",
+          "Résultat net – ajusté (4)",
+          "Rendement des capitaux propres attribuables aux détenteurs d'actions ordinaires – ajusté (5)",
+          "Ratio de versement des dividendes – ajusté (5)",
+          "Levier opérationnel – ajusté (5)",
+          "Ratio d'efficience – ajusté (5)",
+          "Résultat dilué par action – ajusté (4)",
+          "Informations sur les actions ordinaires",
+          "Dividendes déclarés",
+          "Valeur comptable (3)",
+          "Cours de l'action",
+          "haut",
+          "bas",
+          "clôture",
+          "Nombre d’actions ordinaires (en milliers)",
+          "Capitalisation boursière",
+          "Bilan et hors bilan",
+          "Actif total",
+          "Prêts, déduction faite des provisions",
+          "Dépôts",
+          "Capitaux propres attribuables aux actionnaires ordinaires",
+          "Actifs sous administration (3)",
+          "Actifs sous gestion (3)",
+          "Ratios réglementaires selon Bâle III (6)",
+          "Ratios des fonds propres",
+          "catégorie 1 sous forme d'actions ordinaires (CET1)",
+          "catégorie 1 (7)",
+          "total (7)",
+          "Ratio de levier (7)",
+          "Ratio TLAC (6)",
+          "Ratio de levier TLAC (6)",
+          "Ratio de liquidité à court terme (LCR) (6)",
+          "Ratio de liquidité à long terme (NSFR) (6)",
+          "Autres renseignements",
+          "Nombre d’employés – mondial (équivalent temps plein)",
+          "Nombre de succursales au Canada",
+          "Nombre de guichets automatiques au Canada"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les résultats, les soldes et les ratios pour l’exercice terminé le 31 octobre 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB."
+          },
+          {
+            "id": "2",
+            "text": "Certains montants ont été ajustés à la suite de la cessation de la présentation des revenus et de la charge d’impôts selon la méthode de l’équivalent imposable."
+          },
+          {
+            "id": "3",
+            "text": "Consulter le « Glossaire » aux pages 136 à 139 pour plus de détails sur la composition de ces mesures."
+          },
+          {
+            "id": "4",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 18 à 23 pour le détail des mesures financières non conformes aux PCGR."
+          },
+          {
+            "id": "5",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 18 à 23 pour le détail des ratios non conformes aux PCGR."
+          },
+          {
+            "id": "6",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 18 à 23 pour de plus amples renseignements sur les mesures de gestion du capital."
+          },
+          {
+            "id": "7",
+            "text": "Les ratios au 31 octobre 2025 tiennent compte du rachat des billets de capital à recours limité série 1 (BCRL - Série 1) effectué le 17 novembre 2025."
+          }
+        ]
+      },
+      "technical_diff": {
+        "indicators_added": [
+          {
+            "value": "Prêts, déduction faite des provisions",
+            "reason": "L'indicateur 'Prêts, déduction faite des provisions' est présent dans le tableau actuel mais pas dans le tableau précédent, indiquant un ajout.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur 'Prêts, déduction faite des provisions' a été ajouté dans le tableau des faits saillants financiers et réglementaires au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout est significatif car il permet de mieux comprendre la qualité des actifs de la banque en tenant compte des provisions pour pertes de crédit. Cela peut avoir un impact sur l'évaluation des risques de crédit et la gestion des actifs, ce qui est crucial pour la conformité avec les normes prudentielles telles que Bâle III.\n\nLe signal de vigie à retenir est que la banque améliore la transparence de ses actifs en fournissant des informations plus détaillées sur les prêts nets de provisions, ce qui peut influencer les décisions des investisseurs et des régulateurs."
+            }
+          }
+        ],
+        "indicators_removed": [
+          {
+            "value": "Prêts et acceptations, déduction faite des provisions",
+            "reason": "L'indicateur 'Prêts et acceptations, déduction faite des provisions' est présent dans le tableau précédent mais pas dans le tableau actuel, indiquant une suppression.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur 'Prêts et acceptations, déduction faite des provisions' a été supprimé du tableau des faits saillants financiers et réglementaires au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut avoir des implications sur la manière dont la banque présente ses engagements financiers, notamment en ce qui concerne les acceptations qui sont des engagements conditionnels. Cela pourrait affecter la perception des risques associés aux engagements hors bilan, ce qui est pertinent pour les exigences de divulgation prudentielle.\n\nLe signal de vigie à retenir est que la banque a modifié la présentation de ses engagements, ce qui pourrait refléter un changement dans la stratégie de gestion des risques ou une réponse à des exigences réglementaires."
+            }
+          }
+        ],
+        "indicators_renamed": [],
+        "footnotes_added": [
+          {
+            "id": "2",
+            "text": "Certains montants ont été ajustés à la suite de la cessation de la présentation des revenus et de la charge d’impôts selon la méthode de l’équivalent imposable.",
+            "reason": "New footnote added in the current table.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La note de bas de page n°2 a été ajoutée dans le tableau des faits saillants financiers et réglementaires au T2 2025. Cette note indique que certains montants ont été ajustés en raison de la cessation de la présentation des revenus et de la charge d’impôts selon la méthode de l’équivalent imposable.\n\nCe changement est significatif car il affecte la manière dont les revenus et les charges d’impôts sont présentés, ce qui peut avoir un impact sur la comparabilité des résultats financiers d'une période à l'autre. Cela peut également influencer les ratios financiers et les indicateurs de performance clés, qui sont essentiels pour l'évaluation de la santé financière de la banque.\n\nLe signal de vigie à retenir est que la banque a modifié sa méthodologie de présentation, ce qui pourrait refléter une adaptation aux nouvelles normes comptables ou une stratégie de gestion fiscale différente. Cela peut avoir des implications pour les analystes et les investisseurs qui suivent la performance financière de la banque."
+            }
+          },
+          {
+            "id": "7",
+            "text": "Les ratios au 31 octobre 2025 tiennent compte du rachat des billets de capital à recours limité série 1 (BCRL - Série 1) effectué le 17 novembre 2025.",
+            "reason": "New footnote added in the current table.",
+            "analyst_assessment": {
+              "relevance_level": 1,
+              "justification": "La note de bas de page n°7 a été ajoutée dans le tableau des faits saillants financiers et réglementaires au T2 2025. Elle précise que les ratios au 31 octobre 2025 tiennent compte du rachat des billets de capital à recours limité série 1 (BCRL - Série 1) effectué le 17 novembre 2025.\n\nCe changement est critique car il concerne les ratios de fonds propres, qui sont des indicateurs clés de la solidité financière de la banque. Le rachat des BCRL peut avoir un impact direct sur les ratios de capital, influençant ainsi la conformité avec les exigences réglementaires telles que Bâle III. Cela peut également affecter la perception des investisseurs et des régulateurs quant à la gestion du capital de la banque.\n\nLe signal de vigie à retenir est que la banque a pris des mesures pour ajuster sa structure de capital, ce qui pourrait indiquer une stratégie proactive de gestion des fonds propres. Cela souligne l'importance de surveiller les ajustements de capital qui peuvent avoir des répercussions sur la stabilité financière et la conformité réglementaire."
+            }
+          }
+        ],
+        "footnotes_removed": [],
+        "footnotes_renamed": [
+          {
+            "previous_id": "1",
+            "current_id": "1",
+            "previous_text": "Certains montants ont été ajustés à la suite de modifications de méthodes comptables relatives à l’adoption de l’IFRS 17. Pour de plus amples renseignements, se reporter à la note 2 afférente aux présents états financiers consolidés.",
+            "current_text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les résultats, les soldes et les ratios pour l’exercice terminé le 31 octobre 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB.",
+            "reason": "Material semantic change in footnote content.",
+            "analyst_assessment": {
+              "relevance_level": 1,
+              "justification": "La note de bas de page n°1 a subi une modification significative dans le tableau des faits saillants financiers et réglementaires au T2 2025. Initialement, elle portait sur des ajustements liés à l’adoption de l’IFRS 17, mais elle a été remplacée par une note concernant l'acquisition de CWB par la banque.\n\nCe changement est critique car il reflète une transformation majeure dans les opérations de la banque, avec l'intégration de CWB. Cette acquisition a des implications directes sur les résultats financiers, les soldes et les ratios, ce qui est crucial pour l'évaluation de la performance financière et de la stratégie de croissance de la banque. Cela peut également influencer les exigences de divulgation réglementaire et la conformité avec les normes de consolidation.\n\nLe signal de vigie à retenir est que la banque a élargi son périmètre d'activité par une acquisition stratégique, ce qui pourrait avoir des répercussions sur sa position concurrentielle et sa capacité à générer des synergies. Les analystes doivent surveiller l'impact de cette intégration sur les performances futures et la gestion des risques."
+            }
+          }
+        ],
+        "table_level_change": "modifie"
+      },
+      "analyst_assessment": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 2 changement(s) d'indicateur et 3 changement(s) de footnote."
+      },
+      "reason": "The analysis identified one indicator added and one removed, with no clear semantic renames. The changes reflect adjustments in how financial commitments are reported, impacting risk assessment and regulatory compliance. The analysis identified new footnotes added and a significant semantic change in an existing footnote, reflecting strategic and regulatory impacts.",
+      "visual_sanity_applied": true,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": true,
+        "themes_amf": [
+          "STRUCTURE_RAPPORT",
+          "CAPITAL_REGLEMENTAIRE"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Capital réglementaire\n\nCe qui change : L'indicateur 'Prêts et acceptations, déduction faite des provisions' a été remplacé par 'Prêts, déduction faite des provisions'. De plus, une note a été ajoutée concernant le rachat des billets de capital à recours limité série 1.\n\nPertinence métier : Ce changement met l'accent sur la manière dont la banque ajuste ses indicateurs de capital, ce qui peut avoir un impact sur la perception de sa solidité financière. Le rachat des billets de capital à recours limité série 1 est particulièrement pertinent pour les exigences de capital réglementaire, car il peut affecter la composition des fonds propres réglementaires.\n\nPoint de surveillance : Surveiller l'impact de ces ajustements sur les ratios de capital réglementaire et la manière dont ils sont perçus par les régulateurs et les investisseurs.",
+        "impact_level": "MODERE",
+        "impact_it": "MOYEN",
+        "impact_it_justification": "Éléments observés : Modification des indicateurs de capital et ajout de notes explicatives.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter les nouveaux indicateurs et ajustements de capital.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la complexité des ajustements requis.",
+        "changement_posture": "RENFORCEMENT",
+        "justification_posture": "Preuve : Ajout d'une note sur le rachat des billets de capital à recours limité série 1.\n\nEffet sur la gestion du risque : Renforce la gestion du capital en ajustant les indicateurs pour mieux refléter la situation financière.\n\nJustification du statut : Le rachat des billets de capital à recours limité série 1 indique un renforcement des fonds propres réglementaires.\n\nJustification de la confiance : Basé sur l'ajout explicite de notes concernant les ajustements de capital.",
+        "statut_mise_en_oeuvre": "EN_COURS",
+        "confiance_posture": "ELEVEE",
+        "category": "CAPITAL",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.9,
+        "explanation": "La modification des indicateurs de capital, notamment le remplacement de 'Prêts et acceptations, déduction faite des provisions' par 'Prêts, déduction faite des provisions', indique un ajustement dans la manière dont la banque présente ses actifs. Cela peut refléter une stratégie de gestion du capital plus précise.\n\nL'ajout de notes concernant le rachat des billets de capital à recours limité série 1 est significatif pour les exigences de capital réglementaire. Cela montre que la banque prend des mesures pour optimiser sa structure de capital en conformité avec les attentes réglementaires.\n\nCes changements sont importants pour les investisseurs et les régulateurs, car ils affectent la perception de la solidité financière de la banque et sa capacité à répondre aux exigences de capital réglementaire.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "revue_prioritaire",
+        "reference_reglementaire": "Bâle III — CET1",
+        "impact_description": "Modification des indicateurs de capital et ajout de notes sur le rachat de capital, affectant la présentation des fonds propres réglementaires.",
+        "source": "llm"
+      },
+      "genai_analysis": {
+        "resume_metier": "La modification des indicateurs de capital, notamment le remplacement de 'Prêts et acceptations, déduction faite des provisions' par 'Prêts, déduction faite des provisions', indique un ajustement dans la manière dont la banque présente ses actifs. Cela peut refléter une stratégie de gestion du capital plus précise.\n\nL'ajout de notes concernant le rachat des billets de capital à recours limité série 1 est significatif pour les exigences de capital réglementaire. Cela montre que la banque prend des mesures pour optimiser sa structure de capital en conformité avec les attentes réglementaires.\n\nCes changements sont importants pour les investisseurs et les régulateurs, car ils affectent la perception de la solidité financière de la banque et sa capacité à répondre aux exigences de capital réglementaire."
+      }
+    },
+    {
+      "previous_table_id": "tbl_p083_i01",
+      "current_table_id": "tbl_p087_i01",
+      "match_confidence": 0.98,
+      "match_reason": "Indicators and row_count identical; headers structure matches; both tables are in the 'regulatory_updates' section.",
+      "diff_mode": "gpt",
+      "previous_table": {
+        "table_id": "tbl_p083_i01",
+        "title": "Cotes internes de risque de défaut *",
+        "table_summary": "Échelle des cotes internes de risque de défaut",
+        "extraction_status": "rescued",
+        "page": 83,
+        "section": "regulatory_updates",
+        "bbox": [
+          0.06825142904044756,
+          0.5841242857653686,
+          0.9559813854741116,
+          0.7112384372287327
+        ],
+        "row_count": 6,
+        "headers": [
+          "Descriptif (1)",
+          "Portefeuille de crédit aux particuliers",
+          "Descriptif (1)",
+          "Cotes",
+          "PD (%) – Entreprises et institutions financières",
+          "PD (%) – États souverains",
+          "Standard & Poor’s",
+          "Moody’s"
+        ],
+        "indicators": [
+          "Excellent",
+          "Bon",
+          "Satisfaisant",
+          "À signaler",
+          "Faible",
+          "Défaut"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "De plus amples renseignements sont présentés dans la note 8 – Prêts et provisions pour pertes de crédit afférente aux états financiers consolidés."
+          }
+        ]
+      },
+      "current_table": {
+        "table_id": "tbl_p087_i01",
+        "title": "Cotes internes de risque de défaut *",
+        "table_summary": "Échelle des cotes internes de risque de défaut",
+        "extraction_status": "rescued",
+        "page": 87,
+        "section": "regulatory_updates",
+        "bbox": [
+          0.0689242493872549,
+          0.6270104225235756,
+          0.9549101785896651,
+          0.7545607595732718
+        ],
+        "row_count": 6,
+        "headers": [
+          "Descriptif (1)",
+          "Portefeuille de crédit aux particuliers",
+          "Descriptif (1)",
+          "Cotes",
+          "PD (%) – Entreprises et institutions financières",
+          "PD (%) – États souverains",
+          "Standard & Poor’s",
+          "Moody’s"
+        ],
+        "indicators": [
+          "Excellent",
+          "Bon",
+          "Satisfaisant",
+          "À signaler",
+          "Faible",
+          "Défaut"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "De plus amples renseignements sont présentés dans la note 8 – Prêts et provisions pour pertes de crédit afférente aux états financiers consolidés."
+          }
+        ]
+      },
+      "technical_diff": {
+        "indicators_added": [],
+        "indicators_removed": [],
+        "indicators_renamed": [],
+        "footnotes_added": [],
+        "footnotes_removed": [],
+        "footnotes_renamed": [],
+        "table_level_change": "inchange"
+      },
+      "analyst_assessment": {
+        "theme": "risque_credit",
+        "change_significance": "faible",
+        "review_priority": "normale",
+        "analyst_summary": "Aucun changement semantique detecte sur le theme risque_credit."
+      },
+      "reason": "Les deux tableaux comparés présentent des indicateurs identiques en termes de noms et de positions structurelles. Aucun changement sémantique significatif n'a été détecté entre les deux trimestres. Les indicateurs 'Excellent', 'Bon', 'Satisfaisant', 'À signaler', 'Faible', et 'Défaut' sont présents dans les deux tableaux aux mêmes positions, ce qui indique qu'il n'y a ni ajout, ni suppression, ni renommage d'indicateurs.",
+      "visual_sanity_applied": false,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
+      "genai_triage": {
+        "is_relevant": false,
+        "themes_amf": [],
+        "nouvelle_idee": false,
+        "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Élément non classifié par l'analyse automatisée.\n\nCe qui change : Aucun triage AMF exploitable n'a été produit par GPT-4o pour ce changement. Le système ne dispose donc pas d'une lecture fiable du contenu T1/T2 pour qualifier cette ligne.\n\nPertinence métier : Ce cas ne constitue pas une nouvelle idée métier détectée par la vigie, car aucun thème AMF, risque, méthode, conformité ou divulgation substantielle n'a pu être rattaché au changement de façon fiable.\n\nPoint de surveillance : Élément non classifié — La ligne ne porte pas de signal métier exploitable dans le résumé de surveillance automatisé.",
+        "impact_level": "MINEUR",
+        "impact_it": "INDETERMINE",
+        "impact_it_justification": "",
+        "changement_posture": "AUCUN",
+        "justification_posture": "",
+        "statut_mise_en_oeuvre": "INDETERMINE",
+        "confiance_posture": "INDETERMINE",
+        "category": "NON_PERTINENT",
+        "relevance_score": "FAIBLE",
+        "risk_level": "FAIBLE",
+        "confidence": 0.0,
+        "explanation": "",
+        "impact_type": "non_substantif",
+        "project_phase": "autre",
+        "action_requise": "aucune",
+        "reference_reglementaire": "",
+        "impact_description": "",
+        "source": "skip"
+      }
+    },
+    {
+      "previous_table_id": "tbl_p020_i01",
+      "current_table_id": "tbl_p027_i01",
+      "match_confidence": 0.75,
+      "match_reason": "Both tables are related to capital management and share indicators related to 'Dotations aux pertes de crédit'. The CQ table appears to be a truncated version focusing on specific risk measures.",
+      "diff_mode": "gpt",
+      "previous_table": {
+        "table_id": "tbl_p020_i01",
+        "title": "",
+        "table_summary": "Rapprochement des résultats ajustés et non conformes aux PCGR",
+        "extraction_status": "rescued",
+        "page": 20,
+        "section": "capital_management",
+        "bbox": [
+          0.03891014896966274,
+          0.1355388429429796,
+          0.9247358733532476,
+          0.8412308355774543
+        ],
+        "row_count": 50,
+        "headers": [
+          "Particuliers et Entreprises",
+          "Gestion de patrimoine",
+          "Marchés financiers",
+          "FSEU&I",
+          "Autres",
+          "2024 Total",
+          "2023 (1) Total"
+        ],
+        "indicators": [
+          "Résultats d'exploitation",
+          "Revenu net d’intérêts",
+          "Revenus autres que d'intérêts",
+          "Revenu total",
+          "Frais autres que d'intérêts",
+          "Résultat avant dotations aux pertes de crédit et charge d'impôts",
+          "Dotations aux pertes de crédit",
+          "Résultat avant charge (économie) d'impôts",
+          "Charge (économie) d'impôts",
+          "Résultat net",
+          "Éléments ayant une incidence sur les résultats",
+          "Revenu net d'intérêts",
+          "Équivalent imposable (2)",
+          "Amortissement des frais d'émission des reçus de souscription (3)",
+          "Incidence sur le revenu net d'intérêts",
+          "Revenus autres que d'intérêts",
+          "Équivalent imposable (2)",
+          "Gain sur réévaluation à la juste valeur de participations (4) (5)",
+          "Gestion des variations de la juste valeur relative à l’acquisition de CWB (6)",
+          "Incidence sur les revenus autres que d'intérêts",
+          "Frais autres que d'intérêts",
+          "Charges liées à l'acquisition et à l'intégration de CWB (7)",
+          "Pertes de valeur d'immobilisations corporelles et incorporelles (8)",
+          "Charges pour litiges (9)",
+          "Charge liée aux modifications à la Loi sur la taxe d'accise (10)",
+          "Provisions pour contrats (11)",
+          "Incidence sur les frais autres que d'intérêts",
+          "Charge d'impôts",
+          "Équivalent imposable (2)",
+          "Charge d'impôts liée à l'amortissement des frais d'émission des reçus de souscription (3)",
+          "Charge d'impôts liée au gain sur réévaluation à la juste valeur de participations (4) (5)",
+          "Charge d'impôts liée à la gestion des variations de la juste valeur relative à l'acquisition de CWB (6)",
+          "Charge d'impôts liée aux charges d'acquisition et d'intégration de CWB (7)",
+          "Charge d'impôts liée aux pertes de valeur d'immobilisations corporelles et incorporelles (8)",
+          "Charge d'impôts liée aux charges pour litiges (9)",
+          "Charge d'impôts liée aux modifications à la Loi sur la taxe d'accise (10)",
+          "Charge d'impôts liée aux provisions pour contrats (11)",
+          "Charge d'impôts liée aux mesures fiscales 2022 du gouvernement du Canada (12)",
+          "Incidence sur la charge d'impôts",
+          "Incidence sur le résultat net",
+          "Résultats d'exploitation – ajustés",
+          "Revenu net d’intérêts – ajusté",
+          "Revenus autres que d'intérêts – ajustés",
+          "Revenu total – ajusté",
+          "Frais autres que d'intérêts – ajustés",
+          "Résultat avant dotations aux pertes de crédit et charge d'impôts – ajusté",
+          "Dotations aux pertes de crédit",
+          "Résultat avant charge (économie) d’impôts – ajusté",
+          "Charge (économie) d’impôts – ajustée",
+          "Résultat net – ajusté"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Certains montants ont été ajustés à la suite de modifications de méthodes comptables relatives à l’adoption de l’IFRS 17. Pour de plus amples renseignements, se reporter à la note 2 afférente aux présents états financiers consolidés."
+          },
+          {
+            "id": "2",
+            "text": "À la lumière de la loi adoptée concernant les dividendes canadiens, la Banque n’a pas comptabilisé de déduction d’impôts sur le résultat ni utilisé la méthode de l’équivalent imposable pour ajuster les revenus liés aux dividendes visés, reçus après le 1er janvier 2024 (pour de plus amples renseignements, se reporter à la section « Impôts sur le résultat »)."
+          },
+          {
+            "id": "3",
+            "text": "Au cours de l’exercice terminé le 31 octobre 2024, un montant de 14 M$ (10 M$ déduction faite des impôts) a été enregistré, représentant l’amortissement des frais d'émission des reçus de souscription émis dans le cadre de l'entente visant l’acquisition de CWB (pour de plus amples renseignements, se reporter aux notes 14 et 16 afférentes aux présents états financiers consolidés)."
+          }
+        ]
+      },
+      "current_table": {
+        "table_id": "tbl_p027_i01",
+        "title": "Profil de risque",
+        "table_summary": "Mesures du profil de risque et prêts dépréciés",
+        "extraction_status": "rescued",
+        "page": 27,
+        "section": "capital_management",
+        "bbox": [
+          0.06895521575329351,
+          0.4677215344978102,
+          0.9559123718660641,
+          0.5776833428276911
+        ],
+        "row_count": 7,
+        "headers": [
+          "2025 (2)",
+          "2024"
+        ],
+        "indicators": [
+          "Dotations aux pertes de crédit",
+          "Dotations aux pertes de crédit en % des prêts moyens (3) (4)",
+          "Dotations aux pertes de crédit sur prêts dépréciés en % des prêts moyens (3) (4)",
+          "Radiations nettes en % des prêts moyens (3) (4)",
+          "Prêts dépréciés bruts en % du total des prêts (3)",
+          "Prêts dépréciés bruts",
+          "Prêts dépréciés nets"
+        ],
+        "footnotes": [
+          {
+            "id": "1",
+            "text": "Consulter le « Mode de présentation de l’information » aux pages 18 à 23 pour de plus amples renseignements sur les mesures de gestion du capital."
+          },
+          {
+            "id": "2",
+            "text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les résultats, les soldes et les ratios pour l’exercice terminé le 31 octobre 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB."
+          },
+          {
+            "id": "3",
+            "text": "Consulter le « Glossaire » aux pages 136 à 139 pour plus de détails sur la composition de ces mesures."
+          },
+          {
+            "id": "4",
+            "text": "Incluant les engagements de clients en contrepartie d’acceptations pour les exercices 2021 à 2024."
+          },
+          {
+            "id": "5",
+            "text": "Les ratios au 31 octobre 2025 tiennent compte du rachat des BCRL - Série 1 effectué le 17 novembre 2025."
+          }
+        ]
+      },
+      "technical_diff": {
+        "indicators_added": [
+          {
+            "value": "Prêts dépréciés bruts",
+            "reason": "Cet indicateur n'était pas présent dans le tableau précédent et a été ajouté dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Prêts dépréciés bruts\" a été ajouté dans le tableau de mesures du profil de risque au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout est significatif car il fournit une mesure directe des prêts dépréciés bruts, ce qui est crucial pour évaluer la qualité des actifs et la gestion du risque de crédit. Cela s'inscrit dans les exigences de Bâle III pour une divulgation transparente des risques de crédit.\n\nLe signal de vigie à retenir est que la banque améliore la transparence de ses indicateurs de risque, ce qui peut renforcer la confiance des investisseurs et des régulateurs dans la gestion de ses actifs à risque."
+            }
+          },
+          {
+            "value": "Prêts dépréciés nets",
+            "reason": "Cet indicateur n'était pas présent dans le tableau précédent et a été ajouté dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Prêts dépréciés nets\" a été ajouté dans le tableau de mesures du profil de risque au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout est important car il permet de suivre les prêts dépréciés nets, offrant ainsi une vue plus précise de la qualité des actifs après prise en compte des provisions. Cela répond aux attentes des régulateurs en matière de transparence et de gestion proactive des risques, conformément aux lignes directrices de Bâle III.\n\nLe signal de vigie à retenir est que la banque renforce sa capacité à surveiller et à divulguer les risques associés aux prêts dépréciés, ce qui est essentiel pour la confiance des investisseurs et des régulateurs."
+            }
+          }
+        ],
+        "indicators_removed": [
+          {
+            "value": "Résultats d'exploitation",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Résultats d'exploitation\" a été supprimé du tableau de rapprochement des résultats ajustés et non conformes aux PCGR au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut indiquer un changement dans la manière dont les résultats d'exploitation sont présentés ou intégrés dans d'autres indicateurs. Cela peut avoir un impact sur la transparence des résultats financiers et la comparabilité avec les périodes précédentes, ce qui est important pour les analyses financières et la conformité réglementaire.\n\nLe signal de vigie à retenir est que la banque pourrait avoir modifié sa méthodologie de présentation des résultats, ce qui nécessite une attention particulière pour comprendre l'impact sur l'analyse des performances financières."
+            }
+          },
+          {
+            "value": "Revenu net d’intérêts",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Revenu net d’intérêts\" a été supprimé du tableau de rapprochement des résultats ajustés et non conformes aux PCGR au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut refléter un changement dans la manière dont le revenu net d'intérêts est calculé ou présenté, ce qui peut affecter la transparence et la comparabilité des résultats financiers. Le revenu net d'intérêts est un indicateur clé pour évaluer la rentabilité des activités bancaires, et sa suppression peut avoir des implications sur l'analyse des marges d'intérêt.\n\nLe signal de vigie à retenir est que la banque pourrait avoir ajusté sa méthodologie de calcul ou de présentation, ce qui nécessite une attention particulière pour comprendre l'impact sur l'analyse des performances financières."
+            }
+          },
+          {
+            "value": "Revenus autres que d'intérêts",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Revenus autres que d'intérêts\" a été supprimé du tableau de rapprochement des résultats ajustés et non conformes aux PCGR au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut indiquer un changement dans la manière dont les revenus autres que d'intérêts sont présentés ou intégrés dans d'autres indicateurs. Cela peut affecter la transparence et la comparabilité des résultats financiers, ce qui est crucial pour les analyses de performance et la conformité réglementaire.\n\nLe signal de vigie à retenir est que la banque pourrait avoir modifié sa méthodologie de présentation des revenus, ce qui nécessite une attention particulière pour comprendre l'impact sur l'analyse des performances financières."
+            }
+          },
+          {
+            "value": "Revenu total",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Revenu total\" a été supprimé du tableau de rapprochement des résultats ajustés et non conformes aux PCGR au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut refléter un changement dans la manière dont le revenu total est calculé ou présenté, ce qui peut affecter la transparence et la comparabilité des résultats financiers. Le revenu total est un indicateur clé pour évaluer la performance globale de la banque, et sa suppression peut avoir des implications sur l'analyse des résultats financiers.\n\nLe signal de vigie à retenir est que la banque pourrait avoir ajusté sa méthodologie de calcul ou de présentation, ce qui nécessite une attention particulière pour comprendre l'impact sur l'analyse des performances financières."
+            }
+          },
+          {
+            "value": "Frais autres que d'intérêts",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Frais autres que d'intérêts\" a été supprimé du tableau de rapprochement des résultats ajustés et non conformes aux PCGR au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut indiquer un changement dans la manière dont les frais autres que d'intérêts sont présentés ou intégrés dans d'autres indicateurs. Cela peut affecter la transparence et la comparabilité des résultats financiers, ce qui est crucial pour les analyses de performance et la conformité réglementaire.\n\nLe signal de vigie à retenir est que la banque pourrait avoir modifié sa méthodologie de présentation des frais, ce qui nécessite une attention particulière pour comprendre l'impact sur l'analyse des performances financières."
+            }
+          },
+          {
+            "value": "Résultat avant dotations aux pertes de crédit et charge d'impôts",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Résultat avant dotations aux pertes de crédit et charge d'impôts\" a été supprimé du tableau de rapprochement des résultats ajustés et non conformes aux PCGR au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut refléter un changement dans la manière dont ce résultat est calculé ou présenté, ce qui peut affecter la transparence et la comparabilité des résultats financiers. Cet indicateur est crucial pour évaluer la performance opérationnelle avant les ajustements pour les pertes de crédit et les impôts.\n\nLe signal de vigie à retenir est que la banque pourrait avoir ajusté sa méthodologie de calcul ou de présentation, ce qui nécessite une attention particulière pour comprendre l'impact sur l'analyse des performances financières."
+            }
+          },
+          {
+            "value": "Résultat avant charge (économie) d'impôts",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Résultat avant charge (économie) d'impôts\" a été supprimé du tableau de rapprochement des résultats ajustés et non conformes aux PCGR au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut indiquer un changement dans la manière dont ce résultat est calculé ou présenté, ce qui peut affecter la transparence et la comparabilité des résultats financiers. Cet indicateur est important pour évaluer la performance avant les ajustements fiscaux.\n\nLe signal de vigie à retenir est que la banque pourrait avoir modifié sa méthodologie de présentation, ce qui nécessite une attention particulière pour comprendre l'impact sur l'analyse des performances financières."
+            }
+          },
+          {
+            "value": "Charge (économie) d'impôts",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Charge (économie) d'impôts\" a été supprimé du tableau de rapprochement des résultats ajustés et non conformes aux PCGR au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut refléter un changement dans la manière dont la charge d'impôts est calculée ou présentée, ce qui peut affecter la transparence et la comparabilité des résultats financiers. La charge d'impôts est un élément clé pour évaluer la rentabilité nette après impôts.\n\nLe signal de vigie à retenir est que la banque pourrait avoir ajusté sa méthodologie de calcul ou de présentation, ce qui nécessite une attention particulière pour comprendre l'impact sur l'analyse des performances financières."
+            }
+          },
+          {
+            "value": "Résultat net",
+            "reason": "Cet indicateur était présent dans le tableau précédent mais a été supprimé dans le tableau actuel.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "L'indicateur \"Résultat net\" a été supprimé du tableau de rapprochement des résultats ajustés et non conformes aux PCGR au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut indiquer un changement dans la manière dont le résultat net est calculé ou présenté, ce qui peut affecter la transparence et la comparabilité des résultats financiers. Le résultat net est un indicateur clé de la performance financière globale de la banque.\n\nLe signal de vigie à retenir est que la banque pourrait avoir modifié sa méthodologie de présentation, ce qui nécessite une attention particulière pour comprendre l'impact sur l'analyse des performances financières."
+            }
+          }
+        ],
+        "indicators_renamed": [],
+        "footnotes_added": [
+          {
+            "id": "4",
+            "text": "Incluant les engagements de clients en contrepartie d’acceptations pour les exercices 2021 à 2024.",
+            "reason": "This footnote was not present in the previous table and has been added in the current table.",
+            "analyst_assessment": {
+              "relevance_level": 3,
+              "justification": "La note de bas de page n°4 a été ajoutée dans le tableau des mesures du profil de risque au T2 2025. Cette note précise que les engagements de clients en contrepartie d’acceptations sont inclus pour les exercices 2021 à 2024.\n\nL'ajout de cette note est principalement d'ordre informatif et n'a pas d'impact direct sur les ratios prudentiels ou les exigences réglementaires. Elle clarifie simplement la période de référence pour les engagements de clients, ce qui peut être utile pour les analystes cherchant à comprendre les variations historiques des engagements.\n\nLe signal de vigie à retenir est que la banque améliore la transparence de ses informations historiques, ce qui peut faciliter l'analyse des tendances par les parties prenantes."
+            }
+          },
+          {
+            "id": "5",
+            "text": "Les ratios au 31 octobre 2025 tiennent compte du rachat des BCRL - Série 1 effectué le 17 novembre 2025.",
+            "reason": "This footnote was not present in the previous table and has been added in the current table.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La note de bas de page n°5 a été ajoutée dans le tableau des mesures du profil de risque au T2 2025. Elle indique que les ratios au 31 octobre 2025 tiennent compte du rachat des BCRL - Série 1 effectué le 17 novembre 2025.\n\nCet ajout est significatif car il informe sur l'impact d'un événement postérieur à la date de clôture sur les ratios financiers. Cela peut avoir des implications sur la manière dont les ratios sont interprétés par les analystes et les régulateurs, notamment en ce qui concerne la gestion du capital et la conformité aux exigences de Bâle III.\n\nLe signal de vigie à retenir est que la banque anticipe les impacts d'événements postérieurs sur ses ratios, ce qui démontre une gestion proactive et transparente de ses obligations financières."
+            }
+          }
+        ],
+        "footnotes_removed": [],
+        "footnotes_renamed": [
+          {
+            "previous_id": "1",
+            "current_id": "1",
+            "previous_text": "Certains montants ont été ajustés à la suite de modifications de méthodes comptables relatives à l’adoption de l’IFRS 17. Pour de plus amples renseignements, se reporter à la note 2 afférente aux présents états financiers consolidés.",
+            "current_text": "Consulter le « Mode de présentation de l’information » aux pages 18 à 23 pour de plus amples renseignements sur les mesures de gestion du capital.",
+            "reason": "The footnote text has been materially revised, changing its semantic meaning.",
+            "analyst_assessment": {
+              "relevance_level": 2,
+              "justification": "La note de bas de page n°1 a été modifiée dans le tableau des mesures du profil de risque au T2 2025. Le texte précédent faisait référence à des ajustements liés à l'adoption de l'IFRS 17, tandis que le texte actuel oriente vers le « Mode de présentation de l’information » pour des détails sur les mesures de gestion du capital.\n\nCe changement est important car il modifie le contexte de référence de la note, passant d'une explication sur les ajustements comptables à une orientation vers des informations sur la gestion du capital. Cela peut influencer la manière dont les analystes et les régulateurs perçoivent la transparence et la conformité de la banque aux normes comptables et de gestion du capital.\n\nLe signal de vigie à retenir est que la banque réoriente ses communications pour mettre l'accent sur la gestion du capital, ce qui peut refléter une priorité stratégique ou une réponse à des exigences réglementaires accrues."
+            }
+          },
+          {
+            "previous_id": "2",
+            "current_id": "2",
+            "previous_text": "À la lumière de la loi adoptée concernant les dividendes canadiens, la Banque n’a pas comptabilisé de déduction d’impôts sur le résultat ni utilisé la méthode de l’équivalent imposable pour ajuster les revenus liés aux dividendes visés, reçus après le 1er janvier 2024 (pour de plus amples renseignements, se reporter à la section « Impôts sur le résultat »).",
+            "current_text": "Le 3 février 2025, la Banque a conclu l’acquisition de CWB. Les résultats de CWB ont été consolidés à partir de la date de clôture, ce qui a eu une incidence sur les résultats, les soldes et les ratios pour l’exercice terminé le 31 octobre 2025. Consulter la section « Acquisition » pour de plus amples renseignements sur l’incidence de l’acquisition de CWB.",
+            "reason": "The footnote text has been materially revised, changing its semantic meaning.",
+            "analyst_assessment": {
+              "relevance_level": 1,
+              "justification": "La note de bas de page n°2 a été modifiée dans le tableau des mesures du profil de risque au T2 2025. Le texte précédent concernait les implications fiscales des dividendes canadiens, tandis que le texte actuel se concentre sur l'acquisition de CWB et son impact sur les résultats financiers.\n\nCe changement est critique car il reflète un événement majeur, l'acquisition de CWB, qui a des implications significatives sur les résultats financiers et les ratios de la banque. Cela peut affecter la perception des investisseurs et des régulateurs sur la solidité financière et la stratégie de croissance de la banque, en lien avec les exigences de Bâle III et les normes de divulgation du BSIF.\n\nLe signal de vigie à retenir est que la banque met en avant un événement stratégique majeur, ce qui nécessite une attention particulière pour évaluer son impact sur la performance financière et la conformité réglementaire."
+            }
+          },
+          {
+            "previous_id": "3",
+            "current_id": "3",
+            "previous_text": "Au cours de l’exercice terminé le 31 octobre 2024, un montant de 14 M$ (10 M$ déduction faite des impôts) a été enregistré, représentant l’amortissement des frais d'émission des reçus de souscription émis dans le cadre de l'entente visant l’acquisition de CWB (pour de plus amples renseignements, se reporter aux notes 14 et 16 afférentes aux présents états financiers consolidés).",
+            "current_text": "Consulter le « Glossaire » aux pages 136 à 139 pour plus de détails sur la composition de ces mesures.",
+            "reason": "The footnote text has been materially revised, changing its semantic meaning.",
+            "analyst_assessment": {
+              "relevance_level": 3,
+              "justification": "La note de bas de page n°3 a été modifiée dans le tableau des mesures du profil de risque au T2 2025. Le texte précédent détaillait un montant enregistré lié à l'amortissement des frais d'émission des reçus de souscription, tandis que le texte actuel oriente vers le « Glossaire » pour des détails sur la composition des mesures.\n\nCe changement est principalement d'ordre informatif et n'a pas d'impact direct sur les ratios prudentiels ou les exigences réglementaires. Il vise à clarifier la compréhension des mesures utilisées dans le tableau, ce qui peut être utile pour les analystes cherchant à approfondir leur analyse des données financières.\n\nLe signal de vigie à retenir est que la banque améliore la clarté et l'accessibilité de ses informations, ce qui peut faciliter l'analyse des données par les parties prenantes."
+            }
+          }
+        ],
+        "table_level_change": "modifie"
+      },
+      "analyst_assessment": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "critique",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 11 changement(s) d'indicateur et 5 changement(s) de footnote."
+      },
+      "reason": "The comparison identified several indicators that were added in the current table and others that were removed from the previous table. No indicators were classified as renamed due to the lack of clear 1:1 semantic matches between previous and current indicators. The analysis identified footnotes that were added, removed, or renamed based on semantic changes, not just formatting or date changes.",
+      "visual_sanity_applied": true,
+      "visual_sanity_rejected_count": 0,
+      "visual_sanity_scope": [
+        "indicators",
+        "footnotes",
+        "tables"
+      ],
+      "visual_sanity_render_mode": "full",
+      "visual_sanity_render_status": "ok",
+      "t1_anchor": {
+        "likely_extraction_error": true,
+        "explanation": "The drastic reduction from 50 to 7 indicators suggests an extraction error, as such a significant change is unlikely in a quarterly report. Additionally, the current indicators focus narrowly on credit losses, missing broader financial metrics present previously, indicating potential extraction issues.",
+        "current_count": 7,
+        "previous_count": 50,
+        "diff_ratio": 0.86
+      },
+      "genai_triage": {
+        "is_relevant": true,
+        "themes_amf": [
+          "STRUCTURE_RAPPORT",
+          "MODIFICATION_TEXTE_RISQUE"
+        ],
+        "nouvelle_idee": true,
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : Les indicateurs 'Prêts dépréciés bruts' et 'Prêts dépréciés nets' ont été ajoutés, tandis que plusieurs indicateurs financiers ont été supprimés du tableau 'Profil de risque'. De plus, des notes ont été ajoutées et modifiées, notamment concernant les engagements de clients et des acquisitions récentes.\n\nPertinence métier : Ce changement met l'accent sur une réorientation de l'analyse du profil de risque vers les prêts dépréciés, ce qui peut indiquer une attention accrue sur la qualité des actifs et la gestion des risques de crédit. La suppression des indicateurs financiers traditionnels pourrait refléter un changement de priorité dans la communication des risques. Les nouvelles notes ajoutées fournissent un contexte supplémentaire sur les engagements et les événements récents, ce qui est crucial pour comprendre l'impact sur le profil de risque.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur la perception du risque de crédit et la manière dont la banque communique ses priorités en matière de gestion des risques.",
+        "impact_level": "MODERE",
+        "impact_it": "MOYEN",
+        "impact_it_justification": "Éléments observés : Ajout et suppression d'indicateurs dans le tableau 'Profil de risque'.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter ces changements, ce qui pourrait impliquer des ajustements dans les bases de données et les processus de génération de rapports.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de l'architecture actuelle et de la flexibilité des outils de reporting utilisés.",
+        "changement_posture": "RENFORCEMENT",
+        "justification_posture": "Preuve : Ajout d'indicateurs liés aux prêts dépréciés et modification des notes explicatives.\n\nEffet sur la gestion du risque : Indique une attention accrue sur la gestion des risques de crédit et la qualité des actifs.\n\nJustification du statut : Le renforcement est justifié par l'ajout d'indicateurs spécifiques aux prêts dépréciés, ce qui montre une focalisation sur la surveillance de la qualité des actifs.\n\nJustification de la confiance : Confiance élevée dans cette évaluation en raison de la ",
+        "statut_mise_en_oeuvre": "EN_COURS",
+        "confiance_posture": "ELEVEE",
+        "category": "STRUCTURE",
+        "relevance_score": "ELEVEE",
+        "risk_level": "MODERE",
+        "confidence": 0.95,
+        "explanation": "Le tableau 'Profil de risque' a été modifié pour inclure de nouveaux indicateurs liés aux prêts dépréciés, ce qui reflète une attention accrue sur la qualité des actifs et la gestion des risques de crédit. Plusieurs indicateurs financiers traditionnels ont été supprimés, indiquant un changement de priorité dans la communication des risques.\n\nDes notes ont été ajoutées et modifiées pour fournir un contexte supplémentaire sur les engagements de clients et les événements récents, tels que l'acquisition de CWB. Cela est crucial pour comprendre l'impact sur le profil de risque global de la banque.\n\nCes changements nécessitent une mise à jour des systèmes de reporting pour refléter les nouveaux indicateurs et notes, ce qui pourrait impliquer des ajustements dans les bases de données et les processus de génération de rapports.",
+        "impact_type": "structurel",
+        "project_phase": "rapport_gestion",
+        "action_requise": "revue_prioritaire",
+        "reference_reglementaire": "",
+        "impact_description": "Modification du tableau 'Profil de risque' pour inclure des indicateurs sur les prêts dépréciés, reflétant une attention accrue sur la qualité des actifs.",
+        "source": "llm"
+      },
+      "genai_analysis": {
+        "resume_metier": "Le tableau 'Profil de risque' a été modifié pour inclure de nouveaux indicateurs liés aux prêts dépréciés, ce qui reflète une attention accrue sur la qualité des actifs et la gestion des risques de crédit. Plusieurs indicateurs financiers traditionnels ont été supprimés, indiquant un changement de priorité dans la communication des risques.\n\nDes notes ont été ajoutées et modifiées pour fournir un contexte supplémentaire sur les engagements de clients et les événements récents, tels que l'acquisition de CWB. Cela est crucial pour comprendre l'impact sur le profil de risque global de la banque.\n\nCes changements nécessitent une mise à jour des systèmes de reporting pour refléter les nouveaux indicateurs et notes, ce qui pourrait impliquer des ajustements dans les bases de données et les processus de génération de rapports."
+      }
+    }
+  ],
+  "run_metrics": {
+    "runtime_extraction_sec": 0.0,
+    "runtime_comparison_sec": 296.243,
+    "vision_calls_total": 0,
+    "vision_rescue_total": 0,
+    "comparison_calls_total": 29,
+    "matching_passes_total": 2,
+    "inspector_passes_total": 6,
+    "audit_passes_total": 0,
+    "matching_output_retries_total": 0,
+    "matching_validation_failures_total": 0,
+    "stage1_validation_retries_total": 0,
+    "stage2_validation_retries_total": 0,
+    "unresolved_after_stage1_total": 3,
+    "matched_in_stage2_total": 1,
+    "unmatched_after_primary_total": 6,
+    "unmatched_after_rescue_total": 4,
+    "matching_pairs_llm_duplicates_total": 0,
+    "matching_pairs_llm_deduped_total": 0,
+    "inspector_rejected_total": 1,
+    "inspector_confirmed_total": 5,
+    "prompt_tokens_total": 117798,
+    "completion_tokens_total": 20848,
+    "total_tokens_total": 138646,
+    "estimated_cost_usd": 0.502975,
+    "extraction": {
+      "runtime_extraction_sec": 0.0,
+      "vision_calls_total": 0,
+      "vision_rescue_total": 0,
+      "prompt_tokens_total": 0,
+      "completion_tokens_total": 0,
+      "total_tokens_total": 0,
+      "estimated_cost_usd": 0.0,
+      "cache_hits_total": 0,
+      "previous": {},
+      "current": {}
+    },
+    "comparison": {
+      "prompt_tokens_total": 117798,
+      "completion_tokens_total": 20848,
+      "total_tokens_total": 138646,
+      "comparison_calls_total": 29,
+      "runtime_comparison_sec": 296.243,
+      "matching_passes_total": 2,
+      "inspector_passes_total": 6,
+      "audit_passes_total": 0,
+      "matching_output_retries_total": 0,
+      "matching_validation_failures_total": 0,
+      "stage1_validation_retries_total": 0,
+      "stage2_validation_retries_total": 0,
+      "unresolved_after_stage1_total": 3,
+      "matched_in_stage2_total": 1,
+      "unmatched_after_primary_total": 6,
+      "unmatched_after_rescue_total": 4,
+      "matching_pairs_llm_duplicates_total": 0,
+      "matching_pairs_llm_deduped_total": 0,
+      "inspector_rejected_total": 1,
+      "inspector_confirmed_total": 5,
+      "estimated_cost_usd": 0.502975
+    }
+  },
+  "summary": {
+    "matched_pairs_total": 7,
+    "tables_added_total": 1,
+    "tables_removed_total": 1,
+    "artifacts_confirmed_previous_total": 0,
+    "artifacts_confirmed_current_total": 0,
+    "extraction_suspects_previous_total": 0,
+    "extraction_suspects_current_total": 0,
+    "indicator_changes_total": 25,
+    "footnote_changes_total": 16,
+    "high_priority_items_total": 5
+  },
+  "global_summary": {
+    "executive_overview": "Au cours du dernier trimestre, plusieurs changements significatifs ont été apportés au rapport de gestion, principalement dans la section de gestion du capital. Ces modifications reflètent une réorganisation des priorités stratégiques, notamment en matière de gestion des acquisitions et de divulgation financière. L'accent a également été mis sur l'amélioration de la transparence des performances financières et des risques de crédit. Cependant, la suppression d'informations sur les initiatives ESG pourrait influencer la perception de la banque par les parties prenantes.",
+    "key_highlights": [
+      "Réorganisation des indicateurs de gestion du capital pour mieux refléter les acquisitions et les marchés des capitaux.",
+      "Modifications significatives dans la présentation des résultats financiers ajustés, impactant la transparence et la comparabilité.",
+      "Introduction de nouveaux indicateurs de risque de crédit, soulignant une attention accrue sur la qualité des actifs.",
+      "Suppression d'un tableau sur les initiatives ESG, potentiellement révélatrice d'un changement de stratégie."
+    ],
+    "pertinence_globale": "ELEVEE",
+    "par_phase": {
+      "rapport_gestion": {
+        "count": 6,
+        "resume": "Tous les changements ont été effectués dans la phase de rapport de gestion, indiquant une révision complète des priorités de divulgation et de gestion du capital."
+      },
+      "pilier_3": {
+        "count": 0,
+        "resume": "Aucun changement n'a été rapporté dans cette phase."
+      },
+      "ifc": {
+        "count": 0,
+        "resume": "Aucun changement n'a été rapporté dans cette phase."
+      },
+      "autre": {
+        "count": 0,
+        "resume": "Aucun changement n'a été rapporté dans cette phase."
+      }
+    },
+    "par_action": {
+      "revue_prioritaire": 4,
+      "investigation": 0,
+      "confirmation": 0,
+      "information": 2,
+      "aucune": 0
+    },
+    "source": "llm",
+    "total_changes_analysed": 9,
+    "total_relevant": 6
+  },
+  "review_decisions_summary": {
+    "matched": 1,
+    "unmatched": 0,
+    "pending": 42,
+    "updated_at": "2026-06-14T06:14:04+00:00"
+  }
+}
