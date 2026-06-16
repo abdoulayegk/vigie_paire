@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logique RAG/LLM - Changements communs entre banques &mdash; Vigie de paire - documentation technique</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/LOGIQUE_RAG_CHANGEMENTS_COMMUNS_BANQUES.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d1a510d7"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/translations.js?v=e6b791cb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Recherche" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Vigie de paire
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ARCHITECTURE_TECHNIQUE.html">Architecture technique de Vigie de paire</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CONVENTION_DOCSTRINGS.html">Convention des docstrings – Vigie de paire</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Référence technique</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">Référence technique</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Vigie de paire</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Logique RAG/LLM - Changements communs entre banques</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="logique-rag-llm-changements-communs-entre-banques">
+<h1>Logique RAG/LLM - Changements communs entre banques<a class="headerlink" href="#logique-rag-llm-changements-communs-entre-banques" title="Lien vers cette rubrique"></a></h1>
+<section id="objectif">
+<h2>Objectif<a class="headerlink" href="#objectif" title="Lien vers cette rubrique"></a></h2>
+<p>L’objectif est d’aider les equipes de divulgation et de gestion integree des risques a identifier les changements de divulgation adoptes par plusieurs banques, sans utiliser une logique deterministe de mots-cles.</p>
+<p>La question cible est:</p>
+<blockquote>
+<div><p>Quels changements semantiquement similaires sont observes dans plusieurs banques, et lesquels sont adoptes par au moins 3 banques?</p>
+</div></blockquote>
+<p>Cette analyse sert surtout a reperer les pratiques de marche: par exemple, plusieurs banques qui renforcent leur divulgation sur les tarifs douaniers, le risque climatique, le capital, la liquidite, le credit, la cybersecurite ou les exigences reglementaires.</p>
+</section>
+<section id="position-dans-le-pipeline">
+<h2>Position dans le pipeline<a class="headerlink" href="#position-dans-le-pipeline" title="Lien vers cette rubrique"></a></h2>
+<p>Cette logique est une etape globale post-batch.</p>
+<p>Elle doit etre lancee apres les comparaisons individuelles des 6 banques pour une meme periode, lorsque les fichiers suivants existent deja:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs/resultats/&lt;banque&gt;/&lt;periode&gt;/text_comparison.json</span></code></p></li>
+<li><p>eventuellement <code class="docutils literal notranslate"><span class="pre">outputs/resultats/&lt;banque&gt;/&lt;periode&gt;/comparison.json</span></code> pour les tableaux</p></li>
+</ul>
+<p>Elle ne remplace pas les deux pipelines existants et ne change pas leur fonctionnement. Elle lit leurs resultats, produit un artefact global, puis l’interface validateur lit cet artefact sans appeler de LLM.</p>
+<p>La periode est obligatoire pour l’analyse principale. Par exemple, pour <code class="docutils literal notranslate"><span class="pre">2025_t2_vs_2025_t1</span></code>, le systeme compare seulement les changements de cette fenetre:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs/resultats/bmo/2025_t2_vs_2025_t1/text_comparison.json</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs/resultats/bnc/2025_t2_vs_2025_t1/text_comparison.json</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs/resultats/bns/2025_t2_vs_2025_t1/text_comparison.json</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs/resultats/cibc/2025_t2_vs_2025_t1/text_comparison.json</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs/resultats/rbc/2025_t2_vs_2025_t1/text_comparison.json</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">outputs/resultats/td/2025_t2_vs_2025_t1/text_comparison.json</span></code></p></li>
+</ul>
+<p>Le systeme ne doit pas melanger <code class="docutils literal notranslate"><span class="pre">2025_t2_vs_2025_t1</span></code> avec <code class="docutils literal notranslate"><span class="pre">2025_t3_vs_2025_t2</span></code>, sauf dans une analyse historique separee.</p>
+</section>
+<section id="emplacement-des-resultats">
+<h2>Emplacement des resultats<a class="headerlink" href="#emplacement-des-resultats" title="Lien vers cette rubrique"></a></h2>
+<p>Le resultat final doit etre conserve sous <code class="docutils literal notranslate"><span class="pre">outputs/resultats</span></code>, car il fait partie de la couche resultats analytiques.</p>
+<p>Chemin recommande:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>outputs/resultats/changements_communs_banques/&lt;periode&gt;/changements_communs_banques.json
+</pre></div>
+</div>
+<p>Exemple:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>outputs/resultats/changements_communs_banques/2025_t2_vs_2025_t1/changements_communs_banques.json
+</pre></div>
+</div>
+<p>Nom interface:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Changements communs entre banques
+</pre></div>
+</div>
+</section>
+<section id="unite-analysee">
+<h2>Unite analysee<a class="headerlink" href="#unite-analysee" title="Lien vers cette rubrique"></a></h2>
+<p>Le RAG ne doit pas indexer les rapports complets.</p>
+<p>Chaque changement extrait par les comparaisons banque par banque devient une fiche atomique:</p>
+<ul class="simple">
+<li><p>banque</p></li>
+<li><p>periode comparee</p></li>
+<li><p>chemin du fichier source</p></li>
+<li><p>identifiant du changement</p></li>
+<li><p>section</p></li>
+<li><p>sous-section</p></li>
+<li><p>type de changement</p></li>
+<li><p>texte avant</p></li>
+<li><p>texte apres</p></li>
+<li><p>resume du changement</p></li>
+<li><p>niveau d’impact</p></li>
+<li><p>preuves textuelles disponibles</p></li>
+</ul>
+<p>Cette granularite est importante: l’equipe ne veut pas seulement savoir qu’un rapport parle du climat ou du credit, elle veut savoir quel paragraphe a change, dans quelle section, et chez quelles banques.</p>
+</section>
+<section id="logique-llm-rag">
+<h2>Logique LLM/RAG<a class="headerlink" href="#logique-llm-rag" title="Lien vers cette rubrique"></a></h2>
+<p>Le traitement global suit ce flux:</p>
+<ol class="arabic simple">
+<li><p>Collecter tous les changements produits pour les 6 banques.</p></li>
+<li><p>Transformer chaque changement en document RAG.</p></li>
+<li><p>Utiliser des embeddings pour recuperer les changements candidats selon plusieurs angles metier.</p></li>
+<li><p>Envoyer les candidats au LLM juge.</p></li>
+<li><p>Demander au LLM de regrouper les changements semantiquement similaires.</p></li>
+<li><p>Sauvegarder le resultat dans un JSON lisible par le validateur.</p></li>
+</ol>
+<p>La decouverte ne doit pas dependre d’une seule requete. Pour une periode comme <code class="docutils literal notranslate"><span class="pre">2025_t2_vs_2025_t1</span></code>, le systeme doit explorer plusieurs themes:</p>
+<ul class="simple">
+<li><p>tarifs douaniers et incertitude commerciale;</p></li>
+<li><p>risque de credit et provisions;</p></li>
+<li><p>risque de marche, VAR et volatilite;</p></li>
+<li><p>fonds propres, levier, TLAC et actifs ponderes;</p></li>
+<li><p>liquidite et financement stable;</p></li>
+<li><p>climat, durabilite et exigences ESG;</p></li>
+<li><p>faits nouveaux reglementaires;</p></li>
+<li><p>risques emergents et gouvernance.</p></li>
+</ul>
+<p>Le LLM juge doit evaluer:</p>
+<ul class="simple">
+<li><p>si le sujet de risque est le meme;</p></li>
+<li><p>si l’intention de divulgation est comparable;</p></li>
+<li><p>si le changement est de meme nature;</p></li>
+<li><p>si les sections sont fonctionnellement comparables meme avec des titres differents;</p></li>
+<li><p>si les preuves textuelles suffisent;</p></li>
+<li><p>si le seuil de banques distinctes est atteint.</p></li>
+</ul>
+<p>Le seuil recommande est 3 banques distinctes ou plus.</p>
+</section>
+<section id="garde-fou">
+<h2>Garde-fou<a class="headerlink" href="#garde-fou" title="Lien vers cette rubrique"></a></h2>
+<p>Le LLM peut proposer un regroupement, mais le systeme ne doit pas lui faire confiance aveuglement pour le seuil.</p>
+<p>Le statut final doit etre recalcule a partir des preuves, jamais accepte tel quel depuis le LLM:</p>
+<ul class="simple">
+<li><p>si 3, 4, 5 ou 6 banques distinctes sont presentes: <code class="docutils literal notranslate"><span class="pre">consensus_3_plus</span></code>;</p></li>
+<li><p>si exactement 2 banques distinctes sont presentes: <code class="docutils literal notranslate"><span class="pre">signal_mineur_2_banques</span></code>;</p></li>
+<li><p>si une seule banque est presente: exclu du rapport principal.</p></li>
+</ul>
+<p>Cela evite qu’un signal interessant observe chez 2 banques soit presente comme une pratique de marche.</p>
+</section>
+<section id="exemple-concret-attendu">
+<h2>Exemple concret attendu<a class="headerlink" href="#exemple-concret-attendu" title="Lien vers cette rubrique"></a></h2>
+<p>Signal possible:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Renforcement des divulgations sur les tarifs douaniers, l&#39;incertitude commerciale et leurs effets sur le risque economique, le risque de credit et la volatilite des marches.
+</pre></div>
+</div>
+<p>Banques regroupees:</p>
+<ul class="simple">
+<li><p>BNS</p></li>
+<li><p>TD</p></li>
+<li><p>CIBC</p></li>
+<li><p>RBC</p></li>
+</ul>
+<p>Interpretation:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Plusieurs banques canadiennes renforcent leur divulgation sur les tarifs douaniers et l&#39;incertitude commerciale. Le sujet n&#39;est pas toujours place au meme endroit: BNS l&#39;isole dans une sous-section specifique, TD le rattache aux risques geopolitiques, CIBC l&#39;encadre comme incertitude de politique commerciale, et RBC le relie aux pertes de credit. La pratique de marche semble evoluer vers une divulgation plus explicite des impacts financiers et operationnels des tensions commerciales.
+</pre></div>
+</div>
+<p>Exemple de sortie JSON simplifiee:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;artifact_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;changements_communs_banques&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;theme&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;changements communs entre banques&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;period&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025_t2_vs_2025_t1&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;analysis_scope&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;single_period&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;min_banks&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;source_stats&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;total_changes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">468</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;bank_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;banks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;bmo&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;bnc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;bns&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;cibc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;rbc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;td&quot;</span><span class="p">]</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;signal_counts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;consensus&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;minor&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;signals&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;theme&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Tarifs douaniers et incertitude commerciale&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;consensus&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;bank_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;min_banks_met&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;banks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;bns&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;td&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;cibc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;rbc&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;business_summary&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Plusieurs banques renforcent leur divulgation sur les tensions commerciales et les effets possibles sur le credit, l&#39;economie et les marches.&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;why_grouped&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Les changements portent sur le meme choc externe et sur la meme intention de divulgation, meme si les sections different.&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;evidence&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;bank&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bns&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;period&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025_t2_vs_2025_t1&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;section&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Gestion des risques&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;subsection&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Incidence des tarifs douaniers&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;change_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;added&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;source_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;outputs/resultats/bns/2025_t2_vs_2025_t1/text_comparison.json&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;change_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="integration-interface">
+<h2>Integration interface<a class="headerlink" href="#integration-interface" title="Lien vers cette rubrique"></a></h2>
+<p>L’interface validateur ne doit pas executer le LLM.</p>
+<p>Elle doit seulement:</p>
+<ul class="simple">
+<li><p>afficher un onglet <code class="docutils literal notranslate"><span class="pre">Changements</span> <span class="pre">communs</span> <span class="pre">entre</span> <span class="pre">banques</span></code>;</p></li>
+<li><p>lire <code class="docutils literal notranslate"><span class="pre">outputs/resultats/changements_communs_banques/&lt;periode&gt;/changements_communs_banques.json</span></code>;</p></li>
+<li><p>afficher une vue executive des signaux;</p></li>
+<li><p>separer les consensus des signaux mineurs a 2 banques;</p></li>
+<li><p>afficher une vue preuve avec banque, periode, section, sous-section, resume, preuve et fichier source.</p></li>
+</ul>
+<p>Si le JSON n’existe pas encore pour la periode chargee, l’interface doit afficher un etat vide indiquant que l’analyse doit etre generee apres le batch des 6 banques pour cette periode.</p>
+</section>
+<section id="benefice-metier">
+<h2>Benefice metier<a class="headerlink" href="#benefice-metier" title="Lien vers cette rubrique"></a></h2>
+<p>Pour l’equipe divulgation, cette logique permet de voir rapidement si une banque est alignee avec les pairs ou si elle manque une pratique emergente.</p>
+<p>Pour l’equipe gestion integree des risques, elle permet de distinguer:</p>
+<ul class="simple">
+<li><p>un changement isole;</p></li>
+<li><p>une tendance emergente;</p></li>
+<li><p>un consensus de marche;</p></li>
+<li><p>un sujet qui merite une revue de divulgation ou une discussion avec les equipes de risque.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2026.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
