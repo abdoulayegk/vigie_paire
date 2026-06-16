@@ -84,16 +84,13 @@ session.log
 !/outputs/resultats/*/*/comparison.json
 !/outputs/resultats/*/*/comparison.xlsx
 !/outputs/resultats/*/*/comparison.review_state.json
+!/outputs/resultats/bnc/2025_t2_vs_2025_t1/comparison.review_state.balde.json
 !/outputs/resultats/*/*/manifest.json
 !/outputs/resultats/*/*/text_comparison.json
 !/outputs/resultats/*/*/text_comparison.xlsx
 !/outputs/resultats/*/*/*.md
 !/outputs/resultats/*/*/text_extraction*.json
 
-# Temporary local run generated on 2026-05-14
-/outputs/resultats/bnc/2025_t2_vs_2025_t1/comparison.json
-/outputs/resultats/bnc/2025_t2_vs_2025_t1/comparison.xlsx
-/outputs/resultats/bnc/2025_t2_vs_2025_t1/comparison.review_state.json
 /logs/
 /Documentation/
 /docs/_build/
