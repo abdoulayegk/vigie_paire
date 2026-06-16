@@ -20,9 +20,12 @@ from pathlib import Path
 from typing import Any
 
 from vigilance.amf_taxonomy import (
+    IMPACT_IT_DETAIL_LABELS,
+    POSTURE_DETAIL_LABELS,
     THEMES_AMF_PIPELINE_2,
     format_theme_subjects_for_prompt,
     format_themes_for_prompt,
+    missing_labeled_analysis_sections,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,8 +55,29 @@ VALID_PROJECT_PHASES = frozenset({"rapport_gestion", "pilier_3", "ifc", "autre"}
 
 VALID_ACTIONS = frozenset({"revue_prioritaire", "investigation", "confirmation", "information", "aucune"})
 
-# Réutilise la taxonomie AMF unifiée définie dans amf_taxonomy.py (mêmes 18 codes
-# que Pipeline 2, partagés pour permettre des filtres transverses).
+VALID_IMPACT_IT = frozenset({"ELEVE", "MOYEN", "FAIBLE", "INDETERMINE"})
+
+VALID_CHANGEMENTS_POSTURE = frozenset(
+    {
+        "RENFORCEMENT",
+        "ALLEGEMENT",
+        "NOUVEAU_DISPOSITIF",
+        "RETRAIT_DISPOSITIF",
+        "AUCUN",
+        "INDETERMINE",
+    }
+)
+
+VALID_STATUTS_MISE_EN_OEUVRE = frozenset(
+    {"ANNONCE", "PLANIFIE", "EN_COURS", "MIS_EN_OEUVRE", "INDETERMINE"}
+)
+
+VALID_CONFIANCES_POSTURE = frozenset(
+    {"ELEVEE", "MOYENNE", "FAIBLE", "INDETERMINE"}
+)
+
+# Réutilise la taxonomie AMF unifiée définie dans amf_taxonomy.py
+# (mêmes codes que Pipeline 2, partagés pour permettre des filtres transverses).
 VALID_THEMES_AMF = frozenset(THEMES_AMF_PIPELINE_2)
 
 # Format strict pour la justification GPT : commence par OUI ou NON suivi
@@ -128,6 +152,17 @@ _TRIAGE_SYSTEM_PROMPT = (
     "MONTANT_REGLEMENTAIRE.\n"
     "- Indicateurs de risques émergents (cyber, IA, IA générative, fraude "
     "numérique) — PRIORITAIRES, impact_level minimum MODERE.\n\n"
+    "COUVERTURE DONNÉES / TIERS / CLOUD :\n"
+    "- RISQUE_DONNEES couvre la gouvernance, la qualité, l'intégrité, la "
+    "protection, la localisation, la traçabilité et le cycle de vie des données.\n"
+    "- RISQUE_TIERS_CLOUD couvre les fournisseurs critiques, l'impartition, "
+    "l'infonuagique, la concentration, la résilience et les stratégies de sortie.\n"
+    "- Une simple occurrence des mots données, tiers ou fournisseur ne suffit "
+    "pas : le changement doit modifier la substance de la divulgation.\n\n"
+    "CHANGEMENT DE POSTURE : déterminer si la banque renforce ou allège ses "
+    "contrôles, crée ou retire un comité, un cadre, une responsabilité, une "
+    "diligence, une exigence contractuelle ou une stratégie de sortie. Une "
+    "simple mention de risque n'est pas un changement de posture.\n\n"
     "TAXONOMIE AMF (utilise UNIQUEMENT ces codes dans themes_amf, multi-label "
     "autorisé et encouragé) :\n"
     f"{format_themes_for_prompt()}\n\n"
@@ -195,6 +230,12 @@ _TRIAGE_SYSTEM_PROMPT = (
     '  "category": "REGLEMENTAIRE" | "RISQUE" | "CAPITAL" | "STRUCTURE" | "NON_PERTINENT" | "INCONNU",\n'
     '  "relevance_score": "ELEVEE" | "MOYENNE" | "FAIBLE",\n'
     '  "risk_level": "ELEVE" | "MODERE" | "FAIBLE",\n'
+    '  "impact_it": "ELEVE" | "MOYEN" | "FAIBLE" | "INDETERMINE",\n'
+    '  "impact_it_justification": "<rubriques exactes : Éléments observés, Conséquence probable, Limite de l\'analyse; vide si INDETERMINE>",\n'
+    '  "changement_posture": "RENFORCEMENT" | "ALLEGEMENT" | "NOUVEAU_DISPOSITIF" | "RETRAIT_DISPOSITIF" | "AUCUN" | "INDETERMINE",\n'
+    '  "justification_posture": "<rubriques exactes : Preuve, Effet sur la gestion du risque, Justification du statut, Justification de la confiance; vide si AUCUN ou INDETERMINE>",\n'
+    '  "statut_mise_en_oeuvre": "ANNONCE" | "PLANIFIE" | "EN_COURS" | "MIS_EN_OEUVRE" | "INDETERMINE",\n'
+    '  "confiance_posture": "ELEVEE" | "MOYENNE" | "FAIBLE" | "INDETERMINE",\n'
     '  "confidence": 0.0 à 1.0,\n'
     '  "explanation": "<3 paragraphes français séparés par \\n\\n>",\n'
     '  "impact_type": "structurel" | "contenu" | "methodologique" | "non_substantif",\n'
@@ -207,6 +248,26 @@ _TRIAGE_SYSTEM_PROMPT = (
     "- ELEVE : impact direct sur les ratios prudentiels, seuils réglementaires, ou conformité.\n"
     "- MODERE : changement méthodologique ou structurel à surveiller.\n"
     "- FAIBLE : changement modeste ou non substantiel.\n\n"
+    "GUIDE pour `changement_posture` :\n"
+    "- RENFORCEMENT : contrôles, surveillance, diligence ou exigences renforcés.\n"
+    "- ALLEGEMENT : encadrement ou niveau de contrôle réduit.\n"
+    "- NOUVEAU_DISPOSITIF : nouveau comité, cadre, responsabilité, stratégie de sortie ou contrôle.\n"
+    "- RETRAIT_DISPOSITIF : suppression d'un dispositif de gestion existant.\n"
+    "- AUCUN : aucune évolution de la façon de gérer le risque.\n"
+    "- INDETERMINE : le texte ne permet pas de conclure.\n"
+    "- justification_posture utilise exactement quatre rubriques séparées par "
+    "\\n\\n : Preuve, Effet sur la gestion du risque, Justification du statut, "
+    "Justification de la confiance. Elle est vide pour AUCUN ou INDETERMINE.\n"
+    "- statut_mise_en_oeuvre distingue une ANNONCE, une mesure PLANIFIEE, "
+    "EN_COURS ou MIS_EN_OEUVRE. Utilise INDETERMINE sans preuve temporelle.\n"
+    "- confiance_posture évalue uniquement la solidité de cette classification.\n\n"
+    "GUIDE pour `impact_it`, distinct de l'impact métier :\n"
+    "- ELEVE : architecture, migration, fournisseur remplacé, localisation des données ou contrôles majeurs.\n"
+    "- MOYEN : nouveaux processus, inventaires, surveillance, rapports ou exigences contractuelles.\n"
+    "- FAIBLE : clarification ou ajustement limité avec un effet IT identifiable, sans transformation technologique apparente.\n"
+    "- INDETERMINE : information insuffisante ou aucun lien IT crédible démontré. Ne jamais présenter une intention comme une mise en œuvre réalisée; FAIBLE ne signifie pas absence d'impact IT.\n"
+    "- impact_it_justification utilise exactement trois rubriques séparées par "
+    "\\n\\n : Éléments observés, Conséquence probable, Limite de l'analyse.\n\n"
     "GUIDE pour `impact_type` :\n"
     "- structurel : ajout/suppression de lignes, colonnes, tableaux entiers.\n"
     "- contenu : modification de valeurs, seuils, descriptions réglementaires.\n"
@@ -487,6 +548,75 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
     _RISK_TO_IMPACT = {"ELEVE": "MAJEUR", "MODERE": "MODERE", "FAIBLE": "MINEUR"}
     impact_level = _RISK_TO_IMPACT.get(risk_level, "MINEUR")
 
+    impact_it = str(data.get("impact_it") or "INDETERMINE").upper()
+    if impact_it not in VALID_IMPACT_IT:
+        impact_it = "INDETERMINE"
+    impact_it_justification = str(
+        data.get("impact_it_justification") or ""
+    ).strip()[:500]
+    if impact_it == "INDETERMINE":
+        impact_it_justification = ""
+    elif (
+        len(impact_it_justification) < 20
+        or missing_labeled_analysis_sections(
+            impact_it_justification,
+            IMPACT_IT_DETAIL_LABELS,
+        )
+    ):
+        impact_it = "INDETERMINE"
+        impact_it_justification = ""
+
+    changement_posture = str(
+        data.get("changement_posture") or "INDETERMINE"
+    ).upper()
+    if changement_posture not in VALID_CHANGEMENTS_POSTURE:
+        changement_posture = "INDETERMINE"
+
+    justification_posture = str(
+        data.get("justification_posture") or ""
+    ).strip()[:500]
+    statut_mise_en_oeuvre = str(
+        data.get("statut_mise_en_oeuvre") or "INDETERMINE"
+    ).upper()
+    if statut_mise_en_oeuvre not in VALID_STATUTS_MISE_EN_OEUVRE:
+        statut_mise_en_oeuvre = "INDETERMINE"
+    confiance_posture = str(
+        data.get("confiance_posture") or "INDETERMINE"
+    ).upper()
+    if confiance_posture not in VALID_CONFIANCES_POSTURE:
+        confiance_posture = "INDETERMINE"
+
+    posture_evaluee = changement_posture in {
+        "RENFORCEMENT",
+        "ALLEGEMENT",
+        "NOUVEAU_DISPOSITIF",
+        "RETRAIT_DISPOSITIF",
+    }
+    if not posture_evaluee:
+        justification_posture = ""
+        statut_mise_en_oeuvre = "INDETERMINE"
+        confiance_posture = "INDETERMINE"
+    elif (
+        len(justification_posture) < 20
+        or confiance_posture == "INDETERMINE"
+        or missing_labeled_analysis_sections(
+            justification_posture,
+            POSTURE_DETAIL_LABELS,
+        )
+    ):
+        changement_posture = "INDETERMINE"
+        justification_posture = ""
+        statut_mise_en_oeuvre = "INDETERMINE"
+        confiance_posture = "INDETERMINE"
+
+    if not is_relevant:
+        impact_it = "INDETERMINE"
+        impact_it_justification = ""
+        changement_posture = "AUCUN"
+        justification_posture = ""
+        statut_mise_en_oeuvre = "INDETERMINE"
+        confiance_posture = "INDETERMINE"
+
     try:
         confidence = max(0.0, min(1.0, float(data.get("confidence", 0.5))))
     except (TypeError, ValueError):
@@ -530,6 +660,12 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
         "nouvelle_idee": nouvelle_idee,
         "nouvelle_idee_justification": nouvelle_idee_justification,
         "impact_level": impact_level,
+        "impact_it": impact_it,
+        "impact_it_justification": impact_it_justification,
+        "changement_posture": changement_posture,
+        "justification_posture": justification_posture,
+        "statut_mise_en_oeuvre": statut_mise_en_oeuvre,
+        "confiance_posture": confiance_posture,
         "category": category,
         "relevance_score": relevance,
         "risk_level": risk_level,
@@ -570,6 +706,12 @@ def _empty_triage_skeleton(*, source: str = "heuristic") -> dict[str, Any]:
             "automatisé."
         ),
         "impact_level": "MINEUR",
+        "impact_it": "INDETERMINE",
+        "impact_it_justification": "",
+        "changement_posture": "AUCUN",
+        "justification_posture": "",
+        "statut_mise_en_oeuvre": "INDETERMINE",
+        "confiance_posture": "INDETERMINE",
         "category": "NON_PERTINENT",
         "relevance_score": "FAIBLE",
         "risk_level": "FAIBLE",

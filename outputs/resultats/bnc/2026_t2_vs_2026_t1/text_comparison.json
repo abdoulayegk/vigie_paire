@@ -7,7 +7,7 @@
   "quarter_previous": "2026_t1",
   "year_current": 2026,
   "quarter_current": "2026_t2",
-  "generated_at": "2026-06-05T19:35:18.907055+00:00",
+  "generated_at": "2026-06-10T15:47:20.849771+00:00",
   "extraction_artifact_t1": "text_extraction_2026_t1.md",
   "extraction_artifact_t2": "text_extraction_2026_t2.md",
   "section_comparisons": [
@@ -16,7 +16,7 @@
       "section_title": "Gestion du capital",
       "block_comparisons": [
         {
-          "change_id": "gestion_capital_exigences_de_communication_publique_pour_change_030",
+          "change_id": "gestion_capital_exigences_de_communication_publique_pour_change_029",
           "section_key": "gestion_capital",
           "subsection_heading": "Exigences de communication publique pour les banques d'importance systémique mondiale",
           "diff_type": "removed",
@@ -52,9 +52,15 @@
               "EXIGENCES_REGLEMENTAIRES"
             ],
             "impact_level": "MAJEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "INDETERMINE",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Au, la sous section sur les exigences de communication publique pour les banques d'importance systémique mondiale a été supprimée. Ce retrait touche une divulgation réglementaire importante, modifiant le niveau de détail sur les exigences de communication publique",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Information retirée, exigences réglementaires.\n\nCe qui change : Le T2 retire la sous-section sur les exigences de communication publique pour les banques d'importance systémique mondiale, présente au T1.\n\nPertinence métier : Ce changement met l'accent sur la réduction de la divulgation relative aux exigences de communication publique pour les banques d'importance systémique mondiale. Le retrait de cette information modifie la lecture de la transparence de la banque sur ses obligations réglementaires, ce qui est crucial pour la comparabilité entre pairs.\n\nPoint de surveillance : Exigences réglementaires — Le changement indique un retrait de la divulgation sur les exigences de communication publique pour les banques d'importance systémique mondiale. Ce point permet de suivre l'évolution de la transparence de la banque sur ses obligations réglementaires et la comparabilité de sa divulgation avec les autres institutions.",
+            "explanation": "Une sous section entière concernant les exigences de communication publique pour les banques d'importance systémique mondiale a été supprimée au. Ce retrait touche la divulgation et les des exigences prudentielles. Il réduit le niveau de détail sur les obligations de communication publique",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Information retirée, exigences réglementaires.\n\nCe qui change : Le T2 retire une sous-section entière sur les exigences de communication publique pour les banques d'importance systémique mondiale, présente au T1.\n\nPertinence métier : Ce changement met l'accent sur la réduction de la transparence concernant les obligations de communication publique pour les banques d'importance systémique. Le retrait de cette information peut affecter la compréhension des exigences réglementaires et la comparabilité entre pairs, ce qui est crucial pour l'évaluation des risques et la conformité.\n\nPoint de surveillance : Exigences de communication publique — Le changement indique que la banque réduit le niveau de détail fourni sur les obligations de communication publique. Ce point permet de suivre l'impact de cette réduction sur la transparence et la comparabilité des pratiques de communication entre institutions.",
             "action_requise": "revue_prioritaire",
             "exclusion_reason": null,
             "change_segments": [
@@ -78,18 +84,18 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_intro_change_002",
+          "change_id": "gestion_capital_intro_change_001",
           "section_key": "gestion_capital",
           "subsection_heading": "__intro__",
           "diff_type": "modified",
-          "semantic_text_t1": "La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. Plus de détails sur le cadre de gestion du capital sont présentés dans la section « Gestion du capital » du Rapport annuel aux pages à",
-          "semantic_text_t2": "La banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel aux pages à",
-          "source_text_t1": "La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. Plus de détails sur le cadre de gestion du capital sont présentés dans la section « Gestion du capital » du Rapport annuel 2025 aux pages 62 à 71.",
-          "source_text_t2": "La Banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel 2025 aux pages 62 à 71.",
+          "semantic_text_t1": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. Plus de détails sur le cadre de gestion du capital sont présentés dans la section « Gestion du capital » du Rapport annuel aux pages à",
+          "semantic_text_t2": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel aux pages à",
+          "source_text_t1": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. Plus de détails sur le cadre de gestion du capital sont présentés dans la section « Gestion du capital » du Rapport annuel 2025 aux pages 62 à 71.",
+          "source_text_t2": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La Banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel 2025 aux pages 62 à 71.",
           "source_block_ids_t1": [],
           "source_block_ids_t2": [],
           "source_refs_t1": [],
@@ -106,32 +112,38 @@
             "pages": [
               24
             ],
-            "snippet": "La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions é"
+            "snippet": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et "
           },
           "evidence_t2": {
             "pages": [
               25
             ],
-            "snippet": "La Banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel 2025 aux pages 62 à 71."
+            "snippet": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La Banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « "
           },
-          "change_summary": "Le texte a été modifié pour simplifier la description du cadre de gestion du capital, en supprimant les détails sur le processus interne d'évaluation de l'adéquation des fonds propres et les pertes non prévues",
+          "change_summary": "Le texte a été modifié pour supprimer la description détaillée du processus interne d'évaluation de l'adéquation des fonds propres et se concentrer sur la gestion du capital selon le cadre décrit dans le rapport annuel",
           "genai_triage": {
             "is_relevant": true,
             "themes_amf": [
-              "MODIFICATION_TEXTE_RISQUE",
+              "MODIFICATION_METHODOLOGIE",
               "FONDS_PROPRES_REGLEMENTAIRES"
             ],
             "impact_level": "MODERE",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "INDETERMINE",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Le texte sur la gestion du capital a été simplifié au, supprimant des détails sur le processus interne d'évaluation des fonds propres et les pertes non prévues. Ce changement modifie la description des risques liés aux fonds propres réglementaires. Il affecte la compréhension des principes directeurs et des responsabilités de la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Texte de risque modifié, fonds propres réglementaires.\n\nCe qui change : Le T2 simplifie la description du cadre de gestion du capital, supprimant des détails sur le processus interne d'évaluation des fonds propres et les pertes non prévues.\n\nPertinence métier : Ce changement met en évidence une simplification de la divulgation sur la gestion des fonds propres, ce qui peut affecter la transparence et la compréhension des risques associés. La suppression de détails sur le processus interne et les pertes non prévues modifie la lecture des responsabilités et des principes directeurs de la banque.\n\nPoint de surveillance : Fonds propres réglementaires — Le changement indique une simplification de la divulgation sur la gestion du capital. Ce point permet de suivre l'évolution de la transparence et de la compréhension des risques liés aux fonds propres réglementaires.",
+            "explanation": "Le texte a été modifié pour supprimer la description détaillée du processus interne d'évaluation de l'adéquation des fonds propres. Ce changement relève de la modification de méthodologie et des fonds propres réglementaires. Il implique une simplification de la divulgation sur la gestion du capital",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Méthode de calcul ou approche modifiée, fonds propres réglementaires.\n\nCe qui change : Le T2 supprime la description détaillée du processus interne d'évaluation de l'adéquation des fonds propres, se concentrant sur le cadre de gestion du capital.\n\nPertinence métier : Ce changement met l'accent sur une simplification de la divulgation concernant la gestion du capital. La suppression de détails sur le processus interne peut affecter la transparence et la compréhension des pratiques de gestion des fonds propres, ce qui est crucial pour l'évaluation des risques et la comparabilité entre pairs.\n\nPoint de surveillance : Gestion du capital — Le changement indique une simplification de la divulgation sur le processus d'évaluation des fonds propres. Ce point permet de suivre l'impact de cette simplification sur la transparence et la comparabilité des pratiques de gestion du capital entre institutions.",
             "action_requise": "investigation",
             "exclusion_reason": null,
             "change_segments": [
               {
-                "kind": "modified",
+                "kind": "removed",
                 "text_t1": "La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. Plus de détails sur le cadre de gestion du capital sont présentés dans la section « Gestion du capital » du Rapport annuel aux pages à",
-                "text_t2": "La banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel aux pages à"
+                "text_t2": ""
               }
             ],
             "category": "CAPITAL",
@@ -143,16 +155,16 @@
             "confidence": 0.85,
             "signals": {
               "regulatory_reference_added": false,
-              "methodology_change": false,
+              "methodology_change": true,
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_actif_pondéré_en_fonction_des_risques_se_change_019",
+          "change_id": "gestion_capital_actif_pondéré_en_fonction_des_risques_se_change_018",
           "section_key": "gestion_capital",
           "subsection_heading": "Actif pondéré en fonction des risques selon les principaux facteurs de risque",
           "diff_type": "modified",
@@ -192,16 +204,22 @@
               "FONDS_PROPRES_REGLEMENTAIRES"
             ],
             "impact_level": "MODERE",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "INDETERMINE",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Au, la banque ajoute la détérioration de la qualité de crédit comme facteur d'augmentation de l'actif pondéré en fonction des risques. Ce changement modifie la description des risques liés aux fonds propres réglementaires. Il affecte la compréhension des facteurs influençant l'actif pondéré en fonction des risques",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Texte de risque modifié, fonds propres réglementaires.\n\nCe qui change : Le T2 ajoute la détérioration de la qualité de crédit comme facteur d'augmentation de l'actif pondéré en fonction des risques, absente au T1.\n\nPertinence métier : Ce changement met en évidence un nouveau facteur de risque influençant l'actif pondéré en fonction des risques, ce qui peut affecter la compréhension des risques liés aux fonds propres réglementaires. L'ajout de la détérioration de la qualité de crédit modifie la lecture des facteurs influençant l'actif pondéré en fonction des risques.\n\nPoint de surveillance : Fonds propres réglementaires — Le changement indique l'ajout d'un nouveau facteur de risque influençant l'actif pondéré en fonction des risques. Ce point permet de suivre l'évolution de la compréhension des risques liés aux fonds propres réglementaires.",
+            "explanation": "Le texte a été modifié pour inclure la détérioration de la qualité de crédit comme facteur d'augmentation de l'actif pondéré en fonction des risques. Ce changement relève de la modification du texte de risque et des fonds propres réglementaires. Il ajoute un nouveau facteur de risque à surveiller",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Texte de risque modifié, fonds propres réglementaires.\n\nCe qui change : Le T2 ajoute la détérioration de la qualité de crédit comme facteur d'augmentation de l'actif pondéré en fonction des risques, absente au T1.\n\nPertinence métier : Ce changement met l'accent sur l'ajout d'un facteur de risque lié à la qualité de crédit, ce qui peut affecter la gestion des fonds propres et la perception du risque par les parties prenantes. L'introduction de ce facteur est importante pour évaluer la stabilité financière et la gestion des risques de la banque.\n\nPoint de surveillance : Qualité de crédit — Le changement indique que la banque reconnaît désormais la détérioration de la qualité de crédit comme un facteur d'augmentation de l'actif pondéré en fonction des risques. Ce point permet de suivre l'impact de ce facteur sur la gestion des fonds propres et la stabilité financière de la banque.",
             "action_requise": "investigation",
             "exclusion_reason": null,
             "change_segments": [
               {
                 "kind": "modified",
-                "text_t1": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au janvier, comparativement à G$ au octobre, une augmentation de G$ qui s'explique principalement par la croissance organique de l'actif pondéré en fonction des risques atténuée par la variation du taux de change",
-                "text_t2": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au avril, comparativement à G$ au octobre. Cette augmentation découle de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts atténuées par la variation du taux de change"
+                "text_t1": "une augmentation de G$ qui s'explique principalement par la croissance organique de l'actif pondéré en fonction des risques atténuée par la variation du taux de change",
+                "text_t2": "Cette augmentation découle de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts atténuées par la variation du taux de change"
               }
             ],
             "category": "CAPITAL",
@@ -218,11 +236,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_exigences_ratios_des_fonds_propres_1_de_change_006",
+          "change_id": "gestion_capital_exigences_ratios_des_fonds_propres_1_de_change_005",
           "section_key": "gestion_capital",
           "subsection_heading": "Exigences - Ratios des fonds propres (1) , de levier (1) et TLAC (2) réglementaires",
           "diff_type": "added",
@@ -255,12 +273,18 @@
             "is_relevant": true,
             "themes_amf": [
               "DIVULGATION_AJOUT",
-              "EXIGENCES_REGLEMENTAIRES"
+              "FONDS_PROPRES_REGLEMENTAIRES"
             ],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "INDETERMINE",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Au, une phrase introductive concernant un tableau des exigences minimales de fonds propres a été ajoutée. Ce changement introduit une nouvelle divulgation sur les des exigences prudentielles, absente au. Il ajoute un élément d'information sur les fonds propres réglementaires",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Information ajoutée, exigences réglementaires.\n\nCe qui change : Le T2 ajoute une phrase introductive concernant un tableau des exigences minimales de fonds propres, absente au T1.\n\nPertinence métier : Ce changement met en évidence l'ajout d'une divulgation sur les exigences minimales de fonds propres, ce qui peut affecter la compréhension des attentes réglementaires. L'introduction de cette information améliore la transparence sur les exigences de fonds propres réglementaires.\n\nPoint de surveillance : Exigences réglementaires — Le changement indique l'ajout d'une divulgation sur les exigences minimales de fonds propres. Ce point permet de suivre l'évolution de la transparence et de la compréhension des exigences réglementaires.",
+            "explanation": "Une nouvelle phrase introductive concernant un tableau des exigences minimales de fonds propres a été ajoutée au. Ce changement relève de l'ajout de divulgation et des fonds propres réglementaires. Il introduit une nouvelle information sur les exigences minimales de fonds propres",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Information ajoutée, fonds propres réglementaires.\n\nCe qui change : Le T2 ajoute une phrase introductive concernant un tableau des exigences minimales de fonds propres, absente au T1.\n\nPertinence métier : Ce changement met en évidence l'ajout d'une divulgation sur les exigences minimales de fonds propres, ce qui peut améliorer la transparence et la compréhension des attentes réglementaires. L'introduction de cette information est importante pour évaluer la conformité et la gestion des fonds propres par la banque.\n\nPoint de surveillance : Exigences minimales de fonds propres — Le changement indique que la banque fournit désormais une information supplémentaire sur les exigences minimales de fonds propres. Ce point permet de suivre l'évolution de la transparence et de la comparabilité des pratiques de gestion des fonds propres entre institutions.",
             "action_requise": "information",
             "exclusion_reason": null,
             "change_segments": [
@@ -270,8 +294,8 @@
                 "text_t2": "Le tableau suivant présente les exigences minimales de fonds propres établies par le"
               }
             ],
-            "category": "REGLEMENTAIRE",
-            "risk_type": "conformite",
+            "category": "CAPITAL",
+            "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
             "impact_description": "",
@@ -284,13 +308,13 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         }
       ],
       "all_block_comparisons": [
         {
-          "change_id": "gestion_capital_exigences_de_communication_publique_pour_change_030",
+          "change_id": "gestion_capital_exigences_de_communication_publique_pour_change_029",
           "section_key": "gestion_capital",
           "subsection_heading": "Exigences de communication publique pour les banques d'importance systémique mondiale",
           "diff_type": "removed",
@@ -326,9 +350,15 @@
               "EXIGENCES_REGLEMENTAIRES"
             ],
             "impact_level": "MAJEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "INDETERMINE",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Au, la sous section sur les exigences de communication publique pour les banques d'importance systémique mondiale a été supprimée. Ce retrait touche une divulgation réglementaire importante, modifiant le niveau de détail sur les exigences de communication publique",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Information retirée, exigences réglementaires.\n\nCe qui change : Le T2 retire la sous-section sur les exigences de communication publique pour les banques d'importance systémique mondiale, présente au T1.\n\nPertinence métier : Ce changement met l'accent sur la réduction de la divulgation relative aux exigences de communication publique pour les banques d'importance systémique mondiale. Le retrait de cette information modifie la lecture de la transparence de la banque sur ses obligations réglementaires, ce qui est crucial pour la comparabilité entre pairs.\n\nPoint de surveillance : Exigences réglementaires — Le changement indique un retrait de la divulgation sur les exigences de communication publique pour les banques d'importance systémique mondiale. Ce point permet de suivre l'évolution de la transparence de la banque sur ses obligations réglementaires et la comparabilité de sa divulgation avec les autres institutions.",
+            "explanation": "Une sous section entière concernant les exigences de communication publique pour les banques d'importance systémique mondiale a été supprimée au. Ce retrait touche la divulgation et les des exigences prudentielles. Il réduit le niveau de détail sur les obligations de communication publique",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Information retirée, exigences réglementaires.\n\nCe qui change : Le T2 retire une sous-section entière sur les exigences de communication publique pour les banques d'importance systémique mondiale, présente au T1.\n\nPertinence métier : Ce changement met l'accent sur la réduction de la transparence concernant les obligations de communication publique pour les banques d'importance systémique. Le retrait de cette information peut affecter la compréhension des exigences réglementaires et la comparabilité entre pairs, ce qui est crucial pour l'évaluation des risques et la conformité.\n\nPoint de surveillance : Exigences de communication publique — Le changement indique que la banque réduit le niveau de détail fourni sur les obligations de communication publique. Ce point permet de suivre l'impact de cette réduction sur la transparence et la comparabilité des pratiques de communication entre institutions.",
             "action_requise": "revue_prioritaire",
             "exclusion_reason": null,
             "change_segments": [
@@ -352,18 +382,18 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_intro_change_002",
+          "change_id": "gestion_capital_intro_change_001",
           "section_key": "gestion_capital",
           "subsection_heading": "__intro__",
           "diff_type": "modified",
-          "semantic_text_t1": "La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. Plus de détails sur le cadre de gestion du capital sont présentés dans la section « Gestion du capital » du Rapport annuel aux pages à",
-          "semantic_text_t2": "La banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel aux pages à",
-          "source_text_t1": "La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. Plus de détails sur le cadre de gestion du capital sont présentés dans la section « Gestion du capital » du Rapport annuel 2025 aux pages 62 à 71.",
-          "source_text_t2": "La Banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel 2025 aux pages 62 à 71.",
+          "semantic_text_t1": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. Plus de détails sur le cadre de gestion du capital sont présentés dans la section « Gestion du capital » du Rapport annuel aux pages à",
+          "semantic_text_t2": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel aux pages à",
+          "source_text_t1": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. Plus de détails sur le cadre de gestion du capital sont présentés dans la section « Gestion du capital » du Rapport annuel 2025 aux pages 62 à 71.",
+          "source_text_t2": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La Banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel 2025 aux pages 62 à 71.",
           "source_block_ids_t1": [],
           "source_block_ids_t2": [],
           "source_refs_t1": [],
@@ -380,32 +410,38 @@
             "pages": [
               24
             ],
-            "snippet": "La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions é"
+            "snippet": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et "
           },
           "evidence_t2": {
             "pages": [
               25
             ],
-            "snippet": "La Banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel 2025 aux pages 62 à 71."
+            "snippet": "La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle. La Banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « "
           },
-          "change_summary": "Le texte a été modifié pour simplifier la description du cadre de gestion du capital, en supprimant les détails sur le processus interne d'évaluation de l'adéquation des fonds propres et les pertes non prévues",
+          "change_summary": "Le texte a été modifié pour supprimer la description détaillée du processus interne d'évaluation de l'adéquation des fonds propres et se concentrer sur la gestion du capital selon le cadre décrit dans le rapport annuel",
           "genai_triage": {
             "is_relevant": true,
             "themes_amf": [
-              "MODIFICATION_TEXTE_RISQUE",
+              "MODIFICATION_METHODOLOGIE",
               "FONDS_PROPRES_REGLEMENTAIRES"
             ],
             "impact_level": "MODERE",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "INDETERMINE",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Le texte sur la gestion du capital a été simplifié au, supprimant des détails sur le processus interne d'évaluation des fonds propres et les pertes non prévues. Ce changement modifie la description des risques liés aux fonds propres réglementaires. Il affecte la compréhension des principes directeurs et des responsabilités de la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Texte de risque modifié, fonds propres réglementaires.\n\nCe qui change : Le T2 simplifie la description du cadre de gestion du capital, supprimant des détails sur le processus interne d'évaluation des fonds propres et les pertes non prévues.\n\nPertinence métier : Ce changement met en évidence une simplification de la divulgation sur la gestion des fonds propres, ce qui peut affecter la transparence et la compréhension des risques associés. La suppression de détails sur le processus interne et les pertes non prévues modifie la lecture des responsabilités et des principes directeurs de la banque.\n\nPoint de surveillance : Fonds propres réglementaires — Le changement indique une simplification de la divulgation sur la gestion du capital. Ce point permet de suivre l'évolution de la transparence et de la compréhension des risques liés aux fonds propres réglementaires.",
+            "explanation": "Le texte a été modifié pour supprimer la description détaillée du processus interne d'évaluation de l'adéquation des fonds propres. Ce changement relève de la modification de méthodologie et des fonds propres réglementaires. Il implique une simplification de la divulgation sur la gestion du capital",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Méthode de calcul ou approche modifiée, fonds propres réglementaires.\n\nCe qui change : Le T2 supprime la description détaillée du processus interne d'évaluation de l'adéquation des fonds propres, se concentrant sur le cadre de gestion du capital.\n\nPertinence métier : Ce changement met l'accent sur une simplification de la divulgation concernant la gestion du capital. La suppression de détails sur le processus interne peut affecter la transparence et la compréhension des pratiques de gestion des fonds propres, ce qui est crucial pour l'évaluation des risques et la comparabilité entre pairs.\n\nPoint de surveillance : Gestion du capital — Le changement indique une simplification de la divulgation sur le processus d'évaluation des fonds propres. Ce point permet de suivre l'impact de cette simplification sur la transparence et la comparabilité des pratiques de gestion du capital entre institutions.",
             "action_requise": "investigation",
             "exclusion_reason": null,
             "change_segments": [
               {
-                "kind": "modified",
+                "kind": "removed",
                 "text_t1": "La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. Plus de détails sur le cadre de gestion du capital sont présentés dans la section « Gestion du capital » du Rapport annuel aux pages à",
-                "text_t2": "La banque gère son capital conformément au cadre de gestion du capital qui est décrit dans la section « Gestion du capital » du Rapport annuel aux pages à"
+                "text_t2": ""
               }
             ],
             "category": "CAPITAL",
@@ -417,16 +453,16 @@
             "confidence": 0.85,
             "signals": {
               "regulatory_reference_added": false,
-              "methodology_change": false,
+              "methodology_change": true,
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_actif_pondéré_en_fonction_des_risques_se_change_019",
+          "change_id": "gestion_capital_actif_pondéré_en_fonction_des_risques_se_change_018",
           "section_key": "gestion_capital",
           "subsection_heading": "Actif pondéré en fonction des risques selon les principaux facteurs de risque",
           "diff_type": "modified",
@@ -466,16 +502,22 @@
               "FONDS_PROPRES_REGLEMENTAIRES"
             ],
             "impact_level": "MODERE",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "INDETERMINE",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Au, la banque ajoute la détérioration de la qualité de crédit comme facteur d'augmentation de l'actif pondéré en fonction des risques. Ce changement modifie la description des risques liés aux fonds propres réglementaires. Il affecte la compréhension des facteurs influençant l'actif pondéré en fonction des risques",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Texte de risque modifié, fonds propres réglementaires.\n\nCe qui change : Le T2 ajoute la détérioration de la qualité de crédit comme facteur d'augmentation de l'actif pondéré en fonction des risques, absente au T1.\n\nPertinence métier : Ce changement met en évidence un nouveau facteur de risque influençant l'actif pondéré en fonction des risques, ce qui peut affecter la compréhension des risques liés aux fonds propres réglementaires. L'ajout de la détérioration de la qualité de crédit modifie la lecture des facteurs influençant l'actif pondéré en fonction des risques.\n\nPoint de surveillance : Fonds propres réglementaires — Le changement indique l'ajout d'un nouveau facteur de risque influençant l'actif pondéré en fonction des risques. Ce point permet de suivre l'évolution de la compréhension des risques liés aux fonds propres réglementaires.",
+            "explanation": "Le texte a été modifié pour inclure la détérioration de la qualité de crédit comme facteur d'augmentation de l'actif pondéré en fonction des risques. Ce changement relève de la modification du texte de risque et des fonds propres réglementaires. Il ajoute un nouveau facteur de risque à surveiller",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Texte de risque modifié, fonds propres réglementaires.\n\nCe qui change : Le T2 ajoute la détérioration de la qualité de crédit comme facteur d'augmentation de l'actif pondéré en fonction des risques, absente au T1.\n\nPertinence métier : Ce changement met l'accent sur l'ajout d'un facteur de risque lié à la qualité de crédit, ce qui peut affecter la gestion des fonds propres et la perception du risque par les parties prenantes. L'introduction de ce facteur est importante pour évaluer la stabilité financière et la gestion des risques de la banque.\n\nPoint de surveillance : Qualité de crédit — Le changement indique que la banque reconnaît désormais la détérioration de la qualité de crédit comme un facteur d'augmentation de l'actif pondéré en fonction des risques. Ce point permet de suivre l'impact de ce facteur sur la gestion des fonds propres et la stabilité financière de la banque.",
             "action_requise": "investigation",
             "exclusion_reason": null,
             "change_segments": [
               {
                 "kind": "modified",
-                "text_t1": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au janvier, comparativement à G$ au octobre, une augmentation de G$ qui s'explique principalement par la croissance organique de l'actif pondéré en fonction des risques atténuée par la variation du taux de change",
-                "text_t2": "L'actif pondéré en fonction des risques a augmenté de G$ pour s'établir à G$ au avril, comparativement à G$ au octobre. Cette augmentation découle de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts atténuées par la variation du taux de change"
+                "text_t1": "une augmentation de G$ qui s'explique principalement par la croissance organique de l'actif pondéré en fonction des risques atténuée par la variation du taux de change",
+                "text_t2": "Cette augmentation découle de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts atténuées par la variation du taux de change"
               }
             ],
             "category": "CAPITAL",
@@ -492,11 +534,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_exigences_ratios_des_fonds_propres_1_de_change_006",
+          "change_id": "gestion_capital_exigences_ratios_des_fonds_propres_1_de_change_005",
           "section_key": "gestion_capital",
           "subsection_heading": "Exigences - Ratios des fonds propres (1) , de levier (1) et TLAC (2) réglementaires",
           "diff_type": "added",
@@ -529,12 +571,18 @@
             "is_relevant": true,
             "themes_amf": [
               "DIVULGATION_AJOUT",
-              "EXIGENCES_REGLEMENTAIRES"
+              "FONDS_PROPRES_REGLEMENTAIRES"
             ],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "INDETERMINE",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Au, une phrase introductive concernant un tableau des exigences minimales de fonds propres a été ajoutée. Ce changement introduit une nouvelle divulgation sur les des exigences prudentielles, absente au. Il ajoute un élément d'information sur les fonds propres réglementaires",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Information ajoutée, exigences réglementaires.\n\nCe qui change : Le T2 ajoute une phrase introductive concernant un tableau des exigences minimales de fonds propres, absente au T1.\n\nPertinence métier : Ce changement met en évidence l'ajout d'une divulgation sur les exigences minimales de fonds propres, ce qui peut affecter la compréhension des attentes réglementaires. L'introduction de cette information améliore la transparence sur les exigences de fonds propres réglementaires.\n\nPoint de surveillance : Exigences réglementaires — Le changement indique l'ajout d'une divulgation sur les exigences minimales de fonds propres. Ce point permet de suivre l'évolution de la transparence et de la compréhension des exigences réglementaires.",
+            "explanation": "Une nouvelle phrase introductive concernant un tableau des exigences minimales de fonds propres a été ajoutée au. Ce changement relève de l'ajout de divulgation et des fonds propres réglementaires. Il introduit une nouvelle information sur les exigences minimales de fonds propres",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Information ajoutée, fonds propres réglementaires.\n\nCe qui change : Le T2 ajoute une phrase introductive concernant un tableau des exigences minimales de fonds propres, absente au T1.\n\nPertinence métier : Ce changement met en évidence l'ajout d'une divulgation sur les exigences minimales de fonds propres, ce qui peut améliorer la transparence et la compréhension des attentes réglementaires. L'introduction de cette information est importante pour évaluer la conformité et la gestion des fonds propres par la banque.\n\nPoint de surveillance : Exigences minimales de fonds propres — Le changement indique que la banque fournit désormais une information supplémentaire sur les exigences minimales de fonds propres. Ce point permet de suivre l'évolution de la transparence et de la comparabilité des pratiques de gestion des fonds propres entre institutions.",
             "action_requise": "information",
             "exclusion_reason": null,
             "change_segments": [
@@ -544,8 +592,8 @@
                 "text_t2": "Le tableau suivant présente les exigences minimales de fonds propres établies par le"
               }
             ],
-            "category": "REGLEMENTAIRE",
-            "risk_type": "conformite",
+            "category": "CAPITAL",
+            "risk_type": "capital",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
             "impact_description": "",
@@ -558,11 +606,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_accord_de_bâle_change_005",
+          "change_id": "gestion_capital_accord_de_bâle_change_004",
           "section_key": "gestion_capital",
           "subsection_heading": "Accord de Bâle",
           "diff_type": "modified",
@@ -599,9 +647,15 @@
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour la date de référence de janvier à avril et la valeur des éléments de passif en circulation, sans modifier le cadre réglementaire ou la méthodologie.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de date et de chiffres propres à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour la date de référence et la valeur des éléments de passif en circulation pour la recapitalisation interne.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de chiffres propres à la banque sans impact sur les exigences réglementaires ou la méthodologie de calcul.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "variation_numerique_propre_banque",
             "change_segments": [],
@@ -619,11 +673,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_exigences_ratios_des_fonds_propres_1_de_change_007",
+          "change_id": "gestion_capital_exigences_ratios_des_fonds_propres_1_de_change_006",
           "section_key": "gestion_capital",
           "subsection_heading": "Exigences - Ratios des fonds propres (1) , de levier (1) et TLAC (2) réglementaires",
           "diff_type": "modified",
@@ -660,9 +714,15 @@
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Reformulation mineure.\n\nCe qui change : Le T2 reformule 'limites minimales relatives aux capitaux propres' en 'exigences minimales de fonds propres', sans modifier le fond de la divulgation.\n\nPertinence métier : Cette reformulation ne constitue pas une nouvelle idée à surveiller, car elle n'apporte pas de changement substantiel à la divulgation. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Reformulation mineure — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Reformulation mineure.\n\nCe qui change : Le T2 reformule 'limites minimales relatives aux capitaux propres' en 'exigences minimales de fonds propres'.\n\nPertinence métier : Cette reformulation ne constitue pas une nouvelle idée à surveiller, car elle n'apporte pas de changement substantiel à la divulgation. Elle ne modifie pas la compréhension des exigences réglementaires ou la posture de la banque.\n\nPoint de surveillance : Reformulation mineure — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "reformulation_mineure",
             "change_segments": [],
@@ -680,11 +740,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_activités_de_gestion_change_012",
+          "change_id": "gestion_capital_activités_de_gestion_change_011",
           "section_key": "gestion_capital",
           "subsection_heading": "Activités de gestion",
           "diff_type": "modified",
@@ -716,14 +776,20 @@
             ],
             "snippet": "Le 25 septembre 2025, la Banque a débuté un programme d'offre publique de rachat à des fins d'annulation dans le cours normal de ses activités, visant jusqu'à concurrence de 8 000 000 d'actions ordinaires (représentant environ 2,04 % des actions ordinaires alors en circulation) au cours de la période de 12 mois se terminant au plus tard le 24 septembre 2026. Le 12 mars 2026, une modification à l'o"
           },
-          "change_summary": "Modification de l'offre publique de rachat avec augmentation du nombre d'actions pouvant être rachetées, mise à jour des dates et des chiffres concernant les actions rachetées et les montants financiers",
+          "change_summary": "Mise à jour avec une modification de l'offre publique de rachat augmentant le nombre d'actions pouvant être rachetées. Changement des dates et des chiffres concernant le nombre d'actions rachetées et les montants financiers associés",
           "genai_triage": {
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 modifie l'offre publique de rachat avec une augmentation du nombre d'actions pouvant être rachetées et met à jour les dates et les chiffres concernant les actions rachetées et les montants financiers.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de chiffres propres à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour les chiffres concernant le programme d'offre publique de rachat et les montants financiers associés.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de chiffres propres à la banque sans impact sur les exigences réglementaires ou la méthodologie de calcul.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "variation_numerique_propre_banque",
             "change_segments": [],
@@ -741,11 +807,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_dividendes_change_014",
+          "change_id": "gestion_capital_dividendes_change_013",
           "section_key": "gestion_capital",
           "subsection_heading": "Dividendes",
           "diff_type": "modified",
@@ -777,14 +843,20 @@
             ],
             "snippet": "Le 26 mai 2026, le conseil d'administration a déclaré les dividendes réguliers sur les diverses séries d'actions privilégiées de premier rang, ainsi qu'un dividende de 1,32 $ par action ordinaire, en hausse de 8 cents ou 6 %, payable le 1 er août 2026 aux actionnaires inscrits le 29 juin 2026."
           },
-          "change_summary": "Date de déclaration modifiée, montant du dividende augmenté de cents, date de paiement et date d'inscription mises à jour",
+          "change_summary": "Date de déclaration modifiée, montant du dividende augmenté, date de paiement et date d'inscription mises à jour, ajout de l'augmentation en pourcentage",
           "genai_triage": {
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour la date de déclaration des dividendes, le montant du dividende, la date de paiement et la date d'inscription, sans modifier le cadre réglementaire ou la méthodologie.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de dates et de chiffres propres à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour la date de déclaration, le montant du dividende, la date de paiement et la date d'inscription.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de chiffres propres à la banque sans impact sur les exigences réglementaires ou la méthodologie de calcul.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "variation_numerique_propre_banque",
             "change_segments": [],
@@ -802,11 +874,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_015",
+          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_014",
           "section_key": "gestion_capital",
           "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
           "diff_type": "modified",
@@ -838,14 +910,20 @@
             ],
             "snippet": "Au 22 mai 2026, le nombre d'actions ordinaires en circulation se chiffre à 385 142 589 et le nombre d'options en cours est de 9 969 096."
           },
-          "change_summary": "Mise à jour des dates et des chiffres concernant le nombre d'actions ordinaires et d'options en cours",
+          "change_summary": "Mise à jour des dates et des chiffres concernant le nombre d'actions et d'options",
           "genai_triage": {
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour les dates et les chiffres concernant le nombre d'actions ordinaires et d'options en cours, sans modifier le cadre réglementaire ou la méthodologie.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de dates et de chiffres propres à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour les chiffres concernant le nombre d'actions ordinaires en circulation et le nombre d'options en cours.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de chiffres propres à la banque sans impact sur les exigences réglementaires ou la méthodologie de calcul.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "variation_numerique_propre_banque",
             "change_segments": [],
@@ -863,11 +941,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_018",
+          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_017",
           "section_key": "gestion_capital",
           "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
           "diff_type": "modified",
@@ -899,14 +977,20 @@
             ],
             "snippet": "Selon un prix-plancher de 5,00 $ et en tenant compte des dividendes et intérêts cumulés estimés, ces instruments de fonds propres assortis d'une clause FPUNV se convertiraient en un maximum de 1 559 millions d'actions ordinaires de la Banque, d'où un effet dilutif de 80,2 % selon le nombre d'actions ordinaires de la Banque en circulation au 30 avril 2026."
           },
-          "change_summary": "Mise à jour des chiffres concernant le maximum d'actions ordinaires et l'effet dilutif, ainsi que la date de référence",
+          "change_summary": "Mise à jour des chiffres concernant le maximum d'actions convertibles et l'effet dilutif, ainsi que la date de référence",
           "genai_triage": {
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour les chiffres concernant le maximum d'actions ordinaires et l'effet dilutif, ainsi que la date de référence, sans modifier le cadre réglementaire ou la méthodologie.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de chiffres propres à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour les chiffres concernant le maximum d'actions convertibles et l'effet dilutif, ainsi que la date de référence.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de chiffres propres à la banque sans impact sur les exigences réglementaires ou la méthodologie de calcul.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "variation_numerique_propre_banque",
             "change_segments": [],
@@ -924,11 +1008,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_ratios_des_fonds_propres_réglementaires_change_026",
+          "change_id": "gestion_capital_ratios_des_fonds_propres_réglementaires_change_025",
           "section_key": "gestion_capital",
           "subsection_heading": "Ratios des fonds propres réglementaires, de levier et TLAC",
           "diff_type": "modified",
@@ -960,14 +1044,20 @@
             ],
             "snippet": "Le ratio des fonds propres CET1, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres s'établissent, respectivement, à 13,5 %, à 14,9 % et à 17,0 % au 30 avril 2026, comparativement à des ratios de 13,8 %, de 15,1 % et de 17,3 %, respectivement, au 31 octobre 2025. Tous les ratios de fonds propres ont diminué depuis le 31 octobre 2025. La baisse est principalement attri"
           },
-          "change_summary": "Mise à jour des dates et des pourcentages des ratios de fonds propres. Changement dans l'explication de la baisse des ratios",
+          "change_summary": "Les ratios de fonds propres ont été mis à jour avec de nouvelles valeurs et une nouvelle date. Le texte indique maintenant que tous les ratios ont diminué, et précise que les rachats d'actions sont à des fins d'annulation",
           "genai_triage": {
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour les dates et les pourcentages des ratios de fonds propres, sans modifier le cadre réglementaire ou la méthodologie.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de dates et de chiffres propres à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour les valeurs des ratios de fonds propres et précise que tous les ratios ont diminué.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de chiffres propres à la banque sans impact sur les exigences réglementaires ou la méthodologie de calcul.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "variation_numerique_propre_banque",
             "change_segments": [],
@@ -985,11 +1075,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_ratios_des_fonds_propres_réglementaires_change_028",
+          "change_id": "gestion_capital_ratios_des_fonds_propres_réglementaires_change_027",
           "section_key": "gestion_capital",
           "subsection_heading": "Ratios des fonds propres réglementaires, de levier et TLAC",
           "diff_type": "modified",
@@ -1021,14 +1111,20 @@
             ],
             "snippet": "Au 30 avril 2026, le ratio TLAC et le ratio de levier TLAC s'établissent à 31,5 % et à 9,0 %, comparativement à 29,7 % et à 8,8 %, respectivement, au 31 octobre 2025. L'augmentation du ratio TLAC et du ratio de levier TLAC s'explique principalement par les émissions nettes d'instruments qui satisfont tous les critères d'admissibilité TLAC au cours de la période."
           },
-          "change_summary": "Mise à jour des dates et des pourcentages des ratios",
+          "change_summary": "Les valeurs des ratios et de levier ont été mises à jour avec de nouvelles valeurs et une nouvelle date",
           "genai_triage": {
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour les dates et les pourcentages des ratios TLAC et de levier, sans modifier le cadre réglementaire ou la méthodologie.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de dates et de chiffres propres à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour les valeurs des ratios et de levier avec de nouvelles valeurs et une nouvelle date.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de chiffres propres à la banque sans impact sur les exigences réglementaires ou la méthodologie de calcul.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "variation_numerique_propre_banque",
             "change_segments": [],
@@ -1046,11 +1142,11 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
-          "change_id": "gestion_capital_ratios_des_fonds_propres_réglementaires_change_029",
+          "change_id": "gestion_capital_ratios_des_fonds_propres_réglementaires_change_028",
           "section_key": "gestion_capital",
           "subsection_heading": "Ratios des fonds propres réglementaires, de levier et TLAC",
           "diff_type": "modified",
@@ -1082,14 +1178,20 @@
             ],
             "snippet": "Au cours du trimestre et du semestre terminés le 30 avril 2026, la Banque a respecté toutes les exigences réglementaires imposées par le BSIF en matière de capital, de levier et de TLAC."
           },
-          "change_summary": "Mise à jour de la date et ajout de la mention du semestre",
+          "change_summary": "Le texte a été modifié pour inclure le respect des exigences pour le trimestre et le semestre, avec une mise à jour de la date",
           "genai_triage": {
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour la date et ajoute la mention du semestre, sans modifier le cadre réglementaire ou la méthodologie.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de dates et de chiffres propres à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 inclut le respect des exigences pour le trimestre et le semestre, avec une mise à jour de la date.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour de chiffres propres à la banque sans impact sur les exigences réglementaires ou la méthodologie de calcul.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "variation_numerique_propre_banque",
             "change_segments": [],
@@ -1107,7 +1209,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         }
       ],
@@ -1157,7 +1259,7 @@
             ],
             "snippet": "Le 26 février 2025, la Commission européenne a présenté une proposition de législation « Omnibus » dans le but d'alléger et de simplifier certaines exigences de divulgation en lien avec la directive européenne sur la publication d'informations en matière de durabilité par les entreprises ( Corporate Sustainability Reporting Directive ou CSRD). Le 26 février 2026, le texte final du projet Omnibus a"
           },
-          "change_summary": "Ajout d'un nouveau paragraphe concernant la législation « Omnibus » et son impact sur la directive CSRD",
+          "change_summary": "Ajout d'un nouveau paragraphe concernant la législation « Omnibus » et son impact sur la divulgation en matière de durabilité",
           "genai_triage": {
             "is_relevant": true,
             "themes_amf": [
@@ -1166,9 +1268,15 @@
               "DIVULGATION_AJOUT"
             ],
             "impact_level": "MAJEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "NOUVEAU_DISPOSITIF",
+            "justification_posture": "Preuve : La banque mentionne la législation « Omnibus » et son impact sur la divulgation en matière de durabilité.\n\nEffet sur la gestion du risque : Ce changement introduit un nouveau cadre réglementaire à suivre, ce qui peut influencer la gestion des divulgations ESG.\n\nJustification du statut : Le texte indique que la législation est entrée en vigueur et que la banque suit son évolution.\n\nJustification de la confiance : La mention explicite de la législation et de son impact sur la divulgation renforce la confiance dans l'application de ce nouveau dispositif.",
+            "statut_mise_en_oeuvre": "EN_COURS",
+            "confiance_posture": "ELEVEE",
             "nouvelle_idee": true,
-            "explanation": "Au, la banque ajoute une divulgation sur la proposition de législation « Omnibus » de la Commission européenne, absente au. Ce changement croise nouvelle mention réglementaire et divulgation ESG. Il introduit un élément substantiel sur l'évolution réglementaire en matière de durabilité",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Nouvelle mention réglementaire, risque climatique / ESG, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur la législation « Omnibus » de la Commission européenne et son impact sur la directive CSRD, absente au T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations en matière de durabilité des institutions financières. La mention de la législation « Omnibus » et de la directive CSRD peut influencer la manière dont les banques planifient leur conformité et communiquent leurs risques ESG. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles et la comparabilité des pratiques de divulgation entre pairs.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences de la directive CSRD. Ce point permet de suivre l'adaptation aux attentes prudentielles ESG et la comparabilité des pratiques de divulgation entre pairs.",
+            "explanation": "Au, la banque ajoute une divulgation sur la législation « Omnibus » de la Commission européenne, qui vise à alléger et simplifier certaines exigences de divulgation en matière de durabilité. Ce changement introduit une nouvelle mention réglementaire et un dispositif ESG climatique à suivre",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Nouvelle mention réglementaire, risque climatique / ESG, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur la législation « Omnibus » de la Commission européenne et son impact sur la divulgation en matière de durabilité, absente au T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations ESG des institutions financières. La législation « Omnibus » peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences climatiques de la législation « Omnibus ». Ce point permet de suivre l'adaptation aux attentes prudentielles climatiques, le niveau de préparation ESG et la comparabilité des pratiques de divulgation entre pairs.",
             "action_requise": "revue_prioritaire",
             "exclusion_reason": null,
             "change_segments": [
@@ -1192,7 +1300,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -1224,7 +1332,7 @@
             ],
             "snippet": "Le 20 avril 2026, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié un exposé-sondage Projet de modification de la NCID 2 - Modifications concernant les informations à fournir en lien avec les émissions de gaz à effet de serre afin de refléter les modifications apportées à l'IFRS S2 - Informations à fournir en lien avec les changements climatiques en décembre 2025. Le"
           },
-          "change_summary": "Ajout d'un nouveau paragraphe concernant les modifications proposées par le CCNID sur les informations à fournir en lien avec les émissions de gaz à effet de serre",
+          "change_summary": "Ajout d'un nouveau paragraphe concernant le projet de modification de la NCID par le CCNID et les consultations en cours",
           "genai_triage": {
             "is_relevant": true,
             "themes_amf": [
@@ -1233,9 +1341,15 @@
               "DIVULGATION_AJOUT"
             ],
             "impact_level": "MAJEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "NOUVEAU_DISPOSITIF",
+            "justification_posture": "Preuve : La banque mentionne le projet de modification de la NCID par le CCNID et les consultations en cours.\n\nEffet sur la gestion du risque : Ce changement introduit un nouveau cadre réglementaire à suivre, ce qui peut influencer la gestion des divulgations ESG.\n\nJustification du statut : Le texte indique que le projet est en cours de consultation et que la banque suit son évolution.\n\nJustification de la confiance : La mention explicite du projet et des consultations renforce la confiance dans l'application de ce nouveau dispositif.",
+            "statut_mise_en_oeuvre": "EN_COURS",
+            "confiance_posture": "ELEVEE",
             "nouvelle_idee": true,
-            "explanation": "Au, la banque ajoute une divulgation sur les modifications proposées par le CCNID concernant les informations à fournir en lien avec les émissions de gaz à effet de serre, absente au. Ce changement croise nouvelle mention réglementaire et divulgation ESG. Il introduit un élément substantiel sur l'évolution réglementaire en matière de durabilité",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Nouvelle mention réglementaire, risque climatique / ESG, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur les modifications proposées par le CCNID concernant les informations à fournir en lien avec les émissions de gaz à effet de serre, absente au T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations en matière de durabilité des institutions financières. La mention des modifications proposées par le CCNID peut influencer la manière dont les banques planifient leur conformité et communiquent leurs risques ESG. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles et la comparabilité des pratiques de divulgation entre pairs.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences du CCNID. Ce point permet de suivre l'adaptation aux attentes prudentielles ESG et la comparabilité des pratiques de divulgation entre pairs.",
+            "explanation": "Au, la banque ajoute une divulgation sur le projet de modification de la NCID par le CCNID, qui vise à adapter les informations à fournir en lien avec les émissions de gaz à effet de serre. Ce changement introduit une nouvelle mention réglementaire et un dispositif ESG climatique à suivre",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Nouvelle mention réglementaire, risque climatique / ESG, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur le projet de modification de la NCID par le CCNID et les consultations en cours, absente au T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations ESG des institutions financières. Le projet de modification de la NCID peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences climatiques du projet de modification de la NCID. Ce point permet de suivre l'adaptation aux attentes prudentielles climatiques, le niveau de préparation ESG et la comparabilité des pratiques de divulgation entre pairs.",
             "action_requise": "revue_prioritaire",
             "exclusion_reason": null,
             "change_segments": [
@@ -1259,77 +1373,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
-          }
-        },
-        {
-          "change_id": "gestion_risques_var_des_portefeuilles_de_négociation_1_2_change_010",
-          "section_key": "gestion_risques",
-          "subsection_heading": "VaR des portefeuilles de négociation (1) (2)",
-          "diff_type": "modified",
-          "semantic_text_t1": "La moyenne de la la mesure de risque de marché totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de et le premier trimestre de",
-          "semantic_text_t2": "La moyenne de la la mesure de risque de marché totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de, principalement en raison d'une baisse du risque de taux d'intérêt",
-          "source_text_t1": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026.",
-          "source_text_t2": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            35
-          ],
-          "pages_t2": [
-            35
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              35
-            ],
-            "snippet": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026."
-          },
-          "evidence_t2": {
-            "pages": [
-              35
-            ],
-            "snippet": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt."
-          },
-          "change_summary": "Changement de période d'observation et de tendance de la la mesure de risque de marché, avec une explication ajoutée sur la baisse du risque de taux d'intérêt",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "MODIFICATION_TEXTE_RISQUE",
-              "HYPOTHESES_EXPLICATIONS_RISQUES"
-            ],
-            "impact_level": "MODERE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque indique une diminution de la mesure de risque de marché, principalement en raison d'une baisse du risque de taux d'intérêt, ce qui n'était pas précisé au. Ce changement relève des modifications de texte de risque et des hypothèses explicatives associées aux risques. Il modifie la compréhension de la gestion du risque de marché par la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Texte de risque modifié, hypothèses ou explications de risque.\n\nCe qui change : Le T2 précise que la diminution de la mesure de risque de marché est principalement due à une baisse du risque de taux d'intérêt, ce qui n'était pas mentionné au T1.\n\nPertinence métier : Ce changement met en évidence une révision des explications fournies par la banque concernant la gestion de son risque de marché. La mention explicite de la baisse du risque de taux d'intérêt modifie la lecture de l'exposition au risque et la transparence de la banque sur ses facteurs de risque.\n\nPoint de surveillance : Risque de marché — Le changement indique que la banque ajuste ses explications sur la variation de la mesure de risque de marché. Ce point permet de suivre l'évolution de la transparence de la banque sur ses risques de marché et la comparabilité de sa divulgation avec les autres institutions.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "modified",
-                "text_t1": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026.",
-                "text_t2": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt."
-              }
-            ],
-            "category": "RISQUE",
-            "risk_type": "credit",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -1369,9 +1413,15 @@
               "DIVULGATION_RETRAIT"
             ],
             "impact_level": "MODERE",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Au, la banque a supprimé une sous section entière sur les revenus de négociation et de souscription quotidiens, qui était présente au. Ce retrait affecte la structure du rapport et la divulgation des performances de négociation. Il modifie la transparence de la banque sur ses activités de négociation",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Structure du rapport, information retirée.\n\nCe qui change : Le T2 retire une sous-section sur les revenus de négociation et de souscription quotidiens, présente au T1.\n\nPertinence métier : Ce changement met l'accent sur la modification de la structure du rapport et la réduction de la transparence sur les performances de négociation de la banque. Le retrait d'une section entière peut affecter la compréhension des activités de négociation et la comparabilité avec les pairs.\n\nPoint de surveillance : Structure du rapport — Le changement indique que la banque réduit la divulgation de ses performances de négociation. Ce point permet de suivre l'évolution de la transparence de la banque sur ses activités de négociation et la comparabilité de sa divulgation avec les autres institutions.",
+            "explanation": "Au, la banque a supprimé une sous section entière concernant les revenus de négociation et de souscription quotidiens, qui était présente au. Ce retrait affecte la structure du rapport et la divulgation des performances de négociation, ce qui peut influencer la transparence des informations fournies",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Structure du rapport, information retirée.\n\nCe qui change : Le T2 retire une sous-section entière sur les revenus de négociation et de souscription quotidiens, qui était présente au T1.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure du rapport, ce qui peut affecter la transparence et la comparabilité des informations sur les performances de négociation. Le retrait de cette divulgation peut influencer la perception de la performance financière de la banque.\n\nPoint de surveillance : Structure du rapport — Le changement indique une modification dans la présentation des informations de performance, nécessitant une attention particulière sur la transparence et la comparabilité des divulgations financières.",
             "action_requise": "investigation",
             "exclusion_reason": null,
             "change_segments": [
@@ -1395,7 +1445,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -1435,9 +1485,15 @@
               "DIVULGATION_RETRAIT"
             ],
             "impact_level": "MODERE",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Au, la banque a supprimé une sous section entière sur les échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan, qui était présente au. Ce retrait affecte la structure du rapport et la divulgation des échéances contractuelles. Il modifie la transparence de la banque sur sa gestion des liquidités et du financement",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Structure du rapport, information retirée.\n\nCe qui change : Le T2 retire une sous-section sur les échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan, présente au T1.\n\nPertinence métier : Ce changement met l'accent sur la modification de la structure du rapport et la réduction de la transparence sur la gestion des échéances contractuelles de la banque. Le retrait d'une section entière peut affecter la compréhension de la gestion des liquidités et du financement et la comparabilité avec les pairs.\n\nPoint de surveillance : Structure du rapport — Le changement indique que la banque réduit la divulgation de ses échéances contractuelles. Ce point permet de suivre l'évolution de la transparence de la banque sur sa gestion des liquidités et du financement et la comparabilité de sa divulgation avec les autres institutions.",
+            "explanation": "Au, la banque a supprimé une sous section entière concernant les échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan, qui était présente au. Ce retrait affecte la structure du rapport et la divulgation des échéances, ce qui peut influencer la transparence des informations fournies",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Structure du rapport, information retirée.\n\nCe qui change : Le T2 retire une sous-section entière sur les échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan, qui était présente au T1.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure du rapport, ce qui peut affecter la transparence et la comparabilité des informations sur les échéances et les engagements. Le retrait de cette divulgation peut influencer la perception de la gestion des liquidités et des risques de la banque.\n\nPoint de surveillance : Structure du rapport — Le changement indique une modification dans la présentation des informations sur les échéances, nécessitant une attention particulière sur la transparence et la comparabilité des divulgations financières.",
             "action_requise": "investigation",
             "exclusion_reason": null,
             "change_segments": [
@@ -1461,7 +1517,82 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
+          }
+        },
+        {
+          "change_id": "gestion_risques_var_des_portefeuilles_de_négociation_1_2_change_010",
+          "section_key": "gestion_risques",
+          "subsection_heading": "VaR des portefeuilles de négociation (1) (2)",
+          "diff_type": "modified",
+          "semantic_text_t1": "La moyenne de la la mesure de risque de marché totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de et le premier trimestre de",
+          "semantic_text_t2": "La moyenne de la la mesure de risque de marché totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de, principalement en raison d'une baisse du risque de taux d'intérêt",
+          "source_text_t1": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026.",
+          "source_text_t2": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            35
+          ],
+          "pages_t2": [
+            35
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              35
+            ],
+            "snippet": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026."
+          },
+          "evidence_t2": {
+            "pages": [
+              35
+            ],
+            "snippet": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt."
+          },
+          "change_summary": "La période de comparaison a changé et la stabilité de la la mesure de risque de marché est remplacée par une diminution, avec une explication liée au risque de taux d'intérêt",
+          "genai_triage": {
+            "is_relevant": true,
+            "themes_amf": [
+              "MODIFICATION_TEXTE_RISQUE"
+            ],
+            "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
+            "nouvelle_idee": true,
+            "explanation": "Au, la banque indique une diminution de la mesure de risque de marché totale des portefeuilles de négociation, alors qu'elle était stable au. Ce changement relève de la modification du texte de risque, car il introduit une nouvelle explication liée au risque de taux d'intérêt. Cela implique une surveillance accrue des facteurs influençant le risque de marché",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Texte de risque modifié.\n\nCe qui change : Le T2 indique une diminution de la mesure de risque de marché totale des portefeuilles de négociation, principalement en raison d'une baisse du risque de taux d'intérêt, alors qu'elle était stable au T1.\n\nPertinence métier : Ce changement met en évidence une modification dans l'évaluation du risque de marché, ce qui peut influencer la perception de la stabilité financière de la banque. La mention d'une baisse du risque de taux d'intérêt introduit un nouvel élément à surveiller dans l'analyse des risques de marché.\n\nPoint de surveillance : Risque de marché — Le changement indique une variation dans l'évaluation du risque de marché, nécessitant une attention particulière sur les facteurs influençant cette mesure, notamment le risque de taux d'intérêt.",
+            "action_requise": "information",
+            "exclusion_reason": null,
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026.",
+                "text_t2": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt."
+              }
+            ],
+            "category": "RISQUE",
+            "risk_type": "credit",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "impact_description": "",
+            "reference_reglementaire": "",
+            "confidence": 0.85,
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
+            },
+            "source": "gpt4o_triage_amf_v3"
           }
         }
       ],
@@ -1495,7 +1626,7 @@
             ],
             "snippet": "Le 26 février 2025, la Commission européenne a présenté une proposition de législation « Omnibus » dans le but d'alléger et de simplifier certaines exigences de divulgation en lien avec la directive européenne sur la publication d'informations en matière de durabilité par les entreprises ( Corporate Sustainability Reporting Directive ou CSRD). Le 26 février 2026, le texte final du projet Omnibus a"
           },
-          "change_summary": "Ajout d'un nouveau paragraphe concernant la législation « Omnibus » et son impact sur la directive CSRD",
+          "change_summary": "Ajout d'un nouveau paragraphe concernant la législation « Omnibus » et son impact sur la divulgation en matière de durabilité",
           "genai_triage": {
             "is_relevant": true,
             "themes_amf": [
@@ -1504,9 +1635,15 @@
               "DIVULGATION_AJOUT"
             ],
             "impact_level": "MAJEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "NOUVEAU_DISPOSITIF",
+            "justification_posture": "Preuve : La banque mentionne la législation « Omnibus » et son impact sur la divulgation en matière de durabilité.\n\nEffet sur la gestion du risque : Ce changement introduit un nouveau cadre réglementaire à suivre, ce qui peut influencer la gestion des divulgations ESG.\n\nJustification du statut : Le texte indique que la législation est entrée en vigueur et que la banque suit son évolution.\n\nJustification de la confiance : La mention explicite de la législation et de son impact sur la divulgation renforce la confiance dans l'application de ce nouveau dispositif.",
+            "statut_mise_en_oeuvre": "EN_COURS",
+            "confiance_posture": "ELEVEE",
             "nouvelle_idee": true,
-            "explanation": "Au, la banque ajoute une divulgation sur la proposition de législation « Omnibus » de la Commission européenne, absente au. Ce changement croise nouvelle mention réglementaire et divulgation ESG. Il introduit un élément substantiel sur l'évolution réglementaire en matière de durabilité",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Nouvelle mention réglementaire, risque climatique / ESG, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur la législation « Omnibus » de la Commission européenne et son impact sur la directive CSRD, absente au T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations en matière de durabilité des institutions financières. La mention de la législation « Omnibus » et de la directive CSRD peut influencer la manière dont les banques planifient leur conformité et communiquent leurs risques ESG. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles et la comparabilité des pratiques de divulgation entre pairs.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences de la directive CSRD. Ce point permet de suivre l'adaptation aux attentes prudentielles ESG et la comparabilité des pratiques de divulgation entre pairs.",
+            "explanation": "Au, la banque ajoute une divulgation sur la législation « Omnibus » de la Commission européenne, qui vise à alléger et simplifier certaines exigences de divulgation en matière de durabilité. Ce changement introduit une nouvelle mention réglementaire et un dispositif ESG climatique à suivre",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Nouvelle mention réglementaire, risque climatique / ESG, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur la législation « Omnibus » de la Commission européenne et son impact sur la divulgation en matière de durabilité, absente au T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations ESG des institutions financières. La législation « Omnibus » peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences climatiques de la législation « Omnibus ». Ce point permet de suivre l'adaptation aux attentes prudentielles climatiques, le niveau de préparation ESG et la comparabilité des pratiques de divulgation entre pairs.",
             "action_requise": "revue_prioritaire",
             "exclusion_reason": null,
             "change_segments": [
@@ -1530,7 +1667,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -1562,7 +1699,7 @@
             ],
             "snippet": "Le 20 avril 2026, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié un exposé-sondage Projet de modification de la NCID 2 - Modifications concernant les informations à fournir en lien avec les émissions de gaz à effet de serre afin de refléter les modifications apportées à l'IFRS S2 - Informations à fournir en lien avec les changements climatiques en décembre 2025. Le"
           },
-          "change_summary": "Ajout d'un nouveau paragraphe concernant les modifications proposées par le CCNID sur les informations à fournir en lien avec les émissions de gaz à effet de serre",
+          "change_summary": "Ajout d'un nouveau paragraphe concernant le projet de modification de la NCID par le CCNID et les consultations en cours",
           "genai_triage": {
             "is_relevant": true,
             "themes_amf": [
@@ -1571,9 +1708,15 @@
               "DIVULGATION_AJOUT"
             ],
             "impact_level": "MAJEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "NOUVEAU_DISPOSITIF",
+            "justification_posture": "Preuve : La banque mentionne le projet de modification de la NCID par le CCNID et les consultations en cours.\n\nEffet sur la gestion du risque : Ce changement introduit un nouveau cadre réglementaire à suivre, ce qui peut influencer la gestion des divulgations ESG.\n\nJustification du statut : Le texte indique que le projet est en cours de consultation et que la banque suit son évolution.\n\nJustification de la confiance : La mention explicite du projet et des consultations renforce la confiance dans l'application de ce nouveau dispositif.",
+            "statut_mise_en_oeuvre": "EN_COURS",
+            "confiance_posture": "ELEVEE",
             "nouvelle_idee": true,
-            "explanation": "Au, la banque ajoute une divulgation sur les modifications proposées par le CCNID concernant les informations à fournir en lien avec les émissions de gaz à effet de serre, absente au. Ce changement croise nouvelle mention réglementaire et divulgation ESG. Il introduit un élément substantiel sur l'évolution réglementaire en matière de durabilité",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Nouvelle mention réglementaire, risque climatique / ESG, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur les modifications proposées par le CCNID concernant les informations à fournir en lien avec les émissions de gaz à effet de serre, absente au T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations en matière de durabilité des institutions financières. La mention des modifications proposées par le CCNID peut influencer la manière dont les banques planifient leur conformité et communiquent leurs risques ESG. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles et la comparabilité des pratiques de divulgation entre pairs.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences du CCNID. Ce point permet de suivre l'adaptation aux attentes prudentielles ESG et la comparabilité des pratiques de divulgation entre pairs.",
+            "explanation": "Au, la banque ajoute une divulgation sur le projet de modification de la NCID par le CCNID, qui vise à adapter les informations à fournir en lien avec les émissions de gaz à effet de serre. Ce changement introduit une nouvelle mention réglementaire et un dispositif ESG climatique à suivre",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Nouvelle mention réglementaire, risque climatique / ESG, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur le projet de modification de la NCID par le CCNID et les consultations en cours, absente au T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations ESG des institutions financières. Le projet de modification de la NCID peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences climatiques du projet de modification de la NCID. Ce point permet de suivre l'adaptation aux attentes prudentielles climatiques, le niveau de préparation ESG et la comparabilité des pratiques de divulgation entre pairs.",
             "action_requise": "revue_prioritaire",
             "exclusion_reason": null,
             "change_segments": [
@@ -1597,77 +1740,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
-          }
-        },
-        {
-          "change_id": "gestion_risques_var_des_portefeuilles_de_négociation_1_2_change_010",
-          "section_key": "gestion_risques",
-          "subsection_heading": "VaR des portefeuilles de négociation (1) (2)",
-          "diff_type": "modified",
-          "semantic_text_t1": "La moyenne de la la mesure de risque de marché totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de et le premier trimestre de",
-          "semantic_text_t2": "La moyenne de la la mesure de risque de marché totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de, principalement en raison d'une baisse du risque de taux d'intérêt",
-          "source_text_t1": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026.",
-          "source_text_t2": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            35
-          ],
-          "pages_t2": [
-            35
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              35
-            ],
-            "snippet": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026."
-          },
-          "evidence_t2": {
-            "pages": [
-              35
-            ],
-            "snippet": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt."
-          },
-          "change_summary": "Changement de période d'observation et de tendance de la la mesure de risque de marché, avec une explication ajoutée sur la baisse du risque de taux d'intérêt",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "MODIFICATION_TEXTE_RISQUE",
-              "HYPOTHESES_EXPLICATIONS_RISQUES"
-            ],
-            "impact_level": "MODERE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque indique une diminution de la mesure de risque de marché, principalement en raison d'une baisse du risque de taux d'intérêt, ce qui n'était pas précisé au. Ce changement relève des modifications de texte de risque et des hypothèses explicatives associées aux risques. Il modifie la compréhension de la gestion du risque de marché par la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Texte de risque modifié, hypothèses ou explications de risque.\n\nCe qui change : Le T2 précise que la diminution de la mesure de risque de marché est principalement due à une baisse du risque de taux d'intérêt, ce qui n'était pas mentionné au T1.\n\nPertinence métier : Ce changement met en évidence une révision des explications fournies par la banque concernant la gestion de son risque de marché. La mention explicite de la baisse du risque de taux d'intérêt modifie la lecture de l'exposition au risque et la transparence de la banque sur ses facteurs de risque.\n\nPoint de surveillance : Risque de marché — Le changement indique que la banque ajuste ses explications sur la variation de la mesure de risque de marché. Ce point permet de suivre l'évolution de la transparence de la banque sur ses risques de marché et la comparabilité de sa divulgation avec les autres institutions.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "modified",
-                "text_t1": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026.",
-                "text_t2": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt."
-              }
-            ],
-            "category": "RISQUE",
-            "risk_type": "credit",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -1707,9 +1780,15 @@
               "DIVULGATION_RETRAIT"
             ],
             "impact_level": "MODERE",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Au, la banque a supprimé une sous section entière sur les revenus de négociation et de souscription quotidiens, qui était présente au. Ce retrait affecte la structure du rapport et la divulgation des performances de négociation. Il modifie la transparence de la banque sur ses activités de négociation",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Structure du rapport, information retirée.\n\nCe qui change : Le T2 retire une sous-section sur les revenus de négociation et de souscription quotidiens, présente au T1.\n\nPertinence métier : Ce changement met l'accent sur la modification de la structure du rapport et la réduction de la transparence sur les performances de négociation de la banque. Le retrait d'une section entière peut affecter la compréhension des activités de négociation et la comparabilité avec les pairs.\n\nPoint de surveillance : Structure du rapport — Le changement indique que la banque réduit la divulgation de ses performances de négociation. Ce point permet de suivre l'évolution de la transparence de la banque sur ses activités de négociation et la comparabilité de sa divulgation avec les autres institutions.",
+            "explanation": "Au, la banque a supprimé une sous section entière concernant les revenus de négociation et de souscription quotidiens, qui était présente au. Ce retrait affecte la structure du rapport et la divulgation des performances de négociation, ce qui peut influencer la transparence des informations fournies",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Structure du rapport, information retirée.\n\nCe qui change : Le T2 retire une sous-section entière sur les revenus de négociation et de souscription quotidiens, qui était présente au T1.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure du rapport, ce qui peut affecter la transparence et la comparabilité des informations sur les performances de négociation. Le retrait de cette divulgation peut influencer la perception de la performance financière de la banque.\n\nPoint de surveillance : Structure du rapport — Le changement indique une modification dans la présentation des informations de performance, nécessitant une attention particulière sur la transparence et la comparabilité des divulgations financières.",
             "action_requise": "investigation",
             "exclusion_reason": null,
             "change_segments": [
@@ -1733,7 +1812,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -1773,9 +1852,15 @@
               "DIVULGATION_RETRAIT"
             ],
             "impact_level": "MODERE",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": true,
-            "explanation": "Au, la banque a supprimé une sous section entière sur les échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan, qui était présente au. Ce retrait affecte la structure du rapport et la divulgation des échéances contractuelles. Il modifie la transparence de la banque sur sa gestion des liquidités et du financement",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Structure du rapport, information retirée.\n\nCe qui change : Le T2 retire une sous-section sur les échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan, présente au T1.\n\nPertinence métier : Ce changement met l'accent sur la modification de la structure du rapport et la réduction de la transparence sur la gestion des échéances contractuelles de la banque. Le retrait d'une section entière peut affecter la compréhension de la gestion des liquidités et du financement et la comparabilité avec les pairs.\n\nPoint de surveillance : Structure du rapport — Le changement indique que la banque réduit la divulgation de ses échéances contractuelles. Ce point permet de suivre l'évolution de la transparence de la banque sur sa gestion des liquidités et du financement et la comparabilité de sa divulgation avec les autres institutions.",
+            "explanation": "Au, la banque a supprimé une sous section entière concernant les échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan, qui était présente au. Ce retrait affecte la structure du rapport et la divulgation des échéances, ce qui peut influencer la transparence des informations fournies",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Structure du rapport, information retirée.\n\nCe qui change : Le T2 retire une sous-section entière sur les échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan, qui était présente au T1.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure du rapport, ce qui peut affecter la transparence et la comparabilité des informations sur les échéances et les engagements. Le retrait de cette divulgation peut influencer la perception de la gestion des liquidités et des risques de la banque.\n\nPoint de surveillance : Structure du rapport — Le changement indique une modification dans la présentation des informations sur les échéances, nécessitant une attention particulière sur la transparence et la comparabilité des divulgations financières.",
             "action_requise": "investigation",
             "exclusion_reason": null,
             "change_segments": [
@@ -1799,7 +1884,82 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
+          }
+        },
+        {
+          "change_id": "gestion_risques_var_des_portefeuilles_de_négociation_1_2_change_010",
+          "section_key": "gestion_risques",
+          "subsection_heading": "VaR des portefeuilles de négociation (1) (2)",
+          "diff_type": "modified",
+          "semantic_text_t1": "La moyenne de la la mesure de risque de marché totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de et le premier trimestre de",
+          "semantic_text_t2": "La moyenne de la la mesure de risque de marché totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de, principalement en raison d'une baisse du risque de taux d'intérêt",
+          "source_text_t1": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026.",
+          "source_text_t2": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt.",
+          "source_block_ids_t1": [],
+          "source_block_ids_t2": [],
+          "source_refs_t1": [],
+          "source_refs_t2": [],
+          "pages_t1": [
+            35
+          ],
+          "pages_t2": [
+            35
+          ],
+          "source_resolution_t1": "markdown",
+          "source_resolution_t2": "markdown",
+          "evidence_t1": {
+            "pages": [
+              35
+            ],
+            "snippet": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026."
+          },
+          "evidence_t2": {
+            "pages": [
+              35
+            ],
+            "snippet": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt."
+          },
+          "change_summary": "La période de comparaison a changé et la stabilité de la la mesure de risque de marché est remplacée par une diminution, avec une explication liée au risque de taux d'intérêt",
+          "genai_triage": {
+            "is_relevant": true,
+            "themes_amf": [
+              "MODIFICATION_TEXTE_RISQUE"
+            ],
+            "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
+            "nouvelle_idee": true,
+            "explanation": "Au, la banque indique une diminution de la mesure de risque de marché totale des portefeuilles de négociation, alors qu'elle était stable au. Ce changement relève de la modification du texte de risque, car il introduit une nouvelle explication liée au risque de taux d'intérêt. Cela implique une surveillance accrue des facteurs influençant le risque de marché",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Texte de risque modifié.\n\nCe qui change : Le T2 indique une diminution de la mesure de risque de marché totale des portefeuilles de négociation, principalement en raison d'une baisse du risque de taux d'intérêt, alors qu'elle était stable au T1.\n\nPertinence métier : Ce changement met en évidence une modification dans l'évaluation du risque de marché, ce qui peut influencer la perception de la stabilité financière de la banque. La mention d'une baisse du risque de taux d'intérêt introduit un nouvel élément à surveiller dans l'analyse des risques de marché.\n\nPoint de surveillance : Risque de marché — Le changement indique une variation dans l'évaluation du risque de marché, nécessitant une attention particulière sur les facteurs influençant cette mesure, notamment le risque de taux d'intérêt.",
+            "action_requise": "information",
+            "exclusion_reason": null,
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "La moyenne de la VaR totale des portefeuilles de négociation est demeurée relativement stable entre le quatrième trimestre de 2025 et le premier trimestre de 2026.",
+                "text_t2": "La moyenne de la VaR totale des portefeuilles de négociation a diminué entre le premier et le deuxième trimestre de 2026, principalement en raison d'une baisse du risque de taux d'intérêt."
+              }
+            ],
+            "category": "RISQUE",
+            "risk_type": "credit",
+            "relevance_score": "FAIBLE",
+            "risk_level": "FAIBLE",
+            "impact_description": "",
+            "reference_reglementaire": "",
+            "confidence": 0.85,
+            "signals": {
+              "regulatory_reference_added": false,
+              "methodology_change": false,
+              "tone_changed": false,
+              "forward_looking": false,
+              "quantitative_changed": false
+            },
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -1835,14 +1995,20 @@
             ],
             "snippet": "Afin de respecter les exigences du BSIF en matière de divulgation relative aux prêts hypothécaires, des renseignements additionnels sont présentés dans les documents intitulés « Informations financières complémentaires - Deuxième trimestre 2026 » et « Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3 - Deuxième trimestre 2026 » disponibles sur le site In"
           },
-          "change_summary": "Mise à jour des documents de 'Premier trimestre ' à 'Deuxième trimestre '",
+          "change_summary": "Mise à jour des dates de 'Premier trimestre ' à 'Deuxième trimestre '",
           "genai_triage": {
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de période.\n\nCe qui change : Le T2 met à jour les documents de \"Premier trimestre\" à \"Deuxième trimestre\".\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement le changement de période de rapport. Elle ne modifie pas la substance de la divulgation ni n'introduit de nouveaux éléments réglementaires ou de risque.\n\nPoint de surveillance : Mise à jour de période — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de période.\n\nCe qui change : Le T2 met à jour les références de \"Premier trimestre\" à \"Deuxième trimestre\" dans les documents de divulgation.\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement une mise à jour de période sans impact sur le contenu ou la substance des divulgations réglementaires. Elle ne modifie pas les exigences réglementaires, les méthodes de calcul ou la posture de risque.\n\nPoint de surveillance : Mise à jour de période — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "reformulation_mineure",
             "change_segments": [],
@@ -1860,7 +2026,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -1896,16 +2062,22 @@
             ],
             "snippet": "Le tableau de la page suivante présente les positions moyennes du LCR calculées à partir des observations quotidiennes du trimestre. Le LCR moyen de la Banque au cours du trimestre terminé le 30 avril 2026 est de 170 %, bien au-delà de l'exigence réglementaire de 100 %, ce qui démontre que la position de liquidité à court terme de la Banque est solide."
           },
-          "change_summary": "Date mise à jour de ' janvier ' à ' avril ' et moyen modifié de ' ' à ' '",
+          "change_summary": "Date mise à jour de ' janvier ' à ' avril ' et le moyen modifié de ' ' à ' '",
           "genai_triage": {
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de date et de moyen.\n\nCe qui change : Le T2 met à jour la date de \"janvier\" à \"avril\" et modifie le moyen de \"189 %\" à \"170 %\".\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement le changement de période de rapport et une variation chiffrée propre à la banque. Elle ne modifie pas la substance de la divulgation ni n'introduit de nouveaux éléments réglementaires ou de risque.\n\nPoint de surveillance : Mise à jour de période et de moyen — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de date.\n\nCe qui change : Le T2 met à jour la date de \"janvier\" à \"avril\" dans la présentation des positions moyennes de liquidité.\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement une mise à jour de date sans impact sur le contenu ou la substance des divulgations réglementaires. Elle ne modifie pas les exigences réglementaires, les méthodes de calcul ou la posture de risque.\n\nPoint de surveillance : Mise à jour de date — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
-            "exclusion_reason": "variation_numerique_propre_banque",
+            "exclusion_reason": "reformulation_mineure",
             "change_segments": [],
             "category": "NON_PERTINENT",
             "risk_type": "autre",
@@ -1921,7 +2093,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -1962,9 +2134,15 @@
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de date.\n\nCe qui change : Le T2 met à jour la date de \"janvier\" à \"avril\".\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement le changement de période de rapport. Elle ne modifie pas la substance de la divulgation ni n'introduit de nouveaux éléments réglementaires ou de risque.\n\nPoint de surveillance : Mise à jour de période — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de date.\n\nCe qui change : Le T2 met à jour la date de \"janvier\" à \"avril\" dans la présentation des actifs liquides de niveau 1.\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement une mise à jour de date sans impact sur le contenu ou la substance des divulgations réglementaires. Elle ne modifie pas les exigences réglementaires, les méthodes de calcul ou la posture de risque.\n\nPoint de surveillance : Mise à jour de date — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "reformulation_mineure",
             "change_segments": [],
@@ -1982,7 +2160,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -2023,9 +2201,15 @@
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de date.\n\nCe qui change : Le T2 met à jour la date de \"janvier\" à \"avril\".\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement le changement de période de rapport. Elle ne modifie pas la substance de la divulgation ni n'introduit de nouveaux éléments réglementaires ou de risque.\n\nPoint de surveillance : Mise à jour de période — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de date.\n\nCe qui change : Le T2 met à jour la date de \"janvier\" à \"avril\" dans la présentation des sorties de trésorerie.\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement une mise à jour de date sans impact sur le contenu ou la substance des divulgations réglementaires. Elle ne modifie pas les exigences réglementaires, les méthodes de calcul ou la posture de risque.\n\nPoint de surveillance : Mise à jour de date — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "reformulation_mineure",
             "change_segments": [],
@@ -2043,7 +2227,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -2084,11 +2268,17 @@
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de date et de moyen.\n\nCe qui change : Le T2 met à jour la date de \"janvier\" à \"avril\" et modifie le moyen de \"120 %\" à \"118 %\".\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement le changement de période de rapport et une variation chiffrée propre à la banque. Elle ne modifie pas la substance de la divulgation ni n'introduit de nouveaux éléments réglementaires ou de risque.\n\nPoint de surveillance : Mise à jour de période et de moyen — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de date.\n\nCe qui change : Le T2 met à jour la date de \"janvier\" à \"avril\" dans la présentation des positions calibrées de liquidité.\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement une mise à jour de date sans impact sur le contenu ou la substance des divulgations réglementaires. Elle ne modifie pas les exigences réglementaires, les méthodes de calcul ou la posture de risque.\n\nPoint de surveillance : Mise à jour de date — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
-            "exclusion_reason": "variation_numerique_propre_banque",
+            "exclusion_reason": "reformulation_mineure",
             "change_segments": [],
             "category": "NON_PERTINENT",
             "risk_type": "autre",
@@ -2104,7 +2294,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -2145,9 +2335,15 @@
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Reformulation mineure.\n\nCe qui change : Le T2 reformule \"le fait nouveau\" en \"les faits nouveaux\", indiquant potentiellement plusieurs faits à considérer.\n\nPertinence métier : Cette reformulation ne constitue pas une nouvelle idée à surveiller, car elle ne modifie pas la substance de la divulgation ni n'introduit de nouveaux éléments réglementaires ou de risque. Elle reflète simplement une reformulation mineure.\n\nPoint de surveillance : Reformulation mineure — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Reformulation mineure.\n\nCe qui change : Le T2 reformule \"le fait nouveau\" en \"les faits nouveaux\", indiquant potentiellement plusieurs faits à considérer.\n\nPertinence métier : Cette reformulation ne constitue pas une nouvelle idée à surveiller, car elle ne modifie pas le contenu ou la substance des divulgations réglementaires. Elle ne change pas les exigences réglementaires, les méthodes de calcul ou la posture de risque.\n\nPoint de surveillance : Reformulation mineure — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "reformulation_mineure",
             "change_segments": [],
@@ -2165,7 +2361,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         },
         {
@@ -2206,9 +2402,15 @@
             "is_relevant": false,
             "themes_amf": [],
             "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "justification_posture": "",
+            "statut_mise_en_oeuvre": "INDETERMINE",
+            "confiance_posture": "INDETERMINE",
             "nouvelle_idee": false,
             "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de période.\n\nCe qui change : Le T2 met à jour le rapport de \"Premier trimestre\" à \"Deuxième trimestre\".\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement le changement de période de rapport. Elle ne modifie pas la substance de la divulgation ni n'introduit de nouveaux éléments réglementaires ou de risque.\n\nPoint de surveillance : Mise à jour de période — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de méthode, de conformité ou de posture de risque.",
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de période.\n\nCe qui change : Le T2 met à jour les références de \"Premier trimestre\" à \"Deuxième trimestre\" dans les documents de divulgation.\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle reflète simplement une mise à jour de période sans impact sur le contenu ou la substance des divulgations réglementaires. Elle ne modifie pas les exigences réglementaires, les méthodes de calcul ou la posture de risque.\n\nPoint de surveillance : Mise à jour de période — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "reformulation_mineure",
             "change_segments": [],
@@ -2226,7 +2428,7 @@
               "forward_looking": false,
               "quantitative_changed": false
             },
-            "source": "gpt4o_triage_amf_v2"
+            "source": "gpt4o_triage_amf_v3"
           }
         }
       ],
@@ -2248,10 +2450,10 @@
     "executive_overview": "9 changement(s) textuel(s) substantiel(s) retenu(s) pour revue experte.",
     "key_highlights": [
       "Sous-section supprimée: Exigences de communication publique pour les banques d'importance systémique mondiale",
-      "Le texte a été modifié pour simplifier la description du cadre de gestion du capital, en supprimant les détails sur le processus interne d'évaluation de l'adéquation des fonds propres et les pertes non prévues",
+      "Le texte a été modifié pour supprimer la description détaillée du processus interne d'évaluation de l'adéquation des fonds propres et se concentrer sur la gestion du capital selon le cadre décrit dans le rapport annuel",
       "Changement des chiffres de l'augmentation de l'actif pondéré en fonction des risques, mise à jour des dates, et ajout de la détérioration de la qualité de crédit comme facteur d'augmentation",
       "Ajout d'une phrase introductive concernant un tableau des exigences minimales de fonds propres",
-      "Ajout d'un nouveau paragraphe concernant la législation « Omnibus » et son impact sur la directive CSRD"
+      "Ajout d'un nouveau paragraphe concernant la législation « Omnibus » et son impact sur la divulgation en matière de durabilité"
     ],
     "pertinence_globale": "ELEVEE",
     "counts": {
@@ -2260,19 +2462,19 @@
       "total_relevant": 9,
       "by_impact": {
         "MAJEUR": 3,
-        "MODERE": 5,
-        "MINEUR": 1
+        "MODERE": 4,
+        "MINEUR": 2
       },
       "by_category": {
-        "REGLEMENTAIRE": 4,
-        "CAPITAL": 2,
-        "RISQUE": 1,
-        "STRUCTURE": 2
+        "REGLEMENTAIRE": 3,
+        "CAPITAL": 3,
+        "STRUCTURE": 2,
+        "RISQUE": 1
       },
       "by_action": {
         "revue_prioritaire": 3,
-        "investigation": 5,
-        "information": 1
+        "investigation": 4,
+        "information": 2
       }
     }
   },
@@ -2280,7 +2482,7 @@
     "executive_overview": "25 changement(s) textuel(s) détecté(s), dont 9 substantiel(s) selon l'IA. Tous restent disponibles pour validation analyste.",
     "key_highlights": [
       "Sous-section supprimée: Exigences de communication publique pour les banques d'importance systémique mondiale",
-      "Le texte a été modifié pour simplifier la description du cadre de gestion du capital, en supprimant les détails sur le processus interne d'évaluation de l'adéquation des fonds propres et les pertes non prévues",
+      "Le texte a été modifié pour supprimer la description détaillée du processus interne d'évaluation de l'adéquation des fonds propres et se concentrer sur la gestion du capital selon le cadre décrit dans le rapport annuel",
       "Changement des chiffres de l'augmentation de l'actif pondéré en fonction des risques, mise à jour des dates, et ajout de la détérioration de la qualité de crédit comme facteur d'augmentation",
       "Ajout d'une phrase introductive concernant un tableau des exigences minimales de fonds propres",
       "Date mise à jour de ' janvier ' à ' avril ' et valeur modifiée de ' G$' à ' G$'"
@@ -2292,20 +2494,20 @@
       "total_relevant": 9,
       "by_impact": {
         "MAJEUR": 3,
-        "MODERE": 5,
-        "MINEUR": 17
+        "MODERE": 4,
+        "MINEUR": 18
       },
       "by_category": {
-        "REGLEMENTAIRE": 4,
-        "CAPITAL": 2,
+        "REGLEMENTAIRE": 3,
+        "CAPITAL": 3,
         "NON_PERTINENT": 16,
-        "RISQUE": 1,
-        "STRUCTURE": 2
+        "STRUCTURE": 2,
+        "RISQUE": 1
       },
       "by_action": {
         "revue_prioritaire": 3,
-        "investigation": 5,
-        "information": 1,
+        "investigation": 4,
+        "information": 2,
         "aucune": 16
       }
     }

@@ -195,12 +195,17 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     """Le triage par défaut produit le schéma AMF v2 + champs hérités pour rétro-compatibilité."""
     triage = _default_triage()
 
-    assert triage["source"] == "gpt4o_triage_amf_v2"
+    assert triage["source"] == "gpt4o_triage_amf_v3"
     assert triage["themes_amf"] == []
     assert triage["exclusion_reason"] == "non_pertinent_autre"
     assert triage["is_relevant"] is False
     assert triage["category"] == "NON_PERTINENT"
     assert triage["confidence"] == 0.0
+    assert triage["impact_it"] == "INDETERMINE"
+    assert triage["changement_posture"] == "AUCUN"
+    assert triage["justification_posture"] == ""
+    assert triage["statut_mise_en_oeuvre"] == "INDETERMINE"
+    assert triage["confiance_posture"] == "INDETERMINE"
     assert triage["signals"]["methodology_change"] is False
 
 
@@ -235,6 +240,18 @@ def test_derive_legacy_fields_maps_risque_emergent_to_risque_category() -> None:
             "is_relevant": True,
             "themes_amf": ["RISQUE_EMERGENT", "GOUVERNANCE_RISQUES"],
             "impact_level": "MAJEUR",
+        }
+    )
+
+    assert legacy["category"] == "RISQUE"
+
+
+def test_derive_legacy_fields_maps_data_and_cloud_to_risque_category() -> None:
+    legacy = _derive_legacy_fields(
+        {
+            "is_relevant": True,
+            "themes_amf": ["RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"],
+            "impact_level": "MODERE",
         }
     )
 
@@ -1328,6 +1345,126 @@ def test_invariant_relevant_with_short_explanation_raises() -> None:
         )
 
 
+def test_data_and_third_party_cloud_themes_are_valid_amf_codes() -> None:
+    triage = TriageAMFResult(
+        is_relevant=True,
+        themes_amf=["RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"],
+        impact_level="MAJEUR",
+        impact_it="ELEVE",
+        impact_it_justification=(
+            "Éléments observés : Le rapport prévoit une migration infonuagique "
+            "et une stratégie de sortie du fournisseur critique.\n\n"
+            "Conséquence probable : Ces mesures nécessitent une adaptation "
+            "importante des contrôles et de l'architecture IT.\n\n"
+            "Limite de l'analyse : Le calendrier et le périmètre technique de "
+            "la migration ne sont pas précisés."
+        ),
+        changement_posture="NOUVEAU_DISPOSITIF",
+        justification_posture=(
+            "Preuve : La banque introduit une stratégie de sortie et un nouveau "
+            "contrôle contractuel pour le fournisseur critique.\n\n"
+            "Effet sur la gestion du risque : Le dispositif formalise la "
+            "réversibilité et renforce l'encadrement du fournisseur.\n\n"
+            "Justification du statut : Le rapport présente la mesure comme "
+            "planifiée, sans confirmer son déploiement complet.\n\n"
+            "Justification de la confiance : Les éléments du nouveau dispositif "
+            "sont décrits explicitement dans le texte."
+        ),
+        statut_mise_en_oeuvre="PLANIFIE",
+        confiance_posture="ELEVEE",
+        nouvelle_idee=True,
+        action_requise="revue_prioritaire",
+        explanation=_valid_explanation(),
+        nouvelle_idee_justification=_valid_justification_oui(),
+    )
+    assert triage.themes_amf == ["RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"]
+    assert triage.impact_it == "ELEVE"
+    assert triage.changement_posture == "NOUVEAU_DISPOSITIF"
+    assert triage.statut_mise_en_oeuvre == "PLANIFIE"
+    assert triage.confiance_posture == "ELEVEE"
+
+
+def test_impact_it_evaluation_requires_justification() -> None:
+    with pytest.raises(_PydValidationError, match="impact_it_justification"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=["RISQUE_TIERS_CLOUD"],
+            impact_level="MAJEUR",
+            impact_it="ELEVE",
+            changement_posture="RENFORCEMENT",
+            nouvelle_idee=True,
+            action_requise="revue_prioritaire",
+            explanation=_valid_explanation(),
+            nouvelle_idee_justification=_valid_justification_oui(),
+        )
+
+
+def test_indeterminate_it_impact_rejects_a_justification() -> None:
+    with pytest.raises(_PydValidationError, match="doit être vide"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=["RISQUE_DONNEES"],
+            impact_it="INDETERMINE",
+            impact_it_justification="Le lien IT ne peut pas être démontré dans le rapport.",
+            changement_posture="INDETERMINE",
+            explanation=_valid_explanation(),
+            nouvelle_idee_justification=_valid_justification_non(),
+        )
+
+
+def test_evaluated_posture_requires_justification_and_confidence() -> None:
+    with pytest.raises(_PydValidationError, match="justification_posture"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=["RISQUE_TIERS_CLOUD"],
+            changement_posture="RENFORCEMENT",
+            confiance_posture="ELEVEE",
+            explanation=_valid_explanation(),
+            nouvelle_idee_justification=_valid_justification_non(),
+        )
+
+    with pytest.raises(_PydValidationError, match="confiance_posture"):
+        TriageAMFResult(
+            is_relevant=True,
+            themes_amf=["RISQUE_TIERS_CLOUD"],
+            changement_posture="RENFORCEMENT",
+            justification_posture=(
+                "Preuve : La banque renforce explicitement la surveillance de "
+                "ses fournisseurs critiques.\n\n"
+                "Effet sur la gestion du risque : Le niveau de contrôle des "
+                "tiers critiques augmente de manière identifiable.\n\n"
+                "Justification du statut : Le rapport ne précise pas encore "
+                "le niveau exact de déploiement.\n\n"
+                "Justification de la confiance : La formulation du renforcement "
+                "est explicite dans le rapport."
+            ),
+            explanation=_valid_explanation(),
+            nouvelle_idee_justification=_valid_justification_non(),
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "error"),
+    [
+        ("impact_it", "ELEVE", "impact_it=INDETERMINE"),
+        ("impact_it_justification", "Une justification qui ne devrait pas être présente.", "justification vide"),
+        ("changement_posture", "RENFORCEMENT", "changement_posture=AUCUN"),
+    ],
+)
+def test_irrelevant_change_rejects_it_and_posture_signals(
+    field: str, value: str, error: str
+) -> None:
+    payload = {
+        "is_relevant": False,
+        "exclusion_reason": "reformulation_mineure",
+        "nouvelle_idee_justification": _valid_justification_non(),
+        field: value,
+    }
+
+    with pytest.raises(_PydValidationError, match=error):
+        TriageAMFResult(**payload)
+
+
 def test_invariant_irrelevant_with_nouvelle_idee_raises() -> None:
     with pytest.raises(_PydValidationError, match="nouvelle_idee"):
         TriageAMFResult(
@@ -1681,3 +1818,70 @@ def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
         )
 
     assert client.call_count == 1
+
+
+def test_triage_section_changes_requests_posture_and_it_impact() -> None:
+    parsed = TriageAMFBatch(
+        triages=[
+            TriageAMFResultWithIndex(
+                change_index=1,
+                is_relevant=True,
+                themes_amf=["RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"],
+                impact_level="MAJEUR",
+                impact_it="ELEVE",
+                impact_it_justification=(
+                    "Éléments observés : Le texte annonce une migration de "
+                    "données vers un service infonuagique.\n\n"
+                    "Conséquence probable : La migration et le contrôle de "
+                    "sortie nécessitent une adaptation importante de l'IT.\n\n"
+                    "Limite de l'analyse : Le texte ne précise pas le calendrier "
+                    "ni l'architecture cible."
+                ),
+                changement_posture="NOUVEAU_DISPOSITIF",
+                justification_posture=(
+                    "Preuve : Le texte introduit explicitement une stratégie de "
+                    "sortie et un nouveau contrôle du fournisseur.\n\n"
+                    "Effet sur la gestion du risque : Le dispositif formalise "
+                    "la réversibilité et le contrôle du tiers.\n\n"
+                    "Justification du statut : Le rapport annonce le dispositif "
+                    "sans indiquer qu'il est déjà déployé.\n\n"
+                    "Justification de la confiance : La création du dispositif "
+                    "est décrite explicitement."
+                ),
+                statut_mise_en_oeuvre="ANNONCE",
+                confiance_posture="ELEVEE",
+                nouvelle_idee=True,
+                action_requise="revue_prioritaire",
+                explanation=_valid_explanation(),
+                nouvelle_idee_justification=_valid_justification_oui(),
+            )
+        ]
+    )
+    client = _FakeStructuredClient(_make_parsed_response(parsed))
+    changes = [
+        {
+            "diff_type": "added",
+            "semantic_text_t1": "",
+            "semantic_text_t2": "Migration infonuagique avec stratégie de sortie.",
+        }
+    ]
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=changes,
+    )
+
+    prompt = "\n".join(
+        str(message.get("content", ""))
+        for message in client._completions.calls[0]["messages"]
+    )
+    assert "changement_posture" in prompt
+    assert "statut_mise_en_oeuvre" in prompt
+    assert "confiance_posture" in prompt
+    assert "impact_it est un axe distinct" in prompt
+    assert result[0]["genai_triage"]["impact_it"] == "ELEVE"
+    assert result[0]["genai_triage"]["changement_posture"] == "NOUVEAU_DISPOSITIF"
+    assert result[0]["genai_triage"]["statut_mise_en_oeuvre"] == "ANNONCE"
+    assert result[0]["genai_triage"]["confiance_posture"] == "ELEVEE"

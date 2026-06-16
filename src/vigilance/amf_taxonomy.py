@@ -83,6 +83,18 @@ THEMES_AMF_DESCRIPTIONS: dict[str, str] = {
         "modèles tiers, fraude numérique, usurpation d'identité, ransomware, "
         "attaques sur la chaîne d'approvisionnement, dépendances technologiques."
     ),
+    "RISQUE_DONNEES": (
+        "Changement lié au risque et à la gouvernance des données : qualité, "
+        "intégrité, disponibilité, confidentialité, protection, localisation, "
+        "souveraineté, conservation, traçabilité, lignage, accès, perte ou fuite "
+        "de données, y compris les données utilisées par les modèles et l'IA."
+    ),
+    "RISQUE_TIERS_CLOUD": (
+        "Changement lié aux fournisseurs, à l'impartition et aux services "
+        "infonuagiques : tiers critiques, concentration, dépendance ou verrouillage "
+        "fournisseur, sous-traitants, localisation des données, continuité, "
+        "résilience, stratégie de sortie, surveillance et exigences contractuelles."
+    ),
     "RISQUE_MACRO_GEOPOLITIQUE": (
         "Changement lié à un risque macroéconomique, commercial ou "
         "géopolitique — PRIORITAIRE : tarifs douaniers, guerre commerciale, "
@@ -130,6 +142,8 @@ THEMES_AMF_ANALYST_SUBJECTS: dict[str, str] = {
     "HYPOTHESES_EXPLICATIONS_RISQUES": "Hypothèses ou explications de risque",
     "ESG_CLIMATIQUE": "Risque climatique / ESG",
     "RISQUE_EMERGENT": "Risque émergent : IA, cybersécurité, fraude, cryptoactifs ou modèles tiers",
+    "RISQUE_DONNEES": "Risque et gouvernance des données",
+    "RISQUE_TIERS_CLOUD": "Risque de tiers, fournisseurs et services infonuagiques",
     "RISQUE_MACRO_GEOPOLITIQUE": "Risque commercial et géopolitique : tarifs douaniers, sanctions, conflits",
     "GOUVERNANCE_RISQUES": "Gouvernance des risques",
     "CONTROLE_CONFORMITE": "Contrôle interne ou conformité",
@@ -154,6 +168,8 @@ ThemeAMF = Literal[
     "HYPOTHESES_EXPLICATIONS_RISQUES",
     "ESG_CLIMATIQUE",
     "RISQUE_EMERGENT",
+    "RISQUE_DONNEES",
+    "RISQUE_TIERS_CLOUD",
     "RISQUE_MACRO_GEOPOLITIQUE",
     "GOUVERNANCE_RISQUES",
     "CONTROLE_CONFORMITE",
@@ -192,6 +208,27 @@ ExclusionReason = Literal[
 
 ImpactLevel = Literal["MAJEUR", "MODERE", "MINEUR"]
 
+ImpactIT = Literal["ELEVE", "MOYEN", "FAIBLE", "INDETERMINE"]
+
+ChangementPosture = Literal[
+    "RENFORCEMENT",
+    "ALLEGEMENT",
+    "NOUVEAU_DISPOSITIF",
+    "RETRAIT_DISPOSITIF",
+    "AUCUN",
+    "INDETERMINE",
+]
+
+StatutMiseEnOeuvre = Literal[
+    "ANNONCE",
+    "PLANIFIE",
+    "EN_COURS",
+    "MIS_EN_OEUVRE",
+    "INDETERMINE",
+]
+
+ConfiancePosture = Literal["ELEVEE", "MOYENNE", "FAIBLE", "INDETERMINE"]
+
 ActionRequise = Literal[
     "revue_prioritaire",
     "investigation",
@@ -200,7 +237,7 @@ ActionRequise = Literal[
     "aucune",
 ]
 
-TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_v2"
+TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_v3"
 
 
 ChangeSegmentKind = Literal["added", "removed", "modified"]
@@ -258,6 +295,57 @@ _REQUIRED_JUSTIFICATION_SECTIONS = (
 )
 _LEGACY_SURVEILLANCE_SECTION = "Lecture de vigie :"
 
+IMPACT_IT_DETAIL_LABELS = (
+    "Éléments observés",
+    "Conséquence probable",
+    "Limite de l'analyse",
+)
+
+POSTURE_DETAIL_LABELS = (
+    "Preuve",
+    "Effet sur la gestion du risque",
+    "Justification du statut",
+    "Justification de la confiance",
+)
+
+
+def extract_labeled_analysis(
+    text: str,
+    labels: tuple[str, ...],
+) -> dict[str, str]:
+    """Extrait des rubriques ``Libellé : contenu`` dans leur ordre attendu."""
+    if not text:
+        return {}
+
+    cleaned = text.strip()
+    label_pattern = "|".join(re.escape(label) for label in labels)
+    matches = list(
+        re.finditer(
+            rf"(?m)^(?P<label>{label_pattern})\s*:\s*",
+            cleaned,
+        )
+    )
+    sections: dict[str, str] = {}
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(cleaned)
+        sections[match.group("label")] = cleaned[match.end() : end].strip()
+    return sections
+
+
+def missing_labeled_analysis_sections(
+    text: str,
+    labels: tuple[str, ...],
+    *,
+    min_content_length: int = 25,
+) -> list[str]:
+    """Retourne les rubriques absentes ou sans contenu analytique suffisant."""
+    sections = extract_labeled_analysis(text, labels)
+    return [
+        label
+        for label in labels
+        if len(sections.get(label, "").strip()) < min_content_length
+    ]
+
 
 def _count_substantive_sentences(text: str) -> int:
     """Compte les phrases complètes dans ``text``.
@@ -296,7 +384,7 @@ class TriageAMFResult(BaseModel):
     **Cohérence pertinent / non pertinent**
 
     * ``is_relevant=True`` implique ``themes_amf`` non vide, ``exclusion_reason=None``, ``explanation`` ≥ 50 caractères (3 phrases attendues), ``nouvelle_idee_justification`` ≥ 3 phrases complètes commençant par ``OUI`` ou ``NON`` selon ``nouvelle_idee``.
-    * ``is_relevant=False`` implique ``themes_amf=[]``, ``exclusion_reason`` renseigné, ``nouvelle_idee=False``, ``impact_level="MINEUR"``, ``action_requise="aucune"``, ``explanation=""``, ``nouvelle_idee_justification`` détaillée.
+    * ``is_relevant=False`` implique ``themes_amf=[]``, ``exclusion_reason`` renseigné, ``nouvelle_idee=False``, ``impact_level="MINEUR"``, ``impact_it="INDETERMINE"``, ``changement_posture="AUCUN"``, ``action_requise="aucune"``, ``explanation=""``, ``nouvelle_idee_justification`` détaillée.
 
     **Cohérence sémantique**
 
@@ -309,6 +397,12 @@ class TriageAMFResult(BaseModel):
     is_relevant: bool
     themes_amf: list[ThemeAMF] = Field(default_factory=list)
     impact_level: ImpactLevel = "MINEUR"
+    impact_it: ImpactIT = "INDETERMINE"
+    impact_it_justification: str = ""
+    changement_posture: ChangementPosture = "INDETERMINE"
+    justification_posture: str = ""
+    statut_mise_en_oeuvre: StatutMiseEnOeuvre = "INDETERMINE"
+    confiance_posture: ConfiancePosture = "INDETERMINE"
     nouvelle_idee: bool = False
     explanation: str = ""
     nouvelle_idee_justification: str = ""
@@ -327,6 +421,22 @@ class TriageAMFResult(BaseModel):
                 seen.add(theme)
                 out.append(theme)
         return out
+
+    @model_validator(mode="before")
+    @classmethod
+    def _default_irrelevant_extended_signals(cls, data: object) -> object:
+        """Préserve la compatibilité des anciens payloads non pertinents."""
+        if not isinstance(data, dict) or data.get("is_relevant") is not False:
+            return data
+
+        normalized = dict(data)
+        normalized.setdefault("impact_it", "INDETERMINE")
+        normalized.setdefault("impact_it_justification", "")
+        normalized.setdefault("changement_posture", "AUCUN")
+        normalized.setdefault("justification_posture", "")
+        normalized.setdefault("statut_mise_en_oeuvre", "INDETERMINE")
+        normalized.setdefault("confiance_posture", "INDETERMINE")
+        return normalized
 
     @model_validator(mode="after")
     def _check_invariants(self) -> "TriageAMFResult":
@@ -391,6 +501,30 @@ class TriageAMFResult(BaseModel):
                 raise ValueError(
                     "is_relevant=False exige impact_level=MINEUR"
                 )
+            if self.impact_it != "INDETERMINE":
+                raise ValueError(
+                    "is_relevant=False exige impact_it=INDETERMINE"
+                )
+            if self.impact_it_justification.strip():
+                raise ValueError(
+                    "is_relevant=False exige impact_it_justification vide"
+                )
+            if self.changement_posture != "AUCUN":
+                raise ValueError(
+                    "is_relevant=False exige changement_posture=AUCUN"
+                )
+            if self.justification_posture.strip():
+                raise ValueError(
+                    "is_relevant=False exige justification_posture vide"
+                )
+            if self.statut_mise_en_oeuvre != "INDETERMINE":
+                raise ValueError(
+                    "is_relevant=False exige statut_mise_en_oeuvre=INDETERMINE"
+                )
+            if self.confiance_posture != "INDETERMINE":
+                raise ValueError(
+                    "is_relevant=False exige confiance_posture=INDETERMINE"
+                )
             if self.action_requise != "aucune":
                 raise ValueError(
                     "is_relevant=False exige action_requise='aucune'"
@@ -407,6 +541,58 @@ class TriageAMFResult(BaseModel):
         if self.action_requise == "revue_prioritaire" and self.impact_level != "MAJEUR":
             raise ValueError(
                 "action_requise='revue_prioritaire' exige impact_level='MAJEUR'"
+            )
+        if (
+            self.impact_it != "INDETERMINE"
+            and len(self.impact_it_justification.strip()) < 20
+        ):
+            raise ValueError(
+                "impact_it_justification exige au moins 20 caractères quand "
+                "impact_it est évalué"
+            )
+        if self.impact_it != "INDETERMINE":
+            missing_impact_sections = missing_labeled_analysis_sections(
+                self.impact_it_justification,
+                IMPACT_IT_DETAIL_LABELS,
+            )
+            if missing_impact_sections:
+                raise ValueError(
+                    "impact_it_justification doit contenir les rubriques "
+                    f"détaillées : {', '.join(missing_impact_sections)}"
+                )
+        if (
+            self.impact_it == "INDETERMINE"
+            and self.impact_it_justification.strip()
+        ):
+            raise ValueError(
+                "impact_it_justification doit être vide quand "
+                "impact_it=INDETERMINE"
+            )
+        posture_evaluee = self.changement_posture in {
+            "RENFORCEMENT",
+            "ALLEGEMENT",
+            "NOUVEAU_DISPOSITIF",
+            "RETRAIT_DISPOSITIF",
+        }
+        if posture_evaluee and len(self.justification_posture.strip()) < 20:
+            raise ValueError(
+                "justification_posture exige au moins 20 caractères quand "
+                "un changement de posture est évalué"
+            )
+        if posture_evaluee:
+            missing_posture_sections = missing_labeled_analysis_sections(
+                self.justification_posture,
+                POSTURE_DETAIL_LABELS,
+            )
+            if missing_posture_sections:
+                raise ValueError(
+                    "justification_posture doit contenir les rubriques "
+                    f"détaillées : {', '.join(missing_posture_sections)}"
+                )
+        if posture_evaluee and self.confiance_posture == "INDETERMINE":
+            raise ValueError(
+                "confiance_posture doit être évaluée quand un changement "
+                "de posture est identifié"
             )
 
         return self
@@ -474,6 +660,12 @@ def empty_triage_skeleton() -> dict:
         is_relevant=False,
         themes_amf=[],
         impact_level="MINEUR",
+        impact_it="INDETERMINE",
+        impact_it_justification="",
+        changement_posture="AUCUN",
+        justification_posture="",
+        statut_mise_en_oeuvre="INDETERMINE",
+        confiance_posture="INDETERMINE",
         nouvelle_idee=False,
         explanation="",
         nouvelle_idee_justification=(

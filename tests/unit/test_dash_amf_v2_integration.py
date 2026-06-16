@@ -13,7 +13,10 @@ import pytest
 from dash import html
 from dash.development.base_component import Component
 
-from vigilance.dash_app.components.review_detail_v2 import _build_themes_amf_chips
+from vigilance.dash_app.components.review_detail_v2 import (
+    _build_genai_section,
+    _build_themes_amf_chips,
+)
 from vigilance.dash_app.components.review_queue_v2 import _build_genai_summary_row
 from vigilance.dash_app.layouts.page_text_analysis import _build_change_card
 
@@ -34,24 +37,21 @@ def _flatten_text(node: object) -> str:
     return ""
 
 
-def _find_component_with_text(node: object, expected_text: str) -> Component:
-    """Retourne le premier composant dont le texte aplati contient expected_text."""
+def _find_component_by_type(node: object, type_name: str) -> Component:
+    """Retourne le premier composant Dash portant le nom de type demandé."""
     if isinstance(node, Component):
-        if expected_text in _flatten_text(node):
-            children = getattr(node, "children", None)
-            if isinstance(children, list):
-                for child in children:
-                    try:
-                        return _find_component_with_text(child, expected_text)
-                    except LookupError:
-                        pass
-            elif children is not None:
+        if type(node).__name__ == type_name:
+            return node
+        children = getattr(node, "children", None)
+        if isinstance(children, list):
+            for child in children:
                 try:
-                    return _find_component_with_text(children, expected_text)
+                    return _find_component_by_type(child, type_name)
                 except LookupError:
                     pass
-            return node
-    raise LookupError(expected_text)
+        elif children is not None:
+            return _find_component_by_type(children, type_name)
+    raise LookupError(type_name)
 
 
 def _styled_texts(node: object) -> list[tuple[str, dict]]:
@@ -134,6 +134,15 @@ def test_themes_amf_chips_returns_empty_div_when_no_themes() -> None:
     assert isinstance(chips_div, html.Div)
 
 
+def test_themes_amf_chips_render_data_and_third_party_cloud_labels() -> None:
+    chips_div = _build_themes_amf_chips(
+        ["RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"]
+    )
+    text = _flatten_text(chips_div)
+    assert "Risque données" in text
+    assert "Tiers / Cloud" in text
+
+
 # --- page_text_analysis affiche les nouveaux champs AMF ---
 
 
@@ -148,9 +157,38 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
             "is_relevant": True,
             "themes_amf": ["MODIFICATION_METHODOLOGIE", "EXIGENCES_REGLEMENTAIRES"],
             "impact_level": "MAJEUR",
+            "impact_it": "ELEVE",
+            "impact_it_justification": (
+                "Éléments observés : Le changement exige une migration des "
+                "données et de nouveaux contrôles technologiques.\n\n"
+                "Conséquence probable : Les processus et l'architecture IT "
+                "devront être adaptés à la migration.\n\n"
+                "Limite de l'analyse : Le rapport ne précise pas le calendrier "
+                "technique complet."
+            ),
+            "changement_posture": "RENFORCEMENT",
+            "justification_posture": (
+                "Preuve : La banque renforce les contrôles et la surveillance "
+                "associés à la migration des données.\n\n"
+                "Effet sur la gestion du risque : Le niveau d'encadrement des "
+                "données et du fournisseur augmente.\n\n"
+                "Justification du statut : Le rapport décrit un déploiement en "
+                "cours, mais pas encore achevé.\n\n"
+                "Justification de la confiance : Le renforcement et son état "
+                "d'avancement sont formulés explicitement."
+            ),
+            "statut_mise_en_oeuvre": "EN_COURS",
+            "confiance_posture": "ELEVEE",
             "nouvelle_idee": True,
             "nouvelle_idee_justification": (
-                "OUI - methodologie modifiee au T2. Cela touche les exigences BSIF (MODIFICATION_METHODOLOGIE)."
+                "OUI — Nouvel élément à surveiller : Oui.\n\n"
+                "Sujet détecté : Exigences réglementaires et méthodologie.\n\n"
+                "Ce qui change : Le T2 modifie la méthode applicable aux "
+                "exigences réglementaires.\n\n"
+                "Pertinence métier : La modification peut changer la manière "
+                "dont la banque applique le cadre réglementaire.\n\n"
+                "Point de surveillance : Exigences réglementaires — Vérifier "
+                "les adaptations du dispositif de conformité."
             ),
             "action_requise": "revue_prioritaire",
         },
@@ -160,15 +198,148 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
     text = _flatten_text(card)
     assert "Nouvelle idée" in text
     assert "Majeur" in text  # libellé impact (capitalized) pour la page texte
+    assert "Impact exigences réglementaires — Majeur" in text
+    assert "Impact IT" not in text
+    assert "Posture renforcée" in text
+    assert "Preuve de posture" in text
+    assert "Voir les détails de l’évaluation IA" in text
+    assert "Éléments observés" in text
+    assert "Conséquence probable" in text
+    assert "Limite de l’analyse" in text
+    assert "Mise en œuvre En cours" in text
+    assert "Confiance Élevée" in text
     assert "Modif. méthodologie" in text
-    assert "OUI" in text
     assert "Revue prioritaire" in text
-    assert "Justification" in text
-    assert "Justification de triage" not in text
+
+    details = _find_component_by_type(card, "Details")
+    assert getattr(details, "open", None) is False
+    details_text = _flatten_text(details)
+    assert "Voir les détails de l’évaluation IA" in details_text
+    assert "Éléments observés" not in details_text
+
+    card_body = getattr(card, "children")
+    card_sections = [_flatten_text(child) for child in getattr(card_body, "children")]
+    proof_index = next(
+        index for index, value in enumerate(card_sections) if "Preuve de posture" in value
+    )
+    observed_index = next(
+        index for index, value in enumerate(card_sections) if "Éléments observés" in value
+    )
+    details_index = next(
+        index
+        for index, value in enumerate(card_sections)
+        if "Voir les détails de l’évaluation IA" in value
+    )
+    assert observed_index < proof_index < details_index
+
+    badge_row = getattr(card_body, "children")[0]
+    badge_text = _flatten_text(badge_row)
+    assert "Mise en œuvre" not in badge_text
+    assert "Confiance" not in badge_text
 
 
-def test_text_analysis_highlights_ce_qui_change_in_ia_justification() -> None:
-    """La rubrique clé de la justification IA est mise en évidence en bleu."""
+def test_text_analysis_change_card_shows_unchanged_posture() -> None:
+    change = {
+        "diff_type": "modified",
+        "source_text_t2": "Le risque est décrit plus précisément.",
+        "source_text_t1": "Le risque était déjà décrit.",
+        "genai_triage": {
+            "is_relevant": True,
+            "themes_amf": ["RISQUE_DONNEES"],
+            "impact_level": "MINEUR",
+            "impact_it": "INDETERMINE",
+            "changement_posture": "AUCUN",
+            "nouvelle_idee": False,
+            "nouvelle_idee_justification": "NON - aucune nouvelle idée.",
+            "action_requise": "information",
+        },
+    }
+
+    card = _build_change_card(change, "Gestion des risques")
+    text = _flatten_text(card)
+
+    assert "Posture inchangée" in text
+    details = _find_component_by_type(card, "Details")
+    details_text = _flatten_text(details)
+    assert "Voir les détails de l’évaluation IA" in details_text
+    assert "Impact données — Mineur" in details_text
+    assert "Impact IT" not in details_text
+    assert "Posture indéterminée" not in details_text
+
+
+def test_text_analysis_change_card_always_exposes_ai_details_fold() -> None:
+    change = {
+        "diff_type": "modified",
+        "source_text_t2": "Le cadre est présenté plus brièvement.",
+        "source_text_t1": "Le cadre était présenté avec davantage de détails.",
+        "genai_triage": {
+            "is_relevant": True,
+            "themes_amf": ["MODIFICATION_METHODOLOGIE"],
+            "impact_level": "MODERE",
+            "impact_it": "INDETERMINE",
+            "changement_posture": "INDETERMINE",
+            "nouvelle_idee": True,
+            "nouvelle_idee_justification": "OUI - présentation modifiée.",
+            "action_requise": "investigation",
+        },
+    }
+
+    card = _build_change_card(change, "Gestion du capital")
+    details = _find_component_by_type(card, "Details")
+    details_text = _flatten_text(details)
+
+    assert getattr(details, "open", None) is False
+    assert "Voir les détails de l’évaluation IA" in details_text
+    assert "Impact méthodologie de risque — Modéré" in details_text
+    assert "Impact IT" not in details_text
+    assert "Posture indéterminée" not in details_text
+
+
+def test_review_detail_renders_posture_evidence_and_implementation_status() -> None:
+    table = {
+        "genai_analysis": {
+            "is_relevant": True,
+            "themes_amf": ["RISQUE_TIERS_CLOUD"],
+            "impact_level": "MODERE",
+            "impact_it": "MOYEN",
+            "impact_it_justification": (
+                "Éléments observés : Le rapport décrit de nouveaux contrôles "
+                "contractuels appliqués aux fournisseurs.\n\n"
+                "Conséquence probable : Les processus de suivi IT et les "
+                "rapports de contrôle devront être adaptés.\n\n"
+                "Limite de l'analyse : Aucune migration ni modification "
+                "d'architecture n'est décrite."
+            ),
+            "changement_posture": "RENFORCEMENT",
+            "justification_posture": (
+                "Preuve : La banque indique que la surveillance des fournisseurs "
+                "critiques a été renforcée.\n\n"
+                "Effet sur la gestion du risque : Le niveau d'encadrement des "
+                "tiers critiques augmente.\n\n"
+                "Justification du statut : Le texte décrit les contrôles comme "
+                "déjà mis en œuvre.\n\n"
+                "Justification de la confiance : La formulation du rapport est "
+                "explicite et ne repose pas sur une inférence."
+            ),
+            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
+            "confiance_posture": "ELEVEE",
+            "nouvelle_idee": False,
+            "nouvelle_idee_justification": "NON - dispositif déjà connu.",
+            "action_requise": "information",
+        }
+    }
+
+    text = _flatten_text(_build_genai_section(table))
+
+    assert "Posture renforcée" in text
+    assert "Mise en œuvre réalisée" in text
+    assert "Confiance posture élevée" in text
+    assert "Posture de gestion" in text
+    assert "surveillance des fournisseurs" in text
+
+
+def test_text_analysis_shows_observed_change_before_fold() -> None:
+    """Le changement observé reste visible et les explications sont repliées."""
     change = {
         "diff_type": "removed",
         "source_text_t1": "Contexte géopolitique volatile.",
@@ -193,12 +364,24 @@ def test_text_analysis_highlights_ce_qui_change_in_ia_justification() -> None:
     }
 
     card = _build_change_card(change, "Gestion des risques")
+    card_body = getattr(card, "children")
+    card_sections = [_flatten_text(child) for child in getattr(card_body, "children")]
+    observed_index = next(
+        index for index, value in enumerate(card_sections) if "Éléments observés" in value
+    )
+    details_index = next(
+        index
+        for index, value in enumerate(card_sections)
+        if "Voir les détails de l’évaluation IA" in value
+    )
 
-    highlighted = _find_component_with_text(card, "Ce qui change : Le T2 retire")
-    style = getattr(highlighted, "style", {}) or {}
-    assert style["backgroundColor"] == "#e0f2fe"
-    assert style["color"] == "#075985"
-    assert "Pertinence métier" not in _flatten_text(highlighted)
+    assert observed_index < details_index
+    assert "Le T2 retire la description du contexte géopolitique" in card_sections[
+        observed_index
+    ]
+    assert "Impact facteurs de risque — Majeur" in card_sections[observed_index]
+    assert "Pertinence métier" not in card_sections[observed_index]
+    assert "Pertinence métier" in card_sections[details_index]
 
 
 def test_text_analysis_change_card_keeps_non_pertinent() -> None:
@@ -298,8 +481,8 @@ def test_side_by_side_modified_renders_two_columns() -> None:
     assert _flatten_text(sbs.children[1]).startswith("Précédent - T2 2025 (p.22)")
 
 
-def test_side_by_side_added_renders_only_t2() -> None:
-    """Pour diff_type=added, seule la colonne T2 est affichée."""
+def test_side_by_side_added_renders_current_then_empty_previous() -> None:
+    """Pour un ajout, Courant précède le panneau vide Précédent."""
     sbs = _build_side_by_side(
         text_t1="",
         text_t2="Nouveau cadre IA générative.",
@@ -309,13 +492,16 @@ def test_side_by_side_added_renders_only_t2() -> None:
         diff_type="added",
     )
     text = _flatten_text(sbs)
-    assert "Précédent" not in text
     assert "Courant (p.30)" in text
+    assert "Précédent" in text
     assert "Nouveau cadre IA générative." in text
+    assert "Aucun texte dans le rapport précédent — contenu ajouté." in text
+    assert _flatten_text(sbs.children[0]).startswith("Courant (p.30)")
+    assert _flatten_text(sbs.children[1]).startswith("Précédent")
 
 
-def test_side_by_side_removed_renders_only_t1() -> None:
-    """Pour diff_type=removed, seule la colonne T1 est affichée."""
+def test_side_by_side_removed_renders_empty_current_then_previous() -> None:
+    """Pour une suppression, le panneau vide Courant précède Précédent."""
     sbs = _build_side_by_side(
         text_t1="Mention cybermenaces (DDoS, ransomwares).",
         text_t2="",
@@ -332,8 +518,11 @@ def test_side_by_side_removed_renders_only_t1() -> None:
     )
     text = _flatten_text(sbs)
     assert "Précédent (p.18)" in text
-    assert "Courant" not in text
+    assert "Courant" in text
     assert "cybermenaces" in text
+    assert "Aucun texte dans le rapport courant — contenu retiré." in text
+    assert _flatten_text(sbs.children[0]).startswith("Courant")
+    assert _flatten_text(sbs.children[1]).startswith("Précédent (p.18)")
 
 
 def test_side_by_side_modified_highlights_diff_when_change_segments_do_not_match() -> None:

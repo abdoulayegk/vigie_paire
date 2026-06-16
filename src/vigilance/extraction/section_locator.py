@@ -247,6 +247,15 @@ SECTION_PATTERNS = {
             # Variantes avec contexte
             r"facteurs?\s+de\s+risque",
             r"exposition\s+aux?\s+risques?",
+            # Sections autonomes pouvant remplacer le titre global des risques
+            r"risques?\s+(?:li[eé]s?\s+aux?\s+)?donn[eé]es(?:,\s*technologie\s+et\s+cybers[eé]curit[eé])?",
+            r"risques?\s+technologiques?",
+            r"technolog(?:ie|ique),?\s+cybers[eé]curit[eé]\s+et\s+donn[eé]es",
+            r"risques?\s+(?:li[eé]s?\s+aux?\s+)?tiers",
+            r"gestion\s+des?\s+fournisseurs",
+            r"services?\s+infonuagiques?",
+            r"r[eé]silience\s+op[eé]rationnelle",
+            r"protection\s+des?\s+donn[eé]es\s+et\s+vie\s+priv[eé]e",
         ],
         # Mots-cles pour valider le contenu (variantes avec/sans accents)
         "keywords": [
@@ -274,6 +283,53 @@ SECTION_PATTERNS = {
             "stress",
             "scénario",
             "scenario",
+            "données",
+            "donnees",
+            "data",
+            "technologie",
+            "technology",
+            "cybersécurité",
+            "cybersecurite",
+            "cloud",
+            "infonuagique",
+            "tiers",
+            "fournisseur",
+            "impartition",
+            "résilience",
+            "resilience",
+            "vie privée",
+            "vie privee",
+            "qualité des données",
+            "qualite des donnees",
+            "intégrité des données",
+            "integrite des donnees",
+            "confidentialité",
+            "confidentialite",
+            "protection des données",
+            "protection des donnees",
+            "localisation des données",
+            "localisation des donnees",
+            "souveraineté",
+            "souverainete",
+            "conservation des données",
+            "conservation des donnees",
+            "traçabilité",
+            "tracabilite",
+            "lignage",
+            "cycle de vie des données",
+            "cycle de vie des donnees",
+            "fuite de données",
+            "fuite de donnees",
+            "tiers critique",
+            "fournisseur critique",
+            "sous-traitant",
+            "concentration des fournisseurs",
+            "verrouillage fournisseur",
+            "stratégie de sortie",
+            "strategie de sortie",
+            "continuité des services",
+            "continuite des services",
+            "exigence contractuelle",
         ],
         # Sous-sections qui font partie de "Gestion des risques"
         "subsections": [
@@ -285,6 +341,19 @@ SECTION_PATTERNS = {
             r"market\s+risk",
             r"liquidity\s+risk",
             r"operational\s+risk",
+            r"risques?\s+(?:li[eé]s?\s+aux?\s+)?donn[eé]es",
+            r"risques?\s+technologiques?",
+            r"risques?\s+(?:li[eé]s?\s+aux?\s+)?tiers",
+            r"risques?\s+li[eé]s?\s+[àa]\s+l['’]impartition",
+            r"services?\s+infonuagiques?",
+            r"r[eé]silience\s+op[eé]rationnelle",
+            r"protection\s+des?\s+donn[eé]es",
+            r"vie\s+priv[eé]e",
+            r"data\s+risk",
+            r"technology\s+risk",
+            r"third[-\s]party\s+risk",
+            r"cloud\s+risk",
+            r"operational\s+resilience",
         ],
     },
     "gestion_reglementation": {
@@ -424,6 +493,24 @@ RISK_SUBSECTIONS = [
     "Market Risk",
     "Liquidity Risk",
     "Operational Risk",
+    "Risque lié aux données",
+    "Risque lié aux donnees",
+    "Risque technologique",
+    "Risque lié aux tiers",
+    "Risque lie aux tiers",
+    "Risque lié à l'impartition",
+    "Services infonuagiques",
+    "Résilience opérationnelle",
+    "Resilience operationnelle",
+    "Protection des données",
+    "Protection des donnees",
+    "Vie privée",
+    "Vie privee",
+    "Data Risk",
+    "Technology Risk",
+    "Third-Party Risk",
+    "Cloud Risk",
+    "Operational Resilience",
 ]
 
 # Patterns pour detecter la Table des matieres
@@ -2818,18 +2905,20 @@ class SectionLocator:
 
             for line in lines:
                 line_stripped = line.strip()
+                line_normalized = normalize_text(line_stripped)
 
                 if len(line_stripped) < 10 or len(line_stripped) > 80:
                     continue
 
                 # Chercher les sous-sections de risques
                 for subsection in RISK_SUBSECTIONS:
-                    if subsection.lower() in line_stripped.lower():
+                    subsection_normalized = normalize_text(subsection)
+                    if subsection_normalized in line_normalized:
                         # Verifier que c'est bien un titre (pas dans une phrase)
                         if len(line_stripped) < 50 and (
                             line_stripped.istitle()
                             or line_stripped.isupper()
-                            or line_stripped.startswith(subsection)
+                            or line_normalized.startswith(subsection_normalized)
                         ):
                             return LocatedSection(
                                 section_type="gestion_risques",
@@ -3148,8 +3237,10 @@ class SectionLocator:
             )
 
             # Ratio de mots-cles trouves
-            # On considere que 30% des mots-cles est suffisant (sections variees)
-            keyword_ratio = min(1.0, found_keywords / (len(expected_keywords) * 0.3))
+            # Les vocabulaires specialises enrichissent la couverture sans rendre
+            # les sections historiques plus difficiles a valider.
+            keyword_target = min(len(expected_keywords) * 0.3, 7.2)
+            keyword_ratio = min(1.0, found_keywords / keyword_target)
 
         # Verifier l'absence de mots-cles d'autres sections
         other_section_type = (

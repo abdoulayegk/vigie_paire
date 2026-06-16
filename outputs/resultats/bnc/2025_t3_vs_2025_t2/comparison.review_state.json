@@ -26,7 +26,7 @@
       "page_t1": null,
       "page_t2": 32,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T3.pdf",
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
@@ -92,7 +92,7 @@
         0.3318136195943813
       ],
       "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/rapport-actionnaire-t3-2025.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T3.pdf",
       "changes": [
         {
           "change_id": "chg_00001",

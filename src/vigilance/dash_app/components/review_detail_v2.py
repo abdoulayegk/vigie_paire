@@ -249,6 +249,8 @@ _THEMES_AMF_DISPLAY: dict[str, str] = {
     "HYPOTHESES_EXPLICATIONS_RISQUES": "Hypothèses risques",
     "ESG_CLIMATIQUE": "ESG / Climat",
     "RISQUE_EMERGENT": "Risque émergent",
+    "RISQUE_DONNEES": "Risque données",
+    "RISQUE_TIERS_CLOUD": "Tiers / Cloud",
     "RISQUE_MACRO_GEOPOLITIQUE": "Commercial / géopolitique",
     "GOUVERNANCE_RISQUES": "Gouvernance",
     "CONTROLE_CONFORMITE": "Contrôle / Conformité",
@@ -274,6 +276,33 @@ _IMPACT_LEVEL_COLORS: dict[str, str] = {
     "MAJEUR": "danger",
     "MODERE": "warning",
     "MINEUR": "info",
+}
+
+_IMPACT_IT_DISPLAY: dict[str, str] = {
+    "ELEVE": "Impact IT élevé",
+    "MOYEN": "Impact IT moyen",
+    "FAIBLE": "Impact IT faible",
+}
+
+_POSTURE_DISPLAY: dict[str, str] = {
+    "RENFORCEMENT": "Posture renforcée",
+    "ALLEGEMENT": "Posture allégée",
+    "NOUVEAU_DISPOSITIF": "Nouveau dispositif",
+    "RETRAIT_DISPOSITIF": "Dispositif retiré",
+    "AUCUN": "Posture inchangée",
+}
+
+_IMPLEMENTATION_DISPLAY: dict[str, str] = {
+    "ANNONCE": "Mise en œuvre annoncée",
+    "PLANIFIE": "Mise en œuvre planifiée",
+    "EN_COURS": "Mise en œuvre en cours",
+    "MIS_EN_OEUVRE": "Mise en œuvre réalisée",
+}
+
+_POSTURE_CONFIDENCE_DISPLAY: dict[str, str] = {
+    "ELEVEE": "Confiance posture élevée",
+    "MOYENNE": "Confiance posture moyenne",
+    "FAIBLE": "Confiance posture faible",
 }
 
 _ACTION_REQUISE_DISPLAY: dict[str, str] = {
@@ -378,6 +407,22 @@ def _build_genai_section(table: dict) -> html.Div:
     ).strip()
     themes_amf = list(ga.get("themes_amf") or [])
     impact_level = str(ga.get("impact_level", "") or "").upper()
+    impact_it = str(ga.get("impact_it", "") or "").upper()
+    impact_it_justification = str(
+        ga.get("impact_it_justification", "") or ""
+    ).strip()
+    changement_posture = str(
+        ga.get("changement_posture", "") or ""
+    ).upper()
+    justification_posture = str(
+        ga.get("justification_posture", "") or ""
+    ).strip()
+    statut_mise_en_oeuvre = str(
+        ga.get("statut_mise_en_oeuvre", "") or ""
+    ).upper()
+    confiance_posture = str(
+        ga.get("confiance_posture", "") or ""
+    ).upper()
     action_requise = str(ga.get("action_requise", "") or "").lower()
 
     # Bandeau principal : nouvelle idée + impact (deux signaux les plus
@@ -404,6 +449,43 @@ def _build_genai_section(table: dict) -> html.Div:
             dbc.Badge(
                 _IMPACT_LEVEL_DISPLAY.get(impact_level, impact_level),
                 color=_IMPACT_LEVEL_COLORS.get(impact_level, "secondary"),
+                className="me-2",
+            )
+        )
+    if impact_it in _IMPACT_IT_DISPLAY:
+        header_badges.append(
+            dbc.Badge(
+                _IMPACT_IT_DISPLAY[impact_it],
+                color=_IMPACT_LEVEL_COLORS.get(
+                    {"ELEVE": "MAJEUR", "MOYEN": "MODERE", "FAIBLE": "MINEUR"}[
+                        impact_it
+                    ],
+                    "secondary",
+                ),
+                className="me-2",
+            )
+        )
+    if changement_posture in _POSTURE_DISPLAY:
+        header_badges.append(
+            dbc.Badge(
+                _POSTURE_DISPLAY[changement_posture],
+                color="primary",
+                className="me-2",
+            )
+        )
+    if statut_mise_en_oeuvre in _IMPLEMENTATION_DISPLAY:
+        header_badges.append(
+            dbc.Badge(
+                _IMPLEMENTATION_DISPLAY[statut_mise_en_oeuvre],
+                color="info",
+                className="me-2",
+            )
+        )
+    if confiance_posture in _POSTURE_CONFIDENCE_DISPLAY:
+        header_badges.append(
+            dbc.Badge(
+                _POSTURE_CONFIDENCE_DISPLAY[confiance_posture],
+                color="secondary",
                 className="me-2",
             )
         )
@@ -434,6 +516,26 @@ def _build_genai_section(table: dict) -> html.Div:
             style={"whiteSpace": "pre-wrap"},
         ),
     ]
+    if impact_it_justification:
+        body.append(
+            html.P(
+                [
+                    html.Strong("Impact IT : "),
+                    impact_it_justification,
+                ],
+                className="mb-0 mt-2 small text-muted",
+            )
+        )
+    if justification_posture:
+        body.append(
+            html.P(
+                [
+                    html.Strong("Posture de gestion : "),
+                    justification_posture,
+                ],
+                className="mb-0 mt-2 small text-muted",
+            )
+        )
     if action_line is not None:
         body.append(action_line)
 

@@ -25,7 +25,7 @@
       "table_id_t2": "tbl_p025_i01",
       "page_t1": 25,
       "page_t2": 25,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T2.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
       "review_status": "approved",
       "comment": "",
@@ -117,7 +117,7 @@
       "table_id_t2": "tbl_p044_i02",
       "page_t1": 44,
       "page_t2": 44,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T2.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
       "review_status": "pending",
       "comment": "",
@@ -199,7 +199,7 @@
       "table_id_t2": "tbl_p053_i01",
       "page_t1": 52,
       "page_t2": 53,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T2.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
       "review_status": "pending",
       "comment": "",
@@ -281,7 +281,7 @@
       "table_id_t2": "tbl_p043_i01",
       "page_t1": null,
       "page_t2": 43,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T2.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
       "review_status": "pending",
       "comment": "",
@@ -366,7 +366,7 @@
         0.6811152865686959,
         0.41527638804280503
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T2.pdf",
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
       "changes": [
         {
@@ -484,7 +484,7 @@
         0.9409658455590771,
         0.5756473947561175
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T2.pdf",
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
       "changes": [
         {
@@ -574,7 +574,7 @@
         0.9409129986776315,
         0.8681767908292234
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T2.pdf",
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
       "changes": [
         {
@@ -659,7 +659,7 @@
         0.942442965751033,
         0.4649263212302207
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/data/bmo/t2_rapport_q2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T2.pdf",
       "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BMO/2025/BMO_2025_T3.pdf",
       "changes": [
         {

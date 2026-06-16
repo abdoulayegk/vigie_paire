@@ -8,8 +8,8 @@
   "year_current": 2026,
   "quarter_current": "t2",
   "created_at": "2026-05-28T09:28:06",
-  "source_pdf_previous": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/rapport-actionnaire-t1-2026.pdf",
-  "source_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/rapport-actionnaire-t2-2026.pdf",
+  "source_pdf_previous": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/BNC_2026_T1.pdf",
+  "source_pdf_current": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2026/BNC_2026_T2.pdf",
   "archived_pdf_previous": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/previous_report.pdf",
   "archived_pdf_current": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2026_t2_vs_2026_t1/current_report.pdf",
   "model_version": "gpt-4o",
@@ -308,12 +308,6 @@
         },
         "genai_analysis": {
           "resume_metier": "La suppression d'un tableau entier portant sur les indicateurs des Banques d'importance systémique mondiale (BISM) est un changement structurel majeur. Ces indicateurs sont essentiels pour évaluer le risque systémique et la stabilité financière, ce qui est d'une importance capitale pour les régulateurs et les investisseurs.\n\nLe retrait de ces informations peut réduire la transparence et la capacité des parties prenantes à évaluer correctement le profil de risque de la banque. Cela peut également affecter la comparabilité avec d'autres banques qui continuent de divulguer ces indicateurs.\n\nIl est crucial de surveiller comment cette suppression affecte la perception du risque systémique de la banque et si des informations compensatoires sont fournies ailleurs dans le rapport."
-        },
-        "_analyst_review": {
-          "status": "approved",
-          "notes": "",
-          "at": "2026-06-05T19:45:04.895920+00:00",
-          "by": "analyst"
         }
       },
       {
@@ -407,12 +401,6 @@
         },
         "genai_analysis": {
           "resume_metier": "La suppression d'un tableau entier dans la section de gestion des risques est un changement structurel significatif. Ce tableau contenait des indicateurs financiers et de risque importants qui sont essentiels pour évaluer la santé financière de la banque.\n\nL'absence de ces informations pourrait réduire la transparence et compliquer l'analyse comparative avec les périodes précédentes, ce qui est une préoccupation pour les parties prenantes et les régulateurs.\n\nIl est crucial de surveiller comment cette suppression affecte la divulgation globale des risques et si elle est compensée par d'autres sections du rapport ou par des divulgations supplémentaires ailleurs."
-        },
-        "_analyst_review": {
-          "status": "approved",
-          "notes": "",
-          "at": "2026-06-05T19:45:08.896124+00:00",
-          "by": "analyst"
         }
       },
       {
@@ -506,12 +494,6 @@
         },
         "genai_analysis": {
           "resume_metier": "La suppression d'un tableau entier dans la section de gestion des risques est un changement structurel significatif. Ce tableau contenait des indicateurs financiers clés qui sont essentiels pour évaluer la santé financière de la banque.\n\nLa suppression de ces informations pourrait réduire la transparence des divulgations financières et compliquer l'analyse comparative entre les périodes. Cela pourrait également signaler un changement dans la stratégie de divulgation de la banque.\n\nIl est important de surveiller comment la banque va compenser cette suppression dans ses futurs rapports pour s'assurer que les informations essentielles restent accessibles aux analystes et aux régulateurs."
-        },
-        "_analyst_review": {
-          "status": "approved",
-          "notes": "",
-          "at": "2026-06-05T19:45:06.774270+00:00",
-          "by": "analyst"
         }
       },
       {
@@ -1091,7 +1073,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-06-05T19:39:30.795077+00:00",
+              "at": "2026-06-10T16:09:01.526460+00:00",
               "by": "analyst"
             }
           }
@@ -1106,12 +1088,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La note de bas de page n°3 a été ajoutée dans le tableau des fonds propres réglementaires pour le semestre terminé le 30 avril 2026. Cette note précise que le rachat des BCRL – Série 1, effectué le 17 novembre 2025, avait été pris en compte dans les ratios au 31 octobre 2025.\n\nL'impact métier de cette addition est relativement faible, car elle ne modifie pas les calculs ou les méthodologies sous-jacentes, mais clarifie simplement une information déjà intégrée dans les ratios précédents. Cela peut être pertinent pour les analystes qui suivent l'évolution des fonds propres et souhaitent comprendre les ajustements historiques.\n\nLe signal de vigie à retenir est que la banque cherche à améliorer la transparence de ses rapports en fournissant des détails supplémentaires sur les événements passés qui ont influencé les ratios de capital. Cela peut être perçu comme un effort pour renforcer la confiance des parties prenantes dans la précision des informations financières fournies."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-06-05T19:45:10.715516+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -1580,12 +1556,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur 'Banques' a été ajouté dans le tableau d'exposition maximale au risque de crédit selon les catégories d'actifs de Bâle. Cet ajout se situe à la position 7 du tableau actuel, remplaçant l'indicateur précédent 'Institutions financières'.\n\nL'ajout de cet indicateur peut refléter un changement dans la manière dont la banque catégorise ses expositions au risque de crédit, potentiellement en réponse à des ajustements réglementaires ou à une réévaluation interne des risques associés aux contreparties bancaires. Les banques sont souvent considérées comme des contreparties distinctes en raison de leur profil de risque unique et de leur importance systémique, ce qui pourrait justifier cette nouvelle catégorisation.\n\nCe changement indique une révision structurelle dans la présentation des risques de crédit, soulignant une attention accrue portée aux expositions spécifiques aux banques. Cela pourrait signaler une adaptation aux exigences de divulgation plus fines ou une réponse à des évolutions du marché ou des régulations."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-06-05T19:44:58.066138+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -3860,9 +3830,9 @@
     "total_relevant": 8
   },
   "review_decisions_summary": {
-    "matched": 6,
+    "matched": 1,
     "unmatched": 0,
-    "pending": 4,
-    "updated_at": "2026-06-05T19:45:10+00:00"
+    "pending": 9,
+    "updated_at": "2026-06-10T16:09:01+00:00"
   }
 }

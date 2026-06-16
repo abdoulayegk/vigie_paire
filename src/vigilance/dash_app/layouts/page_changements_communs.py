@@ -278,6 +278,19 @@ def _build_signal_card(signal: dict[str, Any]) -> dbc.Card:
                     className="mb-2",
                 ),
                 html.P(str(signal.get("summary") or ""), className="mb-2"),
+                _muted_block("Impact IT", signal.get("impact_it")),
+                _muted_block(
+                    "Evolution de la posture de gestion",
+                    signal.get("posture_summary"),
+                ),
+                _muted_block(
+                    "Mise en oeuvre",
+                    signal.get("mise_en_oeuvre_summary"),
+                ),
+                _muted_block(
+                    "Confiance de la posture",
+                    signal.get("confiance_posture"),
+                ),
                 _muted_block("Pourquoi ces changements sont regroupes", signal.get("rationale")),
                 _muted_block("Differences entre banques", signal.get("differences")),
                 _build_evidence_accordion(signal.get("evidence") or []),
@@ -335,6 +348,22 @@ def _build_evidence_body(item: dict[str, Any]) -> html.Div:
                 className="mb-2",
             ),
             html.Div(str(item.get("change_summary") or ""), className="small mb-2"),
+            _muted_block(
+                "Posture source",
+                item.get("changement_posture"),
+            ),
+            _muted_block(
+                "Justification de la posture",
+                item.get("justification_posture"),
+            ),
+            _muted_block(
+                "Statut de mise en oeuvre",
+                item.get("statut_mise_en_oeuvre"),
+            ),
+            _muted_block(
+                "Confiance de la posture",
+                item.get("confiance_posture"),
+            ),
             html.Blockquote(quote, className="small border-start ps-3 text-muted")
             if quote
             else html.Div(),

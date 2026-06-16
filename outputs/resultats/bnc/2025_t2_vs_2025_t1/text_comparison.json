@@ -81,10 +81,11 @@
             "source": "gpt4o_triage_amf_v2"
           },
           "_analyst_review": {
-            "status": "approved",
+            "status": "rejected",
             "comment": "Oui c'est un vrai changment",
             "review_user": "analyste",
-            "reviewed_at": "2026-06-02T13:44:52.548600+00:00"
+            "reviewed_at": "2026-06-10T01:32:10.042075+00:00",
+            "nouvelle_idee_override": false
           }
         },
         {
@@ -798,10 +799,11 @@
             "source": "gpt4o_triage_amf_v2"
           },
           "_analyst_review": {
-            "status": "approved",
+            "status": "rejected",
             "comment": "Oui c'est un vrai changment",
             "review_user": "analyste",
-            "reviewed_at": "2026-06-02T13:44:52.548600+00:00"
+            "reviewed_at": "2026-06-10T01:32:10.042075+00:00",
+            "nouvelle_idee_override": false
           }
         },
         {

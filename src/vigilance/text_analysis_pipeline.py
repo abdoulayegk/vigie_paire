@@ -471,6 +471,8 @@ _STRONG_AMF_THEMES_FOR_MODERE_RETENTION: frozenset[str] = frozenset(
         "EXIGENCES_REGLEMENTAIRES",
         "FACTEUR_RISQUE_CHANGEMENT",
         "RISQUE_EMERGENT",
+        "RISQUE_DONNEES",
+        "RISQUE_TIERS_CLOUD",
         "RISQUE_MACRO_GEOPOLITIQUE",
     }
 )
@@ -2096,7 +2098,7 @@ def _derive_legacy_fields(triage_amf: dict[str, Any]) -> dict[str, Any]:
     elif themes & {"MODIFICATION_TEXTE_RISQUE", "FACTEUR_RISQUE_CHANGEMENT", "HYPOTHESES_EXPLICATIONS_RISQUES"}:
         category = "RISQUE"
         risk_type = "credit"
-    elif "RISQUE_EMERGENT" in themes:
+    elif themes & {"RISQUE_EMERGENT", "RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"}:
         category = "RISQUE"
         risk_type = "autre"
     elif "ESG_CLIMATIQUE" in themes:
@@ -2227,6 +2229,12 @@ def _triage_section_changes(
         "réglementaire chiffré (PAS un chiffre propre à la banque).\n\n"
         "4. RISQUE_EMERGENT (cyberrisque, IA, IA générative, fraude numérique, "
         "ransomware, modèles tiers) est PRIORITAIRE : impact_level minimum MODERE.\n\n"
+        "4a. RISQUE_DONNEES et RISQUE_TIERS_CLOUD sont des axes distincts. "
+        "Ne classe pas une simple occurrence du mot 'données' ou 'tiers'. "
+        "Retiens ces thèmes lorsque la divulgation traite de gouvernance, "
+        "qualité, protection, localisation ou cycle de vie des données, ou de "
+        "fournisseurs critiques, impartition, concentration, infonuagique, "
+        "résilience et stratégie de sortie.\n\n"
         "4b. RISQUE_MACRO_GEOPOLITIQUE (tarifs douaniers, guerre commerciale, "
         "sanctions, conflits, incertitude des politiques commerciales) est un "
         "déclencheur externe qui se transmet au crédit, au marché et au "
@@ -2245,12 +2253,44 @@ def _triage_section_changes(
         "   (c) ADOSSÉE À UN THÈME AMF : au moins un code dans themes_amf "
         "(sinon hors scope vigie).\n"
         "   Si UNE des 3 conditions est violée → nouvelle_idee = false.\n\n"
+        "5b. changement_posture : détermine si le changement modifie la façon "
+        "de gérer le risque. Utilise RENFORCEMENT pour des contrôles ou une "
+        "surveillance renforcés, ALLEGEMENT pour un encadrement réduit, "
+        "NOUVEAU_DISPOSITIF pour un nouveau comité, cadre, responsabilité, "
+        "diligence, exigence contractuelle ou stratégie de sortie, "
+        "RETRAIT_DISPOSITIF pour leur suppression, AUCUN si la gestion ne "
+        "change pas, et INDETERMINE si le texte ne permet pas de conclure. "
+        "Une simple mention de risque n'est pas un changement de posture. "
+        "Pour une posture autre que AUCUN ou INDETERMINE, renseigne "
+        "justification_posture avec exactement quatre rubriques séparées par "
+        "\\n\\n : Preuve, Effet sur la gestion du risque, Justification du "
+        "statut, Justification de la confiance. Renseigne aussi "
+        "confiance_posture (ELEVEE, MOYENNE ou FAIBLE).\n\n"
+        "5c. statut_mise_en_oeuvre décrit le niveau réellement démontré par le "
+        "rapport : ANNONCE, PLANIFIE, EN_COURS, MIS_EN_OEUVRE ou INDETERMINE. "
+        "Ne transforme jamais un futur, un projet ou une intention en mesure "
+        "déjà mise en œuvre.\n\n"
         "6. impact_level :\n"
         "   - MAJEUR : modification méthodologique substantielle, retrait/ajout "
         "significatif de divulgation, nouvelle exigence réglementaire, risque "
         "émergent introduit ou retiré.\n"
         "   - MODERE : modification de posture, croisement multi-thèmes notable.\n"
         "   - MINEUR : changement modeste mais substantif.\n\n"
+        "6b. impact_it est un axe distinct de impact_level :\n"
+        "   - ELEVE : migration ou changement d'architecture, remplacement ou "
+        "sortie d'un fournisseur, contrôles technologiques majeurs, localisation "
+        "ou déplacement de données, continuité ou résilience structurante.\n"
+        "   - MOYEN : nouveaux processus, inventaires, surveillance, rapports, "
+        "diligence ou exigences contractuelles nécessitant un effort IT.\n"
+        "   - FAIBLE : clarification ou ajustement limité sans transformation "
+        "technologique apparente, mais avec un effet IT identifiable.\n"
+        "   - INDETERMINE : information insuffisante. Ne déduis jamais qu'un "
+        "changement IT est réalisé si le rapport décrit seulement une intention. "
+        "Utilise aussi INDETERMINE lorsqu'aucun lien IT crédible n'est démontré; "
+        "FAIBLE ne signifie pas absence d'impact IT. "
+        "Renseigne impact_it_justification avec exactement trois rubriques "
+        "séparées par \\n\\n : Éléments observés, Conséquence probable, Limite "
+        "de l'analyse. Laisse ce champ vide si impact_it=INDETERMINE.\n\n"
         "7. action_requise : 'revue_prioritaire' UNIQUEMENT pour les changements MAJEUR "
         "(invariant strict — revue_prioritaire exige impact_level=MAJEUR) ; 'investigation' "
         "pour MODERE ou MAJEUR sans revue_prioritaire ; 'confirmation' à valider avec "
@@ -2264,7 +2304,11 @@ def _triage_section_changes(
         "Sujet détecté, Ce qui change, Pertinence métier, Point de surveillance.\n"
         "   - is_relevant=false → themes_amf=[], exclusion_reason renseigné, "
         "nouvelle_idee=false, impact_level=MINEUR, action_requise='aucune', "
-        "explanation vide, change_segments=[]. nouvelle_idee_justification "
+        "changement_posture=AUCUN, impact_it=INDETERMINE, "
+        "justification_posture vide, statut_mise_en_oeuvre=INDETERMINE, "
+        "confiance_posture=INDETERMINE, impact_it_justification vide, "
+        "explanation vide, change_segments=[]. "
+        "nouvelle_idee_justification "
         "OBLIGATOIRE : ≥ 3 phrases complètes ET ≥ 200 caractères, commençant "
         "par 'NON', contenant les mêmes rubriques exactes, et expliquant "
         "clairement POURQUOI ce changement n'est pas une nouvelle idée AMF "

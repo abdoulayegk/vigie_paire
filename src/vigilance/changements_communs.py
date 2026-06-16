@@ -23,7 +23,7 @@ from vigilance.utils.genai import get_openai_api_key
 
 logger = logging.getLogger(__name__)
 
-CHANGEMENTS_COMMUNS_SCHEMA_VERSION = 1
+CHANGEMENTS_COMMUNS_SCHEMA_VERSION = 2
 DEFAULT_CHANGEMENTS_COMMUNS_DIR = RESULTATS_DIR / "changements_communs_banques"
 DEFAULT_CHANGEMENTS_COMMUNS_PATH = (
     DEFAULT_CHANGEMENTS_COMMUNS_DIR / "changements_communs_banques.json"
@@ -62,6 +62,12 @@ class ChangementCommunRecord:
     pages_after: tuple[int, ...]
     themes: tuple[str, ...]
     impact_level: str
+    impact_it: str
+    impact_it_justification: str
+    changement_posture: str
+    justification_posture: str
+    statut_mise_en_oeuvre: str
+    confiance_posture: str
 
     def retrieval_text(self, max_chars: int = 1800) -> str:
         """Return compact semantic text for embedding retrieval."""
@@ -72,6 +78,11 @@ class ChangementCommunRecord:
             f"Sous-section: {self.subsection_heading}",
             f"Type: {self.diff_type}",
             f"Impact: {self.impact_level}",
+            f"Impact IT: {self.impact_it}",
+            f"Posture: {self.changement_posture}",
+            f"Justification posture: {self.justification_posture}",
+            f"Mise en oeuvre: {self.statut_mise_en_oeuvre}",
+            f"Confiance posture: {self.confiance_posture}",
             f"Themes: {', '.join(self.themes)}",
             f"Resume: {self.change_summary}",
             f"Avant: {self.text_before}",
@@ -89,6 +100,12 @@ class ChangementCommunRecord:
             "subsection": self.subsection_heading,
             "diff_type": self.diff_type,
             "impact_level": self.impact_level,
+            "impact_it": self.impact_it,
+            "impact_it_justification": self.impact_it_justification,
+            "changement_posture": self.changement_posture,
+            "justification_posture": self.justification_posture,
+            "statut_mise_en_oeuvre": self.statut_mise_en_oeuvre,
+            "confiance_posture": self.confiance_posture,
             "themes": list(self.themes),
             "change_summary": self.change_summary,
             "text_before": _truncate(self.text_before, max_text_chars),
@@ -113,6 +130,12 @@ class ChangementCommunRecord:
             "pages_after": list(self.pages_after),
             "themes": list(self.themes),
             "impact_level": self.impact_level,
+            "impact_it": self.impact_it,
+            "impact_it_justification": self.impact_it_justification,
+            "changement_posture": self.changement_posture,
+            "justification_posture": self.justification_posture,
+            "statut_mise_en_oeuvre": self.statut_mise_en_oeuvre,
+            "confiance_posture": self.confiance_posture,
         }
 
 
@@ -199,11 +222,27 @@ def build_changements_communs_source_stats(records: list[ChangementCommunRecord]
     bank_counts: dict[str, int] = {}
     period_counts: dict[str, int] = {}
     impact_counts: dict[str, int] = {}
+    impact_it_counts: dict[str, int] = {}
+    posture_counts: dict[str, int] = {}
+    implementation_counts: dict[str, int] = {}
+    posture_confidence_counts: dict[str, int] = {}
     for record in records:
         bank_counts[record.bank_code] = bank_counts.get(record.bank_code, 0) + 1
         period_counts[record.period] = period_counts.get(record.period, 0) + 1
         impact = record.impact_level or "INCONNU"
         impact_counts[impact] = impact_counts.get(impact, 0) + 1
+        impact_it = record.impact_it or "INDETERMINE"
+        impact_it_counts[impact_it] = impact_it_counts.get(impact_it, 0) + 1
+        posture = record.changement_posture or "INDETERMINE"
+        posture_counts[posture] = posture_counts.get(posture, 0) + 1
+        implementation = record.statut_mise_en_oeuvre or "INDETERMINE"
+        implementation_counts[implementation] = (
+            implementation_counts.get(implementation, 0) + 1
+        )
+        posture_confidence = record.confiance_posture or "INDETERMINE"
+        posture_confidence_counts[posture_confidence] = (
+            posture_confidence_counts.get(posture_confidence, 0) + 1
+        )
 
     return {
         "total_changes": len(records),
@@ -213,6 +252,12 @@ def build_changements_communs_source_stats(records: list[ChangementCommunRecord]
         "period_count": len(period_counts),
         "periods": sorted(period_counts),
         "impact_counts": dict(sorted(impact_counts.items())),
+        "impact_it_counts": dict(sorted(impact_it_counts.items())),
+        "posture_counts": dict(sorted(posture_counts.items())),
+        "implementation_counts": dict(sorted(implementation_counts.items())),
+        "posture_confidence_counts": dict(
+            sorted(posture_confidence_counts.items())
+        ),
     }
 
 
@@ -443,6 +488,10 @@ def build_changements_communs_judge_messages(
             "Un signal present dans une seule banque doit etre ignore.",
             "Vise une couverture large mais controlee: jusqu'a 12 signaux au total si les preuves sont suffisantes.",
             "Pour chaque signal, explique les similarites et les differences.",
+            "Evalue impact_it uniquement a partir des preuves fournies; utilise Indetermine si les rapports ne permettent pas de conclure.",
+            "Resume changement_posture en distinguant renforcement, allegement, nouveau dispositif et retrait de dispositif.",
+            "Compare le statut de mise en oeuvre entre banques sans confondre annonce, planification, travaux en cours et dispositif mis en oeuvre.",
+            "Evalue la confiance de la synthese de posture uniquement a partir des preuves rattachees.",
             "Evite les doublons: ne separe pas artificiellement deux signaux qui portent sur le meme changement de pratique.",
             "Garde les citations courtes et rattache chaque preuve a un record_id.",
         ],
@@ -454,6 +503,10 @@ def build_changements_communs_judge_messages(
                     "status": "consensus_3_plus | signal_mineur_2_banques",
                     "banks": ["bank_code"],
                     "impact": "Majeur | Modere | Mineur",
+                    "impact_it": "Eleve | Moyen | Faible | Indetermine",
+                    "posture_summary": "string",
+                    "mise_en_oeuvre_summary": "string",
+                    "confiance_posture": "Elevee | Moyenne | Faible | Indetermine",
                     "action": "string",
                     "rationale": "string",
                     "differences": "string",
@@ -582,6 +635,22 @@ def _record_from_block(
     triage = block.get("genai_triage") if isinstance(block.get("genai_triage"), dict) else {}
     themes = tuple(str(theme) for theme in triage.get("themes_amf", []) or [])
     impact_level = str(triage.get("impact_level") or block.get("impact_level") or "").strip()
+    impact_it = str(triage.get("impact_it") or "INDETERMINE").strip()
+    impact_it_justification = str(
+        triage.get("impact_it_justification") or ""
+    ).strip()
+    changement_posture = str(
+        triage.get("changement_posture") or "INDETERMINE"
+    ).strip()
+    justification_posture = str(
+        triage.get("justification_posture") or ""
+    ).strip()
+    statut_mise_en_oeuvre = str(
+        triage.get("statut_mise_en_oeuvre") or "INDETERMINE"
+    ).strip()
+    confiance_posture = str(
+        triage.get("confiance_posture") or "INDETERMINE"
+    ).strip()
     pages_before = _page_tuple(block.get("pages_t1") or block_t1.get("page"))
     pages_after = _page_tuple(block.get("pages_t2") or block_t2.get("page"))
     subsection = str(block.get("subsection_heading") or "").strip() or "Non classee"
@@ -603,6 +672,12 @@ def _record_from_block(
         pages_after=pages_after,
         themes=themes,
         impact_level=impact_level or "INCONNU",
+        impact_it=impact_it or "INDETERMINE",
+        impact_it_justification=impact_it_justification,
+        changement_posture=changement_posture or "INDETERMINE",
+        justification_posture=justification_posture,
+        statut_mise_en_oeuvre=statut_mise_en_oeuvre or "INDETERMINE",
+        confiance_posture=confiance_posture or "INDETERMINE",
     )
 
 
@@ -654,6 +729,16 @@ def _normalize_llm_report(
                 "bank_count": bank_count,
                 "min_banks_met": min_banks_met,
                 "impact": str(raw_signal.get("impact") or "").strip(),
+                "impact_it": str(raw_signal.get("impact_it") or "").strip(),
+                "posture_summary": str(
+                    raw_signal.get("posture_summary") or ""
+                ).strip(),
+                "mise_en_oeuvre_summary": str(
+                    raw_signal.get("mise_en_oeuvre_summary") or ""
+                ).strip(),
+                "confiance_posture": str(
+                    raw_signal.get("confiance_posture") or ""
+                ).strip(),
                 "action": str(raw_signal.get("action") or "").strip(),
                 "rationale": str(raw_signal.get("rationale") or "").strip(),
                 "differences": str(raw_signal.get("differences") or "").strip(),
