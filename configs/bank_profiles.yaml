@@ -79,10 +79,14 @@ banks:
         ["(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)", "(9)", "(10)"]
     name: "Banque Nationale du Canada"
     short_name: "BNC"
+    page_number_offsets:
+      t4_2024: 2
+      t4_2025: 0
     file_patterns:
       t1: "t1-rapport-actionnaire-2025.pdf"
       t2: "t2-rapport-actionnaire-2025.pdf"
       t3: "t3-rapport-actionnaire-2025.pdf"
+      t4: "BNC_2025_T4.pdf"
     sections:
       capital_management:
         names:
@@ -93,7 +97,6 @@ banks:
           - "ratio CET1"
         followed_by:
           - "Gestion des risques"
-          - "Risque de credit"
           - "Divulgation d'informations sur les risques"
         page_ranges: {}
       risk_management:
@@ -110,6 +113,8 @@ banks:
           - "Risque environnemental et social"
         followed_by:
           - "Divulgation d'informations sur les risques"
+          - "Méthodes comptables significatives et estimations comptables"
+          - "Methodes comptables significatives et estimations comptables"
           - "Methodes comptables et communication de l'information financiers"
           - "Glossaire"
           - "Bilans consolidés"
@@ -147,10 +152,14 @@ banks:
       expected_markers: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
     name: "Banque Royale du Canada"
     short_name: "RBC"
+    page_number_offsets:
+      t4_2024: 0
+      t4_2025: 2
     file_patterns:
       t1: "T1_2025q1_report_fr.pdf"
       t2: "T2_2025q2_report_fr.pdf"
       t3: "T3_2025q3_report_fr.pdf"
+      t4: "RBC_2025_T4.pdf"
     sections:
       capital_management:
         names:
@@ -171,6 +180,8 @@ banks:
       risk_management:
         names:
           - "Gestion du risque"
+        length_constraints:
+          max_pages: 60
         keywords:
           - "gestion du risque"
           - "gestion des risques"
@@ -238,10 +249,14 @@ banks:
       expected_markers: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
     name: "Banque Toronto-Dominion"
     short_name: "TD"
+    page_number_offsets:
+      t4_2024: 2
+      t4_2025: 2
     file_patterns:
       t1: "T1_2025-q1.pdf"
       t2: "T2_2025-q2.pdf"
       t3: "T3_q3_2025.pdf"
+      t4: "TD_2025_T4.pdf"
     sections:
       capital_management:
         names:
@@ -308,14 +323,19 @@ banks:
       expected_markers: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
     name: "Banque de Montreal"
     short_name: "BMO"
+    page_number_offsets:
+      t4_2024: 2
+      t4_2025: 2
     file_patterns:
       t1: "t1_report_q1.pdf"
       t2: "t2_rapport_q2.pdf"
       t3: "t3_repport_q3.pdf"
+      t4: "BMO_2025_T4.pdf"
     sections:
       capital_management:
         names:
           - "Gestion du capital"
+          - "Gestion globale du capital"
         keywords:
           - "gestion du capital"
           - "fonds propres"
@@ -325,12 +345,17 @@ banks:
           - "Analyse des resultats des groupes d'exploitation"
           - "Sommaire des tendances trimestrielles relatives au bénéfice"
           - "Sommaire de tendances"
+          - "Dividendes"
+          - "Entités de titrisation soutenues par BMO"
+          - "Entites de titrisation soutenues par BMO"
+          - "Arrangements hors bilan"
           - "Gestion des risques"
           - "Risque de credit"
         page_ranges: {}
       risk_management:
         names:
           - "Gestion des risques"
+          - "Gestion globale des risques"
         keywords:
           - "gestion des risques"
           - "risque de marche"
@@ -340,6 +365,10 @@ banks:
           - "Risque de liquidite et de financement"
           - "Cotes de crédit"
         followed_by:
+          - "Questions comptables"
+          - "Questions comptables, contrôles de communication de l'information et contrôle interne"
+          - "Questions comptables, controles de communication de l'information et controle interne"
+          - "Estimations et jugements comptables critiques"
           - "Glossaire de termes financiers"
           - "Etats financiers consolides"
           - "Annexes"
@@ -391,10 +420,14 @@ banks:
         ["(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)", "(9)", "(10)"]
     name: "Banque de Nouvelle-Ecosse (Scotiabank)"
     short_name: "Scotia"
+    page_number_offsets:
+      t4_2024: 2
+      t4_2025: 2
     file_patterns:
       t1: "t1_Q125_Shareholders_Report-FR.pdf"
       t2: "t2_Q225_Shareholders_Report-FR_acc.pdf"
       t3: "t3_Q325_Shareholders_Report-FR.pdf"
+      t4: "BNS_2025_T4.pdf"
     sections:
       capital_management:
         names:
@@ -424,6 +457,8 @@ banks:
           - "risque de credit"
           - "risque de marche"
         followed_by:
+          - "Contrôles et méthodes comptables"
+          - "Controles et methodes comptables"
           - "Gestion du capital"
           - "Faits nouveaux en matière de réglementation"
         page_ranges: {}
@@ -465,10 +500,14 @@ banks:
     name: "Banque Canadienne Imperiale de Commerce"
     short_name: "CIBC"
     page_number_offset: 3
+    page_number_offsets:
+      t4_2024: 16
+      t4_2025: 13
     file_patterns:
       t1: "t1_q125report-fr.pdf"
       t2: "t2_q225report-fr.pdf"
       t3: "t3_q325report-fr.pdf"
+      t4: "CIBC_2025_T4.pdf"
     sections:
       capital_management:
         names:

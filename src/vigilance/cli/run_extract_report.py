@@ -33,7 +33,19 @@ def _normalize_storage_quarter(quarter: str) -> str:
     return value or "t1"
 
 
-def _build_section_ranges(mapping: Any) -> list[dict[str, Any]]:
+def _is_t4(quarter: str) -> bool:
+    """Indiquer si le libelle correspond au T4."""
+    return bool(re.search(r"\b[qt]\s*4\b|^t4(?:[_-]|\b)", str(quarter), re.I))
+
+
+def _filter_t4_target_ranges(ranges: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Conserver uniquement les sections cibles T4, sans combler les trous."""
+    target_sections = {"capital_management", "risk_management"}
+    target_ranges = [item for item in ranges if item.get("section") in target_sections]
+    return target_ranges or ranges
+
+
+def _build_section_ranges(mapping: Any, quarter: str = "") -> list[dict[str, Any]]:
     """Convertir le resultat du locator en plages de sections pour l'extraction."""
     ranges: list[dict[str, Any]] = []
     for located in getattr(mapping, "sections", []) or []:
@@ -47,6 +59,8 @@ def _build_section_ranges(mapping: Any) -> list[dict[str, Any]]:
         if not section:
             section = "unknown_section"
         ranges.append({"section": section, "start": start, "end": end})
+    if _is_t4(quarter):
+        return _filter_t4_target_ranges(ranges)
     return ranges
 
 
@@ -93,7 +107,7 @@ def main(argv: list[str] | None = None) -> None:
         quarter=quarter_norm,
         year=int(args.year),
     )
-    section_ranges = _build_section_ranges(mapping)
+    section_ranges = _build_section_ranges(mapping, args.quarter)
     if not section_ranges:
         raise ValueError(f"No valid section ranges detected for {args.pdf}")
 

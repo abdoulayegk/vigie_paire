@@ -8,6 +8,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from vigilance.text_comparison.change_segments import build_change_segments
 from vigilance.text_comparison.justification import (
     build_text_triage_justification,
     is_structured_text_triage_justification,
@@ -31,24 +32,9 @@ def _sanitize_text_value(value: Any) -> Any:
     return value
 
 
-def _clean_text(value: Any) -> str:
-    """Retourne une chaîne compacte pour les fallbacks d'artefact."""
-    return " ".join(str(value or "").strip().split())
-
-
 def _fallback_change_segments(change: dict[str, Any]) -> list[dict[str, str]]:
-    """Construit un segment de changement minimal quand GPT ne l'a pas fourni."""
-    diff_type = str(change.get("diff_type") or "").lower()
-    text_t1 = _clean_text(change.get("source_text_t1") or change.get("semantic_text_t1"))
-    text_t2 = _clean_text(change.get("source_text_t2") or change.get("semantic_text_t2"))
-
-    if diff_type == "added" and text_t2:
-        return [{"kind": "added", "text_t1": "", "text_t2": text_t2}]
-    if diff_type == "removed" and text_t1:
-        return [{"kind": "removed", "text_t1": text_t1, "text_t2": ""}]
-    if diff_type in {"modified", "renamed"} and (text_t1 or text_t2):
-        return [{"kind": "modified", "text_t1": text_t1, "text_t2": text_t2}]
-    return []
+    """Construit les segments de preuve quand le triage n'en contient pas."""
+    return build_change_segments(change)
 
 
 def _normalize_text_change(change: dict[str, Any]) -> None:

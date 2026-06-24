@@ -59,6 +59,18 @@ def _canonicalize_section(raw: str) -> str:
         return fallback
 
 
+def _is_t4(quarter: str) -> bool:
+    """Indiquer si le libelle correspond au T4."""
+    return bool(re.search(r"\b[qt]\s*4\b|^t4(?:[_-]|\b)", str(quarter), re.I))
+
+
+def _filter_t4_target_ranges(ranges: list[SectionRange]) -> list[SectionRange]:
+    """Conserver uniquement les sections cibles T4, sans combler les trous."""
+    target_sections = {"capital_management", "risk_management"}
+    target_ranges = [item for item in ranges if item.section in target_sections]
+    return target_ranges or ranges
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Construire le parseur CLI de détection des plages de sections.
 
@@ -145,6 +157,9 @@ def _to_result(
                 },
             )
         )
+    if _is_t4(quarter):
+        ranges = _filter_t4_target_ranges(ranges)
+
     return SectionRangesResult(
         bank_code=bank_code, quarter=quarter, pdf_path=pdf_path, ranges=ranges
     )

@@ -112,7 +112,19 @@ def _extract_year(value: Any) -> int | None:
     return None
 
 
-def _build_section_ranges(sections: Any) -> list[dict[str, Any]]:
+def _is_t4(quarter: str) -> bool:
+    """Indiquer si le libelle correspond au T4."""
+    return bool(re.search(r"\b[qt]\s*4\b|^t4(?:[_-]|\b)", str(quarter), re.I))
+
+
+def _filter_t4_target_ranges(ranges: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Conserver uniquement les sections cibles T4, sans combler les trous."""
+    target_sections = {"capital_management", "risk_management"}
+    target_ranges = [item for item in ranges if item.get("section") in target_sections]
+    return target_ranges or ranges
+
+
+def _build_section_ranges(sections: Any, quarter: str = "") -> list[dict[str, Any]]:
     """Convertir une liste brute de sections en plages canoniques pour l'extraction."""
     ranges: list[dict[str, Any]] = []
     for entry in list(sections or []):
@@ -127,6 +139,8 @@ def _build_section_ranges(sections: Any) -> list[dict[str, Any]]:
         ).strip()
         section = canonicalize_section(section) or "unknown_section"
         ranges.append({"section": section, "start": start, "end": end})
+    if _is_t4(quarter):
+        return _filter_t4_target_ranges(ranges)
     return ranges
 
 
@@ -189,7 +203,7 @@ def _extract_tables(
     out_dir = EXTRACTION_ROOT / str(bank_code).lower() / str(int(year)) / quarter_code
     paths = _artifact_paths(out_dir)
     artifacts_present = {name: path.exists() for name, path in paths.items()}
-    section_ranges = _build_section_ranges(sections)
+    section_ranges = _build_section_ranges(sections, quarter)
     if not section_ranges:
         raise ValueError("Aucune section valide fournie pour l'extraction.")
     mode = "fresh"

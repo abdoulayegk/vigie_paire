@@ -18,6 +18,7 @@ import hashlib
 import json
 import logging
 import re
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,7 +28,7 @@ from pydantic import BaseModel, ValidationError
 
 from vigilance.amf_taxonomy import (
     TRIAGE_SOURCE_VERSION,
-    TriageAMFBatch,
+    TriageAMFLLMBatch,
     TriageValidationError,
     empty_triage_skeleton,
     format_exclusion_reasons_for_prompt,
@@ -35,12 +36,14 @@ from vigilance.amf_taxonomy import (
     format_themes_for_prompt,
 )
 from vigilance.cli.quarter_logic import normalize_quarter, resolve_previous_quarter
+from vigilance.config.loader import load_config
 from vigilance.extraction.section_locator import locate_sections_in_pdf
 from vigilance.extraction.section_taxonomy import canonicalize_section
 from vigilance.text_comparison.text_comparison_writer import (
     get_text_comparison_path,
     write_text_comparison,
 )
+from vigilance.text_comparison.change_segments import build_change_segments
 from vigilance.text_extraction.text_extraction_markdown_writer import (
     get_canonical_text_extraction_md_path,
     get_text_extraction_markdown_path,
@@ -82,12 +85,19 @@ _TARGET_SECTIONS_BY_BANK: dict[str, set[str]] = {
     "td": {"gestion_capital", "gestion_risques"},
     "bmo": {"gestion_capital", "gestion_risques", "gestion_reglementation"},
 }
+_T4_TEXT_TARGET_SECTIONS = {"gestion_capital", "gestion_risques"}
 
 _MODEL_MAX_OUTPUT_TOKENS: list[tuple[re.Pattern[str], int]] = [
     (re.compile(r"^gpt-4o(?:$|-)", flags=re.IGNORECASE), 16_384),
     (re.compile(r"^gpt-4\.1(?:$|-)", flags=re.IGNORECASE), 32_768),
     (re.compile(r"^gpt-4(?:$|-)", flags=re.IGNORECASE), 8_192),
 ]
+_OPENAI_TIMEOUT_SECONDS = 300.0
+_TRIAGE_BATCH_SIZE = 1
+_TRIAGE_TRANSPORT_RETRIES = 2
+_TRIAGE_SEMANTIC_TEXT_LIMIT = 1200
+_TRIAGE_SOURCE_SNIPPET_LIMIT = 400
+_TRIAGE_LENGTH_RETRIES = 1
 
 _REGULATORY_REF_RE = re.compile(
     r"\b(?:OSFI|BSIF|Bâle|Basel|TLAC|LCR|NSFR|CET1|Tier\s*1|Tier\s*2|Pilier\s*[123]|IFRS|IAS|NIIF|BISM|VaR)\b",
@@ -450,7 +460,9 @@ def _infer_table_footnote_bboxes(
     """
     footnote_bboxes_by_page: dict[int, list[list[float]]] = {}
     for page, boxes in table_bboxes_by_page.items():
-        ordered = sorted((list(box) for box in boxes if len(box) == 4), key=lambda bbox: (float(bbox[1]), float(bbox[0])))
+        ordered = sorted(
+            (list(box) for box in boxes if len(box) == 4), key=lambda bbox: (float(bbox[1]), float(bbox[0]))
+        )
         page_regions: list[list[float]] = []
         for idx, bbox in enumerate(ordered):
             top = max(0.0, min(1.0, float(bbox[3])))
@@ -579,11 +591,7 @@ def _section_window_for_page(
     """
     top = 0.0
     bottom = 1.0
-    if (
-        page_number == section.start_page
-        and section.anchor_page == section.start_page
-        and section.anchor_bbox_norm
-    ):
+    if page_number == section.start_page and section.anchor_page == section.start_page and section.anchor_bbox_norm:
         top = max(top, float(section.anchor_bbox_norm[3]))
     if (
         next_section is not None
@@ -647,9 +655,7 @@ def _extract_docling_page_blocks(
 
     opts = PdfPipelineOptions()
     opts.do_ocr = False
-    converter = DocumentConverter(
-        format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=opts)}
-    )
+    converter = DocumentConverter(format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=opts)})
     start_page = min(page_numbers)
     end_page = max(page_numbers)
     result = converter.convert(str(pdf_path), page_range=(start_page, end_page))
@@ -679,7 +685,9 @@ def _extract_docling_page_blocks(
             if not text:
                 continue
             label = str(getattr(item, "label", "") or "").lower()
-            item_provs = [prov for prov in list(getattr(item, "prov", []) or []) if int(getattr(prov, "page_no", 0) or 0) == page]
+            item_provs = [
+                prov for prov in list(getattr(item, "prov", []) or []) if int(getattr(prov, "page_no", 0) or 0) == page
+            ]
             if not item_provs:
                 continue
             bbox_norm = _docling_bbox_to_norm(docling_doc, item_provs[0])
@@ -742,11 +750,7 @@ def _classify_block_type(
     digits = re.findall(r"\d", text)
     numeric_tokens = re.findall(r"\b\S*\d\S*\b", text)
     rating_tokens = re.findall(r"\b(?:[A-Z]{1,4}[+-]?|[A-Z][a-z]\d|[A-Z]{1,3}\s*\(hyb\)|FPUNV)\b", text)
-    short_word_ratio = (
-        sum(1 for word in words if len(word) <= 4) / max(1, len(words))
-        if words
-        else 0.0
-    )
+    short_word_ratio = sum(1 for word in words if len(word) <= 4) / max(1, len(words)) if words else 0.0
     digit_ratio = len(digits) / max(1, len(text))
     upper_ratio = sum(1 for ch in text if ch.isupper()) / max(1, sum(1 for ch in text if ch.isalpha()))
     repeated = repeated_text_counts.get(norm, 0)
@@ -767,8 +771,7 @@ def _classify_block_type(
         return "narrative"
     if (
         _looks_like_table_or_financial_grid(text)
-        or
-        (digit_ratio >= 0.12 and len(words) <= 16)
+        or (digit_ratio >= 0.12 and len(words) <= 16)
         or (len(numeric_tokens) >= 10 and len(words) <= 20)
         or len(rating_tokens) >= 6
         or (len(numeric_tokens) >= 4 and short_word_ratio >= 0.45)
@@ -904,7 +907,9 @@ def _build_section_audit(
             block_type = _classify_block_type(section_block, repeated_text_counts, page_tables, page_footnotes)
             section_block.block_type = block_type
             section_block.included = in_window and block_type == "narrative"
-            section_block.exclusion_reason = "" if section_block.included else _exclusion_reason_for_block(block_type, in_window)
+            section_block.exclusion_reason = (
+                "" if section_block.included else _exclusion_reason_for_block(block_type, in_window)
+            )
             if section_block.included:
                 included_blocks.append(section_block)
             else:
@@ -956,7 +961,67 @@ def _markdown_blocks_for_section(section: SectionAudit) -> list[PDFBlock]:
     return sorted(selected, key=lambda block: (block.page, block.line_number, block.y0))
 
 
-def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
+def _get_page_number_offset_for_period(
+    bank_code: str,
+    *,
+    year: int,
+    quarter: str,
+) -> int:
+    """Retourne l'offset page imprimée -> page PDF physique pour une période."""
+    try:
+        cfg = load_config("configs/bank_profiles.yaml")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Impossible de charger les offsets de pages (%s); offset=0", exc)
+        return 0
+
+    bank_data = (cfg.get("banks") or {}).get(str(bank_code or "").lower(), {})
+    if not isinstance(bank_data, dict):
+        return 0
+
+    quarter_key = normalize_quarter(quarter)
+    period_offsets = bank_data.get("page_number_offsets", {})
+    if isinstance(period_offsets, dict):
+        for key in (f"{quarter_key}_{year}", quarter_key):
+            if key in period_offsets:
+                try:
+                    return int(period_offsets.get(key) or 0)
+                except (TypeError, ValueError):
+                    return 0
+
+    try:
+        return int(bank_data.get("page_number_offset") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _format_page_marker(physical_page: int, *, page_number_offset: int = 0) -> str:
+    """Formate le marqueur markdown: page imprimée visible, page PDF conservée."""
+    page = int(physical_page)
+    if page_number_offset <= 0:
+        return f"[p.{page}]"
+    printed_page = max(1, page - int(page_number_offset))
+    if printed_page == page:
+        return f"[p.{page}]"
+    return f"[p.{printed_page} | pdf.{page}]"
+
+
+def _rewrite_page_markers_for_display(md_content: str, *, page_number_offset: int) -> str:
+    """Réécrit les marqueurs existants pour afficher la page imprimée."""
+    if page_number_offset <= 0:
+        return md_content
+
+    def _replace_marker(match: re.Match[str]) -> str:
+        physical_page = int(match.group(2) or match.group(1))
+        return _format_page_marker(physical_page, page_number_offset=page_number_offset)
+
+    return _PAGE_MARKER_RE.sub(_replace_marker, md_content)
+
+
+def _build_text_extraction_markdown(
+    section_audits: list[SectionAudit],
+    *,
+    page_number_offset: int = 0,
+) -> str:
     """Convertit une liste d'audits de sections en markdown source de vérité.
 
     Chaque section devient un bloc ``## Titre``. Les sous-titres détectés deviennent
@@ -965,11 +1030,13 @@ def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
     sont supprimés. Chaque bloc (titre, sous-titre, paragraphe) est précédé d'un
     marqueur ``[p.N]`` indiquant sa page d'origine ; ces marqueurs sont strippés
     avant tout appel GPT (cf ``_extract_section_text_from_markdown``) et servent
-    à reconstruire l'index page→texte lors de la réutilisation du .md.
+    à reconstruire l'index page→texte lors de la réutilisation du .md. Quand un
+    offset est connu, le marqueur affiche la page imprimée et conserve la page
+    physique sous la forme ``[p.58 | pdf.60]``.
     """
     lines: list[str] = []
     for section in section_audits:
-        lines.append(f"[p.{section.start_page}]")
+        lines.append(_format_page_marker(section.start_page, page_number_offset=page_number_offset))
         lines.append(f"## {section.section_title}")
         lines.append("")
         seen_heading_norms: set[str] = set()
@@ -988,11 +1055,11 @@ def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
                 continue
             if pending_heading is not None:
                 heading_text, heading_page = pending_heading
-                lines.append(f"[p.{heading_page}]")
+                lines.append(_format_page_marker(heading_page, page_number_offset=page_number_offset))
                 lines.append(f"### {heading_text}")
                 lines.append("")
                 pending_heading = None
-            lines.append(f"[p.{int(block.page)}]")
+            lines.append(_format_page_marker(int(block.page), page_number_offset=page_number_offset))
             lines.append(text)
             lines.append("")
     return "\n".join(lines).strip() + "\n"
@@ -1061,7 +1128,7 @@ def _build_openai_client():
     api_key = get_openai_api_key()
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY absent: le pipeline texte GPT-first ne peut pas s'exécuter.")
-    return OpenAI(api_key=api_key)
+    return OpenAI(api_key=api_key, timeout=_OPENAI_TIMEOUT_SECONDS, max_retries=1)
 
 
 def _strip_markdown_fences(text: str) -> str:
@@ -1098,6 +1165,37 @@ def _preview_response_text(raw: str, limit: int = 500) -> str:
     head = text[: limit // 2]
     tail = text[-(limit // 2) :]
     return f"{head} ... {tail}"
+
+
+def _truncate_prompt_text(text: str, limit: int) -> str:
+    """Borne un champ texte envoye a GPT tout en conservant le debut et la fin."""
+    value = str(text or "").strip()
+    if limit <= 0 or len(value) <= limit:
+        return value
+    marker = "\n[... texte tronque pour le triage ...]\n"
+    available = max(limit - len(marker), 0)
+    head_len = max(int(available * 0.7), 0)
+    tail_len = max(available - head_len, 0)
+    head = value[:head_len].rstrip() if head_len else ""
+    tail = value[-tail_len:].lstrip() if tail_len else ""
+    return f"{head}{marker}{tail}"
+
+
+def _classify_openai_transport_error(exc: Exception) -> str:
+    """Classe les erreurs transitoires OpenAI detectables sans dependance SDK."""
+    message = str(exc).lower()
+    name = type(exc).__name__.lower()
+    if "length limit" in message or "finish_reason=length" in message or "lengthfinishreason" in name:
+        return "length_limit"
+    if "timeout" in message or "timed out" in message or "timeout" in name:
+        return "timeout"
+    if "rate" in message and "limit" in message:
+        return "rate_limit"
+    if any(token in message for token in ("connection", "connect", "network")):
+        return "connection"
+    if any(token in name for token in ("connection", "connect", "network")):
+        return "connection"
+    return "other"
 
 
 def _build_json_repair_messages(raw_response: str) -> list[dict[str, str]]:
@@ -1238,6 +1336,25 @@ def _call_json_completion(
 _T_StructuredModel = TypeVar("_T_StructuredModel", bound=BaseModel)
 
 
+def _append_concise_triage_retry_message(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Ajoute une consigne de concision apres une sortie structuree tronquee."""
+    return list(messages) + [
+        {
+            "role": "user",
+            "content": (
+                "La réponse précédente a dépassé la limite de sortie du modèle. "
+                "Renvoie le même batch complet, mais avec une rédaction beaucoup "
+                "plus concise. Contraintes strictes de longueur : explanation en "
+                "3 phrases courtes; nouvelle_idee_justification entre 220 et "
+                "450 caractères; justification_posture entre 80 et 220 caractères "
+                "si obligatoire; impact_it_justification entre 80 et 180 caractères "
+                "si obligatoire. Ne répète pas la taxonomie, ne cite pas de longs "
+                "passages et ne fournis aucun commentaire hors schéma."
+            ),
+        }
+    ]
+
+
 def _call_structured_completion(
     client: Any,
     *,
@@ -1274,22 +1391,18 @@ def _call_structured_completion(
 
     refusal = getattr(message, "refusal", None)
     if refusal:
-        raise RuntimeError(
-            f"OpenAI structured completion refused by model: {refusal}"
-        )
+        raise RuntimeError(f"OpenAI structured completion refused by model: {refusal}")
 
     finish_reason = getattr(choice, "finish_reason", None)
     if finish_reason == "length":
         raise RuntimeError(
-            "OpenAI structured completion truncated "
-            f"(finish_reason=length, max_completion_tokens={max_tokens})"
+            f"OpenAI structured completion truncated (finish_reason=length, max_completion_tokens={max_tokens})"
         )
 
     parsed = getattr(message, "parsed", None)
     if parsed is None:
         raise RuntimeError(
-            "OpenAI structured completion returned no parsed payload "
-            f"(finish_reason={finish_reason or 'unknown'})"
+            f"OpenAI structured completion returned no parsed payload (finish_reason={finish_reason or 'unknown'})"
         )
 
     return parsed
@@ -1303,6 +1416,8 @@ def _call_structured_completion_with_correction(
     response_format: type[_T_StructuredModel],
     max_tokens: int | None = None,
     max_retries: int = 1,
+    max_transport_retries: int = _TRIAGE_TRANSPORT_RETRIES,
+    max_length_retries: int = _TRIAGE_LENGTH_RETRIES,
 ) -> _T_StructuredModel:
     """Appel structuré avec retry correctif borné sur ``ValidationError``.
 
@@ -1312,13 +1427,17 @@ def _call_structured_completion_with_correction(
       ``MAJEUR``). Ce type d'erreur est potentiellement corrigeable par
       re-prompt, donc on retry jusqu'à ``max_retries`` fois en injectant le
       détail de l'erreur dans la conversation pour permettre l'auto-correction.
-    - Une ``RuntimeError`` (refus du modèle, réponse tronquée, payload vide)
-      n'est pas corrigeable par re-prompt — propagation immédiate, pas de retry.
+    - Les erreurs de sortie tronquée par limite de longueur sont retentées une
+      fois avec une consigne de concision. Les autres ``RuntimeError`` (refus
+      du modèle, payload vide) remontent immédiatement.
 
     Au-delà de ``max_retries``, la dernière ``ValidationError`` est propagée.
     """
     current_messages = list(messages)
-    for attempt in range(max_retries + 1):
+    validation_attempt = 0
+    transport_attempts = 0
+    length_attempts = 0
+    while validation_attempt <= max_retries:
         try:
             return _call_structured_completion(
                 client,
@@ -1327,13 +1446,40 @@ def _call_structured_completion_with_correction(
                 response_format=response_format,
                 max_tokens=max_tokens,
             )
-        except ValidationError as exc:
-            if attempt >= max_retries:
+        except RuntimeError as exc:
+            err_kind = _classify_openai_transport_error(exc)
+            if err_kind == "length_limit":
+                length_attempts += 1
+                if length_attempts > max_length_retries:
+                    raise
+                logger.warning(
+                    "Triage structured completion reached output length limit; retrying with concise-output instruction. Error: %s",
+                    exc,
+                )
+                current_messages = _append_concise_triage_retry_message(current_messages)
+                continue
+            if err_kind not in {"timeout", "rate_limit", "connection"}:
                 raise
+            transport_attempts += 1
+            if transport_attempts > max_transport_retries:
+                raise
+            delay_seconds = min(2 ** (transport_attempts - 1), 4)
             logger.warning(
-                "Triage validation failed on attempt %d/%d, retrying with correction. "
-                "Error: %s",
-                attempt + 1,
+                "Triage structured completion %s on transport attempt %d/%d; retrying in %ss. Error: %s",
+                err_kind,
+                transport_attempts,
+                max_transport_retries,
+                delay_seconds,
+                exc,
+            )
+            time.sleep(delay_seconds)
+        except ValidationError as exc:
+            if validation_attempt >= max_retries:
+                raise
+            validation_attempt += 1
+            logger.warning(
+                "Triage validation failed on attempt %d/%d, retrying with correction. Error: %s",
+                validation_attempt,
                 max_retries + 1,
                 exc,
             )
@@ -1364,17 +1510,57 @@ def _call_structured_completion_with_correction(
                     ),
                 }
             ]
+        except Exception as exc:
+            err_kind = _classify_openai_transport_error(exc)
+            if err_kind == "length_limit":
+                length_attempts += 1
+                if length_attempts > max_length_retries:
+                    raise
+                logger.warning(
+                    "Triage structured completion reached output length limit; retrying with concise-output instruction. Error: %s",
+                    exc,
+                )
+                current_messages = _append_concise_triage_retry_message(current_messages)
+                continue
+            if err_kind not in {"timeout", "rate_limit", "connection"}:
+                raise
+            transport_attempts += 1
+            if transport_attempts > max_transport_retries:
+                raise
+            delay_seconds = min(2 ** (transport_attempts - 1), 4)
+            logger.warning(
+                "Triage structured completion %s on transport attempt %d/%d; retrying in %ss. Error: %s",
+                err_kind,
+                transport_attempts,
+                max_transport_retries,
+                delay_seconds,
+                exc,
+            )
+            time.sleep(delay_seconds)
     raise RuntimeError("unreachable: retry loop exited without return or raise")
 
 
-def _resolve_sections(pdf_path: Path, bank_code: str) -> dict[str, ResolvedSection]:
+def _resolve_sections(
+    pdf_path: Path,
+    bank_code: str,
+    *,
+    quarter: str | None = None,
+    year: int | None = None,
+) -> dict[str, ResolvedSection]:
     """Localise et normalise les sections textuelles cibles d'un PDF.
 
     Le resultat est deja filtre selon les sections autorisees pour la banque,
     ce qui stabilise le flux de comparaison inter-trimestrielle.
     """
-    mapping = locate_sections_in_pdf(str(pdf_path), bank_code.lower())
+    mapping = locate_sections_in_pdf(
+        str(pdf_path),
+        bank_code=bank_code.lower(),
+        quarter=quarter,
+        year=year or 2025,
+    )
     allowed_sections = _allowed_target_sections(bank_code)
+    if quarter is not None and normalize_quarter(quarter) == "t4":
+        allowed_sections &= _T4_TEXT_TARGET_SECTIONS
     sections: dict[str, ResolvedSection] = {}
     for item in getattr(mapping, "sections", []) or []:
         canonical = canonicalize_section(getattr(item, "section_type", ""))
@@ -1395,8 +1581,6 @@ def _resolve_sections(pdf_path: Path, bank_code: str) -> dict[str, ResolvedSecti
             anchor_bbox_norm=list(getattr(item, "anchor_bbox_norm", []) or []) or None,
         )
     return sections
-
-
 
 
 def _extract_audits_for_pdf(
@@ -1430,18 +1614,26 @@ def _extract_audits_for_pdf(
     return audits
 
 
-_PAGE_MARKER_RE = re.compile(r"^\[p\.(\d+)\]\s*$")
+_PAGE_MARKER_RE = re.compile(
+    r"^\[p\.(\d+)(?:\s*\|\s*pdf\.(\d+))?\]\s*$",
+    flags=re.MULTILINE,
+)
 
 
 def _strip_page_markers(text: str) -> str:
-    """Supprime les marqueurs ``[p.N]`` (une ligne entière) d'un bloc de texte.
+    """Supprime les marqueurs ``[p.N]`` / ``[p.N | pdf.M]`` d'un bloc de texte.
 
     Utilisé exclusivement avant tout appel GPT : les marqueurs servent à
     l'audit humain et à la reconstruction de l'index page→texte, mais ne
     doivent jamais entrer dans les prompts pour éviter de biaiser la
     comparaison sémantique.
     """
-    return re.sub(r"^\[p\.\d+\]\s*\n?", "", text, flags=re.MULTILINE)
+    return re.sub(
+        r"^\[p\.\d+(?:\s*\|\s*pdf\.\d+)?\]\s*\n?",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
 
 
 def _extract_section_text_from_markdown(md_content: str, section_key: str) -> str:
@@ -1482,7 +1674,7 @@ def _parse_page_index_from_markdown(
     - ``index[section_key] = [(page, text), …]`` — même forme qu'attendue par
       ``_find_page_for_fragment``. Titres/sous-titres ``##``/``###`` exclus,
       comme dans la version basée sur ``SectionAudit``.
-    - ``section_start_pages[section_key] = N`` — le ``[p.N]`` qui précède
+    - ``section_start_pages[section_key] = N`` — la page PDF physique du marqueur qui précède
       immédiatement ``## Title``. Reproduit fidèlement ``ResolvedSection.start_page``
       même quand la page du header diffère de la première page narrative.
     """
@@ -1500,7 +1692,7 @@ def _parse_page_index_from_markdown(
             continue
         page_match = _PAGE_MARKER_RE.match(line)
         if page_match:
-            current_page = int(page_match.group(1))
+            current_page = int(page_match.group(2) or page_match.group(1))
             continue
         if line.startswith("## "):
             title = line[3:].strip()
@@ -1583,9 +1775,7 @@ def _pair_subsections(
     Retourne une liste de ``(heading_t1, body_t1, heading_t2, body_t2)``.
     ``None`` pour un heading signifie qu'il n'a pas de contrepartie dans l'autre trimestre.
     """
-    norm_to_t2: dict[str, tuple[str, str]] = {
-        _normalize_heading(h): (h, body) for h, body in subs_t2
-    }
+    norm_to_t2: dict[str, tuple[str, str]] = {_normalize_heading(h): (h, body) for h, body in subs_t2}
     matched_t2_norms: set[str] = set()
     pairs: list[tuple[str | None, str, str | None, str]] = []
     for h1, body1 in subs_t1:
@@ -1866,9 +2056,7 @@ def _compare_section_texts(
     # reconstruction de l'index page→texte. Ils DOIVENT avoir été strippés
     # avant d'arriver ici par ``_extract_section_text_from_markdown``.
     if "[p." in text_t1 or "[p." in text_t2:
-        raise TextAnalysisQualityError(
-            "Fuite de marqueurs de page vers le prompt GPT — strip manquant ?"
-        )
+        raise TextAnalysisQualityError("Fuite de marqueurs de page vers le prompt GPT — strip manquant ?")
     if not text_t1.strip() and not text_t2.strip():
         return []
 
@@ -2030,31 +2218,31 @@ Exemples à imiter strictement. Le champ nouvelle_idee_justification doit être 
 
 Exemple 1 — Risque émergent IA (added, MAJEUR)
 Input : diff_type="added", T1="", T2="La Banque a établi un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans ses activités."
-Output : {"is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque introduit un cadre formel de gouvernance pour l'IA générative, absent au T1. Ce changement relève des risques émergents et de la gouvernance des risques selon les attentes AMF. Il ajoute une information substantielle sur les contrôles et responsabilités associés à une technologie émergente.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Intelligence artificielle, risque émergent, gouvernance des risques, information ajoutée.\n\nCe qui change : Le T2 ajoute un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans les activités de la banque. Cette information était absente du T1 et introduit un sujet de risque technologique explicite dans la divulgation.\n\nPertinence métier : Ce changement met l'accent sur l'encadrement d'un risque émergent qui peut toucher la gestion des modèles, les fournisseurs technologiques, les contrôles internes, la conformité, la protection des données et la gouvernance des risques. La mention d'un cadre de gouvernance ne décrit pas seulement l'utilisation d'un outil; elle rend visible la manière dont la banque structure ses responsabilités et ses contrôles autour d'une technologie qui devient comparable entre pairs.\n\nPoint de surveillance : Intelligence artificielle / gouvernance des risques — Le changement indique que la banque formalise davantage l'encadrement de l'IA générative. Ce point permet de suivre la maturité des contrôles liés aux modèles, aux fournisseurs technologiques, à la protection des données et à la comparabilité des pratiques de gouvernance IA entre pairs.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "La Banque a établi un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans ses activités."}]}
+Output : {"is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque introduit un cadre formel de gouvernance pour l'IA générative, absent au T1. Ce changement relève des risques émergents et de la gouvernance des risques selon les attentes AMF. Il ajoute une information substantielle sur les contrôles et responsabilités associés à une technologie émergente.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Intelligence artificielle, risque émergent, gouvernance des risques, information ajoutée.\n\nCe qui change : Le T2 ajoute un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans les activités de la banque. Cette information était absente du T1 et introduit un sujet de risque technologique explicite dans la divulgation.\n\nPertinence métier : Ce changement met l'accent sur l'encadrement d'un risque émergent qui peut toucher la gestion des modèles, les fournisseurs technologiques, les contrôles internes, la conformité, la protection des données et la gouvernance des risques. La mention d'un cadre de gouvernance ne décrit pas seulement l'utilisation d'un outil; elle rend visible la manière dont la banque structure ses responsabilités et ses contrôles autour d'une technologie qui devient comparable entre pairs.\n\nPoint de surveillance : Intelligence artificielle / gouvernance des risques — Le changement indique que la banque formalise davantage l'encadrement de l'IA générative. Ce point permet de suivre la maturité des contrôles liés aux modèles, aux fournisseurs technologiques, à la protection des données et à la comparabilité des pratiques de gouvernance IA entre pairs."}
 
 Exemple 2 — Retrait de facteur de risque cyber (removed, MAJEUR)
 Input : diff_type="removed", T1="Les risques liés aux cybermenaces incluent les attaques par déni de service et les ransomwares.", T2=""
-Output : {"is_relevant": true, "themes_amf": ["FACTEUR_RISQUE_CHANGEMENT", "RISQUE_EMERGENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque listait explicitement les attaques par déni de service et les ransomwares comme cybermenaces, mais cette mention disparaît au T2. Ce retrait touche un facteur de risque et un risque émergent prioritaire. Il modifie le niveau de détail de la divulgation cyber.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Cybersécurité, risque émergent, facteur de risque modifié, information retirée.\n\nCe qui change : Le T2 retire la mention explicite des attaques par déni de service et des ransomwares comme cybermenaces. Ces risques étaient nommés directement au T1 et ne sont plus présentés avec le même niveau de précision dans le passage comparé.\n\nPertinence métier : Ce changement met l'accent sur la précision de la divulgation relative aux cyberrisques. Dans un rapport bancaire, l'ajout ou le retrait de menaces cyber précises peut modifier la lecture de l'exposition au risque, de la transparence et de la comparabilité avec les pairs, surtout lorsque les cybermenaces constituent un sujet de surveillance prioritaire.\n\nPoint de surveillance : Cyberrisque — Le changement modifie le niveau de détail fourni sur les menaces cyber, notamment les attaques par déni de service et les ransomwares. Ce point permet de suivre la transparence de la banque sur son exposition aux risques technologiques, la précision de ses facteurs de risque et la comparabilité de sa divulgation avec les autres institutions.", "change_segments": [{"kind": "removed", "text_t1": "Les risques liés aux cybermenaces incluent les attaques par déni de service et les ransomwares.", "text_t2": ""}]}
+Output : {"is_relevant": true, "themes_amf": ["FACTEUR_RISQUE_CHANGEMENT", "RISQUE_EMERGENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque listait explicitement les attaques par déni de service et les ransomwares comme cybermenaces, mais cette mention disparaît au T2. Ce retrait touche un facteur de risque et un risque émergent prioritaire. Il modifie le niveau de détail de la divulgation cyber.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Cybersécurité, risque émergent, facteur de risque modifié, information retirée.\n\nCe qui change : Le T2 retire la mention explicite des attaques par déni de service et des ransomwares comme cybermenaces. Ces risques étaient nommés directement au T1 et ne sont plus présentés avec le même niveau de précision dans le passage comparé.\n\nPertinence métier : Ce changement met l'accent sur la précision de la divulgation relative aux cyberrisques. Dans un rapport bancaire, l'ajout ou le retrait de menaces cyber précises peut modifier la lecture de l'exposition au risque, de la transparence et de la comparabilité avec les pairs, surtout lorsque les cybermenaces constituent un sujet de surveillance prioritaire.\n\nPoint de surveillance : Cyberrisque — Le changement modifie le niveau de détail fourni sur les menaces cyber, notamment les attaques par déni de service et les ransomwares. Ce point permet de suivre la transparence de la banque sur son exposition aux risques technologiques, la précision de ses facteurs de risque et la comparabilité de sa divulgation avec les autres institutions."}
 
 Exemple 3 — Nouvelle mention BSIF climatique (added, MAJEUR)
 Input : diff_type="added", T1="", T2="Conformément aux nouvelles attentes du BSIF en matière de risques climatiques (Ligne directrice B-15), nous avons mis en place un comité dédié."
-Output : {"is_relevant": true, "themes_amf": ["NOUVELLE_MENTION_REGLEMENTAIRE", "ESG_CLIMATIQUE", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque mentionne pour la première fois la Ligne directrice B-15 du BSIF et la création d'un comité ESG ou climatique. Ce changement croise nouvelle mention réglementaire, divulgation ESG et gouvernance des risques. Il rend plus explicite l'arrimage de la banque aux attentes prudentielles climatiques.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, nouvelle mention réglementaire, gouvernance des risques.\n\nCe qui change : Le T2 ajoute une référence aux attentes du BSIF en matière de risques climatiques, soit la Ligne directrice B-15, ainsi qu'un comité dédié. Cette mention n'apparaissait pas au T1 et introduit une articulation plus explicite entre réglementation climatique et gouvernance interne.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences climatiques du BSIF. Ce point permet de suivre l'adaptation aux attentes prudentielles climatiques, le niveau de préparation ESG et la comparabilité des pratiques de divulgation entre pairs.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "Conformément aux nouvelles attentes du BSIF en matière de risques climatiques (Ligne directrice B-15), nous avons mis en place un comité dédié."}]}
+Output : {"is_relevant": true, "themes_amf": ["NOUVELLE_MENTION_REGLEMENTAIRE", "ESG_CLIMATIQUE", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque mentionne pour la première fois la Ligne directrice B-15 du BSIF et la création d'un comité ESG ou climatique. Ce changement croise nouvelle mention réglementaire, divulgation ESG et gouvernance des risques. Il rend plus explicite l'arrimage de la banque aux attentes prudentielles climatiques.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, nouvelle mention réglementaire, gouvernance des risques.\n\nCe qui change : Le T2 ajoute une référence aux attentes du BSIF en matière de risques climatiques, soit la Ligne directrice B-15, ainsi qu'un comité dédié. Cette mention n'apparaissait pas au T1 et introduit une articulation plus explicite entre réglementation climatique et gouvernance interne.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences climatiques du BSIF. Ce point permet de suivre l'adaptation aux attentes prudentielles climatiques, le niveau de préparation ESG et la comparabilité des pratiques de divulgation entre pairs."}
 
 Exemple 4 — Variation chiffrée propre à la banque (EXCLU)
 Input : diff_type="modified", T1="Notre portefeuille de prêts hypothécaires s'élève à 287 G$.", T2="Notre portefeuille de prêts hypothécaires s'élève à 294 G$."
-Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nouvelle_idee": false, "action_requise": "aucune", "exclusion_reason": "variation_numerique_propre_banque", "explanation": "", "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour le montant du portefeuille de prêts hypothécaires, qui passe de 287 G$ à 294 G$. L'indicateur existait déjà au T1 et le changement porte uniquement sur la valeur publiée.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète l'évolution normale d'un chiffre propre à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.", "change_segments": []}
+Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nouvelle_idee": false, "action_requise": "aucune", "exclusion_reason": "variation_numerique_propre_banque", "explanation": "", "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour le montant du portefeuille de prêts hypothécaires, qui passe de 287 G$ à 294 G$. L'indicateur existait déjà au T1 et le changement porte uniquement sur la valeur publiée.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète l'évolution normale d'un chiffre propre à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque."}
 
 Exemple 5 — Montant réglementaire (seuil prudentiel)
 Input : diff_type="modified", T1="Le seuil prudentiel CET1 minimal applicable est de 4,5 %.", T2="Le seuil prudentiel CET1 minimal applicable est de 5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF."
-Output : {"is_relevant": true, "themes_amf": ["RATIOS_REGLEMENTAIRES", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE", "NOUVELLE_MENTION_REGLEMENTAIRE"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, le seuil prudentiel CET1 minimal applicable passe de 4,5 % à 5,0 % en lien avec les nouvelles exigences pilier 2 du BSIF. Ce changement porte sur un seuil réglementaire, pas sur une variation propre à la banque. Il modifie la lecture du cadre de capital applicable.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Ratio prudentiel, seuil réglementaire, exigence réglementaire, capital.\n\nCe qui change : Le T2 modifie le seuil prudentiel CET1 minimal applicable, qui passe de 4,5 % à 5,0 %, et rattache ce changement aux nouvelles exigences pilier 2 du BSIF. Il s'agit d'un seuil réglementaire, pas d'une simple variation du ratio publié par la banque.\n\nPertinence métier : Ce changement met en évidence une évolution du cadre prudentiel applicable aux ratios réglementaires et aux exigences de capital. Un changement de seuil peut modifier l'interprétation de la marge de gestion du capital, la comparaison entre banques et la lecture du niveau de contrainte réglementaire applicable.\n\nPoint de surveillance : Capital réglementaire — La variation observée ne doit pas être lue uniquement comme un mouvement de chiffre. Ce point permet de suivre l'évolution du cadre prudentiel présenté par la banque, la contrainte réglementaire applicable et la comparabilité des ratios de capital entre institutions.", "change_segments": [{"kind": "modified", "text_t1": "4,5 %", "text_t2": "5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF"}]}
+Output : {"is_relevant": true, "themes_amf": ["RATIOS_REGLEMENTAIRES", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE", "NOUVELLE_MENTION_REGLEMENTAIRE"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, le seuil prudentiel CET1 minimal applicable passe de 4,5 % à 5,0 % en lien avec les nouvelles exigences pilier 2 du BSIF. Ce changement porte sur un seuil réglementaire, pas sur une variation propre à la banque. Il modifie la lecture du cadre de capital applicable.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Ratio prudentiel, seuil réglementaire, exigence réglementaire, capital.\n\nCe qui change : Le T2 modifie le seuil prudentiel CET1 minimal applicable, qui passe de 4,5 % à 5,0 %, et rattache ce changement aux nouvelles exigences pilier 2 du BSIF. Il s'agit d'un seuil réglementaire, pas d'une simple variation du ratio publié par la banque.\n\nPertinence métier : Ce changement met en évidence une évolution du cadre prudentiel applicable aux ratios réglementaires et aux exigences de capital. Un changement de seuil peut modifier l'interprétation de la marge de gestion du capital, la comparaison entre banques et la lecture du niveau de contrainte réglementaire applicable.\n\nPoint de surveillance : Capital réglementaire — La variation observée ne doit pas être lue uniquement comme un mouvement de chiffre. Ce point permet de suivre l'évolution du cadre prudentiel présenté par la banque, la contrainte réglementaire applicable et la comparabilité des ratios de capital entre institutions."}
 
 Exemple 6 — Ajout d'un risque tarifaire / commercial (added, MAJEUR)
 Input : diff_type="added", T1="", T2="L'application de nouveaux tarifs douaniers et de mesures de représailles accroît l'incertitude économique, perturbe les chaînes d'approvisionnement et amplifie la volatilité des marchés ainsi que le risque de crédit."
-Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque ajoute une divulgation sur l'incidence des nouveaux tarifs douaniers et des mesures de représailles, absente au T1. Ce déclencheur macroéconomique et commercial se transmet au risque de crédit, au risque de marché et aux chaînes d'approvisionnement. Il introduit un facteur de risque externe explicite dans la divulgation.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur les nouveaux tarifs douaniers et les mesures de représailles, ainsi que leurs effets sur l'incertitude économique, les chaînes d'approvisionnement, la volatilité des marchés et le risque de crédit. Cette information était absente du T1.\n\nPertinence métier : Ce changement met l'accent sur un déclencheur macroéconomique et commercial externe qui se transmet aux risques bancaires classiques. L'ajout d'une divulgation tarifaire rend visible la manière dont la banque relie un choc commercial à son exposition au crédit, au marché et au financement, ce qui modifie la lecture de son profil de risque.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque divulgue désormais explicitement l'incidence des tarifs douaniers. Ce point permet de suivre la transmission de ce déclencheur externe au risque de crédit et de marché, ainsi que l'évolution de la transparence de la banque sur les chocs commerciaux.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "L'application de nouveaux tarifs douaniers et de mesures de représailles accroît l'incertitude économique, perturbe les chaînes d'approvisionnement et amplifie la volatilité des marchés ainsi que le risque de crédit."}]}
+Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque ajoute une divulgation sur l'incidence des nouveaux tarifs douaniers et des mesures de représailles, absente au T1. Ce déclencheur macroéconomique et commercial se transmet au risque de crédit, au risque de marché et aux chaînes d'approvisionnement. Il introduit un facteur de risque externe explicite dans la divulgation.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur les nouveaux tarifs douaniers et les mesures de représailles, ainsi que leurs effets sur l'incertitude économique, les chaînes d'approvisionnement, la volatilité des marchés et le risque de crédit. Cette information était absente du T1.\n\nPertinence métier : Ce changement met l'accent sur un déclencheur macroéconomique et commercial externe qui se transmet aux risques bancaires classiques. L'ajout d'une divulgation tarifaire rend visible la manière dont la banque relie un choc commercial à son exposition au crédit, au marché et au financement, ce qui modifie la lecture de son profil de risque.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque divulgue désormais explicitement l'incidence des tarifs douaniers. Ce point permet de suivre la transmission de ce déclencheur externe au risque de crédit et de marché, ainsi que l'évolution de la transparence de la banque sur les chocs commerciaux."}
 
 Exemple 7 — Retrait d'un risque tarifaire / commercial (removed, MAJEUR)
 Input : diff_type="removed", T1="Les nouveaux tarifs douaniers pourraient avoir une incidence sur les clients de détail et commerciaux, qui pourraient être touchés par la hausse du chômage et voir leur capacité à rembourser leurs prêts réduite.", T2=""
-Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque divulguait l'incidence des tarifs douaniers sur ses clients et sur leur capacité de remboursement, mais cette mention disparaît au T2. Ce retrait touche un déclencheur macroéconomique et commercial relié au risque de crédit. Il réduit le niveau de détail de la divulgation sur un risque externe important.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information retirée.\n\nCe qui change : Le T2 retire la divulgation, présente au T1, sur l'incidence des tarifs douaniers sur les clients de détail et commerciaux et sur leur capacité à rembourser leurs prêts. Ce lien explicite entre tarifs et risque de crédit n'apparaît plus.\n\nPertinence métier : Ce changement met l'accent sur le fait que la banque atténue sa communication sur un déclencheur macroéconomique et commercial relié au risque de crédit. Le retrait d'une divulgation sur les tarifs n'est pas neutre : il modifie la lecture de l'exposition de la banque et de sa transparence sur un risque externe, et mérite la même attention qu'un ajout.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque retire une divulgation tarifaire reliée au risque de crédit. Ce point permet de suivre l'évolution de la transparence de la banque sur les chocs commerciaux et la cohérence de sa divulgation du risque externe dans le temps.", "change_segments": [{"kind": "removed", "text_t1": "Les nouveaux tarifs douaniers pourraient avoir une incidence sur les clients de détail et commerciaux, qui pourraient être touchés par la hausse du chômage et voir leur capacité à rembourser leurs prêts réduite.", "text_t2": ""}]}
+Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque divulguait l'incidence des tarifs douaniers sur ses clients et sur leur capacité de remboursement, mais cette mention disparaît au T2. Ce retrait touche un déclencheur macroéconomique et commercial relié au risque de crédit. Il réduit le niveau de détail de la divulgation sur un risque externe important.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information retirée.\n\nCe qui change : Le T2 retire la divulgation, présente au T1, sur l'incidence des tarifs douaniers sur les clients de détail et commerciaux et sur leur capacité à rembourser leurs prêts. Ce lien explicite entre tarifs et risque de crédit n'apparaît plus.\n\nPertinence métier : Ce changement met l'accent sur le fait que la banque atténue sa communication sur un déclencheur macroéconomique et commercial relié au risque de crédit. Le retrait d'une divulgation sur les tarifs n'est pas neutre : il modifie la lecture de l'exposition de la banque et de sa transparence sur un risque externe, et mérite la même attention qu'un ajout.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque retire une divulgation tarifaire reliée au risque de crédit. Ce point permet de suivre l'évolution de la transparence de la banque sur les chocs commerciaux et la cohérence de sa divulgation du risque externe dans le temps."}
 """
 
 
@@ -2153,16 +2341,42 @@ def _triage_section_changes(
     """
     if not changes:
         return []
+
+    if len(changes) > _TRIAGE_BATCH_SIZE:
+        enriched_batches: list[dict[str, Any]] = []
+        for start in range(0, len(changes), _TRIAGE_BATCH_SIZE):
+            enriched_batches.extend(
+                _triage_section_changes(
+                    client=client,
+                    model=model,
+                    section_key=section_key,
+                    changes=changes[start : start + _TRIAGE_BATCH_SIZE],
+                )
+            )
+        return enriched_batches
+
     triage_inputs = []
     for idx, change in enumerate(changes, start=1):
         triage_inputs.append(
             {
                 "change_index": idx,
                 "diff_type": change["diff_type"],
-                "semantic_text_t1": change.get("semantic_text_t1", ""),
-                "semantic_text_t2": change.get("semantic_text_t2", ""),
-                "source_snippet_t1": (change.get("source_text_t1") or "")[:300],
-                "source_snippet_t2": (change.get("source_text_t2") or "")[:300],
+                "semantic_text_t1": _truncate_prompt_text(
+                    change.get("semantic_text_t1", ""),
+                    _TRIAGE_SEMANTIC_TEXT_LIMIT,
+                ),
+                "semantic_text_t2": _truncate_prompt_text(
+                    change.get("semantic_text_t2", ""),
+                    _TRIAGE_SEMANTIC_TEXT_LIMIT,
+                ),
+                "source_snippet_t1": _truncate_prompt_text(
+                    change.get("source_text_t1") or "",
+                    _TRIAGE_SOURCE_SNIPPET_LIMIT,
+                ),
+                "source_snippet_t2": _truncate_prompt_text(
+                    change.get("source_text_t2") or "",
+                    _TRIAGE_SOURCE_SNIPPET_LIMIT,
+                ),
                 "change_summary": change.get("change_summary", ""),
             }
         )
@@ -2187,10 +2401,9 @@ def _triage_section_changes(
         "Pour chaque changement de la liste ci-dessous, produis un triage AMF "
         "dans le batch de sortie en réutilisant le même change_index. Le "
         "schéma de sortie est imposé par l'API ; tu ne dois pas en dévier.\n\n"
-        "Tu identifies aussi les SEGMENTS substantiels qui changent entre T1 et "
-        "T2 dans le champ ``change_segments`` (voir règle 9 ci-dessous). Ces "
-        "segments servent à surligner précisément les portions modifiées dans "
-        "la vue side-by-side analyste.\n\n"
+        "Ne produis pas de segments de surlignage ni de preuve verbatim : "
+        "ces preuves sont calculées localement à partir des textes T1/T2. "
+        "Concentre-toi uniquement sur le triage métier AMF.\n\n"
         "Taxonomie AMF (utilise UNIQUEMENT ces codes pour themes_amf, "
         "multi-label autorisé et encouragé) :\n"
         f"{format_themes_for_prompt()}\n\n"
@@ -2222,6 +2435,19 @@ def _triage_section_changes(
         "   IMPORTANT : ces changements restent dans le batch de sortie. Tu les "
         "classes comme non pertinents, mais tu ne les supprimes jamais : "
         "la décision finale appartient à l'analyste.\n\n"
+        "2b. DEPLACEMENT DE TEXTE — nuance obligatoire :\n"
+        "   - Classer en 'deplacement_texte' UNIQUEMENT si le passage conserve "
+        "le même sens, le même niveau de détail et un contexte équivalent.\n"
+        "   - Si le déplacement change la section, le titre, la visibilité, "
+        "le rattachement à un thème AMF, la posture de risque ou le niveau de "
+        "mise en évidence, NE PAS l'exclure comme simple déplacement. Classer "
+        "plutôt avec 'STRUCTURE_RAPPORT' et les thèmes métier applicables "
+        "(ex. RISQUE_DONNEES, RISQUE_TIERS_CLOUD, EXIGENCES_REGLEMENTAIRES, "
+        "FACTEUR_RISQUE_CHANGEMENT).\n"
+        "   - Un paragraphe déplacé d'une rubrique générale vers une rubrique "
+        "dédiée aux risques, à la réglementation, aux données, aux tiers, à "
+        "l'infonuagique ou à la cybersécurité peut être une nouvelle idée si "
+        "ce nouveau contexte change la lecture analyste.\n\n"
         "3. INCLUSION EXPLICITE — les MONTANTS RÉGLEMENTAIRES (seuils "
         "prudentiels, planchers Bâle, exigences pilier 2, lignes directrices "
         "BSIF chiffrées) sont EN scope. Ajouter le marqueur 'MONTANT_REGLEMENTAIRE' "
@@ -2276,7 +2502,13 @@ def _triage_section_changes(
         "émergent introduit ou retiré.\n"
         "   - MODERE : modification de posture, croisement multi-thèmes notable.\n"
         "   - MINEUR : changement modeste mais substantif.\n\n"
-        "6b. impact_it est un axe distinct de impact_level :\n"
+        "6b. impact_it est un axe distinct de impact_level et doit rester "
+        "INDETERMINE par défaut :\n"
+        "   - Règle de prudence : ne JAMAIS inférer un impact IT indirectement. "
+        "Évalue impact_it seulement si le changement contient un signal explicite "
+        "lié aux systèmes, à la technologie, aux données, aux fournisseurs, au cloud, "
+        "à la cybersécurité, à l'IA, aux modèles, à l'automatisation, à l'infrastructure, "
+        "à une migration ou à des contrôles technologiques.\n"
         "   - ELEVE : migration ou changement d'architecture, remplacement ou "
         "sortie d'un fournisseur, contrôles technologiques majeurs, localisation "
         "ou déplacement de données, continuité ou résilience structurante.\n"
@@ -2284,10 +2516,12 @@ def _triage_section_changes(
         "diligence ou exigences contractuelles nécessitant un effort IT.\n"
         "   - FAIBLE : clarification ou ajustement limité sans transformation "
         "technologique apparente, mais avec un effet IT identifiable.\n"
-        "   - INDETERMINE : information insuffisante. Ne déduis jamais qu'un "
-        "changement IT est réalisé si le rapport décrit seulement une intention. "
-        "Utilise aussi INDETERMINE lorsqu'aucun lien IT crédible n'est démontré; "
-        "FAIBLE ne signifie pas absence d'impact IT. "
+        "   - INDETERMINE : information insuffisante ou absence de signal IT explicite. "
+        "Utilise INDETERMINE pour les changements de capital, ratio, crédit, liquidité, "
+        "réglementation ou gouvernance générale qui ne mentionnent pas clairement "
+        "une dimension technologique. Ne déduis jamais qu'un changement IT est réalisé "
+        "si le rapport décrit seulement une intention. FAIBLE ne signifie pas absence "
+        "d'impact IT : si le lien IT n'est pas explicite, choisis INDETERMINE. "
         "Renseigne impact_it_justification avec exactement trois rubriques "
         "séparées par \\n\\n : Éléments observés, Conséquence probable, Limite "
         "de l'analyse. Laisse ce champ vide si impact_it=INDETERMINE.\n\n"
@@ -2299,7 +2533,7 @@ def _triage_section_changes(
         "8. INVARIANTS STRICTS (toute violation rejette la réponse) :\n"
         "   - is_relevant=true → themes_amf NON VIDE, exclusion_reason=null, "
         "explanation ≥ 50 caractères (3 phrases pleines), nouvelle_idee_justification "
-        "≥ 3 phrases complètes ET ≥ 200 caractères au total, commençant par 'OUI' "
+        "≥ 3 phrases complètes, entre 220 et 700 caractères au total, commençant par 'OUI' "
         "et contenant les rubriques exactes : Nouvel élément à surveiller, "
         "Sujet détecté, Ce qui change, Pertinence métier, Point de surveillance.\n"
         "   - is_relevant=false → themes_amf=[], exclusion_reason renseigné, "
@@ -2307,22 +2541,12 @@ def _triage_section_changes(
         "changement_posture=AUCUN, impact_it=INDETERMINE, "
         "justification_posture vide, statut_mise_en_oeuvre=INDETERMINE, "
         "confiance_posture=INDETERMINE, impact_it_justification vide, "
-        "explanation vide, change_segments=[]. "
+        "explanation vide. "
         "nouvelle_idee_justification "
-        "OBLIGATOIRE : ≥ 3 phrases complètes ET ≥ 200 caractères, commençant "
+        "OBLIGATOIRE : ≥ 3 phrases complètes, entre 220 et 700 caractères, commençant "
         "par 'NON', contenant les mêmes rubriques exactes, et expliquant "
         "clairement POURQUOI ce changement n'est pas une nouvelle idée AMF "
         "(citer la raison d'exclusion en langage métier, pas seulement le code).\n\n"
-        "9. CHANGE_SEGMENTS — détection sémantique fine (pour highlight UI) :\n"
-        "   Si is_relevant=true, identifie les SEGMENTS précis qui changent. "
-        "Format : liste d'objets `{\"kind\":\"added|removed|modified\", "
-        "\"text_t1\":\"...\", \"text_t2\":\"...\"}`. Règles :\n"
-        "   - kind='added'    → text_t1=\"\", text_t2=fragment AJOUTÉ verbatim de T2 (présent dans T2, absent de T1).\n"
-        "   - kind='removed'  → text_t1=fragment SUPPRIMÉ verbatim de T1 (présent dans T1, absent de T2), text_t2=\"\".\n"
-        "   - kind='modified' → text_t1 et text_t2 sont les fragments correspondants modifiés (ex: '4,5 %' → '5,0 %').\n"
-        "   IMPORTANT : les fragments DOIVENT être copiés VERBATIM depuis le texte source (sinon le highlight UI échoue à les retrouver).\n"
-        "   Pas de paraphrase, pas de reformulation. Cite littéralement.\n"
-        "   Si is_relevant=false → change_segments=[].\n\n"
         "Exigence pour `explanation` (3 phrases obligatoires si is_relevant=true, "
         "chaîne vide sinon) :\n"
         "1. Ce qui a changé concrètement entre T1 (précédent) et T2 (courant).\n"
@@ -2333,6 +2557,8 @@ def _triage_section_changes(
         "y compris pour les is_relevant=false) :\n"
         "- Format STRICT : commencer par 'OUI' (si nouvelle_idee=true) ou 'NON' "
         "(si nouvelle_idee=false), suivi d'un tiret '—' ou '-'.\n"
+        "- LONGUEUR STRICTE : rester entre 220 et 700 caractères au total. "
+        "Une phrase courte par rubrique suffit; ne jamais produire de note longue.\n"
         "- Rédiger une NOTE D'ANALYSTE avec ces rubriques EXACTES, dans cet "
         "ordre, séparées par \\n\\n :\n"
         "  1) 'OUI — Nouvel élément à surveiller : Oui' ou "
@@ -2342,7 +2568,7 @@ def _triage_section_changes(
         "méthode de calcul, information ajoutée ou retirée).\n"
         "  3) 'Ce qui change : ...' avec l'élément exact ajouté, retiré ou "
         "modifié entre T1 et T2.\n"
-        "  4) 'Pertinence métier : ...' avec une explication longue, concrète "
+        "  4) 'Pertinence métier : ...' avec une explication concise, concrète "
         "et formulée comme un analyste de vigie : commencer idéalement par "
         "'Ce changement met l'accent sur ...' ou 'Ce changement met en évidence ...'. "
         "Relier le changement au sujet détecté, aux attentes prudentielles, "
@@ -2353,7 +2579,7 @@ def _triage_section_changes(
         "sans demander à l'analyste de vérifier, accepter ou rejeter le changement.\n"
         "- Au moins 3 phrases complètes (ponctuation finale, ≥ 20 chars chacune) "
         "et ≥ 200 caractères au total — l'analyste doit avoir une explication "
-        "détaillée et claire, pas un résumé.\n"
+        "claire et concise, pas une note exhaustive.\n"
         "- Citer l'élément SPÉCIFIQUE du rapport : nom exact d'un indicateur, "
         "fragment de phrase, libellé de footnote, titre de tableau — adossé au "
         "contenu réel des rapports aux actionnaires traités.\n"
@@ -2386,7 +2612,7 @@ def _triage_section_changes(
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            response_format=TriageAMFBatch,
+            response_format=TriageAMFLLMBatch,
             max_retries=1,
         )
     except ValidationError as exc:
@@ -2399,15 +2625,17 @@ def _triage_section_changes(
     except RuntimeError:
         raise
     except Exception as exc:
-        raise RuntimeError(
-            f"Section triage failed for {section_key}: {exc}"
-        ) from exc
+        raise RuntimeError(f"Section triage failed for {section_key}: {exc}") from exc
 
     triage_map: dict[int, dict[str, Any]] = {}
     relevant_count = 0
     nouvelle_idee_count = 0
     for triage_obj in batch.triages:
         triage_dict = triage_obj.model_dump(exclude={"change_index"})
+        source_change = changes[triage_obj.change_index - 1]
+        triage_dict["change_segments"] = (
+            build_change_segments(source_change) if triage_dict.get("is_relevant") else []
+        )
         triage_dict["explanation"] = _sanitize_explanation(triage_dict["explanation"])
         legacy_fields = _derive_legacy_fields(triage_dict)
         triage = {**triage_dict, **legacy_fields, "source": TRIAGE_SOURCE_VERSION}
@@ -2417,8 +2645,7 @@ def _triage_section_changes(
         if triage_obj.nouvelle_idee:
             nouvelle_idee_count += 1
         logger.info(
-            "triage validated section=%s change_index=%d is_relevant=%s "
-            "themes=%s impact=%s nouvelle_idee=%s action=%s",
+            "triage validated section=%s change_index=%d is_relevant=%s themes=%s impact=%s nouvelle_idee=%s action=%s",
             section_key,
             triage_obj.change_index,
             triage_obj.is_relevant,
@@ -2454,11 +2681,7 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
     majeurs. Utilisé pour les deux champs ``global_summary`` et ``all_changes_summary``
     du payload final.
     """
-    all_changes = [
-        block
-        for section in section_comparisons
-        for block in (section.get("block_comparisons") or [])
-    ]
+    all_changes = [block for section in section_comparisons for block in (section.get("block_comparisons") or [])]
     by_impact: dict[str, int] = {}
     by_category: dict[str, int] = {}
     by_action: dict[str, int] = {}
@@ -2486,10 +2709,7 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
     if not all_changes:
         overview = "Aucun changement textuel détecté."
     elif relevant_count == len(all_changes):
-        overview = (
-            f"{len(all_changes)} changement(s) textuel(s) substantiel(s) "
-            "retenu(s) pour revue experte."
-        )
+        overview = f"{len(all_changes)} changement(s) textuel(s) substantiel(s) retenu(s) pour revue experte."
     else:
         overview = (
             f"{len(all_changes)} changement(s) textuel(s) détecté(s), "
@@ -2525,6 +2745,7 @@ def _prepare_period_extraction(
     quarter: str,
     project_root: Path,
     allowed_section_keys: set[str] | None,
+    force_extraction: bool = False,
 ) -> tuple[str, dict[str, list[tuple[int, str]]], dict[str, tuple[int | None, int | None]], set[str]]:
     """Retourne (md, page_idx_by_key, section_range_by_key, available_keys).
 
@@ -2532,19 +2753,29 @@ def _prepare_period_extraction(
     Sinon, Docling s'exécute, construit le .md et l'écrit au chemin canonique
     ``outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md``.
 
-    Pour forcer une ré-extraction, supprimer ce fichier.
+    Avec ``force_extraction=True``, le .md existant est ignoré et réécrit.
     """
     md_path = get_canonical_text_extraction_md_path(project_root, bank_code, year, quarter)
+    page_number_offset = _get_page_number_offset_for_period(
+        bank_code,
+        year=year,
+        quarter=quarter,
+    )
 
-    if md_path.exists():
+    if md_path.exists() and not force_extraction:
         try:
-            md = md_path.read_text(encoding="utf-8")
+            original_md = md_path.read_text(encoding="utf-8")
+            md = _rewrite_page_markers_for_display(
+                original_md,
+                page_number_offset=page_number_offset,
+            )
+            if md != original_md:
+                md_path.write_text(md, encoding="utf-8")
+                logger.info("Migration des marqueurs de pages du .md canonique: %s", md_path)
             page_idx_by_key, section_start_pages = _parse_page_index_from_markdown(md)
             if any(page_idx_by_key.values()):
                 section_range_by_key = {
-                    key: _section_page_range_from_index(
-                        idx, start_page_hint=section_start_pages.get(key)
-                    )
+                    key: _section_page_range_from_index(idx, start_page_hint=section_start_pages.get(key))
                     for key, idx in page_idx_by_key.items()
                 }
                 available_keys = set(page_idx_by_key.keys())
@@ -2556,29 +2787,159 @@ def _prepare_period_extraction(
                 return md, page_idx_by_key, section_range_by_key, available_keys
             logger.warning(".md canonique vide — ré-extraction: %s", md_path)
         except Exception as exc:  # noqa: BLE001
-            logger.warning(
-                ".md canonique illisible (%s) — ré-extraction: %s", exc, md_path
-            )
+            logger.warning(".md canonique illisible (%s) — ré-extraction: %s", exc, md_path)
+    elif md_path.exists():
+        logger.info("Ré-extraction forcée, .md canonique ignoré: %s", md_path)
 
-    sections = _resolve_sections(pdf_path, bank_code)
+    sections = _resolve_sections(
+        pdf_path,
+        bank_code,
+        quarter=quarter,
+        year=year,
+    )
     filtered_sections = (
         {k: v for k, v in sections.items() if k in allowed_section_keys}
         if allowed_section_keys is not None
         else sections
     )
     audits = _extract_audits_for_pdf(pdf_path=pdf_path, sections=filtered_sections)
-    md = _build_text_extraction_markdown(audits)
+    md = _build_text_extraction_markdown(
+        audits,
+        page_number_offset=page_number_offset,
+    )
 
     md_path.parent.mkdir(parents=True, exist_ok=True)
     md_path.write_text(md, encoding="utf-8")
     logger.info("Écriture du .md canonique: %s", md_path)
 
     page_idx_by_key = {a.section_key: _build_block_page_index(a) for a in audits}
-    section_range_by_key = {
-        a.section_key: (a.start_page, a.end_page) for a in audits
-    }
+    section_range_by_key = {a.section_key: (a.start_page, a.end_page) for a in audits}
     available_keys = {a.section_key for a in audits}
     return md, page_idx_by_key, section_range_by_key, available_keys
+
+
+def _resolve_text_project_root(out_root: Path) -> Path:
+    """Déduit la racine projet à partir du répertoire de sortie texte."""
+    if out_root.name == "resultats" and out_root.parent.name == "outputs":
+        return out_root.parent.parent
+    if out_root.name == "outputs":
+        return out_root.parent
+    return out_root.parent
+
+
+def _effective_text_allowed_sections(
+    bank_code: str,
+    quarter_current: str,
+    allowed_section_keys: set[str] | None,
+) -> set[str] | None:
+    effective_allowed = allowed_section_keys
+    if effective_allowed is None:
+        effective_allowed = _allowed_target_sections(bank_code) or None
+    if quarter_current == "t4":
+        effective_allowed = set(effective_allowed or set(_SECTION_LABELS)) & _T4_TEXT_TARGET_SECTIONS
+    return effective_allowed
+
+
+def run_text_extraction_pipeline(
+    *,
+    bank_code: str,
+    year_current: int,
+    quarter_current: str,
+    pdf_previous: Path,
+    pdf_current: Path,
+    out_root: Path,
+    allowed_section_keys: set[str] | None = None,
+    project_root: Path | None = None,
+    force_extraction: bool = False,
+) -> dict[str, Any]:
+    """Exécute seulement l'extraction texte et écrit les artefacts markdown."""
+    quarter_current = normalize_quarter(quarter_current)
+    year_previous, quarter_previous = resolve_previous_quarter(year_current, quarter_current)
+    bank_code = bank_code.lower()
+
+    if project_root is None:
+        project_root = _resolve_text_project_root(out_root)
+
+    effective_allowed = _effective_text_allowed_sections(
+        bank_code,
+        quarter_current,
+        allowed_section_keys,
+    )
+
+    md_previous, _page_idx_prev, _range_prev, keys_prev = _prepare_period_extraction(
+        pdf_path=pdf_previous,
+        bank_code=bank_code,
+        year=year_previous,
+        quarter=quarter_previous,
+        project_root=project_root,
+        allowed_section_keys=effective_allowed,
+        force_extraction=force_extraction,
+    )
+    md_current, _page_idx_curr, _range_curr, keys_curr = _prepare_period_extraction(
+        pdf_path=pdf_current,
+        bank_code=bank_code,
+        year=year_current,
+        quarter=quarter_current,
+        project_root=project_root,
+        allowed_section_keys=effective_allowed,
+        force_extraction=force_extraction,
+    )
+
+    if not (keys_prev | keys_curr):
+        raise TextAnalysisQualityError("Aucune section texte ciblée localisée dans les rapports.")
+
+    out_path = get_text_comparison_path(
+        out_root=out_root,
+        bank_code=bank_code,
+        year_t2=year_current,
+        quarter_t2=quarter_current,
+        year_t1=year_previous,
+        quarter_t1=quarter_previous,
+    )
+    out_dir = out_path.parent
+    previous_artifact = get_text_extraction_markdown_path(
+        out_dir,
+        f"{year_previous}_{quarter_previous}",
+    )
+    current_artifact = get_text_extraction_markdown_path(
+        out_dir,
+        f"{year_current}_{quarter_current}",
+    )
+    write_text_extraction_markdown(md_previous, previous_artifact)
+    write_text_extraction_markdown(md_current, current_artifact)
+
+    return {
+        "schema_version": UNIFIED_TEXT_SCHEMA_VERSION,
+        "artifact_type": "text_extraction",
+        "pipeline": "gpt4o_markdown_source_of_truth",
+        "bank_code": bank_code,
+        "year_previous": year_previous,
+        "quarter_previous": f"{year_previous}_{quarter_previous}",
+        "year_current": year_current,
+        "quarter_current": f"{year_current}_{quarter_current}",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "force_extraction": force_extraction,
+        "sections_previous": sorted(keys_prev),
+        "sections_current": sorted(keys_curr),
+        "extraction_artifact_t1": str(previous_artifact),
+        "extraction_artifact_t2": str(current_artifact),
+        "canonical_extraction_t1": str(
+            get_canonical_text_extraction_md_path(
+                project_root,
+                bank_code,
+                year_previous,
+                quarter_previous,
+            )
+        ),
+        "canonical_extraction_t2": str(
+            get_canonical_text_extraction_md_path(
+                project_root,
+                bank_code,
+                year_current,
+                quarter_current,
+            )
+        ),
+    }
 
 
 def run_text_analysis_pipeline(
@@ -2592,6 +2953,7 @@ def run_text_analysis_pipeline(
     model: str = "gpt-4o",
     allowed_section_keys: set[str] | None = None,
     project_root: Path | None = None,
+    force_extraction: bool = False,
 ) -> tuple[dict[str, Any], Path]:
     """Exécute le pipeline texte complet avec le markdown comme source de vérité.
 
@@ -2604,7 +2966,7 @@ def run_text_analysis_pipeline(
     Notes opérationnelles :
 
     * Le .md canonique vit dans ``outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md`` et sert d'artefact d'audit ET d'entrée réutilisable pour les runs suivants.
-    * Supprimer ce .md force une ré-extraction Docling au prochain run.
+    * ``force_extraction=True`` ignore ce cache et force une ré-extraction Docling.
     * Les marqueurs ``[p.N]`` présents dans le .md sont strippés avant tout appel GPT (gatekeeper unique : ``_extract_section_text_from_markdown``).
     * Les appels GPT du flux texte n'envoient pas de limite de complétion explicite par défaut, afin de privilégier l'arrêt naturel du modèle.
     """
@@ -2613,20 +2975,13 @@ def run_text_analysis_pipeline(
     bank_code = bank_code.lower()
 
     if project_root is None:
-        # Layouts supportés :
-        #   <project>/outputs/resultats  → project = parent.parent  (standard)
-        #   <project>/outputs            → project = parent         (tests)
-        #   autre                        → project = parent         (sûr par défaut)
-        if out_root.name == "resultats" and out_root.parent.name == "outputs":
-            project_root = out_root.parent.parent
-        elif out_root.name == "outputs":
-            project_root = out_root.parent
-        else:
-            project_root = out_root.parent
+        project_root = _resolve_text_project_root(out_root)
 
-    effective_allowed: set[str] | None = allowed_section_keys
-    if effective_allowed is None:
-        effective_allowed = _allowed_target_sections(bank_code) or None
+    effective_allowed = _effective_text_allowed_sections(
+        bank_code,
+        quarter_current,
+        allowed_section_keys,
+    )
 
     md_previous, page_idx_prev, range_prev, keys_prev = _prepare_period_extraction(
         pdf_path=pdf_previous,
@@ -2635,6 +2990,7 @@ def run_text_analysis_pipeline(
         quarter=quarter_previous,
         project_root=project_root,
         allowed_section_keys=effective_allowed,
+        force_extraction=force_extraction,
     )
     md_current, page_idx_curr, range_curr, keys_curr = _prepare_period_extraction(
         pdf_path=pdf_current,
@@ -2643,6 +2999,7 @@ def run_text_analysis_pipeline(
         quarter=quarter_current,
         project_root=project_root,
         allowed_section_keys=effective_allowed,
+        force_extraction=force_extraction,
     )
 
     section_keys = sorted(keys_prev | keys_curr)
@@ -2654,9 +3011,7 @@ def run_text_analysis_pipeline(
         text_t1 = _extract_section_text_from_markdown(md_previous, section_key)
         text_t2 = _extract_section_text_from_markdown(md_current, section_key)
         if not text_t1.strip() and not text_t2.strip():
-            raise TextAnalysisQualityError(
-                f"Section vide dans les deux rapports: {section_key}"
-            )
+            raise TextAnalysisQualityError(f"Section vide dans les deux rapports: {section_key}")
 
     # GPT comparison on .md sections
     client = _build_openai_client()

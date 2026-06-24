@@ -7,6 +7,14 @@ from typing import Any
 import dash_bootstrap_components as dbc
 from dash import html
 
+_INDETERMINATE_VALUES = {
+    "INDETERMINE",
+    "INDETERMINEE",
+    "INDÉTERMINÉ",
+    "INDÉTERMINÉE",
+    "INDETERMINATE",
+}
+
 
 def build_changements_communs_tab(
     stats: dict[str, Any] | None = None,
@@ -278,7 +286,7 @@ def _build_signal_card(signal: dict[str, Any]) -> dbc.Card:
                     className="mb-2",
                 ),
                 html.P(str(signal.get("summary") or ""), className="mb-2"),
-                _muted_block("Impact IT", signal.get("impact_it")),
+                _muted_block("Impact IT", _displayable_impact_it(signal.get("impact_it"))),
                 _muted_block(
                     "Evolution de la posture de gestion",
                     signal.get("posture_summary"),
@@ -310,6 +318,13 @@ def _muted_block(title: str, value: Any) -> html.Div:
             html.P(text, className="small mb-2"),
         ]
     )
+
+
+def _displayable_impact_it(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text or text.upper() in _INDETERMINATE_VALUES:
+        return ""
+    return text
 
 
 def _build_evidence_accordion(evidence: list[dict[str, Any]]) -> html.Div:
