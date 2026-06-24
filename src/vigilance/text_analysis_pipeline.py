@@ -18,6 +18,7 @@ import hashlib
 import json
 import logging
 import re
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,7 +28,7 @@ from pydantic import BaseModel, ValidationError
 
 from vigilance.amf_taxonomy import (
     TRIAGE_SOURCE_VERSION,
-    TriageAMFBatch,
+    TriageAMFLLMBatch,
     TriageValidationError,
     empty_triage_skeleton,
     format_exclusion_reasons_for_prompt,
@@ -42,6 +43,7 @@ from vigilance.text_comparison.text_comparison_writer import (
     get_text_comparison_path,
     write_text_comparison,
 )
+from vigilance.text_comparison.change_segments import build_change_segments
 from vigilance.text_extraction.text_extraction_markdown_writer import (
     get_canonical_text_extraction_md_path,
     get_text_extraction_markdown_path,
@@ -92,6 +94,10 @@ _MODEL_MAX_OUTPUT_TOKENS: list[tuple[re.Pattern[str], int]] = [
 ]
 _OPENAI_TIMEOUT_SECONDS = 300.0
 _TRIAGE_BATCH_SIZE = 1
+_TRIAGE_TRANSPORT_RETRIES = 2
+_TRIAGE_SEMANTIC_TEXT_LIMIT = 1200
+_TRIAGE_SOURCE_SNIPPET_LIMIT = 400
+_TRIAGE_LENGTH_RETRIES = 1
 
 _REGULATORY_REF_RE = re.compile(
     r"\b(?:OSFI|BSIF|Bâle|Basel|TLAC|LCR|NSFR|CET1|Tier\s*1|Tier\s*2|Pilier\s*[123]|IFRS|IAS|NIIF|BISM|VaR)\b",
@@ -1161,6 +1167,37 @@ def _preview_response_text(raw: str, limit: int = 500) -> str:
     return f"{head} ... {tail}"
 
 
+def _truncate_prompt_text(text: str, limit: int) -> str:
+    """Borne un champ texte envoye a GPT tout en conservant le debut et la fin."""
+    value = str(text or "").strip()
+    if limit <= 0 or len(value) <= limit:
+        return value
+    marker = "\n[... texte tronque pour le triage ...]\n"
+    available = max(limit - len(marker), 0)
+    head_len = max(int(available * 0.7), 0)
+    tail_len = max(available - head_len, 0)
+    head = value[:head_len].rstrip() if head_len else ""
+    tail = value[-tail_len:].lstrip() if tail_len else ""
+    return f"{head}{marker}{tail}"
+
+
+def _classify_openai_transport_error(exc: Exception) -> str:
+    """Classe les erreurs transitoires OpenAI detectables sans dependance SDK."""
+    message = str(exc).lower()
+    name = type(exc).__name__.lower()
+    if "length limit" in message or "finish_reason=length" in message or "lengthfinishreason" in name:
+        return "length_limit"
+    if "timeout" in message or "timed out" in message or "timeout" in name:
+        return "timeout"
+    if "rate" in message and "limit" in message:
+        return "rate_limit"
+    if any(token in message for token in ("connection", "connect", "network")):
+        return "connection"
+    if any(token in name for token in ("connection", "connect", "network")):
+        return "connection"
+    return "other"
+
+
 def _build_json_repair_messages(raw_response: str) -> list[dict[str, str]]:
     """Construit un mini-prompt de reparation pour un JSON mal forme."""
     return [
@@ -1299,6 +1336,25 @@ def _call_json_completion(
 _T_StructuredModel = TypeVar("_T_StructuredModel", bound=BaseModel)
 
 
+def _append_concise_triage_retry_message(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Ajoute une consigne de concision apres une sortie structuree tronquee."""
+    return list(messages) + [
+        {
+            "role": "user",
+            "content": (
+                "La réponse précédente a dépassé la limite de sortie du modèle. "
+                "Renvoie le même batch complet, mais avec une rédaction beaucoup "
+                "plus concise. Contraintes strictes de longueur : explanation en "
+                "3 phrases courtes; nouvelle_idee_justification entre 220 et "
+                "450 caractères; justification_posture entre 80 et 220 caractères "
+                "si obligatoire; impact_it_justification entre 80 et 180 caractères "
+                "si obligatoire. Ne répète pas la taxonomie, ne cite pas de longs "
+                "passages et ne fournis aucun commentaire hors schéma."
+            ),
+        }
+    ]
+
+
 def _call_structured_completion(
     client: Any,
     *,
@@ -1360,6 +1416,8 @@ def _call_structured_completion_with_correction(
     response_format: type[_T_StructuredModel],
     max_tokens: int | None = None,
     max_retries: int = 1,
+    max_transport_retries: int = _TRIAGE_TRANSPORT_RETRIES,
+    max_length_retries: int = _TRIAGE_LENGTH_RETRIES,
 ) -> _T_StructuredModel:
     """Appel structuré avec retry correctif borné sur ``ValidationError``.
 
@@ -1369,13 +1427,17 @@ def _call_structured_completion_with_correction(
       ``MAJEUR``). Ce type d'erreur est potentiellement corrigeable par
       re-prompt, donc on retry jusqu'à ``max_retries`` fois en injectant le
       détail de l'erreur dans la conversation pour permettre l'auto-correction.
-    - Une ``RuntimeError`` (refus du modèle, réponse tronquée, payload vide)
-      n'est pas corrigeable par re-prompt — propagation immédiate, pas de retry.
+    - Les erreurs de sortie tronquée par limite de longueur sont retentées une
+      fois avec une consigne de concision. Les autres ``RuntimeError`` (refus
+      du modèle, payload vide) remontent immédiatement.
 
     Au-delà de ``max_retries``, la dernière ``ValidationError`` est propagée.
     """
     current_messages = list(messages)
-    for attempt in range(max_retries + 1):
+    validation_attempt = 0
+    transport_attempts = 0
+    length_attempts = 0
+    while validation_attempt <= max_retries:
         try:
             return _call_structured_completion(
                 client,
@@ -1384,12 +1446,40 @@ def _call_structured_completion_with_correction(
                 response_format=response_format,
                 max_tokens=max_tokens,
             )
-        except ValidationError as exc:
-            if attempt >= max_retries:
+        except RuntimeError as exc:
+            err_kind = _classify_openai_transport_error(exc)
+            if err_kind == "length_limit":
+                length_attempts += 1
+                if length_attempts > max_length_retries:
+                    raise
+                logger.warning(
+                    "Triage structured completion reached output length limit; retrying with concise-output instruction. Error: %s",
+                    exc,
+                )
+                current_messages = _append_concise_triage_retry_message(current_messages)
+                continue
+            if err_kind not in {"timeout", "rate_limit", "connection"}:
                 raise
+            transport_attempts += 1
+            if transport_attempts > max_transport_retries:
+                raise
+            delay_seconds = min(2 ** (transport_attempts - 1), 4)
+            logger.warning(
+                "Triage structured completion %s on transport attempt %d/%d; retrying in %ss. Error: %s",
+                err_kind,
+                transport_attempts,
+                max_transport_retries,
+                delay_seconds,
+                exc,
+            )
+            time.sleep(delay_seconds)
+        except ValidationError as exc:
+            if validation_attempt >= max_retries:
+                raise
+            validation_attempt += 1
             logger.warning(
                 "Triage validation failed on attempt %d/%d, retrying with correction. Error: %s",
-                attempt + 1,
+                validation_attempt,
                 max_retries + 1,
                 exc,
             )
@@ -1420,6 +1510,33 @@ def _call_structured_completion_with_correction(
                     ),
                 }
             ]
+        except Exception as exc:
+            err_kind = _classify_openai_transport_error(exc)
+            if err_kind == "length_limit":
+                length_attempts += 1
+                if length_attempts > max_length_retries:
+                    raise
+                logger.warning(
+                    "Triage structured completion reached output length limit; retrying with concise-output instruction. Error: %s",
+                    exc,
+                )
+                current_messages = _append_concise_triage_retry_message(current_messages)
+                continue
+            if err_kind not in {"timeout", "rate_limit", "connection"}:
+                raise
+            transport_attempts += 1
+            if transport_attempts > max_transport_retries:
+                raise
+            delay_seconds = min(2 ** (transport_attempts - 1), 4)
+            logger.warning(
+                "Triage structured completion %s on transport attempt %d/%d; retrying in %ss. Error: %s",
+                err_kind,
+                transport_attempts,
+                max_transport_retries,
+                delay_seconds,
+                exc,
+            )
+            time.sleep(delay_seconds)
     raise RuntimeError("unreachable: retry loop exited without return or raise")
 
 
@@ -2101,31 +2218,31 @@ Exemples à imiter strictement. Le champ nouvelle_idee_justification doit être 
 
 Exemple 1 — Risque émergent IA (added, MAJEUR)
 Input : diff_type="added", T1="", T2="La Banque a établi un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans ses activités."
-Output : {"is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque introduit un cadre formel de gouvernance pour l'IA générative, absent au T1. Ce changement relève des risques émergents et de la gouvernance des risques selon les attentes AMF. Il ajoute une information substantielle sur les contrôles et responsabilités associés à une technologie émergente.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Intelligence artificielle, risque émergent, gouvernance des risques, information ajoutée.\n\nCe qui change : Le T2 ajoute un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans les activités de la banque. Cette information était absente du T1 et introduit un sujet de risque technologique explicite dans la divulgation.\n\nPertinence métier : Ce changement met l'accent sur l'encadrement d'un risque émergent qui peut toucher la gestion des modèles, les fournisseurs technologiques, les contrôles internes, la conformité, la protection des données et la gouvernance des risques. La mention d'un cadre de gouvernance ne décrit pas seulement l'utilisation d'un outil; elle rend visible la manière dont la banque structure ses responsabilités et ses contrôles autour d'une technologie qui devient comparable entre pairs.\n\nPoint de surveillance : Intelligence artificielle / gouvernance des risques — Le changement indique que la banque formalise davantage l'encadrement de l'IA générative. Ce point permet de suivre la maturité des contrôles liés aux modèles, aux fournisseurs technologiques, à la protection des données et à la comparabilité des pratiques de gouvernance IA entre pairs.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "La Banque a établi un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans ses activités."}]}
+Output : {"is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque introduit un cadre formel de gouvernance pour l'IA générative, absent au T1. Ce changement relève des risques émergents et de la gouvernance des risques selon les attentes AMF. Il ajoute une information substantielle sur les contrôles et responsabilités associés à une technologie émergente.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Intelligence artificielle, risque émergent, gouvernance des risques, information ajoutée.\n\nCe qui change : Le T2 ajoute un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans les activités de la banque. Cette information était absente du T1 et introduit un sujet de risque technologique explicite dans la divulgation.\n\nPertinence métier : Ce changement met l'accent sur l'encadrement d'un risque émergent qui peut toucher la gestion des modèles, les fournisseurs technologiques, les contrôles internes, la conformité, la protection des données et la gouvernance des risques. La mention d'un cadre de gouvernance ne décrit pas seulement l'utilisation d'un outil; elle rend visible la manière dont la banque structure ses responsabilités et ses contrôles autour d'une technologie qui devient comparable entre pairs.\n\nPoint de surveillance : Intelligence artificielle / gouvernance des risques — Le changement indique que la banque formalise davantage l'encadrement de l'IA générative. Ce point permet de suivre la maturité des contrôles liés aux modèles, aux fournisseurs technologiques, à la protection des données et à la comparabilité des pratiques de gouvernance IA entre pairs."}
 
 Exemple 2 — Retrait de facteur de risque cyber (removed, MAJEUR)
 Input : diff_type="removed", T1="Les risques liés aux cybermenaces incluent les attaques par déni de service et les ransomwares.", T2=""
-Output : {"is_relevant": true, "themes_amf": ["FACTEUR_RISQUE_CHANGEMENT", "RISQUE_EMERGENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque listait explicitement les attaques par déni de service et les ransomwares comme cybermenaces, mais cette mention disparaît au T2. Ce retrait touche un facteur de risque et un risque émergent prioritaire. Il modifie le niveau de détail de la divulgation cyber.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Cybersécurité, risque émergent, facteur de risque modifié, information retirée.\n\nCe qui change : Le T2 retire la mention explicite des attaques par déni de service et des ransomwares comme cybermenaces. Ces risques étaient nommés directement au T1 et ne sont plus présentés avec le même niveau de précision dans le passage comparé.\n\nPertinence métier : Ce changement met l'accent sur la précision de la divulgation relative aux cyberrisques. Dans un rapport bancaire, l'ajout ou le retrait de menaces cyber précises peut modifier la lecture de l'exposition au risque, de la transparence et de la comparabilité avec les pairs, surtout lorsque les cybermenaces constituent un sujet de surveillance prioritaire.\n\nPoint de surveillance : Cyberrisque — Le changement modifie le niveau de détail fourni sur les menaces cyber, notamment les attaques par déni de service et les ransomwares. Ce point permet de suivre la transparence de la banque sur son exposition aux risques technologiques, la précision de ses facteurs de risque et la comparabilité de sa divulgation avec les autres institutions.", "change_segments": [{"kind": "removed", "text_t1": "Les risques liés aux cybermenaces incluent les attaques par déni de service et les ransomwares.", "text_t2": ""}]}
+Output : {"is_relevant": true, "themes_amf": ["FACTEUR_RISQUE_CHANGEMENT", "RISQUE_EMERGENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque listait explicitement les attaques par déni de service et les ransomwares comme cybermenaces, mais cette mention disparaît au T2. Ce retrait touche un facteur de risque et un risque émergent prioritaire. Il modifie le niveau de détail de la divulgation cyber.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Cybersécurité, risque émergent, facteur de risque modifié, information retirée.\n\nCe qui change : Le T2 retire la mention explicite des attaques par déni de service et des ransomwares comme cybermenaces. Ces risques étaient nommés directement au T1 et ne sont plus présentés avec le même niveau de précision dans le passage comparé.\n\nPertinence métier : Ce changement met l'accent sur la précision de la divulgation relative aux cyberrisques. Dans un rapport bancaire, l'ajout ou le retrait de menaces cyber précises peut modifier la lecture de l'exposition au risque, de la transparence et de la comparabilité avec les pairs, surtout lorsque les cybermenaces constituent un sujet de surveillance prioritaire.\n\nPoint de surveillance : Cyberrisque — Le changement modifie le niveau de détail fourni sur les menaces cyber, notamment les attaques par déni de service et les ransomwares. Ce point permet de suivre la transparence de la banque sur son exposition aux risques technologiques, la précision de ses facteurs de risque et la comparabilité de sa divulgation avec les autres institutions."}
 
 Exemple 3 — Nouvelle mention BSIF climatique (added, MAJEUR)
 Input : diff_type="added", T1="", T2="Conformément aux nouvelles attentes du BSIF en matière de risques climatiques (Ligne directrice B-15), nous avons mis en place un comité dédié."
-Output : {"is_relevant": true, "themes_amf": ["NOUVELLE_MENTION_REGLEMENTAIRE", "ESG_CLIMATIQUE", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque mentionne pour la première fois la Ligne directrice B-15 du BSIF et la création d'un comité ESG ou climatique. Ce changement croise nouvelle mention réglementaire, divulgation ESG et gouvernance des risques. Il rend plus explicite l'arrimage de la banque aux attentes prudentielles climatiques.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, nouvelle mention réglementaire, gouvernance des risques.\n\nCe qui change : Le T2 ajoute une référence aux attentes du BSIF en matière de risques climatiques, soit la Ligne directrice B-15, ainsi qu'un comité dédié. Cette mention n'apparaissait pas au T1 et introduit une articulation plus explicite entre réglementation climatique et gouvernance interne.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences climatiques du BSIF. Ce point permet de suivre l'adaptation aux attentes prudentielles climatiques, le niveau de préparation ESG et la comparabilité des pratiques de divulgation entre pairs.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "Conformément aux nouvelles attentes du BSIF en matière de risques climatiques (Ligne directrice B-15), nous avons mis en place un comité dédié."}]}
+Output : {"is_relevant": true, "themes_amf": ["NOUVELLE_MENTION_REGLEMENTAIRE", "ESG_CLIMATIQUE", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque mentionne pour la première fois la Ligne directrice B-15 du BSIF et la création d'un comité ESG ou climatique. Ce changement croise nouvelle mention réglementaire, divulgation ESG et gouvernance des risques. Il rend plus explicite l'arrimage de la banque aux attentes prudentielles climatiques.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, nouvelle mention réglementaire, gouvernance des risques.\n\nCe qui change : Le T2 ajoute une référence aux attentes du BSIF en matière de risques climatiques, soit la Ligne directrice B-15, ainsi qu'un comité dédié. Cette mention n'apparaissait pas au T1 et introduit une articulation plus explicite entre réglementation climatique et gouvernance interne.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences climatiques du BSIF. Ce point permet de suivre l'adaptation aux attentes prudentielles climatiques, le niveau de préparation ESG et la comparabilité des pratiques de divulgation entre pairs."}
 
 Exemple 4 — Variation chiffrée propre à la banque (EXCLU)
 Input : diff_type="modified", T1="Notre portefeuille de prêts hypothécaires s'élève à 287 G$.", T2="Notre portefeuille de prêts hypothécaires s'élève à 294 G$."
-Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nouvelle_idee": false, "action_requise": "aucune", "exclusion_reason": "variation_numerique_propre_banque", "explanation": "", "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour le montant du portefeuille de prêts hypothécaires, qui passe de 287 G$ à 294 G$. L'indicateur existait déjà au T1 et le changement porte uniquement sur la valeur publiée.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète l'évolution normale d'un chiffre propre à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.", "change_segments": []}
+Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nouvelle_idee": false, "action_requise": "aucune", "exclusion_reason": "variation_numerique_propre_banque", "explanation": "", "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour le montant du portefeuille de prêts hypothécaires, qui passe de 287 G$ à 294 G$. L'indicateur existait déjà au T1 et le changement porte uniquement sur la valeur publiée.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète l'évolution normale d'un chiffre propre à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque."}
 
 Exemple 5 — Montant réglementaire (seuil prudentiel)
 Input : diff_type="modified", T1="Le seuil prudentiel CET1 minimal applicable est de 4,5 %.", T2="Le seuil prudentiel CET1 minimal applicable est de 5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF."
-Output : {"is_relevant": true, "themes_amf": ["RATIOS_REGLEMENTAIRES", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE", "NOUVELLE_MENTION_REGLEMENTAIRE"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, le seuil prudentiel CET1 minimal applicable passe de 4,5 % à 5,0 % en lien avec les nouvelles exigences pilier 2 du BSIF. Ce changement porte sur un seuil réglementaire, pas sur une variation propre à la banque. Il modifie la lecture du cadre de capital applicable.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Ratio prudentiel, seuil réglementaire, exigence réglementaire, capital.\n\nCe qui change : Le T2 modifie le seuil prudentiel CET1 minimal applicable, qui passe de 4,5 % à 5,0 %, et rattache ce changement aux nouvelles exigences pilier 2 du BSIF. Il s'agit d'un seuil réglementaire, pas d'une simple variation du ratio publié par la banque.\n\nPertinence métier : Ce changement met en évidence une évolution du cadre prudentiel applicable aux ratios réglementaires et aux exigences de capital. Un changement de seuil peut modifier l'interprétation de la marge de gestion du capital, la comparaison entre banques et la lecture du niveau de contrainte réglementaire applicable.\n\nPoint de surveillance : Capital réglementaire — La variation observée ne doit pas être lue uniquement comme un mouvement de chiffre. Ce point permet de suivre l'évolution du cadre prudentiel présenté par la banque, la contrainte réglementaire applicable et la comparabilité des ratios de capital entre institutions.", "change_segments": [{"kind": "modified", "text_t1": "4,5 %", "text_t2": "5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF"}]}
+Output : {"is_relevant": true, "themes_amf": ["RATIOS_REGLEMENTAIRES", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE", "NOUVELLE_MENTION_REGLEMENTAIRE"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, le seuil prudentiel CET1 minimal applicable passe de 4,5 % à 5,0 % en lien avec les nouvelles exigences pilier 2 du BSIF. Ce changement porte sur un seuil réglementaire, pas sur une variation propre à la banque. Il modifie la lecture du cadre de capital applicable.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Ratio prudentiel, seuil réglementaire, exigence réglementaire, capital.\n\nCe qui change : Le T2 modifie le seuil prudentiel CET1 minimal applicable, qui passe de 4,5 % à 5,0 %, et rattache ce changement aux nouvelles exigences pilier 2 du BSIF. Il s'agit d'un seuil réglementaire, pas d'une simple variation du ratio publié par la banque.\n\nPertinence métier : Ce changement met en évidence une évolution du cadre prudentiel applicable aux ratios réglementaires et aux exigences de capital. Un changement de seuil peut modifier l'interprétation de la marge de gestion du capital, la comparaison entre banques et la lecture du niveau de contrainte réglementaire applicable.\n\nPoint de surveillance : Capital réglementaire — La variation observée ne doit pas être lue uniquement comme un mouvement de chiffre. Ce point permet de suivre l'évolution du cadre prudentiel présenté par la banque, la contrainte réglementaire applicable et la comparabilité des ratios de capital entre institutions."}
 
 Exemple 6 — Ajout d'un risque tarifaire / commercial (added, MAJEUR)
 Input : diff_type="added", T1="", T2="L'application de nouveaux tarifs douaniers et de mesures de représailles accroît l'incertitude économique, perturbe les chaînes d'approvisionnement et amplifie la volatilité des marchés ainsi que le risque de crédit."
-Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque ajoute une divulgation sur l'incidence des nouveaux tarifs douaniers et des mesures de représailles, absente au T1. Ce déclencheur macroéconomique et commercial se transmet au risque de crédit, au risque de marché et aux chaînes d'approvisionnement. Il introduit un facteur de risque externe explicite dans la divulgation.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur les nouveaux tarifs douaniers et les mesures de représailles, ainsi que leurs effets sur l'incertitude économique, les chaînes d'approvisionnement, la volatilité des marchés et le risque de crédit. Cette information était absente du T1.\n\nPertinence métier : Ce changement met l'accent sur un déclencheur macroéconomique et commercial externe qui se transmet aux risques bancaires classiques. L'ajout d'une divulgation tarifaire rend visible la manière dont la banque relie un choc commercial à son exposition au crédit, au marché et au financement, ce qui modifie la lecture de son profil de risque.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque divulgue désormais explicitement l'incidence des tarifs douaniers. Ce point permet de suivre la transmission de ce déclencheur externe au risque de crédit et de marché, ainsi que l'évolution de la transparence de la banque sur les chocs commerciaux.", "change_segments": [{"kind": "added", "text_t1": "", "text_t2": "L'application de nouveaux tarifs douaniers et de mesures de représailles accroît l'incertitude économique, perturbe les chaînes d'approvisionnement et amplifie la volatilité des marchés ainsi que le risque de crédit."}]}
+Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque ajoute une divulgation sur l'incidence des nouveaux tarifs douaniers et des mesures de représailles, absente au T1. Ce déclencheur macroéconomique et commercial se transmet au risque de crédit, au risque de marché et aux chaînes d'approvisionnement. Il introduit un facteur de risque externe explicite dans la divulgation.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur les nouveaux tarifs douaniers et les mesures de représailles, ainsi que leurs effets sur l'incertitude économique, les chaînes d'approvisionnement, la volatilité des marchés et le risque de crédit. Cette information était absente du T1.\n\nPertinence métier : Ce changement met l'accent sur un déclencheur macroéconomique et commercial externe qui se transmet aux risques bancaires classiques. L'ajout d'une divulgation tarifaire rend visible la manière dont la banque relie un choc commercial à son exposition au crédit, au marché et au financement, ce qui modifie la lecture de son profil de risque.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque divulgue désormais explicitement l'incidence des tarifs douaniers. Ce point permet de suivre la transmission de ce déclencheur externe au risque de crédit et de marché, ainsi que l'évolution de la transparence de la banque sur les chocs commerciaux."}
 
 Exemple 7 — Retrait d'un risque tarifaire / commercial (removed, MAJEUR)
 Input : diff_type="removed", T1="Les nouveaux tarifs douaniers pourraient avoir une incidence sur les clients de détail et commerciaux, qui pourraient être touchés par la hausse du chômage et voir leur capacité à rembourser leurs prêts réduite.", T2=""
-Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque divulguait l'incidence des tarifs douaniers sur ses clients et sur leur capacité de remboursement, mais cette mention disparaît au T2. Ce retrait touche un déclencheur macroéconomique et commercial relié au risque de crédit. Il réduit le niveau de détail de la divulgation sur un risque externe important.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information retirée.\n\nCe qui change : Le T2 retire la divulgation, présente au T1, sur l'incidence des tarifs douaniers sur les clients de détail et commerciaux et sur leur capacité à rembourser leurs prêts. Ce lien explicite entre tarifs et risque de crédit n'apparaît plus.\n\nPertinence métier : Ce changement met l'accent sur le fait que la banque atténue sa communication sur un déclencheur macroéconomique et commercial relié au risque de crédit. Le retrait d'une divulgation sur les tarifs n'est pas neutre : il modifie la lecture de l'exposition de la banque et de sa transparence sur un risque externe, et mérite la même attention qu'un ajout.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque retire une divulgation tarifaire reliée au risque de crédit. Ce point permet de suivre l'évolution de la transparence de la banque sur les chocs commerciaux et la cohérence de sa divulgation du risque externe dans le temps.", "change_segments": [{"kind": "removed", "text_t1": "Les nouveaux tarifs douaniers pourraient avoir une incidence sur les clients de détail et commerciaux, qui pourraient être touchés par la hausse du chômage et voir leur capacité à rembourser leurs prêts réduite.", "text_t2": ""}]}
+Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque divulguait l'incidence des tarifs douaniers sur ses clients et sur leur capacité de remboursement, mais cette mention disparaît au T2. Ce retrait touche un déclencheur macroéconomique et commercial relié au risque de crédit. Il réduit le niveau de détail de la divulgation sur un risque externe important.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information retirée.\n\nCe qui change : Le T2 retire la divulgation, présente au T1, sur l'incidence des tarifs douaniers sur les clients de détail et commerciaux et sur leur capacité à rembourser leurs prêts. Ce lien explicite entre tarifs et risque de crédit n'apparaît plus.\n\nPertinence métier : Ce changement met l'accent sur le fait que la banque atténue sa communication sur un déclencheur macroéconomique et commercial relié au risque de crédit. Le retrait d'une divulgation sur les tarifs n'est pas neutre : il modifie la lecture de l'exposition de la banque et de sa transparence sur un risque externe, et mérite la même attention qu'un ajout.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque retire une divulgation tarifaire reliée au risque de crédit. Ce point permet de suivre l'évolution de la transparence de la banque sur les chocs commerciaux et la cohérence de sa divulgation du risque externe dans le temps."}
 """
 
 
@@ -2244,10 +2361,22 @@ def _triage_section_changes(
             {
                 "change_index": idx,
                 "diff_type": change["diff_type"],
-                "semantic_text_t1": change.get("semantic_text_t1", ""),
-                "semantic_text_t2": change.get("semantic_text_t2", ""),
-                "source_snippet_t1": (change.get("source_text_t1") or "")[:300],
-                "source_snippet_t2": (change.get("source_text_t2") or "")[:300],
+                "semantic_text_t1": _truncate_prompt_text(
+                    change.get("semantic_text_t1", ""),
+                    _TRIAGE_SEMANTIC_TEXT_LIMIT,
+                ),
+                "semantic_text_t2": _truncate_prompt_text(
+                    change.get("semantic_text_t2", ""),
+                    _TRIAGE_SEMANTIC_TEXT_LIMIT,
+                ),
+                "source_snippet_t1": _truncate_prompt_text(
+                    change.get("source_text_t1") or "",
+                    _TRIAGE_SOURCE_SNIPPET_LIMIT,
+                ),
+                "source_snippet_t2": _truncate_prompt_text(
+                    change.get("source_text_t2") or "",
+                    _TRIAGE_SOURCE_SNIPPET_LIMIT,
+                ),
                 "change_summary": change.get("change_summary", ""),
             }
         )
@@ -2272,10 +2401,9 @@ def _triage_section_changes(
         "Pour chaque changement de la liste ci-dessous, produis un triage AMF "
         "dans le batch de sortie en réutilisant le même change_index. Le "
         "schéma de sortie est imposé par l'API ; tu ne dois pas en dévier.\n\n"
-        "Tu identifies aussi les SEGMENTS substantiels qui changent entre T1 et "
-        "T2 dans le champ ``change_segments`` (voir règle 9 ci-dessous). Ces "
-        "segments servent à surligner précisément les portions modifiées dans "
-        "la vue side-by-side analyste.\n\n"
+        "Ne produis pas de segments de surlignage ni de preuve verbatim : "
+        "ces preuves sont calculées localement à partir des textes T1/T2. "
+        "Concentre-toi uniquement sur le triage métier AMF.\n\n"
         "Taxonomie AMF (utilise UNIQUEMENT ces codes pour themes_amf, "
         "multi-label autorisé et encouragé) :\n"
         f"{format_themes_for_prompt()}\n\n"
@@ -2405,7 +2533,7 @@ def _triage_section_changes(
         "8. INVARIANTS STRICTS (toute violation rejette la réponse) :\n"
         "   - is_relevant=true → themes_amf NON VIDE, exclusion_reason=null, "
         "explanation ≥ 50 caractères (3 phrases pleines), nouvelle_idee_justification "
-        "≥ 3 phrases complètes ET ≥ 200 caractères au total, commençant par 'OUI' "
+        "≥ 3 phrases complètes, entre 220 et 700 caractères au total, commençant par 'OUI' "
         "et contenant les rubriques exactes : Nouvel élément à surveiller, "
         "Sujet détecté, Ce qui change, Pertinence métier, Point de surveillance.\n"
         "   - is_relevant=false → themes_amf=[], exclusion_reason renseigné, "
@@ -2413,22 +2541,12 @@ def _triage_section_changes(
         "changement_posture=AUCUN, impact_it=INDETERMINE, "
         "justification_posture vide, statut_mise_en_oeuvre=INDETERMINE, "
         "confiance_posture=INDETERMINE, impact_it_justification vide, "
-        "explanation vide, change_segments=[]. "
+        "explanation vide. "
         "nouvelle_idee_justification "
-        "OBLIGATOIRE : ≥ 3 phrases complètes ET ≥ 200 caractères, commençant "
+        "OBLIGATOIRE : ≥ 3 phrases complètes, entre 220 et 700 caractères, commençant "
         "par 'NON', contenant les mêmes rubriques exactes, et expliquant "
         "clairement POURQUOI ce changement n'est pas une nouvelle idée AMF "
         "(citer la raison d'exclusion en langage métier, pas seulement le code).\n\n"
-        "9. CHANGE_SEGMENTS — détection sémantique fine (pour highlight UI) :\n"
-        "   Si is_relevant=true, identifie les SEGMENTS précis qui changent. "
-        'Format : liste d\'objets `{"kind":"added|removed|modified", '
-        '"text_t1":"...", "text_t2":"..."}`. Règles :\n'
-        "   - kind='added'    → text_t1=\"\", text_t2=fragment AJOUTÉ verbatim de T2 (présent dans T2, absent de T1).\n"
-        "   - kind='removed'  → text_t1=fragment SUPPRIMÉ verbatim de T1 (présent dans T1, absent de T2), text_t2=\"\".\n"
-        "   - kind='modified' → text_t1 et text_t2 sont les fragments correspondants modifiés (ex: '4,5 %' → '5,0 %').\n"
-        "   IMPORTANT : les fragments DOIVENT être copiés VERBATIM depuis le texte source (sinon le highlight UI échoue à les retrouver).\n"
-        "   Pas de paraphrase, pas de reformulation. Cite littéralement.\n"
-        "   Si is_relevant=false → change_segments=[].\n\n"
         "Exigence pour `explanation` (3 phrases obligatoires si is_relevant=true, "
         "chaîne vide sinon) :\n"
         "1. Ce qui a changé concrètement entre T1 (précédent) et T2 (courant).\n"
@@ -2439,6 +2557,8 @@ def _triage_section_changes(
         "y compris pour les is_relevant=false) :\n"
         "- Format STRICT : commencer par 'OUI' (si nouvelle_idee=true) ou 'NON' "
         "(si nouvelle_idee=false), suivi d'un tiret '—' ou '-'.\n"
+        "- LONGUEUR STRICTE : rester entre 220 et 700 caractères au total. "
+        "Une phrase courte par rubrique suffit; ne jamais produire de note longue.\n"
         "- Rédiger une NOTE D'ANALYSTE avec ces rubriques EXACTES, dans cet "
         "ordre, séparées par \\n\\n :\n"
         "  1) 'OUI — Nouvel élément à surveiller : Oui' ou "
@@ -2448,7 +2568,7 @@ def _triage_section_changes(
         "méthode de calcul, information ajoutée ou retirée).\n"
         "  3) 'Ce qui change : ...' avec l'élément exact ajouté, retiré ou "
         "modifié entre T1 et T2.\n"
-        "  4) 'Pertinence métier : ...' avec une explication longue, concrète "
+        "  4) 'Pertinence métier : ...' avec une explication concise, concrète "
         "et formulée comme un analyste de vigie : commencer idéalement par "
         "'Ce changement met l'accent sur ...' ou 'Ce changement met en évidence ...'. "
         "Relier le changement au sujet détecté, aux attentes prudentielles, "
@@ -2459,7 +2579,7 @@ def _triage_section_changes(
         "sans demander à l'analyste de vérifier, accepter ou rejeter le changement.\n"
         "- Au moins 3 phrases complètes (ponctuation finale, ≥ 20 chars chacune) "
         "et ≥ 200 caractères au total — l'analyste doit avoir une explication "
-        "détaillée et claire, pas un résumé.\n"
+        "claire et concise, pas une note exhaustive.\n"
         "- Citer l'élément SPÉCIFIQUE du rapport : nom exact d'un indicateur, "
         "fragment de phrase, libellé de footnote, titre de tableau — adossé au "
         "contenu réel des rapports aux actionnaires traités.\n"
@@ -2492,7 +2612,7 @@ def _triage_section_changes(
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            response_format=TriageAMFBatch,
+            response_format=TriageAMFLLMBatch,
             max_retries=1,
         )
     except ValidationError as exc:
@@ -2512,6 +2632,10 @@ def _triage_section_changes(
     nouvelle_idee_count = 0
     for triage_obj in batch.triages:
         triage_dict = triage_obj.model_dump(exclude={"change_index"})
+        source_change = changes[triage_obj.change_index - 1]
+        triage_dict["change_segments"] = (
+            build_change_segments(source_change) if triage_dict.get("is_relevant") else []
+        )
         triage_dict["explanation"] = _sanitize_explanation(triage_dict["explanation"])
         legacy_fields = _derive_legacy_fields(triage_dict)
         triage = {**triage_dict, **legacy_fields, "source": TRIAGE_SOURCE_VERSION}

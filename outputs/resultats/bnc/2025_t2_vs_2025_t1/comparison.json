@@ -548,7 +548,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-06-23T15:19:10.056827+00:00",
+              "at": "2026-06-24T19:42:25.262918+00:00",
               "by": "analyst"
             }
           },
@@ -558,6 +558,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Série 49\" a été ajouté dans le tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer l'émission d'une nouvelle série d'actions privilégiées, ce qui peut avoir un impact sur la structure du capital de la banque. Les actions privilégiées sont souvent utilisées pour renforcer les fonds propres de catégorie 1, conformément aux exigences de Bâle III et aux lignes directrices du BSIF.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer l'émission de cette nouvelle série et évaluer son impact sur les ratios de fonds propres."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-06-24T19:42:55.559989+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -770,6 +776,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Émission d’actions ordinaires relatives à l'acquisition de CWB\" a été ajouté dans le tableau de variation des fonds propres réglementaires pour le semestre terminé le 30 avril 2025. Cet indicateur n'était pas présent dans le trimestre précédent terminé le 31 janvier 2025.\n\nCet ajout reflète une opération spécifique d'émission d'actions ordinaires liée à l'acquisition de CWB. Cela peut avoir un impact significatif sur la structure du capital de la banque, influençant potentiellement les ratios de fonds propres réglementaires tels que le CET1. Les exigences de Bâle III et les lignes directrices du BSIF sur la divulgation des fonds propres pourraient être concernées, car elles nécessitent une transparence accrue sur les événements affectant les fonds propres.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cette émission est correctement intégrée dans les calculs des fonds propres et que toutes les implications réglementaires sont bien prises en compte."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-06-24T19:42:57.806568+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -3331,6 +3343,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n-1 a été ajoutée dans le tableau des échéances contractuelles des actifs financiers au T2 2025.\n\nCette note précise que la Banque a conclu l'acquisition de CWB le 3 février 2025, et que les résultats de CWB ont été consolidés à partir de cette date, impactant ainsi les soldes au 30 avril 2025. Cette information est cruciale car elle affecte directement la présentation des actifs financiers et pourrait influencer les ratios financiers et les analyses de risque associées.\n\nIl s'agit d'une divulgation importante liée à une acquisition stratégique. L'analyste devrait confirmer l'intégration correcte des résultats de CWB dans les états financiers consolidés et s'assurer que toutes les implications réglementaires et comptables ont été correctement adressées."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-06-24T19:42:33.142071+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -4216,9 +4234,9 @@
     "total_relevant": 7
   },
   "review_decisions_summary": {
-    "matched": 1,
+    "matched": 4,
     "unmatched": 0,
-    "pending": 12,
-    "updated_at": "2026-06-23T15:19:10+00:00"
+    "pending": 9,
+    "updated_at": "2026-06-24T19:42:57+00:00"
   }
 }

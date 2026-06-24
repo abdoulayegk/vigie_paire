@@ -1388,6 +1388,8 @@ from pydantic import ValidationError as _PydValidationError
 
 from vigilance.amf_taxonomy import (
     TriageAMFBatch,
+    TriageAMFLLMBatch,
+    TriageAMFLLMResultWithIndex,
     TriageAMFResult,
     TriageAMFResultWithIndex,
     TriageValidationError,
@@ -1886,6 +1888,80 @@ def test_correction_retry_does_not_retry_runtime_errors() -> None:
     assert client.call_count == 1
 
 
+def test_correction_retry_retries_transient_timeout(monkeypatch) -> None:
+    valid_batch = TriageAMFBatch(triages=[])
+    state = {"calls": 0}
+    monkeypatch.setattr("vigilance.text_analysis_pipeline.time.sleep", lambda _seconds: None)
+
+    def timeout_then_success(**kwargs):
+        state["calls"] += 1
+        if state["calls"] == 1:
+            raise TimeoutError("Request timed out.")
+        return _make_parsed_response(valid_batch)
+
+    client = _FakeStructuredClient(timeout_then_success)
+
+    result = _call_structured_completion_with_correction(
+        client,
+        model="gpt-4o",
+        messages=[{"role": "user", "content": "x"}],
+        response_format=TriageAMFBatch,
+        max_retries=1,
+        max_transport_retries=1,
+    )
+
+    assert result is valid_batch
+    assert client.call_count == 2
+
+
+def test_correction_retry_exhausts_transient_timeout(monkeypatch) -> None:
+    monkeypatch.setattr("vigilance.text_analysis_pipeline.time.sleep", lambda _seconds: None)
+
+    def always_timeout(**kwargs):
+        raise TimeoutError("Request timed out.")
+
+    client = _FakeStructuredClient(always_timeout)
+
+    with pytest.raises(TimeoutError, match="timed out"):
+        _call_structured_completion_with_correction(
+            client,
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "x"}],
+            response_format=TriageAMFBatch,
+            max_retries=1,
+            max_transport_retries=1,
+        )
+
+    assert client.call_count == 2
+
+
+def test_correction_retry_retries_length_limit_once() -> None:
+    valid_batch = TriageAMFBatch(triages=[])
+    state = {"calls": 0}
+
+    def length_then_success(**kwargs):
+        state["calls"] += 1
+        if state["calls"] == 1:
+            raise RuntimeError("Could not parse response content as the length limit was reached")
+        return _make_parsed_response(valid_batch)
+
+    client = _FakeStructuredClient(length_then_success)
+
+    result = _call_structured_completion_with_correction(
+        client,
+        model="gpt-4o",
+        messages=[{"role": "user", "content": "x"}],
+        response_format=TriageAMFBatch,
+        max_retries=1,
+        max_length_retries=1,
+    )
+
+    assert result is valid_batch
+    assert client.call_count == 2
+    retry_messages = client._completions.calls[1]["messages"]
+    assert "dépassé la limite de sortie" in retry_messages[-1]["content"]
+
+
 # --- _triage_section_changes : ValidationError → TriageValidationError ---
 
 
@@ -1988,6 +2064,101 @@ def test_triage_section_changes_processes_changes_one_by_one() -> None:
     ]
     assert all('"change_index": 1' in prompt for prompt in user_prompts)
     assert all('"change_index": 2' not in prompt for prompt in user_prompts)
+
+
+def test_triage_section_changes_truncates_large_prompt_fields() -> None:
+    def valid_response(**_kwargs):
+        return _make_parsed_response(
+            TriageAMFBatch(
+                triages=[
+                    TriageAMFResultWithIndex(
+                        change_index=1,
+                        is_relevant=False,
+                        exclusion_reason="reformulation_mineure",
+                        nouvelle_idee_justification=_valid_justification_non(),
+                    )
+                ]
+            )
+        )
+
+    client = _FakeStructuredClient(valid_response)
+    long_semantic = "A" * 5000
+    long_source = "B" * 2000
+
+    _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=[
+            {
+                "diff_type": "added",
+                "semantic_text_t1": "",
+                "semantic_text_t2": long_semantic,
+                "source_text_t1": "",
+                "source_text_t2": long_source,
+            }
+        ],
+    )
+
+    prompt = client._completions.calls[0]["messages"][1]["content"]
+    assert long_semantic not in prompt
+    assert long_source not in prompt
+    assert "texte tronque pour le triage" in prompt
+
+
+def test_triage_section_changes_attaches_deterministic_change_segments() -> None:
+    parsed = TriageAMFLLMBatch(
+        triages=[
+            TriageAMFLLMResultWithIndex(
+                change_index=1,
+                is_relevant=True,
+                themes_amf=["GOUVERNANCE_RISQUES", "DIVULGATION_RETRAIT"],
+                impact_level="MAJEUR",
+                changement_posture="ALLEGEMENT",
+                justification_posture=(
+                    "Preuve : Le texte retire le CRG de la liste des comités "
+                    "recevant les rapports.\n\n"
+                    "Effet sur la gestion du risque : La chaîne de communication "
+                    "présentée devient moins étendue.\n\n"
+                    "Justification du statut : Le retrait est visible dans le "
+                    "texte courant.\n\n"
+                    "Justification de la confiance : Les deux phrases sont "
+                    "directement comparables."
+                ),
+                statut_mise_en_oeuvre="MIS_EN_OEUVRE",
+                confiance_posture="ELEVEE",
+                nouvelle_idee=True,
+                action_requise="revue_prioritaire",
+                explanation=_valid_explanation(),
+                nouvelle_idee_justification=_valid_justification_oui(),
+            )
+        ]
+    )
+    client = _FakeStructuredClient(_make_parsed_response(parsed))
+    changes = [
+        {
+            "diff_type": "modified",
+            "source_text_t1": "Rapports transmis au CGRO, au CRG et au CGR.",
+            "source_text_t2": "Rapports transmis au CGRO et au CGR.",
+        }
+    ]
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=changes,
+    )
+
+    assert result[0]["genai_triage"]["change_segments"] == [
+        {"kind": "removed", "text_t1": ", au CRG", "text_t2": ""}
+    ]
+    prompt = "\n".join(
+        str(message.get("content", ""))
+        for message in client._completions.calls[0]["messages"]
+    )
+    assert "Ne produis pas de segments de surlignage" in prompt
+    assert client._completions.calls[0]["response_format"] is TriageAMFLLMBatch
 
 
 def test_triage_section_changes_requests_posture_and_it_impact() -> None:

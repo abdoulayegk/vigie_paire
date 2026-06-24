@@ -361,7 +361,7 @@ def _missing_justification_sections(text: str) -> list[str]:
     return missing
 
 
-class TriageAMFResult(BaseModel):
+class _TriageAMFResultBase(BaseModel):
     """Sortie validée d'un triage GPT-4o pour un changement.
 
     Invariants garantis (toute violation lève ``pydantic.ValidationError``).
@@ -393,8 +393,6 @@ class TriageAMFResult(BaseModel):
     nouvelle_idee_justification: str = ""
     action_requise: ActionRequise = "aucune"
     exclusion_reason: ExclusionReason | None = None
-    change_segments: list[ChangeSegment] = Field(default_factory=list)
-
     @field_validator("themes_amf")
     @classmethod
     def _dedupe_themes(cls, value: list[str]) -> list[str]:
@@ -424,7 +422,7 @@ class TriageAMFResult(BaseModel):
         return normalized
 
     @model_validator(mode="after")
-    def _check_invariants(self) -> "TriageAMFResult":
+    def _check_invariants(self) -> "_TriageAMFResultBase":
         """Garantit la cohérence métier de la sortie GPT (cf. docstring de classe)."""
         # ---------- Justification : OBLIGATOIRE et SUBSTANTIELLE ----------
         # Quel que soit ``is_relevant`` (Oui ou Non), l'analyste a besoin
@@ -488,9 +486,6 @@ class TriageAMFResult(BaseModel):
                 raise ValueError("is_relevant=False exige action_requise='aucune'")
             if self.explanation.strip():
                 raise ValueError("is_relevant=False exige explanation vide")
-            if self.change_segments:
-                raise ValueError("is_relevant=False exige change_segments vide")
-
         if self.action_requise == "revue_prioritaire" and self.impact_level != "MAJEUR":
             raise ValueError("action_requise='revue_prioritaire' exige impact_level='MAJEUR'")
         if self.impact_it != "INDETERMINE" and len(self.impact_it_justification.strip()) < 20:
@@ -533,6 +528,23 @@ class TriageAMFResult(BaseModel):
         return self
 
 
+class TriageAMFResult(_TriageAMFResultBase):
+    """Triage AMF complet persisté dans les artefacts texte.
+
+    ``change_segments`` est rattaché hors LLM par le pipeline, afin que les
+    preuves verbatim restent déterministes et auditables.
+    """
+
+    change_segments: list[ChangeSegment] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _check_change_segments_for_irrelevant(self) -> "TriageAMFResult":
+        """Un changement non pertinent ne doit pas afficher de surlignage."""
+        if not self.is_relevant and self.change_segments:
+            raise ValueError("is_relevant=False exige change_segments vide")
+        return self
+
+
 class TriageAMFResultWithIndex(TriageAMFResult):
     """Triage AMF accompagné de l'index du changement dans la section.
 
@@ -540,6 +552,16 @@ class TriageAMFResultWithIndex(TriageAMFResult):
     L'index est 1-based pour rester aligné avec l'énumération transmise au
     modèle dans le prompt et permettre un mapping robuste vers les changements
     sources, indépendamment de l'ordre de la liste retournée.
+    """
+
+    change_index: int = Field(..., ge=1)
+
+
+class TriageAMFLLMResultWithIndex(_TriageAMFResultBase):
+    """Triage AMF demandé au LLM, sans preuve de surlignage.
+
+    Les segments verbatim sont calculés localement depuis les textes T1/T2 pour
+    éviter de mélanger jugement métier et extraction mécanique de preuve.
     """
 
     change_index: int = Field(..., ge=1)
@@ -556,6 +578,12 @@ class TriageAMFBatch(BaseModel):
     """
 
     triages: list[TriageAMFResultWithIndex]
+
+
+class TriageAMFLLMBatch(BaseModel):
+    """Lot de triages AMF retourné par le LLM sans ``change_segments``."""
+
+    triages: list[TriageAMFLLMResultWithIndex]
 
 
 def format_themes_for_prompt() -> str:
